@@ -11,13 +11,14 @@ interface AppShellProps {
   /** Vídeo de fundo opcional. */
   video?: string | null;
   videoOpacity?: number;
+  darken?: number;
 }
 
 /**
  * Casca raiz: aplica as variáveis do tema, monta a cena de fundo
  * cinematográfica e o overlay global de rolagem.
  */
-export function AppShell({ children, video = null, videoOpacity }: AppShellProps) {
+export function AppShell({ children, video = null, videoOpacity, darken }: AppShellProps) {
   const theme = useUiStore((s) => s.theme);
   const t = useTheme();
 
@@ -39,7 +40,7 @@ export function AppShell({ children, video = null, videoOpacity }: AppShellProps
 
   return (
     <div data-theme={theme} style={rootStyle}>
-      <BackgroundScene video={video} videoOpacity={videoOpacity} />
+      <BackgroundScene video={video} videoOpacity={videoOpacity} darken={darken} />
       {children}
       <RollOverlay />
     </div>

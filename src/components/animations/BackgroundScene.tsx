@@ -6,13 +6,17 @@ interface BackgroundSceneProps {
   /** Vídeo de fundo opcional (luz volumétrica/cena). */
   video?: string | null;
   videoOpacity?: number;
+  /** Intensidade do escurecimento sobre o vídeo (1 = padrão; menor = mais visível). */
+  darken?: number;
 }
 
 /**
  * Cena de fundo cinematográfica: vídeo opcional + camadas de gradiente
  * (bloom superior, brilho arcano inferior, vinheta) + partículas.
  */
-export function BackgroundScene({ video = null, videoOpacity = 0.5 }: BackgroundSceneProps) {
+export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }: BackgroundSceneProps) {
+  const topDark = 0.62 * darken;
+  const botDark = 0.78 * darken;
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -52,7 +56,7 @@ export function BackgroundScene({ video = null, videoOpacity = 0.5 }: Background
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(180deg, rgba(6,8,12,.62), rgba(6,8,12,.78))',
+          background: `linear-gradient(180deg, rgba(6,8,12,${topDark}), rgba(6,8,12,${botDark}))`,
         }}
       />
       {/* bloom superior na cor do tema */}

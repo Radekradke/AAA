@@ -8,6 +8,7 @@ interface ScreenProps {
   actions?: ReactNode;
   video?: string | null;
   videoOpacity?: number;
+  darken?: number;
   /** Conteúdo rola internamente (telas longas como a ficha). */
   scroll?: boolean;
 }
@@ -16,9 +17,9 @@ interface ScreenProps {
  * Tela completa: casca + barra superior + área de conteúdo com entrada
  * cinematográfica. Base de todas as páginas.
  */
-export function Screen({ children, actions, video, videoOpacity, scroll }: ScreenProps) {
+export function Screen({ children, actions, video, videoOpacity, darken, scroll }: ScreenProps) {
   return (
-    <AppShell video={video} videoOpacity={videoOpacity}>
+    <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
       <TopBar actions={actions} />
       <motion.div
         initial={{ opacity: 0, scale: 1.035, y: 10, filter: 'blur(6px)' }}

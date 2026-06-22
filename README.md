@@ -68,7 +68,7 @@ src/
     ui/          Button, Panel/SectionLabel
     layout/      AppShell, TopBar, Screen
     animations/  ParticleField, BackgroundScene, RuneRing
-    character/   CreatorHero + passos (Identity, Race, Class, Abilities, Skills, Gear, Review)
+    character/   passos da criação (Identity, Race, Class, Abilities, Skills, Gear, Review) + CharacterEditModal
     sheet/       SheetHeader, SheetTabs, MobileNav, TabFicha/Combate/Inventario/Magias/Descanso/Diario
     dice/        DiceRoller, RollOverlay, useDiceRoller
     inventory/   AddItemPicker

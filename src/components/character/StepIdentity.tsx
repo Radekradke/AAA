@@ -1,6 +1,7 @@
 import type { StepProps } from './stepTypes';
 import { ChapterTitle } from './ChapterTitle';
 import { BACKGROUNDS } from '@/data/backgrounds';
+import { useTheme } from '@/lib/useTheme';
 
 const ALIGNMENTS = [
   'Leal e Bom', 'Neutro e Bom', 'Caótico e Bom',
@@ -18,6 +19,24 @@ const fieldLabel: React.CSSProperties = {
 };
 
 export function StepIdentity({ char, update }: StepProps) {
+  const t = useTheme();
+
+  const genderBtn = (g: 'masc' | 'fem'): React.CSSProperties => ({
+    cursor: 'pointer',
+    flex: 1,
+    fontFamily: "'Cinzel', serif",
+    fontWeight: 600,
+    fontSize: 13,
+    letterSpacing: '.03em',
+    padding: '11px 0',
+    borderRadius: 10,
+    border: '1px solid ' + (char.gender === g ? t.gold : t.line),
+    color: char.gender === g ? t.gold : t.muted,
+    background: char.gender === g ? 'rgba(255,224,138,.12)' : 'rgba(0,0,0,.28)',
+    boxShadow: char.gender === g ? '0 0 16px var(--bloom)' : 'none',
+    transition: '.25s',
+  });
+
   return (
     <div className="animate-riseIn">
       <ChapterTitle
@@ -73,6 +92,17 @@ export function StepIdentity({ char, update }: StepProps) {
             onChange={(e) => update((c) => { c.age = e.target.value; })}
           />
         </label>
+        <div style={{ display: 'block' }}>
+          <span style={fieldLabel}>Sexo</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" onClick={() => update((c) => { c.gender = 'masc'; })} style={genderBtn('masc')}>
+              Masculino
+            </button>
+            <button type="button" onClick={() => update((c) => { c.gender = 'fem'; })} style={genderBtn('fem')}>
+              Feminino
+            </button>
+          </div>
+        </div>
       </div>
       <label style={{ display: 'block', marginTop: 14 }}>
         <span style={fieldLabel}>Conceito</span>

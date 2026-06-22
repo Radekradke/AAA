@@ -350,6 +350,7 @@ body {
     flex-direction: column !important;
     flex-wrap: nowrap !important;
     align-content: stretch !important;
+    justify-content: flex-start !important;
   }
   .fv-hero {
     flex: none !important;

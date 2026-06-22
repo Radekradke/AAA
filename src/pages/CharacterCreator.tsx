@@ -9,7 +9,6 @@ import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import type { Character } from '@/types/character';
-import { CreatorHero } from '@/components/character/CreatorHero';
 import { StepIdentity } from '@/components/character/StepIdentity';
 import { StepRace } from '@/components/character/StepRace';
 import { StepClass } from '@/components/character/StepClass';
@@ -120,7 +119,8 @@ export function CharacterCreator() {
   return (
     <Screen
       video="/assets/bg.mp4"
-      videoOpacity={0.18}
+      videoOpacity={0.82}
+      darken={0.5}
       actions={
         <>
           <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
@@ -201,7 +201,7 @@ export function CharacterCreator() {
           })}
         </div>
 
-        {/* corpo: herói + conteúdo */}
+        {/* corpo: lado esquerdo livre (mostra o personagem do vídeo) + conteúdo à direita */}
         <div
           className="fv-body fv-scroll-thin"
           style={{
@@ -211,13 +211,12 @@ export function CharacterCreator() {
             minHeight: 0,
             flexWrap: 'wrap',
             alignContent: 'flex-start',
-            justifyContent: 'center',
+            justifyContent: 'flex-end',
             overflowY: 'auto',
             overflowX: 'hidden',
           }}
         >
-          <CreatorHero char={char} onGender={(g) => update((c) => { c.gender = g; })} />
-          <div className="fv-content" style={{ position: 'relative', flex: '2 1 440px', minWidth: 280, maxWidth: 760, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
+          <div className="fv-content" style={{ position: 'relative', flex: '1 1 440px', minWidth: 280, maxWidth: 720, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
             {/* clarão rúnico ao atravessar o portal entre etapas */}
             <div
               key={`flash-${step}`}
