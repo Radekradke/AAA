@@ -4,6 +4,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from './useDiceRoller';
+import { RollModeToggle } from './RollModeToggle';
 import { DICE_TYPES, modStr } from '@/engine/dice';
 
 /** Rolador de dados completo + histórico das últimas rolagens. */
@@ -12,11 +13,15 @@ export function DiceRoller() {
   const { rollDice } = useDiceRoller();
   const history = useUiStore((s) => s.history);
 
+  const rollMode = useUiStore((s) => s.rollMode);
+
   const [sides, setSides] = useState(20);
   const [count, setCount] = useState(1);
   const [mod, setMod] = useState(0);
 
   const expr = `${count}d${sides}${mod ? ' ' + modStr(mod) : ''}`;
+  const d20Single = sides === 20 && count === 1;
+  const modeLabel = rollMode === 'advantage' ? ' · vantagem' : rollMode === 'disadvantage' ? ' · desvantagem' : '';
 
   return (
     <div
@@ -24,7 +29,10 @@ export function DiceRoller() {
       style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}
     >
       <Panel>
-        <div className="fv-label" style={{ marginBottom: 13 }}>Rolador de Dados</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13, gap: 10, flexWrap: 'wrap' }}>
+          <div className="fv-label">Rolador de Dados</div>
+          <RollModeToggle />
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 9 }}>
           {DICE_TYPES.map((sd) => {
             const active = sides === sd;
@@ -46,11 +54,20 @@ export function DiceRoller() {
         </div>
 
         <button
-          onClick={() => rollDice(sides, { count, modifier: mod, label: `Rolagem ${expr}` })}
+          onClick={() =>
+            rollDice(sides, {
+              count,
+              modifier: mod,
+              label: `Rolagem ${expr}`,
+              advantage: d20Single && rollMode === 'advantage',
+              disadvantage: d20Single && rollMode === 'disadvantage',
+            })
+          }
           className="fv-btn-gold"
           style={{ marginTop: 18, width: '100%', padding: 14, fontSize: 16, boxShadow: '0 10px 28px rgba(0,0,0,.4), 0 0 24px var(--bloom)' }}
         >
           Rolar {expr}
+          {d20Single ? modeLabel : ''}
         </button>
       </Panel>
 

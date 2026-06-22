@@ -7,6 +7,7 @@ import { getBackground } from '@/data/backgrounds';
 import { itemToInventory } from './inventory';
 import { getItem } from '@/data/items';
 import { DEFAULT_PREPARED } from '@/data/spells';
+import { buildSpellSlots, buildResources } from './progression';
 
 /** Valores do Array Padrão de D&D 5e. */
 export const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
@@ -160,14 +161,9 @@ export function finalizeCharacter(draft: Character): Character {
   const preparedSpells =
     cls.spellcasting && draft.preparedSpells.length === 0 ? [...DEFAULT_PREPARED] : draft.preparedSpells;
 
-  // espaços de magia iniciais (1º círculo) para conjuradores
-  const spellSlots: Character['combat']['spellSlots'] = cls.spellcasting
-    ? { 1: { used: 0, max: 2 } }
-    : {};
-
-  // recursos de classe iniciais
-  const resources: Record<string, number> = {};
-  for (const r of cls.resources ?? []) resources[r.id] = r.max;
+  // espaços de magia e recursos conforme classe/nível
+  const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};
+  const resources = buildResources(draft.classId, draft.level);
 
   const finalized: Character = {
     ...draft,

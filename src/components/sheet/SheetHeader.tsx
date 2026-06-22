@@ -3,6 +3,8 @@ import type { DerivedCharacter } from '@/engine/dndRules';
 import { heroSubtitle, heroAvatar } from '@/lib/summary';
 import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
+import { useCharacterStore } from '@/store/characterStore';
+import { OrnateCorners } from '@/components/ui/OrnateCorners';
 
 interface SheetHeaderProps {
   char: Character;
@@ -12,6 +14,22 @@ interface SheetHeaderProps {
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
 export function SheetHeader({ char, derived }: SheetHeaderProps) {
   const race = getRace(char.raceId);
+  const setLevel = useCharacterStore((s) => s.setLevel);
+
+  const lvlBtn: React.CSSProperties = {
+    cursor: 'pointer',
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    border: '1px solid var(--line)',
+    background: 'rgba(0,0,0,.3)',
+    color: 'var(--acc)',
+    fontWeight: 700,
+    fontSize: 12,
+    lineHeight: 1,
+    display: 'grid',
+    placeItems: 'center',
+  };
 
   const defense = [
     { label: 'CA', val: String(derived.ac) },
@@ -25,6 +43,7 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
     <div
       className="fv-panel animate-breathe"
       style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: 'clamp(14px,2.5vw,26px)',
@@ -33,6 +52,7 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         padding: 'clamp(16px,2.4vw,24px)',
       }}
     >
+      <OrnateCorners size={18} inset={10} />
       <div style={{ position: 'relative', width: 'clamp(64px,9vw,86px)', height: 'clamp(64px,9vw,86px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
         <div
           style={{
@@ -62,8 +82,12 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         </div>
         <div style={{ marginTop: 6, fontSize: 13.5, color: 'var(--acc)', letterSpacing: '.04em' }}>{heroSubtitle(char)}</div>
         <div style={{ marginTop: 11, maxWidth: 340 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
-            <span>NÍVEL {char.level}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => setLevel(char.id, char.level - 1)} style={lvlBtn} aria-label="Diminuir nível">−</button>
+              NÍVEL {char.level}
+              <button onClick={() => setLevel(char.id, char.level + 1)} style={lvlBtn} aria-label="Aumentar nível">+</button>
+            </span>
             <span>{char.alignment}</span>
           </div>
           <div style={{ height: 7, borderRadius: 999, background: 'rgba(0,0,0,.35)', overflow: 'hidden', border: '1px solid var(--line)' }}>

@@ -10,6 +10,8 @@ interface TopBarProps {
 /** Barra superior fixa: marca + alternador de atmosfera + ações contextuais. */
 export function TopBar({ actions }: TopBarProps) {
   const toggleTheme = useUiStore((s) => s.toggleTheme);
+  const sound = useUiStore((s) => s.sound);
+  const toggleSound = useUiStore((s) => s.toggleSound);
   const t = useTheme();
 
   return (
@@ -89,6 +91,27 @@ export function TopBar({ actions }: TopBarProps) {
             }}
           />
           {t.label}
+        </button>
+        <button
+          onClick={toggleSound}
+          aria-label={sound ? 'Desativar som' : 'Ativar som'}
+          title={sound ? 'Som ativado' : 'Som desativado'}
+          style={{
+            cursor: 'pointer',
+            width: 36,
+            height: 36,
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 15,
+            borderRadius: 999,
+            border: '1px solid ' + (sound ? 'var(--gold)' : 'var(--line)'),
+            background: 'var(--panel)',
+            backdropFilter: 'blur(8px)',
+            color: sound ? 'var(--gold)' : 'var(--muted)',
+            transition: '.25s',
+          }}
+        >
+          {sound ? '🔊' : '🔈'}
         </button>
         {actions}
       </div>

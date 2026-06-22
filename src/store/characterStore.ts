@@ -6,6 +6,7 @@ import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/c
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
 import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT } from '@/engine/inventory';
+import { spellSlotsForClass, buildResources } from '@/engine/progression';
 import { getClass } from '@/data/classes';
 
 /** Aplica uma transformação imutável a um personagem por id. */
@@ -52,6 +53,8 @@ interface CharacterState {
   updateJournalEntry: (id: string, entryId: string, patch: Partial<JournalEntry>) => void;
   deleteJournalEntry: (id: string, entryId: string) => void;
   setNotes: (id: string, notes: string) => void;
+  setLevel: (id: string, level: number) => void;
+  editCharacter: (id: string, patch: Partial<Character>) => void;
 }
 
 let _seq = 0;
@@ -349,6 +352,50 @@ export const useCharacterStore = create<CharacterState>()(
           mutate(id, (c) => {
             c.notes = notes;
           });
+        },
+        setLevel(id, level) {
+          const char = get().getCharacter(id);
+          if (!char) return;
+          const newLevel = Math.max(1, Math.min(20, level));
+          if (newLevel === char.level) return;
+          const leveledUp = newLevel > char.level;
+          const before = deriveCharacter(char).maxHp;
+          const after = deriveCharacter({ ...char, level: newLevel }).maxHp;
+          mutate(id, (c) => {
+            c.level = newLevel;
+            // ao subir, soma o PV ganho; ao descer, apenas mantém dentro do novo máximo
+            c.hpCurrent = leveledUp ? c.hpCurrent + Math.max(0, after - before) : Math.min(c.hpCurrent, after);
+            c.hpCurrent = Math.max(1, Math.min(after, c.hpCurrent));
+            c.combat.hitDiceRemaining = leveledUp
+              ? Math.min(newLevel, c.combat.hitDiceRemaining + (newLevel - char.level))
+              : Math.min(newLevel, c.combat.hitDiceRemaining);
+            // espaços de magia
+            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const nextSlots: typeof c.combat.spellSlots = {};
+            for (const [circle, max] of Object.entries(slotMax)) {
+              const used = leveledUp ? 0 : c.combat.spellSlots[Number(circle)]?.used ?? 0;
+              nextSlots[Number(circle)] = { used: Math.min(used, max), max };
+            }
+            c.combat.spellSlots = nextSlots;
+            // recursos: ao subir restaura tudo; ao descer, mantém dentro do novo máximo
+            const resMax = buildResources(c.classId, newLevel);
+            const nextRes: Record<string, number> = {};
+            for (const [rid, max] of Object.entries(resMax)) {
+              nextRes[rid] = leveledUp ? max : Math.min(c.combat.resources[rid] ?? max, max);
+            }
+            c.combat.resources = nextRes;
+          });
+        },
+        editCharacter(id, patch) {
+          mutate(id, (c) => {
+            Object.assign(c, patch);
+          });
+          // garante PV dentro do novo máximo após editar atributos/nível
+          const updated = get().getCharacter(id);
+          if (updated) {
+            const max = deriveCharacter(updated).maxHp;
+            if (updated.hpCurrent > max) mutate(id, (c) => { c.hpCurrent = max; });
+          }
         },
       };
     },

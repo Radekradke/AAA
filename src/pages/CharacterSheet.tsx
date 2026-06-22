@@ -14,6 +14,8 @@ import { TabMagias } from '@/components/sheet/TabMagias';
 import { TabDescanso } from '@/components/sheet/TabDescanso';
 import { TabDiario } from '@/components/sheet/TabDiario';
 import { DiceRoller } from '@/components/dice/DiceRoller';
+import { CharacterEditModal } from '@/components/character/CharacterEditModal';
+import { RollModeToggle } from '@/components/dice/RollModeToggle';
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +25,7 @@ export function CharacterSheet() {
 
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
   const [tab, setTab] = useState('ficha');
+  const [editing, setEditing] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
 
@@ -75,6 +78,8 @@ export function CharacterSheet() {
       scroll
       actions={
         <>
+          <RollModeToggle />
+          <Button variant="accent" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
           <Button onClick={exportJson} style={{ fontSize: 12.5 }}>Exportar</Button>
           <Button onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
         </>
@@ -100,6 +105,8 @@ export function CharacterSheet() {
       <div className="fv-mobile-only">
         <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
       </div>
+
+      {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
     </Screen>
   );
 }

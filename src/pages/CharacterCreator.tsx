@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
@@ -17,6 +18,7 @@ import { StepSkills } from '@/components/character/StepSkills';
 import { StepGear } from '@/components/character/StepGear';
 import { StepReview } from '@/components/character/StepReview';
 import { defaultSelection, applySelection } from '@/engine/loadout';
+import { playLevel } from '@/lib/sfx';
 
 const STEP_LABELS = ['Identidade', 'Origem', 'Caminho', 'Atributos', 'Perícias', 'Equipamento', 'Despertar'];
 const GEAR_STEP = 5;
@@ -89,6 +91,7 @@ export function CharacterCreator() {
   const finish = () => {
     finalizeDraft(char.id);
     bump(1.8);
+    if (useUiStore.getState().sound) playLevel();
     navigate(`/ficha/${char.id}`);
   };
 
@@ -214,8 +217,38 @@ export function CharacterCreator() {
           }}
         >
           <CreatorHero char={char} onGender={(g) => update((c) => { c.gender = g; })} />
-          <div className="fv-content" style={{ flex: '2 1 440px', minWidth: 280, maxWidth: 760, minHeight: 0, paddingRight: 6 }}>
-            {renderStep()}
+          <div className="fv-content" style={{ position: 'relative', flex: '2 1 440px', minWidth: 280, maxWidth: 760, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
+            {/* clarão rúnico ao atravessar o portal entre etapas */}
+            <div
+              key={`flash-${step}`}
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: 90,
+                left: '50%',
+                width: 220,
+                height: 220,
+                borderRadius: 999,
+                border: '1px solid var(--gold)',
+                boxShadow: '0 0 60px var(--bloom)',
+                pointerEvents: 'none',
+                zIndex: 2,
+                opacity: 0,
+                animation: 'portalFlash .6s ease-out',
+              }}
+            />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, scale: 0.94, rotateX: 8, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, scale: 1, rotateX: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 1.04, filter: 'blur(6px)' }}
+                transition={{ duration: 0.38, ease: [0.2, 0.8, 0.2, 1] }}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                {renderStep()}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

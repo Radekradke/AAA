@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ParticleField } from './ParticleField';
+import { RuneDrift } from './RuneDrift';
 
 interface BackgroundSceneProps {
   /** Vídeo de fundo opcional (luz volumétrica/cena). */
@@ -62,6 +63,7 @@ export function BackgroundScene({ video = null, videoOpacity = 0.5 }: Background
           background: 'radial-gradient(70% 55% at 50% -8%, var(--bloom), transparent 62%)',
         }}
       />
+      <RuneDrift count={9} />
       <ParticleField />
       {/* brilho arcano inferior */}
       <div
