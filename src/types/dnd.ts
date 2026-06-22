@@ -1,0 +1,196 @@
+/**
+ * Tipos base do domínio D&D 5e usados pela engine e pelos dados.
+ * Mantidos genéricos e expansíveis — fáceis de estender com homebrew.
+ */
+
+export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
+
+export const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+export type AbilityScores = Record<AbilityKey, number>;
+
+export type SkillKey =
+  | 'acrobatics'
+  | 'animalHandling'
+  | 'arcana'
+  | 'athletics'
+  | 'deception'
+  | 'history'
+  | 'insight'
+  | 'intimidation'
+  | 'investigation'
+  | 'medicine'
+  | 'nature'
+  | 'perception'
+  | 'performance'
+  | 'persuasion'
+  | 'religion'
+  | 'sleightOfHand'
+  | 'stealth'
+  | 'survival';
+
+/** Categoria mecânica da classe — define se conjura magias. */
+export type ClassKind = 'Marcial' | 'Conjurador' | 'Pacto';
+
+export interface Race {
+  id: string;
+  label: string;
+  mono: string;
+  jewel: string;
+  /** Bônus de atributo concedidos pela raça (somados ao valor base). */
+  abilityBonus: Partial<AbilityScores>;
+  /** Texto curto do bônus para exibição. */
+  bonus: string;
+  desc: string;
+  traits: string[];
+  speed: number;
+}
+
+export interface Subrace {
+  id: string;
+  label: string;
+  abilityBonus?: Partial<AbilityScores>;
+}
+
+export interface DndClass {
+  id: string;
+  label: string;
+  mono: string;
+  /** Dado de vida, ex.: 'd10'. */
+  die: string;
+  hitDie: number;
+  /** Atributo primário (chave). */
+  prim: AbilityKey;
+  primShort: string;
+  kind: ClassKind;
+  jewel: string;
+  blurb: string;
+  /** Atributos com proficiência em teste de resistência. */
+  savingThrows: AbilityKey[];
+  /** Perícias entre as quais o jogador escolhe. */
+  skillChoices: SkillKey[];
+  /** Quantas perícias o jogador escolhe. */
+  skillPicks: number;
+  /** Recursos especiais de combate por classe. */
+  resources?: ClassResourceDef[];
+  spellcasting?: boolean;
+}
+
+export interface ClassResourceDef {
+  id: string;
+  label: string;
+  desc: string;
+  /** Recupera em descanso curto ou longo. */
+  recharge: 'short' | 'long';
+  /** Quantidade total (por nível 1 base; expansível). */
+  max: number;
+}
+
+export interface Background {
+  id: string;
+  label: string;
+  desc: string;
+  /** Perícias concedidas pelo antecedente. */
+  skills: SkillKey[];
+}
+
+export type ItemCategory =
+  | 'weapon'
+  | 'armor'
+  | 'shield'
+  | 'gear'
+  | 'consumable'
+  | 'wondrous'
+  | 'ring';
+
+export type Rarity = 'comum' | 'incomum' | 'raro' | 'muito-raro' | 'lendario';
+
+export type WeaponType = 'simple' | 'martial';
+export type WeaponRange = 'melee' | 'ranged';
+export type DamageType =
+  | 'cortante'
+  | 'perfurante'
+  | 'concussão'
+  | 'fogo'
+  | 'gelo'
+  | 'ácido'
+  | 'elétrico';
+
+export interface WeaponData {
+  /** Número de dados de dano (geralmente 1). */
+  damageDice: number;
+  damageDie: number;
+  damageType: DamageType;
+  type: WeaponType;
+  range: WeaponRange;
+  /** Propriedades em português (Leve, Versátil, Acuidade, etc.). */
+  properties: string[];
+  /** Dado de dano alternativo para armas Versáteis (empunhadura a duas mãos). */
+  versatileDie?: number;
+  /** Usa Destreza no ataque/dano (acuidade ou arma à distância). */
+  finesse?: boolean;
+  thrown?: boolean;
+  /** Distância "normal/longa" em metros para descrição. */
+  rangeLabel?: string;
+}
+
+export interface ArmorData {
+  /** CA base concedida. */
+  baseAC: number;
+  category: 'leve' | 'média' | 'pesada';
+  /** Soma o modificador de Destreza (com teto para médias). */
+  addDex: boolean;
+  maxDexBonus?: number;
+  /** Requisito mínimo de Força (penalidade de deslocamento ignorada por simplicidade). */
+  strReq?: number;
+  stealthDisadvantage?: boolean;
+}
+
+export interface Item {
+  id: string;
+  name: string;
+  category: ItemCategory;
+  note: string;
+  rarity: Rarity;
+  weight: number;
+  /** Pode receber sintonia (attunement). */
+  attunement?: boolean;
+  weapon?: WeaponData;
+  armor?: ArmorData;
+  /** Bônus de CA fixo (escudos, anéis de proteção). */
+  acBonus?: number;
+}
+
+export interface Spell {
+  id: string;
+  level: number;
+  name: string;
+  school: string;
+}
+
+export interface RarityDef {
+  label: string;
+  color: string;
+}
+
+export interface ThemeDef {
+  bg: string;
+  bg2: string;
+  panel: string;
+  panel2: string;
+  steel: string;
+  line: string;
+  acc: string;
+  acc2: string;
+  accSoft: string;
+  gold: string;
+  goldB: string;
+  ink: string;
+  muted: string;
+  danger: string;
+  bloom: string;
+  particle: string;
+  label: string;
+}
+
+export type ThemeName = 'frio' | 'brasa';

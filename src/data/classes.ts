@@ -1,0 +1,244 @@
+import type { DndClass } from '@/types/dnd';
+
+/**
+ * As 12 classes do D&D 5e, com estrutura genérica e expansível.
+ * Recursos de combate simplificados — fáceis de ampliar por nível depois.
+ */
+export const CLASSES: DndClass[] = [
+  {
+    id: 'barbarian',
+    label: 'Bárbaro',
+    mono: 'B',
+    die: 'd12',
+    hitDie: 12,
+    prim: 'str',
+    primShort: 'FOR',
+    kind: 'Marcial',
+    jewel: '#C2483A',
+    blurb:
+      'Fúria primal e resistência sobre-humana. Quem entra em Fúria não para até o último inimigo cair.',
+    savingThrows: ['str', 'con'],
+    skillChoices: ['animalHandling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'],
+    skillPicks: 2,
+    resources: [
+      { id: 'rage', label: 'Fúria', desc: 'Resistência a dano e bônus de dano', recharge: 'long', max: 2 },
+    ],
+  },
+  {
+    id: 'bard',
+    label: 'Bardo',
+    mono: 'B',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'cha',
+    primShort: 'CAR',
+    kind: 'Conjurador',
+    jewel: '#B061FF',
+    blurb:
+      'Mestre da inspiração e da versatilidade. A magia do Bardo flui da arte e da audácia.',
+    savingThrows: ['dex', 'cha'],
+    skillChoices: ['deception', 'history', 'insight', 'performance', 'persuasion', 'sleightOfHand'],
+    skillPicks: 3,
+    spellcasting: true,
+    resources: [
+      { id: 'inspiration', label: 'Inspiração de Bardo', desc: 'Concede 1d6 a um aliado', recharge: 'short', max: 3 },
+    ],
+  },
+  {
+    id: 'cleric',
+    label: 'Clérigo',
+    mono: 'C',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'wis',
+    primShort: 'SAB',
+    kind: 'Conjurador',
+    jewel: '#E0A93E',
+    blurb:
+      'Canal do poder divino. Cura, protege e fulmina em nome de sua divindade.',
+    savingThrows: ['wis', 'cha'],
+    skillChoices: ['history', 'insight', 'medicine', 'persuasion', 'religion'],
+    skillPicks: 2,
+    spellcasting: true,
+    resources: [
+      { id: 'channel', label: 'Canalizar Divindade', desc: 'Poder sagrado da divindade', recharge: 'short', max: 1 },
+    ],
+  },
+  {
+    id: 'druid',
+    label: 'Druida',
+    mono: 'D',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'wis',
+    primShort: 'SAB',
+    kind: 'Conjurador',
+    jewel: '#46C56B',
+    blurb:
+      'Guardião do equilíbrio natural. Molda a magia primai e assume a forma das feras.',
+    savingThrows: ['int', 'wis'],
+    skillChoices: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'],
+    skillPicks: 2,
+    spellcasting: true,
+    resources: [
+      { id: 'wildshape', label: 'Forma Selvagem', desc: 'Transforma-se em uma fera', recharge: 'short', max: 2 },
+    ],
+  },
+  {
+    id: 'fighter',
+    label: 'Guerreiro',
+    mono: 'G',
+    die: 'd10',
+    hitDie: 10,
+    prim: 'str',
+    primShort: 'FOR',
+    kind: 'Marcial',
+    jewel: '#9BB0CC',
+    blurb:
+      'Mestre das armas e armaduras. Ataque Extra, Surto de Ação e estilos de combate fazem do Guerreiro a espinha dorsal de qualquer grupo em batalha.',
+    savingThrows: ['str', 'con'],
+    skillChoices: ['acrobatics', 'animalHandling', 'athletics', 'history', 'insight', 'intimidation', 'perception', 'survival'],
+    skillPicks: 2,
+    resources: [
+      { id: 'surge', label: 'Surto de Ação', desc: 'Uma ação adicional no turno', recharge: 'short', max: 1 },
+      { id: 'secondWind', label: 'Fôlego', desc: 'Cura 1d10 + nível', recharge: 'short', max: 1 },
+    ],
+  },
+  {
+    id: 'monk',
+    label: 'Monge',
+    mono: 'M',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'dex',
+    primShort: 'DES',
+    kind: 'Marcial',
+    jewel: '#3FB89C',
+    blurb:
+      'Disciplina do corpo e do ki. Golpes velozes e movimento impossível de conter.',
+    savingThrows: ['str', 'dex'],
+    skillChoices: ['acrobatics', 'athletics', 'history', 'insight', 'religion', 'stealth'],
+    skillPicks: 2,
+    resources: [
+      { id: 'ki', label: 'Pontos de Ki', desc: 'Combos e habilidades marciais', recharge: 'short', max: 2 },
+    ],
+  },
+  {
+    id: 'paladin',
+    label: 'Paladino',
+    mono: 'P',
+    die: 'd10',
+    hitDie: 10,
+    prim: 'cha',
+    primShort: 'CAR',
+    kind: 'Conjurador',
+    jewel: '#E7C26A',
+    blurb:
+      'Juramento sagrado e aço abençoado. Castiga o mal com poder divino canalizado.',
+    savingThrows: ['wis', 'cha'],
+    skillChoices: ['athletics', 'insight', 'intimidation', 'medicine', 'persuasion', 'religion'],
+    skillPicks: 2,
+    spellcasting: true,
+    resources: [
+      { id: 'layhands', label: 'Cura pelas Mãos', desc: 'Reserva de cura igual a 5 × nível', recharge: 'long', max: 5 },
+    ],
+  },
+  {
+    id: 'ranger',
+    label: 'Patrulheiro',
+    mono: 'P',
+    die: 'd10',
+    hitDie: 10,
+    prim: 'dex',
+    primShort: 'DES',
+    kind: 'Conjurador',
+    jewel: '#4E8C5A',
+    blurb:
+      'Caçador das ermas. Rastreia, emboscada e conhece os segredos da terra selvagem.',
+    savingThrows: ['str', 'dex'],
+    skillChoices: ['animalHandling', 'athletics', 'insight', 'investigation', 'nature', 'perception', 'stealth', 'survival'],
+    skillPicks: 3,
+    spellcasting: true,
+  },
+  {
+    id: 'rogue',
+    label: 'Ladino',
+    mono: 'L',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'dex',
+    primShort: 'DES',
+    kind: 'Marcial',
+    jewel: '#8794A2',
+    blurb:
+      'Precisão letal e talento incomparável. Ataque Furtivo e astúcia abrem qualquer porta.',
+    savingThrows: ['dex', 'int'],
+    skillChoices: ['acrobatics', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'perception', 'performance', 'persuasion', 'sleightOfHand', 'stealth'],
+    skillPicks: 4,
+  },
+  {
+    id: 'sorcerer',
+    label: 'Feiticeiro',
+    mono: 'F',
+    die: 'd6',
+    hitDie: 6,
+    prim: 'cha',
+    primShort: 'CAR',
+    kind: 'Conjurador',
+    jewel: '#C24DFF',
+    blurb:
+      'Magia que corre no sangue. Molda feitiços com a Metamagia e o poder inato.',
+    savingThrows: ['con', 'cha'],
+    skillChoices: ['arcana', 'deception', 'insight', 'intimidation', 'persuasion', 'religion'],
+    skillPicks: 2,
+    spellcasting: true,
+    resources: [
+      { id: 'sorcery', label: 'Pontos de Feitiçaria', desc: 'Alimenta a Metamagia', recharge: 'long', max: 2 },
+    ],
+  },
+  {
+    id: 'warlock',
+    label: 'Bruxo',
+    mono: 'B',
+    die: 'd8',
+    hitDie: 8,
+    prim: 'cha',
+    primShort: 'CAR',
+    kind: 'Pacto',
+    jewel: '#7E5BB0',
+    blurb:
+      'Poder vindo de um pacto sombrio. Magia de pacto recarrega em descanso curto.',
+    savingThrows: ['wis', 'cha'],
+    skillChoices: ['arcana', 'deception', 'history', 'intimidation', 'investigation', 'nature', 'religion'],
+    skillPicks: 2,
+    spellcasting: true,
+  },
+  {
+    id: 'wizard',
+    label: 'Mago',
+    mono: 'M',
+    die: 'd6',
+    hitDie: 6,
+    prim: 'int',
+    primShort: 'INT',
+    kind: 'Conjurador',
+    jewel: '#4D9BFF',
+    blurb:
+      'O estudioso supremo da magia arcana. Um grimório repleto de poder esperando para ser desencadeado.',
+    savingThrows: ['int', 'wis'],
+    skillChoices: ['arcana', 'history', 'insight', 'investigation', 'medicine', 'religion'],
+    skillPicks: 2,
+    spellcasting: true,
+    resources: [
+      { id: 'recovery', label: 'Recuperação Arcana', desc: 'Recupera espaços de magia', recharge: 'long', max: 1 },
+    ],
+  },
+];
+
+export const CLASS_BY_ID: Record<string, DndClass> = Object.fromEntries(
+  CLASSES.map((c) => [c.id, c]),
+);
+
+export function getClass(id: string): DndClass {
+  return CLASS_BY_ID[id] ?? CLASSES[4];
+}
