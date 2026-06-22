@@ -258,3 +258,42 @@ body {
     display: flex !important;
   }
 }
+
+/* layout responsivo da criação (herdado da referência) */
+@media (max-width: 840px) {
+  .fv-steps {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .fv-steps::-webkit-scrollbar {
+    display: none;
+  }
+  .fv-steps > * {
+    flex: none !important;
+  }
+  .fv-body {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-content: stretch !important;
+  }
+  .fv-hero {
+    flex: none !important;
+    max-width: none !important;
+    width: 100% !important;
+    align-self: auto !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 18px;
+    min-height: 0 !important;
+    padding: 4px 0 2px;
+  }
+  .fv-content {
+    flex: none !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+}
