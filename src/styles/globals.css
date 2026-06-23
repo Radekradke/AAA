@@ -369,8 +369,8 @@ button:disabled {
   }
   .fv-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
-    gap: clamp(9px, 1.4vw, 13px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 116px), 1fr));
+    gap: clamp(7px, 1vw, 10px);
   }
   .fv-responsive-split {
     display: grid;
@@ -378,10 +378,10 @@ button:disabled {
     gap: clamp(12px, 1.6vw, 16px);
   }
   .fv-origin-layout {
-    grid-template-columns: minmax(0, 0.95fr) minmax(280px, 1.1fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.82fr);
   }
   .fv-class-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 1.05fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(230px, 0.8fr);
   }
   .fv-choice-detail {
     align-self: start;

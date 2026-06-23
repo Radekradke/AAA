@@ -32,7 +32,7 @@ export function StepClass({ char, update }: StepProps) {
       />
 
       <div className="fv-responsive-split fv-class-layout">
-        <div className="fv-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', alignContent: 'start' }}>
+        <div className="fv-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 112px), 1fr))', alignContent: 'start' }}>
           {CLASSES.map((c) => {
             const sel = char.classId === c.id;
             return (
@@ -42,46 +42,47 @@ export function StepClass({ char, update }: StepProps) {
                 jewel={c.jewel}
                 onClick={() => pickClass(c.id)}
                 style={{
-                  minHeight: 118,
-                  padding: 13,
+                  minHeight: 86,
+                  padding: 10,
                   borderColor: sel ? t.gold : hexA(c.jewel, 0.34),
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div
                     style={{
-                      width: 40,
-                      height: 40,
+                      width: 32,
+                      height: 32,
+                      flex: 'none',
                       display: 'grid',
                       placeItems: 'center',
-                      borderRadius: 11,
+                      borderRadius: 10,
                       border: '1px solid ' + hexA(sel ? t.gold : c.jewel, 0.58),
                       background: hexA(sel ? t.gold : c.jewel, sel ? 0.14 : 0.08),
                       fontFamily: "'Cinzel', serif",
                       fontWeight: 800,
-                      fontSize: 22,
+                      fontSize: 16,
                       lineHeight: 1,
                       color: sel ? t.gold : c.jewel,
-                      boxShadow: '0 0 16px ' + hexA(sel ? t.gold : c.jewel, 0.25),
+                      boxShadow: '0 0 14px ' + hexA(sel ? t.gold : c.jewel, 0.25),
                     }}
                   >
                     {c.mono}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15.5, color: 'var(--ink)', lineHeight: 1.1 }}>
+                    <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.05 }}>
                       {c.label}
                     </div>
-                    <div style={{ marginTop: 4, fontSize: 11, color: sel ? t.gold : 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                    <div style={{ marginTop: 2, fontSize: 10, color: sel ? t.gold : 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
                       {c.die} · {c.primShort}
                     </div>
                   </div>
                 </div>
-                <div style={{ marginTop: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--acc)' }}>
+                <div style={{ marginTop: 9, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 9.5, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--acc)' }}>
                     {c.kind}
                   </span>
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)' }}>
-                    {c.skillPicks} perícias
+                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10, color: 'var(--muted)' }}>
+                    {c.skillPicks}p
                   </span>
                 </div>
               </SelectableCard>
@@ -93,7 +94,7 @@ export function StepClass({ char, update }: StepProps) {
           className="fv-surface fv-choice-detail"
           style={{
             borderColor: hexA(cls.jewel, 0.42),
-            padding: 'clamp(16px, 2vw, 20px)',
+            padding: 'clamp(13px, 1.5vw, 16px)',
             boxShadow: 'var(--shadow-panel), inset 0 0 70px ' + hexA(cls.jewel, 0.08),
           }}
         >
@@ -101,43 +102,43 @@ export function StepClass({ char, update }: StepProps) {
             aria-hidden
             style={{
               position: 'absolute',
-              right: -24,
-              top: -18,
-              width: 170,
-              height: 170,
+              right: -20,
+              top: -16,
+              width: 130,
+              height: 130,
               borderRadius: 999,
               border: '1px solid ' + hexA(cls.jewel, 0.18),
               boxShadow: 'inset 0 0 50px ' + hexA(cls.jewel, 0.1) + ', 0 0 52px ' + hexA(cls.jewel, 0.13),
             }}
           />
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: cls.jewel, marginBottom: 8 }}>
+            <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: cls.jewel, marginBottom: 6 }}>
               Caminho escolhido
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
               <div
                 style={{
-                  width: 58,
-                  height: 58,
+                  width: 46,
+                  height: 46,
                   display: 'grid',
                   placeItems: 'center',
-                  borderRadius: 16,
+                  borderRadius: 13,
                   border: '1px solid ' + hexA(cls.jewel, 0.52),
                   background: hexA(cls.jewel, 0.1),
-                  boxShadow: '0 0 26px ' + hexA(cls.jewel, 0.24),
+                  boxShadow: '0 0 22px ' + hexA(cls.jewel, 0.24),
                   fontFamily: "'Cinzel', serif",
                   fontWeight: 800,
-                  fontSize: 30,
+                  fontSize: 24,
                   color: cls.jewel,
                 }}
               >
                 {cls.mono}
               </div>
               <div>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(28px, 4vw, 42px)', lineHeight: 1, color: 'var(--ink)' }}>
+                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(22px, 3vw, 32px)', lineHeight: 1, color: 'var(--ink)' }}>
                   {cls.label}
                 </div>
-                <div style={{ marginTop: 6, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   <span className="fv-chip fv-chip-gold">{cls.kind}</span>
                   <span className="fv-chip">Dado de Vida {cls.die}</span>
                   <span className="fv-chip">{ABILITY_LABELS[cls.prim]}</span>
@@ -145,11 +146,11 @@ export function StepClass({ char, update }: StepProps) {
               </div>
             </div>
 
-            <p style={{ margin: '15px 0 16px', color: 'var(--muted)', fontSize: 14, lineHeight: 1.62 }}>
+            <p style={{ margin: '10px 0 12px', color: 'var(--muted)', fontSize: 13, lineHeight: 1.5 }}>
               {cls.blurb}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 10, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 130px), 1fr))', gap: 9, marginBottom: 12 }}>
               <ClassStat label="atributo-chave" value={ABILITY_SHORT[cls.prim]} color={cls.jewel} />
               <ClassStat label="resistências" value={cls.savingThrows.map((k) => ABILITY_SHORT[k]).join(' / ')} color="var(--gold)" />
               <ClassStat label="escolhas" value={`${cls.skillPicks} perícias`} color="var(--acc)" />
@@ -196,9 +197,9 @@ export function StepClass({ char, update }: StepProps) {
 
 function ClassStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ padding: 12, borderRadius: 13, border: '1px solid var(--line)', background: 'rgba(0,0,0,.22)' }}>
-      <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 800, fontSize: 18, color }}>{value}</div>
-      <div style={{ marginTop: 2, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+    <div style={{ padding: 10, borderRadius: 12, border: '1px solid var(--line)', background: 'rgba(0,0,0,.22)' }}>
+      <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 800, fontSize: 16, color }}>{value}</div>
+      <div style={{ marginTop: 2, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
         {label}
       </div>
     </div>
