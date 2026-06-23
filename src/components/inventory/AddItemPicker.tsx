@@ -6,6 +6,8 @@ import { RARITY } from '@/data/themes';
 import type { Item } from '@/types/dnd';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { itemLore } from '@/lib/lore';
 
 interface AddItemPickerProps {
   onAdd: (item: Item) => void;
@@ -73,18 +75,19 @@ export function AddItemPicker({ onAdd, onClose }: AddItemPickerProps) {
           {items.map((item) => {
             const rc = RARITY[item.rarity] ?? RARITY.comum;
             return (
-              <button
-                key={item.id}
-                onClick={() => onAdd(item)}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 11, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14.5, color: 'var(--ink)' }}>{item.name}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{item.note}</div>
-                </div>
-                <span style={{ fontSize: 10.5, color: rc.color }}>{rc.label}</span>
-                <span style={{ color: 'var(--gold)', fontSize: 18, fontWeight: 700 }}>+</span>
-              </button>
+              <LoreTooltip key={item.id} info={itemLore(item)} anchorStyle={{ display: 'block' }}>
+                <button
+                  onClick={() => onAdd(item)}
+                  style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 11, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14.5, color: 'var(--ink)' }}>{item.name}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{item.note}</div>
+                  </div>
+                  <span style={{ fontSize: 10.5, color: rc.color }}>{rc.label}</span>
+                  <span style={{ color: 'var(--gold)', fontSize: 18, fontWeight: 700 }}>+</span>
+                </button>
+              </LoreTooltip>
             );
           })}
           {items.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)' }}>Nada encontrado.</div>}

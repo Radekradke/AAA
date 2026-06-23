@@ -6,6 +6,8 @@ import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import type { SkillKey } from '@/types/dnd';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { skillLore } from '@/lib/lore';
 
 export function StepSkills({ char, update }: StepProps) {
   const t = useTheme();
@@ -41,19 +43,21 @@ export function StepSkills({ char, update }: StepProps) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {bg.skills.map((k) => (
-            <span
-              key={k}
-              style={{
-                fontSize: 12.5,
-                fontWeight: 600,
-                color: '#140d04',
-                background: t.gold,
-                padding: '6px 13px',
-                borderRadius: 999,
-              }}
-            >
-              {SKILL_BY_KEY[k].label}
-            </span>
+            <LoreTooltip key={k} info={skillLore(k, 0, true)}>
+              <span
+                style={{
+                  cursor: 'help',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#140d04',
+                  background: t.gold,
+                  padding: '6px 13px',
+                  borderRadius: 999,
+                }}
+              >
+                {SKILL_BY_KEY[k].label}
+              </span>
+            </LoreTooltip>
           ))}
         </div>
       </div>
@@ -74,11 +78,11 @@ export function StepSkills({ char, update }: StepProps) {
           const active = char.skillProfs.includes(key);
           const disabled = !active && !granted && remaining <= 0;
           return (
-            <button
-              key={key}
-              onClick={() => toggle(key)}
-              disabled={granted}
-              style={{
+            <LoreTooltip key={key} info={skillLore(key, 0, granted || active)} anchorStyle={{ display: 'block' }}>
+              <button
+                onClick={() => toggle(key)}
+                disabled={granted}
+                style={{
                 cursor: granted ? 'default' : disabled ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -93,27 +97,28 @@ export function StepSkills({ char, update }: StepProps) {
                 boxShadow: active || granted ? '0 0 18px ' + hexA(t.gold, 0.25) : 'none',
                 transition: '.2s',
               }}
-            >
-              <div>
-                <div style={{ fontSize: 14, color: active || granted ? 'var(--gold)' : 'var(--ink)', fontWeight: 600 }}>
-                  {skill.label}
+              >
+                <div>
+                  <div style={{ fontSize: 14, color: active || granted ? 'var(--gold)' : 'var(--ink)', fontWeight: 600 }}>
+                    {skill.label}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                    {ABILITY_SHORT[skill.ability]}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
-                  {ABILITY_SHORT[skill.ability]}
-                </div>
-              </div>
-              <span
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 999,
-                  flex: 'none',
-                  border: '1px solid ' + (active || granted ? t.gold : t.line),
-                  background: active || granted ? t.gold : 'transparent',
-                  boxShadow: active || granted ? '0 0 9px ' + hexA(t.gold, 0.6) : 'none',
-                }}
-              />
-            </button>
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 999,
+                    flex: 'none',
+                    border: '1px solid ' + (active || granted ? t.gold : t.line),
+                    background: active || granted ? t.gold : 'transparent',
+                    boxShadow: active || granted ? '0 0 9px ' + hexA(t.gold, 0.6) : 'none',
+                  }}
+                />
+              </button>
+            </LoreTooltip>
           );
         })}
       </div>

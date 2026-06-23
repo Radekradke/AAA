@@ -9,6 +9,8 @@ import { AddItemPicker } from '@/components/inventory/AddItemPicker';
 import { RARITY } from '@/data/themes';
 import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT } from '@/engine/inventory';
 import type { CoinKey } from '@/types/character';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { itemLore } from '@/lib/lore';
 
 const COINS: { k: CoinKey; code: string; color: string; rate: number }[] = [
   { k: 'pp', code: 'PL', color: '#D8E3F0', rate: 10 },
@@ -77,15 +79,16 @@ export function TabInventario({ char }: TabProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {attuneItems.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum item que exija sintonia na mochila.</div>}
           {attuneItems.map((it) => (
-            <button
-              key={it.uid}
-              onClick={() => store.toggleAttune(char.id, it.uid)}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 11, border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.26)', color: 'var(--ink)' }}
-            >
-              <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
-              <span style={{ flex: 1, textAlign: 'left', fontFamily: "'Cinzel', serif", fontSize: 14 }}>{it.name}</span>
-              <span style={{ fontSize: 11, color: 'var(--muted)' }}>{it.attuned ? 'sintonizado' : 'guardado'}</span>
-            </button>
+            <LoreTooltip key={it.uid} info={itemLore(it)} anchorStyle={{ display: 'block' }}>
+              <button
+                onClick={() => store.toggleAttune(char.id, it.uid)}
+                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 11, border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.26)', color: 'var(--ink)' }}
+              >
+                <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
+                <span style={{ flex: 1, textAlign: 'left', fontFamily: "'Cinzel', serif", fontSize: 14 }}>{it.name}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{it.attuned ? 'sintonizado' : 'guardado'}</span>
+              </button>
+            </LoreTooltip>
           ))}
         </div>
       </Panel>
@@ -119,21 +122,22 @@ export function TabInventario({ char }: TabProps) {
             const equippable = slotForItem(it) !== null;
             const equipped = isEquipped(char, it);
             return (
-              <div
-                key={it.uid}
-                onMouseMove={tilt.onMouseMove}
-                onMouseLeave={tilt.onMouseLeave}
-                style={{
-                  position: 'relative',
-                  borderRadius: 13,
-                  padding: 14,
-                  background: 'linear-gradient(160deg, var(--panel), var(--panel2))',
-                  border: '1px solid ' + hexA(rc.color, big ? 0.5 : 0.18),
-                  boxShadow: (big ? `0 0 24px ${hexA(rc.color, 0.22)},` : '') + `inset 0 0 28px ${hexA(rc.color, big ? 0.12 : 0.04)}, inset 0 1px 0 rgba(255,255,255,0.04)`,
-                  transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .3s',
-                  transformStyle: 'preserve-3d',
-                }}
-              >
+              <LoreTooltip key={it.uid} info={itemLore(it)} anchorStyle={{ display: 'block' }}>
+                <div
+                  onMouseMove={tilt.onMouseMove}
+                  onMouseLeave={tilt.onMouseLeave}
+                  style={{
+                    position: 'relative',
+                    cursor: 'help',
+                    borderRadius: 13,
+                    padding: 14,
+                    background: 'linear-gradient(160deg, var(--panel), var(--panel2))',
+                    border: '1px solid ' + hexA(rc.color, big ? 0.5 : 0.18),
+                    boxShadow: (big ? `0 0 24px ${hexA(rc.color, 0.22)},` : '') + `inset 0 0 28px ${hexA(rc.color, big ? 0.12 : 0.04)}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+                    transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .3s',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>{it.category}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 600, color: rc.color }}>
@@ -163,7 +167,8 @@ export function TabInventario({ char }: TabProps) {
                   )}
                   <ItemBtn danger onClick={() => store.removeInventoryItem(char.id, it.uid)}>Remover</ItemBtn>
                 </div>
-              </div>
+                </div>
+              </LoreTooltip>
             );
           })}
           {filtered.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '12px 0' }}>Nenhum item neste filtro.</div>}

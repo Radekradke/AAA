@@ -13,14 +13,15 @@ export function StepReview({ char }: StepProps) {
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
 
-  const allSkills = Array.from(new Set([...char.skillProfs, ...bg.skills]));
+  const allSkills = d.skills.filter((s) => s.proficient).map((s) => s.key);
   const abilityLine = ABILITY_KEYS.map((k) => `${ABILITY_SHORT[k]} ${d.abilities[k].total}`).join(' · ');
+  const backgroundLine = `${bg.label} · ${bg.skills.map((s) => SKILL_BY_KEY[s].label).join(' e ')}`;
 
   const rows = [
     { k: 'Nome', v: char.name.trim() || 'Herói Sem Nome' },
     { k: 'Origem', v: raceLine(char) },
     { k: 'Caminho', v: `${cls.label} · Nível ${char.level}` },
-    { k: 'Antecedente', v: bg.label },
+    { k: 'Antecedente', v: backgroundLine },
     { k: 'Atributos', v: abilityLine },
     { k: 'CA · PV · Prof.', v: `${d.ac} · ${d.maxHp} · +${d.proficiency}` },
     { k: 'Perícias', v: allSkills.map((s) => SKILL_BY_KEY[s].label).join(', ') || '—' },
@@ -68,6 +69,19 @@ export function StepReview({ char }: StepProps) {
           “{char.concept.trim()}”
         </div>
       )}
+      <div
+        style={{
+          marginTop: 14,
+          padding: 16,
+          borderRadius: 13,
+          border: '1px solid var(--line)',
+          background: 'rgba(0,0,0,.22)',
+          color: 'var(--muted)',
+          lineHeight: 1.55,
+        }}
+      >
+        <b style={{ color: 'var(--ink)' }}>{bg.label}:</b> {bg.feature}
+      </div>
     </div>
   );
 }

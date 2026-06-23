@@ -50,6 +50,13 @@ export interface Subrace {
   id: string;
   label: string;
   abilityBonus?: Partial<AbilityScores>;
+  /** Texto curto do bônus para exibição. */
+  bonus?: string;
+  /** Ajuste de deslocamento em metros. */
+  speedBonus?: number;
+  /** PV adicionais por nível, usado por linhagens como Anão da Colina. */
+  hpPerLevel?: number;
+  traits?: string[];
 }
 
 export interface DndClass {
@@ -90,8 +97,12 @@ export interface Background {
   id: string;
   label: string;
   desc: string;
+  /** Traço narrativo curto usado para explicar o impacto do antecedente. */
+  feature: string;
   /** Perícias concedidas pelo antecedente. */
   skills: SkillKey[];
+  /** Atributos que combinam com as perícias do antecedente e ajudam na distribuição. */
+  suggestedAbilities: AbilityKey[];
 }
 
 export type ItemCategory =

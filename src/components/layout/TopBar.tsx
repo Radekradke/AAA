@@ -25,11 +25,13 @@ export function TopBar({ actions }: TopBarProps) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 'clamp(14px,2.4vw,24px) clamp(16px,4vw,40px)',
+        gap: 12,
+        minHeight: 'var(--topbar-h)',
+        padding: 'clamp(10px,2vw,20px) var(--page-x)',
         pointerEvents: 'none',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11, pointerEvents: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0, pointerEvents: 'auto' }}>
         <div
           style={{
             width: 30,
@@ -54,12 +56,12 @@ export function TopBar({ actions }: TopBarProps) {
             F
           </span>
         </div>
-        <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '.26em', fontSize: 12, color: 'var(--muted)' }}>
+        <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           FICHA&nbsp;VIVA
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, pointerEvents: 'auto', alignItems: 'center' }}>
+      <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0, overflowX: 'auto' }}>
         <button
           onClick={toggleTheme}
           aria-label="Alternar atmosfera"

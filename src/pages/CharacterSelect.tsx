@@ -141,7 +141,7 @@ export function CharacterSelect() {
             <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
               Novo Personagem
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 6 capítulos</div>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</div>
           </button>
 
           {mine.map((c) => {

@@ -1,11 +1,13 @@
-import type { AbilityKey } from '@/types/dnd';
+import type { AbilityKey, SkillKey } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, InventoryItem } from '@/types/character';
 import { abilityModifier, proficiencyBonus, totalAbilities } from './modifiers';
 import { getClass } from '@/data/classes';
-import { getRace } from '@/data/races';
+import { getRace, getSubrace } from '@/data/races';
+import { getBackground } from '@/data/backgrounds';
 import { SKILLS } from '@/data/skills';
 import { getItem } from '@/data/items';
+import { spellSlotsForClass } from './progression';
 
 export interface DerivedAbility {
   key: AbilityKey;
@@ -16,7 +18,7 @@ export interface DerivedAbility {
 }
 
 export interface DerivedSkill {
-  key: string;
+  key: SkillKey;
   label: string;
   ability: AbilityKey;
   bonus: number;
@@ -74,6 +76,9 @@ function findEquipped(char: Character, uid: string | null): InventoryItem | unde
 export function deriveCharacter(char: Character): DerivedCharacter {
   const cls = getClass(char.classId);
   const race = getRace(char.raceId);
+  const subrace = getSubrace(char.raceId, char.subraceId);
+  const bg = getBackground(char.backgroundId);
+  const skillProfs = new Set([...char.skillProfs, ...bg.skills]);
   const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId);
   const prof = proficiencyBonus(char.level);
 
@@ -113,11 +118,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   // ---- PV máximo: nível 1 = dado máx + CON; demais níveis = média + CON ----
   const conMod = abilities.con.mod;
   const avgPerLevel = Math.floor(cls.hitDie / 2) + 1;
-  const maxHp = cls.hitDie + conMod + (char.level - 1) * (avgPerLevel + conMod);
+  const lineageHp = (subrace?.hpPerLevel ?? 0) * char.level;
+  const maxHp = cls.hitDie + conMod + (char.level - 1) * (avgPerLevel + conMod) + lineageHp;
 
   // ---- Perícias ----
   const skills: DerivedSkill[] = SKILLS.map((sk) => {
-    const proficient = char.skillProfs.includes(sk.key);
+    const proficient = skillProfs.has(sk.key);
     const bonus = abilities[sk.ability].mod + (proficient ? prof : 0);
     return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient };
   });
@@ -153,7 +159,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
 
   // ---- Conjuração ----
-  const isCaster = !!cls.spellcasting;
+  const isCaster = !!cls.spellcasting && Object.keys(spellSlotsForClass(char.classId, char.level)).length > 0;
   const castMod = abilities[cls.prim].mod;
   const spellDC = isCaster ? 8 + prof + castMod : null;
   const spellAttack = isCaster ? prof + castMod : null;
@@ -169,7 +175,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     maxHp: Math.max(1, maxHp),
     ac,
     initiative: dexMod,
-    speed: race.speed,
+    speed: race.speed + (subrace?.speedBonus ?? 0),
     passivePerception,
     skills,
     attacks,

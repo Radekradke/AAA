@@ -3,22 +3,22 @@ import { ChapterTitle } from './ChapterTitle';
 import { SelectableCard } from './SelectableCard';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
-import { applySelection, selectionFromChar } from '@/engine/loadout';
+import { applySelection, gearOptionsForClass, selectionFromChar } from '@/engine/loadout';
 import type { GearSelection } from '@/engine/loadout';
 import { getClass } from '@/data/classes';
 import { useTheme } from '@/lib/useTheme';
 
-const meleeWeapons = WEAPONS.filter((w) => w.weapon?.range === 'melee');
-const rangedWeapons = WEAPONS.filter((w) => w.weapon?.range === 'ranged');
-const armors = ARMORS.filter((a) => a.category === 'armor');
-
 export function StepGear({ char, update }: StepProps) {
   const t = useTheme();
   const cls = getClass(char.classId);
+  const options = gearOptionsForClass(char.classId);
   const sel = selectionFromChar(char);
+  const meleeWeapons = WEAPONS.filter((w) => w.weapon?.range === 'melee' && options.weapons.includes(w.id));
+  const rangedWeapons = WEAPONS.filter((w) => w.weapon?.range === 'ranged' && options.ranged.includes(w.id));
+  const armors = ARMORS.filter((a) => a.category === 'armor' && options.armors.includes(a.id));
 
   const apply = (patch: Partial<GearSelection>) =>
-    update((c) => applySelection(c, { ...sel, ...patch }));
+    update((c) => applySelection(c, { ...sel, ...patch, shield: options.canUseShield ? (patch.shield ?? sel.shield) : false }));
 
   const groupTitle = (s: string) => (
     <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 9 }}>
@@ -33,6 +33,9 @@ export function StepGear({ char, update }: StepProps) {
         title="Equipamento"
         subtitle={`Todo herói parte com o que carrega. Escolha o arsenal inicial do seu ${cls.label}.`}
       />
+      <div style={{ marginBottom: 14, color: 'var(--muted)', fontSize: 13, lineHeight: 1.55 }}>
+        {options.note}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {/* Armadura */}
@@ -40,7 +43,7 @@ export function StepGear({ char, update }: StepProps) {
           {groupTitle('Proteção')}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 11 }}>
             <GearOption
-              tag="Sem armadura"
+              tag={armors.length ? 'Sem armadura' : 'Padrão da classe'}
               name="Roupas de viajante"
               note="CA 10 + DES · livre"
               selected={sel.armorId === null}
@@ -102,14 +105,16 @@ export function StepGear({ char, update }: StepProps) {
                 jewel={t.acc}
               />
             ))}
-            <GearOption
-              tag="Defesa"
-              name="Escudo de Aço"
-              note={sel.shield ? 'Equipado · +2 CA' : '+2 CA'}
-              selected={sel.shield}
-              onClick={() => apply({ shield: !sel.shield })}
-              jewel={t.gold}
-            />
+            {options.canUseShield && (
+              <GearOption
+                tag="Defesa"
+                name="Escudo de Aço"
+                note={sel.shield ? 'Equipado · +2 CA' : '+2 CA'}
+                selected={sel.shield}
+                onClick={() => apply({ shield: !sel.shield })}
+                jewel={t.gold}
+              />
+            )}
           </div>
         </div>
       </div>

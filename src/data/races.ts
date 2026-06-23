@@ -108,21 +108,35 @@ export const RACES: Race[] = [
 
 export const SUBRACES: Record<string, Subrace[]> = {
   dwarf: [
-    { id: 'hill-dwarf', label: 'Anão da Colina', abilityBonus: { wis: 1 } },
-    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 } },
+    {
+      id: 'hill-dwarf',
+      label: 'Anão da Colina',
+      abilityBonus: { wis: 1 },
+      bonus: '+1 SAB · +1 PV/nível',
+      hpPerLevel: 1,
+      traits: ['Tenacidade Anã'],
+    },
+    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR' },
   ],
   elf: [
-    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 } },
-    { id: 'wood-elf', label: 'Elfo da Floresta', abilityBonus: { wis: 1 } },
-    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 } },
+    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT' },
+    {
+      id: 'wood-elf',
+      label: 'Elfo da Floresta',
+      abilityBonus: { wis: 1 },
+      bonus: '+1 SAB · +1,5 m',
+      speedBonus: 1.5,
+      traits: ['Pés Ligeiros'],
+    },
+    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
   ],
   halfling: [
-    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 } },
-    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 } },
+    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
+    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', traits: ['Resiliência Robusta'] },
   ],
   gnome: [
-    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 } },
-    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 } },
+    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES' },
+    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON' },
   ],
 };
 

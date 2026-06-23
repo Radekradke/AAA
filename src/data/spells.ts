@@ -53,5 +53,39 @@ export const SPELL_BY_ID: Record<string, Spell> = Object.fromEntries(
   SPELLS.map((s) => [s.id, s]),
 );
 
+const SPELLS_BY_CLASS: Record<string, string[]> = {
+  bard: ['sp-zombaria', 'sp-prestidigitacao', 'sp-sono', 'sp-fadas', 'sp-detectar', 'sp-ondatrov', 'sp-invisibilidade', 'sp-segurar'],
+  cleric: ['sp-orientacao', 'sp-chama', 'sp-curar', 'sp-bencao', 'sp-detectar', 'sp-restauracao', 'sp-revigorar', 'sp-coluna'],
+  druid: ['sp-orientacao', 'sp-curar', 'sp-fadas', 'sp-detectar', 'sp-ondatrov', 'sp-restauracao', 'sp-voo', 'sp-muralha'],
+  paladin: ['sp-curar', 'sp-bencao', 'sp-detectar', 'sp-restauracao', 'sp-revigorar'],
+  ranger: ['sp-curar', 'sp-detectar', 'sp-fadas', 'sp-restauracao'],
+  sorcerer: ['sp-firebolt', 'sp-raygelo', 'sp-acidoespirito', 'sp-prestidigitacao', 'sp-sono', 'sp-escudo', 'sp-ondatrov', 'sp-bolafogo'],
+  warlock: ['sp-toquegelido', 'sp-prestidigitacao', 'sp-sono', 'sp-detectar', 'sp-aterrorizar', 'sp-passos'],
+  wizard: ['sp-firebolt', 'sp-raygelo', 'sp-maosmagicas', 'sp-luz', 'sp-misseis', 'sp-escudo', 'sp-flechacida', 'sp-espelho', 'sp-bolafogo', 'sp-contramagia'],
+};
+
+const DEFAULT_PREPARED_BY_CLASS: Record<string, string[]> = {
+  bard: ['sp-zombaria', 'sp-prestidigitacao', 'sp-sono', 'sp-fadas'],
+  cleric: ['sp-orientacao', 'sp-chama', 'sp-curar', 'sp-bencao'],
+  druid: ['sp-orientacao', 'sp-curar', 'sp-fadas', 'sp-detectar'],
+  paladin: ['sp-curar', 'sp-bencao'],
+  ranger: ['sp-curar', 'sp-detectar'],
+  sorcerer: ['sp-firebolt', 'sp-prestidigitacao', 'sp-escudo', 'sp-sono'],
+  warlock: ['sp-toquegelido', 'sp-prestidigitacao', 'sp-sono'],
+  wizard: ['sp-firebolt', 'sp-maosmagicas', 'sp-misseis', 'sp-escudo'],
+};
+
+export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
+  const ids = SPELLS_BY_CLASS[classId];
+  const list = ids ? ids.map((id) => SPELL_BY_ID[id]).filter(Boolean) : SPELLS;
+  return list.filter((spell) => spell.level === 0 || spell.level <= maxCircle);
+}
+
 /** Truques e magias sugeridos por padrão para conjuradores novos. */
-export const DEFAULT_PREPARED = ['sp-firebolt', 'sp-maosmagicas', 'sp-misseis', 'sp-escudo'];
+export function defaultPreparedForClass(classId: string, maxCircle: number): string[] {
+  const defaults = DEFAULT_PREPARED_BY_CLASS[classId] ?? [];
+  return defaults.filter((id) => {
+    const spell = SPELL_BY_ID[id];
+    return spell && (spell.level === 0 || spell.level <= maxCircle);
+  });
+}

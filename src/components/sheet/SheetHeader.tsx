@@ -5,6 +5,8 @@ import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { passiveLore } from '@/lib/lore';
 
 interface SheetHeaderProps {
   char: Character;
@@ -32,11 +34,11 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
   };
 
   const defense = [
-    { label: 'CA', val: String(derived.ac) },
-    { label: 'Iniciativa', val: modStr(derived.initiative) },
-    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m` },
-    { label: 'Perc. Pass.', val: String(derived.passivePerception) },
-    { label: 'Profic.', val: modStr(derived.proficiency) },
+    { label: 'CA', val: String(derived.ac), body: 'Classe de Armadura. Quanto maior, mais difícil é acertar você com ataques. Vem de armadura, escudo, Destreza e bônus mágicos.' },
+    { label: 'Iniciativa', val: modStr(derived.initiative), body: 'Bônus usado para determinar sua ordem no começo do combate. Normalmente vem do modificador de Destreza.' },
+    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m`, body: 'Quantidade de metros que seu personagem pode se mover em um turno antes de gastar recursos extras.' },
+    { label: 'Perc. Pass.', val: String(derived.passivePerception), body: 'Percepção Passiva. O mestre usa para notar detalhes, perigos ou emboscadas sem pedir uma rolagem ativa.' },
+    { label: 'Profic.', val: modStr(derived.proficiency), body: 'Bônus de proficiência. Soma em ataques, perícias, resistências e magias nas quais seu personagem é treinado.' },
   ];
 
   return (
@@ -106,10 +108,16 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {defense.map((d) => (
-          <div key={d.label} style={{ textAlign: 'center', minWidth: 62, padding: '11px 12px', borderRadius: 13, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)' }}>
-            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)' }}>{d.val}</div>
-            <div style={{ fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{d.label}</div>
-          </div>
+          <LoreTooltip
+            key={d.label}
+            info={passiveLore(d.label, d.val, d.body, ['Ficha', 'Valor derivado'])}
+            anchorStyle={{ display: 'block' }}
+          >
+            <div style={{ cursor: 'help', textAlign: 'center', minWidth: 62, padding: '11px 12px', borderRadius: 13, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)' }}>
+              <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)' }}>{d.val}</div>
+              <div style={{ fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{d.label}</div>
+            </div>
+          </LoreTooltip>
         ))}
       </div>
     </div>

@@ -1,6 +1,5 @@
 import type { StepProps } from './stepTypes';
 import { ChapterTitle } from './ChapterTitle';
-import { BACKGROUNDS } from '@/data/backgrounds';
 import { useTheme } from '@/lib/useTheme';
 
 const ALIGNMENTS = [
@@ -42,9 +41,9 @@ export function StepIdentity({ char, update }: StepProps) {
       <ChapterTitle
         chapter="Capítulo I"
         title="Identidade"
-        subtitle="Quem é o herói por trás dos números? Dê um nome e um rosto à lenda."
+        subtitle="Quem é o herói por trás dos números? Dê nome, rosto e intenção à lenda."
       />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 14 }}>
         <label style={{ display: 'block' }}>
           <span style={fieldLabel}>Nome do personagem</span>
           <input
@@ -54,20 +53,6 @@ export function StepIdentity({ char, update }: StepProps) {
             placeholder="Ex.: Thorgrim Pé-de-Ferro"
             onChange={(e) => update((c) => { c.name = e.target.value; })}
           />
-        </label>
-        <label style={{ display: 'block' }}>
-          <span style={fieldLabel}>Antecedente</span>
-          <select
-            className="fv-input"
-            value={char.backgroundId}
-            onChange={(e) => update((c) => { c.backgroundId = e.target.value; })}
-          >
-            {BACKGROUNDS.map((b) => (
-              <option key={b.id} value={b.id} style={{ color: '#111' }}>
-                {b.label}
-              </option>
-            ))}
-          </select>
         </label>
         <label style={{ display: 'block' }}>
           <span style={fieldLabel}>Alinhamento</span>
@@ -104,6 +89,7 @@ export function StepIdentity({ char, update }: StepProps) {
           </div>
         </div>
       </div>
+
       <label style={{ display: 'block', marginTop: 14 }}>
         <span style={fieldLabel}>Conceito</span>
         <textarea

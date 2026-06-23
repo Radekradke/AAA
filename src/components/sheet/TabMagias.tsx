@@ -7,6 +7,8 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellPicker } from '@/components/spells/SpellPicker';
 import { SPELL_BY_ID } from '@/data/spells';
 import { modStr } from '@/engine/dice';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { passiveLore, spellLore } from '@/lib/lore';
 
 export function TabMagias({ char, derived }: TabProps) {
   const t = useTheme();
@@ -14,6 +16,7 @@ export function TabMagias({ char, derived }: TabProps) {
   const [picker, setPicker] = useState(false);
 
   const slotLevels = Object.keys(char.combat.spellSlots).map(Number).sort((a, b) => a - b);
+  const maxCircle = Math.max(0, ...slotLevels);
   const prepared = char.preparedSpells.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level);
 
   const togglePrepared = (id: string) =>
@@ -46,7 +49,11 @@ export function TabMagias({ char, derived }: TabProps) {
           const slot = char.combat.spellSlots[lv];
           return (
             <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
+              <LoreTooltip
+                info={passiveLore(`${lv}º círculo`, `${slot.max - slot.used}/${slot.max} disponíveis`, 'Cada losango representa um espaço de magia. Espaços gastos voltam normalmente após descanso longo.', ['Magia', 'Recurso'])}
+              >
+                <span style={{ cursor: 'help', fontFamily: "'Cinzel', serif", fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
+              </LoreTooltip>
               <div style={{ flex: 1, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                 {Array.from({ length: slot.max }, (_, i) => {
                   const filled = i >= slot.used;
@@ -78,18 +85,20 @@ export function TabMagias({ char, derived }: TabProps) {
         </SectionLabel>
         {prepared.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Nenhuma magia preparada ainda.</div>}
         {prepared.map((sp) => (
-          <div key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', borderBottom: '1px solid var(--line)' }}>
-            <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, display: 'grid', placeItems: 'center', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 13, color: sp.level === 0 ? 'var(--muted)' : 'var(--acc)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
-              {sp.level === 0 ? 'T' : sp.level}
-            </span>
-            <span style={{ flex: 1, fontSize: 14, color: 'var(--ink)' }}>{sp.name}</span>
-            <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{sp.school}</span>
-            <button onClick={() => togglePrepared(sp.id)} aria-label="Remover" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
-          </div>
+          <LoreTooltip key={sp.id} info={spellLore(sp)} anchorStyle={{ display: 'block' }}>
+            <div style={{ cursor: 'help', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', borderBottom: '1px solid var(--line)' }}>
+              <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, display: 'grid', placeItems: 'center', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 13, color: sp.level === 0 ? 'var(--muted)' : 'var(--acc)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
+                {sp.level === 0 ? 'T' : sp.level}
+              </span>
+              <span style={{ flex: 1, fontSize: 14, color: 'var(--ink)' }}>{sp.name}</span>
+              <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{sp.school}</span>
+              <button onClick={() => togglePrepared(sp.id)} aria-label="Remover" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+            </div>
+          </LoreTooltip>
         ))}
       </Panel>
 
-      {picker && <SpellPicker prepared={char.preparedSpells} onToggle={togglePrepared} onClose={() => setPicker(false)} />}
+      {picker && <SpellPicker classId={char.classId} maxCircle={maxCircle} prepared={char.preparedSpells} onToggle={togglePrepared} onClose={() => setPicker(false)} />}
     </div>
   );
 }

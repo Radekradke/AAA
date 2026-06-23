@@ -138,7 +138,7 @@ export function CharacterCreator() {
           inset: 0,
           display: 'flex',
           flexDirection: 'column',
-          padding: 'clamp(64px,8.5vh,86px) clamp(14px,3.6vw,44px) clamp(14px,3vh,26px)',
+          padding: 'calc(var(--topbar-h) + 6px) var(--page-x) clamp(14px,3vh,26px)',
           gap: 'clamp(12px,1.8vh,20px)',
         }}
       >
@@ -158,7 +158,8 @@ export function CharacterCreator() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 9,
-                  padding: '7px 15px 7px 8px',
+                  minHeight: 38,
+                  padding: '7px 14px 7px 8px',
                   borderRadius: 999,
                   cursor: 'pointer',
                   border: '1px solid ' + (active ? t.gold : done ? hexA(t.acc, 0.5) : t.line),
@@ -167,6 +168,7 @@ export function CharacterCreator() {
                   transition: '.3s',
                   whiteSpace: 'nowrap',
                   backdropFilter: 'blur(8px)',
+                  flex: '0 0 auto',
                 }}
               >
                 <span
@@ -211,12 +213,24 @@ export function CharacterCreator() {
             minHeight: 0,
             flexWrap: 'wrap',
             alignContent: 'flex-start',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             overflowY: 'auto',
             overflowX: 'hidden',
+            paddingBottom: 2,
           }}
         >
-          <div className="fv-content" style={{ position: 'relative', flex: '1 1 440px', minWidth: 280, maxWidth: 720, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
+          <div
+            className="fv-hero"
+            aria-hidden
+            style={{
+              flex: '1 1 320px',
+              minWidth: 260,
+              maxWidth: 520,
+              minHeight: 320,
+              pointerEvents: 'none',
+            }}
+          />
+          <div className="fv-content" style={{ position: 'relative', flex: '0 1 780px', minWidth: 0, maxWidth: 780, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
             {/* clarão rúnico ao atravessar o portal entre etapas */}
             <div
               key={`flash-${step}`}
@@ -261,6 +275,7 @@ export function CharacterCreator() {
             gap: 12,
             paddingTop: 14,
             borderTop: '1px solid var(--line)',
+            flexWrap: 'wrap',
           }}
         >
           <button
@@ -271,7 +286,8 @@ export function CharacterCreator() {
               fontWeight: 600,
               fontSize: 14,
               color: step === 0 ? 'transparent' : 'var(--muted)',
-              padding: '13px 22px',
+              minHeight: 42,
+              padding: '11px 18px',
               borderRadius: 12,
               border: '1px solid ' + (step === 0 ? 'transparent' : 'var(--line)'),
               background: step === 0 ? 'transparent' : 'var(--panel)',
@@ -281,10 +297,10 @@ export function CharacterCreator() {
           >
             ‹ Voltar
           </button>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap', margin: '0 auto' }}>
             PASSO {step + 1} DE {STEP_LABELS.length}
           </div>
-          <button onClick={isLast ? finish : next} className="fv-btn-gold" style={{ padding: '14px 30px', fontSize: 15 }}>
+          <button onClick={isLast ? finish : next} className="fv-btn-gold" style={{ minHeight: 44, padding: '12px 26px', fontSize: 15, whiteSpace: 'nowrap' }}>
             {isLast ? '⚔ Despertar o Herói' : 'Avançar ›'}
           </button>
         </div>

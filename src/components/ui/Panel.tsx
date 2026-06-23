@@ -13,7 +13,12 @@ export function Panel({ children, className = '', style, full }: PanelProps) {
   return (
     <div
       className={`fv-panel ${className}`}
-      style={{ padding: 18, ...(full ? { gridColumn: '1 / -1' } : {}), ...style }}
+      style={{
+        minWidth: 0,
+        padding: 'clamp(14px, 2vw, 18px)',
+        ...(full ? { gridColumn: '1 / -1' } : {}),
+        ...style,
+      }}
     >
       {children}
     </div>

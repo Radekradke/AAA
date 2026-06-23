@@ -3,13 +3,15 @@ import type { StepProps } from './stepTypes';
 import { ChapterTitle } from './ChapterTitle';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
-import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
-import { abilityModifier, racialBonusFor } from '@/engine/modifiers';
+import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
+import { getBackground } from '@/data/backgrounds';
+import { abilityModifier, proficiencyBonus, racialBonusFor } from '@/engine/modifiers';
 import { standardArrayFor, STANDARD_ARRAY } from '@/engine/characterBuilder';
 import { getClass } from '@/data/classes';
 import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { BackgroundPicker } from './BackgroundPicker';
 
 type Method = 'array' | 'pointbuy' | 'manual';
 
@@ -21,6 +23,8 @@ export function StepAbilities({ char, update }: StepProps) {
   const [method, setMethod] = useState<Method>('array');
 
   const base = char.baseAbilities;
+  const bg = getBackground(char.backgroundId);
+  const prof = proficiencyBonus(char.level);
 
   const setBase = (key: AbilityKey, value: number) =>
     update((c) => {
@@ -76,10 +80,14 @@ export function StepAbilities({ char, update }: StepProps) {
       <ChapterTitle
         chapter="Capítulo IV"
         title="Atributos"
-        subtitle="Defina os seis pilares do herói — os bônus raciais entram no cálculo automaticamente."
+        subtitle="Escolha o passado e distribua os seis pilares do herói. Bônus raciais e perícias entram no cálculo automaticamente."
       />
 
-      <div style={{ display: 'flex', gap: 9, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ marginBottom: 16 }}>
+        <BackgroundPicker char={char} update={update} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 9, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         {methodTab('array', 'Array Padrão')}
         {methodTab('pointbuy', 'Ponto de Compra')}
         {methodTab('manual', 'Manual')}
@@ -100,26 +108,47 @@ export function StepAbilities({ char, update }: StepProps) {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(108px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 112px), 1fr))', gap: 12 }}>
         {ABILITY_KEYS.map((key) => {
           const baseVal = base[key];
           const racial = racialBonusFor(key, char.raceId, char.subraceId);
           const total = baseVal + racial;
           const mod = abilityModifier(total);
+          const favored = bg.suggestedAbilities.includes(key);
           return (
             <div
               key={key}
               style={{
                 position: 'relative',
                 background: 'linear-gradient(170deg, var(--panel), var(--panel2))',
-                border: '1px solid var(--line)',
+                border: '1px solid ' + (favored ? hexA(t.gold, 0.62) : 'var(--line)'),
                 borderRadius: 15,
                 padding: '15px 12px 14px',
                 textAlign: 'center',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.05)',
+                boxShadow: favored
+                  ? '0 0 22px ' + hexA(t.gold, 0.16) + ', inset 0 1px 0 rgba(255,255,255,.05)'
+                  : 'inset 0 1px 0 rgba(255,255,255,.05)',
                 overflow: 'hidden',
               }}
             >
+              {favored && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 9,
+                    right: 9,
+                    fontSize: 9,
+                    letterSpacing: '.1em',
+                    color: '#140d04',
+                    background: t.gold,
+                    borderRadius: 999,
+                    padding: '3px 6px',
+                    fontWeight: 700,
+                  }}
+                >
+                  BG
+                </div>
+              )}
               <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.14em', color: 'var(--muted)' }}>
                 {ABILITY_SHORT[key]}
               </div>
@@ -207,6 +236,57 @@ export function StepAbilities({ char, update }: StepProps) {
             </div>
           );
         })}
+      </div>
+
+      <div
+        className="fv-surface"
+        style={{
+          marginTop: 14,
+          padding: 14,
+          border: '1px solid ' + hexA(t.gold, 0.34),
+          background: 'linear-gradient(160deg, rgba(0,0,0,.24), ' + hexA(t.gold, 0.08) + ')',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 9 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>
+            Antecedente: {bg.label}
+          </div>
+          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--gold)' }}>
+            proficiência +{prof}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 9 }}>
+          {bg.skills.map((skillKey) => {
+            const skill = SKILL_BY_KEY[skillKey];
+            const total = base[skill.ability] + racialBonusFor(skill.ability, char.raceId, char.subraceId);
+            const bonus = abilityModifier(total) + prof;
+            return (
+              <div
+                key={skillKey}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '9px 11px',
+                  borderRadius: 11,
+                  border: '1px solid var(--line)',
+                  background: 'rgba(0,0,0,.22)',
+                }}
+              >
+                <div>
+                  <div style={{ color: 'var(--ink)', fontWeight: 700, fontSize: 13 }}>{skill.label}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: 11, fontFamily: "'Chakra Petch', monospace" }}>
+                    usa {ABILITY_SHORT[skill.ability]}
+                  </div>
+                </div>
+                <div style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 18 }}>
+                  {modStr(bonus)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
       <p style={{ marginTop: 14, fontSize: 12.5, color: 'var(--muted)' }}>
         Dica: priorize <b style={{ color: 'var(--ink)' }}>{ABILITY_LABELS[getClass(char.classId).prim]}</b>, o

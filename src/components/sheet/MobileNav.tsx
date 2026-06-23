@@ -1,4 +1,4 @@
-import { SHEET_TABS } from './sheetTabs';
+import { SHEET_TABS } from './sheetTabDefs';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 

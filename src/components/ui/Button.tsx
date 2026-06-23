@@ -12,9 +12,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({ variant = 'ghost', pulse, children, className = '', style, ...rest }: ButtonProps) {
   const base: React.CSSProperties = {
     cursor: 'pointer',
+    minHeight: 38,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    maxWidth: '100%',
     fontFamily: variant === 'gold' ? "'Cinzel', serif" : "'Inter', sans-serif",
     fontWeight: variant === 'gold' ? 700 : 600,
     letterSpacing: variant === 'gold' ? '0.08em' : '0.02em',
+    lineHeight: 1.05,
+    whiteSpace: 'nowrap',
     borderRadius: 12,
     transition: 'transform .2s, box-shadow .2s, border-color .2s, background .2s',
     ...style,
@@ -56,7 +64,11 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
   };
 
   return (
-    <button className={className} style={{ ...base, ...variants[variant] }} {...rest}>
+    <button
+      className={className}
+      style={{ ...base, ...variants[variant], opacity: rest.disabled ? 0.55 : undefined }}
+      {...rest}
+    >
       {children}
     </button>
   );

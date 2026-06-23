@@ -4,10 +4,9 @@ import type { Character, CombatState } from '@/types/character';
 import { getClass } from '@/data/classes';
 import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
-import { itemToInventory } from './inventory';
-import { getItem } from '@/data/items';
-import { DEFAULT_PREPARED } from '@/data/spells';
+import { defaultPreparedForClass } from '@/data/spells';
 import { buildSpellSlots, buildResources } from './progression';
+import { buildLoadout, defaultSelection } from './loadout';
 
 /** Valores do Array Padrão de D&D 5e. */
 export const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
@@ -55,28 +54,6 @@ let _seq = 0;
 function charId(): string {
   _seq += 1;
   return `pc${Date.now().toString(36)}${_seq}`;
-}
-
-/** Equipamento inicial padrão por categoria de classe. */
-function defaultLoadout(classId: string): { itemIds: string[]; equip: Partial<Character['equipped']> } {
-  const cls = getClass(classId);
-  // marciais começam com armadura + arma; conjuradores com couro + arma simples
-  if (cls.kind === 'Marcial' && cls.hitDie >= 10) {
-    return {
-      itemIds: ['a-chainmail', 'w-longsword', 's-shield', 'g-backpack', 'p-heal'],
-      equip: { armor: 'a-chainmail', mainHand: 'w-longsword', shield: 's-shield' },
-    };
-  }
-  if (cls.id === 'rogue' || cls.id === 'monk' || cls.id === 'ranger') {
-    return {
-      itemIds: ['a-leather', 'w-shortsword', 'w-shortbow', 'g-explorer', 'p-heal'],
-      equip: { armor: 'a-leather', mainHand: 'w-shortsword', ranged: 'w-shortbow' },
-    };
-  }
-  return {
-    itemIds: ['a-leather', 'w-quarterstaff', 'g-explorer', 'p-heal'],
-    equip: { armor: 'a-leather', mainHand: 'w-quarterstaff' },
-  };
 }
 
 export interface NewCharacterInput {
@@ -134,36 +111,21 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
 export function finalizeCharacter(draft: Character): Character {
   const cls = getClass(draft.classId);
   const bg = getBackground(draft.backgroundId);
-  const loadout = defaultLoadout(draft.classId);
 
   // monta a mochila inicial (não sobrescreve se o usuário já adicionou itens)
-  const inventory =
-    draft.inventory.length > 0
-      ? draft.inventory
-      : loadout.itemIds.map((id) => {
-          const item = getItem(id)!;
-          return itemToInventory(item);
-        });
-
-  // resolve os uids dos itens equipados por itemId
-  const equipped = { ...draft.equipped };
-  if (draft.inventory.length === 0) {
-    for (const [slot, itemId] of Object.entries(loadout.equip)) {
-      const inst = inventory.find((i) => i.itemId === itemId);
-      if (inst) equipped[slot as keyof Character['equipped']] = inst.uid;
-    }
-  }
+  const loadout = draft.inventory.length > 0 ? null : buildLoadout(defaultSelection(draft.classId));
+  const inventory = loadout ? loadout.inventory : draft.inventory;
+  const equipped = loadout ? loadout.equipped : draft.equipped;
 
   // proficiências de perícia: antecedente + escolhas (garante ao menos as do background)
   const skillProfs = Array.from(new Set([...draft.skillProfs, ...bg.skills]));
 
-  // magias padrão para conjuradores
-  const preparedSpells =
-    cls.spellcasting && draft.preparedSpells.length === 0 ? [...DEFAULT_PREPARED] : draft.preparedSpells;
-
   // espaços de magia e recursos conforme classe/nível
   const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};
   const resources = buildResources(draft.classId, draft.level);
+  const maxCircle = Math.max(0, ...Object.keys(spellSlots).map(Number));
+  const preparedSpells =
+    maxCircle > 0 && draft.preparedSpells.length === 0 ? defaultPreparedForClass(draft.classId, maxCircle) : draft.preparedSpells;
 
   const finalized: Character = {
     ...draft,
