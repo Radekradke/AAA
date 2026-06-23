@@ -94,16 +94,15 @@ button:disabled {
   isolation: isolate;
 }
 
+/* sem barras de scroll em nenhuma página (o scroll continua funcional) */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(140, 160, 200, 0.22);
-  border-radius: 9px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 /* foco visível para acessibilidade no teclado */
@@ -460,7 +459,7 @@ button:disabled {
     font-size: 11.5px;
   }
   .fv-scroll-thin {
-    scrollbar-width: thin;
+    scrollbar-width: none;
   }
   .fv-no-scrollbar::-webkit-scrollbar {
     display: none;

@@ -7,17 +7,11 @@ import { passiveLore } from '@/lib/lore';
 import { randomName, randomAge } from '@/data/names';
 import { getRace } from '@/data/races';
 
-/** Grade de alinhamento 3×3 (eixos Lei↔Caos e Bem↔Mal). */
-const ALIGN_GRID: { full: string; abbr: string }[] = [
-  { full: 'Leal e Bom', abbr: 'LB' },
-  { full: 'Neutro e Bom', abbr: 'NB' },
-  { full: 'Caótico e Bom', abbr: 'CB' },
-  { full: 'Leal e Neutro', abbr: 'LN' },
-  { full: 'Neutro', abbr: 'N' },
-  { full: 'Caótico e Neutro', abbr: 'CN' },
-  { full: 'Leal e Mau', abbr: 'LM' },
-  { full: 'Neutro e Mau', abbr: 'NM' },
-  { full: 'Caótico e Mau', abbr: 'CM' },
+/** Alinhamentos (eixos Lei↔Caos e Bem↔Mal), por nome completo. */
+const ALIGNMENTS = [
+  'Leal e Bom', 'Neutro e Bom', 'Caótico e Bom',
+  'Leal e Neutro', 'Neutro', 'Caótico e Neutro',
+  'Leal e Mau', 'Neutro e Mau', 'Caótico e Mau',
 ];
 
 /** Sementes de inspiração para o conceito. */
@@ -131,43 +125,24 @@ export function StepIdentity({ char, update }: StepProps) {
         </label>
       </div>
 
-      {/* Alinhamento em grade 3×3 */}
-      <div style={{ marginTop: 16 }}>
+      {/* Alinhamento — lista suspensa compacta (nome completo) */}
+      <label style={{ display: 'block', marginTop: 16, maxWidth: 320 }}>
         <LoreTooltip info={ALIGN_LORE}>
-          <span style={{ ...fieldLabel, marginBottom: 9, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'help' }}>
+          <span style={{ ...fieldLabel, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'help' }}>
             Alinhamento
             <span style={{ width: 14, height: 14, borderRadius: 999, border: '1px solid var(--line)', display: 'inline-grid', placeItems: 'center', fontSize: 9, color: 'var(--muted)' }}>?</span>
           </span>
         </LoreTooltip>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, maxWidth: 360 }}>
-          {ALIGN_GRID.map((a) => {
-            const active = char.alignment === a.full;
-            return (
-              <button
-                key={a.full}
-                type="button"
-                onClick={() => update((c) => { c.alignment = a.full; })}
-                title={a.full}
-                style={{
-                  cursor: 'pointer',
-                  padding: '12px 6px 10px',
-                  borderRadius: 12,
-                  textAlign: 'center',
-                  border: '1px solid ' + (active ? t.gold : t.line),
-                  background: active ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.26)',
-                  boxShadow: active ? '0 0 18px ' + hexA(t.gold, 0.3) : 'none',
-                  transition: '.2s',
-                }}
-              >
-                <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: active ? t.gold : 'var(--ink)' }}>
-                  {a.abbr}
-                </div>
-                <div style={{ marginTop: 3, fontSize: 9.5, color: 'var(--muted)', lineHeight: 1.15 }}>{a.full}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        <select
+          className="fv-input"
+          value={char.alignment}
+          onChange={(e) => update((c) => { c.alignment = e.target.value; })}
+        >
+          {ALIGNMENTS.map((a) => (
+            <option key={a} value={a} style={{ color: '#111' }}>{a}</option>
+          ))}
+        </select>
+      </label>
 
       {/* Conceito + sementes de inspiração */}
       <div style={{ marginTop: 16 }}>

@@ -34,6 +34,12 @@ export function CharacterCreator() {
 
   const [step, setStep] = useState(0);
   const startedRef = useRef(false);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  // a cada troca de etapa, volta o conteúdo ao topo (fluxo mais limpo)
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
 
   // resume rascunho existente ou cria um novo (apenas uma vez)
   useEffect(() => {
@@ -205,6 +211,7 @@ export function CharacterCreator() {
 
         {/* corpo: lado esquerdo livre (mostra o personagem do vídeo) + conteúdo à direita */}
         <div
+          ref={bodyRef}
           className="fv-body fv-scroll-thin"
           style={{
             flex: 1,
