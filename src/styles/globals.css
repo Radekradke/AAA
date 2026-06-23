@@ -389,6 +389,56 @@ button:disabled {
     top: 0;
     overflow: visible;
   }
+  /* ----- criação fit-to-screen (sem rolagem no desktop) ----- */
+  .fv-creator-content {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+  }
+  .fv-step-motion {
+    height: 100%;
+    min-height: 0;
+  }
+  .fv-step-fill {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .fv-step-split {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .fv-step-split > * {
+    min-height: 0;
+  }
+  .fv-card-col {
+    align-content: start;
+    overflow: auto;
+  }
+  .fv-detail-col {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* conteúdo do painel de detalhe: contido no painel (rola dentro dele, sem barra) */
+  .fv-detail-flex {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+    z-index: 1;
+  }
+  .fv-step-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
   .fv-page-pad {
     padding-left: var(--page-x);
     padding-right: var(--page-x);
@@ -497,6 +547,27 @@ button:disabled {
   .fv-choice-detail {
     position: static;
     max-height: none;
+    overflow: visible;
+  }
+  /* no mobile, a criação volta a fluir naturalmente (rola, sem barra) */
+  .fv-creator-content,
+  .fv-step-motion,
+  .fv-step-fill {
+    height: auto;
+  }
+  .fv-step-fill {
+    display: block;
+  }
+  .fv-step-split {
+    grid-template-rows: none;
+  }
+  .fv-detail-col {
+    display: block;
+  }
+  .fv-card-col,
+  .fv-detail-col,
+  .fv-detail-flex,
+  .fv-step-scroll {
     overflow: visible;
   }
   .fv-label {

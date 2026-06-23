@@ -209,42 +209,26 @@ export function CharacterCreator() {
           })}
         </div>
 
-        {/* corpo: lado esquerdo livre (mostra o personagem do vídeo) + conteúdo à direita */}
+        {/* corpo: ocupa toda a altura disponível, sem rolagem no desktop */}
         <div
           ref={bodyRef}
-          className="fv-body fv-scroll-thin"
+          className="fv-body"
           style={{
             flex: 1,
             display: 'flex',
-            gap: 'clamp(16px,2.6vw,34px)',
             minHeight: 0,
-            flexWrap: 'wrap',
-            alignContent: 'flex-start',
-            justifyContent: 'space-between',
             overflowY: 'auto',
             overflowX: 'hidden',
-            paddingBottom: 2,
           }}
         >
-          <div
-            className="fv-hero"
-            aria-hidden
-            style={{
-              flex: '1 1 320px',
-              minWidth: 260,
-              maxWidth: 520,
-              minHeight: 320,
-              pointerEvents: 'none',
-            }}
-          />
-          <div className="fv-content" style={{ position: 'relative', flex: '0 1 780px', minWidth: 0, maxWidth: 780, minHeight: 0, paddingRight: 6, perspective: 1200 }}>
+          <div className="fv-creator-content" style={{ perspective: 1200 }}>
             {/* clarão rúnico ao atravessar o portal entre etapas */}
             <div
               key={`flash-${step}`}
               aria-hidden
               style={{
                 position: 'absolute',
-                top: 90,
+                top: 70,
                 left: '50%',
                 width: 220,
                 height: 220,
@@ -260,6 +244,7 @@ export function CharacterCreator() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={step}
+                className="fv-step-motion"
                 initial={{ opacity: 0, scale: 0.94, rotateX: 8, filter: 'blur(8px)' }}
                 animate={{ opacity: 1, scale: 1, rotateX: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 1.04, filter: 'blur(6px)' }}

@@ -24,15 +24,15 @@ export function StepClass({ char, update }: StepProps) {
     });
 
   return (
-    <div className="animate-riseIn">
+    <div className="animate-riseIn fv-step-fill">
       <ChapterTitle
         chapter="Capítulo III"
         title="Caminho"
         subtitle="A classe define seu ritmo em cena: como você enfrenta perigo, protege aliados e vira lenda."
       />
 
-      <div className="fv-responsive-split fv-class-layout">
-        <div className="fv-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 112px), 1fr))', alignContent: 'start' }}>
+      <div className="fv-responsive-split fv-class-layout fv-step-split">
+        <div className="fv-card-grid fv-card-col" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 112px), 1fr))' }}>
           {CLASSES.map((c) => {
             const sel = char.classId === c.id;
             return (
@@ -91,8 +91,9 @@ export function StepClass({ char, update }: StepProps) {
         </div>
 
         <div
-          className="fv-surface fv-choice-detail"
+          className="fv-surface fv-detail-col"
           style={{
+            position: 'relative',
             borderColor: hexA(cls.jewel, 0.42),
             padding: 'clamp(13px, 1.5vw, 16px)',
             boxShadow: 'var(--shadow-panel), inset 0 0 70px ' + hexA(cls.jewel, 0.08),
@@ -111,7 +112,7 @@ export function StepClass({ char, update }: StepProps) {
               boxShadow: 'inset 0 0 50px ' + hexA(cls.jewel, 0.1) + ', 0 0 52px ' + hexA(cls.jewel, 0.13),
             }}
           />
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="fv-detail-flex">
             <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: cls.jewel, marginBottom: 6 }}>
               Caminho escolhido
             </div>

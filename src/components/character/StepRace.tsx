@@ -21,15 +21,15 @@ export function StepRace({ char, update }: StepProps) {
     });
 
   return (
-    <div className="animate-riseIn">
+    <div className="animate-riseIn fv-step-fill">
       <ChapterTitle
         chapter="Capítulo II"
         title="Origem"
         subtitle="A linhagem molda corpo, sentidos e destino. Escolha o legado que marca o primeiro capítulo da lenda."
       />
 
-      <div className="fv-responsive-split fv-origin-layout">
-        <div className="fv-card-grid" style={{ alignContent: 'start' }}>
+      <div className="fv-responsive-split fv-origin-layout fv-step-split">
+        <div className="fv-card-grid fv-card-col">
           {RACES.map((r) => {
             const sel = char.raceId === r.id;
             return (
@@ -83,8 +83,9 @@ export function StepRace({ char, update }: StepProps) {
         </div>
 
         <div
-          className="fv-surface fv-choice-detail"
+          className="fv-surface fv-detail-col"
           style={{
+            position: 'relative',
             borderColor: hexA(race.jewel, 0.42),
             padding: 'clamp(13px, 1.5vw, 16px)',
             boxShadow: 'var(--shadow-panel), inset 0 0 70px ' + hexA(race.jewel, 0.08),
@@ -107,7 +108,7 @@ export function StepRace({ char, update }: StepProps) {
             {race.mono}
           </div>
 
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="fv-detail-flex">
             <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: race.jewel, marginBottom: 6 }}>
               Linhagem escolhida
             </div>

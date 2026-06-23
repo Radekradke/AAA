@@ -66,6 +66,46 @@ export const BACKGROUNDS: Background[] = [
     skills: ['deception', 'sleightOfHand'],
     suggestedAbilities: ['cha', 'dex'],
   },
+  {
+    id: 'entertainer',
+    label: 'Artista',
+    desc: 'Vive dos palcos, tavernas e praças, encantando plateias com música, dança, atuação ou acrobacia. Ideal para quem move o grupo pela presença e pelo carisma.',
+    feature: 'Querido do público: hospedagem em troca de espetáculo, contatos artísticos e fama crescente.',
+    skills: ['acrobatics', 'performance'],
+    suggestedAbilities: ['cha', 'dex'],
+  },
+  {
+    id: 'guild-artisan',
+    label: 'Artesão de Guilda',
+    desc: 'Membro de uma guilda de ofício — ferreiro, alquimista, joalheiro — com orgulho do trabalho e da reputação. Bom para personagens práticos e bem relacionados.',
+    feature: 'Membro de guilda: ofício respeitado, contatos comerciais e abrigo em filiais da guilda.',
+    skills: ['insight', 'persuasion'],
+    suggestedAbilities: ['wis', 'cha'],
+  },
+  {
+    id: 'hermit',
+    label: 'Eremita',
+    desc: 'Passou anos em reclusão, buscando iluminação, cura ou um segredo. Combina com personagens introspectivos que guardam uma descoberta importante.',
+    feature: 'Descoberta na solidão: um conhecimento ou verdade única revelada durante o isolamento.',
+    skills: ['medicine', 'religion'],
+    suggestedAbilities: ['wis', 'int'],
+  },
+  {
+    id: 'sailor',
+    label: 'Marujo',
+    desc: 'Cresceu no convés, entre tempestades, portos e camaradagem rude. Sustenta aventureiros resistentes, ágeis e acostumados a perigo constante.',
+    feature: 'Passagem de navio: transporte marítimo para você e o grupo em troca de ajuda a bordo.',
+    skills: ['athletics', 'perception'],
+    suggestedAbilities: ['str', 'dex'],
+  },
+  {
+    id: 'urchin',
+    label: 'Órfão das Ruas',
+    desc: 'Sobreviveu sozinho desde cedo nas vielas da cidade, dominando furtos e fugas. Ótimo para personagens espertos, ágeis e difíceis de prender.',
+    feature: 'Segredos da cidade: atalhos, esgotos e passagens que permitem cruzar a urbe sem ser visto.',
+    skills: ['sleightOfHand', 'stealth'],
+    suggestedAbilities: ['dex', 'wis'],
+  },
 ];
 
 export const BACKGROUND_BY_ID: Record<string, Background> = Object.fromEntries(
