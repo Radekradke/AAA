@@ -80,6 +80,16 @@ export function CharacterCreator() {
 
   const isLast = step === STEP_LABELS.length - 1;
 
+const creatorVideo =
+  char.classId === 'warlock'
+    ? '/assets/bruxo-bg.mp4'
+    : char.raceId === 'dragonborn'
+      ? '/assets/bg.mp4'
+      : null;
+
+const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
+const creatorDarken = creatorVideo ? 0.5 : 1;
+  
   const goStep = (i: number) => {
     setStep(i);
     bump(0.8);
@@ -124,9 +134,9 @@ export function CharacterCreator() {
 
   return (
     <Screen
-      video="/assets/bg.mp4"
-      videoOpacity={0.82}
-      darken={0.5}
+      video={creatorVideo}
+      videoOpacity={creatorVideoOpacity}
+      darken={creatorDarken}
       actions={
         <>
           <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
