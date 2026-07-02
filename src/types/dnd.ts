@@ -44,6 +44,8 @@ export interface Race {
   desc: string;
   traits: string[];
   speed: number;
+  /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
+  video?: string;
 }
 
 export interface Subrace {
@@ -81,6 +83,8 @@ export interface DndClass {
   /** Recursos especiais de combate por classe. */
   resources?: ClassResourceDef[];
   spellcasting?: boolean;
+  /** Vídeo de fundo próprio da classe na criação (prioridade sobre a raça). */
+  video?: string;
 }
 
 export interface ClassResourceDef {

@@ -98,6 +98,7 @@ export const RACES: Race[] = [
     label: 'Draconato',
     mono: 'D',
     jewel: '#C24A2E',
+    video: '/assets/bg.mp4',
     abilityBonus: { str: 2, cha: 1 },
     bonus: '+2 FOR · +1 CAR',
     desc: 'Descendentes de dragões, orgulhosos e marcados pela linhagem ancestral.',

@@ -6,9 +6,11 @@ import { hexA } from '@/lib/color';
 import { useTilt } from '@/lib/useTilt';
 import { useCharacterStore } from '@/store/characterStore';
 import { AddItemPicker } from '@/components/inventory/AddItemPicker';
+import { ItemEditorModal } from '@/components/inventory/ItemEditorModal';
+import { Icon } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
 import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT } from '@/engine/inventory';
-import type { CoinKey } from '@/types/character';
+import type { CoinKey, InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { itemLore } from '@/lib/lore';
 
@@ -34,6 +36,8 @@ export function TabInventario({ char }: TabProps) {
   const store = useCharacterStore();
   const [filter, setFilter] = useState('all');
   const [picker, setPicker] = useState(false);
+  const [forge, setForge] = useState(false);
+  const [editing, setEditing] = useState<InventoryItem | null>(null);
 
   const coinTotal = Math.round(COINS.reduce((a, c) => a + char.coins[c.k] * c.rate, 0));
   const attuneItems = char.inventory.filter((i) => i.attunement);
@@ -109,6 +113,13 @@ export function TabInventario({ char }: TabProps) {
               <button onClick={() => setPicker(true)} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 11.5, padding: '6px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.12) }}>
                 + Adicionar
               </button>
+              <button
+                onClick={() => setForge(true)}
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 11.5, padding: '6px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: hexA(t.acc, 0.1) }}
+              >
+                <Icon name="anvil" size={14} />
+                Forjar
+              </button>
             </div>
           }
         >
@@ -152,7 +163,7 @@ export function TabInventario({ char }: TabProps) {
                     aria-label="Favoritar"
                     style={{ cursor: 'pointer', background: 'none', border: 'none', fontSize: 15, color: it.favorite ? t.gold : 'var(--muted)' }}
                   >
-                    {it.favorite ? '★' : '☆'}
+                    <Icon name={it.favorite ? 'starFill' : 'star'} size={15} />
                   </button>
                 </div>
                 <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
@@ -165,6 +176,7 @@ export function TabInventario({ char }: TabProps) {
                       {equipped ? 'Desequipar' : 'Equipar'}
                     </ItemBtn>
                   )}
+                  <ItemBtn onClick={() => setEditing(it)}>Editar</ItemBtn>
                   <ItemBtn danger onClick={() => store.removeInventoryItem(char.id, it.uid)}>Remover</ItemBtn>
                 </div>
                 </div>
@@ -179,6 +191,19 @@ export function TabInventario({ char }: TabProps) {
         <AddItemPicker
           onAdd={(item) => store.addInventoryItem(char.id, item)}
           onClose={() => setPicker(false)}
+        />
+      )}
+      {forge && (
+        <ItemEditorModal
+          onSave={(item) => store.addInventoryItem(char.id, item)}
+          onClose={() => setForge(false)}
+        />
+      )}
+      {editing && (
+        <ItemEditorModal
+          item={editing}
+          onSave={(item) => store.updateInventoryItem(char.id, editing.uid, item)}
+          onClose={() => setEditing(null)}
         />
       )}
     </div>

@@ -34,6 +34,7 @@ interface CharacterState {
   heal: (id: string, amount: number) => void;
   setTempHp: (id: string, amount: number) => void;
   addInventoryItem: (id: string, item: Item | InventoryItem) => void;
+  updateInventoryItem: (id: string, uid: string, patch: Partial<InventoryItem>) => void;
   removeInventoryItem: (id: string, uid: string) => void;
   toggleEquip: (id: string, uid: string) => void;
   toggleFavorite: (id: string, uid: string) => void;
@@ -196,6 +197,14 @@ export const useCharacterStore = create<CharacterState>()(
           mutate(id, (c) => {
             const inst = 'uid' in item ? (item as InventoryItem) : itemToInventory(item as Item);
             c.inventory.push(inst);
+          });
+        },
+        updateInventoryItem(id, uid, patch) {
+          mutate(id, (c) => {
+            const idx = c.inventory.findIndex((i) => i.uid === uid);
+            if (idx === -1) return;
+            // item editado deixa de referenciar o catálogo: os dados passam a viver na instância
+            c.inventory[idx] = { ...c.inventory[idx], ...patch, uid, itemId: undefined };
           });
         },
         removeInventoryItem(id, uid) {

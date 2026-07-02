@@ -18,6 +18,9 @@ import { StepGear } from '@/components/character/StepGear';
 import { StepReview } from '@/components/character/StepReview';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
+import { RaceAura } from '@/components/animations/RaceAura';
+import { getRace } from '@/data/races';
+import { getClass } from '@/data/classes';
 
 const STEP_LABELS = ['Identidade', 'Origem', 'Caminho', 'Atributos', 'Perícias', 'Equipamento', 'Despertar'];
 const GEAR_STEP = 5;
@@ -80,16 +83,11 @@ export function CharacterCreator() {
 
   const isLast = step === STEP_LABELS.length - 1;
 
-const creatorVideo =
-  char.classId === 'warlock'
-    ? '/assets/bruxo-bg.mp4'
-    : char.raceId === 'dragonborn'
-      ? '/assets/bg.mp4'
-      : null;
+  // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
+  const creatorVideo = getClass(char.classId).video ?? getRace(char.raceId).video ?? null;
+  const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
+  const creatorDarken = creatorVideo ? 0.5 : 1;
 
-const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
-const creatorDarken = creatorVideo ? 0.5 : 1;
-  
   const goStep = (i: number) => {
     setStep(i);
     bump(0.8);
@@ -148,10 +146,12 @@ const creatorDarken = creatorVideo ? 0.5 : 1;
         </>
       }
     >
+      <RaceAura raceId={char.raceId} />
       <div
         style={{
           position: 'absolute',
           inset: 0,
+          zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
           padding: 'calc(var(--topbar-h) + 6px) var(--page-x) clamp(14px,3vh,26px)',
@@ -303,7 +303,7 @@ const creatorDarken = creatorVideo ? 0.5 : 1;
             PASSO {step + 1} DE {STEP_LABELS.length}
           </div>
           <button onClick={isLast ? finish : next} className="fv-btn-gold" style={{ minHeight: 44, padding: '12px 26px', fontSize: 15, whiteSpace: 'nowrap' }}>
-            {isLast ? '⚔ Despertar o Herói' : 'Avançar ›'}
+            {isLast ? 'Despertar o Herói' : 'Avançar ›'}
           </button>
         </div>
       </div>

@@ -45,22 +45,32 @@ export function TabCombate({ char, derived }: TabProps) {
           style={{
             marginTop: 12,
             height: 'clamp(20px,2.6vw,26px)',
-            borderRadius: 999,
-            background: 'rgba(0,0,0,.4)',
+            borderRadius: 5,
+            background: 'rgba(0,0,0,.44)',
             border: '1px solid var(--line)',
             overflow: 'hidden',
             position: 'relative',
             boxShadow: 'inset 0 2px 6px rgba(0,0,0,.4)',
+            clipPath: 'polygon(7px 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 7px 100%, 0 50%)',
           }}
         >
           <div
             style={{
               width: `${pct}%`,
               height: '100%',
-              borderRadius: 999,
               background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`,
               boxShadow: `0 0 18px ${hexA(hpColor, 0.7)}`,
               transition: 'width .45s cubic-bezier(.2,.8,.2,1), background .4s',
+            }}
+          />
+          {/* entalhes de HUD a cada 10% */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)',
+              pointerEvents: 'none',
             }}
           />
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, letterSpacing: '.1em', color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.7)' }}>

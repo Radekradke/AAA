@@ -199,6 +199,7 @@ export const CLASSES: DndClass[] = [
   {
     id: 'warlock',
     label: 'Bruxo',
+    video: '/assets/bruxo-bg.mp4',
     mono: 'B',
     die: 'd8',
     hitDie: 8,

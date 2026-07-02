@@ -1,6 +1,7 @@
 import { SHEET_TABS } from './sheetTabDefs';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { Icon } from '@/components/ui/Icon';
 
 interface MobileNavProps {
   active: string;
@@ -52,9 +53,7 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
               transition: '.2s',
             }}
           >
-            <span style={{ fontSize: 17, lineHeight: 1, filter: isActive ? 'none' : 'grayscale(.4)', opacity: isActive ? 1 : 0.7 }}>
-              {tab.icon}
-            </span>
+            <Icon name={tab.icon} size={19} color={isActive ? t.gold : t.muted} />
             <span
               style={{
                 fontSize: 9.5,

@@ -23,7 +23,7 @@ export function JournalCard({ entry, onChange, onDelete }: JournalCardProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fv-panel" style={{ padding: 18 }}>
+    <div className="fv-panel" style={{ padding: '16px 18px 14px', borderLeft: '3px solid ' + t.gold, boxShadow: 'var(--shadow-panel), inset 24px 0 40px -30px ' + t.gold }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
         <input
           value={entry.title}

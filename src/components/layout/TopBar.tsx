@@ -1,6 +1,7 @@
 import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import type { ReactNode } from 'react';
+import { Icon } from '@/components/ui/Icon';
 
 interface TopBarProps {
   /** Ações extras à direita (ex.: sair, recomeçar). */
@@ -113,7 +114,7 @@ export function TopBar({ actions }: TopBarProps) {
             transition: '.25s',
           }}
         >
-          {sound ? '🔊' : '🔈'}
+          <Icon name={sound ? 'volume' : 'volumeOff'} size={16} />
         </button>
         {actions}
       </div>

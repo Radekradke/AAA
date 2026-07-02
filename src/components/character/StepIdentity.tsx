@@ -6,6 +6,7 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore } from '@/lib/lore';
 import { randomName, randomAge } from '@/data/names';
 import { getRace } from '@/data/races';
+import { Icon } from '@/components/ui/Icon';
 
 /** Alinhamentos (eixos Lei↔Caos e Bem↔Mal), por nome completo. */
 const ALIGNMENTS = [
@@ -91,7 +92,7 @@ export function StepIdentity({ char, update }: StepProps) {
             aria-label="Gerar nome aleatório"
             style={diceBtn(t)}
           >
-            🎲
+            <Icon name="d20" size={20} />
           </button>
         </div>
       </label>
@@ -119,7 +120,7 @@ export function StepIdentity({ char, update }: StepProps) {
               onChange={(e) => update((c) => { c.age = e.target.value; })}
             />
             <button type="button" onClick={rollAge} title="Idade aleatória" aria-label="Idade aleatória" style={diceBtn(t)}>
-              🎲
+              <Icon name="d20" size={20} />
             </button>
           </div>
         </label>

@@ -5,6 +5,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { JournalCard } from '@/components/diary/JournalCard';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
+import { Icon } from '@/components/ui/Icon';
 
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
@@ -25,7 +26,15 @@ export function TabDiario({ char }: TabProps) {
   return (
     <div className="animate-riseIn">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--ink)' }}>Diário de Sessões</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="quill" size={22} color={t.gold} />
+          <div>
+            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--ink)', lineHeight: 1 }}>Crônica da Aventura</div>
+            <div style={{ marginTop: 3, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              {char.journal.length} sessão(ões) registradas
+            </div>
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             className="fv-input"

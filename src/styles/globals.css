@@ -11,9 +11,9 @@
 
 :root,
 [data-theme='frio'] {
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 9px;
   --shadow-panel: 0 16px 44px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --page-x: clamp(14px, 3.6vw, 40px);
@@ -244,6 +244,29 @@ button:disabled {
   }
 }
 
+/* sigilo da raça flutuando ao fundo da criação */
+@keyframes auraFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg) scale(1);
+  }
+  50% {
+    transform: translateY(-26px) rotate(2deg) scale(1.04);
+  }
+}
+@keyframes auraIn {
+  from {
+    opacity: 0;
+    transform: scale(1.15);
+    filter: blur(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 /* dado tombando no overlay */
 @keyframes dieTumble {
   0% {
@@ -268,11 +291,31 @@ button:disabled {
 /* ---------- utilidades de superfície (cartões AAA) ---------- */
 @layer components {
   .fv-panel {
+    position: relative;
     background: linear-gradient(160deg, var(--panel), var(--panel2));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-panel);
     backdrop-filter: blur(10px);
+  }
+  /* suportes dourados nos cantos — moldura de HUD (BG3/Warcraft) */
+  .fv-panel::after,
+  .fv-surface::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    pointer-events: none;
+    opacity: 0.55;
+    background:
+      linear-gradient(var(--gold), var(--gold)) left 0 top 0 / 14px 1px,
+      linear-gradient(var(--gold), var(--gold)) left 0 top 0 / 1px 14px,
+      linear-gradient(var(--gold), var(--gold)) right 0 top 0 / 14px 1px,
+      linear-gradient(var(--gold), var(--gold)) right 0 top 0 / 1px 14px,
+      linear-gradient(var(--gold), var(--gold)) left 0 bottom 0 / 14px 1px,
+      linear-gradient(var(--gold), var(--gold)) left 0 bottom 0 / 1px 14px,
+      linear-gradient(var(--gold), var(--gold)) right 0 bottom 0 / 14px 1px,
+      linear-gradient(var(--gold), var(--gold)) right 0 bottom 0 / 1px 14px;
+    background-repeat: no-repeat;
   }
   .fv-panel-soft {
     background: linear-gradient(160deg, var(--panel), var(--panel2));
@@ -282,6 +325,7 @@ button:disabled {
     backdrop-filter: blur(10px);
   }
   .fv-surface {
+    position: relative;
     background: linear-gradient(160deg, var(--panel), var(--panel2));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
