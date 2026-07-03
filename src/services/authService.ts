@@ -16,6 +16,11 @@ function mapUser(id: string, email: string | null, name?: string): User {
   return { id, name: name || email?.split('@')[0] || 'Aventureiro', email, guest: false };
 }
 
+function mapSupabaseUser(user: { id: string; email?: string | null; user_metadata?: unknown }): User {
+  const meta = user.user_metadata as { name?: string; full_name?: string } | undefined;
+  return mapUser(user.id, user.email ?? null, meta?.name ?? meta?.full_name);
+}
+
 export const authService = {
   cloudEnabled,
 
@@ -53,21 +58,35 @@ export const authService = {
     if (!sb) return { ok: false, error: 'Nuvem não configurada.' };
 
     const url = new URL(callbackUrl);
-    const oauthError = url.searchParams.get('error_description') ?? url.searchParams.get('error');
+    const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const oauthError =
+      url.searchParams.get('error_description') ??
+      url.searchParams.get('error') ??
+      hashParams.get('error_description') ??
+      hashParams.get('error');
     if (oauthError) return { ok: false, error: oauthError };
 
     const code = url.searchParams.get('code');
     if (code) {
       const { data, error } = await sb.auth.exchangeCodeForSession(code);
       if (error) return { ok: false, error: translate(error.message) };
-      const u = data.user;
-      if (u) {
-        const meta = u.user_metadata as { name?: string; full_name?: string };
-        return { ok: true, user: mapUser(u.id, u.email ?? null, meta?.name ?? meta?.full_name) };
-      }
+      const u = data.user ?? data.session?.user;
+      if (u) return { ok: true, user: mapSupabaseUser(u) };
     }
 
-    const user = await this.currentUser();
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    if (accessToken && refreshToken) {
+      const { data, error } = await sb.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) return { ok: false, error: translate(error.message) };
+      const u = data.user ?? data.session?.user;
+      if (u) return { ok: true, user: mapSupabaseUser(u) };
+    }
+
+    const user = await authService.currentUser();
     if (!user) return { ok: false, error: 'Nao foi possivel concluir o login com Google.' };
     return { ok: true, user };
   },
@@ -83,8 +102,7 @@ export const authService = {
     const { data } = await sb.auth.getSession();
     const u = data.session?.user;
     if (!u) return null;
-    const meta = u.user_metadata as { name?: string };
-    return mapUser(u.id, u.email ?? null, meta?.name);
+    return mapSupabaseUser(u);
   },
 };
 
