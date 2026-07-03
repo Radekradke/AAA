@@ -22,8 +22,20 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Valor aproximado em peças de ouro. */
+  value?: number;
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
+}
+
+/** Proficiência com ferramenta (id do catálogo ou rótulo livre). */
+export interface ToolProf {
+  id: string;
+  label: string;
+  /** Expertise: dobra o bônus de proficiência (ex.: Ladino com Ferramentas de Ladrão). */
+  expertise?: boolean;
+  /** Origem (antecedente, classe, manual…). */
+  source?: string;
 }
 
 export interface EquippedSlots {
@@ -142,7 +154,13 @@ export interface Character {
   baseAbilities: AbilityScores;
   // proficiências
   skillProfs: SkillKey[];
+  /** Perícias com expertise (bônus de proficiência em dobro). */
+  skillExpertise: SkillKey[];
   savingThrowProfs: AbilityKey[];
+  /** Proficiências com ferramentas, kits, instrumentos e veículos. */
+  toolProfs: ToolProf[];
+  /** Idiomas além dos raciais (antecedente/escolhas). */
+  extraLanguages: string[];
   // vitalidade
   hpCurrent: number;
   // recursos / posses

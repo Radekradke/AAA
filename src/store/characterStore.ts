@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Character, CoinKey, InventoryItem, JournalEntry } from '@/types/character';
-import type { Item } from '@/types/dnd';
+import type { Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { Item, SkillKey } from '@/types/dnd';
 import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/characterBuilder';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -43,6 +43,13 @@ interface CharacterState {
   toggleFavorite: (id: string, uid: string) => void;
   toggleAttune: (id: string, uid: string) => void;
   adjustCoin: (id: string, coin: CoinKey, delta: number) => void;
+  setCoin: (id: string, coin: CoinKey, value: number) => void;
+  toggleSkillExpertise: (id: string, key: SkillKey) => void;
+  addToolProf: (id: string, tool: ToolProf) => void;
+  removeToolProf: (id: string, toolId: string) => void;
+  toggleToolExpertise: (id: string, toolId: string) => void;
+  addLanguage: (id: string, lang: string) => void;
+  removeLanguage: (id: string, lang: string) => void;
   toggleTurn: (id: string, key: 'action' | 'bonus' | 'reaction') => void;
   resetTurn: (id: string) => void;
   adjustMove: (id: string, delta: number) => void;
@@ -253,6 +260,52 @@ export const useCharacterStore = create<CharacterState>()(
         adjustCoin(id, coin, delta) {
           mutate(id, (c) => {
             c.coins[coin] = Math.max(0, c.coins[coin] + delta);
+          });
+        },
+        setCoin(id, coin, value) {
+          mutate(id, (c) => {
+            c.coins[coin] = Math.max(0, Math.floor(value) || 0);
+          });
+        },
+        toggleSkillExpertise(id, key) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            c.skillExpertise = c.skillExpertise.includes(key)
+              ? c.skillExpertise.filter((k) => k !== key)
+              : [...c.skillExpertise, key];
+          });
+        },
+        addToolProf(id, tool) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            if (!c.toolProfs.some((t) => t.id === tool.id)) c.toolProfs.push(tool);
+          });
+        },
+        removeToolProf(id, toolId) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            c.toolProfs = c.toolProfs.filter((t) => t.id !== toolId);
+          });
+        },
+        toggleToolExpertise(id, toolId) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            const tool = c.toolProfs.find((t) => t.id === toolId);
+            if (tool) tool.expertise = !tool.expertise;
+          });
+        },
+        addLanguage(id, lang) {
+          const clean = lang.trim();
+          if (!clean) return;
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            if (!c.extraLanguages.includes(clean)) c.extraLanguages.push(clean);
+          });
+        },
+        removeLanguage(id, lang) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            c.extraLanguages = c.extraLanguages.filter((l) => l !== lang);
           });
         },
         toggleTurn(id, key) {
@@ -516,8 +569,8 @@ export const useCharacterStore = create<CharacterState>()(
     },
     {
       name: 'fv-characters',
-      version: 2,
-      // migração segura: personagens antigos ganham os campos do schema v2
+      version: 3,
+      // migração segura: personagens antigos ganham os campos dos schemas v2/v3
       migrate: (persisted) => {
         const state = persisted as { characters?: Character[]; currentId?: string | null };
         return {

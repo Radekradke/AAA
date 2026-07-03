@@ -39,6 +39,7 @@ export const CLASSES: DndClass[] = [
     savingThrows: ['dex', 'cha'],
     skillChoices: ['deception', 'history', 'insight', 'performance', 'persuasion', 'sleightOfHand'],
     skillPicks: 3,
+    tools: ['lute'],
     spellcasting: true,
     resources: [
       { id: 'inspiration', label: 'Inspiração de Bardo', desc: 'Concede 1d6 a um aliado', recharge: 'short', max: 3 },
@@ -175,6 +176,7 @@ export const CLASSES: DndClass[] = [
     savingThrows: ['dex', 'int'],
     skillChoices: ['acrobatics', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'perception', 'performance', 'persuasion', 'sleightOfHand', 'stealth'],
     skillPicks: 4,
+    tools: ['thieves-tools'],
   },
   {
     id: 'sorcerer',

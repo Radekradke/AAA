@@ -5,12 +5,7 @@ import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { conditionLore, passiveLore } from '@/lib/lore';
-
-const CONDITIONS = [
-  'Agarrado', 'Amedrontado', 'Atordoado', 'Caído', 'Cego', 'Enfeitiçado',
-  'Envenenado', 'Impedido', 'Incapacitado', 'Inconsciente', 'Invisível',
-  'Paralisado', 'Petrificado', 'Restringido', 'Surdo',
-];
+import { CONDITIONS } from '@/data/conditions';
 
 export function TabDescanso({ char, derived }: TabProps) {
   const t = useTheme();
@@ -54,14 +49,14 @@ export function TabDescanso({ char, derived }: TabProps) {
         </SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {CONDITIONS.map((c) => {
-            const on = char.combat.conditions.includes(c);
+            const on = char.combat.conditions.includes(c.id);
             return (
-              <LoreTooltip key={c} info={conditionLore(c)}>
+              <LoreTooltip key={c.id} info={conditionLore(c.id)}>
                 <button
-                  onClick={() => store.toggleCondition(char.id, c)}
-                  style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'rgba(0,0,0,.22)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
+                  onClick={() => store.toggleCondition(char.id, c.id)}
+                  style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, minHeight: 34, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'rgba(0,0,0,.22)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
                 >
-                  {c}
+                  {c.label}
                 </button>
               </LoreTooltip>
             );

@@ -29,6 +29,8 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
         background: 'linear-gradient(180deg, rgba(6,8,12,.4), rgba(6,8,12,.9))',
         borderTop: '1px solid var(--line)',
         backdropFilter: 'blur(14px)',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {tabs.map((tab) => {
@@ -39,8 +41,8 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
             onClick={() => onSelect(tab.id)}
             aria-label={tab.label}
             style={{
-              flex: 1,
-              minWidth: 0,
+              flex: '1 0 46px',
+              minWidth: 46,
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',

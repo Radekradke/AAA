@@ -49,3 +49,13 @@ export const ABILITY_SHORT: Record<AbilityKey, string> = {
   wis: 'SAB',
   cha: 'CAR',
 };
+
+/** Cor de identidade de cada atributo (detalhe premium, sem poluir). */
+export const ABILITY_COLORS: Record<AbilityKey, string> = {
+  str: '#D95448', // ferro em brasa
+  dex: '#8FC45A', // verde ágil
+  con: '#C24E63', // rubi/terra
+  int: '#4FA3E3', // azul arcano
+  wis: '#A379E8', // violeta místico
+  cha: '#E8AA5C', // dourado rosado
+};

@@ -74,11 +74,26 @@ export interface Subrace {
   traits?: string[];
 }
 
-/** Talento (PHB 2014) com efeitos mecânicos rastreáveis. */
+/** Fonte oficial de um talento/antecedente. */
+export type SourceBook = 'PHB 2014' | 'XGE';
+
+/** Talento (PHB 2014 / Xanathar) com efeitos mecânicos rastreáveis. */
 export interface Feat {
   id: string;
   label: string;
+  /** Resumo parafraseado curto — nunca texto integral dos livros. */
   desc: string;
+  source: SourceBook;
+  /** Pré-requisito em texto (exibição). */
+  prereq?: string;
+  /** Valores mínimos de atributo exigidos (validados na evolução). */
+  prereqAbility?: Partial<AbilityScores>;
+  /** Raças que podem escolher (talentos raciais de Xanathar). */
+  prereqRaces?: string[];
+  /** Exige capacidade de conjurar magias. */
+  prereqCaster?: boolean;
+  /** Regras especiais / observações de mesa. */
+  notes?: string;
   /** +1 em um atributo à escolha entre estes (meio-talentos). */
   abilityChoice?: AbilityKey[];
   /** PV adicionais por nível (Durão). */
@@ -122,6 +137,8 @@ export interface DndClass {
   skillPicks: number;
   /** Recursos especiais de combate por classe. */
   resources?: ClassResourceDef[];
+  /** Proficiências com ferramentas concedidas pela classe (ids de data/tools). */
+  tools?: string[];
   spellcasting?: boolean;
   /** Vídeo de fundo próprio da classe na criação (prioridade sobre a raça). */
   video?: string;
@@ -141,10 +158,21 @@ export interface Background {
   id: string;
   label: string;
   desc: string;
+  /** Nome da característica de antecedente (PHB 2014). */
+  featureName?: string;
   /** Traço narrativo curto usado para explicar o impacto do antecedente. */
   feature: string;
   /** Perícias concedidas pelo antecedente. */
   skills: SkillKey[];
+  /** Ferramentas concedidas (ids de data/tools ou rótulos livres). */
+  tools?: string[];
+  /** Quantos idiomas adicionais o jogador escolhe. */
+  languagesCount?: number;
+  /** Equipamento inicial concedido (itens de mochila em texto). */
+  equipment?: string[];
+  /** Moedas iniciais do antecedente (po). */
+  startingGold?: number;
+  source?: SourceBook;
   /** Atributos que combinam com as perícias do antecedente e ajudam na distribuição. */
   suggestedAbilities: AbilityKey[];
 }
@@ -154,9 +182,12 @@ export type ItemCategory =
   | 'armor'
   | 'shield'
   | 'gear'
+  | 'tool'
   | 'consumable'
   | 'wondrous'
-  | 'ring';
+  | 'ring'
+  | 'treasure'
+  | 'other';
 
 export type Rarity = 'comum' | 'incomum' | 'raro' | 'muito-raro' | 'lendario';
 
@@ -182,6 +213,8 @@ export interface WeaponData {
   properties: string[];
   /** Dado de dano alternativo para armas Versáteis (empunhadura a duas mãos). */
   versatileDie?: number;
+  /** Bônus mágico estruturado (+1/+2/+3) somado em acerto e dano. */
+  magicBonus?: number;
   /** Usa Destreza no ataque/dano (acuidade ou arma à distância). */
   finesse?: boolean;
   thrown?: boolean;

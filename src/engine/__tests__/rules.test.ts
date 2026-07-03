@@ -4,9 +4,12 @@ import { deriveCharacter } from '../dndRules';
 import {
   averageHp,
   ensureCharacterV2,
+  expertiseSlots,
+  featPrereqIssue,
   synthesizeHistory,
   validateLevelUp,
 } from '../levelUp';
+import { getFeat } from '@/data/feats';
 import { proficiencyBonus, abilityModifier } from '../modifiers';
 import { itemToInventory } from '../inventory';
 import { getItem } from '@/data/items';
@@ -176,7 +179,7 @@ describe('itens e magia', () => {
   });
 });
 
-describe('migração v2', () => {
+describe('migração v2/v3', () => {
   it('personagem antigo ganha campos v2 e histórico sintetizado', () => {
     const legacy = makeChar() as Partial<Character>;
     delete legacy.classLevels;
@@ -193,5 +196,108 @@ describe('migração v2', () => {
     // PV derivado bate com a fórmula da média
     const d = deriveCharacter(migrated);
     expect(d.maxHp).toBe(10 + 6 + 6 + 2 * 3);
+  });
+
+  it('v3 acrescenta ferramentas, expertise e idiomas sem quebrar', () => {
+    const legacy = makeChar() as Partial<Character>;
+    delete legacy.toolProfs;
+    delete legacy.skillExpertise;
+    delete legacy.extraLanguages;
+    delete (legacy as { schema?: number }).schema;
+    const migrated = ensureCharacterV2(legacy as Character);
+    expect(migrated.schema).toBe(3);
+    expect(migrated.toolProfs).toEqual([]);
+    expect(migrated.skillExpertise).toEqual([]);
+    expect(migrated.extraLanguages).toEqual([]);
+    expect(() => deriveCharacter(migrated)).not.toThrow();
+  });
+});
+
+describe('expertise (PHB 2014)', () => {
+  it('expertise dobra o bônus de proficiência da perícia', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' }));
+    c.skillProfs = ['stealth'];
+    const before = deriveCharacter(c).skills.find((s) => s.key === 'stealth')!;
+    const withExp = deriveCharacter({ ...c, skillExpertise: ['stealth'] });
+    const after = withExp.skills.find((s) => s.key === 'stealth')!;
+    expect(after.expertise).toBe(true);
+    expect(after.bonus).toBe(before.bonus + 2); // prof +2 dobrado no nível 1
+  });
+
+  it('expertise em Percepção reflete na Percepção Passiva', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' }));
+    c.skillProfs = ['perception'];
+    const base = deriveCharacter(c).passivePerception;
+    const withExp = deriveCharacter({ ...c, skillExpertise: ['perception'] });
+    expect(withExp.passivePerception).toBe(base + 2);
+  });
+
+  it('Ladino tem 2 vagas de expertise no nível 1 e 4 no nível 6', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' }));
+    expect(expertiseSlots(c)).toBe(2);
+    const lvl6: Character = { ...c, level: 6, classLevels: [{ classId: 'rogue', level: 6 }] };
+    expect(expertiseSlots(lvl6)).toBe(4);
+    expect(expertiseSlots(ensureCharacterV2(makeChar()))).toBe(0); // guerreiro
+  });
+});
+
+describe('antecedentes aplicam ferramentas, equipamento e ouro', () => {
+  it('Criminoso concede Ferramentas de Ladrão e jogo de dados', () => {
+    const draft = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'fighter', raceId: 'human' });
+    draft.backgroundId = 'criminal';
+    const c = finalizeCharacter(draft);
+    expect(c.toolProfs.some((t) => t.id === 'thieves-tools')).toBe(true);
+    expect(c.toolProfs.some((t) => t.id === 'dice-set')).toBe(true);
+    expect(c.skillProfs).toContain('deception');
+    expect(c.skillProfs).toContain('stealth');
+  });
+
+  it('Ladino ganha Ferramentas de Ladrão pela classe (sem duplicar com Órfão)', () => {
+    const draft = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'rogue', raceId: 'human' });
+    draft.backgroundId = 'urchin';
+    const c = finalizeCharacter(draft);
+    expect(c.toolProfs.filter((t) => t.id === 'thieves-tools')).toHaveLength(1);
+  });
+
+  it('Acólito recebe equipamento inicial e 15 po', () => {
+    const draft = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'cleric', raceId: 'human' });
+    draft.backgroundId = 'acolyte';
+    const c = finalizeCharacter(draft);
+    expect(c.inventory.some((i) => i.name === 'Símbolo sagrado')).toBe(true);
+    expect(c.coins.gp).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe('arma mágica estruturada e pré-requisitos de talento', () => {
+  it('magicBonus estruturado soma no ataque e dano', () => {
+    const c = ensureCharacterV2(makeChar());
+    const axe = itemToInventory(getItem('w-battleaxe')!);
+    axe.weapon = { ...axe.weapon!, magicBonus: 2 };
+    const armed: Character = { ...c, inventory: [...c.inventory, axe], equipped: { ...c.equipped, mainHand: axe.uid } };
+    const atk = deriveCharacter(armed).attacks.find((a) => a.uid === axe.uid)!;
+    expect(atk.attackBonus).toBe(3 + 2 + 2); // FOR 3 + prof 2 + mágica 2
+    expect(atk.damageBonus).toBe(3 + 2);
+  });
+
+  it('talento com mínimo de atributo é bloqueado quando não atende', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'wizard' }));
+    c.baseAbilities = { ...c.baseAbilities, dex: 8 };
+    const issue = featPrereqIssue(c, getFeat('defensive-duelist')!);
+    expect(issue).toContain('DES');
+    expect(featPrereqIssue(c, getFeat('tough')!)).toBeNull();
+  });
+
+  it('talento racial de Xanathar exige a raça certa', () => {
+    const human = ensureCharacterV2(makeChar());
+    expect(featPrereqIssue(human, getFeat('orcish-fury')!)).not.toBeNull();
+    const halfOrc = ensureCharacterV2(makeChar({ raceId: 'half-orc', subraceId: null }));
+    expect(featPrereqIssue(halfOrc, getFeat('orcish-fury')!)).toBeNull();
+  });
+
+  it('talento que exige conjuração é bloqueado para marciais', () => {
+    const fighter = ensureCharacterV2(makeChar());
+    expect(featPrereqIssue(fighter, getFeat('warcaster')!)).not.toBeNull();
+    const wizard = ensureCharacterV2(makeChar({ classId: 'wizard' }));
+    expect(featPrereqIssue(wizard, getFeat('warcaster')!)).toBeNull();
   });
 });

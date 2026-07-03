@@ -9,6 +9,7 @@ import { racialBonusFor, abilityModifier } from '@/engine/modifiers';
 import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { Modal } from '@/components/ui/Modal';
 
 interface Props {
   char: Character;
@@ -32,17 +33,17 @@ export function CharacterEditModal({ char, onClose }: Props) {
   const label: React.CSSProperties = { display: 'block', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 };
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(4,6,10,.62)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 16 }}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="fv-panel animate-popIn fv-scroll-thin"
-        style={{ width: '100%', maxWidth: 640, maxHeight: '88vh', overflowY: 'auto', padding: 22, border: '1px solid var(--gold)' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 19, color: 'var(--ink)' }}>Editar herói</div>
-          <button onClick={onClose} aria-label="Fechar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 20 }}>✕</button>
-        </div>
-
+    <Modal
+      title="Editar herói"
+      icon="edit"
+      onClose={onClose}
+      maxWidth={640}
+      footer={
+        <button onClick={onClose} className="fv-btn-gold" style={{ flex: 1, minHeight: 46, fontSize: 15 }}>
+          Concluir
+        </button>
+      }
+    >
         {/* identidade */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           <label>
@@ -116,11 +117,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           </div>
         </div>
 
-        <button onClick={onClose} className="fv-btn-gold" style={{ marginTop: 20, width: '100%', padding: 13, fontSize: 15 }}>
-          Concluir
-        </button>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

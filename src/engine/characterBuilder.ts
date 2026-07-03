@@ -1,11 +1,12 @@
 import type { AbilityKey, AbilityScores } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
-import type { Character, CombatState } from '@/types/character';
+import type { Character, CombatState, InventoryItem, ToolProf } from '@/types/character';
 import { DEFAULT_CAMPAIGN } from '@/types/character';
 import { synthesizeHistory } from './levelUp';
 import { getClass } from '@/data/classes';
 import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
+import { toolLabel } from '@/data/tools';
 import { defaultPreparedForClass } from '@/data/spells';
 import { buildSpellSlots, buildResources } from './progression';
 import { buildLoadout, defaultSelection } from './loadout';
@@ -95,10 +96,13 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
     levelHistory: [],
     inspiration: false,
     campaign: { ...DEFAULT_CAMPAIGN },
-    schema: 2,
+    schema: 3,
     baseAbilities: standardArrayFor(classId),
     skillProfs: [],
+    skillExpertise: [],
     savingThrowProfs: getClass(classId).savingThrows,
+    toolProfs: [],
+    extraLanguages: [],
     hpCurrent: 0,
     coins: { pp: 0, gp: 25, ep: 0, sp: 0, cp: 0 },
     inventory: [],
@@ -124,11 +128,39 @@ export function finalizeCharacter(draft: Character): Character {
 
   // monta a mochila inicial (não sobrescreve se o usuário já adicionou itens)
   const loadout = draft.inventory.length > 0 ? null : buildLoadout(defaultSelection(draft.classId));
-  const inventory = loadout ? loadout.inventory : draft.inventory;
+  const inventory = loadout ? [...loadout.inventory] : [...draft.inventory];
   const equipped = loadout ? loadout.equipped : draft.equipped;
+
+  // equipamento do antecedente (PHB 2014) — itens simples de mochila
+  let bagSeq = 0;
+  for (const name of bg.equipment ?? []) {
+    if (inventory.some((i) => i.name === name)) continue;
+    bagSeq += 1;
+    const item: InventoryItem = {
+      uid: `bg${Date.now().toString(36)}${bagSeq}`,
+      name,
+      category: 'gear',
+      note: `Equipamento inicial · ${bg.label}`,
+      rarity: 'comum',
+      weight: 0,
+      quantity: 1,
+      favorite: false,
+      attuned: false,
+    };
+    inventory.push(item);
+  }
 
   // proficiências de perícia: antecedente + escolhas (garante ao menos as do background)
   const skillProfs = Array.from(new Set([...draft.skillProfs, ...bg.skills]));
+
+  // ferramentas: classe (ex.: Ladino → Ferramentas de Ladrão) + antecedente
+  const toolProfs: ToolProf[] = [...(draft.toolProfs ?? [])];
+  const addTool = (id: string, source: string) => {
+    if (toolProfs.some((t) => t.id === id)) return;
+    toolProfs.push({ id, label: toolLabel(id), source });
+  };
+  for (const id of cls.tools ?? []) addTool(id, cls.label);
+  for (const id of bg.tools ?? []) addTool(id, bg.label);
 
   // espaços de magia e recursos conforme classe/nível
   const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};
@@ -145,6 +177,8 @@ export function finalizeCharacter(draft: Character): Character {
     inventory,
     equipped,
     skillProfs,
+    toolProfs,
+    coins: bg.startingGold ? { ...draft.coins, gp: Math.max(draft.coins.gp, bg.startingGold) } : draft.coins,
     preparedSpells,
     combat: {
       ...emptyCombat(),

@@ -4,6 +4,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { spellLore } from '@/lib/lore';
+import { Modal } from '@/components/ui/Modal';
 
 interface SpellPickerProps {
   classId: string;
@@ -22,14 +23,9 @@ export function SpellPicker({ classId, maxCircle, prepared, onToggle, onClose }:
   const list = q ? available.filter((s) => s.name.toLowerCase().includes(q)) : available;
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(4,6,10,.6)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 16 }}>
-      <div onClick={(e) => e.stopPropagation()} className="fv-panel animate-popIn" style={{ width: '100%', maxWidth: 520, maxHeight: '82vh', display: 'flex', flexDirection: 'column', padding: 20, border: '1px solid var(--gold)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 18, color: 'var(--ink)' }}>Preparar magias</div>
-          <button onClick={onClose} aria-label="Fechar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 20 }}>✕</button>
-        </div>
+    <Modal title="Preparar magias" icon="spark" onClose={onClose} maxWidth={520}>
         <input className="fv-input" placeholder="Buscar magia…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 12 }} />
-        <div className="fv-no-scrollbar" style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
           {list.map((sp) => {
             const on = prepared.includes(sp.id);
             return (
@@ -49,7 +45,6 @@ export function SpellPicker({ classId, maxCircle, prepared, onToggle, onClose }:
             );
           })}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

@@ -553,6 +553,78 @@ button:disabled {
     color: var(--muted);
     font-size: 11.5px;
   }
+  /* ----- base única de modais: nunca vaza da viewport ----- */
+  .fv-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(4, 6, 10, 0.66);
+    backdrop-filter: blur(6px);
+    display: grid;
+    place-items: center;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .fv-modal {
+    width: 100%;
+    max-width: min(620px, calc(100vw - 24px));
+    max-height: min(88dvh, calc(100dvh - 24px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
+  }
+  .fv-modal-head {
+    flex: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.18);
+  }
+  .fv-modal-close {
+    cursor: pointer;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.26);
+    color: var(--muted);
+    font-size: 15px;
+    transition: 0.2s;
+  }
+  .fv-modal-close:hover {
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  .fv-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .fv-modal-foot {
+    flex: none;
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.18);
+  }
+  /* ----- faixa de atributos da Ficha: 6 placas na mesma linha no desktop ----- */
+  .fv-ability-row {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(8px, 1vw, 12px);
+  }
   .fv-scroll-thin {
     scrollbar-width: none;
   }
@@ -663,6 +735,18 @@ button:disabled {
   }
 }
 
+/* placas de atributo: 3 por linha em telas médias, 2 nas pequenas */
+@media (max-width: 1020px) {
+  .fv-ability-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 400px) {
+  .fv-ability-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   :root {
     --page-x: 14px;
@@ -670,5 +754,22 @@ button:disabled {
   }
   .fv-card-grid {
     grid-template-columns: 1fr;
+  }
+  .fv-modal-overlay {
+    align-items: flex-end;
+    padding-bottom: 0;
+  }
+  .fv-modal {
+    max-width: 100%;
+    max-height: calc(100dvh - 46px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+  }
+  .fv-modal-body {
+    padding: 13px 13px calc(13px + env(safe-area-inset-bottom));
+  }
+  .fv-modal-foot {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 }

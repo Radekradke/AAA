@@ -1,8 +1,9 @@
 # Ficha Viva AAA — Cenários de Teste Manual
 
-Base de regras: **D&D 5e 2014 (PHB)**. Testes automatizados da engine: `npm test`
-(18 casos em `src/engine/__tests__/rules.test.ts`). Os cenários abaixo cobrem o
-fluxo completo na interface.
+Base de regras: **D&D 5e 2014 (PHB)** + talentos raciais de **Xanathar's Guide**.
+Testes automatizados da engine: `npm test` (29 casos em
+`src/engine/__tests__/rules.test.ts`). Os cenários abaixo cobrem o fluxo
+completo na interface.
 
 ## 1. Personagem nível 1
 1. Crie um Guerreiro Humano pelo fluxo de criação.
@@ -88,3 +89,53 @@ fluxo completo na interface.
 ## 16. Homebrew
 - Itens criados/editados na Forja exibem o selo **HOMEBREW** no inventário
   e aparecem como origem "homebrew" nos cálculos de CA/ataque.
+
+## 17. Modais (desktop e mobile)
+1. Abra Forja, Adicionar item, Moedas, Preparar magias, Editar herói e
+   Perícias. Nenhum modal pode vazar da tela.
+2. Conteúdo grande rola **dentro** do modal; o cabeçalho com ✕ fica fixo.
+3. No celular, o modal vira folha inferior (bottom sheet) com altura segura.
+
+## 18. Modal de moedas
+1. Inventário → Moedas → **Gerenciar**: os 5 tipos (PL/PO/PE/PP/PC) com
+   entrada direta, −10/−1/+1/+10 e **total aproximado em po** no rodapé.
+2. Nada vaza no PC nem no celular.
+
+## 19. Modal de perícias + expertise
+1. Ficha → **Ver todas as 18 perícias** (ou Mesa → "Ver todas →").
+2. Grade compacta com nome, atributo, bônus total, Proficiente/Expertise.
+3. Num Ladino, marque ★ em 2 perícias proficientes (vagas 2/2 no nível 1);
+   o bônus dobra a proficiência e a Percepção Passiva acompanha.
+
+## 20. Ferramentas de Ladrão e ferramentas em geral
+1. Crie um Ladino: **Ferramentas de Ladrão** aparecem em Ficha →
+   Proficiências (origem: Ladino).
+2. Botão **Expertise** na ferramenta dobra a proficiência (consome vaga).
+3. Adicione outra ferramenta pelo select (kits, artesão, instrumentos,
+   jogos, veículos) e remova com ✕.
+
+## 21. Antecedente completo (PHB 2014)
+1. Crie um personagem **Criminoso**: além de Enganação/Furtividade, ganha
+   Ferramentas de Ladrão + um jogo, e o equipamento inicial entra na mochila.
+2. **Acólito**: 2 idiomas à escolha (registre em Ficha → Idiomas), itens de
+   templo na mochila e 15 po.
+3. Perícia repetida entre classe e antecedente aparece **bloqueada** na
+   etapa de perícias — escolha outra (regra 5e).
+
+## 22. Arma +1/+2/+3 estruturada e escolhas livres do Meio-Elfo
+1. Forje/edite uma arma e escolha **Bônus mágico +2**.
+2. Ataque e dano sobem +2 com a origem "Mágica +2" no tooltip.
+3. Meio-Elfo na criação: 2 **escolhas livres** de perícia além das da classe.
+
+## 23. Talentos com fonte e pré-requisito
+1. Evoluir → nível de ASI → **Talento**: lista separada em "Livro do
+   Jogador 2014" e "Xanathar's (raciais)".
+2. Talentos com pré-requisito não atendido ficam bloqueados com o motivo
+   no tooltip (ex.: Duelista Defensivo sem DES 13; Fúria Orc sem ser Meio-Orc).
+
+## 24. Mesa: atributos, condições e turno
+1. A Mesa mostra os 6 atributos com modificador (roláveis) e sem anotações.
+2. Condições: use o **select** para ativar; só as ativas aparecem, com
+   resumo e ✕ para remover. Descanso longo limpa todas.
+3. Ação / Bônus / Reação marcam-se com ✓ riscado; "Novo turno" restaura
+   junto com o movimento.

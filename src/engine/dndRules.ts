@@ -28,6 +28,8 @@ export interface DerivedSkill {
   ability: AbilityKey;
   bonus: number;
   proficient: boolean;
+  /** Expertise: bônus de proficiência em dobro (Ladino/Bardo). */
+  expertise: boolean;
 }
 
 export interface DerivedAttack {
@@ -95,10 +97,14 @@ function findEquipped(char: Character, uid: string | null): InventoryItem | unde
   return char.inventory.find((i) => i.uid === uid);
 }
 
-/** Bônus mágico de arma a partir das propriedades ("Mágica +1/+2/+3"). */
-function weaponMagicBonus(properties: string[]): number {
+/**
+ * Bônus mágico de arma: campo estruturado `magicBonus` tem prioridade;
+ * propriedades em texto ("Mágica +1/+2/+3") seguem valendo por compatibilidade.
+ */
+function weaponMagicBonus(w: { magicBonus?: number; properties: string[] }): number {
+  if (typeof w.magicBonus === 'number' && w.magicBonus > 0) return Math.min(3, w.magicBonus);
   let best = 0;
-  for (const p of properties) {
+  for (const p of w.properties) {
     const m = p.match(/\+\s*(\d)/);
     if (m) best = Math.max(best, parseInt(m[1]));
   }
@@ -114,6 +120,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const subclass = getSubclass(char.subclassId ?? undefined);
   const feats = (char.feats ?? []).map(getFeat).filter((f): f is NonNullable<typeof f> => !!f);
   const prof = proficiencyBonus(char.level);
+
+  // Resiliente (talento): concede proficiência na salvaguarda do atributo escolhido
+  const resilientSave = (char.levelHistory ?? []).find(
+    (r) => r.asi?.kind === 'feat' && r.asi.featId === 'resilient' && r.asi.ability,
+  )?.asi as { kind: 'feat'; featId: string; ability?: AbilityKey } | undefined;
+  const saveProfs = new Set<AbilityKey>(char.savingThrowProfs);
+  if (resilientSave?.ability) saveProfs.add(resilientSave.ability);
 
   // ---- Atributos: base + raça + sub-raça + ASI/talentos (teto 20) ----
   const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId);
@@ -135,7 +148,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     bd.total = total;
     abilityBreakdowns[key] = bd;
     const m = abilityModifier(total);
-    const saveProf = char.savingThrowProfs.includes(key);
+    const saveProf = saveProfs.has(key);
     const save = m + (saveProf ? prof : 0);
     const d: DerivedAbility = { key, total, mod: m, save, saveProf };
     abilities[key] = d;
@@ -218,18 +231,22 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     ...feats.map((f) => (f.initiativeBonus ? mod('initiative', f.initiativeBonus, f.label, 'feat') : null)),
   ]);
 
-  // ---- Perícias (proficiências: escolhas + antecedente + raça) ----
+  // ---- Perícias (proficiências: escolhas + antecedente + raça; expertise dobra) ----
   const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...(race.skillProfs ?? [])]);
+  const expertiseSet = new Set<SkillKey>(char.skillExpertise ?? []);
   const skills: DerivedSkill[] = SKILLS.map((sk) => {
     const proficient = skillProfs.has(sk.key);
-    const bonus = abilities[sk.ability].mod + (proficient ? prof : 0);
-    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient };
+    const expertise = proficient && expertiseSet.has(sk.key);
+    const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : 0);
+    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise };
   });
   const perception = skills.find((s) => s.key === 'perception')!;
   const ppBd = breakdown([
     mod('pp', 10, 'Base', 'base'),
     mod('pp', abilities.wis.mod, 'Sabedoria', 'ability'),
-    perception.proficient ? mod('pp', prof, 'Percepção proficiente', 'proficiency') : null,
+    perception.proficient
+      ? mod('pp', perception.expertise ? prof * 2 : prof, perception.expertise ? 'Percepção com expertise (×2)' : 'Percepção proficiente', 'proficiency')
+      : null,
     ...feats.map((f) => (f.passivePerceptionBonus ? mod('pp', f.passivePerceptionBonus, f.label, 'feat') : null)),
   ]);
 
@@ -246,7 +263,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     if (w.range === 'ranged') abilKey = 'dex';
     else if (w.finesse) abilKey = abilities.dex.mod > abilities.str.mod ? 'dex' : 'str';
     const abilMod = abilities[abilKey].mod;
-    const magic = weaponMagicBonus(w.properties);
+    const magic = weaponMagicBonus(w);
     const srcType = it.homebrew ? 'homebrew' : 'item';
     const hitBd = breakdown([
       mod('attack', abilMod, ABILITY_LABELS[abilKey], 'ability'),
@@ -297,7 +314,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const darkvision = darkRange
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
-  const languages = [...(race.languages ?? ['Comum'])];
+  const languages = [...(race.languages ?? ['Comum']), ...(char.extraLanguages ?? [])];
   const resistances = [
     ...(race.resistances ?? []).map((value) => ({ value, source: race.label })),
     ...(subrace?.resistances ?? []).map((value) => ({ value, source: subrace!.label })),

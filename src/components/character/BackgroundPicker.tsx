@@ -1,5 +1,6 @@
 import { BACKGROUNDS, getBackground } from '@/data/backgrounds';
 import { ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
+import { toolLabel } from '@/data/tools';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
 import type { Character } from '@/types/character';
@@ -88,8 +89,28 @@ export function BackgroundPicker({ char, update }: BackgroundPickerProps) {
         <div>
           <p style={{ margin: 0, color: 'var(--muted)', fontSize: 13.5, lineHeight: 1.58 }}>{selectedBg.desc}</p>
           <p style={{ margin: '8px 0 0', color: 'var(--ink)', fontSize: 12.5, lineHeight: 1.5 }}>
+            {selectedBg.featureName && <b style={{ color: t.gold }}>{selectedBg.featureName}: </b>}
             {selectedBg.feature}
           </p>
+          {/* o que este antecedente concede mecanicamente */}
+          <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {(selectedBg.tools ?? []).map((id) => (
+              <span key={id} className="fv-chip" style={{ color: 'var(--ink)' }}>⚒ {toolLabel(id)}</span>
+            ))}
+            {selectedBg.languagesCount ? (
+              <span className="fv-chip" style={{ color: 'var(--ink)' }}>
+                +{selectedBg.languagesCount} idioma{selectedBg.languagesCount > 1 ? 's' : ''} à escolha
+              </span>
+            ) : null}
+            {selectedBg.startingGold ? (
+              <span className="fv-chip fv-chip-gold">{selectedBg.startingGold} po iniciais</span>
+            ) : null}
+          </div>
+          {(selectedBg.equipment ?? []).length > 0 && (
+            <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.5 }}>
+              <b style={{ color: 'var(--ink)' }}>Equipamento:</b> {selectedBg.equipment!.join(' · ')}
+            </div>
+          )}
         </div>
         <div style={{ borderLeft: '1px solid var(--line)', paddingLeft: 13 }}>
           <div style={{ fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 7 }}>
@@ -115,7 +136,7 @@ export function BackgroundPicker({ char, update }: BackgroundPickerProps) {
             ))}
           </div>
           <div style={{ marginTop: 8, color: 'var(--muted)', fontSize: 11.5, lineHeight: 1.45 }}>
-            Use esses atributos para tirar mais proveito dos bônus de perícia.
+            Perícias, ferramentas, idiomas e equipamento entram na ficha automaticamente ao concluir.
           </div>
         </div>
       </div>

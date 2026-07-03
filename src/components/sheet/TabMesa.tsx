@@ -1,25 +1,22 @@
+import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
-import { calcLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
+import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { getClass } from '@/data/classes';
 import { SPELL_BY_ID } from '@/data/spells';
-import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
+import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
+import { CONDITIONS, getCondition } from '@/data/conditions';
 import { heroSubtitle } from '@/lib/summary';
 import { modStr } from '@/engine/dice';
 import { damageExpr } from '@/engine/combat';
-
-const CONDITIONS = [
-  'Agarrado', 'Amedrontado', 'Atordoado', 'Caído', 'Cego', 'Enfeitiçado',
-  'Envenenado', 'Impedido', 'Incapacitado', 'Inconsciente', 'Invisível',
-  'Paralisado', 'Petrificado', 'Restringido', 'Surdo',
-];
+import { SkillsModal } from './SkillsModal';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -32,6 +29,8 @@ export function TabMesa({ char, derived }: TabProps) {
   const { rollDice, check, attack, damage } = useDiceRoller();
   const cls = getClass(char.classId);
   const bd = derived.breakdowns;
+  const [skillsOpen, setSkillsOpen] = useState(false);
+  const [condPick, setCondPick] = useState('');
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
@@ -156,6 +155,81 @@ export function TabMesa({ char, derived }: TabProps) {
             }
           />
         </div>
+
+        {/* atributos com modificador — sempre à mão na mesa */}
+        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 6 }}>
+          {derived.abilityList.map((a) => {
+            const color = ABILITY_COLORS[a.key];
+            return (
+              <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
+                <button
+                  onClick={() => check(`Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
+                  style={{
+                    cursor: 'pointer',
+                    width: '100%',
+                    padding: '7px 2px 6px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid ' + hexA(color, 0.3),
+                    borderBottom: '2px solid ' + hexA(color, 0.65),
+                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, rgba(0,0,0,.26))`,
+                    textAlign: 'center',
+                    transition: '.2s',
+                  }}
+                >
+                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em', color: hexA(color, 0.95) }}>
+                    {ABILITY_SHORT[a.key]}
+                  </div>
+                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: 'var(--ink)', lineHeight: 1.1 }}>
+                    {modStr(a.mod)}
+                  </div>
+                </button>
+              </LoreTooltip>
+            );
+          })}
+        </div>
+
+        {/* economia de turno: ação, bônus, reação e movimento */}
+        <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {([
+            { k: 'action' as const, label: 'Ação' },
+            { k: 'bonus' as const, label: 'Bônus' },
+            { k: 'reaction' as const, label: 'Reação' },
+          ]).map((d) => {
+            const used = char.combat.turn[d.k];
+            return (
+              <button
+                key={d.k}
+                onClick={() => store.toggleTurn(char.id, d.k)}
+                style={{
+                  cursor: 'pointer',
+                  flex: '1 1 80px',
+                  minHeight: 36,
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.5)),
+                  background: used ? 'rgba(0,0,0,.32)' : hexA(t.acc, 0.09),
+                  color: used ? 'var(--muted)' : 'var(--ink)',
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  textDecoration: used ? 'line-through' : 'none',
+                  transition: '.2s',
+                }}
+              >
+                {used ? '✓ ' : ''}{d.label}
+              </button>
+            );
+          })}
+          <span style={{ flex: '1 1 110px', textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>
+            Mov. <b style={{ color: 'var(--ink)' }}>{(derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{derived.speed.toString().replace('.', ',')} m
+          </span>
+          <button
+            onClick={() => store.resetTurn(char.id)}
+            style={{ cursor: 'pointer', minHeight: 36, padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: 'transparent', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}
+          >
+            ↺ Novo turno
+          </button>
+        </div>
       </Panel>
 
       {/* ===== GRID: rolagens + ataques ===== */}
@@ -210,13 +284,21 @@ export function TabMesa({ char, derived }: TabProps) {
               </button>
             ))}
           </div>
-          <div className="fv-label" style={{ margin: '13px 0 8px' }}>Perícias Treinadas</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, margin: '13px 0 8px' }}>
+            <div className="fv-label">Perícias Treinadas</div>
+            <button
+              onClick={() => setSkillsOpen(true)}
+              style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}
+            >
+              Ver todas →
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {proficientSkills.map((sk) => (
               <button
                 key={sk.key}
                 onClick={() => check(sk.label, sk.bonus)}
-                style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + hexA(t.gold, 0.4), background: hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
+                style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
               >
                 {sk.label} <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
               </button>
@@ -303,39 +385,54 @@ export function TabMesa({ char, derived }: TabProps) {
           </div>
         </Panel>
 
-        {/* Condições */}
+        {/* Condições: seleção compacta + só as ativas à vista */}
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Condições</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {CONDITIONS.map((c) => {
-              const on = char.combat.conditions.includes(c);
+          <select
+            className="fv-input"
+            value={condPick}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
+              setCondPick('');
+            }}
+            style={{ minHeight: 42, padding: '9px 34px 9px 12px', fontSize: 13.5 }}
+          >
+            <option value="" style={{ color: '#111' }}>Selecionar condição…</option>
+            {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
+              <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label} — {c.short}</option>
+            ))}
+          </select>
+          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {char.combat.conditions.map((c) => {
+              const def = getCondition(c);
               return (
-                <LoreTooltip key={c} info={conditionLore(c)}>
-                  <button
-                    onClick={() => store.toggleCondition(char.id, c)}
-                    style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 600, padding: '6px 11px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : 'var(--muted)', background: on ? hexA(t.danger, 0.24) : 'rgba(0,0,0,.2)', boxShadow: on ? '0 0 12px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
-                  >
-                    {c}
-                  </button>
+                <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.5), background: hexA(t.danger, 0.1), boxShadow: '0 0 12px ' + hexA(t.danger, 0.18) }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 999, flex: 'none', background: t.danger, boxShadow: '0 0 8px ' + t.danger }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{def?.label ?? c}</div>
+                      {def && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{def.short}</div>}
+                    </div>
+                    <button
+                      onClick={() => store.toggleCondition(char.id, c)}
+                      aria-label={`Remover ${c}`}
+                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'rgba(0,0,0,.3)', color: t.danger, fontSize: 13 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </LoreTooltip>
               );
             })}
+            {char.combat.conditions.length === 0 && (
+              <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Nenhuma condição ativa — como deve ser.</div>
+            )}
           </div>
         </Panel>
-
-        {/* Notas rápidas */}
-        <Panel>
-          <div className="fv-label" style={{ marginBottom: 8 }}>Anotações da Sessão</div>
-          <textarea
-            value={char.notes}
-            onChange={(e) => store.setNotes(char.id, e.target.value)}
-            placeholder="Nomes, pistas, dívidas, promessas…"
-            rows={4}
-            className="fv-input"
-            style={{ resize: 'vertical', lineHeight: 1.55, fontSize: 13.5 }}
-          />
-        </Panel>
       </div>
+
+      {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>
   );
 }

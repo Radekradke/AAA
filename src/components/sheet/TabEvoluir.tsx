@@ -20,6 +20,7 @@ import {
   averageHp,
   classLevelOf,
   effectiveAbilities,
+  featPrereqIssue,
   featuresGained,
   MAX_LEVEL,
   subclassLevelFor,
@@ -286,19 +287,54 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
               {asiMode === 'feat' && (
                 <div style={{ marginTop: 10 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 8 }}>
-                    {FEATS.filter((f) => !char.feats.includes(f.id)).map((f) => {
-                      const active = featId === f.id;
-                      return (
-                        <LoreTooltip key={f.id} info={passiveLore(f.label, 'Talento (PHB 2014)', f.desc, ['Talento'])} anchorStyle={{ display: 'block' }}>
-                          <button onClick={() => { setFeatId(f.id); setFeatAbility(''); }} style={{ ...seg(active), width: '100%', textAlign: 'left', minHeight: 52 }}>
-                            <div style={{ fontSize: 13, color: active ? t.gold : 'var(--ink)' }}>{f.label}</div>
-                            <div style={{ marginTop: 2, fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Inter', sans-serif", fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
-                          </button>
-                        </LoreTooltip>
-                      );
-                    })}
-                  </div>
+                  {(['PHB 2014', 'XGE'] as const).map((source) => {
+                    const list = FEATS.filter((f) => f.source === source && !char.feats.includes(f.id));
+                    if (list.length === 0) return null;
+                    return (
+                      <div key={source} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
+                          <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
+                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : "XANATHAR'S GUIDE (RACIAIS)"}
+                          </span>
+                          <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 8 }}>
+                          {list.map((f) => {
+                            const active = featId === f.id;
+                            const issue = featPrereqIssue(char, f);
+                            return (
+                              <LoreTooltip
+                                key={f.id}
+                                info={passiveLore(
+                                  f.label,
+                                  `Talento · ${f.source}${f.prereq ? ` · requer ${f.prereq}` : ''}`,
+                                  `${f.desc}${f.notes ? `\n\n${f.notes}` : ''}${issue ? `\n\n✕ ${issue}` : ''}`,
+                                  [f.source, ...(f.prereq ? ['Pré-requisito'] : [])],
+                                )}
+                                anchorStyle={{ display: 'block' }}
+                              >
+                                <button
+                                  onClick={() => { if (!issue) { setFeatId(f.id); setFeatAbility(''); } }}
+                                  disabled={!!issue}
+                                  style={{ ...seg(active), width: '100%', textAlign: 'left', minHeight: 52, opacity: issue ? 0.42 : 1, cursor: issue ? 'not-allowed' : 'pointer' }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, alignItems: 'baseline' }}>
+                                    <span style={{ fontSize: 13, color: active ? t.gold : 'var(--ink)' }}>{f.label}</span>
+                                    {f.prereq && (
+                                      <span style={{ flex: 'none', fontSize: 8.5, letterSpacing: '.08em', color: issue ? t.danger : 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                                        REQ
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ marginTop: 2, fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Inter', sans-serif", fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
+                                </button>
+                              </LoreTooltip>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                   {featId && getFeat(featId)?.abilityChoice && (
                     <div style={{ marginTop: 9, display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>+1 em:</span>

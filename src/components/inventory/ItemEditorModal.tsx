@@ -5,13 +5,15 @@ import { customInventoryItem } from '@/engine/inventory';
 import { RARITY } from '@/data/themes';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
-import { Icon } from '@/components/ui/Icon';
+import { Modal } from '@/components/ui/Modal';
 
 interface ItemEditorModalProps {
   /** Item existente para editar; ausente = forjar um novo. */
   item?: InventoryItem;
   onSave: (item: InventoryItem) => void;
   onClose: () => void;
+  /** Categoria pré-selecionada ao abrir (ex.: "other" pela mochila). */
+  initialCategory?: string;
 }
 
 const CATEGORIES = [
@@ -19,9 +21,12 @@ const CATEGORIES = [
   { id: 'armor', label: 'Armadura' },
   { id: 'shield', label: 'Escudo' },
   { id: 'gear', label: 'Equipamento' },
-  { id: 'consumable', label: 'Consumível' },
-  { id: 'wondrous', label: 'Maravilhoso' },
+  { id: 'tool', label: 'Ferramenta' },
+  { id: 'consumable', label: 'Poção / Consumível' },
+  { id: 'wondrous', label: 'Item Mágico' },
   { id: 'ring', label: 'Anel' },
+  { id: 'treasure', label: 'Tesouro' },
+  { id: 'other', label: 'Outros' },
 ];
 
 const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico'];
@@ -38,19 +43,21 @@ const label: React.CSSProperties = {
 
 /**
  * A Forja: criação de itens únicos/personalizados e edição de qualquer item
- * da mochila — incluindo armas com dados de dano, tipo e propriedades.
- * Alterações refletem em CA, ataques e dano automaticamente.
+ * da mochila — armas com dano/tipo/propriedades/alcance e bônus mágico
+ * +1/+2/+3 estruturado (refletido em ataque e dano automaticamente).
  */
-export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps) {
+export function ItemEditorModal({ item, onSave, onClose, initialCategory }: ItemEditorModalProps) {
   const t = useTheme();
   const editing = !!item;
 
   const [name, setName] = useState(item?.name ?? '');
-  const [category, setCategory] = useState(item?.category ?? 'weapon');
+  const [category, setCategory] = useState(item?.category ?? initialCategory ?? 'weapon');
   const [rarity, setRarity] = useState(item?.rarity ?? 'comum');
   const [weight, setWeight] = useState(String(item?.weight ?? 1));
   const [quantity, setQuantity] = useState(String(item?.quantity ?? 1));
+  const [value, setValue] = useState(String(item?.value ?? ''));
   const [note, setNote] = useState(item?.note ?? '');
+  const [favorite, setFavorite] = useState(!!item?.favorite);
   const [attunement, setAttunement] = useState(!!item?.attunement);
   const [acBonus, setAcBonus] = useState(String(item?.acBonus ?? 0));
   // arma
@@ -59,6 +66,8 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
   const [dmgType, setDmgType] = useState<DamageType>(item?.weapon?.damageType ?? 'cortante');
   const [wpnType, setWpnType] = useState<WeaponType>(item?.weapon?.type ?? 'martial');
   const [wpnRange, setWpnRange] = useState<WeaponRange>(item?.weapon?.range ?? 'melee');
+  const [rangeLabel, setRangeLabel] = useState(item?.weapon?.rangeLabel ?? '');
+  const [magicBonus, setMagicBonus] = useState(String(item?.weapon?.magicBonus ?? 0));
   const [finesse, setFinesse] = useState(!!item?.weapon?.finesse);
   const [versatile, setVersatile] = useState(String(item?.weapon?.versatileDie ?? ''));
   const [properties, setProperties] = useState(item?.weapon?.properties.join(', ') ?? '');
@@ -76,6 +85,7 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
       return;
     }
     const parsedProps = properties.split(',').map((p) => p.trim()).filter(Boolean);
+    const magic = Math.max(0, Math.min(3, parseInt(magicBonus) || 0));
     const weapon =
       category === 'weapon'
         ? {
@@ -84,7 +94,9 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
             damageType: dmgType,
             type: wpnType,
             range: wpnRange,
+            rangeLabel: wpnRange === 'ranged' ? rangeLabel.trim() || undefined : undefined,
             properties: parsedProps,
+            magicBonus: magic || undefined,
             finesse,
             versatileDie: versatile ? parseInt(versatile) || undefined : undefined,
           }
@@ -106,7 +118,9 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
       rarity,
       weight: Math.max(0, parseFloat(weight.replace(',', '.')) || 0),
       quantity: Math.max(1, parseInt(quantity) || 1),
+      value: value.trim() ? Math.max(0, parseFloat(value.replace(',', '.')) || 0) : undefined,
       note: note.trim(),
+      favorite,
       attunement,
       weapon,
       armor,
@@ -118,161 +132,171 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
   };
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(4,6,10,.66)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 16 }}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="fv-panel animate-popIn fv-no-scrollbar"
-        style={{ width: '100%', maxWidth: 600, maxHeight: '88vh', overflowY: 'auto', padding: 20, border: '1px solid var(--gold)' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="anvil" size={20} color={t.gold} />
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 18, color: 'var(--ink)' }}>
-              {editing ? `Retrabalhar: ${item!.name}` : 'Forjar item único'}
-            </div>
-          </div>
-          <button onClick={onClose} aria-label="Fechar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 20 }}>✕</button>
-        </div>
-
-        {/* identidade do item */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 11 }}>
-          <label style={{ gridColumn: '1 / -1' }}>
-            <span style={label}>Nome</span>
-            <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: "'Cinzel', serif" }} />
-          </label>
-          <label>
-            <span style={label}>Categoria</span>
-            <select className="fv-input" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label}</option>)}
-            </select>
-          </label>
-          <label>
-            <span style={label}>Raridade</span>
-            <select className="fv-input" value={rarity} onChange={(e) => setRarity(e.target.value)}>
-              {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id} style={{ color: '#111' }}>{r.label}</option>)}
-            </select>
-          </label>
-          <label>
-            <span style={label}>Peso (kg)</span>
-            <input className="fv-input" value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="decimal" />
-          </label>
-          <label>
-            <span style={label}>Quantidade</span>
-            <input className="fv-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} inputMode="numeric" />
-          </label>
-        </div>
-
-        {/* propriedades de arma */}
-        {category === 'weapon' && (
-          <fieldset style={fieldsetStyle(t)}>
-            <legend style={legendStyle(t)}>Dano &amp; Combate</legend>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
-              <label>
-                <span style={label}>Dados de dano</span>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input className="fv-input" value={dmgDice} onChange={(e) => setDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} />
-                  <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
-                  <select className="fv-input" value={dmgDie} onChange={(e) => setDmgDie(e.target.value)} style={{ flex: 1 }}>
-                    {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
-                  </select>
-                </div>
-              </label>
-              <label>
-                <span style={label}>Tipo de dano</span>
-                <select className="fv-input" value={dmgType} onChange={(e) => setDmgType(e.target.value as DamageType)}>
-                  {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
-                </select>
-              </label>
-              <label>
-                <span style={label}>Alcance</span>
-                <select className="fv-input" value={wpnRange} onChange={(e) => setWpnRange(e.target.value as WeaponRange)}>
-                  <option value="melee" style={{ color: '#111' }}>Corpo a corpo</option>
-                  <option value="ranged" style={{ color: '#111' }}>À distância</option>
-                </select>
-              </label>
-              <label>
-                <span style={label}>Treinamento</span>
-                <select className="fv-input" value={wpnType} onChange={(e) => setWpnType(e.target.value as WeaponType)}>
-                  <option value="simple" style={{ color: '#111' }}>Simples</option>
-                  <option value="martial" style={{ color: '#111' }}>Marcial</option>
-                </select>
-              </label>
-              <label>
-                <span style={label}>Versátil (dado)</span>
-                <select className="fv-input" value={versatile} onChange={(e) => setVersatile(e.target.value)}>
-                  <option value="" style={{ color: '#111' }}>Não</option>
-                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>d{d}</option>)}
-                </select>
-              </label>
-              <CheckRow checked={finesse} onChange={setFinesse} text="Acuidade (usa DES)" />
-            </div>
-            <label style={{ display: 'block', marginTop: 11 }}>
-              <span style={label}>Propriedades (separadas por vírgula)</span>
-              <input className="fv-input" value={properties} onChange={(e) => setProperties(e.target.value)} placeholder="Leve, Arremesso, Mágica +1…" />
-            </label>
-            <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
-              Inclua “Mágica +1” nas propriedades para somar +1 em acerto e dano.
-            </p>
-          </fieldset>
-        )}
-
-        {/* propriedades de armadura */}
-        {category === 'armor' && (
-          <fieldset style={fieldsetStyle(t)}>
-            <legend style={legendStyle(t)}>Proteção</legend>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
-              <label>
-                <span style={label}>CA base</span>
-                <input className="fv-input" value={baseAC} onChange={(e) => setBaseAC(e.target.value)} inputMode="numeric" />
-              </label>
-              <label>
-                <span style={label}>Categoria</span>
-                <select className="fv-input" value={armorCat} onChange={(e) => setArmorCat(e.target.value as 'leve' | 'média' | 'pesada')}>
-                  <option value="leve" style={{ color: '#111' }}>Leve</option>
-                  <option value="média" style={{ color: '#111' }}>Média</option>
-                  <option value="pesada" style={{ color: '#111' }}>Pesada</option>
-                </select>
-              </label>
-              <label>
-                <span style={label}>Teto de DES</span>
-                <input className="fv-input" value={maxDex} onChange={(e) => setMaxDex(e.target.value)} inputMode="numeric" placeholder="—" disabled={!addDex} />
-              </label>
-              <CheckRow checked={addDex} onChange={setAddDex} text="Soma modificador de DES" />
-            </div>
-          </fieldset>
-        )}
-
-        {/* bônus e sintonia */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 11, marginTop: 13 }}>
-          {(category === 'shield' || category === 'ring' || category === 'wondrous') && (
-            <label>
-              <span style={label}>Bônus de CA</span>
-              <input className="fv-input" value={acBonus} onChange={(e) => setAcBonus(e.target.value)} inputMode="numeric" />
-            </label>
-          )}
-          <CheckRow checked={attunement} onChange={setAttunement} text="Exige sintonia" />
-        </div>
-
-        <label style={{ display: 'block', marginTop: 13 }}>
-          <span style={label}>Descrição / efeito</span>
-          <textarea className="fv-input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="O que este item faz? História, efeito, condições…" style={{ resize: 'none' }} />
-        </label>
-
-        {error && <div style={{ marginTop: 10, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
-
-        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button onClick={save} className="fv-btn-gold" style={{ flex: 1, padding: 13, fontSize: 15 }}>
+    <Modal
+      title={editing ? `Retrabalhar: ${item!.name}` : 'Forjar item único'}
+      icon="anvil"
+      onClose={onClose}
+      maxWidth={620}
+      footer={
+        <>
+          <button onClick={save} className="fv-btn-gold" style={{ flex: 1, minHeight: 46, fontSize: 15 }}>
             {editing ? 'Salvar alterações' : 'Forjar item'}
           </button>
           <button
             onClick={onClose}
-            style={{ cursor: 'pointer', padding: '13px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
+            style={{ cursor: 'pointer', minHeight: 46, padding: '0 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
           >
             Cancelar
           </button>
-        </div>
+        </>
+      }
+    >
+      {/* identidade do item */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
+        <label style={{ gridColumn: '1 / -1' }}>
+          <span style={label}>Nome</span>
+          <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: "'Cinzel', serif" }} />
+        </label>
+        <label>
+          <span style={label}>Categoria</span>
+          <select className="fv-input" value={category} onChange={(e) => setCategory(e.target.value)}>
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label}</option>)}
+          </select>
+        </label>
+        <label>
+          <span style={label}>Raridade</span>
+          <select className="fv-input" value={rarity} onChange={(e) => setRarity(e.target.value)}>
+            {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id} style={{ color: '#111' }}>{r.label}</option>)}
+          </select>
+        </label>
+        <label>
+          <span style={label}>Peso (kg)</span>
+          <input className="fv-input" value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="decimal" />
+        </label>
+        <label>
+          <span style={label}>Quantidade</span>
+          <input className="fv-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} inputMode="numeric" />
+        </label>
+        <label>
+          <span style={label}>Valor (po)</span>
+          <input className="fv-input" value={value} onChange={(e) => setValue(e.target.value)} inputMode="decimal" placeholder="—" />
+        </label>
       </div>
-    </div>
+
+      {/* propriedades de arma */}
+      {category === 'weapon' && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Dano &amp; Combate</legend>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
+            <label>
+              <span style={label}>Dados de dano</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input className="fv-input" value={dmgDice} onChange={(e) => setDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} />
+                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <select className="fv-input" value={dmgDie} onChange={(e) => setDmgDie(e.target.value)} style={{ flex: 1 }}>
+                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                </select>
+              </div>
+            </label>
+            <label>
+              <span style={label}>Tipo de dano</span>
+              <select className="fv-input" value={dmgType} onChange={(e) => setDmgType(e.target.value as DamageType)}>
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+              </select>
+            </label>
+            <label>
+              <span style={label}>Bônus mágico</span>
+              <select className="fv-input" value={magicBonus} onChange={(e) => setMagicBonus(e.target.value)}>
+                <option value="0" style={{ color: '#111' }}>Comum (sem bônus)</option>
+                <option value="1" style={{ color: '#111' }}>+1 (acerto e dano)</option>
+                <option value="2" style={{ color: '#111' }}>+2 (acerto e dano)</option>
+                <option value="3" style={{ color: '#111' }}>+3 (acerto e dano)</option>
+              </select>
+            </label>
+            <label>
+              <span style={label}>Alcance</span>
+              <select className="fv-input" value={wpnRange} onChange={(e) => setWpnRange(e.target.value as WeaponRange)}>
+                <option value="melee" style={{ color: '#111' }}>Corpo a corpo</option>
+                <option value="ranged" style={{ color: '#111' }}>À distância</option>
+              </select>
+            </label>
+            {wpnRange === 'ranged' && (
+              <label>
+                <span style={label}>Distância (m)</span>
+                <input className="fv-input" value={rangeLabel} onChange={(e) => setRangeLabel(e.target.value)} placeholder="45/180 m" />
+              </label>
+            )}
+            <label>
+              <span style={label}>Treinamento</span>
+              <select className="fv-input" value={wpnType} onChange={(e) => setWpnType(e.target.value as WeaponType)}>
+                <option value="simple" style={{ color: '#111' }}>Simples</option>
+                <option value="martial" style={{ color: '#111' }}>Marcial</option>
+              </select>
+            </label>
+            <label>
+              <span style={label}>Versátil (dado)</span>
+              <select className="fv-input" value={versatile} onChange={(e) => setVersatile(e.target.value)}>
+                <option value="" style={{ color: '#111' }}>Não</option>
+                {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>d{d}</option>)}
+              </select>
+            </label>
+            <CheckRow checked={finesse} onChange={setFinesse} text="Acuidade (usa DES)" />
+          </div>
+          <label style={{ display: 'block', marginTop: 11 }}>
+            <span style={label}>Propriedades (separadas por vírgula)</span>
+            <input className="fv-input" value={properties} onChange={(e) => setProperties(e.target.value)} placeholder="Leve, Arremesso, Pesada…" />
+          </label>
+          <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
+            O bônus mágico soma automaticamente no acerto e no dano, com origem rastreável no tooltip do ataque.
+          </p>
+        </fieldset>
+      )}
+
+      {/* propriedades de armadura */}
+      {category === 'armor' && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Proteção</legend>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
+            <label>
+              <span style={label}>CA base</span>
+              <input className="fv-input" value={baseAC} onChange={(e) => setBaseAC(e.target.value)} inputMode="numeric" />
+            </label>
+            <label>
+              <span style={label}>Categoria</span>
+              <select className="fv-input" value={armorCat} onChange={(e) => setArmorCat(e.target.value as 'leve' | 'média' | 'pesada')}>
+                <option value="leve" style={{ color: '#111' }}>Leve</option>
+                <option value="média" style={{ color: '#111' }}>Média</option>
+                <option value="pesada" style={{ color: '#111' }}>Pesada</option>
+              </select>
+            </label>
+            <label>
+              <span style={label}>Teto de DES</span>
+              <input className="fv-input" value={maxDex} onChange={(e) => setMaxDex(e.target.value)} inputMode="numeric" placeholder="—" disabled={!addDex} />
+            </label>
+            <CheckRow checked={addDex} onChange={setAddDex} text="Soma modificador de DES" />
+          </div>
+        </fieldset>
+      )}
+
+      {/* bônus, sintonia e destaque */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 11, marginTop: 13 }}>
+        {(category === 'shield' || category === 'ring' || category === 'wondrous') && (
+          <label>
+            <span style={label}>Bônus de CA</span>
+            <input className="fv-input" value={acBonus} onChange={(e) => setAcBonus(e.target.value)} inputMode="numeric" />
+          </label>
+        )}
+        <CheckRow checked={attunement} onChange={setAttunement} text="Exige sintonia" />
+        <CheckRow checked={favorite} onChange={setFavorite} text="Favorito / importante" />
+      </div>
+
+      <label style={{ display: 'block', marginTop: 13 }}>
+        <span style={label}>Descrição / efeito / observações</span>
+        <textarea className="fv-input" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="O que este item faz? História, efeito, condições de uso…" style={{ resize: 'none' }} />
+      </label>
+
+      {error && <div style={{ marginTop: 10, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+    </Modal>
   );
 }
 

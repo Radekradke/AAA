@@ -2,6 +2,7 @@ import type { AbilityKey, ArmorData, Rarity, SkillKey, Spell, WeaponData } from 
 import type { Breakdown } from '@/engine/effects';
 import { breakdownBody } from '@/engine/effects';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
+import { getCondition } from '@/data/conditions';
 
 export interface LoreInfo {
   title: string;
@@ -89,13 +90,13 @@ export function savingThrowLore(key: AbilityKey, bonus: number, proficient: bool
   };
 }
 
-export function skillLore(key: SkillKey, bonus: number, proficient: boolean): LoreInfo {
+export function skillLore(key: SkillKey, bonus: number, proficient: boolean, expertise = false): LoreInfo {
   const skill = SKILL_BY_KEY[key];
   return {
     title: skill.label,
     subtitle: `${ABILITY_SHORT[skill.ability]} · ${bonus >= 0 ? '+' : ''}${bonus}`,
     body: SKILL_LORE[key],
-    tags: [proficient ? 'Proficiente' : 'Sem proficiência', ABILITY_LABELS[skill.ability]],
+    tags: [expertise ? 'Expertise (proficiência ×2)' : proficient ? 'Proficiente' : 'Sem proficiência', ABILITY_LABELS[skill.ability]],
   };
 }
 
@@ -147,29 +148,12 @@ export function itemLore(item: {
   };
 }
 
-const CONDITION_LORE: Record<string, string> = {
-  Agarrado: 'Seu deslocamento fica 0 enquanto algo mantém você preso. Normalmente termina se escapar ou o agarrador for afastado.',
-  Amedrontado: 'Você fica prejudicado enquanto a fonte do medo estiver à vista e não consegue se aproximar voluntariamente dela.',
-  Atordoado: 'Você perde ações e reações, fala com dificuldade e fica vulnerável a efeitos que exigem testes de resistência.',
-  Caído: 'Você está no chão. Ataques corpo a corpo próximos ficam mais perigosos contra você; levantar custa movimento.',
-  Cego: 'Você não enxerga. Ataques contra você ficam mais fáceis e seus próprios ataques ficam prejudicados.',
-  Enfeitiçado: 'Você não pode atacar quem o enfeitiçou e essa criatura tem vantagem social contra você.',
-  Envenenado: 'Você sofre desvantagem em ataques e testes de atributo enquanto o veneno estiver ativo.',
-  Impedido: 'Seu deslocamento fica 0, ataques contra você ficam mais fáceis e seus ataques/testes de Destreza sofrem.',
-  Incapacitado: 'Você não pode realizar ações nem reações.',
-  Inconsciente: 'Você fica caído, incapacitado, não percebe o ambiente e ataques próximos podem ser críticos.',
-  Invisível: 'Você não pode ser visto sem magia ou sentidos especiais. Seus ataques tendem a surpreender e ataques contra você sofrem.',
-  Paralisado: 'Você fica incapacitado, não se move, falha em resistências físicas e ataques próximos podem ser críticos.',
-  Petrificado: 'Você vira pedra ou material rígido, fica incapacitado, resistente a muitos danos e praticamente imóvel.',
-  Restringido: 'Seu movimento fica 0, ataques contra você ficam mais fáceis e seus ataques/testes de Destreza sofrem.',
-  Surdo: 'Você não ouve e falha automaticamente em testes baseados apenas em audição.',
-};
-
 export function conditionLore(condition: string): LoreInfo {
+  const def = getCondition(condition);
   return {
-    title: condition,
-    subtitle: 'Condição',
-    body: CONDITION_LORE[condition] ?? 'Condição ativa no personagem. Consulte o mestre para o efeito exato na cena.',
+    title: def?.label ?? condition,
+    subtitle: def ? `Condição · ${def.short}` : 'Condição',
+    body: def?.desc ?? 'Condição ativa no personagem. Consulte o mestre para o efeito exato na cena.',
     tags: ['Estado', 'Descanso longo remove aqui'],
   };
 }

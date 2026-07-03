@@ -154,8 +154,10 @@ export function TabCombate({ char, derived }: TabProps) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  width: '100%',
+                  minHeight: 46,
                   padding: '11px 14px',
-                  borderRadius: 11,
+                  borderRadius: 'var(--radius-md)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.45)),
                   background: used ? 'rgba(0,0,0,.3)' : hexA(t.acc, 0.08),
                   color: used ? t.muted : t.ink,
@@ -164,8 +166,8 @@ export function TabCombate({ char, derived }: TabProps) {
                   transition: '.2s',
                 }}
                 >
-                  <span>{d.label}</span>
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12 }}>{used ? 'Usada' : 'Disponível'}</span>
+                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used ? '✓ ' : ''}{d.label}</span>
+                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: used ? t.muted : t.acc }}>{used ? 'Usada' : 'Disponível'}</span>
                 </button>
               </LoreTooltip>
             );
@@ -253,8 +255,9 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
         fontWeight: 700,
         fontSize: 14,
         color,
+        minHeight: 40,
         padding: strong ? '9px 16px' : '9px 14px',
-        borderRadius: 10,
+        borderRadius: 'var(--radius-md)',
         border: '1px solid ' + (strong ? color : hexA(color, 0.4)),
         background: strong ? hexA(color, 0.1) : 'transparent',
         transition: '.2s',

@@ -1,4 +1,4 @@
-import type { AbilityScores } from '@/types/dnd';
+import type { AbilityScores, Feat } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AsiChoice, Character, LevelUpRecord } from '@/types/character';
 import { DEFAULT_CAMPAIGN } from '@/types/character';
@@ -6,6 +6,7 @@ import { getClass } from '@/data/classes';
 import { featuresAt, isAsiLevel, SUBCLASS_LEVEL } from '@/data/classFeatures';
 import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
+import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
 
 export const MAX_LEVEL = 20;
@@ -56,9 +57,14 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
     errors.push(`Aumento de atributo/talento não é concedido no nível ${newClassLevel} de ${cls.label} (2014).`);
   }
   if (plan.asi?.kind === 'feat') {
+    const feat = getFeat(plan.asi.featId);
     if (!campaign.allowFeats) errors.push('Talentos estão desativados nas configurações da campanha.');
-    else if (!getFeat(plan.asi.featId)) errors.push('Talento desconhecido.');
+    else if (!feat) errors.push('Talento desconhecido.');
     else if (char.feats?.includes(plan.asi.featId)) errors.push('Este talento já foi escolhido (não acumula).');
+    else {
+      const issue = featPrereqIssue(char, feat);
+      if (issue) errors.push(issue);
+    }
   }
   if (plan.asi?.kind === 'asi') {
     const inc = plan.asi.increases;
@@ -92,6 +98,46 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
 
 export function primaryClass(char: Character): string {
   return char.classId;
+}
+
+/** Verifica os pré-requisitos de um talento; devolve a mensagem do problema ou null. */
+export function featPrereqIssue(char: Character, feat: Feat): string | null {
+  if (feat.prereqRaces && !feat.prereqRaces.includes(char.raceId)) {
+    return `${feat.label} exige: ${feat.prereq ?? feat.prereqRaces.join(', ')}.`;
+  }
+  if (feat.prereqAbility) {
+    const totals = effectiveAbilities(char);
+    for (const k of ABILITY_KEYS) {
+      const min = feat.prereqAbility[k];
+      if (min && totals[k] < min) {
+        return `${feat.label} exige ${ABILITY_SHORT[k]} ${min}+ (você tem ${totals[k]}).`;
+      }
+    }
+  }
+  if (feat.prereqCaster && !getClass(char.classId).spellcasting) {
+    return `${feat.label} exige capacidade de conjurar magias.`;
+  }
+  return null;
+}
+
+/**
+ * Vagas de expertise (PHB 2014): Ladino 2 no nível 1 e +2 no 6;
+ * Bardo 2 no nível 3 e +2 no 10. Prodígio (XGE) concede +1.
+ * Cada vaga vira uma perícia OU (Ladino) Ferramentas de Ladrão.
+ */
+export function expertiseSlots(char: Character): number {
+  let slots = 0;
+  for (const cl of char.classLevels ?? [{ classId: char.classId, level: char.level }]) {
+    if (cl.classId === 'rogue') slots += (cl.level >= 1 ? 2 : 0) + (cl.level >= 6 ? 2 : 0);
+    if (cl.classId === 'bard') slots += (cl.level >= 3 ? 2 : 0) + (cl.level >= 10 ? 2 : 0);
+  }
+  if (char.feats?.includes('prodigy')) slots += 1;
+  return slots;
+}
+
+/** Vagas de expertise já usadas (perícias + ferramentas). */
+export function expertiseUsed(char: Character): number {
+  return (char.skillExpertise?.length ?? 0) + (char.toolProfs?.filter((t) => t.expertise).length ?? 0);
 }
 
 /** Atributos efetivos (base + raça + ASI/talentos), sem itens. */
@@ -131,12 +177,12 @@ export function synthesizeHistory(char: Pick<Character, 'level' | 'classId' | 's
   return records;
 }
 
-/** Migração defensiva: garante os campos do schema v2 num personagem antigo. */
+/** Migração defensiva: garante os campos dos schemas v2/v3 num personagem antigo. */
 export function ensureCharacterV2(c: Character): Character {
-  if (c.schema === 2 && c.levelHistory?.length) return c;
+  if (c.schema === 3 && c.levelHistory?.length) return c;
   const migrated: Character = {
     ...c,
-    schema: 2,
+    schema: 3,
     classLevels: c.classLevels?.length ? c.classLevels : [{ classId: c.classId, level: c.level }],
     subclassId: c.subclassId ?? null,
     feats: c.feats ?? [],
@@ -144,6 +190,10 @@ export function ensureCharacterV2(c: Character): Character {
     inspiration: c.inspiration ?? false,
     campaign: { ...DEFAULT_CAMPAIGN, ...(c.campaign ?? {}) },
     levelHistory: c.levelHistory?.length ? c.levelHistory : synthesizeHistory(c),
+    // v3: expertise, ferramentas e idiomas
+    skillExpertise: c.skillExpertise ?? [],
+    toolProfs: c.toolProfs ?? [],
+    extraLanguages: c.extraLanguages ?? [],
   };
   return migrated;
 }
