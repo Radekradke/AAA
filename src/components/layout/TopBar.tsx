@@ -2,6 +2,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import type { ReactNode } from 'react';
 import { Icon } from '@/components/ui/Icon';
+import { SyncBadge } from '@/components/ui/SyncBadge';
 
 interface TopBarProps {
   /** Ações extras à direita (ex.: sair, recomeçar). */
@@ -116,6 +117,7 @@ export function TopBar({ actions }: TopBarProps) {
         >
           <Icon name={sound ? 'volume' : 'volumeOff'} size={16} />
         </button>
+        <SyncBadge />
         {actions}
       </div>
     </div>

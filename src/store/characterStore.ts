@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { idbStateStorage } from '@/lib/storage/zustandIdb';
 import type { Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/characterBuilder';
@@ -18,6 +19,8 @@ type Recipe = (char: Character) => void;
 interface CharacterState {
   characters: Character[];
   currentId: string | null;
+  /** Fichas excluídas localmente aguardando exclusão na nuvem. */
+  pendingDeletes: string[];
 
   // ---- seleção / ciclo de vida ----
   charactersFor: (ownerId: string) => Character[];
@@ -89,6 +92,8 @@ export const useCharacterStore = create<CharacterState>()(
             const copy: Character = structuredClone(c);
             recipe(copy);
             copy.updatedAt = Date.now();
+            // qualquer edição marca a ficha como pendente de sincronização
+            if (copy.syncStatus === 'synced') copy.syncStatus = 'pending';
             return copy;
           }),
         }));
@@ -96,6 +101,7 @@ export const useCharacterStore = create<CharacterState>()(
       return {
         characters: [],
         currentId: null,
+        pendingDeletes: [],
 
         charactersFor(ownerId) {
           return get()
@@ -140,6 +146,8 @@ export const useCharacterStore = create<CharacterState>()(
           set((s) => ({
             characters: s.characters.filter((c) => c.id !== id),
             currentId: s.currentId === id ? null : s.currentId,
+            // fila para a exclusão remota quando houver nuvem/conexão
+            pendingDeletes: s.pendingDeletes.includes(id) ? s.pendingDeletes : [...s.pendingDeletes, id],
           }));
         },
         duplicateCharacter(id) {
@@ -570,11 +578,15 @@ export const useCharacterStore = create<CharacterState>()(
     {
       name: 'fv-characters',
       version: 3,
+      // persistência principal em IndexedDB (autosave com debounce);
+      // migra o dado antigo do localStorage automaticamente
+      storage: createJSONStorage(() => idbStateStorage),
       // migração segura: personagens antigos ganham os campos dos schemas v2/v3
       migrate: (persisted) => {
-        const state = persisted as { characters?: Character[]; currentId?: string | null };
+        const state = persisted as { characters?: Character[]; currentId?: string | null; pendingDeletes?: string[] };
         return {
           ...state,
+          pendingDeletes: state.pendingDeletes ?? [],
           characters: (state.characters ?? []).map((c) => ensureCharacterV2(c)),
         };
       },

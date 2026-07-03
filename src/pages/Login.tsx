@@ -4,31 +4,52 @@ import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
+import { authService } from '@/services/authService';
 
 type Mode = 'login' | 'register';
 
-/** Login, cadastro e acesso como convidado. */
+/** Login, cadastro (nuvem via Supabase quando configurado) e modo offline. */
 export function Login() {
   const navigate = useNavigate();
-  const { login, register, loginAsGuest } = useAuthStore();
+  const { login, register, loginAsGuest, setUser } = useAuthStore();
   const bump = useUiStore((s) => s.bump);
+  const cloud = authService.cloudEnabled();
 
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const res = mode === 'login' ? login(email, password) : register(name, email, password);
-    if (!res.ok) {
-      setError(res.error ?? 'Algo deu errado.');
-      return;
+    setBusy(true);
+    try {
+      if (cloud) {
+        // nuvem: Supabase Auth (senha nunca fica no aparelho)
+        const res = mode === 'login'
+          ? await authService.signIn(email, password)
+          : await authService.signUp(name, email, password);
+        if (!res.ok || !res.user) {
+          setError(res.error ?? 'Algo deu errado.');
+          return;
+        }
+        setUser(res.user);
+      } else {
+        // sem nuvem configurada: conta local deste navegador
+        const res = mode === 'login' ? await login(email, password) : await register(name, email, password);
+        if (!res.ok) {
+          setError(res.error ?? 'Algo deu errado.');
+          return;
+        }
+      }
+      bump(1.3);
+      navigate('/personagens');
+    } finally {
+      setBusy(false);
     }
-    bump(1.3);
-    navigate('/personagens');
   };
 
   const guest = () => {
@@ -156,8 +177,8 @@ export function Login() {
               <div style={{ color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>
             )}
 
-            <button type="submit" className="fv-btn-gold" style={{ marginTop: 4, padding: '14px', fontSize: 15 }}>
-              {mode === 'login' ? 'Entrar' : 'Criar conta'}
+            <button type="submit" disabled={busy} className="fv-btn-gold" style={{ marginTop: 4, padding: '14px', fontSize: 15, opacity: busy ? 0.7 : 1 }}>
+              {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           </form>
 
@@ -184,10 +205,12 @@ export function Login() {
               transition: '.25s',
             }}
           >
-            Continuar como convidado
+            Continuar offline
           </button>
           <p style={{ margin: '12px 0 0', fontSize: 11.5, color: 'var(--muted)', textAlign: 'center' }}>
-            Os dados ficam salvos apenas neste navegador. Sem servidores, sem complicação.
+            {cloud
+              ? 'No modo offline as fichas ficam salvas neste aparelho e você pode entrar depois para sincronizar na nuvem.'
+              : 'As fichas ficam salvas neste aparelho (funciona sem internet). Configure o Supabase para sincronizar na nuvem — veja docs/SUPABASE.md.'}
           </p>
         </div>
       </div>

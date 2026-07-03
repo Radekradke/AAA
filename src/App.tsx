@@ -7,6 +7,7 @@ import { CharacterSelect } from '@/pages/CharacterSelect';
 import { CharacterCreator } from '@/pages/CharacterCreator';
 import { CharacterSheet } from '@/pages/CharacterSheet';
 import type { ReactNode } from 'react';
+import { useCloudSync } from '@/hooks/useCloudSync';
 
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -17,6 +18,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 export function App() {
   const location = useLocation();
+  useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
 
   return (
     <AnimatePresence mode="wait">

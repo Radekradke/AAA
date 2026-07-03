@@ -176,6 +176,10 @@ export interface Character {
   combat: CombatState;
   createdAt: number;
   updatedAt: number;
+  /** Última sincronização com a nuvem (ms); ausente = nunca sincronizada. */
+  lastSyncedAt?: number;
+  /** Estado de sincronização ('synced' | 'pending' | 'conflict' | 'offline'). */
+  syncStatus?: import('./models').SyncStatus;
   /** Personagem ainda em criação (rascunho). */
   draft?: boolean;
 }
