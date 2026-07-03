@@ -7,6 +7,9 @@ import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
 import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT } from '@/engine/inventory';
 import { spellSlotsForClass, buildResources } from '@/engine/progression';
+import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
+import type { LevelUpPlan } from '@/engine/levelUp';
+import { ABILITY_KEYS } from '@/types/dnd';
 import { getClass } from '@/data/classes';
 
 /** Aplica uma transformação imutável a um personagem por id. */
@@ -56,6 +59,10 @@ interface CharacterState {
   setNotes: (id: string, notes: string) => void;
   setLevel: (id: string, level: number) => void;
   editCharacter: (id: string, patch: Partial<Character>) => void;
+  /** Evolução guiada (aba Evoluir): valida e aplica um plano de nível. */
+  levelUp: (id: string, plan: LevelUpPlan) => { ok: boolean; errors: string[] };
+  toggleInspiration: (id: string) => void;
+  updateCampaign: (id: string, patch: Partial<Character['campaign']>) => void;
 }
 
 let _seq = 0;
@@ -155,7 +162,8 @@ export const useCharacterStore = create<CharacterState>()(
               createdAt: Date.now(),
               updatedAt: Date.now(),
             } as Character;
-            set((s) => ({ characters: [...s.characters, merged], currentId: merged.id }));
+            const migrated = ensureCharacterV2(merged);
+            set((s) => ({ characters: [...s.characters, migrated], currentId: migrated.id }));
             return { ok: true };
           } catch {
             return { ok: false, error: 'Não foi possível ler o arquivo JSON.' };
@@ -371,7 +379,28 @@ export const useCharacterStore = create<CharacterState>()(
           const before = deriveCharacter(char).maxHp;
           const after = deriveCharacter({ ...char, level: newLevel }).maxHp;
           mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
             c.level = newLevel;
+            // mantém a linha do tempo coerente (registros sintéticos pela média)
+            if (leveledUp) {
+              for (let lv = char.level + 1; lv <= newLevel; lv++) {
+                const cls = getClass(c.classId);
+                c.levelHistory.push({
+                  level: lv,
+                  classId: c.classId,
+                  classLevel: lv,
+                  hpMethod: 'media',
+                  hpValue: Math.floor(cls.hitDie / 2) + 1,
+                  features: featuresGained(c.classId, lv, c.subclassId),
+                  synthetic: true,
+                  at: Date.now(),
+                });
+              }
+            } else {
+              c.levelHistory = c.levelHistory.filter((r) => r.level <= newLevel);
+            }
+            const entry = c.classLevels.find((x) => x.classId === c.classId);
+            if (entry) entry.level = newLevel;
             // ao subir, soma o PV ganho; ao descer, apenas mantém dentro do novo máximo
             c.hpCurrent = leveledUp ? c.hpCurrent + Math.max(0, after - before) : Math.min(c.hpCurrent, after);
             c.hpCurrent = Math.max(1, Math.min(after, c.hpCurrent));
@@ -395,6 +424,83 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.resources = nextRes;
           });
         },
+        levelUp(id, plan) {
+          const before = get().getCharacter(id);
+          if (!before) return { ok: false, errors: ['Personagem não encontrado.'] };
+          const char = ensureCharacterV2(before);
+          const errors = validateLevelUp(char, plan);
+          if (errors.length) return { ok: false, errors };
+
+          const beforeMax = deriveCharacter(char).maxHp;
+          const newClassLevel = classLevelOf(char, plan.classId) + 1;
+          const newLevel = char.level + 1;
+
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            c.level = newLevel;
+            const entry = c.classLevels.find((x) => x.classId === plan.classId);
+            if (entry) entry.level += 1;
+            else c.classLevels.push({ classId: plan.classId, level: 1 });
+
+            if (plan.subclassId) c.subclassId = plan.subclassId;
+            if (plan.asi?.kind === 'asi') {
+              for (const k of ABILITY_KEYS) {
+                const inc = plan.asi.increases[k] ?? 0;
+                if (inc) c.asiBonuses[k] = (c.asiBonuses[k] ?? 0) + inc;
+              }
+            }
+            if (plan.asi?.kind === 'feat') {
+              c.feats.push(plan.asi.featId);
+              if (plan.asi.ability) {
+                c.asiBonuses[plan.asi.ability] = (c.asiBonuses[plan.asi.ability] ?? 0) + 1;
+              }
+            }
+
+            c.levelHistory.push({
+              level: newLevel,
+              classId: plan.classId,
+              classLevel: newClassLevel,
+              hpMethod: plan.hpMethod,
+              hpValue: plan.hpValue,
+              features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? c.subclassId),
+              asi: plan.asi,
+              subclassId: plan.subclassId,
+              at: Date.now(),
+            });
+
+            // dados de vida, espaços de magia e recursos acompanham o novo nível
+            c.combat.hitDiceRemaining = Math.min(newLevel, c.combat.hitDiceRemaining + 1);
+            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const nextSlots: typeof c.combat.spellSlots = {};
+            for (const [circle, max] of Object.entries(slotMax)) {
+              const used = c.combat.spellSlots[Number(circle)]?.used ?? 0;
+              nextSlots[Number(circle)] = { used: Math.min(used, max), max };
+            }
+            c.combat.spellSlots = nextSlots;
+            const resMax = buildResources(c.classId, newLevel);
+            for (const [rid, max] of Object.entries(resMax)) c.combat.resources[rid] = max;
+          });
+
+          // PV atual sobe junto com o novo máximo
+          const after = get().getCharacter(id);
+          if (after) {
+            const afterMax = deriveCharacter(after).maxHp;
+            const gain = Math.max(0, afterMax - beforeMax);
+            if (gain) mutate(id, (c) => { c.hpCurrent = Math.min(afterMax, c.hpCurrent + gain); });
+          }
+          return { ok: true, errors: [] };
+        },
+        toggleInspiration(id) {
+          mutate(id, (c) => {
+            c.inspiration = !c.inspiration;
+          });
+        },
+        updateCampaign(id, patch) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            c.campaign = { ...c.campaign, ...patch };
+          });
+        },
         editCharacter(id, patch) {
           mutate(id, (c) => {
             Object.assign(c, patch);
@@ -408,6 +514,17 @@ export const useCharacterStore = create<CharacterState>()(
         },
       };
     },
-    { name: 'fv-characters' },
+    {
+      name: 'fv-characters',
+      version: 2,
+      // migração segura: personagens antigos ganham os campos do schema v2
+      migrate: (persisted) => {
+        const state = persisted as { characters?: Character[]; currentId?: string | null };
+        return {
+          ...state,
+          characters: (state.characters ?? []).map((c) => ensureCharacterV2(c)),
+        };
+      },
+    },
   ),
 );

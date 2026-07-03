@@ -44,6 +44,7 @@ export function customInventoryItem(partial: Partial<InventoryItem> & { name: st
     acBonus: partial.acBonus,
     attunement: partial.attunement,
     itemId: partial.itemId,
+    homebrew: true,
   };
 }
 

@@ -22,6 +22,8 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
+  homebrew?: boolean;
 }
 
 export interface EquippedSlots {
@@ -62,7 +64,56 @@ export interface CombatState {
   spellSlots: Record<number, SpellSlotState>;
 }
 
+/** Escolha de ASI/talento registrada num nível. */
+export type AsiChoice =
+  | { kind: 'asi'; increases: Partial<AbilityScores> }
+  | { kind: 'feat'; featId: string; ability?: AbilityKey };
+
+/** Registro de um nível ganho — a linha do tempo de evolução. */
+export interface LevelUpRecord {
+  /** Nível total do personagem após este ganho. */
+  level: number;
+  classId: string;
+  /** Nível naquela classe após este ganho. */
+  classLevel: number;
+  /** Como o PV foi obtido neste nível. */
+  hpMethod: 'media' | 'rolagem' | 'manual';
+  /** Valor do dado/média/manual, SEM o modificador de CON (aplicado no cálculo). */
+  hpValue: number;
+  /** Características de classe/subclasse ganhas neste nível. */
+  features: string[];
+  asi?: AsiChoice;
+  /** Subclasse escolhida neste nível, se aplicável. */
+  subclassId?: string;
+  /** Registro sintetizado na migração (média), não escolhido pelo jogador. */
+  synthetic?: boolean;
+  at: number;
+}
+
+/** Configurações da campanha que regem validação de regras. */
+export interface CampaignSettings {
+  system: '5e-2014';
+  allowFeats: boolean;
+  allowMulticlass: boolean;
+  allowHomebrew: boolean;
+  /** Método padrão de PV ao subir de nível. */
+  hpMode: 'media' | 'rolagem' | 'manual';
+  /** Permite edição manual de atributos pelo mestre (modal Editar). */
+  dmEdit: boolean;
+}
+
+export const DEFAULT_CAMPAIGN: CampaignSettings = {
+  system: '5e-2014',
+  allowFeats: true,
+  allowMulticlass: false,
+  allowHomebrew: true,
+  hpMode: 'media',
+  dmEdit: true,
+};
+
 export interface Character {
+  /** Versão do schema para migrações seguras. */
+  schema?: number;
   id: string;
   ownerId: string;
   name: string;
@@ -76,6 +127,17 @@ export interface Character {
   age: string;
   concept: string;
   level: number;
+  /** Níveis por classe (pronto para multiclasse). */
+  classLevels: { classId: string; level: number }[];
+  subclassId: string | null;
+  /** Talentos escolhidos (ids de data/feats). */
+  feats: string[];
+  /** Aumentos de atributo acumulados por ASI/talentos. */
+  asiBonuses: Partial<AbilityScores>;
+  /** Linha do tempo de evolução, nível a nível. */
+  levelHistory: LevelUpRecord[];
+  inspiration: boolean;
+  campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)
   baseAbilities: AbilityScores;
   // proficiências

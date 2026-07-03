@@ -522,6 +522,7 @@ button:disabled {
     color: var(--acc);
   }
   .fv-lore-body {
+    white-space: pre-line;
     margin-top: 9px;
     font-size: 13px;
     line-height: 1.5;

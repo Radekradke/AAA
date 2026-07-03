@@ -14,7 +14,9 @@ export type IconName =
   | 'starFill'
   | 'anvil'
   | 'edit'
-  | 'sword';
+  | 'sword'
+  | 'banner'
+  | 'levelup';
 
 interface IconProps {
   name: IconName;
@@ -103,6 +105,21 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M14.5 5.5 18.5 9.5 8 20H4v-4L14.5 5.5Z" />
       <path d="m12.5 7.5 4 4" />
+    </>
+  ),
+  // estandarte de guerra (Mesa)
+  banner: (
+    <>
+      <path d="M6 3.5h12v13l-6-3.5-6 3.5v-13Z" />
+      <path d="M6 3.5H4.5M18 3.5h1.5M12 6.5v3" />
+    </>
+  ),
+  // chevrons de evolução (Level Up)
+  levelup: (
+    <>
+      <path d="m5 13.5 7-6 7 6" />
+      <path d="m5 19 7-6 7 6" />
+      <path d="M12 7.5v-4M9.5 5.5 12 3l2.5 2.5" />
     </>
   ),
   sword: (

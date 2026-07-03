@@ -8,7 +8,7 @@ import { getClass } from '@/data/classes';
 import { damageExpr } from '@/engine/combat';
 import { modStr } from '@/engine/dice';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
-import { passiveLore } from '@/lib/lore';
+import { calcLore, passiveLore } from '@/lib/lore';
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
@@ -35,7 +35,9 @@ export function TabCombate({ char, derived }: TabProps) {
       {/* Vitalidade */}
       <Panel full>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 10 }}>
-          <div className="fv-label">Pontos de Vida</div>
+          <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
+            <div className="fv-label" style={{ cursor: 'help' }}>Pontos de Vida</div>
+          </LoreTooltip>
           <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: hpColor }}>
             {char.hpCurrent}
             <span style={{ fontSize: '.5em', color: 'var(--muted)' }}> / {hpMax}</span>
@@ -110,7 +112,7 @@ export function TabCombate({ char, derived }: TabProps) {
               <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{atk.note}</div>
             </div>
-            <LoreTooltip info={passiveLore(`Ataque · ${atk.name}`, modStr(atk.attackBonus), 'Rola 1d20 e soma proficiência, atributo aplicável e bônus mágicos da arma. Compare o total com a CA do alvo.', ['Ataque', atk.note])}>
+            <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
               <button
                 onClick={() => attack(atk)}
                 style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', lineHeight: 1.05 }}
@@ -119,7 +121,7 @@ export function TabCombate({ char, derived }: TabProps) {
                 <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>ACERTO</div>
               </button>
             </LoreTooltip>
-            <LoreTooltip info={passiveLore(`Dano · ${atk.name}`, damageExpr(atk), 'Rola os dados de dano da arma e soma o modificador aplicável. Em crítico, normalmente dobre os dados de dano.', ['Dano', atk.damageType])}>
+            <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType} + os bônus abaixo (crítico: dobre os dados).` })}>
               <button
                 onClick={() => damage(atk)}
                 style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}

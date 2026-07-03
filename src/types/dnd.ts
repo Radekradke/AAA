@@ -44,6 +44,16 @@ export interface Race {
   desc: string;
   traits: string[];
   speed: number;
+  /** Alcance da visão no escuro em metros (PHB 2014); ausente = sem visão no escuro. */
+  darkvision?: number;
+  /** Idiomas concedidos pela raça. */
+  languages?: string[];
+  /** Resistências a dano concedidas pela raça. */
+  resistances?: string[];
+  /** Proficiências em perícia automáticas (ex.: Elfo → Percepção). */
+  skillProfs?: SkillKey[];
+  /** Perícias extras à escolha do jogador (ex.: Meio-Elfo → 2). */
+  extraSkillPicks?: number;
   /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
   video?: string;
 }
@@ -58,7 +68,37 @@ export interface Subrace {
   speedBonus?: number;
   /** PV adicionais por nível, usado por linhagens como Anão da Colina. */
   hpPerLevel?: number;
+  /** Substitui o alcance de visão no escuro da raça (ex.: Drow 36 m). */
+  darkvision?: number;
+  resistances?: string[];
   traits?: string[];
+}
+
+/** Talento (PHB 2014) com efeitos mecânicos rastreáveis. */
+export interface Feat {
+  id: string;
+  label: string;
+  desc: string;
+  /** +1 em um atributo à escolha entre estes (meio-talentos). */
+  abilityChoice?: AbilityKey[];
+  /** PV adicionais por nível (Durão). */
+  hpPerLevel?: number;
+  /** Bônus de deslocamento em metros (Móbil). */
+  speedBonus?: number;
+  /** Bônus de iniciativa (Alerta). */
+  initiativeBonus?: number;
+  /** Bônus de Percepção passiva (Observador). */
+  passivePerceptionBonus?: number;
+}
+
+/** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
+export interface Subclass {
+  id: string;
+  classId: string;
+  label: string;
+  desc: string;
+  /** Características: nível de classe → nomes. */
+  features: Record<number, string[]>;
 }
 
 export interface DndClass {

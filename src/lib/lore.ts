@@ -1,4 +1,6 @@
 import type { AbilityKey, ArmorData, Rarity, SkillKey, Spell, WeaponData } from '@/types/dnd';
+import type { Breakdown } from '@/engine/effects';
+import { breakdownBody } from '@/engine/effects';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
 
 export interface LoreInfo {
@@ -169,5 +171,16 @@ export function conditionLore(condition: string): LoreInfo {
     subtitle: 'Condição',
     body: CONDITION_LORE[condition] ?? 'Condição ativa no personagem. Consulte o mestre para o efeito exato na cena.',
     tags: ['Estado', 'Descanso longo remove aqui'],
+  };
+}
+
+/** Tooltip "ver cálculo": total + uma linha por origem do bônus. */
+export function calcLore(title: string, bd: Breakdown, opts: { unit?: string; intro?: string; tags?: string[] } = {}): LoreInfo {
+  const totalTxt = Number.isInteger(bd.total) ? String(bd.total) : bd.total.toFixed(1).replace('.', ',');
+  return {
+    title,
+    subtitle: `Total: ${totalTxt}${opts.unit ? ` ${opts.unit}` : ''}`,
+    body: `${opts.intro ? opts.intro + '\n\n' : ''}${breakdownBody(bd, opts.unit)}`,
+    tags: opts.tags ?? ['Ver cálculo'],
   };
 }

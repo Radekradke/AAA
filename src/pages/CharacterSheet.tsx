@@ -14,6 +14,8 @@ import { TabMagias } from '@/components/sheet/TabMagias';
 import { TabDescanso } from '@/components/sheet/TabDescanso';
 import { TabDiario } from '@/components/sheet/TabDiario';
 import { DiceRoller } from '@/components/dice/DiceRoller';
+import { TabMesa } from '@/components/sheet/TabMesa';
+import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
 
@@ -24,7 +26,7 @@ export function CharacterSheet() {
   const exportCharacter = useCharacterStore((s) => s.exportCharacter);
 
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
-  const [tab, setTab] = useState('ficha');
+  const [tab, setTab] = useState('mesa');
   const [editing, setEditing] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
@@ -63,6 +65,8 @@ export function CharacterSheet() {
 
   const renderTab = () => {
     switch (activeTab) {
+      case 'mesa': return <TabMesa char={char} derived={derived} />;
+      case 'evoluir': return <TabEvoluir char={char} derived={derived} />;
       case 'combate': return <TabCombate char={char} derived={derived} />;
       case 'inventario': return <TabInventario char={char} derived={derived} />;
       case 'magias': return <TabMagias char={char} derived={derived} />;

@@ -15,6 +15,7 @@ export const RACES: Race[] = [
     desc: 'Versáteis e ambiciosos, presentes em toda parte do mundo conhecido.',
     traits: ['Versatilidade', 'Idioma adicional'],
     speed: 9,
+    languages: ['Comum', '1 idioma à escolha'],
   },
   {
     id: 'elf',
@@ -26,6 +27,9 @@ export const RACES: Race[] = [
     desc: 'Graciosos e longevos, ligados à magia e aos segredos da natureza.',
     traits: ['Visão no Escuro', 'Sentidos Aguçados', 'Ancestral Feérico', 'Transe'],
     speed: 9,
+    darkvision: 18,
+    skillProfs: ['perception'],
+    languages: ['Comum', 'Élfico'],
   },
   {
     id: 'dwarf',
@@ -37,6 +41,9 @@ export const RACES: Race[] = [
     desc: 'Resistentes e teimosos, forjados na pedra e na tradição milenar das montanhas.',
     traits: ['Visão no Escuro', 'Resistência a veneno', 'Combate anão'],
     speed: 7.5,
+    darkvision: 18,
+    resistances: ['veneno'],
+    languages: ['Comum', 'Anão'],
   },
   {
     id: 'halfling',
@@ -48,6 +55,7 @@ export const RACES: Race[] = [
     desc: 'Pequenos, sortudos e surpreendentemente corajosos diante do perigo.',
     traits: ['Sortudo', 'Bravura', 'Agilidade Halfling'],
     speed: 7.5,
+    languages: ['Comum', 'Halfling'],
   },
   {
     id: 'half-elf',
@@ -57,8 +65,11 @@ export const RACES: Race[] = [
     abilityBonus: { cha: 2, dex: 1, wis: 1 },
     bonus: '+2 CAR · +1 / +1',
     desc: 'Andarilhos entre dois mundos, carismáticos e adaptáveis por natureza.',
-    traits: ['Visão no Escuro', 'Ancestral Feérico', 'Versatilidade'],
+    traits: ['Visão no Escuro', 'Ancestral Feérico', 'Versatilidade em Perícias'],
     speed: 9,
+    darkvision: 18,
+    extraSkillPicks: 2,
+    languages: ['Comum', 'Élfico', '1 idioma à escolha'],
   },
   {
     id: 'half-orc',
@@ -68,8 +79,11 @@ export const RACES: Race[] = [
     abilityBonus: { str: 2, con: 1 },
     bonus: '+2 FOR · +1 CON',
     desc: 'Força brutal temperada por uma vontade indomável de sobreviver.',
-    traits: ['Resistência Implacável', 'Ataques Selvagens', 'Visão no Escuro'],
+    traits: ['Resistência Implacável', 'Ataques Selvagens', 'Visão no Escuro', 'Ameaçador'],
     speed: 9,
+    darkvision: 18,
+    skillProfs: ['intimidation'],
+    languages: ['Comum', 'Orc'],
   },
   {
     id: 'gnome',
@@ -81,6 +95,8 @@ export const RACES: Race[] = [
     desc: 'Curiosos e inventivos, encontram maravilha em cada engenhoca e mistério.',
     traits: ['Visão no Escuro', 'Astúcia Gnômica'],
     speed: 7.5,
+    darkvision: 18,
+    languages: ['Comum', 'Gnômico'],
   },
   {
     id: 'tiefling',
@@ -92,6 +108,9 @@ export const RACES: Race[] = [
     desc: 'Marcados por uma herança infernal, orgulhosos apesar da desconfiança alheia.',
     traits: ['Visão no Escuro', 'Resistência a fogo', 'Legado Infernal'],
     speed: 9,
+    darkvision: 18,
+    resistances: ['fogo'],
+    languages: ['Comum', 'Infernal'],
   },
   {
     id: 'dragonborn',
@@ -104,6 +123,8 @@ export const RACES: Race[] = [
     desc: 'Descendentes de dragões, orgulhosos e marcados pela linhagem ancestral.',
     traits: ['Sopro Dracônico', 'Resistência elemental'],
     speed: 9,
+    resistances: ['elemental (linhagem dracônica)'],
+    languages: ['Comum', 'Dracônico'],
   },
 ];
 
@@ -129,11 +150,11 @@ export const SUBRACES: Record<string, Subrace[]> = {
       speedBonus: 1.5,
       traits: ['Pés Ligeiros'],
     },
-    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
+    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR', darkvision: 36, traits: ['Visão Superior no Escuro'] },
   ],
   halfling: [
     { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
-    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', traits: ['Resiliência Robusta'] },
+    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', resistances: ['veneno'], traits: ['Resiliência Robusta'] },
   ],
   gnome: [
     { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES' },

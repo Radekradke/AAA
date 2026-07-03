@@ -1,6 +1,8 @@
 import type { AbilityKey, AbilityScores } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, CombatState } from '@/types/character';
+import { DEFAULT_CAMPAIGN } from '@/types/character';
+import { synthesizeHistory } from './levelUp';
 import { getClass } from '@/data/classes';
 import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
@@ -86,6 +88,14 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
     age: '',
     concept: '',
     level: 1,
+    classLevels: [{ classId, level: 1 }],
+    subclassId: null,
+    feats: [],
+    asiBonuses: {},
+    levelHistory: [],
+    inspiration: false,
+    campaign: { ...DEFAULT_CAMPAIGN },
+    schema: 2,
     baseAbilities: standardArrayFor(classId),
     skillProfs: [],
     savingThrowProfs: getClass(classId).savingThrows,
@@ -130,6 +140,8 @@ export function finalizeCharacter(draft: Character): Character {
   const finalized: Character = {
     ...draft,
     name: draft.name.trim() || 'Herói Sem Nome',
+    classLevels: [{ classId: draft.classId, level: draft.level }],
+    levelHistory: synthesizeHistory(draft),
     inventory,
     equipped,
     skillProfs,

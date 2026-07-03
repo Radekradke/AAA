@@ -6,7 +6,7 @@ import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
-import { passiveLore } from '@/lib/lore';
+import { passiveLore, calcLore } from '@/lib/lore';
 
 interface SheetHeaderProps {
   char: Character;
@@ -33,12 +33,14 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
     placeItems: 'center',
   };
 
+  // valores derivados com cálculo rastreável (tooltip mostra cada origem)
+  const bd = derived.breakdowns;
   const defense = [
-    { label: 'CA', val: String(derived.ac), body: 'Classe de Armadura. Quanto maior, mais difícil é acertar você com ataques. Vem de armadura, escudo, Destreza e bônus mágicos.' },
-    { label: 'Iniciativa', val: modStr(derived.initiative), body: 'Bônus usado para determinar sua ordem no começo do combate. Normalmente vem do modificador de Destreza.' },
-    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m`, body: 'Quantidade de metros que seu personagem pode se mover em um turno antes de gastar recursos extras.' },
-    { label: 'Perc. Pass.', val: String(derived.passivePerception), body: 'Percepção Passiva. O mestre usa para notar detalhes, perigos ou emboscadas sem pedir uma rolagem ativa.' },
-    { label: 'Profic.', val: modStr(derived.proficiency), body: 'Bônus de proficiência. Soma em ataques, perícias, resistências e magias nas quais seu personagem é treinado.' },
+    { label: 'CA', val: String(derived.ac), info: calcLore('Classe de Armadura', bd.ac, { intro: 'Quanto maior, mais difícil é acertar você.' }) },
+    { label: 'Iniciativa', val: modStr(derived.initiative), info: calcLore('Iniciativa', bd.initiative, { intro: 'Ordem no início do combate.' }) },
+    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m`, info: calcLore('Deslocamento', bd.speed, { unit: 'm', intro: 'Metros de movimento por turno.' }) },
+    { label: 'Perc. Pass.', val: String(derived.passivePerception), info: calcLore('Percepção Passiva', bd.passivePerception, { intro: 'Usada pelo mestre para perigos não anunciados.' }) },
+    { label: 'Profic.', val: modStr(derived.proficiency), info: passiveLore('Bônus de Proficiência', modStr(derived.proficiency), `Nível ${char.level} → bônus ${modStr(derived.proficiency)} (2 + ⌊(nível − 1) / 4⌋, PHB 2014). Soma em tudo que você é treinado.`, ['Ver cálculo']) },
   ];
 
   return (
@@ -110,7 +112,7 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         {defense.map((d) => (
           <LoreTooltip
             key={d.label}
-            info={passiveLore(d.label, d.val, d.body, ['Ficha', 'Valor derivado'])}
+            info={d.info}
             anchorStyle={{ display: 'block' }}
           >
             <div style={{ cursor: 'help', textAlign: 'center', minWidth: 62, padding: '11px 12px', borderRadius: 13, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)' }}>

@@ -150,7 +150,12 @@ export function TabInventario({ char }: TabProps) {
                   }}
                 >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>{it.category}</span>
+                  <span style={{ fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+                    {it.category}
+                    {it.homebrew && (
+                      <span style={{ marginLeft: 6, padding: '1px 6px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.1em' }}>HOMEBREW</span>
+                    )}
+                  </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 600, color: rc.color }}>
                     <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
                     {rc.label}

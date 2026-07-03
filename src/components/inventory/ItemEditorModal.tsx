@@ -113,7 +113,7 @@ export function ItemEditorModal({ item, onSave, onClose }: ItemEditorModalProps)
       acBonus: category === 'shield' || category === 'ring' ? bonus || (category === 'shield' ? 2 : 0) : bonus || undefined,
     };
 
-    onSave(editing ? ({ ...item!, ...base, itemId: undefined } as InventoryItem) : customInventoryItem(base));
+    onSave(editing ? ({ ...item!, ...base, itemId: undefined, homebrew: true } as InventoryItem) : customInventoryItem(base));
     onClose();
   };
 
