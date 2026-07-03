@@ -22,6 +22,17 @@ export function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await authService.signInWithGoogle(`${window.location.origin}/auth/callback`);
+      if (!res.ok) setError(res.error ?? 'Não foi possível iniciar o login com Google.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -181,6 +192,16 @@ export function Login() {
               {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           </form>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={busy}
+            className="fv-btn-ghost"
+            style={{ width: '100%', marginTop: 12, padding: '13px', fontSize: 14, opacity: busy ? 0.7 : 1 }}
+          >
+            Login com Google
+          </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />

@@ -37,6 +37,17 @@ export const authService = {
     return { ok: true, user: mapUser(data.user.id, data.user.email ?? email, meta?.name) };
   },
 
+  async signInWithGoogle(redirectTo: string): Promise<AuthResult> {
+    const sb = getSupabase();
+    if (!sb) return { ok: false, error: 'Nuvem não configurada.' };
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    });
+    if (error) return { ok: false, error: translate(error.message) };
+    return { ok: true };
+  },
+
   async signOut(): Promise<void> {
     await getSupabase()?.auth.signOut();
   },

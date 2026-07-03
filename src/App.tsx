@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { Home } from '@/pages/Home';
 import { Login } from '@/pages/Login';
+import { AuthCallback } from '@/pages/AuthCallback';
 import { CharacterSelect } from '@/pages/CharacterSelect';
 import { CharacterCreator } from '@/pages/CharacterCreator';
 import { CharacterSheet } from '@/pages/CharacterSheet';
@@ -25,6 +26,7 @@ export function App() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/entrar" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
           path="/personagens"
           element={
