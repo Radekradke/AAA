@@ -32,7 +32,7 @@ export function Modal({ title, icon, onClose, children, footer, maxWidth = 620, 
 
   return createPortal(
     <div className="fv-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="fv-modal fv-panel animate-popIn" onClick={(e) => e.stopPropagation()} style={{ maxWidth }}>
+      <div className="fv-modal fv-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth }}>
         <div className="fv-modal-head">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             {icon && <Icon name={icon} size={19} color="var(--gold)" />}

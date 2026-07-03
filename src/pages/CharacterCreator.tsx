@@ -219,6 +219,24 @@ export function CharacterCreator() {
           })}
         </div>
 
+        {/* progresso explícito no celular: etapa atual + barra animada */}
+        <div className="fv-mobile-only" style={{ flexDirection: 'column', gap: 6, flex: 'none' }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: t.gold, letterSpacing: '.04em' }}>
+            Etapa {step + 1} de {STEP_LABELS.length} · {STEP_LABELS[step]}
+          </span>
+          <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,.4)', border: '1px solid var(--line)', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${((step + 1) / STEP_LABELS.length) * 100}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, ${t.acc}, ${t.gold})`,
+                boxShadow: `0 0 10px ${hexA(t.gold, 0.5)}`,
+                transition: 'width .35s cubic-bezier(.2,.8,.2,1)',
+              }}
+            />
+          </div>
+        </div>
+
         {/* corpo: ocupa toda a altura disponível, sem rolagem no desktop */}
         <div
           ref={bodyRef}

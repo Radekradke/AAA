@@ -13,6 +13,7 @@ import { RARITY } from '@/data/themes';
 import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT } from '@/engine/inventory';
 import type { InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { itemLore } from '@/lib/lore';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
@@ -139,9 +140,11 @@ export function TabInventario({ char }: TabProps) {
         </SectionLabel>
 
         {char.inventory.length === 0 && (
-          <div style={{ padding: '26px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 13.5 }}>
-            Mochila vazia. Use <b style={{ color: t.gold }}>+ Adicionar</b> para o catálogo ou <b style={{ color: t.acc }}>Forjar</b> para criar algo único.
-          </div>
+          <EmptyState
+            icon="satchel"
+            title="Mochila vazia"
+            hint={<>Use <b style={{ color: t.gold }}>+ Adicionar</b> para o catálogo ou <b style={{ color: t.acc }}>Forjar</b> para criar algo único.</>}
+          />
         )}
 
         {visibleGroups.map((g) => (

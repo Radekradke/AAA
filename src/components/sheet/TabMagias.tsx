@@ -8,6 +8,7 @@ import { SpellPicker } from '@/components/spells/SpellPicker';
 import { SPELL_BY_ID } from '@/data/spells';
 import { modStr } from '@/engine/dice';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 
 export function TabMagias({ char, derived }: TabProps) {
@@ -83,7 +84,13 @@ export function TabMagias({ char, derived }: TabProps) {
         >
           Magias Preparadas
         </SectionLabel>
-        {prepared.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Nenhuma magia preparada ainda.</div>}
+        {prepared.length === 0 && (
+          <EmptyState
+            icon="spark"
+            title="Nenhuma magia preparada"
+            hint="Toque em + Preparar para escolher truques e magias do grimório da sua classe."
+          />
+        )}
         {prepared.map((sp) => (
           <LoreTooltip key={sp.id} info={spellLore(sp)} anchorStyle={{ display: 'block' }}>
             <div style={{ cursor: 'help', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', borderBottom: '1px solid var(--line)' }}>

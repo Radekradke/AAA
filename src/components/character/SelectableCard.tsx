@@ -38,7 +38,21 @@ export function SelectableCard({ selected, onClick, jewel = '#888', children, st
   };
 
   return (
-    <div onClick={onClick} onMouseMove={tilt.onMouseMove} onMouseLeave={tilt.onMouseLeave} style={cardStyle}>
+    <div
+      onClick={onClick}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      style={cardStyle}
+    >
       {badge && selected && (
         <span
           style={{

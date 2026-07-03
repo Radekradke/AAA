@@ -6,6 +6,7 @@ import { JournalCard } from '@/components/diary/JournalCard';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
@@ -74,10 +75,11 @@ export function TabDiario({ char }: TabProps) {
       </div>
 
       {char.journal.length === 0 && (
-        <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 8 }}>
-          O diário está em branco. Clique em <b style={{ color: 'var(--gold)' }}>Nova sessão</b> para registrar sua
-          primeira aventura.
-        </p>
+        <EmptyState
+          icon="quill"
+          title="O diário está em branco"
+          hint={<>Clique em <b style={{ color: 'var(--gold)' }}>Nova sessão</b> para registrar sua primeira aventura — NPCs, lugares, missões e tesouros.</>}
+        />
       )}
       {char.journal.length > 0 && entries.length === 0 && (
         <p style={{ color: 'var(--muted)', fontSize: 14 }}>Nenhuma sessão corresponde à busca.</p>

@@ -8,6 +8,7 @@ import { getClass } from '@/data/classes';
 import { damageExpr } from '@/engine/combat';
 import { modStr } from '@/engine/dice';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
 
 export function TabCombate({ char, derived }: TabProps) {
@@ -102,9 +103,11 @@ export function TabCombate({ char, derived }: TabProps) {
       <Panel>
         <div className="fv-label" style={{ marginBottom: 6 }}>Ataques</div>
         {derived.attacks.length === 0 && (
-          <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
-            Nenhuma arma equipada. Equipe uma arma no Inventário.
-          </div>
+          <EmptyState
+            icon="sword"
+            title="Nenhuma arma equipada"
+            hint="Vá ao Inventário e toque em Equipar numa arma — o ataque e o dano aparecem aqui prontos para rolar."
+          />
         )}
         {derived.attacks.map((atk) => (
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>

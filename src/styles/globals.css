@@ -277,6 +277,37 @@ button:disabled {
   }
 }
 
+/* modal premium: entra suave, sem salto */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* folha inferior no celular */
+@keyframes sheetUp {
+  from {
+    opacity: 0.4;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* feedback de toque/clique sutil em todo o app */
+button:not(:disabled) {
+  transition: transform 0.12s ease;
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
 /* respeito a quem prefere menos movimento */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -389,6 +420,61 @@ button:disabled {
   }
   .fv-btn-gold:active {
     transform: translateY(0);
+  }
+  /* botão secundário (fantasma) — par do fv-btn-gold */
+  .fv-btn-ghost {
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--muted);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.26);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .fv-btn-ghost:hover {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--gold), transparent 40%);
+  }
+  /* botão destrutivo padronizado */
+  .fv-btn-danger {
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--danger);
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--danger), transparent 60%);
+    background: color-mix(in srgb, var(--danger), transparent 92%);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .fv-btn-danger:hover {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger), transparent 86%);
+  }
+  /* estado vazio intencional — não parece bug */
+  .fv-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: clamp(18px, 3vw, 28px) 14px;
+    border: 1px dashed color-mix(in srgb, var(--gold), transparent 72%);
+    border-radius: var(--radius-lg);
+    background: rgba(0, 0, 0, 0.14);
+  }
+  .fv-empty-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .fv-empty-hint {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 380px;
   }
   .fv-chip {
     display: inline-flex;
@@ -573,6 +659,7 @@ button:disabled {
     flex-direction: column;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
+    animation: modalIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .fv-modal-head {
     flex: none;
@@ -765,6 +852,7 @@ button:disabled {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom: none;
+    animation: sheetUp 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .fv-modal-body {
     padding: 13px 13px calc(13px + env(safe-area-inset-bottom));

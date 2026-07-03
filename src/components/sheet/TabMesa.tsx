@@ -4,6 +4,7 @@ import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -238,7 +239,7 @@ export function TabMesa({ char, derived }: TabProps) {
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>
           {derived.attacks.length === 0 && (
-            <div style={{ padding: '14px 0', color: 'var(--muted)', fontSize: 13 }}>Equipe uma arma no Inventário.</div>
+            <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
           )}
           {derived.attacks.map((atk) => (
             <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
