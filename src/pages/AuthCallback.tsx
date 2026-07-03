@@ -14,13 +14,13 @@ export function AuthCallback() {
   useEffect(() => {
     let alive = true;
 
-    authService.currentUser().then((user) => {
+    authService.completeOAuthSignIn(window.location.href).then((res) => {
       if (!alive) return;
-      if (user) {
-        setUser(user);
+      if (res.ok && res.user) {
+        setUser(res.user);
         navigate('/personagens', { replace: true });
       } else {
-        setError('Nao foi possivel concluir o login com Google.');
+        setError(res.error ?? 'Nao foi possivel concluir o login com Google.');
       }
     });
 

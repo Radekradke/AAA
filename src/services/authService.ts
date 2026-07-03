@@ -48,6 +48,30 @@ export const authService = {
     return { ok: true };
   },
 
+  async completeOAuthSignIn(callbackUrl: string): Promise<AuthResult> {
+    const sb = getSupabase();
+    if (!sb) return { ok: false, error: 'Nuvem não configurada.' };
+
+    const url = new URL(callbackUrl);
+    const oauthError = url.searchParams.get('error_description') ?? url.searchParams.get('error');
+    if (oauthError) return { ok: false, error: oauthError };
+
+    const code = url.searchParams.get('code');
+    if (code) {
+      const { data, error } = await sb.auth.exchangeCodeForSession(code);
+      if (error) return { ok: false, error: translate(error.message) };
+      const u = data.user;
+      if (u) {
+        const meta = u.user_metadata as { name?: string; full_name?: string };
+        return { ok: true, user: mapUser(u.id, u.email ?? null, meta?.name ?? meta?.full_name) };
+      }
+    }
+
+    const user = await this.currentUser();
+    if (!user) return { ok: false, error: 'Nao foi possivel concluir o login com Google.' };
+    return { ok: true, user };
+  },
+
   async signOut(): Promise<void> {
     await getSupabase()?.auth.signOut();
   },
