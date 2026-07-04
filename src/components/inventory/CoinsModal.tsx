@@ -38,31 +38,34 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {COIN_DEFS.map((c) => (
-          <div key={c.k} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.24)' }}>
+          <div key={c.k} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.24)' }}>
             <span
               aria-hidden
               style={{ width: 26, height: 26, flex: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 9, color: '#140d04', background: `radial-gradient(circle at 35% 30%, #fff8, transparent 45%), ${c.color}`, boxShadow: `0 0 10px ${hexA(c.color, 0.4)}` }}
             >
               {c.code}
             </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ flex: '1 1 90px', minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{c.label}</div>
               <div style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
                 {c.rate >= 1 ? `${c.rate} po` : `${Math.round(c.rate * 100)}/100 po`}
               </div>
             </div>
-            <button onClick={() => store.adjustCoin(char.id, c.k, -10)} style={coinBtn('var(--muted)')}>−10</button>
-            <button onClick={() => store.adjustCoin(char.id, c.k, -1)} style={coinBtn('var(--muted)')}>−1</button>
-            <input
-              className="fv-input"
-              value={char.coins[c.k]}
-              onChange={(e) => store.setCoin(char.id, c.k, parseInt(e.target.value) || 0)}
-              inputMode="numeric"
-              aria-label={`Quantidade de ${c.label}`}
-              style={{ width: 64, minHeight: 38, padding: '6px 8px', textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
-            />
-            <button onClick={() => store.adjustCoin(char.id, c.k, 1)} style={coinBtn('var(--acc)')}>+1</button>
-            <button onClick={() => store.adjustCoin(char.id, c.k, 10)} style={coinBtn('var(--acc)')}>+10</button>
+            {/* controles agrupados: quebram juntos para a linha de baixo em telas estreitas */}
+            <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <button onClick={() => store.adjustCoin(char.id, c.k, -10)} style={coinBtn('var(--muted)')}>−10</button>
+              <button onClick={() => store.adjustCoin(char.id, c.k, -1)} style={coinBtn('var(--muted)')}>−1</button>
+              <input
+                className="fv-input"
+                value={char.coins[c.k]}
+                onChange={(e) => store.setCoin(char.id, c.k, parseInt(e.target.value) || 0)}
+                inputMode="numeric"
+                aria-label={`Quantidade de ${c.label}`}
+                style={{ width: 60, minHeight: 38, padding: '6px 6px', textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
+              />
+              <button onClick={() => store.adjustCoin(char.id, c.k, 1)} style={coinBtn('var(--acc)')}>+1</button>
+              <button onClick={() => store.adjustCoin(char.id, c.k, 10)} style={coinBtn('var(--acc)')}>+10</button>
+            </div>
           </div>
         ))}
       </div>

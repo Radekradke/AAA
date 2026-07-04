@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
@@ -41,10 +42,12 @@ export function RollOverlay() {
   const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : 'rolagem') : '';
   const detail = roll ? `${roll.expr} [${roll.rolls.join(', ')}]${roll.modifier ? ' ' + modStr(roll.modifier) : ''}` : '';
 
-  return (
+  // portal em document.body: `fixed` dentro de ancestrais animados
+  // (transform/filter) desloca o overlay — fora da árvore, centraliza sempre
+  return createPortal(
     <AnimatePresence>
       {roll && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'grid', placeItems: 'center', padding: 14, pointerEvents: 'none' }}>
           <motion.div
             key={roll.id}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -59,9 +62,10 @@ export function RollOverlay() {
               borderRadius: 20,
               boxShadow: '0 24px 70px rgba(0,0,0,.6), 0 0 40px var(--bloom)',
               backdropFilter: 'blur(14px)',
-              padding: '24px 40px 26px',
+              padding: 'clamp(18px,4vw,24px) clamp(22px,6vw,40px) clamp(20px,4vw,26px)',
               textAlign: 'center',
-              minWidth: 250,
+              minWidth: 'min(250px, 100%)',
+              maxWidth: 'min(430px, calc(100vw - 28px))',
             }}
           >
             <button
@@ -113,6 +117,7 @@ export function RollOverlay() {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

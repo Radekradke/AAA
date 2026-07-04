@@ -105,6 +105,26 @@ button:disabled {
   display: none;
 }
 
+/* rede de segurança contra vazamentos: mídia nunca passa do container */
+img,
+video,
+canvas,
+svg:not([data-free]) {
+  max-width: 100%;
+}
+/* painéis nunca forçam largura além do pai */
+.fv-panel,
+.fv-surface,
+.fv-panel-soft {
+  max-width: 100%;
+}
+/* textos longos quebram dentro de modais e tooltips em vez de estourar */
+.fv-modal-body,
+.fv-lore-body,
+.fv-empty-hint {
+  overflow-wrap: break-word;
+}
+
 /* foco visível para acessibilidade no teclado */
 :focus-visible {
   outline: 2px solid var(--gold);
