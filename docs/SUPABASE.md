@@ -224,6 +224,36 @@ begin
 end $$;
 
 grant execute on function public.join_campaign(text) to authenticated;
+
+-- crônica da mesa: notas, NPCs e missões (mestre escreve, membros leem)
+create table public.campaign_notes (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  author_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null check (kind in ('nota', 'npc', 'missao')),
+  title text not null,
+  body text not null default '',
+  created_at bigint not null
+);
+alter table public.campaign_notes enable row level security;
+create policy "notes_member_read" on public.campaign_notes for select using (
+  exists (
+    select 1 from public.campaigns c
+    where c.id = campaign_id and (c.master_id = auth.uid() or exists (
+      select 1 from public.campaign_members m where m.campaign_id = c.id and m.user_id = auth.uid()
+    ))
+  )
+);
+create policy "notes_master_write" on public.campaign_notes for all using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+) with check (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+-- REALTIME: o painel do mestre atualiza sozinho (PV, vínculos, crônica)
+alter publication supabase_realtime add table public.sheets;
+alter publication supabase_realtime add table public.shared_sheets;
+alter publication supabase_realtime add table public.campaign_notes;
 ```
 
 Passos de implementação (quando chegar a hora):

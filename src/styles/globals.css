@@ -596,6 +596,14 @@ button:active:not(:disabled) {
   .fv-lore-anchor {
     display: contents;
   }
+  /* long-press no celular não deve selecionar texto nem abrir callout */
+  @media (hover: none), (pointer: coarse) {
+    .fv-lore-anchor > * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+  }
   .fv-lore-tooltip {
     position: fixed;
     z-index: 120;

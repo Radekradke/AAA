@@ -97,26 +97,57 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // MOBILE: toque simples executa a ação direto; SEGURAR (~450 ms) mostra a
+  // explicação. O clique que se segue ao long-press é suprimido.
+  const lpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lpFired = useRef(false);
+  const lpStart = useRef<Point | null>(null);
+
+  const cancelLongPress = () => {
+    if (lpTimer.current) clearTimeout(lpTimer.current);
+    lpTimer.current = null;
+  };
+
   const onPointerDownCapture = (e: PointerEvent<HTMLSpanElement>) => {
     if (!isCoarsePointer() || disabled) return;
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
-    if (!open) {
-      e.preventDefault();
-      e.stopPropagation();
-      show(true, { x: e.clientX, y: e.clientY });
-    } else {
-      hide();
-    }
+    lpFired.current = false;
+    lpStart.current = { x: e.clientX, y: e.clientY };
+    cancelLongPress();
+    lpTimer.current = setTimeout(() => {
+      lpFired.current = true;
+      show(true, lpStart.current ?? undefined);
+    }, 450);
+  };
+
+  const onPointerMoveCapture = (e: PointerEvent<HTMLSpanElement>) => {
+    if (!lpTimer.current || !lpStart.current) return;
+    // arrastou o dedo: é rolagem, não long-press
+    if (Math.hypot(e.clientX - lpStart.current.x, e.clientY - lpStart.current.y) > 10) cancelLongPress();
   };
 
   const onClickCapture = (e: MouseEvent<HTMLSpanElement>) => {
     if (!isCoarsePointer() || disabled) return;
-    if (!open) {
+    cancelLongPress();
+    if (lpFired.current) {
+      // o long-press já mostrou a explicação — não executa a ação
       e.preventDefault();
       e.stopPropagation();
-      show(true, { x: e.clientX, y: e.clientY });
+      lpFired.current = false;
+    } else if (open) {
+      hide(); // toque simples com dica aberta: fecha e deixa a ação passar
     }
   };
+
+  // com a dica aberta por toque, tocar fora fecha
+  useEffect(() => {
+    if (!open || !touchMode) return;
+    const onDoc = (e: Event) => {
+      if (!anchorRef.current?.contains(e.target as Node)) hide();
+    };
+    window.addEventListener('pointerdown', onDoc, true);
+    return () => window.removeEventListener('pointerdown', onDoc, true);
+  }, [open, touchMode]);
 
   const anchor = (
     <span
@@ -145,7 +176,13 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       }}
       onBlur={hide}
       onPointerDownCapture={onPointerDownCapture}
+      onPointerMoveCapture={onPointerMoveCapture}
+      onPointerUpCapture={cancelLongPress}
+      onPointerCancelCapture={cancelLongPress}
       onClickCapture={onClickCapture}
+      onContextMenu={(e) => {
+        if (isCoarsePointer()) e.preventDefault(); // long-press não abre menu do sistema
+      }}
       style={anchorStyle}
     >
       {children}
@@ -171,7 +208,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
               {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
             </div>
           ) : null}
-          {touchMode && <div className="fv-lore-mobile">Toque novamente para executar a ação.</div>}
+          {touchMode && <div className="fv-lore-mobile">Toque fora para fechar · toque simples executa a ação.</div>}
         </div>,
         document.body,
       )}

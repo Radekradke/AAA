@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
-import { campaignService } from '@/services/campaignService';
+import { campaignService, campaignNotes, subscribeRoom } from '@/services/campaignService';
+import type { CampaignNote } from '@/services/campaignService';
+import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
+import type { MasterPermission } from '@/types/models';
 import { syncNow } from '@/services/offlineSyncService';
 import { deriveCharacter } from '@/engine/dndRules';
 import { getRace } from '@/data/races';
@@ -35,6 +38,10 @@ export function CampaignRoom() {
   const [shares, setShares] = useState<{ share: SharedCharacterSheet; snapshot: Character | null }[]>([]);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notes, setNotes] = useState<CampaignNote[]>([]);
+  const [noteKind, setNoteKind] = useState<CampaignNote['kind']>('nota');
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteBody, setNoteBody] = useState('');
 
   const isMaster = !!campaign && !!user && campaign.masterId === user.id;
   const mySheets = useMemo(
@@ -49,8 +56,15 @@ export function CampaignRoom() {
       if (!c) setError('Mesa não encontrada — você faz parte dela?');
     }).catch((e) => setError(e.message));
     campaignService.sharedSheets(id).then(setShares).catch(() => undefined);
+    campaignNotes.list(id).then(setNotes).catch(() => undefined);
   }, [id]);
   useEffect(load, [load]);
+
+  // AO VIVO: PV, vínculos e crônica atualizam sem apertar "Atualizar"
+  useEffect(() => {
+    if (!id) return;
+    return subscribeRoom(id, load);
+  }, [id, load]);
 
   // mestre: garante um convite reutilizável
   useEffect(() => {
@@ -124,6 +138,35 @@ export function CampaignRoom() {
               })}
               {mySheets.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Crie um herói primeiro na tela de personagens.</span>}
             </div>
+            {/* permissões granulares por ficha vinculada — você decide o que o mestre pode */}
+            {shares.filter((s) => s.share.ownerId === user?.id).map(({ share }) => {
+              const perms = { ...DEFAULT_MASTER_PERMISSION, ...share.permissions };
+              const setPerm = (key: keyof MasterPermission) =>
+                void campaignService.shareSheet(id!, share.sheetId, user!.id, { ...perms, [key]: !perms[key] }).then(load);
+              const sheetName = mySheets.find((c) => c.id === share.sheetId)?.name ?? 'Ficha';
+              const defs: { key: keyof MasterPermission; label: string }[] = [
+                { key: 'view', label: 'Ver ficha' },
+                { key: 'editInventory', label: 'Conceder itens' },
+                { key: 'editCampaignNotes', label: 'Anotar' },
+                { key: 'editProgression', label: 'XP/Nível' },
+              ];
+              return (
+                <div key={share.id} style={{ marginTop: 10, paddingTop: 9, borderTop: '1px solid var(--line)' }}>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>O mestre pode em <b style={{ color: 'var(--ink)' }}>{sheetName}</b>:</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {defs.map((d) => (
+                      <button
+                        key={d.key}
+                        onClick={() => setPerm(d.key)}
+                        style={{ cursor: 'pointer', fontSize: 11, fontWeight: 600, minHeight: 32, padding: '5px 11px', borderRadius: 999, border: '1px solid ' + (perms[d.key] ? t.gold : t.line), background: perms[d.key] ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.24)', color: perms[d.key] ? t.gold : 'var(--muted)' }}
+                      >
+                        {perms[d.key] ? '✓ ' : ''}{d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
             <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>
               Ao vincular, o mestre passa a ver o snapshot da sua ficha (atributos, PV, CA, recursos). Desvincule quando quiser.
             </p>
@@ -143,6 +186,56 @@ export function CampaignRoom() {
             <SheetCard key={share.id} snapshot={snapshot} mine={share.ownerId === user?.id} />
           ))}
         </div>
+
+        {/* Crônica da Mesa: notas, NPCs e missões (mestre escreve, todos leem) */}
+        {campaign && (
+          <div style={{ marginTop: 22 }}>
+            <div className="fv-label" style={{ marginBottom: 10 }}>Crônica da Mesa · {notes.length}</div>
+            {isMaster && (
+              <div className="fv-panel" style={{ padding: 13, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(['nota', 'npc', 'missao'] as const).map((k) => (
+                    <button key={k} onClick={() => setNoteKind(k)} style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 700, minHeight: 32, padding: '5px 13px', borderRadius: 999, border: '1px solid ' + (noteKind === k ? t.gold : t.line), background: noteKind === k ? hexA(t.gold, 0.12) : 'transparent', color: noteKind === k ? t.gold : 'var(--muted)' }}>
+                      {k === 'nota' ? 'Nota' : k === 'npc' ? 'NPC' : 'Missão'}
+                    </button>
+                  ))}
+                  <input className="fv-input" placeholder="Título" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <input className="fv-input" placeholder="Detalhes (opcional)" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} style={{ flex: '1 1 220px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                  <button
+                    onClick={() => {
+                      if (!noteTitle.trim() || !user) return;
+                      void campaignNotes.add(campaign.id, user.id, noteKind, noteTitle, noteBody).then(() => { setNoteTitle(''); setNoteBody(''); load(); });
+                    }}
+                    disabled={!noteTitle.trim()}
+                    className="fv-btn-gold"
+                    style={{ minHeight: 38, padding: '0 18px', fontSize: 13, opacity: noteTitle.trim() ? 1 : 0.5 }}
+                  >
+                    Registrar
+                  </button>
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: 9 }}>
+              {notes.map((n) => (
+                <div key={n.id} className="fv-surface" style={{ padding: '11px 13px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.1em', color: n.kind === 'missao' ? t.gold : n.kind === 'npc' ? t.acc : 'var(--muted)' }}>
+                      {n.kind === 'nota' ? 'NOTA' : n.kind === 'npc' ? 'NPC' : 'MISSÃO'}
+                    </span>
+                    {isMaster && (
+                      <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12 }}>✕</button>
+                    )}
+                  </div>
+                  <div style={{ marginTop: 3, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{n.title}</div>
+                  {n.body && <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>{n.body}</div>}
+                </div>
+              ))}
+              {notes.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{isMaster ? 'Registre a primeira nota, NPC ou missão da campanha.' : 'O mestre ainda não registrou nada.'}</span>}
+            </div>
+          </div>
+        )}
       </div>
     </Screen>
   );

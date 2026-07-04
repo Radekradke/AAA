@@ -107,6 +107,51 @@ export const campaignService = {
   },
 };
 
+export interface CampaignNote {
+  id: string;
+  campaignId: string;
+  kind: 'nota' | 'npc' | 'missao';
+  title: string;
+  body: string;
+  createdAt: number;
+}
+
+export const campaignNotes = {
+  async list(campaignId: string): Promise<CampaignNote[]> {
+    const { data, error } = await sb().from('campaign_notes').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((n: Record<string, unknown>) => ({
+      id: String(n.id), campaignId: String(n.campaign_id), kind: n.kind as CampaignNote['kind'],
+      title: String(n.title), body: String(n.body ?? ''), createdAt: Number(n.created_at),
+    }));
+  },
+  async add(campaignId: string, authorId: string, kind: CampaignNote['kind'], title: string, body: string): Promise<void> {
+    const { error } = await sb().from('campaign_notes').insert({ campaign_id: campaignId, author_id: authorId, kind, title: title.trim(), body: body.trim(), created_at: Date.now() });
+    if (error) throw new Error(error.message);
+  },
+  async remove(id: string): Promise<void> {
+    const { error } = await sb().from('campaign_notes').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+};
+
+/**
+ * Realtime da sala: reexecuta `onChange` quando fichas compartilhadas,
+ * vínculos ou a crônica mudam (canal Supabase por campanha; requer as
+ * tabelas na publication supabase_realtime — docs seção 4).
+ */
+export function subscribeRoom(campaignId: string, onChange: () => void): () => void {
+  const client = getSupabase();
+  if (!client) return () => undefined;
+  const channel = client
+    .channel(`room-${campaignId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'sheets' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'shared_sheets', filter: `campaign_id=eq.${campaignId}` }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_notes', filter: `campaign_id=eq.${campaignId}` }, onChange)
+    .subscribe();
+  return () => void client.removeChannel(channel);
+}
+
 function mapCampaign(r: Record<string, unknown>): Campaign {
   return { id: String(r.id), masterId: String(r.master_id), name: String(r.name), description: r.description ? String(r.description) : undefined, createdAt: Number(r.created_at), updatedAt: Number(r.updated_at) };
 }
