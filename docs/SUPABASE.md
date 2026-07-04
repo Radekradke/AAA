@@ -1,5 +1,8 @@
 # Ficha Viva — Nuvem (Supabase)
 
+> **Deu "already exists"?** Use o **script único re-executável** da seção 5 —
+> ele cria só o que falta e pode ser rodado quantas vezes quiser.
+
 O app é **offline-first**: as fichas vivem no IndexedDB do aparelho e continuam
 editáveis sem internet. Com o Supabase configurado, cada usuário ganha login
 real (Supabase Auth) e as fichas sincronizam entre dispositivos.
@@ -265,3 +268,178 @@ Passos de implementação (quando chegar a hora):
    ao vivo (o gancho está comentado em `offlineSyncService.ts`).
 4. UI: aba "Mesa do Mestre" listando os cards dos jogadores (reutilizar os
    componentes da aba Mesa em modo somente leitura).
+
+## 5. Script único — re-executável (recomendado)
+
+Cria/completa TUDO (fichas, campanhas, crônica, políticas, função e
+realtime) sem dar erro se algo já existir. Cole inteiro e Run.
+
+```sql
+-- ===== FICHAS =====
+create table if not exists public.sheets (
+  id text primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null,
+  character_name text not null,
+  class_id text not null,
+  race_id text not null,
+  level int not null default 1,
+  sheet_version int not null default 3,
+  snapshot jsonb not null,
+  created_at bigint not null,
+  updated_at bigint not null,
+  last_played_at bigint
+);
+alter table public.sheets enable row level security;
+drop policy if exists "sheets_select_own" on public.sheets;
+create policy "sheets_select_own" on public.sheets for select using (auth.uid() = user_id);
+drop policy if exists "sheets_insert_own" on public.sheets;
+create policy "sheets_insert_own" on public.sheets for insert with check (auth.uid() = user_id);
+drop policy if exists "sheets_update_own" on public.sheets;
+create policy "sheets_update_own" on public.sheets for update using (auth.uid() = user_id);
+drop policy if exists "sheets_delete_own" on public.sheets;
+create policy "sheets_delete_own" on public.sheets for delete using (auth.uid() = user_id);
+create index if not exists sheets_user_idx on public.sheets (user_id, updated_at desc);
+
+-- ===== CAMPANHAS =====
+create table if not exists public.campaigns (
+  id uuid primary key default gen_random_uuid(),
+  master_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  description text,
+  created_at bigint not null,
+  updated_at bigint not null
+);
+create table if not exists public.campaign_members (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  role text not null check (role in ('master', 'player')),
+  joined_at bigint not null,
+  unique (campaign_id, user_id)
+);
+create table if not exists public.invite_links (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  token text not null unique,
+  created_by uuid not null references auth.users (id),
+  expires_at bigint,
+  max_uses int,
+  uses int not null default 0
+);
+create table if not exists public.shared_sheets (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  sheet_id text not null references public.sheets (id) on delete cascade,
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  permissions jsonb not null default '{"view":true,"editInventory":false,"editCampaignNotes":true,"editProgression":false}',
+  shared_at bigint not null,
+  unique (campaign_id, sheet_id)
+);
+create table if not exists public.campaign_notes (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  author_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null check (kind in ('nota', 'npc', 'missao')),
+  title text not null,
+  body text not null default '',
+  created_at bigint not null
+);
+alter table public.campaigns enable row level security;
+alter table public.campaign_members enable row level security;
+alter table public.invite_links enable row level security;
+alter table public.shared_sheets enable row level security;
+alter table public.campaign_notes enable row level security;
+
+drop policy if exists "campaigns_member_read" on public.campaigns;
+create policy "campaigns_member_read" on public.campaigns for select using (
+  auth.uid() = master_id or exists (
+    select 1 from public.campaign_members m
+    where m.campaign_id = id and m.user_id = auth.uid()
+  )
+);
+drop policy if exists "campaigns_master_write" on public.campaigns;
+create policy "campaigns_master_write" on public.campaigns
+  for all using (auth.uid() = master_id) with check (auth.uid() = master_id);
+
+drop policy if exists "members_read" on public.campaign_members;
+create policy "members_read" on public.campaign_members for select using (
+  user_id = auth.uid() or exists (
+    select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid()
+  )
+);
+
+drop policy if exists "invites_master_all" on public.invite_links;
+create policy "invites_master_all" on public.invite_links for all using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+) with check (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+drop policy if exists "shared_owner_all" on public.shared_sheets;
+create policy "shared_owner_all" on public.shared_sheets
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+drop policy if exists "shared_master_read" on public.shared_sheets;
+create policy "shared_master_read" on public.shared_sheets for select using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+drop policy if exists "sheets_master_read_shared" on public.sheets;
+create policy "sheets_master_read_shared" on public.sheets for select using (
+  exists (
+    select 1 from public.shared_sheets ss
+    join public.campaigns c on c.id = ss.campaign_id
+    where ss.sheet_id = sheets.id
+      and c.master_id = auth.uid()
+      and coalesce((ss.permissions->>'view')::boolean, false)
+  )
+);
+
+drop policy if exists "notes_member_read" on public.campaign_notes;
+create policy "notes_member_read" on public.campaign_notes for select using (
+  exists (
+    select 1 from public.campaigns c
+    where c.id = campaign_id and (c.master_id = auth.uid() or exists (
+      select 1 from public.campaign_members m where m.campaign_id = c.id and m.user_id = auth.uid()
+    ))
+  )
+);
+drop policy if exists "notes_master_write" on public.campaign_notes;
+create policy "notes_master_write" on public.campaign_notes for all using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+) with check (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+create or replace function public.join_campaign(invite_token text)
+returns uuid
+language plpgsql security definer set search_path = public as $$
+declare inv record;
+begin
+  select * into inv from invite_links where token = invite_token;
+  if inv is null then raise exception 'Convite inválido.'; end if;
+  if inv.expires_at is not null and inv.expires_at < (extract(epoch from now()) * 1000) then
+    raise exception 'Convite expirado.';
+  end if;
+  if inv.max_uses is not null and inv.uses >= inv.max_uses then
+    raise exception 'Convite esgotado.';
+  end if;
+  insert into campaign_members (campaign_id, user_id, role, joined_at)
+  values (inv.campaign_id, auth.uid(), 'player', extract(epoch from now()) * 1000)
+  on conflict (campaign_id, user_id) do nothing;
+  update invite_links set uses = uses + 1 where id = inv.id;
+  return inv.campaign_id;
+end $$;
+grant execute on function public.join_campaign(text) to authenticated;
+
+-- ===== REALTIME (ignora se já adicionado) =====
+do $$ begin
+  alter publication supabase_realtime add table public.sheets;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table public.shared_sheets;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table public.campaign_notes;
+exception when duplicate_object then null; end $$;
+```
