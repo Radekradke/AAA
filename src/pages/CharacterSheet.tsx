@@ -106,9 +106,7 @@ export function CharacterSheet() {
         {renderTab()}
       </div>
 
-      <div className="fv-mobile-only">
-        <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
-      </div>
+      <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
     </Screen>

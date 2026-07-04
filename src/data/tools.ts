@@ -69,3 +69,31 @@ export const TOOL_BY_ID: Record<string, ToolDef> = Object.fromEntries(TOOLS.map(
 export function toolLabel(id: string): string {
   return TOOL_BY_ID[id]?.label ?? id;
 }
+
+import type { AbilityKey } from '@/types/dnd';
+
+/**
+ * Atributo PADRÃO de rolagem de cada ferramenta (5e: o mestre pode pedir
+ * outro atributo — a UI permite trocar na hora). Ferramentas NUNCA somam
+ * perícias: Ferramentas de Ladrão não usa Prestidigitação.
+ */
+const ABILITY_BY_TOOL: Record<string, AbilityKey> = {
+  'thieves-tools': 'dex',
+  'disguise-kit': 'cha',
+  'forgery-kit': 'dex',
+  'herbalism-kit': 'int',
+  'poisoners-kit': 'int',
+  'navigators-tools': 'wis',
+};
+
+const ABILITY_BY_GROUP: Record<ToolDef['group'], AbilityKey> = {
+  kit: 'dex',
+  artesao: 'int',
+  instrumento: 'cha',
+  jogo: 'wis',
+  veiculo: 'dex',
+};
+
+export function toolDefaultAbility(id: string): AbilityKey {
+  return ABILITY_BY_TOOL[id] ?? ABILITY_BY_GROUP[TOOL_BY_ID[id]?.group ?? 'kit'];
+}

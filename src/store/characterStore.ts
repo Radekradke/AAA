@@ -51,6 +51,7 @@ interface CharacterState {
   addToolProf: (id: string, tool: ToolProf) => void;
   removeToolProf: (id: string, toolId: string) => void;
   toggleToolExpertise: (id: string, toolId: string) => void;
+  setToolAbility: (id: string, toolId: string, ability: import('@/types/dnd').AbilityKey) => void;
   addLanguage: (id: string, lang: string) => void;
   removeLanguage: (id: string, lang: string) => void;
   toggleTurn: (id: string, key: 'action' | 'bonus' | 'reaction') => void;
@@ -300,6 +301,13 @@ export const useCharacterStore = create<CharacterState>()(
             Object.assign(c, ensureCharacterV2(c));
             const tool = c.toolProfs.find((t) => t.id === toolId);
             if (tool) tool.expertise = !tool.expertise;
+          });
+        },
+        setToolAbility(id, toolId, ability) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            const tool = c.toolProfs.find((t) => t.id === toolId);
+            if (tool) tool.ability = ability;
           });
         },
         addLanguage(id, lang) {

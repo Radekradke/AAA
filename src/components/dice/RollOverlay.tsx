@@ -9,6 +9,7 @@ const TUMBLE_MS = 620;
 /** Overlay cinematográfico: dado 3D tombando e revelando o resultado. */
 export function RollOverlay() {
   const roll = useUiStore((s) => s.currentRoll);
+  const clearRoll = useUiStore((s) => s.clearRoll);
   const t = useTheme();
 
   const [phase, setPhase] = useState<'tumble' | 'result'>('tumble');
@@ -52,6 +53,8 @@ export function RollOverlay() {
             transition={{ duration: 0.3, ease: [0.2, 0.9, 0.3, 1.2] }}
             className="fv-panel"
             style={{
+              position: 'relative',
+              pointerEvents: 'auto',
               border: '1px solid var(--gold)',
               borderRadius: 20,
               boxShadow: '0 24px 70px rgba(0,0,0,.6), 0 0 40px var(--bloom)',
@@ -61,6 +64,13 @@ export function RollOverlay() {
               minWidth: 250,
             }}
           >
+            <button
+              onClick={clearRoll}
+              aria-label="Fechar resultado"
+              style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'rgba(0,0,0,.3)', color: 'var(--muted)', fontSize: 13 }}
+            >
+              ✕
+            </button>
             <div style={{ fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)' }}>{roll.label}</div>
 
             {/* dado 3D */}

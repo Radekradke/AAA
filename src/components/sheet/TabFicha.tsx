@@ -7,9 +7,13 @@ import { hexA } from '@/lib/color';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useCharacterStore } from '@/store/characterStore';
 import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
+import { ABILITY_KEYS } from '@/types/dnd';
+import type { AbilityKey } from '@/types/dnd';
 import { TOOLS, TOOL_GROUP_LABELS, toolLabel } from '@/data/tools';
 import { modStr } from '@/engine/dice';
 import { expertiseSlots } from '@/engine/levelUp';
+import { calculateToolCheck } from '@/engine/toolCheck';
+import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
 import { SkillsModal } from './SkillsModal';
@@ -158,25 +162,44 @@ export function TabFicha({ char, derived }: TabProps) {
         <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {(char.toolProfs ?? []).map((tool) => (
-              <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.22)' }}>
-                <LoreTooltip info={passiveLore(tool.label, tool.expertise ? 'Expertise (proficiência ×2)' : 'Proficiente', `Some seu bônus de proficiência${tool.expertise ? ' em dobro' : ''} em testes com esta ferramenta.${tool.source ? ` Origem: ${tool.source}.` : ''}`, ['Ferramenta'])}>
-                  <span style={{ cursor: 'help', flex: 1, fontSize: 13, color: 'var(--ink)' }}>
-                    {tool.label}
-                    {tool.source && <span style={{ marginLeft: 7, fontSize: 10, color: 'var(--muted)' }}>({tool.source})</span>}
-                  </span>
-                </LoreTooltip>
-                {canExpertiseTools && tool.id === 'thieves-tools' && (
-                  <button
-                    onClick={() => store.toggleToolExpertise(char.id, tool.id)}
-                    style={{ cursor: 'pointer', fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.16) : 'transparent', color: tool.expertise ? t.gold : 'var(--muted)' }}
+            {(char.toolProfs ?? []).map((tool) => {
+              const chk = calculateToolCheck(char, tool);
+              return (
+                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.22)' }}>
+                  <LoreTooltip info={passiveLore(tool.label, `${ABILITY_SHORT[chk.ability]} ${modStr(chk.total)}${tool.expertise ? ' · Expertise' : ''}`, `1d20 + ${ABILITY_SHORT[chk.ability]} (${modStr(chk.abilityMod)}) + proficiência (${modStr(chk.proficiency)})${tool.expertise ? ` + expertise (${modStr(chk.expertiseBonus)})` : ''}. Ferramenta não soma perícia — é independente de Prestidigitação.${tool.source ? ` Origem: ${tool.source}.` : ''}`, ['Ferramenta', 'Ver cálculo'])}>
+                    <span style={{ cursor: 'help', flex: 1, minWidth: 120, fontSize: 13, color: 'var(--ink)' }}>
+                      {tool.label}
+                      {tool.source && <span style={{ marginLeft: 7, fontSize: 10, color: 'var(--muted)' }}>({tool.source})</span>}
+                    </span>
+                  </LoreTooltip>
+                  {/* o mestre pode pedir outro atributo: troque na hora */}
+                  <select
+                    className="fv-input"
+                    value={tool.ability ?? chk.ability}
+                    onChange={(e) => store.setToolAbility(char.id, tool.id, e.target.value as AbilityKey)}
+                    aria-label={`Atributo de ${tool.label}`}
+                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: "'Chakra Petch', monospace" }}
                   >
-                    {tool.expertise ? '★ Expertise' : 'Expertise'}
+                    {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_SHORT[k]}</option>)}
+                  </select>
+                  {canExpertiseTools && tool.id === 'thieves-tools' && (
+                    <button
+                      onClick={() => store.toggleToolExpertise(char.id, tool.id)}
+                      style={{ cursor: 'pointer', fontSize: 10, fontWeight: 700, minHeight: 34, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.16) : 'transparent', color: tool.expertise ? t.gold : 'var(--muted)' }}
+                    >
+                      {tool.expertise ? '★ Expertise' : 'Expertise'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+                  >
+                    <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
-                )}
-                <button onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
-              </div>
-            ))}
+                  <button onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                </div>
+              );
+            })}
             {(char.toolProfs ?? []).length === 0 && (
               <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Sem proficiências com ferramentas ainda.</div>
             )}

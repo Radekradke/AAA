@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { SHEET_TABS } from './sheetTabDefs';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -9,20 +10,25 @@ interface MobileNavProps {
   isCaster: boolean;
 }
 
-/** Navegação inferior por abas (modo mobile / mesa de RPG). */
+/**
+ * Navegação inferior por abas (modo mobile / mesa de RPG).
+ * Renderizada num portal em document.body: `position: fixed` dentro de
+ * ancestrais com transform/filter (animações de página) faz a barra
+ * "congelar" no meio do conteúdo — o portal escapa desse containing block.
+ */
 export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
   const t = useTheme();
   const tabs = SHEET_TABS.filter((tab) => !tab.caster || isCaster);
 
-  return (
+  return createPortal(
     <nav
+      className="fv-mobile-only"
       style={{
         position: 'fixed',
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 45,
-        display: 'flex',
         justifyContent: 'space-around',
         gap: 2,
         padding: '8px 6px calc(8px + env(safe-area-inset-bottom))',
@@ -73,6 +79,7 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
           </button>
         );
       })}
-    </nav>
+    </nav>,
+    document.body,
   );
 }

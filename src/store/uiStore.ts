@@ -70,7 +70,8 @@ export const useUiStore = create<UiState>()(
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);
-        _rollTimer = setTimeout(() => set({ currentRoll: null }), 2400);
+        // tempo para LER o resultado: 7 s; crítico/falha crítica merecem 9,5 s
+        _rollTimer = setTimeout(() => set({ currentRoll: null }), r.crit || r.fail ? 9500 : 7000);
       },
       clearRoll() {
         if (_rollTimer) clearTimeout(_rollTimer);

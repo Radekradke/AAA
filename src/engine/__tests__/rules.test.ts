@@ -301,3 +301,37 @@ describe('arma mágica estruturada e pré-requisitos de talento', () => {
     expect(featPrereqIssue(wizard, getFeat('warcaster')!)).toBeNull();
   });
 });
+
+describe('ferramentas: cálculo próprio (sem perícia)', () => {
+  it('Ferramentas de Ladrão: DES + proficiência; expertise dobra', async () => {
+    const { calculateToolCheck } = await import('../toolCheck');
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' })); // DES 16 → +3, prof +2
+    const tool = { id: 'thieves-tools', label: 'Ferramentas de Ladrão' };
+    expect(calculateToolCheck(c, tool).total).toBe(3 + 2);
+    expect(calculateToolCheck(c, { ...tool, expertise: true }).total).toBe(3 + 4);
+    expect(calculateToolCheck(c, tool).ability).toBe('dex');
+  });
+
+  it('perícia relacionada NÃO entra: Prestidigitação não altera a ferramenta', async () => {
+    const { calculateToolCheck } = await import('../toolCheck');
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' }));
+    const before = calculateToolCheck(c, { id: 'thieves-tools', label: 'FL' }).total;
+    const withSleight: Character = { ...c, skillProfs: ['sleightOfHand'], skillExpertise: ['sleightOfHand'] };
+    expect(calculateToolCheck(withSleight, { id: 'thieves-tools', label: 'FL' }).total).toBe(before);
+  });
+
+  it('troca de atributo (mestre pediu INT) e bônus manual', async () => {
+    const { calculateToolCheck } = await import('../toolCheck');
+    const c = ensureCharacterV2(makeChar({ classId: 'rogue' })); // INT 15+? rogue prioridade: int 2º → 14? dex16 int14 → +2
+    const chk = calculateToolCheck(c, { id: 'thieves-tools', label: 'FL', manualBonus: 1 }, 'int');
+    expect(chk.ability).toBe('int');
+    expect(chk.total).toBe(chk.abilityMod + 2 + 1);
+  });
+
+  it('atributo padrão por ferramenta: Kit de Disfarce usa CAR', async () => {
+    const { toolDefaultAbility } = await import('@/data/tools');
+    expect(toolDefaultAbility('disguise-kit')).toBe('cha');
+    expect(toolDefaultAbility('smiths-tools')).toBe('int');
+    expect(toolDefaultAbility('lute')).toBe('cha');
+  });
+});

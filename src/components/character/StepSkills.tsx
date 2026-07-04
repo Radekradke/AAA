@@ -10,6 +10,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { skillLore } from '@/lib/lore';
+import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
 
 /**
  * Escolha de perícias: as do antecedente e as automáticas da raça já vêm
@@ -31,6 +32,33 @@ export function StepSkills({ char, update }: StepProps) {
   const classRemaining = cls.skillPicks - classChosen.length;
   const extraPicks = race.extraSkillPicks ?? 0;
   const extraRemaining = extraPicks - extraChosen.length;
+
+  // expertise no nível 1 (Ladino: 2 vagas — perícias OU Ferramentas de Ladrão)
+  const slots = expertiseSlots(char);
+  const used = expertiseUsed(char);
+  const proficientNow = Array.from(new Set([...char.skillProfs, ...granted])) as SkillKey[];
+  const classHasThieves = (cls.tools ?? []).includes('thieves-tools') || (bg.tools ?? []).includes('thieves-tools');
+  const thievesExpert = (char.toolProfs ?? []).some((tp) => tp.id === 'thieves-tools' && tp.expertise);
+
+  const toggleSkillExpertise = (key: SkillKey) =>
+    update((c) => {
+      const has = (c.skillExpertise ?? []).includes(key);
+      if (!has && used >= slots) return;
+      c.skillExpertise = has ? (c.skillExpertise ?? []).filter((k) => k !== key) : [...(c.skillExpertise ?? []), key];
+    });
+
+  const toggleThievesExpertise = () =>
+    update((c) => {
+      c.toolProfs = c.toolProfs ?? [];
+      const entry = c.toolProfs.find((tp) => tp.id === 'thieves-tools');
+      if (entry) {
+        if (!entry.expertise && used >= slots) return;
+        entry.expertise = !entry.expertise;
+      } else {
+        if (used >= slots) return;
+        c.toolProfs.push({ id: 'thieves-tools', label: toolLabel('thieves-tools'), expertise: true, source: cls.label });
+      }
+    });
 
   const toggle = (key: SkillKey, pool: 'class' | 'extra') =>
     update((c) => {
@@ -114,6 +142,72 @@ export function StepSkills({ char, update }: StepProps) {
           );
         })}
       </div>
+
+      {/* expertise no nível 1 (Ladino) — perícias e Ferramentas de Ladrão */}
+      {slots > 0 && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '18px 0 10px', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              Especialização (Expertise) — proficiência em dobro
+            </div>
+            <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 13, color: used >= slots ? t.gold : 'var(--acc)' }}>
+              {used}/{slots} vagas
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            {proficientNow.map((key) => {
+              const on = (char.skillExpertise ?? []).includes(key);
+              const blocked = !on && used >= slots;
+              return (
+                <button
+                  key={key}
+                  onClick={() => toggleSkillExpertise(key)}
+                  disabled={blocked}
+                  style={{
+                    cursor: blocked ? 'not-allowed' : 'pointer',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    minHeight: 36,
+                    padding: '7px 13px',
+                    borderRadius: 999,
+                    border: '1px solid ' + (on ? t.gold : t.line),
+                    background: on ? hexA(t.gold, 0.14) : 'rgba(0,0,0,.24)',
+                    color: on ? t.gold : 'var(--muted)',
+                    opacity: blocked ? 0.45 : 1,
+                    transition: '.2s',
+                  }}
+                >
+                  {on ? '★ ' : ''}{SKILL_BY_KEY[key].label}
+                </button>
+              );
+            })}
+            {classHasThieves && (
+              <button
+                onClick={toggleThievesExpertise}
+                disabled={!thievesExpert && used >= slots}
+                style={{
+                  cursor: !thievesExpert && used >= slots ? 'not-allowed' : 'pointer',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  minHeight: 36,
+                  padding: '7px 13px',
+                  borderRadius: 999,
+                  border: '1px solid ' + (thievesExpert ? t.gold : t.acc),
+                  background: thievesExpert ? hexA(t.gold, 0.14) : hexA(t.acc, 0.07),
+                  color: thievesExpert ? t.gold : t.acc,
+                  opacity: !thievesExpert && used >= slots ? 0.45 : 1,
+                  transition: '.2s',
+                }}
+              >
+                {thievesExpert ? '★ ' : '⚒ '}Ferramentas de Ladrão
+              </button>
+            )}
+          </div>
+          <div style={{ marginTop: 7, fontSize: 11, color: 'var(--muted)' }}>
+            Regra 2014: Ladino escolhe 2 entre perícias proficientes OU Ferramentas de Ladrão — o bônus de proficiência dobra.
+          </div>
+        </>
+      )}
 
       {/* escolhas livres (Meio-Elfo — Versatilidade em Perícias) */}
       {extraPicks > 0 && (

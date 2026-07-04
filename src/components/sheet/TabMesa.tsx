@@ -16,6 +16,8 @@ import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { CONDITIONS, getCondition } from '@/data/conditions';
 import { heroSubtitle } from '@/lib/summary';
 import { modStr } from '@/engine/dice';
+import { calculateToolCheck } from '@/engine/toolCheck';
+import { useUiStore } from '@/store/uiStore';
 import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
 
@@ -306,6 +308,28 @@ export function TabMesa({ char, derived }: TabProps) {
             ))}
             {proficientSkills.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Sem proficiências ainda.</span>}
           </div>
+          {(char.toolProfs ?? []).length > 0 && (
+            <>
+              <div className="fv-label" style={{ margin: '13px 0 8px' }}>Ferramentas</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {(char.toolProfs ?? []).map((tool) => {
+                  const chk = calculateToolCheck(char, tool);
+                  return (
+                    <button
+                      key={tool.id}
+                      onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : hexA(t.acc, 0.06), color: 'var(--ink)', transition: '.2s' }}
+                    >
+                      {tool.label} <span style={{ fontSize: 9.5, color: 'var(--muted)' }}>{ABILITY_SHORT[chk.ability]}</span>{' '}
+                      <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: "'Chakra Petch', monospace" }}>{modStr(chk.total)}</b>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          {/* histórico curto: últimas rolagens da sessão */}
+          <RollHistory />
         </Panel>
 
         {/* Magia (se conjurador) */}
@@ -439,6 +463,26 @@ export function TabMesa({ char, derived }: TabProps) {
 }
 
 /* ---------- blocos auxiliares ---------- */
+
+/** Últimas 5 rolagens da sessão (nome, d20, bônus, total). */
+function RollHistory() {
+  const history = useUiStore((s) => s.history);
+  if (history.length === 0) return null;
+  return (
+    <>
+      <div className="fv-label" style={{ margin: '13px 0 8px' }}>Últimas Rolagens</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {history.slice(0, 5).map((r) => (
+          <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: "'Chakra Petch', monospace" }}>
+            <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: "'Inter', sans-serif" }}>{r.label}</span>
+            <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
+            <b style={{ color: r.crit ? 'var(--gold)' : r.fail ? 'var(--danger)' : 'var(--ink)', fontSize: 13 }}>{r.total}</b>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
 function StatChip({ label, value, info, onRoll }: { label: string; value: string; info: ReturnType<typeof passiveLore>; onRoll?: () => void }) {
   return (

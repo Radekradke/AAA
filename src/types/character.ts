@@ -36,6 +36,11 @@ export interface ToolProf {
   expertise?: boolean;
   /** Origem (antecedente, classe, manual…). */
   source?: string;
+  /** Atributo preferido para rolar (sobrepõe o padrão do catálogo). */
+  ability?: AbilityKey;
+  /** Bônus manual extra (itens, situações fixas). */
+  manualBonus?: number;
+  notes?: string;
 }
 
 export interface EquippedSlots {

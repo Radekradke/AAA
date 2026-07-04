@@ -5,7 +5,8 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useCharacterStore } from '@/store/characterStore';
-import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
+import { ABILITY_SHORT, ABILITY_LABELS, ABILITY_COLORS } from '@/data/skills';
+import { ABILITY_KEYS } from '@/types/dnd';
 import { modStr } from '@/engine/dice';
 import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
 import type { Character } from '@/types/character';
@@ -32,10 +33,31 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
   const used = expertiseUsed(char);
   const canMark = slots > 0;
 
+  // perícias agrupadas pelo atributo base — bate o olho e entende
+  const groups = ABILITY_KEYS.map((key) => ({
+    key,
+    skills: derived.skills.filter((sk) => sk.ability === key),
+  })).filter((g) => g.skills.length > 0);
+
   return (
     <Modal title="Perícias — todas" icon="crest" onClose={onClose} maxWidth={720}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 148px), 1fr))', gap: 8 }}>
-        {derived.skills.map((sk) => {
+      {groups.map((g) => (
+        <div key={g.key} style={{ marginBottom: 13 }}>
+          {/* cabeçalho do grupo: atributo + modificador */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
+            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
+              {ABILITY_SHORT[g.key]}
+            </span>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
+              {ABILITY_LABELS[g.key]}
+            </span>
+            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>
+              {modStr(derived.abilities[g.key].mod)}
+            </span>
+            <span aria-hidden style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${hexA(ABILITY_COLORS[g.key], 0.4)}, transparent)` }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 148px), 1fr))', gap: 8 }}>
+            {g.skills.map((sk) => {
           const color = ABILITY_COLORS[sk.ability];
           const strong = sk.proficient;
           return (
@@ -105,8 +127,10 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
             </div>
           );
         })}
-      </div>
-      <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 11.5, color: 'var(--muted)' }}>
+          </div>
+        </div>
+      ))}
+      <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 11.5, color: 'var(--muted)' }}>
         <span>Toque numa perícia para rolar 1d20 + bônus.</span>
         {canMark && (
           <span style={{ fontFamily: "'Chakra Petch', monospace", color: used >= slots ? t.gold : 'var(--acc)' }}>
