@@ -2,6 +2,13 @@
 
 > **Deu "already exists"?** Use o **script único re-executável** da seção 5 —
 > ele cria só o que falta e pode ser rodado quantas vezes quiser.
+>
+> **Erro 500 ao sincronizar fichas ou criar/abrir sala?** As policies antigas
+> de `campaigns` e `campaign_members` se referenciavam em ciclo (recursão
+> infinita no RLS), o que estoura **500** em qualquer leitura de `campaigns` e,
+> por tabela, também de `sheets`. **Re-execute o script da seção 5** (agora com
+> as funções `is_campaign_master`/`is_campaign_member` em `SECURITY DEFINER`,
+> que quebram o ciclo) para corrigir. Nada de dado é perdido.
 
 O app é **offline-first**: as fichas vivem no IndexedDB do aparelho e continuam
 editáveis sem internet. Com o Supabase configurado, cada usuário ganha login
@@ -161,44 +168,49 @@ alter table public.campaign_members enable row level security;
 alter table public.invite_links enable row level security;
 alter table public.shared_sheets enable row level security;
 
+-- helpers SECURITY DEFINER: ignoram o RLS das tabelas que consultam e por
+-- isso evitam a recursão infinita entre as policies de campaigns/members
+-- (que geraria erro 500 em qualquer leitura de campaigns e de sheets).
+create or replace function public.is_campaign_master(cid uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from campaigns where id = cid and master_id = auth.uid());
+$$;
+create or replace function public.is_campaign_member(cid uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from campaign_members where campaign_id = cid and user_id = auth.uid());
+$$;
+grant execute on function public.is_campaign_master(uuid) to authenticated;
+grant execute on function public.is_campaign_member(uuid) to authenticated;
+
 -- campanhas: mestre gerencia; membros leem
 create policy "campaigns_member_read" on public.campaigns for select using (
-  auth.uid() = master_id or exists (
-    select 1 from public.campaign_members m
-    where m.campaign_id = id and m.user_id = auth.uid()
-  )
+  auth.uid() = master_id or public.is_campaign_member(id)
 );
 create policy "campaigns_master_write" on public.campaigns
   for all using (auth.uid() = master_id) with check (auth.uid() = master_id);
 
 -- membros: cada um vê a si; o mestre vê todos os da própria mesa
 create policy "members_read" on public.campaign_members for select using (
-  user_id = auth.uid() or exists (
-    select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid()
-  )
+  user_id = auth.uid() or public.is_campaign_master(campaign_id)
 );
 
 -- convites: só o mestre da campanha gerencia (entrada é via RPC abaixo)
-create policy "invites_master_all" on public.invite_links for all using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-) with check (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-);
+create policy "invites_master_all" on public.invite_links for all
+  using (public.is_campaign_master(campaign_id))
+  with check (public.is_campaign_master(campaign_id));
 
 -- fichas compartilhadas: o dono gerencia; o mestre da mesa lê
 create policy "shared_owner_all" on public.shared_sheets
   for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
-create policy "shared_master_read" on public.shared_sheets for select using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-);
+create policy "shared_master_read" on public.shared_sheets for select
+  using (public.is_campaign_master(campaign_id));
 
 -- o MESTRE pode ler o snapshot das fichas compartilhadas com permissão de ver
 create policy "sheets_master_read_shared" on public.sheets for select using (
   exists (
     select 1 from public.shared_sheets ss
-    join public.campaigns c on c.id = ss.campaign_id
     where ss.sheet_id = sheets.id
-      and c.master_id = auth.uid()
+      and public.is_campaign_master(ss.campaign_id)
       and coalesce((ss.permissions->>'view')::boolean, false)
   )
 );
@@ -240,17 +252,12 @@ create table public.campaign_notes (
 );
 alter table public.campaign_notes enable row level security;
 create policy "notes_member_read" on public.campaign_notes for select using (
-  exists (
-    select 1 from public.campaigns c
-    where c.id = campaign_id and (c.master_id = auth.uid() or exists (
-      select 1 from public.campaign_members m where m.campaign_id = c.id and m.user_id = auth.uid()
-    ))
-  )
+  public.is_campaign_master(campaign_id) or public.is_campaign_member(campaign_id)
 );
 create policy "notes_master_write" on public.campaign_notes for all using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+  public.is_campaign_master(campaign_id)
 ) with check (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+  public.is_campaign_master(campaign_id)
 );
 
 -- REALTIME: o painel do mestre atualiza sozinho (PV, vínculos, crônica)
@@ -351,12 +358,26 @@ alter table public.invite_links enable row level security;
 alter table public.shared_sheets enable row level security;
 alter table public.campaign_notes enable row level security;
 
+-- Funções auxiliares SECURITY DEFINER: rodam como DONO da função, então
+-- IGNORAM o RLS das tabelas que consultam. Isto quebra a recursão infinita:
+-- sem elas, a policy de `campaigns` consultava `campaign_members` e a de
+-- `campaign_members` consultava `campaigns` — cada uma disparando a outra,
+-- gerando "infinite recursion detected in policy" (erro 500 em QUALQUER
+-- leitura de campaigns e, por tabela, também de `sheets`, quebrando a sync).
+create or replace function public.is_campaign_master(cid uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from campaigns where id = cid and master_id = auth.uid());
+$$;
+create or replace function public.is_campaign_member(cid uuid)
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from campaign_members where campaign_id = cid and user_id = auth.uid());
+$$;
+grant execute on function public.is_campaign_master(uuid) to authenticated;
+grant execute on function public.is_campaign_member(uuid) to authenticated;
+
 drop policy if exists "campaigns_member_read" on public.campaigns;
 create policy "campaigns_member_read" on public.campaigns for select using (
-  auth.uid() = master_id or exists (
-    select 1 from public.campaign_members m
-    where m.campaign_id = id and m.user_id = auth.uid()
-  )
+  auth.uid() = master_id or public.is_campaign_member(id)
 );
 drop policy if exists "campaigns_master_write" on public.campaigns;
 create policy "campaigns_master_write" on public.campaigns
@@ -364,52 +385,39 @@ create policy "campaigns_master_write" on public.campaigns
 
 drop policy if exists "members_read" on public.campaign_members;
 create policy "members_read" on public.campaign_members for select using (
-  user_id = auth.uid() or exists (
-    select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid()
-  )
+  user_id = auth.uid() or public.is_campaign_master(campaign_id)
 );
 
 drop policy if exists "invites_master_all" on public.invite_links;
-create policy "invites_master_all" on public.invite_links for all using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-) with check (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-);
+create policy "invites_master_all" on public.invite_links for all
+  using (public.is_campaign_master(campaign_id))
+  with check (public.is_campaign_master(campaign_id));
 
 drop policy if exists "shared_owner_all" on public.shared_sheets;
 create policy "shared_owner_all" on public.shared_sheets
   for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
 drop policy if exists "shared_master_read" on public.shared_sheets;
-create policy "shared_master_read" on public.shared_sheets for select using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-);
+create policy "shared_master_read" on public.shared_sheets for select
+  using (public.is_campaign_master(campaign_id));
 
 drop policy if exists "sheets_master_read_shared" on public.sheets;
 create policy "sheets_master_read_shared" on public.sheets for select using (
   exists (
     select 1 from public.shared_sheets ss
-    join public.campaigns c on c.id = ss.campaign_id
     where ss.sheet_id = sheets.id
-      and c.master_id = auth.uid()
+      and public.is_campaign_master(ss.campaign_id)
       and coalesce((ss.permissions->>'view')::boolean, false)
   )
 );
 
 drop policy if exists "notes_member_read" on public.campaign_notes;
 create policy "notes_member_read" on public.campaign_notes for select using (
-  exists (
-    select 1 from public.campaigns c
-    where c.id = campaign_id and (c.master_id = auth.uid() or exists (
-      select 1 from public.campaign_members m where m.campaign_id = c.id and m.user_id = auth.uid()
-    ))
-  )
+  public.is_campaign_master(campaign_id) or public.is_campaign_member(campaign_id)
 );
 drop policy if exists "notes_master_write" on public.campaign_notes;
-create policy "notes_master_write" on public.campaign_notes for all using (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-) with check (
-  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
-);
+create policy "notes_master_write" on public.campaign_notes for all
+  using (public.is_campaign_master(campaign_id))
+  with check (public.is_campaign_master(campaign_id));
 
 create or replace function public.join_campaign(invite_token text)
 returns uuid
