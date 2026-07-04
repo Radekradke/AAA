@@ -191,6 +191,36 @@ describe('itens e magia', () => {
   });
 });
 
+describe('progressão de classe (CLASS_FEATURES 1–20)', () => {
+  it('todas as 12 classes têm característica no nível 20', async () => {
+    const { CLASS_FEATURES } = await import('@/data/classFeatures');
+    const { CLASSES } = await import('@/data/classes');
+    for (const cls of CLASSES) {
+      expect(CLASS_FEATURES[cls.id]?.[20]?.length ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it('cada "Aumento de Atributo" cai num nível de ASI da classe', async () => {
+    const { CLASS_FEATURES, isAsiLevel } = await import('@/data/classFeatures');
+    for (const [classId, byLevel] of Object.entries(CLASS_FEATURES)) {
+      for (const [lvl, feats] of Object.entries(byLevel)) {
+        if (feats.includes('Aumento de Atributo')) {
+          expect(isAsiLevel(classId, Number(lvl))).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('todo nível de ASI da classe lista "Aumento de Atributo"', async () => {
+    const { CLASS_FEATURES, asiLevelsFor } = await import('@/data/classFeatures');
+    for (const classId of Object.keys(CLASS_FEATURES)) {
+      for (const lvl of asiLevelsFor(classId)) {
+        expect(CLASS_FEATURES[classId][lvl] ?? []).toContain('Aumento de Atributo');
+      }
+    }
+  });
+});
+
 describe('Defesa sem Armadura (PHB 2014)', () => {
   it('Bárbaro sem armadura: CA = 10 + DES + CON', () => {
     const base = ensureCharacterV2(makeChar({ classId: 'barbarian', raceId: 'human' }));
