@@ -158,7 +158,7 @@ alter table public.campaign_members enable row level security;
 alter table public.invite_links enable row level security;
 alter table public.shared_sheets enable row level security;
 
--- exemplos de políticas (refinar ao implementar):
+-- campanhas: mestre gerencia; membros leem
 create policy "campaigns_member_read" on public.campaigns for select using (
   auth.uid() = master_id or exists (
     select 1 from public.campaign_members m
@@ -166,7 +166,64 @@ create policy "campaigns_member_read" on public.campaigns for select using (
   )
 );
 create policy "campaigns_master_write" on public.campaigns
-  for all using (auth.uid() = master_id);
+  for all using (auth.uid() = master_id) with check (auth.uid() = master_id);
+
+-- membros: cada um vê a si; o mestre vê todos os da própria mesa
+create policy "members_read" on public.campaign_members for select using (
+  user_id = auth.uid() or exists (
+    select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid()
+  )
+);
+
+-- convites: só o mestre da campanha gerencia (entrada é via RPC abaixo)
+create policy "invites_master_all" on public.invite_links for all using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+) with check (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+-- fichas compartilhadas: o dono gerencia; o mestre da mesa lê
+create policy "shared_owner_all" on public.shared_sheets
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "shared_master_read" on public.shared_sheets for select using (
+  exists (select 1 from public.campaigns c where c.id = campaign_id and c.master_id = auth.uid())
+);
+
+-- o MESTRE pode ler o snapshot das fichas compartilhadas com permissão de ver
+create policy "sheets_master_read_shared" on public.sheets for select using (
+  exists (
+    select 1 from public.shared_sheets ss
+    join public.campaigns c on c.id = ss.campaign_id
+    where ss.sheet_id = sheets.id
+      and c.master_id = auth.uid()
+      and coalesce((ss.permissions->>'view')::boolean, false)
+  )
+);
+
+-- entrada na sala pelo token do convite (segura: valida validade/limite)
+create or replace function public.join_campaign(invite_token text)
+returns uuid
+language plpgsql security definer set search_path = public as $$
+declare inv record;
+begin
+  select * into inv from invite_links where token = invite_token;
+  if inv is null then
+    raise exception 'Convite inválido.';
+  end if;
+  if inv.expires_at is not null and inv.expires_at < (extract(epoch from now()) * 1000) then
+    raise exception 'Convite expirado.';
+  end if;
+  if inv.max_uses is not null and inv.uses >= inv.max_uses then
+    raise exception 'Convite esgotado.';
+  end if;
+  insert into campaign_members (campaign_id, user_id, role, joined_at)
+  values (inv.campaign_id, auth.uid(), 'player', extract(epoch from now()) * 1000)
+  on conflict (campaign_id, user_id) do nothing;
+  update invite_links set uses = uses + 1 where id = inv.id;
+  return inv.campaign_id;
+end $$;
+
+grant execute on function public.join_campaign(text) to authenticated;
 ```
 
 Passos de implementação (quando chegar a hora):

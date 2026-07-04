@@ -63,9 +63,14 @@ export function CharacterSelect() {
     <Screen
       scroll
       actions={
-        <Button onClick={() => { logout(); navigate('/'); }} style={{ fontSize: 12.5 }}>
-          Sair
-        </Button>
+        <>
+          <Button variant="accent" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>
+            Mesas
+          </Button>
+          <Button onClick={() => { logout(); navigate('/'); }} style={{ fontSize: 12.5 }}>
+            Sair
+          </Button>
+        </>
       }
     >
       <div

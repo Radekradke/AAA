@@ -7,6 +7,9 @@ import { AuthCallback } from '@/pages/AuthCallback';
 import { CharacterSelect } from '@/pages/CharacterSelect';
 import { CharacterCreator } from '@/pages/CharacterCreator';
 import { CharacterSheet } from '@/pages/CharacterSheet';
+import { Campaigns } from '@/pages/Campaigns';
+import { CampaignRoom } from '@/pages/CampaignRoom';
+import { JoinCampaign } from '@/pages/JoinCampaign';
 import type { ReactNode } from 'react';
 import { useCloudSync } from '@/hooks/useCloudSync';
 
@@ -51,6 +54,24 @@ export function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/mesas"
+          element={
+            <RequireAuth>
+              <Campaigns />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/mesa/:id"
+          element={
+            <RequireAuth>
+              <CampaignRoom />
+            </RequireAuth>
+          }
+        />
+        {/* convite: acessível sem login (a página guia para entrar) */}
+        <Route path="/sala/:token" element={<JoinCampaign />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
