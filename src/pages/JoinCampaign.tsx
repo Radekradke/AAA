@@ -4,6 +4,7 @@ import { Screen } from '@/components/layout/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { campaignService } from '@/services/campaignService';
+import { authService } from '@/services/authService';
 import { cloudEnabled } from '@/services/supabaseClient';
 
 /** Entrada na sala pelo link de convite: /sala/:token → vira membro e abre a mesa. */
@@ -18,9 +19,23 @@ export function JoinCampaign() {
     if (!token || triedRef.current) return;
     if (!cloudEnabled() || !user || user.guest) return; // aguarda login real
     triedRef.current = true;
-    campaignService.joinByToken(token)
-      .then((campaignId) => navigate(`/mesa/${campaignId}`, { replace: true }))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Convite inválido.'));
+    void (async () => {
+      // o `user` fica salvo no aparelho, mas a sessão do Supabase pode ter
+      // expirado — sem ela, auth.uid() é nulo e o convite falha no banco.
+      // Confirma uma sessão viva antes de chamar o RPC.
+      const live = await authService.currentUser();
+      if (!live) {
+        triedRef.current = false;
+        setError('Sua sessão expirou. Entre novamente para aceitar o convite.');
+        return;
+      }
+      try {
+        const campaignId = await campaignService.joinByToken(token);
+        navigate(`/mesa/${campaignId}`, { replace: true });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Convite inválido.');
+      }
+    })();
   }, [token, user, navigate]);
 
   const needsLogin = !cloudEnabled() || !user || user.guest;
@@ -41,7 +56,16 @@ export function JoinCampaign() {
               }
             />
           ) : error ? (
-            <EmptyState icon="banner" title="Não foi possível entrar" hint={error} />
+            <EmptyState
+              icon="banner"
+              title="Não foi possível entrar"
+              hint={error}
+              action={
+                <button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={() => navigate('/entrar')}>
+                  Entrar novamente
+                </button>
+              }
+            />
           ) : (
             <EmptyState icon="banner" title="Abrindo a mesa…" hint="Validando seu convite." />
           )}

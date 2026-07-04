@@ -221,6 +221,9 @@ returns uuid
 language plpgsql security definer set search_path = public as $$
 declare inv record;
 begin
+  if auth.uid() is null then
+    raise exception 'Faça login para entrar na sala.';
+  end if;
   select * into inv from invite_links where token = invite_token;
   if inv is null then
     raise exception 'Convite inválido.';
@@ -424,6 +427,7 @@ returns uuid
 language plpgsql security definer set search_path = public as $$
 declare inv record;
 begin
+  if auth.uid() is null then raise exception 'Faça login para entrar na sala.'; end if;
   select * into inv from invite_links where token = invite_token;
   if inv is null then raise exception 'Convite inválido.'; end if;
   if inv.expires_at is not null and inv.expires_at < (extract(epoch from now()) * 1000) then
