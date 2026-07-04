@@ -91,6 +91,7 @@ button:disabled {
 }
 
 #root {
+  position: relative;
   isolation: isolate;
 }
 

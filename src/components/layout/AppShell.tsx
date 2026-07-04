@@ -29,9 +29,10 @@ export function AppShell({ children, video = null, videoOpacity, darken }: AppSh
 
   const rootStyle: CSSProperties = {
     ...(themeToVars(t) as CSSProperties),
-    position: 'relative',
-    width: '100%',
-    height: '100%',
+    // absolute + inset para as telas sobreporem durante a transição de rota
+    // (crossfade sem mode="wait"); #root é o contexto de posicionamento.
+    position: 'absolute',
+    inset: 0,
     overflow: 'hidden',
     background: `radial-gradient(120% 95% at 50% -12%, ${t.bg2} 0%, ${t.bg} 58%)`,
     color: t.ink,

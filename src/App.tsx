@@ -25,7 +25,7 @@ export function App() {
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/entrar" element={<Login />} />

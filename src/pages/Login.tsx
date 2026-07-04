@@ -111,26 +111,26 @@ export function Login() {
       >
         <div
           className="fv-panel animate-riseIn"
-          style={{ width: '100%', maxWidth: 440, padding: 'clamp(24px,4vw,38px)' }}
+          style={{ width: '100%', maxWidth: 380, maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', padding: 'clamp(18px,3.4vw,28px)' }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 22 }}>
-            <RuneRing size={78}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 24, color: 'var(--gold)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
+            <RuneRing size={60}>
+              <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 20, color: 'var(--gold)' }}>
                 F
               </span>
             </RuneRing>
             <h1
               style={{
-                margin: '16px 0 4px',
+                margin: '12px 0 4px',
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
-                fontSize: 24,
+                fontSize: 21,
                 color: 'var(--ink)',
               }}
             >
               Entre na lenda
             </h1>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>
+            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12.5, textAlign: 'center' }}>
               Salve seus heróis e continue a aventura de qualquer dispositivo.
             </p>
           </div>
@@ -143,7 +143,7 @@ export function Login() {
               borderRadius: 999,
               background: 'rgba(0,0,0,.28)',
               border: '1px solid var(--line)',
-              marginBottom: 20,
+              marginBottom: 16,
             }}
           >
             <button onClick={() => setMode('login')} style={tabStyle(mode === 'login')}>
@@ -154,7 +154,7 @@ export function Login() {
             </button>
           </div>
 
-          <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+          <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
             {mode === 'register' && (
               <label>
                 <span className="fv-label" style={{ display: 'block', fontSize: 11.5, marginBottom: 7 }}>
@@ -200,12 +200,12 @@ export function Login() {
               <div style={{ color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>
             )}
 
-            <button type="submit" disabled={busy} className="fv-btn-gold" style={{ marginTop: 4, padding: '14px', fontSize: 15, opacity: busy ? 0.7 : 1 }}>
+            <button type="submit" disabled={busy} className="fv-btn-gold" style={{ marginTop: 3, padding: '12px', fontSize: 14.5, opacity: busy ? 0.7 : 1 }}>
               {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           </form>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '14px 0' }}>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
             <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.1em' }}>OU</span>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
@@ -228,8 +228,8 @@ export function Login() {
                 fontWeight: 600,
                 fontSize: 14,
                 color: 'var(--ink)',
-                padding: '13px',
-                marginBottom: 10,
+                padding: '11px',
+                marginBottom: 9,
                 borderRadius: 12,
                 border: '1px solid var(--line)',
                 background: 'var(--panel)',
@@ -256,7 +256,7 @@ export function Login() {
               fontWeight: 600,
               fontSize: 14,
               color: 'var(--ink)',
-              padding: '13px',
+              padding: '11px',
               borderRadius: 12,
               border: '1px solid var(--line)',
               background: 'var(--panel)',
@@ -266,7 +266,7 @@ export function Login() {
           >
             Continuar offline
           </button>
-          <p style={{ margin: '12px 0 0', fontSize: 11.5, color: 'var(--muted)', textAlign: 'center' }}>
+          <p style={{ margin: '10px 0 0', fontSize: 11.5, color: 'var(--muted)', textAlign: 'center' }}>
             {cloud
               ? 'No modo offline as fichas ficam salvas neste aparelho e você pode entrar depois para sincronizar na nuvem.'
               : 'As fichas ficam salvas neste aparelho (funciona sem internet). Configure o Supabase para sincronizar na nuvem — veja docs/SUPABASE.md.'}
