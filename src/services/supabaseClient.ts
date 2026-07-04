@@ -18,6 +18,20 @@ export function cloudEnabled(): boolean {
 
 export function getSupabase(): SupabaseClient | null {
   if (!cloudEnabled()) return null;
-  if (!client) client = createClient(url!, anonKey!);
+  if (!client) {
+    client = createClient(url!, anonKey!, {
+      auth: {
+        // sessão persistida entre visitas + refresh automático do token
+        persistSession: true,
+        autoRefreshToken: true,
+        flowType: 'pkce',
+        // A rota /auth/callback troca o `code` manualmente (authService).
+        // Sem isto, o cliente ALSO tenta trocar sozinho e disputa o mesmo
+        // `code` de uso único (race) — o perdedor falha com erro e o login
+        // com Google não conclui. Desligar deixa a troca manual ser a única.
+        detectSessionInUrl: false,
+      },
+    });
+  }
   return client;
 }

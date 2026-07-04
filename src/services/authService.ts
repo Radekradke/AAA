@@ -70,9 +70,12 @@ export const authService = {
     const code = url.searchParams.get('code');
     if (code) {
       const { data, error } = await sb.auth.exchangeCodeForSession(code);
-      if (error) return { ok: false, error: translate(error.message) };
-      const u = data.user ?? data.session?.user;
-      if (u) return { ok: true, user: mapSupabaseUser(u) };
+      // Não abortamos no erro: o `code` pode já ter sido consumido (outra
+      // aba, refresh) mesmo com a sessão válida — caímos no currentUser abaixo.
+      if (!error) {
+        const u = data.user ?? data.session?.user;
+        if (u) return { ok: true, user: mapSupabaseUser(u) };
+      }
     }
 
     const accessToken = hashParams.get('access_token');
@@ -82,9 +85,10 @@ export const authService = {
         access_token: accessToken,
         refresh_token: refreshToken,
       });
-      if (error) return { ok: false, error: translate(error.message) };
-      const u = data.user ?? data.session?.user;
-      if (u) return { ok: true, user: mapSupabaseUser(u) };
+      if (!error) {
+        const u = data.user ?? data.session?.user;
+        if (u) return { ok: true, user: mapSupabaseUser(u) };
+      }
     }
 
     const user = await authService.currentUser();
