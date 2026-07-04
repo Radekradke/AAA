@@ -140,6 +140,12 @@ export interface DndClass {
   /** Proficiências com ferramentas concedidas pela classe (ids de data/tools). */
   tools?: string[];
   spellcasting?: boolean;
+  /**
+   * Atributo de conjuração, quando diferente do primário (PHB 2014).
+   * Ex.: Patrulheiro tem primário DES, mas conjura com Sabedoria.
+   * Ausente = usa `prim`.
+   */
+  spellAbility?: AbilityKey;
   /** Vídeo de fundo próprio da classe na criação (prioridade sobre a raça). */
   video?: string;
 }

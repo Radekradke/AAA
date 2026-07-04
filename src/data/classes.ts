@@ -160,6 +160,8 @@ export const CLASSES: DndClass[] = [
     skillChoices: ['animalHandling', 'athletics', 'insight', 'investigation', 'nature', 'perception', 'stealth', 'survival'],
     skillPicks: 3,
     spellcasting: true,
+    // primário DES (combate), mas conjura com Sabedoria (PHB 2014)
+    spellAbility: 'wis',
   },
   {
     id: 'rogue',

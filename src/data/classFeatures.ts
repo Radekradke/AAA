@@ -113,7 +113,8 @@ export const CLASS_FEATURES: Record<string, Record<number, string[]>> = {
     5: ['Esquiva Sobrenatural', 'Ataque Furtivo (3d6)'],
     6: ['Especialização adicional'],
     7: ['Evasão', 'Ataque Furtivo (4d6)'],
-    10: ['Aumento de Atributo', 'Ataque Furtivo (5d6)'],
+    9: ['Ataque Furtivo (5d6)'],
+    10: ['Aumento de Atributo'],
   },
   sorcerer: {
     1: ['Conjuração', 'Origem de Feitiçaria (subclasse)'],

@@ -33,11 +33,11 @@ export const WEAPONS: Item[] = [
   // ---- Armas simples à distância ----
   {
     id: 'w-shortbow', name: 'Arco Curto', category: 'weapon', rarity: 'comum', weight: 1, note: '1d6 perfurante · Distância 24/96 m',
-    weapon: { damageDice: 1, damageDie: 6, damageType: 'perfurante', type: 'simple', range: 'ranged', properties: ['Munição', 'Duas mãos'], finesse: true, rangeLabel: '24/96 m' },
+    weapon: { damageDice: 1, damageDie: 6, damageType: 'perfurante', type: 'simple', range: 'ranged', properties: ['Munição', 'Duas mãos'], rangeLabel: '24/96 m' },
   },
   {
     id: 'w-lightcrossbow', name: 'Besta Leve', category: 'weapon', rarity: 'comum', weight: 2.5, note: '1d8 perfurante · Distância 24/96 m',
-    weapon: { damageDice: 1, damageDie: 8, damageType: 'perfurante', type: 'simple', range: 'ranged', properties: ['Munição', 'Recarga', 'Duas mãos'], finesse: true, rangeLabel: '24/96 m' },
+    weapon: { damageDice: 1, damageDie: 8, damageType: 'perfurante', type: 'simple', range: 'ranged', properties: ['Munição', 'Recarga', 'Duas mãos'], rangeLabel: '24/96 m' },
   },
   // ---- Armas marciais corpo a corpo ----
   {
@@ -71,7 +71,7 @@ export const WEAPONS: Item[] = [
   // ---- Armas marciais à distância ----
   {
     id: 'w-longbow', name: 'Arco Longo', category: 'weapon', rarity: 'comum', weight: 1, note: '1d8 perfurante · Distância 45/180 m',
-    weapon: { damageDice: 1, damageDie: 8, damageType: 'perfurante', type: 'martial', range: 'ranged', properties: ['Munição', 'Pesada', 'Duas mãos'], finesse: true, rangeLabel: '45/180 m' },
+    weapon: { damageDice: 1, damageDie: 8, damageType: 'perfurante', type: 'martial', range: 'ranged', properties: ['Munição', 'Pesada', 'Duas mãos'], rangeLabel: '45/180 m' },
   },
   // ---- Exemplo mágico ----
   {

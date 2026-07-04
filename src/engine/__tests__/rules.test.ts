@@ -177,6 +177,34 @@ describe('itens e magia', () => {
     expect(d.spellDC).toBe(8 + 2 + 3);
     expect(d.spellAttack).toBe(5);
   });
+
+  it('Patrulheiro conjura com Sabedoria (não Destreza)', () => {
+    // ranger nível 2 é o primeiro com espaços de magia
+    const base = ensureCharacterV2(makeChar({ classId: 'ranger', raceId: 'human' }));
+    const c: Character = { ...base, level: 2, classLevels: [{ classId: 'ranger', level: 2 }], levelHistory: synthesizeHistory({ level: 2, classId: 'ranger', subclassId: null }) };
+    const d = deriveCharacter(c);
+    const wisMod = d.abilities.wis.mod;
+    const dexMod = d.abilities.dex.mod;
+    expect(wisMod).not.toBe(dexMod); // prioridade humano: dex16/wis14
+    expect(d.spellDC).toBe(8 + d.proficiency + wisMod);
+    expect(d.spellAttack).toBe(d.proficiency + wisMod);
+  });
+});
+
+describe('Defesa sem Armadura (PHB 2014)', () => {
+  it('Bárbaro sem armadura: CA = 10 + DES + CON', () => {
+    const base = ensureCharacterV2(makeChar({ classId: 'barbarian', raceId: 'human' }));
+    const c: Character = { ...base, equipped: { ...base.equipped, armor: null, shield: null } };
+    const d = deriveCharacter(c);
+    expect(d.ac).toBe(10 + d.abilities.dex.mod + d.abilities.con.mod);
+  });
+
+  it('Monge sem armadura: CA = 10 + DES + SAB (perde o traço com escudo)', () => {
+    const base = ensureCharacterV2(makeChar({ classId: 'monk', raceId: 'human' }));
+    const noShield: Character = { ...base, equipped: { ...base.equipped, armor: null, shield: null } };
+    const d = deriveCharacter(noShield);
+    expect(d.ac).toBe(10 + d.abilities.dex.mod + d.abilities.wis.mod);
+  });
 });
 
 describe('migração v2/v3', () => {

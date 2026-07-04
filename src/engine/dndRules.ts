@@ -177,6 +177,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   } else {
     acParts.push(mod('ac', 10, 'Sem armadura', 'base'));
     acParts.push(mod('ac', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }));
+    // Defesa sem Armadura (PHB 2014): Bárbaro soma CON; Monge soma SAB
+    // (o Monge perde o traço se usar escudo; o Bárbaro pode usar escudo).
+    if (char.classId === 'barbarian') {
+      acParts.push(mod('ac', conMod, 'Constituição', 'ability', { label: 'Defesa sem Armadura' }));
+    } else if (char.classId === 'monk' && !char.equipped.shield) {
+      acParts.push(mod('ac', abilities.wis.mod, 'Sabedoria', 'ability', { label: 'Defesa sem Armadura' }));
+    }
   }
   const shieldItem = findEquipped(char, char.equipped.shield);
   if (shieldItem) {
@@ -294,18 +301,20 @@ export function deriveCharacter(char: Character): DerivedCharacter {
 
   // ---- Conjuração ----
   const isCaster = !!cls.spellcasting && Object.keys(spellSlotsForClass(char.classId, char.level)).length > 0;
-  const castMod = abilities[cls.prim].mod;
+  // atributo de conjuração pode diferir do primário (ex.: Patrulheiro → SAB)
+  const castAbility = cls.spellAbility ?? cls.prim;
+  const castMod = abilities[castAbility].mod;
   const dcBd = isCaster
     ? breakdown([
         mod('spellDC', 8, 'Base', 'base'),
         mod('spellDC', prof, 'Bônus de proficiência', 'proficiency'),
-        mod('spellDC', castMod, ABILITY_LABELS[cls.prim], 'ability'),
+        mod('spellDC', castMod, ABILITY_LABELS[castAbility], 'ability'),
       ])
     : undefined;
   const atkBd = isCaster
     ? breakdown([
         mod('spellAttack', prof, 'Bônus de proficiência', 'proficiency'),
-        mod('spellAttack', castMod, ABILITY_LABELS[cls.prim], 'ability'),
+        mod('spellAttack', castMod, ABILITY_LABELS[castAbility], 'ability'),
       ])
     : undefined;
 
