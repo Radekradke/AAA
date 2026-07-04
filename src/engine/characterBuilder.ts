@@ -30,6 +30,11 @@ const CLASS_PRIORITY: Record<string, AbilityKey[]> = {
   wizard: ['int', 'con', 'dex', 'wis', 'cha', 'str'],
 };
 
+/** Os 2 atributos mais importantes da classe (recomendações leves na criação). */
+export function recommendedAbilities(classId: string): AbilityKey[] {
+  return (CLASS_PRIORITY[classId] ?? ['str', 'con']).slice(0, 2);
+}
+
 /** Distribui o array padrão segundo a prioridade da classe. */
 export function standardArrayFor(classId: string): AbilityScores {
   const order = CLASS_PRIORITY[classId] ?? ['str', 'con', 'dex', 'wis', 'int', 'cha'];

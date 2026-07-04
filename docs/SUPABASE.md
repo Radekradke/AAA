@@ -4,17 +4,57 @@ O app é **offline-first**: as fichas vivem no IndexedDB do aparelho e continuam
 editáveis sem internet. Com o Supabase configurado, cada usuário ganha login
 real (Supabase Auth) e as fichas sincronizam entre dispositivos.
 
-## 1. Configurar
+## 1. Configurar — passo a passo para quem nunca usou o Supabase
 
-1. Crie um projeto em [supabase.com](https://supabase.com).
-2. Copie `.env.example` para `.env` e preencha:
-   - `VITE_SUPABASE_URL` — URL do projeto;
-   - `VITE_SUPABASE_ANON_KEY` — chave pública (anon). **Nunca** use a service key no front.
-3. Rode o SQL abaixo no SQL Editor do Supabase.
-4. Em Authentication → Providers, habilite Email (desative "Confirm email"
-   para testar mais rápido, se preferir).
+**Parte A — criar o projeto (2 min)**
+1. Acesse [supabase.com](https://supabase.com) → **Start your project** →
+   entre com sua conta GitHub ou Google (grátis).
+2. Clique em **New project**. Dê um nome (ex.: `ficha-viva`), crie uma senha
+   de banco qualquer (guarde-a, mas o app não usa ela) e escolha a região
+   **South America (São Paulo)**. Clique em **Create new project** e aguarde
+   ~2 minutos até o painel abrir.
 
-Sem `.env`, o app roda normalmente no modo offline/local.
+**Parte B — pegar as 2 chaves (1 min)**
+3. No menu lateral, clique na engrenagem **Project Settings** → **API**.
+4. Copie dois valores:
+   - **Project URL** (algo como `https://abcdefgh.supabase.co`);
+   - **anon public** key (um texto longo começando com `eyJ...`).
+   Use SOMENTE a anon — nunca a `service_role`.
+
+**Parte C — criar a tabela de fichas (1 min)**
+5. No menu lateral, clique em **SQL Editor** → **New query**.
+6. Cole TODO o bloco SQL da seção 2 abaixo e clique em **Run**. Deve
+   aparecer "Success. No rows returned".
+
+**Parte D — ligar o login por e-mail (30 s)**
+7. Menu **Authentication** → **Sign In / Providers**: confirme que **Email**
+   está habilitado. Para testar sem confirmação de e-mail, desligue
+   "Confirm email" nessa mesma tela.
+
+**Parte E — colocar as chaves no site (na Vercel)**
+8. Em [vercel.com](https://vercel.com) abra o projeto `aaa` →
+   **Settings** → **Environment Variables** e adicione:
+   - `VITE_SUPABASE_URL` = a Project URL da Parte B;
+   - `VITE_SUPABASE_ANON_KEY` = a anon key da Parte B.
+9. Vá em **Deployments** → menu `⋯` do último deploy → **Redeploy** (as
+   variáveis só valem para builds novos). Pronto: a tela de entrar passa a
+   usar a nuvem.
+
+Para rodar localmente, copie `.env.example` para `.env` com os mesmos
+valores. Sem `.env`, o app continua funcionando offline/local normalmente.
+
+**Parte F (opcional) — Entrar com Google**
+10. No Supabase: **Authentication → Sign In / Providers → Google** → habilite.
+    A tela mostra a **Callback URL** (ex.:
+    `https://abcdefgh.supabase.co/auth/v1/callback`) — copie-a.
+11. No [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+    crie um projeto → **Create Credentials → OAuth client ID** → tipo
+    **Web application** → em *Authorized redirect URIs* cole a Callback URL
+    do passo 10. Copie o **Client ID** e o **Client Secret** gerados e cole
+    no Supabase (tela do passo 10) → **Save**.
+12. Em **Authentication → URL Configuration**, adicione a URL do seu site
+    (ex.: `https://aaa-....vercel.app`) em *Site URL* e *Redirect URLs*.
+    O botão "Entrar com Google" do app já está pronto e aparece sozinho.
 
 ## 2. Tabela de fichas + RLS
 

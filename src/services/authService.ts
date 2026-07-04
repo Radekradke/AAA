@@ -42,6 +42,7 @@ export const authService = {
     return { ok: true, user: mapUser(data.user.id, data.user.email ?? email, meta?.name) };
   },
 
+  /** Login social: redireciona ao Google; a sessão volta na rota de callback. */
   async signInWithGoogle(redirectTo: string): Promise<AuthResult> {
     const sb = getSupabase();
     if (!sb) return { ok: false, error: 'Nuvem não configurada.' };

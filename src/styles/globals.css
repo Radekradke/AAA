@@ -706,6 +706,21 @@ button:active:not(:disabled) {
     border-top: 1px solid var(--line);
     background: rgba(0, 0, 0, 0.18);
   }
+  /* resumo vivo da criação: painel lateral fixo no desktop */
+  .fv-creator-summary {
+    flex: none;
+    width: 258px;
+    margin-left: clamp(10px, 1.2vw, 16px);
+    padding: 14px 13px;
+    align-self: stretch;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  @media (max-width: 1100px) {
+    .fv-creator-summary {
+      display: none;
+    }
+  }
   /* ----- faixa de atributos da Ficha: 6 placas na mesma linha no desktop ----- */
   .fv-ability-row {
     display: grid;

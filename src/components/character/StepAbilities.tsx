@@ -3,10 +3,10 @@ import type { StepProps } from './stepTypes';
 import { ChapterTitle } from './ChapterTitle';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
-import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
+import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS, SKILL_BY_KEY } from '@/data/skills';
 import { getBackground } from '@/data/backgrounds';
 import { abilityModifier, proficiencyBonus, racialBonusFor } from '@/engine/modifiers';
-import { standardArrayFor, STANDARD_ARRAY } from '@/engine/characterBuilder';
+import { standardArrayFor, recommendedAbilities, STANDARD_ARRAY } from '@/engine/characterBuilder';
 import { getClass } from '@/data/classes';
 import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
@@ -115,41 +115,47 @@ export function StepAbilities({ char, update }: StepProps) {
           const total = baseVal + racial;
           const mod = abilityModifier(total);
           const favored = bg.suggestedAbilities.includes(key);
+          const recommended = recommendedAbilities(char.classId).includes(key);
+          const color = ABILITY_COLORS[key];
           return (
             <div
               key={key}
               style={{
                 position: 'relative',
-                background: 'linear-gradient(170deg, var(--panel), var(--panel2))',
-                border: '1px solid ' + (favored ? hexA(t.gold, 0.62) : 'var(--line)'),
+                background: `linear-gradient(170deg, ${hexA(color, 0.08)}, var(--panel2))`,
+                border: '1px solid ' + (recommended ? hexA(t.gold, 0.7) : hexA(color, 0.3)),
+                borderTop: `2px solid ${recommended ? t.gold : hexA(color, 0.6)}`,
                 borderRadius: 15,
                 padding: '15px 12px 14px',
                 textAlign: 'center',
-                boxShadow: favored
-                  ? '0 0 22px ' + hexA(t.gold, 0.16) + ', inset 0 1px 0 rgba(255,255,255,.05)'
-                  : 'inset 0 1px 0 rgba(255,255,255,.05)',
+                boxShadow: recommended
+                  ? '0 0 24px ' + hexA(t.gold, 0.2) + ', inset 0 1px 0 rgba(255,255,255,.05)'
+                  : favored
+                    ? '0 0 18px ' + hexA(t.gold, 0.1) + ', inset 0 1px 0 rgba(255,255,255,.05)'
+                    : 'inset 0 1px 0 rgba(255,255,255,.05)',
                 overflow: 'hidden',
               }}
             >
-              {favored && (
+              {(recommended || favored) && (
                 <div
+                  title={recommended ? `Recomendado para ${getClass(char.classId).label}` : `Favorecido pelo antecedente ${bg.label}`}
                   style={{
                     position: 'absolute',
                     top: 9,
                     right: 9,
-                    fontSize: 9,
-                    letterSpacing: '.1em',
+                    fontSize: 8.5,
+                    letterSpacing: '.08em',
                     color: '#140d04',
-                    background: t.gold,
+                    background: recommended ? t.gold : hexA(t.gold, 0.65),
                     borderRadius: 999,
-                    padding: '3px 6px',
-                    fontWeight: 700,
+                    padding: '3px 7px',
+                    fontWeight: 800,
                   }}
                 >
-                  BG
+                  {recommended ? 'CLASSE' : 'BG'}
                 </div>
               )}
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.14em', color: 'var(--muted)' }}>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
                 {ABILITY_SHORT[key]}
               </div>
               <div

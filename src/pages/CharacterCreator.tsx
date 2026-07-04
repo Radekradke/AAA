@@ -16,6 +16,10 @@ import { StepAbilities } from '@/components/character/StepAbilities';
 import { StepSkills } from '@/components/character/StepSkills';
 import { StepGear } from '@/components/character/StepGear';
 import { StepReview } from '@/components/character/StepReview';
+import { LiveSummary } from '@/components/character/LiveSummary';
+import { Modal } from '@/components/ui/Modal';
+import { Icon } from '@/components/ui/Icon';
+import { creationPending } from '@/engine/creationSummary';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
 import { RaceAura } from '@/components/animations/RaceAura';
@@ -36,6 +40,7 @@ export function CharacterCreator() {
   const currentId = useCharacterStore((s) => s.currentId);
 
   const [step, setStep] = useState(0);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const startedRef = useRef(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -82,6 +87,7 @@ export function CharacterCreator() {
   }
 
   const isLast = step === STEP_LABELS.length - 1;
+  const pending = creationPending(char);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
   const creatorVideo = getClass(char.classId).video ?? getRace(char.raceId).video ?? null;
@@ -283,6 +289,11 @@ export function CharacterCreator() {
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {/* resumo vivo do herói — o personagem tomando forma (desktop) */}
+          <aside className="fv-creator-summary fv-panel fv-no-scrollbar" aria-label="Resumo do herói">
+            <LiveSummary char={char} onGoStep={goStep} />
+          </aside>
         </div>
 
         {/* navegação */}
@@ -317,13 +328,56 @@ export function CharacterCreator() {
           >
             ‹ Voltar
           </button>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap', margin: '0 auto' }}>
-            PASSO {step + 1} DE {STEP_LABELS.length}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
+            <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
+              PASSO {step + 1} DE {STEP_LABELS.length}
+            </span>
+            {/* resumo do herói no celular: bottom sheet */}
+            <button
+              className="fv-mobile-only"
+              onClick={() => setSummaryOpen(true)}
+              style={{
+                cursor: 'pointer',
+                alignItems: 'center',
+                gap: 6,
+                minHeight: 36,
+                padding: '6px 13px',
+                borderRadius: 999,
+                border: '1px solid ' + (pending.length ? hexA(t.acc, 0.55) : hexA(t.gold, 0.5)),
+                background: 'var(--panel)',
+                color: pending.length ? t.acc : t.gold,
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: 11.5,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Icon name="crest" size={13} />
+              Herói{pending.length ? ` · ${pending.length}` : ''}
+            </button>
           </div>
-          <button onClick={isLast ? finish : next} className="fv-btn-gold" style={{ minHeight: 44, padding: '12px 26px', fontSize: 15, whiteSpace: 'nowrap' }}>
+          <button
+            onClick={isLast ? finish : next}
+            disabled={isLast && pending.length > 0}
+            title={isLast && pending.length > 0 ? `Faltam ${pending.length} escolha(s) — veja o Resumo do Herói.` : undefined}
+            className="fv-btn-gold"
+            style={{ minHeight: 44, padding: '12px 26px', fontSize: 15, whiteSpace: 'nowrap', opacity: isLast && pending.length > 0 ? 0.55 : 1 }}
+          >
             {isLast ? 'Despertar o Herói' : 'Avançar ›'}
           </button>
         </div>
+
+        {summaryOpen && (
+          <Modal title="Resumo do Herói" icon="crest" onClose={() => setSummaryOpen(false)} maxWidth={420}>
+            <LiveSummary
+              char={char}
+              onGoStep={(i) => {
+                setSummaryOpen(false);
+                goStep(i);
+              }}
+            />
+          </Modal>
+        )}
       </div>
     </Screen>
   );

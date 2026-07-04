@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
@@ -32,6 +32,18 @@ export function Login() {
       setBusy(false);
     }
   };
+
+  // sessão já ativa (ex.: retorno do OAuth) → entra direto
+  useEffect(() => {
+    if (!cloud) return;
+    void authService.currentUser().then((u) => {
+      if (u) {
+        setUser(u);
+        navigate('/personagens');
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,21 +205,47 @@ export function Login() {
             </button>
           </form>
 
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={busy}
-            className="fv-btn-ghost"
-            style={{ width: '100%', marginTop: 12, padding: '13px', fontSize: 14, opacity: busy ? 0.7 : 1 }}
-          >
-            Login com Google
-          </button>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
             <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.1em' }}>OU</span>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
           </div>
+
+          {cloud && (
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={busy}
+              style={{
+                opacity: busy ? 0.7 : 1,
+                width: '100%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 600,
+                fontSize: 14,
+                color: 'var(--ink)',
+                padding: '13px',
+                marginBottom: 10,
+                borderRadius: 12,
+                border: '1px solid var(--line)',
+                background: 'var(--panel)',
+                backdropFilter: 'blur(8px)',
+                transition: '.25s',
+              }}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden>
+                <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.09 3.57-5.16 3.57-8.81z" />
+                <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.12-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24z" />
+                <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.37-2.28v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1z" />
+                <path fill="#EA4335" d="M12 4.77c1.76 0 3.35.6 4.6 1.8l3.44-3.44A11.97 11.97 0 0 0 12 0 12 12 0 0 0 1.29 6.62l3.98 3.1C6.22 6.89 8.87 4.77 12 4.77z" />
+              </svg>
+              Entrar com Google
+            </button>
+          )}
 
           <button
             onClick={guest}
