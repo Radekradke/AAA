@@ -37,7 +37,7 @@ const CATEGORY_ICON: Record<string, IconName> = {
   consumable: 'spark', wondrous: 'star', ring: 'star', treasure: 'starFill', other: 'quill',
 };
 
-export function TabInventario({ char }: TabProps) {
+export function TabInventario({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
   const [filter, setFilter] = useState('all');
@@ -48,6 +48,15 @@ export function TabInventario({ char }: TabProps) {
 
   const attuneItems = char.inventory.filter((i) => i.attunement);
 
+  // Carga: peso carregado × capacidade (FOR × 7,5 kg, PHB 2014)
+  const carried = derived.carriedWeight;
+  const capacity = derived.carryCapacity;
+  const loadPct = capacity > 0 ? Math.min(100, (carried / capacity) * 100) : 0;
+  const over = carried > capacity;
+  const heavy = !over && carried > capacity * 0.7;
+  const loadColor = over ? t.danger : heavy ? '#E0A93E' : '#3FC56B';
+  const loadStatus = over ? 'Sobrecarregado' : heavy ? 'Carga pesada' : 'Dentro do limite';
+
   const visibleGroups = GROUP_DEFS
     .map((g) => ({ ...g, items: char.inventory.filter((it) => groupOf(it) === g.id) }))
     .filter((g) => g.items.length > 0 && (filter === 'all' || filter === g.id));
@@ -57,6 +66,36 @@ export function TabInventario({ char }: TabProps) {
       className="animate-riseIn"
       style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}
     >
+      {/* Carga — peso carregado vs. capacidade (FOR × 7,5 kg) */}
+      <Panel>
+        <LoreTooltip
+          info={{
+            title: 'Carga',
+            subtitle: `${carried.toFixed(1).replace('.', ',')} / ${capacity.toFixed(1).replace('.', ',')} kg`,
+            body: 'Capacidade de carga = Força × 7,5 kg (PHB 2014). Acima disso você fica sobrecarregado — a critério do mestre, o deslocamento é penalizado.',
+            tags: ['Força', 'Regra da mesa'],
+          }}
+          anchorStyle={{ display: 'block' }}
+        >
+          <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span>Carga</span>
+            <span style={{ color: loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' }}>{loadStatus}</span>
+          </div>
+        </LoreTooltip>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: "'Chakra Petch', monospace" }}>
+          <span style={{ fontWeight: 700, fontSize: 22, color: loadColor }}>{carried.toFixed(1).replace('.', ',')}</span>
+          <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
+        </div>
+        <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'rgba(0,0,0,.4)', border: '1px solid var(--line)', overflow: 'hidden' }}>
+          <div style={{ width: `${loadPct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(loadColor, 0.55)}, ${loadColor})`, boxShadow: `0 0 12px ${hexA(loadColor, 0.6)}`, transition: 'width .4s, background .3s' }} />
+        </div>
+        {over && (
+          <div style={{ marginTop: 9, fontSize: 12, color: t.danger, fontWeight: 600 }}>
+            Acima da capacidade — o mestre pode reduzir seu deslocamento.
+          </div>
+        )}
+      </Panel>
+
       {/* Moedas — resumo compacto + modal de gestão */}
       <Panel>
         <SectionLabel

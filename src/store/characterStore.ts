@@ -58,6 +58,8 @@ interface CharacterState {
   resetTurn: (id: string) => void;
   adjustMove: (id: string, delta: number) => void;
   toggleCondition: (id: string, cond: string) => void;
+  setExhaustion: (id: string, level: number) => void;
+  toggleConcentration: (id: string) => void;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   setResource: (id: string, resId: string, value: number) => void;
   spendHitDie: (id: string) => void;
@@ -201,6 +203,8 @@ export const useCharacterStore = create<CharacterState>()(
               rem -= absorbed;
             }
             c.hpCurrent = Math.max(0, c.hpCurrent - rem);
+            // cair a 0 PV rompe a concentração automaticamente (PHB)
+            if (c.hpCurrent === 0) c.combat.concentration = false;
           });
         },
         heal(id, amount) {
@@ -350,6 +354,18 @@ export const useCharacterStore = create<CharacterState>()(
               : [...c.combat.conditions, cond];
           });
         },
+        setExhaustion(id, level) {
+          mutate(id, (c) => {
+            // clicar no nível atual recua um; senão define (0–6, PHB)
+            const cur = c.combat.exhaustion ?? 0;
+            c.combat.exhaustion = cur === level ? level - 1 : Math.max(0, Math.min(6, level));
+          });
+        },
+        toggleConcentration(id) {
+          mutate(id, (c) => {
+            c.combat.concentration = !c.combat.concentration;
+          });
+        },
         toggleSpellSlot(id, level, index) {
           mutate(id, (c) => {
             const slot = c.combat.spellSlots[level];
@@ -397,6 +413,9 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.conditions = [];
             c.combat.turn = { action: false, bonus: false, reaction: false };
             c.combat.moveUsed = 0;
+            c.combat.concentration = false;
+            // descanso longo remove 1 nível de exaustão (PHB 2014)
+            c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
             // recupera metade dos dados de vida
             c.combat.hitDiceRemaining = Math.min(
               derived.hitDiceMax,

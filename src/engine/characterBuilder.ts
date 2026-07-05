@@ -53,6 +53,8 @@ export function emptyCombat(): CombatState {
     turn: { action: false, bonus: false, reaction: false },
     moveUsed: 0,
     conditions: [],
+    exhaustion: 0,
+    concentration: false,
     resources: {},
     spellSlots: {},
   };

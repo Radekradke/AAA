@@ -11,6 +11,17 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
 
+/** Efeito acumulado de cada nível de exaustão (PHB 2014). */
+const EXHAUSTION_EFFECT: Record<number, string> = {
+  0: 'Sem exaustão',
+  1: 'Desvantagem em testes de atributo',
+  2: 'Deslocamento pela metade',
+  3: 'Desvantagem em ataques e salvaguardas',
+  4: 'PV máximo pela metade',
+  5: 'Deslocamento reduzido a 0',
+  6: 'Morte',
+};
+
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
   const { attack, damage, rollDice } = useDiceRoller();
@@ -27,6 +38,8 @@ export function TabCombate({ char, derived }: TabProps) {
     { k: 'reaction' as const, label: 'Reação' },
   ];
   const moveLeft = (derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',');
+  const concentrating = !!char.combat.concentration;
+  const exhaustion = char.combat.exhaustion ?? 0;
 
   return (
     <div
@@ -97,6 +110,37 @@ export function TabCombate({ char, derived }: TabProps) {
             </button>
           </div>
         </div>
+
+        {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
+        <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>
+          <button
+            onClick={() => store.toggleConcentration(char.id)}
+            className={concentrating ? 'animate-glowPulse' : undefined}
+            style={{
+              marginTop: 12,
+              width: '100%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              minHeight: 44,
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid ' + (concentrating ? t.acc : t.line),
+              background: concentrating ? hexA(t.acc, 0.12) : 'rgba(0,0,0,.26)',
+              color: concentrating ? t.acc : t.muted,
+              fontFamily: "'Cinzel', serif",
+              fontSize: 14,
+              transition: '.2s',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <span style={{ width: 11, height: 11, borderRadius: 999, background: concentrating ? t.acc : 'transparent', border: '1px solid ' + (concentrating ? t.acc : t.muted), boxShadow: concentrating ? `0 0 10px ${t.acc}` : 'none', transition: '.2s' }} />
+              {concentrating ? 'Concentrando numa magia' : 'Concentração'}
+            </span>
+            <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11.5 }}>{concentrating ? 'romper' : 'inativa'}</span>
+          </button>
+        </LoreTooltip>
       </Panel>
 
       {/* Ataques */}
@@ -241,6 +285,45 @@ export function TabCombate({ char, derived }: TabProps) {
           <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
             <DeathRow label="Sucesso" color="#3FC56B" value={char.combat.deathSaves.success} onClick={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathRow label="Falha" color={t.danger} value={char.combat.deathSaves.fail} onClick={(n) => store.setDeathSave(char.id, 'fail', n)} />
+          </div>
+        </div>
+
+        {/* Exaustão (0–6, PHB 2014) */}
+        <div style={{ padding: '13px 0 2px', borderTop: '1px solid var(--line)', marginTop: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
+            <span style={{ fontSize: 11, color: exhaustion >= 4 ? t.danger : 'var(--muted)', fontWeight: 600 }}>{EXHAUSTION_EFFECT[exhaustion]}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            {[1, 2, 3, 4, 5, 6].map((n) => {
+              const on = exhaustion >= n;
+              const col = n >= 5 ? t.danger : n >= 3 ? '#E0A93E' : t.acc;
+              return (
+                <LoreTooltip key={n} info={passiveLore(`Exaustão · nível ${n}`, EXHAUSTION_EFFECT[n], 'A exaustão acumula em níveis (1–6). Cada nível soma-se aos anteriores. Um descanso longo remove 1 nível. Clique num nível para defini-lo; clique nele de novo para recuar.', ['Condição'])}>
+                  <span
+                    onClick={() => store.setExhaustion(char.id, n)}
+                    style={{
+                      cursor: 'pointer',
+                      width: 26,
+                      height: 26,
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontFamily: "'Chakra Petch', monospace",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      borderRadius: 7,
+                      border: '1px solid ' + (on ? col : 'var(--line)'),
+                      background: on ? hexA(col, 0.16) : 'rgba(0,0,0,.26)',
+                      color: on ? col : 'var(--muted)',
+                      boxShadow: on ? `0 0 9px ${hexA(col, 0.5)}` : 'none',
+                      transition: '.2s',
+                    }}
+                  >
+                    {n}
+                  </span>
+                </LoreTooltip>
+              );
+            })}
           </div>
         </div>
       </Panel>

@@ -76,6 +76,10 @@ export interface CombatState {
   turn: { action: boolean; bonus: boolean; reaction: boolean };
   moveUsed: number;
   conditions: string[];
+  /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */
+  exhaustion?: number;
+  /** Concentração ativa numa magia (lembrete de salvaguarda de CON). */
+  concentration?: boolean;
   /** Recursos de classe consumidos (id -> usados). */
   resources: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
