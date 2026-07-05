@@ -29,7 +29,7 @@ const CATEGORIES = [
   { id: 'other', label: 'Outros' },
 ];
 
-const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico'];
+const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
 const DICE = [4, 6, 8, 10, 12];
 
 const label: React.CSSProperties = {
@@ -70,6 +70,10 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [magicBonus, setMagicBonus] = useState(String(item?.weapon?.magicBonus ?? 0));
   const [finesse, setFinesse] = useState(!!item?.weapon?.finesse);
   const [versatile, setVersatile] = useState(String(item?.weapon?.versatileDie ?? ''));
+  // dano extra de outro tipo (ex.: +2d6 fogo)
+  const [bonusDmgDice, setBonusDmgDice] = useState(String(item?.weapon?.bonusDamage?.dice ?? 0));
+  const [bonusDmgDie, setBonusDmgDie] = useState(String(item?.weapon?.bonusDamage?.die ?? 6));
+  const [bonusDmgType, setBonusDmgType] = useState<DamageType>(item?.weapon?.bonusDamage?.type ?? 'fogo');
   const [properties, setProperties] = useState(item?.weapon?.properties.join(', ') ?? '');
   // armadura
   const [baseAC, setBaseAC] = useState(String(item?.armor?.baseAC ?? 14));
@@ -99,6 +103,10 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             magicBonus: magic || undefined,
             finesse,
             versatileDie: versatile ? parseInt(versatile) || undefined : undefined,
+            bonusDamage:
+              (parseInt(bonusDmgDice) || 0) > 0
+                ? { dice: parseInt(bonusDmgDice), die: parseInt(bonusDmgDie) || 6, type: bonusDmgType }
+                : undefined,
           }
         : undefined;
     const armor =
@@ -242,12 +250,33 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             </label>
             <CheckRow checked={finesse} onChange={setFinesse} text="Acuidade (usa DES)" />
           </div>
+
+          {/* Dano extra de outro tipo (ex.: +2d6 fogo) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11, marginTop: 11 }}>
+            <label>
+              <span style={label}>Dano extra (dados)</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input className="fv-input" value={bonusDmgDice} onChange={(e) => setBonusDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} title="0 = sem dano extra" />
+                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <select className="fv-input" value={bonusDmgDie} onChange={(e) => setBonusDmgDie(e.target.value)} style={{ flex: 1 }} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
+                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                </select>
+              </div>
+            </label>
+            <label>
+              <span style={label}>Tipo do dano extra</span>
+              <select className="fv-input" value={bonusDmgType} onChange={(e) => setBonusDmgType(e.target.value as DamageType)} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+              </select>
+            </label>
+          </div>
+
           <label style={{ display: 'block', marginTop: 11 }}>
             <span style={label}>Propriedades (separadas por vírgula)</span>
             <input className="fv-input" value={properties} onChange={(e) => setProperties(e.target.value)} placeholder="Leve, Arremesso, Pesada…" />
           </label>
           <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
-            O bônus mágico soma automaticamente no acerto e no dano, com origem rastreável no tooltip do ataque.
+            O bônus mágico soma no acerto e no dano. O <b style={{ color: 'var(--ink)' }}>dano extra</b> (ex.: 2d6 fogo) é rolado junto, num tipo separado, e dobra os dados no crítico. Deixe os dados em 0 para não ter dano extra.
           </p>
         </fieldset>
       )}

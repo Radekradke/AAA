@@ -42,6 +42,8 @@ export interface DerivedAttack {
   damageBonus: number;
   damageType: string;
   versatileDie?: number;
+  /** Dano extra de outro tipo (ex.: +2d6 fogo), sem modificador de atributo. */
+  bonusDamage?: { dice: number; die: number; type: string };
   hitBreakdown: Breakdown;
   damageBreakdown: Breakdown;
 }
@@ -277,12 +279,15 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       mod('attack', prof, 'Bônus de proficiência', 'proficiency'),
       magic ? mod('attack', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
     ]);
+    const bonusDamage = w.bonusDamage && w.bonusDamage.dice > 0
+      ? { dice: w.bonusDamage.dice, die: w.bonusDamage.die, type: w.bonusDamage.type }
+      : undefined;
     const dmgBd = breakdown(
       [
         mod('damage', abilMod, ABILITY_LABELS[abilKey], 'ability'),
         magic ? mod('damage', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
       ],
-      `${w.damageDice}d${w.damageDie} ${w.damageType} + modificadores`,
+      `${w.damageDice}d${w.damageDie} ${w.damageType}${bonusDamage ? ` + ${bonusDamage.dice}d${bonusDamage.die} ${bonusDamage.type}` : ''} + modificadores`,
     );
     attacks.push({
       uid: it.uid,
@@ -294,6 +299,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       damageBonus: dmgBd.total,
       damageType: w.damageType,
       versatileDie: w.versatileDie,
+      bonusDamage,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });

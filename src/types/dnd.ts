@@ -206,7 +206,13 @@ export type DamageType =
   | 'fogo'
   | 'gelo'
   | 'ácido'
-  | 'elétrico';
+  | 'elétrico'
+  | 'radiante'
+  | 'necrótico'
+  | 'força'
+  | 'veneno'
+  | 'psíquico'
+  | 'trovejante';
 
 export interface WeaponData {
   /** Número de dados de dano (geralmente 1). */
@@ -219,6 +225,12 @@ export interface WeaponData {
   properties: string[];
   /** Dado de dano alternativo para armas Versáteis (empunhadura a duas mãos). */
   versatileDie?: number;
+  /**
+   * Dano extra de OUTRO tipo (ex.: +2d6 fogo numa Lâmina Flamejante).
+   * Rolado junto do dano da arma, sem somar o modificador de atributo,
+   * e dobra os dados no crítico como qualquer dano de arma.
+   */
+  bonusDamage?: { dice: number; die: number; type: DamageType };
   /** Bônus mágico estruturado (+1/+2/+3) somado em acerto e dano. */
   magicBonus?: number;
   /** Usa Destreza no ataque/dano (acuidade ou arma à distância). */

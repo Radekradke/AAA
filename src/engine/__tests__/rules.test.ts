@@ -337,6 +337,21 @@ describe('arma mágica estruturada e pré-requisitos de talento', () => {
     expect(atk.damageBonus).toBe(3 + 2);
   });
 
+  it('dano extra de outro tipo entra no ataque, expressão e rolagem', async () => {
+    const { rollDamage, damageExpr } = await import('../combat');
+    const c = ensureCharacterV2(makeChar());
+    const sword = itemToInventory(getItem('w-longsword')!); // 1d8 cortante
+    sword.weapon = { ...sword.weapon!, bonusDamage: { dice: 2, die: 6, type: 'fogo' } };
+    const armed: Character = { ...c, inventory: [...c.inventory, sword], equipped: { ...c.equipped, mainHand: sword.uid } };
+    const atk = deriveCharacter(armed).attacks.find((a) => a.uid === sword.uid)!;
+    expect(atk.bonusDamage).toEqual({ dice: 2, die: 6, type: 'fogo' });
+    expect(damageExpr(atk)).toContain('+2d6 fogo');
+    // dano mínimo: 1 (dado da arma) + 3 (FOR) + 2 (2 dados de fogo, mín. 1 cada)
+    const r = rollDamage(atk);
+    expect(r.total).toBeGreaterThanOrEqual(1 + 3 + 2);
+    expect(r.expr).toContain('fogo');
+  });
+
   it('talento com mínimo de atributo é bloqueado quando não atende', () => {
     const c = ensureCharacterV2(makeChar({ classId: 'wizard' }));
     c.baseAbilities = { ...c.baseAbilities, dex: 8 };
