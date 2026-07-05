@@ -55,6 +55,25 @@
   --particle: #ffb066;
 }
 
+[data-theme='verdejante'] {
+  --bg: #060b07;
+  --bg2: #0c1610;
+  --panel: rgba(15, 28, 20, 0.62);
+  --panel2: rgba(22, 44, 31, 0.46);
+  --steel: #10241a;
+  --line: rgba(120, 205, 150, 0.16);
+  --acc: #3fd98a;
+  --acc2: #8fe04d;
+  --accSoft: rgba(63, 217, 138, 0.1);
+  --gold: #f0e4a8;
+  --goldB: #fbf4cc;
+  --ink: #ecf7ee;
+  --muted: #86a892;
+  --danger: #ff5a3c;
+  --bloom: rgba(63, 217, 138, 0.2);
+  --particle: #7de3a0;
+}
+
 * {
   box-sizing: border-box;
 }

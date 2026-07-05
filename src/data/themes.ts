@@ -1,6 +1,9 @@
 import type { RarityDef, ThemeDef, ThemeName } from '@/types/dnd';
 
-/** Os dois climas cinematográficos da referência visual. */
+/** Ordem de rotação dos climas no alternador da barra superior. */
+export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante'];
+
+/** Os climas cinematográficos da referência visual. */
 export const THEMES: Record<ThemeName, ThemeDef> = {
   frio: {
     bg: '#0A0C10',
@@ -39,6 +42,25 @@ export const THEMES: Record<ThemeName, ThemeDef> = {
     bloom: 'rgba(255,150,70,0.22)',
     particle: '#FFB066',
     label: 'Brasa Heróica',
+  },
+  verdejante: {
+    bg: '#060B07',
+    bg2: '#0C1610',
+    panel: 'rgba(15,28,20,0.62)',
+    panel2: 'rgba(22,44,31,0.46)',
+    steel: '#10241A',
+    line: 'rgba(120,205,150,0.16)',
+    acc: '#3FD98A',
+    acc2: '#8FE04D',
+    accSoft: 'rgba(63,217,138,0.10)',
+    gold: '#F0E4A8',
+    goldB: '#FBF4CC',
+    ink: '#ECF7EE',
+    muted: '#86A892',
+    danger: '#FF5A3C',
+    bloom: 'rgba(63,217,138,0.20)',
+    particle: '#7DE3A0',
+    label: 'Mata Ancestral',
   },
 };
 

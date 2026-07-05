@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { ThemeName } from '@/types/dnd';
 import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
+import { THEME_ORDER } from '@/data/themes';
 
 export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 
@@ -38,7 +39,11 @@ export const useUiStore = create<UiState>()(
     (set, get) => ({
       theme: 'frio',
       toggleTheme() {
-        set((s) => ({ theme: s.theme === 'frio' ? 'brasa' : 'frio' }));
+        // cicla pelos climas na ordem definida (frio → brasa → verdejante → …)
+        set((s) => {
+          const i = THEME_ORDER.indexOf(s.theme);
+          return { theme: THEME_ORDER[(i + 1) % THEME_ORDER.length] };
+        });
         get().bump(0.7);
       },
       setTheme(t) {

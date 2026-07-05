@@ -287,4 +287,4 @@ export interface ThemeDef {
   label: string;
 }
 
-export type ThemeName = 'frio' | 'brasa';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante';
