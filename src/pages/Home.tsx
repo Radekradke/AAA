@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
+import { SupportModal } from '@/components/SupportModal';
+import { hasSupport } from '@/lib/support';
 
 /** Tela inicial cinematográfica — o portal de entrada da Ficha Viva. */
 export function Home() {
@@ -11,6 +14,7 @@ export function Home() {
   const user = useAuthStore((s) => s.user);
   const bump = useUiStore((s) => s.bump);
   const t = useTheme();
+  const [support, setSupport] = useState(false);
 
   const start = () => {
     bump(1.4);
@@ -99,7 +103,18 @@ export function Home() {
           Toque no seletor no topo para alternar a atmosfera ✦{' '}
           <b style={{ color: 'var(--ink)' }}>{t.label}</b>
         </div>
+
+        {hasSupport() && (
+          <button
+            onClick={() => setSupport(true)}
+            style={{ marginTop: 16, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, color: 'var(--gold)', padding: '8px 16px', borderRadius: 999, border: '1px solid ' + t.gold, background: 'rgba(255,224,138,.08)', transition: '.2s' }}
+          >
+            <span aria-hidden style={{ fontSize: 14 }}>❤</span> Apoiar o projeto
+          </button>
+        )}
       </div>
+
+      {support && <SupportModal onClose={() => setSupport(false)} />}
     </Screen>
   );
 }
