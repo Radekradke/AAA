@@ -71,7 +71,8 @@ export const useUiStore = create<UiState>()(
       currentRoll: null,
       history: [],
       pushRoll(r) {
-        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, 12) }));
+        // mantém apenas as 5 últimas rolagens (histórico curto na aba Mesa)
+        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, 5) }));
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);

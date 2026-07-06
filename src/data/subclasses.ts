@@ -38,7 +38,7 @@ export const SUBCLASSES: Subclass[] = [
   { id: 'assassin', classId: 'rogue', label: 'Assassino', desc: 'Morte silenciosa e disfarces.', features: { 3: ['Proficiências de Assassino', 'Assassinar'], 9: ['Perícia em Infiltração'], 13: ['Impostor'], 17: ['Golpe Mortal'] } },
   { id: 'trickster', classId: 'rogue', label: 'Trapaceiro Arcano', desc: 'Ilusão e travessura mágica.', features: { 3: ['Conjuração (Mago)', 'Prestidigitação Aprimorada'], 9: ['Emboscada Mágica'], 13: ['Trapaceiro Versátil'], 17: ['Ladrão de Magias'] } },
   // Feiticeiro
-  { id: 'draconic', classId: 'sorcerer', label: 'Linhagem Dracônica', desc: 'Sangue de dragão nas veias.', features: { 1: ['Resiliência Dracônica', 'Ancestral Dragão'], 6: ['Afinidade Elemental'], 14: ['Asas Dracônicas'], 18: ['Presença Dracônica'] }, bonuses: { hpPerLevel: 1, unarmoredAC: { base: 13, ability: 'dex' } } },
+  { id: 'draconic', classId: 'sorcerer', label: 'Linhagem Dracônica', desc: 'Sangue de dragão nas veias.', features: { 1: ['Resiliência Dracônica', 'Ancestral Dragão'], 6: ['Afinidade Elemental'], 14: ['Asas Dracônicas'], 18: ['Presença Dracônica'] }, bonuses: { hpPerLevel: 1, unarmoredAC: { base: 13, ability: 'dex' }, languages: ['Dracônico'] } },
   { id: 'wild', classId: 'sorcerer', label: 'Magia Selvagem', desc: 'Caos arcano imprevisível.', features: { 1: ['Surto de Magia Selvagem', 'Marés do Caos'], 6: ['Distorcer o Destino'], 14: ['Caos Controlado'], 18: ['Bombardeio de Magia'] } },
   // Bruxo
   { id: 'archfey', classId: 'warlock', label: 'A Arquifada', desc: 'Pacto com a nobreza feérica.', features: { 1: ['Presença Feérica'], 6: ['Fuga Enevoada'], 10: ['Defesas Encantadoras'], 14: ['Delírio Sombrio'] } },

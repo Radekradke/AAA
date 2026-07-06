@@ -241,6 +241,7 @@ describe('bônus mecânicos de subclasse', () => {
     const d = deriveCharacter(noArmor);
     expect(d.ac).toBe(13 + d.abilities.dex.mod);
     expect(d.breakdowns.ac.parts.some((p) => p.sourceType === 'subclass')).toBe(true);
+    expect(d.languages).toContain('Dracônico'); // idioma concedido pela linhagem
   });
 
   it('Campeão: crítico amplia para 19 no nível 3 e 18 no nível 15', () => {

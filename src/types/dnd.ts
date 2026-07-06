@@ -126,6 +126,8 @@ export interface SubclassBonus {
   initiativeBonus?: number;
   /** Resistências a dano concedidas. */
   resistances?: string[];
+  /** Idiomas concedidos (ex.: Dracônico). */
+  languages?: string[];
   /** Proficiências concedidas (rótulos, para exibição). */
   proficiencies?: string[];
   /**

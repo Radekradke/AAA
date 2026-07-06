@@ -235,8 +235,8 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
       </Panel>
 
-      {/* ===== GRID: rolagens + ataques ===== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))', gap: 'clamp(12px,1.4vw,16px)', alignItems: 'start' }}>
+      {/* ===== MASONRY: painéis de jogo (sobem e preenchem os vãos) ===== */}
+      <div className="fv-masonry">
         {/* Ataques */}
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>

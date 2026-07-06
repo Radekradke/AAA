@@ -161,6 +161,22 @@ export function TabFicha({ char, derived }: TabProps) {
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
         <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
+          {/* Concedido pela subclasse: proficiências e crítico ampliado */}
+          {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
+            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: hexA(t.acc, 0.06) }}>
+              {derived.subclassLabel && (
+                <div style={{ fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 6 }}>{derived.subclassLabel}</div>
+              )}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {derived.grantedProficiencies.map((pf) => (
+                  <span key={pf} className="fv-chip" style={{ fontSize: 11, color: 'var(--ink)' }}>{pf}</span>
+                ))}
+                {derived.critMin < 20 && (
+                  <span className="fv-chip fv-chip-gold" style={{ fontSize: 11 }}>Crítico {derived.critMin}–20</span>
+                )}
+              </div>
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {(char.toolProfs ?? []).map((tool) => {
               const chk = calculateToolCheck(char, tool);

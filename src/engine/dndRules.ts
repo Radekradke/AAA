@@ -357,7 +357,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const darkvision = darkRange
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
-  const languages = [...(race.languages ?? ['Comum']), ...(char.extraLanguages ?? [])];
+  const languages = Array.from(
+    new Set([...(race.languages ?? ['Comum']), ...(subBonus?.languages ?? []), ...(char.extraLanguages ?? [])]),
+  );
   const resistances = [
     ...(race.resistances ?? []).map((value) => ({ value, source: race.label })),
     ...(subrace?.resistances ?? []).map((value) => ({ value, source: subrace!.label })),

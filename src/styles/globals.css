@@ -114,6 +114,17 @@ button:disabled {
   isolation: isolate;
 }
 
+/* Empacotamento tipo masonry: painéis de altura variável sobem e preenchem
+   os vãos, sem os buracos que o grid deixava com align-items:start. */
+.fv-masonry {
+  columns: 320px;
+  column-gap: clamp(12px, 1.4vw, 16px);
+}
+.fv-masonry > * {
+  break-inside: avoid;
+  margin-bottom: clamp(12px, 1.4vw, 16px);
+}
+
 /* sem barras de scroll em nenhuma página (o scroll continua funcional) */
 * {
   scrollbar-width: none;
