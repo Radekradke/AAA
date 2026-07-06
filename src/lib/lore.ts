@@ -106,13 +106,26 @@ export function passiveLore(label: string, value: string, body: string, tags: st
 
 export function spellLore(spell: Spell): LoreInfo {
   const circle = spell.level === 0 ? 'Truque' : `${spell.level}º círculo`;
+  const lines: string[] = [];
+  if (spell.castingTime) lines.push(`⏱ Conjuração: ${spell.castingTime}`);
+  if (spell.range) lines.push(`◎ Alcance: ${spell.range}`);
+  if (spell.duration) lines.push(`⧗ Duração: ${spell.duration}${spell.concentration ? ' (concentração)' : ''}`);
+  if (spell.components) lines.push(`✶ Componentes: ${spell.components}${spell.material ? ` (${spell.material})` : ''}`);
+  if (spell.damage) lines.push(`⚔ Dano: ${spell.damage.dice} de ${spell.damage.type}`);
+  if (spell.heal) lines.push(`✚ Cura: ${spell.heal}`);
+  if (spell.attack) lines.push(`➶ Ataque de magia (${spell.attack === 'ranged' ? 'à distância' : 'corpo a corpo'})`);
+  if (spell.save) lines.push(`🛡 Salvaguarda: ${ABILITY_SHORT[spell.save]}`);
+  if (spell.area) lines.push(`◇ Área: ${spell.area}`);
+  if (spell.conditions?.length) lines.push(`☠ Condições: ${spell.conditions.join(', ')}`);
+  if (spell.ritual) lines.push('❖ Pode ser conjurada como ritual');
+  const body = [spell.desc, lines.join('\n'), spell.higher ? `Em círculos superiores: ${spell.higher}` : '']
+    .filter(Boolean)
+    .join('\n\n');
   return {
     title: spell.name,
     subtitle: `${circle} · ${spell.school}`,
-    body: spell.level === 0
-      ? 'Truques podem ser usados livremente e representam efeitos menores, ataques simples ou utilidades mágicas constantes.'
-      : 'Magias consomem espaços do círculo apropriado. Use a escola e o círculo para entender o papel geral da magia antes de preparar.',
-    tags: [circle, spell.school],
+    body: body || 'Magia sem descrição.',
+    tags: [circle, spell.school, ...(spell.tags ?? [])],
   };
 }
 

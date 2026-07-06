@@ -299,11 +299,51 @@ export interface Item {
   acBonus?: number;
 }
 
+/** Classes conjuradoras que podem ter uma magia na lista. */
+export type CasterClass = 'bard' | 'cleric' | 'druid' | 'paladin' | 'ranger' | 'sorcerer' | 'warlock' | 'wizard';
+
+/** Papel da magia para busca/filtro rápido (não é regra oficial, é atalho). */
+export type SpellTag = 'dano' | 'cura' | 'controle' | 'utilidade' | 'buff' | 'debuff' | 'invocação' | 'movimento' | 'defesa';
+
 export interface Spell {
   id: string;
   level: number;
   name: string;
   school: string;
+  /** Tempo de conjuração (ex.: "1 ação", "1 ação bônus", "Reação", "1 minuto"). */
+  castingTime?: string;
+  /** Alcance (ex.: "Pessoal", "Toque", "18 m", "27 m"). */
+  range?: string;
+  /** Componentes (ex.: "V, S, M"). */
+  components?: string;
+  /** Componente material descrito. */
+  material?: string;
+  /** Duração (ex.: "Instantânea", "Concentração, até 1 min", "1 hora"). */
+  duration?: string;
+  /** Exige concentração. */
+  concentration?: boolean;
+  /** Pode ser conjurada como ritual. */
+  ritual?: boolean;
+  /** Classes que têm a magia na lista. */
+  classes?: CasterClass[];
+  /** Resumo do efeito (parafraseado, sem texto integral do livro). */
+  desc?: string;
+  /** Efeito em círculos superiores / níveis mais altos. */
+  higher?: string;
+  /** Dano base (ex.: { dice: "8d6", type: "fogo" }). */
+  damage?: { dice: string; type: string };
+  /** Cura base (ex.: "1d8 + mod."). */
+  heal?: string;
+  /** Atributo da salvaguarda que a magia força (ex.: "DES", "CON"). */
+  save?: AbilityKey;
+  /** Faz jogada de ataque de magia (corpo a corpo ou à distância). */
+  attack?: 'melee' | 'ranged';
+  /** Área de efeito (ex.: "esfera de 6 m", "cone de 4,5 m", "cubo de 4,5 m"). */
+  area?: string;
+  /** Condições que a magia pode impor. */
+  conditions?: string[];
+  /** Etiquetas de papel para filtro rápido. */
+  tags?: SpellTag[];
 }
 
 export interface RarityDef {
