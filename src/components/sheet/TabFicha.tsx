@@ -281,6 +281,21 @@ export function TabFicha({ char, derived }: TabProps) {
             </button>
           </div>
 
+          <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos Passivos</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {([
+              { label: 'Percepção', value: derived.passivePerception, desc: 'O DM usa contra Furtividade e para notar perigos sem você rolar.' },
+              { label: 'Investigação', value: derived.passiveInvestigation, desc: 'Percepção lógica passiva — notar pistas e detalhes sem rolar.' },
+              { label: 'Intuição', value: derived.passiveInsight, desc: 'Leitura passiva de intenções e mentiras.' },
+            ] as const).map((pas) => (
+              <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
+                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>
+                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{pas.value}</b>
+                </span>
+              </LoreTooltip>
+            ))}
+          </div>
+
           {(derived.darkvision || derived.resistances.length > 0) && (
             <>
               <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos &amp; Resistências</div>

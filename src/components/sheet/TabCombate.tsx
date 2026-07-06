@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
@@ -24,9 +25,12 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
-  const { attack, damage, rollDice } = useDiceRoller();
+  const { attack, damage, rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
   const cls = getClass(char.classId);
+  const [amt, setAmt] = useState('');
+  // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
+  const [concDC, setConcDC] = useState<number | null>(null);
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
@@ -40,6 +44,20 @@ export function TabCombate({ char, derived }: TabProps) {
   const moveLeft = (derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',');
   const concentrating = !!char.combat.concentration;
   const exhaustion = char.combat.exhaustion ?? 0;
+
+  // aplica dano e, se concentrando, calcula a CD da salvaguarda de CON (10 ou metade)
+  const dealDamage = (n: number) => {
+    if (n <= 0) return;
+    store.applyDamage(char.id, n);
+    if (concentrating) setConcDC(Math.max(10, Math.floor(n / 2)));
+  };
+  const applyAmount = (heal: boolean) => {
+    const n = Math.max(0, Math.floor(Number(amt) || 0));
+    if (!n) return;
+    if (heal) store.heal(char.id, n);
+    else dealDamage(n);
+    setAmt('');
+  };
 
   return (
     <div
@@ -94,8 +112,8 @@ export function TabCombate({ char, derived }: TabProps) {
           </div>
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center' }}>
-          <HpBtn label="−5 Dano" color="var(--danger)" strong onClick={() => store.applyDamage(char.id, 5)} />
-          <HpBtn label="−1" color="var(--danger)" onClick={() => store.applyDamage(char.id, 1)} />
+          <HpBtn label="−5 Dano" color="var(--danger)" strong onClick={() => dealDamage(5)} />
+          <HpBtn label="−1" color="var(--danger)" onClick={() => dealDamage(1)} />
           <HpBtn label="+1" color="#3FC56B" onClick={() => store.heal(char.id, 1)} />
           <HpBtn label="+5 Cura" color="#3FC56B" strong onClick={() => store.heal(char.id, 5)} />
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: 'var(--muted)' }}>
@@ -110,6 +128,38 @@ export function TabCombate({ char, derived }: TabProps) {
             </button>
           </div>
         </div>
+
+        {/* dano/cura por valor exato */}
+        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            className="fv-input"
+            value={amt}
+            onChange={(e) => setAmt(e.target.value.replace(/[^0-9]/g, ''))}
+            onKeyDown={(e) => { if (e.key === 'Enter') applyAmount(false); }}
+            inputMode="numeric"
+            placeholder="valor"
+            aria-label="Valor de dano ou cura"
+            style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
+          />
+          <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>
+          <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt)}>Curar</button>
+        </div>
+
+        {/* lembrete: salvaguarda de Concentração após sofrer dano */}
+        {concentrating && concDC !== null && (
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: hexA(t.acc, 0.1) }}>
+            <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
+              Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: "'Chakra Petch', monospace" }}>{concDC}</b>
+            </span>
+            <button
+              onClick={() => { check(`Concentração · CON (CD ${concDC})`, derived.abilities.con.save); setConcDC(null); }}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: hexA(t.acc, 0.14), color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+            >
+              Rolar {modStr(derived.abilities.con.save)}
+            </button>
+            <button onClick={() => setConcDC(null)} aria-label="Dispensar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+          </div>
+        )}
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>
@@ -352,6 +402,23 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
       {label}
     </button>
   );
+}
+
+function amtBtn(color: string, enabled: boolean): React.CSSProperties {
+  return {
+    cursor: enabled ? 'pointer' : 'not-allowed',
+    fontFamily: "'Inter', sans-serif",
+    fontWeight: 700,
+    fontSize: 12.5,
+    color,
+    minHeight: 40,
+    padding: '9px 14px',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid ' + hexA(color, enabled ? 0.6 : 0.25),
+    background: enabled ? hexA(color, 0.1) : 'transparent',
+    opacity: enabled ? 1 : 0.5,
+    transition: '.2s',
+  };
 }
 
 function moveBtn(accent: boolean): React.CSSProperties {

@@ -59,6 +59,10 @@ export interface DerivedCharacter {
   initiative: number;
   speed: number;
   passivePerception: number;
+  /** Investigação passiva = 10 + bônus de Investigação (Observador soma +5). */
+  passiveInvestigation: number;
+  /** Intuição passiva = 10 + bônus de Intuição. */
+  passiveInsight: number;
   skills: DerivedSkill[];
   attacks: DerivedAttack[];
   hitDiceMax: number;
@@ -285,6 +289,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       : null,
     ...feats.map((f) => (f.passivePerceptionBonus ? mod('pp', f.passivePerceptionBonus, f.label, 'feat') : null)),
   ]);
+  // Investigação/Intuição passivas (10 + bônus; Observador soma +5 na Investigação também)
+  const featPassive = feats.reduce((s, f) => s + (f.passivePerceptionBonus ?? 0), 0);
+  const investigation = skills.find((s) => s.key === 'investigation')!;
+  const insight = skills.find((s) => s.key === 'insight')!;
+  const passiveInvestigation = 10 + investigation.bonus + featPassive;
+  const passiveInsight = 10 + insight.bonus;
 
   // ---- Ataques (armas equipadas) ----
   const attacks: DerivedAttack[] = [];
@@ -378,6 +388,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     initiative: initBd.total,
     speed: speedBd.total,
     passivePerception: ppBd.total,
+    passiveInvestigation,
+    passiveInsight,
     skills,
     attacks,
     hitDiceMax: char.level,

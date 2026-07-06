@@ -327,6 +327,19 @@ describe('expertise (PHB 2014)', () => {
     expect(after.bonus).toBe(before.bonus + 2); // prof +2 dobrado no nível 1
   });
 
+  it('passivas de Investigação e Intuição = 10 + bônus da perícia', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'wizard' }));
+    const d = deriveCharacter(c);
+    expect(d.passiveInvestigation).toBe(10 + d.skills.find((s) => s.key === 'investigation')!.bonus);
+    expect(d.passiveInsight).toBe(10 + d.skills.find((s) => s.key === 'insight')!.bonus);
+  });
+
+  it('Observador soma +5 na Investigação passiva', () => {
+    const c = ensureCharacterV2(makeChar({ classId: 'wizard' }));
+    const withObs: Character = { ...c, feats: ['observant'] };
+    expect(deriveCharacter(withObs).passiveInvestigation).toBe(deriveCharacter(c).passiveInvestigation + 5);
+  });
+
   it('expertise em Percepção reflete na Percepção Passiva', () => {
     const c = ensureCharacterV2(makeChar({ classId: 'rogue' }));
     c.skillProfs = ['perception'];
