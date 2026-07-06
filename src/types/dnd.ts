@@ -107,6 +107,34 @@ export interface Feat {
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
+/**
+ * Bônus mecânicos SEMPRE ATIVOS de uma subclasse (aplicados no
+ * deriveCharacter). Características de uso ativo (Canalizar Divindade,
+ * manobras, ki, etc.) continuam como texto — só o que é passivo e
+ * derivável entra aqui.
+ */
+export interface SubclassBonus {
+  /** PV extra por nível de personagem (ex.: Resiliência Dracônica +1). */
+  hpPerLevel?: number;
+  /** CA sem armadura alternativa (ex.: Dracônico 13 + DES). */
+  unarmoredAC?: { base: number; ability: AbilityKey };
+  /** Bônus fixo de CA. */
+  acBonus?: number;
+  /** Deslocamento extra (metros). */
+  speedBonus?: number;
+  /** Bônus de iniciativa. */
+  initiativeBonus?: number;
+  /** Resistências a dano concedidas. */
+  resistances?: string[];
+  /** Proficiências concedidas (rótulos, para exibição). */
+  proficiencies?: string[];
+  /**
+   * Faixa de crítico por nível de classe (ex.: { 3: 19, 15: 18 } =
+   * crítico em 19–20 a partir do nível 3 e 18–20 a partir do 15).
+   */
+  critRange?: Record<number, number>;
+}
+
 export interface Subclass {
   id: string;
   classId: string;
@@ -114,6 +142,8 @@ export interface Subclass {
   desc: string;
   /** Características: nível de classe → nomes. */
   features: Record<number, string[]>;
+  /** Bônus mecânicos passivos (aplicados automaticamente na ficha). */
+  bonuses?: SubclassBonus;
 }
 
 export interface DndClass {

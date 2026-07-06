@@ -5,6 +5,8 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey, SkillKey } from '@/types/dnd';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILLS } from '@/data/skills';
 import { BACKGROUNDS } from '@/data/backgrounds';
+import { subclassesFor } from '@/data/subclasses';
+import { subclassLevelFor } from '@/engine/levelUp';
 import { racialBonusFor, abilityModifier } from '@/engine/modifiers';
 import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
@@ -29,6 +31,10 @@ export function CharacterEditModal({ char, onClose }: Props) {
     editCharacter(char.id, {
       skillProfs: char.skillProfs.includes(k) ? char.skillProfs.filter((x) => x !== k) : [...char.skillProfs, k],
     });
+
+  const subs = subclassesFor(char.classId);
+  const subLevel = subclassLevelFor(char.classId);
+  const canPickSub = char.level >= subLevel && subs.length > 0;
 
   const label: React.CSSProperties = { display: 'block', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 };
 
@@ -74,6 +80,35 @@ export function CharacterEditModal({ char, onClose }: Props) {
             <button onClick={() => setLevel(char.id, char.level + 1)} style={stepBtn(true)}>+</button>
           </div>
         </div>
+
+        {/* subclasse */}
+        {subs.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <label style={{ display: 'block' }}>
+              <span style={label}>Subclasse {canPickSub ? '' : `(escolhida no nível ${subLevel})`}</span>
+              <select
+                className="fv-input"
+                value={char.subclassId ?? ''}
+                disabled={!canPickSub}
+                onChange={(e) => editCharacter(char.id, { subclassId: e.target.value || null })}
+                style={{ opacity: canPickSub ? 1 : 0.55 }}
+              >
+                <option value="" style={{ color: '#111' }}>— nenhuma —</option>
+                {subs.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.label}</option>)}
+              </select>
+            </label>
+            {derived.grantedProficiencies.length > 0 && (
+              <div style={{ marginTop: 7, fontSize: 11.5, color: 'var(--muted)' }}>
+                Concede: <b style={{ color: 'var(--acc)' }}>{derived.grantedProficiencies.join(' · ')}</b>
+              </div>
+            )}
+            {derived.critMin < 20 && (
+              <div style={{ marginTop: 4, fontSize: 11.5, color: 'var(--muted)' }}>
+                Crítico ampliado: acerto crítico em <b style={{ color: 'var(--gold)' }}>{derived.critMin}–20</b>.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* atributos */}
         <div style={{ marginTop: 16 }}>

@@ -47,11 +47,13 @@ export interface RollOptions {
   damage?: boolean;
   advantage?: boolean;
   disadvantage?: boolean;
+  /** Menor natural do d20 que conta como crítico (padrão 20; Campeão reduz). */
+  critMin?: number;
 }
 
 /** Rola `count`d`sides` + modificador, com opção de vantagem/desvantagem (apenas 1d20). */
 export function roll(sides: number, options: RollOptions = {}): RollResult {
-  const { count = 1, modifier = 0, label = '', damage = false, advantage, disadvantage } = options;
+  const { count = 1, modifier = 0, label = '', damage = false, advantage, disadvantage, critMin = 20 } = options;
   const rolls: number[] = [];
   let sum = 0;
 
@@ -75,7 +77,7 @@ export function roll(sides: number, options: RollOptions = {}): RollResult {
   const expr = modifier ? `${exprBase} ${modStr(modifier)}` : exprBase;
   // Crítico/falha só fazem sentido para um único d20 puro.
   const natural = singleD20 ? (advantage || disadvantage ? sum : rolls[0]) : null;
-  const crit = natural === 20;
+  const crit = natural !== null && natural >= critMin;
   const fail = natural === 1;
 
   return {

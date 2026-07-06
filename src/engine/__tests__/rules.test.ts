@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { deriveCharacter } from '../dndRules';
 import {
@@ -218,6 +218,50 @@ describe('progressão de classe (CLASS_FEATURES 1–20)', () => {
         expect(CLASS_FEATURES[classId][lvl] ?? []).toContain('Aumento de Atributo');
       }
     }
+  });
+});
+
+describe('bônus mecânicos de subclasse', () => {
+  function leveled(classId: string, subclassId: string, level: number): Character {
+    const base = ensureCharacterV2(makeChar({ classId }));
+    return {
+      ...base,
+      level,
+      subclassId,
+      classLevels: [{ classId, level }],
+      levelHistory: synthesizeHistory({ level, classId, subclassId }),
+    };
+  }
+
+  it('Linhagem Dracônica: +1 PV/nível e CA sem armadura = 13 + DES', () => {
+    const c = leveled('sorcerer', 'draconic', 3);
+    const semSub: Character = { ...c, subclassId: null };
+    expect(deriveCharacter(c).maxHp).toBe(deriveCharacter(semSub).maxHp + 3); // +1 × 3 níveis
+    const noArmor: Character = { ...c, equipped: { ...c.equipped, armor: null, shield: null } };
+    const d = deriveCharacter(noArmor);
+    expect(d.ac).toBe(13 + d.abilities.dex.mod);
+    expect(d.breakdowns.ac.parts.some((p) => p.sourceType === 'subclass')).toBe(true);
+  });
+
+  it('Campeão: crítico amplia para 19 no nível 3 e 18 no nível 15', () => {
+    expect(deriveCharacter(leveled('fighter', 'champion', 3)).critMin).toBe(19);
+    expect(deriveCharacter(leveled('fighter', 'champion', 14)).critMin).toBe(19);
+    expect(deriveCharacter(leveled('fighter', 'champion', 15)).critMin).toBe(18);
+    // sem subclasse: crítico só no 20
+    expect(deriveCharacter(ensureCharacterV2(makeChar())).critMin).toBe(20);
+  });
+
+  it('a rolagem de ataque respeita o critMin (natural 19 vira crítico com Campeão)', async () => {
+    const { roll } = await import('../dice');
+    const spy = vi.spyOn(Math, 'random').mockReturnValue(0.9); // 1 + floor(0.9×20) = 19
+    expect(roll(20, { critMin: 20 }).crit).toBe(false); // padrão: 19 não é crítico
+    expect(roll(20, { critMin: 19 }).crit).toBe(true); // Campeão: 19 é crítico
+    spy.mockRestore();
+  });
+
+  it('Domínio da Vida concede proficiência de armadura pesada (exibição)', () => {
+    const c = leveled('cleric', 'life', 1);
+    expect(deriveCharacter(c).grantedProficiencies).toContain('Armadura pesada');
   });
 });
 

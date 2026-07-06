@@ -9,6 +9,7 @@ export function rollAttack(atk: DerivedAttack, opts: { advantage?: boolean; disa
     modifier: atk.attackBonus,
     advantage: opts.advantage,
     disadvantage: opts.disadvantage,
+    critMin: atk.critMin,
   });
 }
 

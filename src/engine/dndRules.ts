@@ -44,6 +44,8 @@ export interface DerivedAttack {
   versatileDie?: number;
   /** Dano extra de outro tipo (ex.: +2d6 fogo), sem modificador de atributo. */
   bonusDamage?: { dice: number; die: number; type: string };
+  /** Menor resultado natural do d20 que conta como crítico (20 padrão; 19/18 com Campeão). */
+  critMin: number;
   hitBreakdown: Breakdown;
   damageBreakdown: Breakdown;
 }
@@ -81,6 +83,10 @@ export interface DerivedCharacter {
   darkvision: { range: number; source: string } | null;
   languages: string[];
   resistances: { value: string; source: string }[];
+  /** Proficiências concedidas pela subclasse (exibição). */
+  grantedProficiencies: string[];
+  /** Menor natural do d20 que é crítico (20 padrão; 19/18 com Campeão). */
+  critMin: number;
   subclassLabel: string | null;
 }
 
@@ -120,8 +126,18 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const subrace = getSubrace(char.raceId, char.subraceId);
   const bg = getBackground(char.backgroundId);
   const subclass = getSubclass(char.subclassId ?? undefined);
+  const subBonus = subclass?.bonuses;
   const feats = (char.feats ?? []).map(getFeat).filter((f): f is NonNullable<typeof f> => !!f);
   const prof = proficiencyBonus(char.level);
+  // nível na classe da subclasse (monoclasse: nível do personagem)
+  const subClassLevel = (char.classLevels ?? []).find((c) => c.classId === subclass?.classId)?.level ?? char.level;
+  // limiar de crítico: 20, reduzido por subclasse (Campeão: 19 no nv3, 18 no nv15)
+  let critMin = 20;
+  if (subBonus?.critRange) {
+    for (const [lvl, threshold] of Object.entries(subBonus.critRange)) {
+      if (subClassLevel >= Number(lvl)) critMin = Math.min(critMin, threshold);
+    }
+  }
 
   // Resiliente (talento): concede proficiência na salvaguarda do atributo escolhido
   const resilientSave = (char.levelHistory ?? []).find(
@@ -176,6 +192,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     } else {
       acNote = 'armadura pesada não soma Destreza';
     }
+  } else if (subBonus?.unarmoredAC) {
+    // Defesa sem armadura da subclasse (ex.: Resiliência Dracônica = 13 + DES)
+    const u = subBonus.unarmoredAC;
+    acParts.push(mod('ac', u.base, subclass!.label, 'subclass', { label: 'CA sem armadura' }));
+    acParts.push(mod('ac', abilities[u.ability].mod, ABILITY_LABELS[u.ability], 'ability', { label: `modificador de ${u.ability.toUpperCase()}` }));
   } else {
     acParts.push(mod('ac', 10, 'Sem armadura', 'base'));
     acParts.push(mod('ac', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }));
@@ -197,6 +218,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const data = resolveItemData(it);
     if (data.acBonus) acParts.push(mod('ac', data.acBonus, it.name, it.homebrew ? 'homebrew' : 'item'));
   }
+  if (subBonus?.acBonus) acParts.push(mod('ac', subBonus.acBonus, subclass!.label, 'subclass'));
   const acBd = breakdown(acParts, acNote);
 
   // ---- PV máximo: linha do tempo (rolagens/média) + CON×nível + linhagem + Durão ----
@@ -223,6 +245,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   for (const f of feats) {
     if (f.hpPerLevel) hpParts.push(mod('hp', f.hpPerLevel * char.level, f.label, 'feat'));
   }
+  if (subBonus?.hpPerLevel) {
+    hpParts.push(mod('hp', subBonus.hpPerLevel * char.level, subclass!.label, 'subclass', { label: 'PV por nível' }));
+  }
   const hpBd = breakdown(hpParts);
   const maxHp = Math.max(1, hpBd.total);
   hpBd.total = maxHp;
@@ -232,12 +257,14 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     mod('speed', race.speed, race.label, 'race', { unit: 'm', label: 'deslocamento base' }),
     subrace?.speedBonus ? mod('speed', subrace.speedBonus, subrace.label, 'subrace', { unit: 'm', label: 'Pés Ligeiros' }) : null,
     ...feats.map((f) => (f.speedBonus ? mod('speed', f.speedBonus, f.label, 'feat', { unit: 'm' }) : null)),
+    subBonus?.speedBonus ? mod('speed', subBonus.speedBonus, subclass!.label, 'subclass', { unit: 'm' }) : null,
   ]);
 
   // ---- Iniciativa: DES + talentos ----
   const initBd = breakdown([
     mod('initiative', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }),
     ...feats.map((f) => (f.initiativeBonus ? mod('initiative', f.initiativeBonus, f.label, 'feat') : null)),
+    subBonus?.initiativeBonus ? mod('initiative', subBonus.initiativeBonus, subclass!.label, 'subclass') : null,
   ]);
 
   // ---- Perícias (proficiências: escolhas + antecedente + raça; expertise dobra) ----
@@ -300,6 +327,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       damageType: w.damageType,
       versatileDie: w.versatileDie,
       bonusDamage,
+      critMin,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });
@@ -333,7 +361,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const resistances = [
     ...(race.resistances ?? []).map((value) => ({ value, source: race.label })),
     ...(subrace?.resistances ?? []).map((value) => ({ value, source: subrace!.label })),
+    ...(subBonus?.resistances ?? []).map((value) => ({ value, source: subclass!.label })),
   ];
+  const grantedProficiencies = subBonus?.proficiencies ?? [];
 
   const carriedWeight = char.inventory.reduce((sum, it) => sum + it.weight * it.quantity, 0);
 
@@ -368,6 +398,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     darkvision,
     languages,
     resistances,
+    grantedProficiencies,
+    critMin,
     subclassLabel: subclass?.label ?? null,
   };
 }
