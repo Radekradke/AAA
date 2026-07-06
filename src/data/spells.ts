@@ -226,6 +226,19 @@ export const SPELLS: Spell[] = [
     higher: 'Afeta +1 criatura por círculo acima do 1º.', tags: ['buff'],
   },
 
+  {
+    id: 'sp-criaragua', level: 1, name: 'Criar ou Destruir Água', school: 'Transmutação',
+    castingTime: '1 ação', range: '9 m', components: 'V, S, M', duration: 'Instantânea',
+    classes: ['cleric', 'druid'], save: 'con',
+    desc: 'Cria até 40 L de água (ou chuva numa área) ou destrói água/névoa equivalente.', tags: ['utilidade'],
+  },
+  {
+    id: 'sp-saltar', level: 1, name: 'Saltar', school: 'Transmutação',
+    castingTime: '1 ação', range: 'Toque', components: 'V, S, M', duration: '1 minuto',
+    classes: ['druid', 'ranger', 'sorcerer', 'wizard'],
+    desc: 'A criatura tocada triplica a distância que consegue saltar.', tags: ['movimento', 'buff'],
+  },
+
   // ======================= 2º CÍRCULO =======================
   {
     id: 'sp-espelho', level: 2, name: 'Imagem Espelhada', school: 'Ilusão',

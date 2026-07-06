@@ -266,6 +266,37 @@ describe('bônus mecânicos de subclasse', () => {
   });
 });
 
+describe('magias concedidas por itens (BG3)', () => {
+  it('só valem com o item equipado ou sintonizado; recarga por descanso', async () => {
+    const { itemGrantedSpells } = await import('../spellcasting');
+    const c = ensureCharacterV2(makeChar());
+    const staff = itemToInventory(getItem('w-quarterstaff')!);
+    staff.grantsSpells = [{ spellId: 'sp-criaragua', recharge: 'atwill' }];
+    const bow = itemToInventory(getItem('w-longbow')!);
+    bow.grantsSpells = [{ spellId: 'sp-raygelo', recharge: 'short', uses: 1 }];
+
+    // guardado na mochila (nem equipado nem sintonizado) → não concede
+    const stored: Character = { ...c, inventory: [staff, bow] };
+    expect(itemGrantedSpells(stored)).toHaveLength(0);
+
+    // bastão equipado + arco sintonizado → concede as duas
+    const active: Character = {
+      ...c,
+      inventory: [staff, { ...bow, attuned: true }],
+      equipped: { ...c.equipped, mainHand: staff.uid },
+    };
+    const spells = itemGrantedSpells(active);
+    expect(spells.find((s) => s.spell.id === 'sp-criaragua')?.recharge).toBe('atwill');
+    const frost = spells.find((s) => s.spell.id === 'sp-raygelo')!;
+    expect(frost.usesMax).toBe(1);
+    expect(frost.usesLeft).toBe(1);
+
+    // gastar 1 uso do arco reflete em usesLeft
+    const used: Character = { ...active, combat: { ...active.combat, itemSpellUses: { [`${bow.uid}:sp-raygelo`]: 1 } } };
+    expect(itemGrantedSpells(used).find((s) => s.spell.id === 'sp-raygelo')!.usesLeft).toBe(0);
+  });
+});
+
 describe('Defesa sem Armadura (PHB 2014)', () => {
   it('Bárbaro sem armadura: CA = 10 + DES + CON', () => {
     const base = ensureCharacterV2(makeChar({ classId: 'barbarian', raceId: 'human' }));

@@ -15,6 +15,10 @@ interface SpellLibraryProps {
   onClose: () => void;
   /** Texto do botão de ação por magia. */
   actionLabel?: string;
+  /** Custo em ouro para aprender (mostra chip "X po" nas não-selecionadas). */
+  costOf?: (s: Spell) => number | undefined;
+  /** Bloqueia adicionar (ex.: sem ouro) — desabilita o botão +. */
+  blockedAdd?: (s: Spell) => boolean;
 }
 
 const SCHOOLS = ['Abjuração', 'Adivinhação', 'Conjuração', 'Encantamento', 'Evocação', 'Ilusão', 'Necromancia', 'Transmutação'];
@@ -28,7 +32,7 @@ const TAG_COLOR: Record<SpellTag, string> = {
 };
 
 /** Biblioteca de magias (estilo app de celular): busca + filtros + cartas detalhadas. */
-export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar' }: SpellLibraryProps) {
+export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar', costOf, blockedAdd }: SpellLibraryProps) {
   const t = useTheme();
   const [query, setQuery] = useState('');
   const [level, setLevel] = useState<number | null>(null);
@@ -107,16 +111,23 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                       {sp.area && <MiniChip color="#C24DFF">{sp.area}</MiniChip>}
                       {sp.concentration && <MiniChip color="#C24DFF">conc.</MiniChip>}
                       {sp.ritual && <MiniChip color="#4FA37A">ritual</MiniChip>}
+                      {!on && costOf && costOf(sp) !== undefined && <MiniChip color="#FFE08A">{costOf(sp)} po</MiniChip>}
                     </span>
                   </span>
                 </button>
-                <button
-                  onClick={() => onToggle(sp.id)}
-                  title={on ? 'Remover' : actionLabel}
-                  style={{ cursor: 'pointer', flex: 'none', minHeight: 34, padding: '5px 12px', borderRadius: 999, border: '1px solid ' + (on ? t.gold : t.acc), color: on ? t.gold : t.acc, background: on ? hexA(t.gold, 0.14) : hexA(t.acc, 0.1), fontWeight: 700, fontSize: 12.5 }}
-                >
-                  {on ? '✓' : '+'}
-                </button>
+                {(() => {
+                  const blocked = !on && !!blockedAdd && blockedAdd(sp);
+                  return (
+                    <button
+                      onClick={() => { if (!blocked) onToggle(sp.id); }}
+                      disabled={blocked}
+                      title={on ? 'Remover' : blocked ? 'Ouro insuficiente' : actionLabel}
+                      style={{ cursor: blocked ? 'not-allowed' : 'pointer', flex: 'none', minHeight: 34, padding: '5px 12px', borderRadius: 999, border: '1px solid ' + (on ? t.gold : blocked ? t.line : t.acc), color: on ? t.gold : blocked ? 'var(--muted)' : t.acc, background: on ? hexA(t.gold, 0.14) : blocked ? 'transparent' : hexA(t.acc, 0.1), opacity: blocked ? 0.5 : 1, fontWeight: 700, fontSize: 12.5 }}
+                    >
+                      {on ? '✓' : '+'}
+                    </button>
+                  );
+                })()}
               </div>
               {expanded && (
                 <div style={{ padding: '0 12px 12px 52px', display: 'flex', flexDirection: 'column', gap: 7 }}>

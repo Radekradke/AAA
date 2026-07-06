@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { InventoryItem } from '@/types/character';
 import type { DamageType, WeaponRange, WeaponType } from '@/types/dnd';
 import { customInventoryItem } from '@/engine/inventory';
+import { SPELLS } from '@/data/spells';
 import { RARITY } from '@/data/themes';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -60,6 +61,10 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [favorite, setFavorite] = useState(!!item?.favorite);
   const [attunement, setAttunement] = useState(!!item?.attunement);
   const [acBonus, setAcBonus] = useState(String(item?.acBonus ?? 0));
+  // magia concedida pelo item (estilo BG3)
+  const [grantSpell, setGrantSpell] = useState(item?.grantsSpells?.[0]?.spellId ?? '');
+  const [grantRecharge, setGrantRecharge] = useState<'atwill' | 'short' | 'long'>(item?.grantsSpells?.[0]?.recharge ?? 'atwill');
+  const [grantUses, setGrantUses] = useState(String(item?.grantsSpells?.[0]?.uses ?? 1));
   // arma
   const [dmgDice, setDmgDice] = useState(String(item?.weapon?.damageDice ?? 1));
   const [dmgDie, setDmgDie] = useState(String(item?.weapon?.damageDie ?? 8));
@@ -119,6 +124,9 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           }
         : undefined;
     const bonus = parseInt(acBonus) || 0;
+    const grantsSpells = grantSpell
+      ? [{ spellId: grantSpell, recharge: grantRecharge, uses: grantRecharge === 'atwill' ? undefined : Math.max(1, parseInt(grantUses) || 1) }]
+      : undefined;
 
     const base = {
       name: name.trim(),
@@ -132,6 +140,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       attunement,
       weapon,
       armor,
+      grantsSpells,
       acBonus: category === 'shield' || category === 'ring' ? bonus || (category === 'shield' ? 2 : 0) : bonus || undefined,
     };
 
@@ -306,6 +315,49 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           </div>
         </fieldset>
       )}
+
+      {/* magia concedida (estilo BG3) */}
+      <fieldset style={fieldsetStyle(t)}>
+        <legend style={legendStyle(t)}>Magia concedida (opcional)</legend>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
+          <label style={{ gridColumn: '1 / -1' }}>
+            <span style={label}>Magia</span>
+            <select className="fv-input" value={grantSpell} onChange={(e) => setGrantSpell(e.target.value)}>
+              <option value="" style={{ color: '#111' }}>— nenhuma —</option>
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((lv) => {
+                const opts = SPELLS.filter((s) => s.level === lv);
+                if (!opts.length) return null;
+                return (
+                  <optgroup key={lv} label={lv === 0 ? 'Truques' : `${lv}º círculo`}>
+                    {opts.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.name}</option>)}
+                  </optgroup>
+                );
+              })}
+            </select>
+          </label>
+          {grantSpell && (
+            <>
+              <label>
+                <span style={label}>Recarga</span>
+                <select className="fv-input" value={grantRecharge} onChange={(e) => setGrantRecharge(e.target.value as 'atwill' | 'short' | 'long')}>
+                  <option value="atwill" style={{ color: '#111' }}>À vontade (como truque)</option>
+                  <option value="short" style={{ color: '#111' }}>1×/descanso curto</option>
+                  <option value="long" style={{ color: '#111' }}>1×/descanso longo</option>
+                </select>
+              </label>
+              {grantRecharge !== 'atwill' && (
+                <label>
+                  <span style={label}>Usos por descanso</span>
+                  <input className="fv-input" value={grantUses} onChange={(e) => setGrantUses(e.target.value)} inputMode="numeric" />
+                </label>
+              )}
+            </>
+          )}
+        </div>
+        <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
+          Ex.: um bastão que concede <b style={{ color: 'var(--ink)' }}>Criar Água</b> à vontade, ou um arco com <b style={{ color: 'var(--ink)' }}>Raio de Gelo</b> 1×/descanso curto. A magia só vale com o item equipado ou sintonizado.
+        </p>
+      </fieldset>
 
       {/* bônus, sintonia e destaque */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 11, marginTop: 13 }}>

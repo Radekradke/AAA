@@ -60,6 +60,8 @@ interface CharacterState {
   toggleCondition: (id: string, cond: string) => void;
   setExhaustion: (id: string, level: number) => void;
   toggleConcentration: (id: string) => void;
+  /** Gasta um uso de uma magia concedida por item (recarga por descanso). */
+  useItemSpell: (id: string, key: string) => void;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   setResource: (id: string, resId: string, value: number) => void;
   spendHitDie: (id: string) => void;
@@ -366,6 +368,13 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.concentration = !c.combat.concentration;
           });
         },
+        useItemSpell(id, key) {
+          mutate(id, (c) => {
+            const uses = { ...(c.combat.itemSpellUses ?? {}) };
+            uses[key] = (uses[key] ?? 0) + 1;
+            c.combat.itemSpellUses = uses;
+          });
+        },
         toggleSpellSlot(id, level, index) {
           mutate(id, (c) => {
             const slot = c.combat.spellSlots[level];
@@ -399,6 +408,14 @@ export const useCharacterStore = create<CharacterState>()(
             for (const r of cls.resources ?? []) {
               if (r.recharge === 'short') c.combat.resources[r.id] = r.max;
             }
+            // magias de item com recarga em descanso curto voltam
+            const uses = { ...(c.combat.itemSpellUses ?? {}) };
+            for (const it of c.inventory) {
+              for (const g of it.grantsSpells ?? []) {
+                if (g.recharge === 'short') delete uses[`${it.uid}:${g.spellId}`];
+              }
+            }
+            c.combat.itemSpellUses = uses;
           });
         },
         longRest(id) {
@@ -416,6 +433,8 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.concentration = false;
             // descanso longo remove 1 nível de exaustão (PHB 2014)
             c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
+            // todas as magias de item recarregam no descanso longo
+            c.combat.itemSpellUses = {};
             // recupera metade dos dados de vida
             c.combat.hitDiceRemaining = Math.min(
               derived.hitDiceMax,

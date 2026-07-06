@@ -1,3 +1,7 @@
+import type { Character } from '@/types/character';
+import type { Spell } from '@/types/dnd';
+import { getSpell } from '@/data/spells';
+
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
  * conhece/prepara por nível. Serve para orientar o jogador ao aprender
@@ -81,4 +85,41 @@ export function spellsKnownOrPrepared(
     default:
       return { count: 0, label: kind === 'none' ? '—' : 'preparadas' };
   }
+}
+
+/** Magia concedida por um item, com estado de uso resolvido. */
+export interface ItemSpell {
+  /** Chave estável `uid:spellId` para rastrear usos. */
+  key: string;
+  itemUid: string;
+  itemName: string;
+  spell: Spell;
+  recharge: 'atwill' | 'short' | 'long';
+  /** Usos por descanso (0 = à vontade). */
+  usesMax: number;
+  usesLeft: number;
+}
+
+/**
+ * Magias concedidas por itens EQUIPADOS ou SINTONIZADOS (estilo BG3):
+ * ex.: um bastão que dá "Criar Água" à vontade, um arco que dá "Raio de
+ * Gelo" 1×/descanso curto. Itens só guardados na mochila não valem.
+ */
+export function itemGrantedSpells(char: Character): ItemSpell[] {
+  const equipped = new Set(Object.values(char.equipped ?? {}).filter(Boolean) as string[]);
+  const uses = char.combat?.itemSpellUses ?? {};
+  const out: ItemSpell[] = [];
+  for (const it of char.inventory ?? []) {
+    if (!it.grantsSpells?.length) continue;
+    if (!(equipped.has(it.uid) || it.attuned)) continue;
+    for (const g of it.grantsSpells) {
+      const spell = getSpell(g.spellId);
+      if (!spell) continue;
+      const key = `${it.uid}:${g.spellId}`;
+      const usesMax = g.recharge === 'atwill' ? 0 : Math.max(1, g.uses ?? 1);
+      const used = uses[key] ?? 0;
+      out.push({ key, itemUid: it.uid, itemName: it.name, spell, recharge: g.recharge, usesMax, usesLeft: Math.max(0, usesMax - used) });
+    }
+  }
+  return out;
 }

@@ -24,8 +24,23 @@ export interface InventoryItem {
   attunement?: boolean;
   /** Valor aproximado em peças de ouro. */
   value?: number;
+  /**
+   * Magias concedidas pelo item (estilo BG3): um bastão pode dar "Criar Água"
+   * à vontade, um arco pode dar "Raio de Gelo" 1×/descanso curto, etc.
+   * Só valem quando o item está equipado ou sintonizado.
+   */
+  grantsSpells?: ItemSpellGrant[];
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
+}
+
+/** Magia concedida por um item (recarga por descanso ou à vontade). */
+export interface ItemSpellGrant {
+  spellId: string;
+  /** 'atwill' = à vontade (como truque); 'short'/'long' = por descanso. */
+  recharge: 'atwill' | 'short' | 'long';
+  /** Quantos usos por descanso (recharge short/long). Padrão 1. */
+  uses?: number;
 }
 
 /** Proficiência com ferramenta (id do catálogo ou rótulo livre). */
@@ -82,6 +97,8 @@ export interface CombatState {
   concentration?: boolean;
   /** Recursos de classe consumidos (id -> usados). */
   resources: Record<string, number>;
+  /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
+  itemSpellUses?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
 }
 
