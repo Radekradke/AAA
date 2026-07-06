@@ -47,7 +47,7 @@ export function RollOverlay() {
   return createPortal(
     <AnimatePresence>
       {roll && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'grid', placeItems: 'center', padding: 14, pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'grid', placeItems: 'center', padding: 14, pointerEvents: 'none' }}>
           <motion.div
             key={roll.id}
             initial={{ opacity: 0, scale: 0.8 }}
