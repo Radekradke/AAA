@@ -10,6 +10,7 @@ import { CharacterSheet } from '@/pages/CharacterSheet';
 import { Campaigns } from '@/pages/Campaigns';
 import { CampaignRoom } from '@/pages/CampaignRoom';
 import { JoinCampaign } from '@/pages/JoinCampaign';
+import { Diagnostics } from '@/pages/Diagnostics';
 import type { ReactNode } from 'react';
 import { useCloudSync } from '@/hooks/useCloudSync';
 
@@ -30,6 +31,7 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/entrar" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/diagnostico" element={<Diagnostics />} />
         <Route
           path="/personagens"
           element={

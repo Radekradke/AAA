@@ -271,6 +271,13 @@ export function Login() {
               ? 'No modo offline as fichas ficam salvas neste aparelho e você pode entrar depois para sincronizar na nuvem.'
               : 'As fichas ficam salvas neste aparelho (funciona sem internet). Configure o Supabase para sincronizar na nuvem — veja docs/SUPABASE.md.'}
           </p>
+          {cloud && (
+            <p style={{ margin: '8px 0 0', textAlign: 'center' }}>
+              <button type="button" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
+                Problemas com o login? Abrir diagnóstico →
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </Screen>
