@@ -21,7 +21,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-
 export function App() {
   const location = useLocation();
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
