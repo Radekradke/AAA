@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: { id: account.id, name: account.name, email: account.email, guest: false } });
         return { ok: true };
       },
-
+    
       setUser(user) {
         set({ user });
       },
@@ -98,3 +98,7 @@ export const useAuthStore = create<AuthState>()(
     { name: 'fv-auth' },
   ),
 );
+console.log("tste")
+
+
+console.log("tste")
