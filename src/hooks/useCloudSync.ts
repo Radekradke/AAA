@@ -48,12 +48,17 @@ export function useCloudSync(): void {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const unsub = useCharacterStore.subscribe((state, prev) => {
       if (state.characters === prev.characters && state.pendingDeletes === prev.pendingDeletes) return;
-      const pending = state.characters.filter((c) => c.syncStatus === 'pending' || !c.lastSyncedAt).length;
-      useSaveStatusStore.getState().setPending(pending + state.pendingDeletes.length);
+      // pendência real: ficha DESTA conta (rascunho não conta) ainda fora da nuvem
+      const pending = state.characters.filter(
+        (c) => c.ownerId === user!.id && !c.draft && (c.syncStatus === 'pending' || !c.lastSyncedAt),
+      ).length;
+      const total = pending + state.pendingDeletes.length;
+      useSaveStatusStore.getState().setPending(total);
       if (!navigator.onLine) {
         useSaveStatusStore.getState().setCloud('offline');
         return;
       }
+      if (total === 0) return; // nada a enviar — não reagenda sync à toa
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => void syncNow(user!.id), SYNC_DEBOUNCE_MS);
     });
