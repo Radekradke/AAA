@@ -1,37 +1,40 @@
 import { useState } from 'react';
 import type { StepProps } from './stepTypes';
-import { ChapterTitle } from './ChapterTitle';
+import { StepHeader, Segmented } from './creatorUi';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
-import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS, SKILL_BY_KEY } from '@/data/skills';
+import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { getBackground } from '@/data/backgrounds';
-import { abilityModifier, proficiencyBonus, racialBonusFor } from '@/engine/modifiers';
+import { abilityModifier, racialBonusFor } from '@/engine/modifiers';
 import { standardArrayFor, recommendedAbilities, STANDARD_ARRAY } from '@/engine/characterBuilder';
 import { getClass } from '@/data/classes';
 import { modStr } from '@/engine/dice';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
-import { BackgroundPicker } from './BackgroundPicker';
 
 type Method = 'array' | 'pointbuy' | 'manual';
 
 const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
 const POINT_BUDGET = 27;
 
-export function StepAbilities({ char, update }: StepProps) {
-  const t = useTheme();
-  const [method, setMethod] = useState<Method>('array');
+const METHODS: { id: Method; label: string }[] = [
+  { id: 'array', label: 'Valores padrão' },
+  { id: 'pointbuy', label: 'Compra de pontos' },
+  { id: 'manual', label: 'Livre' },
+];
 
+/** Capítulo IV — Atributos: seis linhas, um controle cada. */
+export function StepAbilities({ char, update }: StepProps) {
+  const [method, setMethod] = useState<Method>('array');
   const base = char.baseAbilities;
+  const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
-  const prof = proficiencyBonus(char.level);
+  const recommended = recommendedAbilities(char.classId);
 
   const setBase = (key: AbilityKey, value: number) =>
     update((c) => {
       c.baseAbilities = { ...c.baseAbilities, [key]: value };
     });
 
-  // ---- Array Padrão: troca de valores garantindo unicidade ----
+  // valores padrão (15·14·13·12·10·8): trocar um valor troca com quem o tinha
   const assignArrayValue = (key: AbilityKey, value: number) =>
     update((c) => {
       const next = { ...c.baseAbilities };
@@ -41,284 +44,83 @@ export function StepAbilities({ char, update }: StepProps) {
       c.baseAbilities = next;
     });
 
-  const pointsSpent = ABILITY_KEYS.reduce((sum, k) => sum + (POINT_COST[base[k]] ?? 0), 0);
-  const pointsLeft = POINT_BUDGET - pointsSpent;
+  const pointsLeft = POINT_BUDGET - ABILITY_KEYS.reduce((sum, k) => sum + (POINT_COST[base[k]] ?? 0), 0);
 
-  const methodTab = (m: Method, label: string) => {
-    const active = method === m;
-    return (
-      <button
-        key={m}
-        onClick={() => {
-          setMethod(m);
-          if (m === 'array') update((c) => { c.baseAbilities = standardArrayFor(c.classId); });
-          if (m === 'pointbuy') update((c) => {
-            const reset = {} as typeof c.baseAbilities;
-            for (const k of ABILITY_KEYS) reset[k] = 8;
-            c.baseAbilities = reset;
-          });
-        }}
-        style={{
-          fontFamily: active ? "'Cinzel', serif" : "'Inter', sans-serif",
-          fontSize: 13,
-          padding: '8px 16px',
-          borderRadius: 999,
-          cursor: 'pointer',
-          border: '1px solid ' + (active ? t.gold : t.line),
-          color: active ? t.gold : t.muted,
-          background: active ? hexA(t.gold, 0.1) : 'transparent',
-          transition: '.2s',
-        }}
-      >
-        {label}
-      </button>
-    );
+  const changeMethod = (m: Method) => {
+    setMethod(m);
+    if (m === 'array') update((c) => { c.baseAbilities = standardArrayFor(c.classId); });
+    if (m === 'pointbuy') update((c) => {
+      const reset = {} as typeof c.baseAbilities;
+      for (const k of ABILITY_KEYS) reset[k] = 8;
+      c.baseAbilities = reset;
+    });
+  };
+
+  const step = (key: AbilityKey, dir: 1 | -1) => {
+    const v = base[key];
+    if (dir < 0) {
+      if (v > (method === 'pointbuy' ? 8 : 3)) setBase(key, v - 1);
+      return;
+    }
+    if (v >= (method === 'pointbuy' ? 15 : 20)) return;
+    if (method === 'pointbuy' && pointsLeft - ((POINT_COST[v + 1] ?? 99) - (POINT_COST[v] ?? 0)) < 0) return;
+    setBase(key, v + 1);
   };
 
   return (
-    <div className="animate-riseIn">
-      <ChapterTitle
-        chapter="Capítulo IV"
-        title="Atributos"
-        subtitle="Escolha o passado e distribua os seis pilares do herói. Bônus raciais e perícias entram no cálculo automaticamente."
-      />
+    <div className="fv-step">
+      <StepHeader step={3} subtitle={`Priorize ${ABILITY_LABELS[cls.prim]} — é o que move o ${cls.label}.`} />
 
-      <div style={{ marginBottom: 16 }}>
-        <BackgroundPicker char={char} update={update} />
-      </div>
-
-      <div style={{ display: 'flex', gap: 9, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        {methodTab('array', 'Array Padrão')}
-        {methodTab('pointbuy', 'Ponto de Compra')}
-        {methodTab('manual', 'Manual')}
+      <div className="fv-abil-toolbar">
+        <Segmented label="Método" options={METHODS} value={method} onChange={changeMethod} />
         {method === 'pointbuy' && (
-          <span
-            style={{
-              fontFamily: "'Chakra Petch', monospace",
-              fontSize: 13,
-              padding: '8px 16px',
-              borderRadius: 999,
-              border: '1px solid ' + (pointsLeft < 0 ? t.danger : t.line),
-              color: pointsLeft < 0 ? t.danger : 'var(--ink)',
-              alignSelf: 'center',
-            }}
-          >
-            {pointsLeft} pontos
+          <span className={'fv-points' + (pointsLeft < 0 ? ' is-over' : '')}>
+            <b>{pointsLeft}</b> pontos
           </span>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 112px), 1fr))', gap: 12 }}>
+      <div className="fv-abil-list">
         {ABILITY_KEYS.map((key) => {
           const baseVal = base[key];
           const racial = racialBonusFor(key, char.raceId, char.subraceId);
           const total = baseVal + racial;
-          const mod = abilityModifier(total);
-          const favored = bg.suggestedAbilities.includes(key);
-          const recommended = recommendedAbilities(char.classId).includes(key);
-          const color = ABILITY_COLORS[key];
+          const isRec = recommended.includes(key);
+          const isBg = bg.suggestedAbilities.includes(key);
           return (
-            <div
-              key={key}
-              style={{
-                position: 'relative',
-                background: `linear-gradient(170deg, ${hexA(color, 0.08)}, var(--panel2))`,
-                border: '1px solid ' + (recommended ? hexA(t.gold, 0.7) : hexA(color, 0.3)),
-                borderTop: `2px solid ${recommended ? t.gold : hexA(color, 0.6)}`,
-                borderRadius: 15,
-                padding: '15px 12px 14px',
-                textAlign: 'center',
-                boxShadow: recommended
-                  ? '0 0 24px ' + hexA(t.gold, 0.2) + ', inset 0 1px 0 rgba(255,255,255,.05)'
-                  : favored
-                    ? '0 0 18px ' + hexA(t.gold, 0.1) + ', inset 0 1px 0 rgba(255,255,255,.05)'
-                    : 'inset 0 1px 0 rgba(255,255,255,.05)',
-                overflow: 'hidden',
-              }}
-            >
-              {(recommended || favored) && (
-                <div
-                  title={recommended ? `Recomendado para ${getClass(char.classId).label}` : `Favorecido pelo antecedente ${bg.label}`}
-                  style={{
-                    position: 'absolute',
-                    top: 9,
-                    right: 9,
-                    fontSize: 8.5,
-                    letterSpacing: '.08em',
-                    color: '#140d04',
-                    background: recommended ? t.gold : hexA(t.gold, 0.65),
-                    borderRadius: 999,
-                    padding: '3px 7px',
-                    fontWeight: 800,
-                  }}
-                >
-                  {recommended ? 'CLASSE' : 'BG'}
-                </div>
-              )}
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
-                {ABILITY_SHORT[key]}
+            <div key={key} className={'fv-abil' + (isRec ? ' is-rec' : '')} style={{ ['--abil-color' as string]: ABILITY_COLORS[key] }}>
+              <div className="fv-abil-name">
+                <b>{ABILITY_SHORT[key]}</b>
+                <span>{ABILITY_LABELS[key]}</span>
+                {(isRec || isBg) && <em title={isRec ? `Importante para ${cls.label}` : `Combina com ${bg.label}`}>{isRec ? cls.label : bg.label}</em>}
               </div>
-              <div
-                style={{
-                  fontFamily: "'Chakra Petch', monospace",
-                  fontWeight: 700,
-                  fontSize: 38,
-                  lineHeight: 1,
-                  color: 'var(--ink)',
-                  margin: '6px 0 2px',
-                }}
-              >
-                {modStr(mod)}
+
+              <div className="fv-abil-ctrl">
+                {method === 'array' ? (
+                  <select aria-label={`Valor de ${ABILITY_LABELS[key]}`} value={baseVal} onChange={(e) => assignArrayValue(key, Number(e.target.value))}>
+                    {STANDARD_ARRAY.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    <button type="button" aria-label={`Diminuir ${ABILITY_LABELS[key]}`} onClick={() => step(key, -1)}>−</button>
+                    <span className="fv-abil-base">{baseVal}</span>
+                    <button type="button" aria-label={`Aumentar ${ABILITY_LABELS[key]}`} onClick={() => step(key, 1)}>+</button>
+                  </>
+                )}
               </div>
-              <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 13, color: 'var(--acc)' }}>{total}</div>
 
-              {method === 'array' ? (
-                <select
-                  value={baseVal}
-                  onChange={(e) => assignArrayValue(key, Number(e.target.value))}
-                  style={{
-                    marginTop: 10,
-                    width: '100%',
-                    background: 'rgba(0,0,0,.3)',
-                    color: 'var(--ink)',
-                    border: '1px solid var(--line)',
-                    borderRadius: 8,
-                    padding: '5px',
-                    fontFamily: "'Chakra Petch', monospace",
-                    fontSize: 13,
-                  }}
-                >
-                  {STANDARD_ARRAY.map((v) => (
-                    <option key={v} value={v} style={{ color: '#111' }}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                  <Stepper
-                    onClick={() => {
-                      const min = method === 'pointbuy' ? 8 : 3;
-                      if (baseVal > min) setBase(key, baseVal - 1);
-                    }}
-                    sign="−"
-                  />
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 16, color: 'var(--ink)', minWidth: 22 }}>
-                    {baseVal}
-                  </span>
-                  <Stepper
-                    accent
-                    onClick={() => {
-                      const max = method === 'pointbuy' ? 15 : 20;
-                      if (baseVal >= max) return;
-                      if (method === 'pointbuy') {
-                        const cost = (POINT_COST[baseVal + 1] ?? 99) - (POINT_COST[baseVal] ?? 0);
-                        if (pointsLeft - cost < 0) return;
-                      }
-                      setBase(key, baseVal + 1);
-                    }}
-                    sign="+"
-                  />
-                </div>
-              )}
-
-              {racial > 0 ? (
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 10.5,
-                    color: 'var(--gold)',
-                    background: hexA(t.gold, 0.12),
-                    border: '1px solid ' + hexA(t.gold, 0.3),
-                    borderRadius: 999,
-                    padding: '2px 0',
-                  }}
-                >
-                  {baseVal} +{racial} racial
-                </div>
-              ) : (
-                <div style={{ marginTop: 8, fontSize: 10.5, color: 'var(--muted)' }}>base {baseVal}</div>
-              )}
+              <div className="fv-abil-total" title={racial ? `${baseVal} + ${racial} da linhagem` : undefined}>
+                {total}
+                {racial > 0 && <small>+{racial}</small>}
+              </div>
+              <div className="fv-abil-mod">{modStr(abilityModifier(total))}</div>
             </div>
           );
         })}
       </div>
-
-      <div
-        className="fv-surface"
-        style={{
-          marginTop: 14,
-          padding: 14,
-          border: '1px solid ' + hexA(t.gold, 0.34),
-          background: 'linear-gradient(160deg, rgba(0,0,0,.24), ' + hexA(t.gold, 0.08) + ')',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 9 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>
-            Antecedente: {bg.label}
-          </div>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--gold)' }}>
-            proficiência +{prof}
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 9 }}>
-          {bg.skills.map((skillKey) => {
-            const skill = SKILL_BY_KEY[skillKey];
-            const total = base[skill.ability] + racialBonusFor(skill.ability, char.raceId, char.subraceId);
-            const bonus = abilityModifier(total) + prof;
-            return (
-              <div
-                key={skillKey}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '9px 11px',
-                  borderRadius: 11,
-                  border: '1px solid var(--line)',
-                  background: 'rgba(0,0,0,.22)',
-                }}
-              >
-                <div>
-                  <div style={{ color: 'var(--ink)', fontWeight: 700, fontSize: 13 }}>{skill.label}</div>
-                  <div style={{ color: 'var(--muted)', fontSize: 11, fontFamily: "'Chakra Petch', monospace" }}>
-                    usa {ABILITY_SHORT[skill.ability]}
-                  </div>
-                </div>
-                <div style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 18 }}>
-                  {modStr(bonus)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <p style={{ marginTop: 14, fontSize: 12.5, color: 'var(--muted)' }}>
-        Dica: priorize <b style={{ color: 'var(--ink)' }}>{ABILITY_LABELS[getClass(char.classId).prim]}</b>, o
-        atributo principal do {getClass(char.classId).label}, para ataques e magias mais certeiros.
-      </p>
+      <p className="fv-step-note">O total já soma o bônus da linhagem; o número grande é o modificador que vai nos testes.</p>
     </div>
-  );
-}
-
-function Stepper({ sign, onClick, accent }: { sign: string; onClick: () => void; accent?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        width: 30,
-        height: 30,
-        borderRadius: 8,
-        border: '1px solid var(--line)',
-        background: 'rgba(0,0,0,.26)',
-        color: accent ? 'var(--acc)' : 'var(--muted)',
-        fontWeight: 700,
-        fontSize: 15,
-      }}
-    >
-      {sign}
-    </button>
   );
 }

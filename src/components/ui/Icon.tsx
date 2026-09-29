@@ -11,6 +11,7 @@ interface IconProps {
   color?: string;
   style?: CSSProperties;
   strokeWidth?: number;
+  className?: string;
 }
 
 /**
@@ -34,10 +35,10 @@ const STROKE_PATHS: Record<Exclude<IconName, GameIconName>, React.ReactNode> = {
  * Ícone do HUD. Os temáticos (abas, dados, forja…) vêm do game-icons.net —
  * silhuetas preenchidas com cara de RPG; herdam a cor do texto.
  */
-export function Icon({ name, size = 18, color = 'currentColor', style, strokeWidth = 1.6 }: IconProps) {
+export function Icon({ name, size = 18, color = 'currentColor', style, strokeWidth = 1.6, className }: IconProps) {
   if (name in GAME_ICONS) {
     return (
-      <svg width={size} height={size} viewBox="0 0 512 512" fill={color} aria-hidden style={{ flex: 'none', ...style }}>
+      <svg width={size} height={size} viewBox="0 0 512 512" fill={color} aria-hidden className={className} style={{ flex: 'none', ...style }}>
         {GAME_ICONS[name as GameIconName].map((d, i) => (
           <path key={i} d={d} />
         ))}
@@ -55,6 +56,7 @@ export function Icon({ name, size = 18, color = 'currentColor', style, strokeWid
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
+      className={className}
       style={{ flex: 'none', ...style }}
     >
       {STROKE_PATHS[name as Exclude<IconName, GameIconName>]}

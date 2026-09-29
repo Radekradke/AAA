@@ -5,72 +5,83 @@ import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import { abilityModifier, totalAbilities } from './modifiers';
-import { averageHp } from './levelUp';
 
 /**
- * Resumo vivo da criação: o que cada escolha desbloqueia na ficha
- * ("Você desbloqueou…") e o que ainda falta para concluir. Puro —
- * a UI só exibe; o motor de regras continua sendo a fonte de verdade.
+ * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
+ * e o que ainda falta para concluir. Puro — a UI só exibe; o motor de
+ * regras continua sendo a fonte de verdade.
  */
-export interface GainGroup {
-  source: string;
-  items: string[];
-}
-
 export interface PendingItem {
   label: string;
-  /** Índice da etapa onde resolver (STEP_LABELS do criador). */
+  /** Índice da etapa onde resolver (CREATION_STEPS). */
   step: number;
 }
 
-export function creationGains(char: Character): GainGroup[] {
-  const race = getRace(char.raceId);
-  const subrace = getSubrace(char.raceId, char.subraceId);
-  const cls = getClass(char.classId);
-  const bg = getBackground(char.backgroundId);
-  const groups: GainGroup[] = [];
+/**
+ * Ordem das etapas da criação (estilo BG3: primeiro quem você é no mundo,
+ * depois os números, e o nome por último, no Despertar).
+ */
+export const CREATION_STEPS = [
+  { id: 'origem', label: 'Origem', title: 'Origem', subtitle: 'Sua linhagem: corpo, sentidos e herança.' },
+  { id: 'caminho', label: 'Caminho', title: 'Caminho', subtitle: 'Sua classe: como você enfrenta o perigo.' },
+  { id: 'passado', label: 'Passado', title: 'Passado', subtitle: 'Quem você era antes da aventura.' },
+  { id: 'atributos', label: 'Atributos', title: 'Atributos', subtitle: 'Os seis pilares do herói.' },
+  { id: 'pericias', label: 'Perícias', title: 'Perícias', subtitle: 'No que você é treinado.' },
+  { id: 'equipamento', label: 'Equipamento', title: 'Equipamento', subtitle: 'O que você carrega na primeira aventura.' },
+  { id: 'despertar', label: 'Despertar', title: 'Despertar', subtitle: 'Dê nome e alma ao herói.' },
+] as const;
 
-  // ---- linhagem ----
-  const raceItems: string[] = [];
-  if (race.bonus) raceItems.push(race.bonus);
-  const dark = subrace?.darkvision ?? race.darkvision;
-  if (dark) raceItems.push(`Visão no Escuro ${dark} m`);
-  for (const sk of race.skillProfs ?? []) raceItems.push(`Proficiência: ${SKILL_BY_KEY[sk].label}`);
-  for (const r of race.resistances ?? []) raceItems.push(`Resistência: ${r}`);
-  for (const r of subrace?.resistances ?? []) raceItems.push(`Resistência: ${r}`);
-  if (subrace?.speedBonus) raceItems.push(`+${String(subrace.speedBonus).replace('.', ',')} m de deslocamento`);
-  if (subrace?.hpPerLevel) raceItems.push(`+${subrace.hpPerLevel} PV por nível`);
-  if (race.extraSkillPicks) raceItems.push(`${race.extraSkillPicks} perícias à sua escolha`);
-  if (race.languages?.length) raceItems.push(`Idiomas: ${race.languages.join(', ')}`);
-  groups.push({ source: `${race.label}${subrace ? ` · ${subrace.label}` : ''}`, items: raceItems });
+export const STEP_SKILLS = 4;
+export const STEP_GEAR = 5;
+export const STEP_IDENTITY = 6;
 
-  // ---- vocação ----
-  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId).con);
-  const classItems: string[] = [
-    `Dado de vida d${cls.hitDie} · PV inicial ${cls.hitDie + conMod}`,
-    `Salvaguardas: ${cls.savingThrows.map((k) => ABILITY_SHORT[k]).join(' e ')}`,
-    `${cls.skillPicks} perícias à escolha da classe`,
-  ];
-  for (const id of cls.tools ?? []) classItems.push(`Proficiência: ${toolLabel(id)}`);
-  for (const res of cls.resources ?? []) classItems.push(`Recurso: ${res.label}`);
-  if (cls.spellcasting) classItems.push(`Conjuração (${ABILITY_SHORT[cls.prim]}) · média d${cls.hitDie} = ${averageHp(cls.hitDie)}/nível`);
-  groups.push({ source: cls.label, items: classItems });
-
-  // ---- passado ----
-  const bgItems: string[] = bg.skills.map((sk) => `Proficiência: ${SKILL_BY_KEY[sk].label}`);
-  for (const id of bg.tools ?? []) bgItems.push(`Ferramenta: ${toolLabel(id)}`);
-  if (bg.languagesCount) bgItems.push(`+${bg.languagesCount} idioma${bg.languagesCount > 1 ? 's' : ''} à escolha`);
-  if (bg.equipment?.length) bgItems.push(`Equipamento inicial (${bg.equipment.length} itens)`);
-  if (bg.startingGold) bgItems.push(`${bg.startingGold} po iniciais`);
-  if (bg.featureName) bgItems.push(`Característica: ${bg.featureName}`);
-  groups.push({ source: bg.label, items: bgItems });
-
-  return groups.filter((g) => g.items.length > 0);
+/** Um fato concreto que a escolha coloca na ficha ("Na ficha"). */
+export interface Fact {
+  label: string;
+  value: string;
 }
 
-/** Etapas dos rótulos do criador (mantidas em sincronia com STEP_LABELS). */
-export const STEP_IDENTITY = 0;
-export const STEP_SKILLS = 4;
+export function raceFacts(char: Character): Fact[] {
+  const race = getRace(char.raceId);
+  const sub = getSubrace(char.raceId, char.subraceId);
+  const facts: Fact[] = [{ label: 'Atributos', value: [race.bonus, sub?.bonus].filter(Boolean).join(' · ') }];
+  facts.push({ label: 'Deslocamento', value: `${String(race.speed + (sub?.speedBonus ?? 0)).replace('.', ',')} m` });
+  const dark = sub?.darkvision ?? race.darkvision;
+  if (dark) facts.push({ label: 'Visão no escuro', value: `${dark} m` });
+  const res = [...(race.resistances ?? []), ...(sub?.resistances ?? [])];
+  if (res.length) facts.push({ label: 'Resistência', value: res.join(', ') });
+  if (race.skillProfs?.length) facts.push({ label: 'Perícia', value: race.skillProfs.map((k) => SKILL_BY_KEY[k].label).join(', ') });
+  if (race.extraSkillPicks) facts.push({ label: 'Perícias livres', value: `${race.extraSkillPicks} à escolha` });
+  if (sub?.hpPerLevel) facts.push({ label: 'Vida extra', value: `+${sub.hpPerLevel} PV por nível` });
+  if (race.languages?.length) facts.push({ label: 'Idiomas', value: race.languages.join(', ') });
+  const traits = [...race.traits, ...(sub?.traits ?? [])];
+  if (traits.length) facts.push({ label: 'Traços', value: traits.join(', ') });
+  return facts;
+}
+
+export function classFacts(char: Character): Fact[] {
+  const cls = getClass(char.classId);
+  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId).con);
+  const facts: Fact[] = [
+    { label: 'Vida', value: `d${cls.hitDie} · ${cls.hitDie + conMod} PV no nível 1` },
+    { label: 'Resistências', value: cls.savingThrows.map((k) => ABILITY_SHORT[k]).join(' e ') },
+    { label: 'Perícias', value: `${cls.skillPicks} à escolha` },
+  ];
+  if (cls.resources?.length) facts.push({ label: 'Recursos', value: cls.resources.map((r) => r.label).join(', ') });
+  if (cls.spellcasting) facts.push({ label: 'Magia', value: `conjura com ${ABILITY_SHORT[cls.spellAbility ?? cls.prim]}` });
+  if (cls.tools?.length) facts.push({ label: 'Ferramentas', value: cls.tools.map(toolLabel).join(', ') });
+  return facts;
+}
+
+export function backgroundFacts(char: Character): Fact[] {
+  const bg = getBackground(char.backgroundId);
+  const facts: Fact[] = [{ label: 'Perícias', value: bg.skills.map((k) => SKILL_BY_KEY[k].label).join(' e ') }];
+  if (bg.tools?.length) facts.push({ label: 'Ferramentas', value: bg.tools.map(toolLabel).join(', ') });
+  if (bg.languagesCount) facts.push({ label: 'Idiomas', value: `+${bg.languagesCount} à escolha` });
+  if (bg.startingGold) facts.push({ label: 'Ouro', value: `${bg.startingGold} po` });
+  if (bg.equipment?.length) facts.push({ label: 'Itens', value: bg.equipment.join(', ') });
+  return facts;
+}
 
 export function creationPending(char: Character): PendingItem[] {
   const pending: PendingItem[] = [];

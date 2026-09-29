@@ -6,34 +6,28 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
 import type { Character } from '@/types/character';
-import { StepIdentity } from '@/components/character/StepIdentity';
 import { StepRace } from '@/components/character/StepRace';
 import { StepClass } from '@/components/character/StepClass';
+import { StepBackground } from '@/components/character/StepBackground';
 import { StepAbilities } from '@/components/character/StepAbilities';
 import { StepSkills } from '@/components/character/StepSkills';
 import { StepGear } from '@/components/character/StepGear';
-import { StepReview } from '@/components/character/StepReview';
-import { LiveSummary } from '@/components/character/LiveSummary';
+import { StepAwaken } from '@/components/character/StepAwaken';
+import { HeroPanel } from '@/components/character/HeroPanel';
 import { Modal } from '@/components/ui/Modal';
-import { Icon } from '@/components/ui/Icon';
-import { creationPending } from '@/engine/creationSummary';
+import { creationPending, CREATION_STEPS, STEP_GEAR } from '@/engine/creationSummary';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
+import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
 import { getRace } from '@/data/races';
 import { getClass } from '@/data/classes';
-
-const STEP_LABELS = ['Identidade', 'Origem', 'Caminho', 'Atributos', 'Perícias', 'Equipamento', 'Despertar'];
-const GEAR_STEP = 5;
 
 export function CharacterCreator() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
   const bump = useUiStore((s) => s.bump);
-  const t = useTheme();
 
   const characters = useCharacterStore((s) => s.characters);
   const { startDraft, setCurrent, updateCharacter, finalizeDraft, deleteCharacter } = useCharacterStore();
@@ -70,7 +64,7 @@ export function CharacterCreator() {
 
   // pré-preenche o equipamento ao entrar no passo, se ainda vazio
   useEffect(() => {
-    if (step === GEAR_STEP && char && char.inventory.length === 0) {
+    if (step === STEP_GEAR && char && char.inventory.length === 0) {
       update((c) => applySelection(c, defaultSelection(c.classId)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,7 +80,8 @@ export function CharacterCreator() {
     );
   }
 
-  const isLast = step === STEP_LABELS.length - 1;
+  const LAST = CREATION_STEPS.length - 1;
+  const isLast = step === LAST;
   const pending = creationPending(char);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
@@ -99,7 +94,7 @@ export function CharacterCreator() {
     bump(0.8);
   };
   const next = () => {
-    setStep((s) => Math.min(STEP_LABELS.length - 1, s + 1));
+    setStep((s) => Math.min(LAST, s + 1));
     bump(0.9);
   };
   const prev = () => {
@@ -127,13 +122,13 @@ export function CharacterCreator() {
 
   const renderStep = () => {
     switch (step) {
-      case 0: return <StepIdentity char={char} update={update} />;
-      case 1: return <StepRace char={char} update={update} />;
-      case 2: return <StepClass char={char} update={update} />;
+      case 0: return <StepRace char={char} update={update} />;
+      case 1: return <StepClass char={char} update={update} />;
+      case 2: return <StepBackground char={char} update={update} />;
       case 3: return <StepAbilities char={char} update={update} />;
       case 4: return <StepSkills char={char} update={update} />;
       case 5: return <StepGear char={char} update={update} />;
-      default: return <StepReview char={char} update={update} />;
+      default: return <StepAwaken char={char} update={update} onGoStep={goStep} />;
     }
   };
 
@@ -151,222 +146,98 @@ export function CharacterCreator() {
       menu={[{ label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true }]}
     >
       <RaceAura raceId={char.raceId} />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 'calc(var(--topbar-h) + 6px) var(--page-x) clamp(14px,3vh,26px)',
-          gap: 'clamp(12px,1.8vh,20px)',
-        }}
-      >
-        {/* indicador de progresso */}
-        <div
-          className="fv-steps fv-no-scrollbar"
-          style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', flex: 'none', maxWidth: '100%' }}
-        >
-          {STEP_LABELS.map((label, i) => {
-            const active = step === i;
-            const done = step > i;
-            return (
-              <div
-                key={label}
-                onClick={() => goStep(i)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 9,
-                  minHeight: 38,
-                  padding: '7px 14px 7px 8px',
-                  borderRadius: 999,
-                  cursor: 'pointer',
-                  border: '1px solid ' + (active ? t.gold : done ? hexA(t.acc, 0.5) : t.line),
-                  background: active ? hexA(t.gold, 0.12) : t.panel,
-                  boxShadow: active ? '0 0 22px ' + hexA(t.gold, 0.32) : 'none',
-                  transition: '.3s',
-                  whiteSpace: 'nowrap',
-                  backdropFilter: 'blur(8px)',
-                  flex: '0 0 auto',
-                }}
-              >
-                <span
-                  style={{
-                    width: 23,
-                    height: 23,
-                    borderRadius: 999,
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontFamily: "'Chakra Petch', monospace",
-                    fontWeight: 700,
-                    fontSize: 12,
-                    background: active ? t.gold : done ? hexA(t.acc, 0.9) : t.steel,
-                    color: active || done ? '#140d04' : t.muted,
-                  }}
+      <div className="fv-forge">
+        {/* capítulos (desktop): um diário de missão, clicável */}
+        <nav className="fv-forge-rail" aria-label="Capítulos da criação">
+          <div className="fv-rail-title">Forja do Herói</div>
+          <ol>
+            {CREATION_STEPS.map((s, i) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  aria-current={step === i ? 'step' : undefined}
+                  className={step === i ? 'is-current' : i < step ? 'is-done' : ''}
+                  onClick={() => goStep(i)}
                 >
-                  {i + 1}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    letterSpacing: '.03em',
-                    color: active ? t.gold : done ? 'var(--ink)' : t.muted,
-                  }}
-                >
-                  {label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                  <span className="fv-rail-mark" aria-hidden>{i < step ? '✓' : i + 1}</span>
+                  {s.label}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
 
-        {/* progresso explícito no celular: etapa atual + barra animada */}
-        <div className="fv-mobile-only" style={{ flexDirection: 'column', gap: 6, flex: 'none' }}>
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: t.gold, letterSpacing: '.04em' }}>
-            Etapa {step + 1} de {STEP_LABELS.length} · {STEP_LABELS[step]}
-          </span>
-          <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,.4)', border: '1px solid var(--line)', overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${((step + 1) / STEP_LABELS.length) * 100}%`,
-                height: '100%',
-                background: `linear-gradient(90deg, ${t.acc}, ${t.gold})`,
-                boxShadow: `0 0 10px ${hexA(t.gold, 0.5)}`,
-                transition: 'width .35s cubic-bezier(.2,.8,.2,1)',
-              }}
+        {/* progresso (celular/tablet): segmentos clicáveis, sem texto repetido */}
+        <nav className="fv-forge-progress" aria-label="Capítulos da criação">
+          {CREATION_STEPS.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              aria-label={`${i + 1}. ${s.label}`}
+              aria-current={step === i ? 'step' : undefined}
+              className={step === i ? 'is-current' : i < step ? 'is-done' : ''}
+              onClick={() => goStep(i)}
             />
-          </div>
-        </div>
+          ))}
+        </nav>
 
-        {/* corpo: ocupa toda a altura disponível, sem rolagem no desktop */}
-        <div
-          ref={bodyRef}
-          className="fv-body"
-          style={{
-            flex: 1,
-            display: 'flex',
-            minHeight: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-          }}
-        >
-          <div className="fv-creator-content" style={{ perspective: 1200 }}>
-            {/* clarão rúnico ao atravessar o portal entre etapas */}
-            <div
-              key={`flash-${step}`}
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: 70,
-                left: '50%',
-                width: 220,
-                height: 220,
-                borderRadius: 999,
-                border: '1px solid var(--gold)',
-                boxShadow: '0 0 60px var(--bloom)',
-                pointerEvents: 'none',
-                zIndex: 2,
-                opacity: 0,
-                animation: 'portalFlash .6s ease-out',
-              }}
-            />
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                className="fv-step-motion"
-                initial={{ opacity: 0, scale: 0.94, rotateX: 8, filter: 'blur(8px)' }}
-                animate={{ opacity: 1, scale: 1, rotateX: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, scale: 1.04, filter: 'blur(6px)' }}
-                transition={{ duration: 0.38, ease: [0.2, 0.8, 0.2, 1] }}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        <main ref={bodyRef} className="fv-forge-main">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
+              transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-          {/* resumo vivo do herói — o personagem tomando forma (desktop) */}
-          <aside className="fv-creator-summary fv-panel fv-no-scrollbar" aria-label="Resumo do herói">
-            <LiveSummary char={char} onGoStep={goStep} />
-          </aside>
-        </div>
+        {/* o herói tomando forma (desktop) */}
+        <aside className="fv-forge-hero" aria-label="Seu herói">
+          <HeroPanel char={char} onGoStep={goStep} />
+        </aside>
 
-        {/* navegação */}
-        <div className="fv-creator-foot">
-          <button
-            onClick={prev}
-            style={{
-              cursor: step === 0 ? 'default' : 'pointer',
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 600,
-              fontSize: 14,
-              color: step === 0 ? 'transparent' : 'var(--muted)',
-              minHeight: 42,
-              padding: '11px 16px',
-              borderRadius: 12,
-              whiteSpace: 'nowrap',
-              border: '1px solid ' + (step === 0 ? 'transparent' : 'var(--line)'),
-              background: step === 0 ? 'transparent' : 'var(--panel)',
-              pointerEvents: step === 0 ? 'none' : 'auto',
-              transition: '.25s',
-            }}
-          >
+        <footer className="fv-forge-foot">
+          <button type="button" className="fv-btn-ghost fv-foot-back" onClick={prev} disabled={step === 0} style={{ visibility: step === 0 ? 'hidden' : 'visible' }}>
             ‹ Voltar
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 0 }}>
-            <span className="fv-hide-mobile" style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
-              PASSO {step + 1} DE {STEP_LABELS.length}
-            </span>
-            {/* resumo do herói no celular: bottom sheet */}
-            <button
-              className="fv-mobile-only"
-              onClick={() => setSummaryOpen(true)}
-              style={{
-                cursor: 'pointer',
-                alignItems: 'center',
-                gap: 6,
-                minHeight: 36,
-                padding: '6px 13px',
-                borderRadius: 999,
-                border: '1px solid ' + (pending.length ? hexA(t.acc, 0.55) : hexA(t.gold, 0.5)),
-                background: 'var(--panel)',
-                color: pending.length ? t.acc : t.gold,
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 11.5,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <Icon name="crest" size={13} />
-              Herói{pending.length ? ` · ${pending.length}` : ''}
-            </button>
-          </div>
+
+          {/* celular/tablet: o herói num toque (retrato + pendências). No Despertar ele já está na página. */}
+          <button type="button" className="fv-foot-hero" style={isLast ? { visibility: 'hidden' } : undefined} onClick={() => setSummaryOpen(true)} aria-label={`Ver herói${pending.length ? ` — ${pending.length} pendência(s)` : ''}`}>
+            <img src={heroAvatar(char)} alt="" />
+            <span>Herói</span>
+            {pending.length > 0 && <b>{pending.length}</b>}
+          </button>
+          <span className="fv-foot-next" aria-hidden>
+            {!isLast ? <>Próximo: <b>{CREATION_STEPS[step + 1].label}</b></> : pending.length ? `Falta: ${pending[0].label.toLowerCase()}` : 'Tudo pronto'}
+          </span>
+
           <button
+            type="button"
             onClick={isLast ? finish : next}
             disabled={isLast && pending.length > 0}
-            title={isLast && pending.length > 0 ? `Faltam ${pending.length} escolha(s) — veja o Resumo do Herói.` : undefined}
-            className="fv-btn-gold"
-            style={{ minHeight: 44, padding: '12px clamp(16px,4vw,26px)', fontSize: 15, whiteSpace: 'nowrap', opacity: isLast && pending.length > 0 ? 0.55 : 1 }}
+            title={isLast && pending.length > 0 ? `Falta: ${pending.map((p) => p.label).join(', ')}` : undefined}
+            className="fv-btn-gold fv-foot-cta"
           >
             {isLast ? 'Despertar o Herói' : 'Avançar ›'}
           </button>
-        </div>
-
-        {summaryOpen && (
-          <Modal title="Resumo do Herói" icon="crest" onClose={() => setSummaryOpen(false)} maxWidth={420}>
-            <LiveSummary
-              char={char}
-              onGoStep={(i) => {
-                setSummaryOpen(false);
-                goStep(i);
-              }}
-            />
-          </Modal>
-        )}
+        </footer>
       </div>
+
+      {summaryOpen && (
+        <Modal title="Seu herói" icon="banner" onClose={() => setSummaryOpen(false)} maxWidth={400}>
+          <HeroPanel
+            char={char}
+            onGoStep={(i) => {
+              setSummaryOpen(false);
+              goStep(i);
+            }}
+          />
+        </Modal>
+      )}
     </Screen>
   );
 }

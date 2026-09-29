@@ -8,7 +8,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useTilt } from '@/lib/useTilt';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
-import { shortSubtitle, heroAvatar } from '@/lib/summary';
+import { shortSubtitle, heroAvatar, heroFace } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { getRace } from '@/data/races';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -191,8 +191,7 @@ export function CharacterSelect() {
                           width: '100%',
                           height: '100%',
                           backgroundImage: `url("${heroAvatar(c)}")`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: '50% 22%',
+                          ...heroFace(c),
                         }}
                       />
                     </div>

@@ -1,155 +1,142 @@
+import { useMemo, useState } from 'react';
 import type { StepProps } from './stepTypes';
-import { ChapterTitle } from './ChapterTitle';
-import { SelectableCard } from './SelectableCard';
+import { StepHeader, SectionTitle } from './creatorUi';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
-import { applySelection, gearOptionsForClass, selectionFromChar } from '@/engine/loadout';
+import { getItem } from '@/data/items';
+import { applySelection, defaultSelection, gearOptionsForClass, selectionFromChar } from '@/engine/loadout';
 import type { GearSelection } from '@/engine/loadout';
 import { getClass } from '@/data/classes';
-import { useTheme } from '@/lib/useTheme';
+import { deriveCharacter } from '@/engine/dndRules';
+import { damageExpr } from '@/engine/combat';
+import { modStr } from '@/engine/dice';
+import { Icon } from '@/components/ui/Icon';
 
+/**
+ * Capítulo VI — Equipamento. O kit recomendado da classe já vem escolhido
+ * num cartão só (com CA e ataques calculados); personalizar é opcional e
+ * fica recolhido em listas compactas.
+ */
 export function StepGear({ char, update }: StepProps) {
-  const t = useTheme();
+  const [custom, setCustom] = useState(false);
   const cls = getClass(char.classId);
   const options = gearOptionsForClass(char.classId);
   const sel = selectionFromChar(char);
-  const meleeWeapons = WEAPONS.filter((w) => w.weapon?.range === 'melee' && options.weapons.includes(w.id));
-  const rangedWeapons = WEAPONS.filter((w) => w.weapon?.range === 'ranged' && options.ranged.includes(w.id));
+  const rec = defaultSelection(char.classId);
+  const isRecommended = sel.armorId === rec.armorId && sel.weaponId === rec.weaponId && sel.rangedId === rec.rangedId && sel.shield === rec.shield;
+  const derived = useMemo(() => deriveCharacter(char), [char]);
+
+  const melee = WEAPONS.filter((w) => w.weapon?.range === 'melee' && options.weapons.includes(w.id));
+  const ranged = WEAPONS.filter((w) => w.weapon?.range === 'ranged' && options.ranged.includes(w.id));
   const armors = ARMORS.filter((a) => a.category === 'armor' && options.armors.includes(a.id));
 
   const apply = (patch: Partial<GearSelection>) =>
     update((c) => applySelection(c, { ...sel, ...patch, shield: options.canUseShield ? (patch.shield ?? sel.shield) : false }));
 
-  const groupTitle = (s: string) => (
-    <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 9 }}>
-      {s}
-    </div>
-  );
+  const kit = [
+    { icon: 'equipped' as const, label: 'Proteção', value: sel.armorId ? getItem(sel.armorId)?.name ?? '—' : 'Roupas de viajante' },
+    ...(options.canUseShield ? [{ icon: 'crest' as const, label: 'Escudo', value: sel.shield ? 'Escudo de Aço' : 'Sem escudo' }] : []),
+    { icon: 'sword' as const, label: 'Arma', value: sel.weaponId ? getItem(sel.weaponId)?.name ?? '—' : '—' },
+    { icon: 'class-ranger' as const, label: 'Distância', value: sel.rangedId ? getItem(sel.rangedId)?.name ?? '—' : 'Nenhuma' },
+  ];
 
   return (
-    <div className="animate-riseIn">
-      <ChapterTitle
-        chapter="Capítulo VI"
-        title="Equipamento"
-        subtitle={`Todo herói parte com o que carrega. Escolha o arsenal inicial do seu ${cls.label}.`}
-      />
-      <div style={{ marginBottom: 14, color: 'var(--muted)', fontSize: 13, lineHeight: 1.55 }}>
-        {options.note}
-      </div>
+    <div className="fv-step">
+      <StepHeader step={5} subtitle={options.note || `O arsenal inicial do seu ${cls.label}.`} />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Armadura */}
-        <div>
-          {groupTitle('Proteção')}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 11 }}>
-            <GearOption
-              tag={armors.length ? 'Sem armadura' : 'Padrão da classe'}
-              name="Roupas de viajante"
-              note="CA 10 + DES · livre"
-              selected={sel.armorId === null}
-              onClick={() => apply({ armorId: null })}
-              jewel={t.acc}
-            />
-            {armors.map((a) => (
-              <GearOption
-                key={a.id}
-                tag={a.armor!.category}
-                name={a.name}
-                note={a.note}
-                selected={sel.armorId === a.id}
-                onClick={() => apply({ armorId: a.id })}
-                jewel={t.acc}
-              />
-            ))}
+      <section className="fv-kit">
+        <div className="fv-kit-head">
+          <div>
+            <div className="fv-detail-eyebrow">{isRecommended ? 'Kit recomendado' : 'Kit personalizado'}</div>
+            <h3>Arsenal do {cls.label}</h3>
+          </div>
+          <div className="fv-kit-ac" title="Classe de Armadura com este kit">
+            <b>{derived.ac}</b>
+            <span>CA</span>
           </div>
         </div>
-
-        {/* Arma principal */}
-        <div>
-          {groupTitle('Arma principal')}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 11 }}>
-            {meleeWeapons.map((w) => (
-              <GearOption
-                key={w.id}
-                tag={w.weapon!.type === 'martial' ? 'Marcial' : 'Simples'}
-                name={w.name}
-                note={w.note}
-                selected={sel.weaponId === w.id}
-                onClick={() => apply({ weaponId: w.id })}
-                jewel={t.danger}
-              />
+        <dl className="fv-kit-list">
+          {kit.map((k) => (
+            <div key={k.label}>
+              <dt><Icon name={k.icon} size={16} /> {k.label}</dt>
+              <dd>{k.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {derived.attacks.length > 0 && (
+          <div className="fv-kit-attacks">
+            {derived.attacks.map((a) => (
+              <span key={a.uid}>
+                {a.name} <b>{modStr(a.attackBonus)}</b> · {damageExpr(a)}
+              </span>
             ))}
           </div>
+        )}
+        <div className="fv-kit-actions">
+          <button type="button" className="fv-link-btn" aria-expanded={custom} onClick={() => setCustom((v) => !v)}>
+            {custom ? 'Fechar personalização' : 'Personalizar kit'}
+          </button>
+          {!isRecommended && (
+            <button type="button" className="fv-link-btn is-muted" onClick={() => update((c) => applySelection(c, rec))}>
+              Voltar ao recomendado
+            </button>
+          )}
         </div>
+        <p className="fv-step-note" style={{ margin: '10px 0 0' }}>Mochila básica (corda, tochas, rações e poção de cura) incluída. Tudo muda depois no inventário.</p>
+      </section>
 
-        {/* À distância + escudo */}
-        <div>
-          {groupTitle('Alcance & Escudo')}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 11 }}>
-            <GearOption
-              tag="Nenhuma"
-              name="Sem arma à distância"
-              note="—"
-              selected={sel.rangedId === null}
-              onClick={() => apply({ rangedId: null })}
-              jewel={t.acc}
-            />
-            {rangedWeapons.map((w) => (
-              <GearOption
-                key={w.id}
-                tag="Distância"
-                name={w.name}
-                note={w.note}
-                selected={sel.rangedId === w.id}
-                onClick={() => apply({ rangedId: w.id })}
-                jewel={t.acc}
-              />
-            ))}
-            {options.canUseShield && (
-              <GearOption
-                tag="Defesa"
-                name="Escudo de Aço"
-                note={sel.shield ? 'Equipado · +2 CA' : '+2 CA'}
-                selected={sel.shield}
-                onClick={() => apply({ shield: !sel.shield })}
-                jewel={t.gold}
-              />
-            )}
-          </div>
+      {custom && (
+        <div className="fv-gear-custom">
+          <GearList
+            title="Proteção"
+            value={sel.armorId}
+            onPick={(id) => apply({ armorId: id })}
+            items={[{ id: null, name: 'Roupas de viajante', note: 'CA 10 + DES' }, ...armors.map((a) => ({ id: a.id, name: a.name, note: a.note }))]}
+          />
+          <GearList title="Arma principal" value={sel.weaponId} onPick={(id) => apply({ weaponId: id })} items={melee.map((w) => ({ id: w.id, name: w.name, note: w.note }))} />
+          <GearList
+            title="À distância"
+            value={sel.rangedId}
+            onPick={(id) => apply({ rangedId: id })}
+            items={[{ id: null, name: 'Nenhuma', note: '' }, ...ranged.map((w) => ({ id: w.id, name: w.name, note: w.note }))]}
+          />
+          {options.canUseShield && (
+            <div>
+              <SectionTitle>Escudo</SectionTitle>
+              <button type="button" role="switch" aria-checked={sel.shield} className={'fv-gear-row' + (sel.shield ? ' is-on' : '')} onClick={() => apply({ shield: !sel.shield })}>
+                <span className="fv-gear-dot is-square" aria-hidden />
+                <span className="fv-gear-name">Escudo de Aço</span>
+                <span className="fv-gear-note">+2 CA</span>
+              </button>
+            </div>
+          )}
         </div>
-      </div>
-      <p style={{ marginTop: 16, fontSize: 12.5, color: 'var(--muted)' }}>
-        A mochila inicial (corda, tochas, rações e uma poção de cura) é adicionada automaticamente. Tudo pode ser
-        ajustado depois no inventário.
-      </p>
+      )}
     </div>
   );
 }
 
-function GearOption({
-  tag,
-  name,
-  note,
-  selected,
-  onClick,
-  jewel,
-}: {
-  tag: string;
-  name: string;
-  note: string;
-  selected: boolean;
-  onClick: () => void;
-  jewel: string;
+function GearList({ title, items, value, onPick }: {
+  title: string;
+  items: { id: string | null; name: string; note: string }[];
+  value: string | null;
+  onPick: (id: string | null) => void;
 }) {
   return (
-    <SelectableCard selected={selected} jewel={jewel} onClick={onClick} badge="EQUIPADO" style={{ padding: '13px 14px' }}>
-      <div style={{ fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', color: selected ? 'var(--gold)' : 'var(--muted)' }}>
-        {tag}
+    <div>
+      <SectionTitle>{title}</SectionTitle>
+      <div role="radiogroup" aria-label={title} className="fv-gear-list">
+        {items.map((it) => {
+          const on = value === it.id;
+          return (
+            <button key={it.id ?? 'none'} type="button" role="radio" aria-checked={on} className={'fv-gear-row' + (on ? ' is-on' : '')} onClick={() => onPick(it.id)}>
+              <span className="fv-gear-dot" aria-hidden />
+              <span className="fv-gear-name">{it.name}</span>
+              <span className="fv-gear-note">{it.note}</span>
+            </button>
+          );
+        })}
       </div>
-      <div style={{ marginTop: 9, fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 16, color: 'var(--ink)', lineHeight: 1.15 }}>
-        {name}
-      </div>
-      <div style={{ marginTop: 4, fontSize: 12.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{note}</div>
-    </SelectableCard>
+    </div>
   );
 }

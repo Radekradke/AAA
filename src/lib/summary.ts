@@ -28,5 +28,13 @@ export function shortSubtitle(char: Character): string {
 }
 
 export function heroAvatar(char: Character): string {
-  return char.gender === 'fem' ? '/assets/heroi-fem.png' : '/assets/heroi.png';
+  // versões recortadas (fundo transparente, WebP ~130 KB) — as PNG originais tinham fundo claro
+  return char.gender === 'fem' ? '/assets/heroi-fem-recorte.webp' : '/assets/heroi-recorte.webp';
+}
+
+/** Enquadramento do rosto para avatares circulares (background-size/position). */
+export function heroFace(char: Character): { backgroundSize: string; backgroundPosition: string } {
+  return char.gender === 'fem'
+    ? { backgroundSize: '230%', backgroundPosition: '62% 17%' }
+    : { backgroundSize: '230%', backgroundPosition: '44% 15%' };
 }

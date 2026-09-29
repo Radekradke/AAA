@@ -1,6 +1,6 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
-import { heroSubtitle, heroAvatar } from '@/lib/summary';
+import { heroSubtitle, heroAvatar, heroFace } from '@/lib/summary';
 import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
@@ -75,8 +75,7 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
               width: '100%',
               height: '100%',
               backgroundImage: `url("${heroAvatar(char)}")`,
-              backgroundSize: 'cover',
-              backgroundPosition: '50% 22%',
+              ...heroFace(char),
             }}
           />
         </div>
