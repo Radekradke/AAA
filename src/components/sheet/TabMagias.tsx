@@ -11,6 +11,7 @@ import { getClass } from '@/data/classes';
 import { casterKind, cantripsKnown, spellsKnownOrPrepared, itemGrantedSpells } from '@/engine/spellcasting';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
+import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
@@ -232,7 +233,7 @@ export function TabMagias({ char, derived }: TabProps) {
                 <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{spells.length}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
                 {spells.map((sp) => {
                   const isPrepared = prepared.includes(sp.id);
                   const canPrepare = isWizard && sp.level >= 1; // truques do mago sempre ativos
@@ -260,7 +261,9 @@ export function TabMagias({ char, derived }: TabProps) {
                           {isPrepared ? '★ Preparada' : '☆ Preparar'}
                         </button>
                       )}
-                      <button onClick={() => removeSpell(sp.id)} aria-label="Esquecer" style={{ cursor: 'pointer', flex: 'none', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                      <button type="button" className="fv-item-remove" onClick={() => removeSpell(sp.id)} aria-label={`Esquecer ${sp.name}`} title="Esquecer magia">
+                        <Icon name="close" size={14} />
+                      </button>
                     </div>
                   );
                 })}

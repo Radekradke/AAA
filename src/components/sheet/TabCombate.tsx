@@ -132,13 +132,13 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* dano/cura por valor exato */}
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
-            className="fv-input"
             value={amt}
             onChange={(e) => setAmt(e.target.value.replace(/[^0-9]/g, ''))}
             onKeyDown={(e) => { if (e.key === 'Enter') applyAmount(false); }}
             inputMode="numeric"
-            placeholder="valor"
+            placeholder="Qtd."
             aria-label="Valor de dano ou cura"
+            className="fv-input fv-amt-input"
             style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
           />
           <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>

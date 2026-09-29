@@ -242,9 +242,10 @@ export function TabFicha({ char, derived }: TabProps) {
                   setToolPick('');
                 }}
                 className="fv-btn-gold"
-                style={{ minHeight: 40, padding: '0 16px', fontSize: 13 }}
+                disabled={!toolPick}
+                style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: toolPick ? 1 : 0.45, cursor: toolPick ? 'pointer' : 'default' }}
               >
-                +
+                Adicionar
               </button>
             </div>
           </div>
@@ -275,9 +276,10 @@ export function TabFicha({ char, derived }: TabProps) {
             <button
               onClick={() => { store.addLanguage(char.id, langDraft); setLangDraft(''); }}
               className="fv-btn-gold"
-              style={{ minHeight: 40, padding: '0 16px', fontSize: 13 }}
+              disabled={!langDraft.trim()}
+              style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: langDraft.trim() ? 1 : 0.45, cursor: langDraft.trim() ? 'pointer' : 'default' }}
             >
-              +
+              Adicionar
             </button>
           </div>
 
@@ -289,7 +291,7 @@ export function TabFicha({ char, derived }: TabProps) {
               { label: 'Intuição', value: derived.passiveInsight, desc: 'Leitura passiva de intenções e mentiras.' },
             ] as const).map((pas) => (
               <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
-                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>
+                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)', gap: 6 }}>
                   {pas.label} <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{pas.value}</b>
                 </span>
               </LoreTooltip>

@@ -72,6 +72,12 @@ const CATEGORY_ICON: Record<string, IconName> = {
   consumable: 'spark', wondrous: 'star', ring: 'star', treasure: 'starFill', other: 'quill',
 };
 
+/** Rótulo em português da categoria (os ids do catálogo são em inglês). */
+const CATEGORY_LABEL: Record<string, string> = {
+  weapon: 'Arma', armor: 'Armadura', shield: 'Escudo', gear: 'Equipamento', tool: 'Ferramenta',
+  consumable: 'Consumível', wondrous: 'Item maravilhoso', ring: 'Anel', treasure: 'Tesouro', other: 'Outro',
+};
+
 export function TabInventario({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
@@ -320,7 +326,7 @@ export function TabInventario({ char, derived }: TabProps) {
               <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
               <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
               {g.items.map((it) => {
                 const where = containerOf(char, it);
                 return (
@@ -536,8 +542,14 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, marginBottom: 7 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-            <Icon name={icon} size={12} color={equipped ? t.gold : 'currentColor'} />
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.category}</span>
+            {equipped ? (
+              <span className="fv-item-equipped">
+                <Icon name="equipped" size={11} /> Equipado
+              </span>
+            ) : (
+              <Icon name={icon} size={12} />
+            )}
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{CATEGORY_LABEL[it.category] ?? it.category}</span>
             {it.homebrew && (
               <span style={{ flex: 'none', padding: '1px 6px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.1em' }}>HOMEBREW</span>
             )}
@@ -550,12 +562,6 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             </button>
           </span>
         </div>
-
-        {equipped && (
-          <div style={{ position: 'absolute', top: -1, left: 12, padding: '2px 8px', borderRadius: '0 0 6px 6px', background: t.gold, color: '#140d04', fontSize: 8.5, fontWeight: 800, letterSpacing: '.12em' }}>
-            EQUIPADO
-          </div>
-        )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ flex: 1, minWidth: 0, fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14.5, color: big ? rc.color : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
@@ -570,7 +576,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </button>
         </div>
         <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {[it.note, it.weight ? `${it.weight} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
+          {[it.note, it.weight ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
         </div>
@@ -597,7 +603,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </div>
         )}
 
-        <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
               {equipped ? 'Desequipar' : 'Equipar'}
@@ -605,7 +611,9 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           )}
           {!equipped && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
-          <ItemBtn danger onClick={onRemove}>Remover</ItemBtn>
+          <button type="button" className="fv-item-remove" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remover ${it.name}`} title="Remover">
+            <Icon name="close" size={14} />
+          </button>
         </div>
       </div>
     </LoreTooltip>

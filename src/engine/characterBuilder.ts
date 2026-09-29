@@ -8,6 +8,7 @@ import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
 import { toolLabel } from '@/data/tools';
 import { defaultPreparedForClass } from '@/data/spells';
+import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
 import { buildLoadout, defaultSelection } from './loadout';
 
@@ -174,7 +175,15 @@ export function finalizeCharacter(draft: Character): Character {
   const resources = buildResources(draft.classId, draft.level);
   const maxCircle = Math.max(0, ...Object.keys(spellSlots).map(Number));
   const preparedSpells =
-    maxCircle > 0 && draft.preparedSpells.length === 0 ? defaultPreparedForClass(draft.classId, maxCircle) : draft.preparedSpells;
+    maxCircle > 0 && draft.preparedSpells.length === 0
+      ? defaultPreparedForClass(
+          draft.classId,
+          maxCircle,
+          cantripsKnown(draft.classId, draft.level),
+          // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
+          Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
+        )
+      : draft.preparedSpells;
 
   const finalized: Character = {
     ...draft,

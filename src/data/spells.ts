@@ -488,9 +488,15 @@ export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
 }
 
 /** Truques e magias sugeridos por padrão para conjuradores novos. */
-export function defaultPreparedForClass(classId: string, maxCircle: number): string[] {
-  return spellsForClass(classId, Math.min(1, maxCircle))
-    .filter((s) => s.level <= 1)
-    .slice(0, 4)
-    .map((s) => s.id);
+/**
+ * Magias iniciais sugeridas: respeita quantos truques e quantas magias de
+ * 1º círculo a classe conhece/prepara no nível (antes pegava as 4 primeiras
+ * da lista — que eram todas truques).
+ */
+export function defaultPreparedForClass(classId: string, maxCircle: number, cantrips = 2, spells = 2): string[] {
+  const list = spellsForClass(classId, Math.min(1, maxCircle));
+  return [
+    ...list.filter((s) => s.level === 0).slice(0, Math.max(0, cantrips)),
+    ...list.filter((s) => s.level === 1).slice(0, Math.max(0, spells)),
+  ].map((s) => s.id);
 }

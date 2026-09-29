@@ -8,7 +8,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useTilt } from '@/lib/useTilt';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
-import { shortSubtitle, heroAvatar, heroFace } from '@/lib/summary';
+import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { getRace } from '@/data/races';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -169,9 +169,15 @@ export function CharacterSelect() {
                   transformStyle: 'preserve-3d',
                 }}
               >
+                {/* arte do herói ao fundo, esmaecendo para a esquerda (estilo seleção de personagem) */}
+                <div
+                  aria-hidden
+                  className="fv-hero-card-art"
+                  style={{ backgroundImage: `url("${heroAvatar(c)}")`, backgroundPosition: heroPortraitPosition(c) }}
+                />
                 <button
                   onClick={() => open(c)}
-                  style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18 }}
+                  style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18, position: 'relative', zIndex: 1 }}
                 >
                   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                     <div
@@ -226,7 +232,8 @@ export function CharacterSelect() {
                           textAlign: 'center',
                           padding: '9px 4px',
                           borderRadius: 11,
-                          background: 'rgba(0,0,0,.26)',
+                          background: 'rgba(6,8,12,.62)',
+                          backdropFilter: 'blur(4px)',
                           border: '1px solid var(--line)',
                         }}
                       >
@@ -247,6 +254,8 @@ export function CharacterSelect() {
                     gap: 6,
                     padding: '0 18px 16px',
                     justifyContent: 'flex-end',
+                    position: 'relative',
+                    zIndex: 1,
                   }}
                 >
                   <CardAction label="Duplicar" onClick={() => duplicateCharacter(c.id)} />

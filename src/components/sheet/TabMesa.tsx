@@ -450,18 +450,10 @@ function StatChip({ label, value, info, onRoll }: { label: string; value: string
     <LoreTooltip info={info} anchorStyle={{ display: 'block' }}>
       <button
         onClick={onRoll}
-        style={{
-          cursor: onRoll ? 'pointer' : 'help',
-          width: '100%',
-          textAlign: 'center',
-          padding: '9px 6px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--line)',
-          borderTop: '2px solid ' + (onRoll ? 'var(--acc)' : 'var(--line)'),
-          background: 'rgba(0,0,0,.26)',
-          transition: '.2s',
-        }}
+        className={'fv-stat-chip' + (onRoll ? ' is-rollable' : '')}
+        aria-label={onRoll ? `Rolar ${label} (${value})` : undefined}
       >
+        {onRoll && <Icon name="d20" size={11} className="fv-stat-chip-die" />}
         <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{value}</div>
         <div style={{ fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{label}</div>
       </button>

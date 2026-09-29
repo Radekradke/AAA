@@ -380,24 +380,18 @@ button:active:not(:disabled) {
     box-shadow: var(--shadow-panel);
     backdrop-filter: blur(10px);
   }
-  /* suportes dourados nos cantos — moldura de HUD (BG3/Warcraft) */
+  /* fio dourado na borda de cima: acabamento de HUD sem poluir (as
+     cantoneiras ficam só no cartão do herói) */
   .fv-panel::after,
   .fv-surface::after {
     content: '';
     position: absolute;
-    inset: 5px;
+    left: 18px;
+    right: 18px;
+    top: -1px;
+    height: 1px;
     pointer-events: none;
-    opacity: 0.55;
-    background:
-      linear-gradient(var(--gold), var(--gold)) left 0 top 0 / 14px 1px,
-      linear-gradient(var(--gold), var(--gold)) left 0 top 0 / 1px 14px,
-      linear-gradient(var(--gold), var(--gold)) right 0 top 0 / 14px 1px,
-      linear-gradient(var(--gold), var(--gold)) right 0 top 0 / 1px 14px,
-      linear-gradient(var(--gold), var(--gold)) left 0 bottom 0 / 14px 1px,
-      linear-gradient(var(--gold), var(--gold)) left 0 bottom 0 / 1px 14px,
-      linear-gradient(var(--gold), var(--gold)) right 0 bottom 0 / 14px 1px,
-      linear-gradient(var(--gold), var(--gold)) right 0 bottom 0 / 1px 14px;
-    background-repeat: no-repeat;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold), transparent 45%), transparent);
   }
   .fv-panel-soft {
     background: linear-gradient(160deg, var(--panel), var(--panel2));
@@ -542,6 +536,7 @@ button:active:not(:disabled) {
     line-height: 1;
     padding: 7px 11px;
     white-space: nowrap;
+    gap: 5px;
   }
   .fv-chip-gold {
     border-color: color-mix(in srgb, var(--gold), transparent 48%);
@@ -824,6 +819,175 @@ button:active:not(:disabled) {
 }
 
 /* ===== cabeçalho da ficha: blocos de defesa ===== */
+.fv-item-equipped {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 2px 7px 2px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold), transparent 84%);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+  color: var(--gold);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.fv-item-remove {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.fv-item-remove:hover,
+.fv-item-remove:focus-visible {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger), transparent 55%);
+  background: color-mix(in srgb, var(--danger), transparent 90%);
+}
+.fv-hero-card-art {
+  position: absolute;
+  inset: 0 0 0 46%;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.34;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%);
+  mask-image: linear-gradient(90deg, transparent, #000 70%);
+  transition: opacity 0.3s;
+}
+*:hover > .fv-hero-card-art {
+  opacity: 0.5;
+}
+.fv-amt-input::placeholder {
+  font-weight: 400;
+  opacity: 0.6;
+}
+.fv-stat-chip {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: 9px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.26);
+  cursor: help;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-stat-chip.is-rollable {
+  cursor: pointer;
+}
+.fv-stat-chip.is-rollable:hover {
+  border-color: color-mix(in srgb, var(--acc), transparent 45%);
+  background: color-mix(in srgb, var(--acc), transparent 92%);
+}
+.fv-stat-chip-die {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--acc);
+  opacity: 0.55;
+}
+.fv-stat-chip.is-rollable:hover .fv-stat-chip-die {
+  opacity: 1;
+}
+.fv-sh-sub {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 10px;
+  row-gap: 2px;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  color: var(--acc);
+}
+.fv-sh-align {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.fv-sh-align::before {
+  content: '◆';
+  margin-right: 8px;
+  font-size: 7px;
+  vertical-align: 2px;
+  color: color-mix(in srgb, var(--gold), transparent 40%);
+}
+.fv-sh-level {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 360px;
+  font: 600 11px 'Chakra Petch', monospace;
+  color: var(--muted);
+}
+.fv-sh-level-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+}
+.fv-sh-level-ctrl b {
+  min-width: 58px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.fv-sh-lvl-btn {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--acc);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-sh-lvl-btn:hover:not(:disabled) {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+}
+.fv-sh-lvl-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.fv-sh-level-bar {
+  position: relative;
+  flex: 1;
+  min-width: 60px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+}
+.fv-sh-level-bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accSoft), var(--acc));
+  box-shadow: 0 0 10px var(--bloom);
+}
+.fv-sh-level-max {
+  flex: none;
+  opacity: 0.7;
+}
 .fv-header-stats {
   display: grid;
   grid-template-columns: repeat(5, minmax(64px, auto));
