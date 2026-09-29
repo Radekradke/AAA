@@ -1551,6 +1551,20 @@ body.fv-dragging .fv-screen-scroll {
   font-family: 'Cinzel', serif;
   color: var(--ink);
 }
+.fv-forge-foot.is-last .fv-foot-hero {
+  display: none;
+}
+@media (max-width: 480px) {
+  .fv-cta-long {
+    display: none;
+  }
+}
+.fv-forge-foot.is-last .fv-foot-next {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.3;
+}
 
 @media (min-width: 1180px) {
   .fv-forge {
@@ -2591,7 +2605,7 @@ body.fv-dragging .fv-screen-scroll {
     aspect-ratio: auto;
     flex: 1 1 auto;
     min-height: 140px;
-    max-height: 420px;
+    max-height: 560px;
   }
   /* o número do capítulo já está na trilha */
   .fv-step-eyebrow {

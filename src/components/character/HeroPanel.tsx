@@ -19,6 +19,8 @@ interface HeroPanelProps {
   onGoStep?: (step: number) => void;
   /** Troca a arte do herói (sem valor: painel só exibe). */
   onPortrait?: (dataUrl: string | null) => void;
+  /** Lista o que falta (só no painel "Seu herói" do celular — no desktop o rodapé já avisa). */
+  showPending?: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ interface HeroPanelProps {
  * atributos, vitais e o que ainda falta. É a "assinatura" da criação —
  * cada escolha aparece aqui na hora.
  */
-export function HeroPanel({ char, onGoStep, onPortrait }: HeroPanelProps) {
+export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: HeroPanelProps) {
   const derived = useMemo(() => deriveCharacter(char), [char]);
   const pending = useMemo(() => creationPending(char), [char]);
   const race = getRace(char.raceId);
@@ -67,7 +69,7 @@ export function HeroPanel({ char, onGoStep, onPortrait }: HeroPanelProps) {
         <div><b>{String(derived.speed).replace('.', ',')}m</b><span>Desloc.</span></div>
       </div>
 
-      {pending.length > 0 ? (
+      {!showPending ? null : pending.length > 0 ? (
         <ul className="fv-hero-pending">
           {pending.map((p) => (
             <li key={p.label}>

@@ -202,13 +202,13 @@ export function CharacterCreator() {
           <HeroPanel char={char} onGoStep={goStep} onPortrait={setPortrait} />
         </aside>
 
-        <footer className="fv-forge-foot">
+        <footer className={'fv-forge-foot' + (isLast ? ' is-last' : '')}>
           <button type="button" className="fv-btn-ghost fv-foot-back" onClick={prev} disabled={step === 0} style={{ visibility: step === 0 ? 'hidden' : 'visible' }}>
             ‹ Voltar
           </button>
 
           {/* celular/tablet: o herói num toque (retrato + pendências). No Despertar ele já está na página. */}
-          <button type="button" className="fv-foot-hero" style={isLast ? { visibility: 'hidden' } : undefined} onClick={() => setSummaryOpen(true)} aria-label={`Ver herói${pending.length ? ` — ${pending.length} pendência(s)` : ''}`}>
+          <button type="button" className="fv-foot-hero" onClick={() => setSummaryOpen(true)} aria-label={`Ver herói${pending.length ? ` — ${pending.length} pendência(s)` : ''}`}>
             <img src={heroAvatar(char)} alt="" />
             <span>Herói</span>
             {pending.length > 0 && <b>{pending.length}</b>}
@@ -224,7 +224,7 @@ export function CharacterCreator() {
             title={isLast && pending.length > 0 ? `Falta: ${pending.map((p) => p.label).join(', ')}` : undefined}
             className="fv-btn-gold fv-foot-cta"
           >
-            {isLast ? 'Despertar o Herói' : 'Avançar ›'}
+            {isLast ? <>Despertar<span className="fv-cta-long"> o Herói</span></> : 'Avançar ›'}
           </button>
         </footer>
       </div>
@@ -238,6 +238,7 @@ export function CharacterCreator() {
               goStep(i);
             }}
             onPortrait={setPortrait}
+            showPending
           />
         </Modal>
       )}
