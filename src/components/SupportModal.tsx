@@ -36,7 +36,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
           >
             <span style={{ fontSize: 20, color: l.color }}>{l.icon}</span>
             <span style={{ flex: 1 }}>
-              <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{l.label}</span>
+              <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{l.label}</span>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>{l.desc}</span>
             </span>
             <span style={{ color: l.color, fontSize: 18 }}>→</span>

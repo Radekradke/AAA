@@ -62,7 +62,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <div style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
                   {/* modificador dentro de um d20 na cor do atributo */}
@@ -163,7 +163,7 @@ export function TabFicha({ char, derived }: TabProps) {
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
-            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: hexA(t.acc, 0.06) }}>
+            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>
               {derived.subclassLabel && (
                 <div style={{ fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 6 }}>{derived.subclassLabel}</div>
               )}

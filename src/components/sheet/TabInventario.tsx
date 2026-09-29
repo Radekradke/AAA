@@ -49,7 +49,7 @@ function groupOf(it: InventoryItem): string {
  * "abre" ao toque — e recebe itens arrastados.
  */
 const CONTAINERS: { id: ContainerId; label: string; icon: IconName; openIcon: IconName; color: string; empty: string; hint: string }[] = [
-  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: '#46C8FF', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura ou escudo para cá — ou toque em Equipar.' },
+  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: 'var(--acc)', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura ou escudo para cá — ou toque em Equipar.' },
   { id: 'mochila', label: 'Mochila', icon: 'satchel', openIcon: 'backpackOpen', color: '#FFE08A', empty: 'Mochila vazia', hint: 'Use + Adicionar para o catálogo ou Forjar para criar algo único.' },
   { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Arraste para cá o que você quer guardar fora da mochila.' },
 ];
@@ -226,7 +226,7 @@ export function TabInventario({ char, derived }: TabProps) {
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.26)', color: 'var(--ink)' }}
               >
                 <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
-                <span style={{ flex: 1, textAlign: 'left', fontFamily: "'Cinzel', serif", fontSize: 14 }}>{it.name}</span>
+                <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
                 <span style={{ fontSize: 11, color: 'var(--muted)' }}>{it.attuned ? 'sintonizado' : 'guardado'}</span>
               </button>
             </LoreTooltip>
@@ -239,12 +239,12 @@ export function TabInventario({ char, derived }: TabProps) {
         <SectionLabel
           right={
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button onClick={() => setPicker(true)} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.12) }}>
+              <button onClick={() => setPicker(true)} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.12) }}>
                 + Adicionar
               </button>
               <button
                 onClick={() => setForge('weapon')}
-                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: hexA(t.acc, 0.1) }}
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}
               >
                 <Icon name="anvil" size={14} />
                 Forjar
@@ -320,7 +320,7 @@ export function TabInventario({ char, derived }: TabProps) {
           <div key={g.id} style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 10px' }}>
               <Icon name={g.icon} size={15} color={t.gold} />
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
                 {g.label}
               </span>
               <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
@@ -457,9 +457,9 @@ function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, on
         onClick={onOpen}
         style={{ width: '100%' }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 'var(--radius-lg)' }}>
           <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} style={{ filter: lit ? `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` : undefined, transition: 'color .25s' }} />
-          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
           <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
             <div>{count} {count === 1 ? 'item' : 'itens'}</div>
             <div>{kg.toFixed(1).replace('.', ',')} kg</div>
@@ -564,7 +564,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ flex: 1, minWidth: 0, fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14.5, color: big ? rc.color : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
+          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? rc.color : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
             {it.name}
           </div>
           <button

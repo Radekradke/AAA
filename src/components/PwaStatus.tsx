@@ -45,7 +45,7 @@ export function PwaStatus() {
         >
           <Icon name="d20" size={22} color="var(--gold)" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>
               {needRefresh ? 'Nova versão da Ficha Viva' : 'Pronto para jogar offline'}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>

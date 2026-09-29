@@ -172,7 +172,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
         <label style={{ gridColumn: '1 / -1' }}>
           <span style={label}>Nome</span>
-          <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: "'Cinzel', serif" }} />
+          <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: 'var(--font-display)' }} />
         </label>
         <label>
           <span style={label}>Categoria</span>
@@ -394,7 +394,7 @@ function fieldsetStyle(t: ReturnType<typeof useTheme>): React.CSSProperties {
 function legendStyle(t: ReturnType<typeof useTheme>): React.CSSProperties {
   return {
     padding: '0 8px',
-    fontFamily: "'Cinzel', serif",
+    fontFamily: 'var(--font-display)',
     fontSize: 12,
     letterSpacing: '.12em',
     textTransform: 'uppercase',

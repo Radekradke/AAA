@@ -48,7 +48,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
             <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
               {ABILITY_SHORT[g.key]}
             </span>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
               {ABILITY_LABELS[g.key]}
             </span>
             <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>

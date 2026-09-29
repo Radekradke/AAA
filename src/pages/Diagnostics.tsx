@@ -88,7 +88,7 @@ export function Diagnostics() {
   return (
     <Screen scroll actions={<Button onClick={() => navigate('/entrar')} style={{ fontSize: 12.5 }}>Entrar</Button>}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
-        <h1 style={{ margin: '0 0 4px', fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
+        <h1 style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
           Diagnóstico da Nuvem
         </h1>
         <p style={{ margin: '0 0 18px', fontSize: 13.5, color: 'var(--muted)' }}>
@@ -106,7 +106,7 @@ export function Diagnostics() {
             <div key={i} className="fv-panel" style={{ padding: '12px 14px', borderLeft: '3px solid ' + (c.ok === null ? 'var(--muted)' : c.ok ? '#3FC56B' : 'var(--danger)') }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 999, flex: 'none', background: c.ok === null ? 'var(--muted)' : c.ok ? '#3FC56B' : 'var(--danger)', boxShadow: c.ok ? '0 0 8px #3FC56B' : c.ok === false ? '0 0 8px var(--danger)' : 'none' }} />
-                <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{c.label}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{c.label}</span>
               </div>
               <div style={{ marginTop: 5, marginLeft: 19, fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'pre-wrap', fontFamily: "'Chakra Petch', monospace" }}>{c.detail}</div>
             </div>

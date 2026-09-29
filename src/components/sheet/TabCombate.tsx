@@ -147,13 +147,13 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
         {concentrating && concDC !== null && (
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: hexA(t.acc, 0.1) }}>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: 'var(--lift)' }}>
             <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
               Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: "'Chakra Petch', monospace" }}>{concDC}</b>
             </span>
             <button
               onClick={() => { check(`Concentração · CON (CD ${concDC})`, derived.abilities.con.save); setConcDC(null); }}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: hexA(t.acc, 0.14), color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: 'var(--lift)', color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
             >
               Rolar {modStr(derived.abilities.con.save)}
             </button>
@@ -177,9 +177,9 @@ export function TabCombate({ char, derived }: TabProps) {
               padding: '10px 14px',
               borderRadius: 'var(--radius-md)',
               border: '1px solid ' + (concentrating ? t.acc : t.line),
-              background: concentrating ? hexA(t.acc, 0.12) : 'rgba(0,0,0,.26)',
+              background: concentrating ? 'var(--lift)' : 'rgba(0,0,0,.26)',
               color: concentrating ? t.acc : t.muted,
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 14,
               transition: '.2s',
             }}
@@ -206,7 +206,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {derived.attacks.map((atk) => (
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{atk.note}</div>
             </div>
             <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
@@ -256,9 +256,9 @@ export function TabCombate({ char, derived }: TabProps) {
                   padding: '11px 14px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.45)),
-                  background: used ? 'rgba(0,0,0,.3)' : hexA(t.acc, 0.08),
+                  background: used ? 'rgba(0,0,0,.3)' : 'var(--lift)',
                   color: used ? t.muted : t.ink,
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: 'var(--font-display)',
                   fontSize: 14.5,
                   transition: '.2s',
                 }}
@@ -272,7 +272,7 @@ export function TabCombate({ char, derived }: TabProps) {
         </div>
         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>
               {moveLeft} m de {derived.speed.toString().replace('.', ',')} m
             </div>
@@ -293,7 +293,7 @@ export function TabCombate({ char, derived }: TabProps) {
           return (
             <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
               <div>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>{res.label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>{res.label}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
               </div>
               <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
@@ -311,7 +311,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Dados de Vida */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Dados de Vida</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Dados de Vida</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>{derived.hitDiceMax}d{derived.hitDie} · gaste no descanso</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -331,7 +331,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Resgate da Morte */}
         <div style={{ padding: '13px 0 2px' }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)', marginBottom: 9 }}>Resgate da Morte</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)', marginBottom: 9 }}>Resgate da Morte</div>
           <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
             <DeathRow label="Sucesso" color="#3FC56B" value={char.combat.deathSaves.success} onClick={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathRow label="Falha" color={t.danger} value={char.combat.deathSaves.fail} onClick={(n) => store.setDeathSave(char.id, 'fail', n)} />
@@ -341,7 +341,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Exaustão (0–6, PHB 2014) */}
         <div style={{ padding: '13px 0 2px', borderTop: '1px solid var(--line)', marginTop: 6 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
             <span style={{ fontSize: 11, color: exhaustion >= 4 ? t.danger : 'var(--muted)', fontWeight: 600 }}>{EXHAUSTION_EFFECT[exhaustion]}</span>
           </div>
           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>

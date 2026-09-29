@@ -47,7 +47,7 @@ export function Campaigns() {
   return (
     <Screen scroll actions={<Button onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>}>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
-        <h1 style={{ margin: '0 0 4px', fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
+        <h1 style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
           Mesas de Campanha
         </h1>
         <p style={{ margin: '0 0 20px', fontSize: 13.5, color: 'var(--muted)' }}>
@@ -99,7 +99,7 @@ export function Campaigns() {
                       className="fv-surface"
                       style={{ cursor: 'pointer', textAlign: 'left', padding: '14px 15px', border: '1px solid ' + hexA(t.gold, 0.3) }}
                     >
-                      <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>{c.name}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>{c.name}</div>
                       <div style={{ marginTop: 4, fontSize: 11, color: g.role === 'Mestre' ? t.gold : 'var(--acc)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{g.role}</div>
                     </button>
                   ))}

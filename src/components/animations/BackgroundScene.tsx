@@ -59,24 +59,10 @@ export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }
           background: `linear-gradient(180deg, rgba(6,8,12,${topDark}), rgba(6,8,12,${botDark}))`,
         }}
       />
-      {/* bloom superior na cor do tema */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(70% 55% at 50% -8%, var(--bloom), transparent 62%)',
-        }}
-      />
+      {/* luz própria do clima: céu frio (Arcano), calor da forja (Brasa), dossel (Mata) */}
+      <div style={{ position: 'absolute', inset: 0, background: 'var(--scene)' }} />
       <RuneDrift count={9} />
       <ParticleField />
-      {/* brilho arcano inferior */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(45% 70% at 50% 118%, var(--accSoft), transparent 60%)',
-        }}
-      />
       {/* vinheta */}
       <div
         style={{

@@ -43,16 +43,7 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'fv-imagens', expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 60 } },
           },
-          {
-            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'fv-fontes-css' },
-          },
-          {
-            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
-            handler: 'CacheFirst',
-            options: { cacheName: 'fv-fontes', expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 }, cacheableResponse: { statuses: [0, 200] } },
-          },
+          // fontes vêm embutidas no build (@fontsource) e entram no precache (woff2)
           // vídeos de fundo (MBs) e Supabase ficam fora do cache de propósito
         ],
       },

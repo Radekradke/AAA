@@ -60,7 +60,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
               <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.2em', opacity: 0.75 }}>INSPIRAÇÃO</span>
               <Pips points={points} lit={lit} />
             </div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 16, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 15, lineHeight: 1.1, marginTop: 2, overflowWrap: 'break-word' }}>{title}</div>
             <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.72, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
           </div>
         </div>

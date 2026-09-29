@@ -78,7 +78,7 @@ export function SyncBadge() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {conflicts.map((c) => (
               <div key={c.sheetId} style={{ padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.4), background: 'rgba(0,0,0,.24)' }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>{c.name}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>{c.name}</div>
                 <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
                   local {new Date(c.localUpdatedAt).toLocaleString('pt-BR')} · nuvem {new Date(c.remoteUpdatedAt).toLocaleString('pt-BR')}
                 </div>

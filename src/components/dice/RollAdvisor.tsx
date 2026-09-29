@@ -80,7 +80,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {main && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.14em', color: t.gold, marginBottom: 2 }}>MAIS PROVÁVEL</div>}
-                    <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>{s.label}</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>{s.label}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>{s.why}</div>
                     <div style={{ fontSize: 10.5, color: hexA(color, 0.95), marginTop: 3, fontFamily: "'Chakra Petch', monospace" }}>{s.math}</div>
                   </div>

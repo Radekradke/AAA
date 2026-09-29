@@ -63,7 +63,7 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
         {onForge && (
           <button
             onClick={() => { onClose(); onForge(); }}
-            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, minHeight: 32, padding: '6px 13px', borderRadius: 999, border: '1px solid ' + t.acc, color: t.acc, background: hexA(t.acc, 0.08), marginLeft: 'auto' }}
+            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, minHeight: 32, padding: '6px 13px', borderRadius: 999, border: '1px solid ' + t.acc, color: t.acc, background: 'var(--lift)', marginLeft: 'auto' }}
           >
             <Icon name="anvil" size={13} /> Criar personalizado
           </button>
@@ -80,7 +80,7 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.note}</div>
                 </div>
                 <span style={{ flex: 'none', fontSize: 10.5, color: rc.color }}>{rc.label}</span>

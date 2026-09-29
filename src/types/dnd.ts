@@ -369,6 +369,8 @@ export interface ThemeDef {
   bloom: string;
   particle: string;
   label: string;
+  /** Motivo animado do fundo: runas que sobem, fagulhas da forja ou folhas caindo. */
+  motif: 'runes' | 'embers' | 'leaves';
 }
 
 export type ThemeName = 'frio' | 'brasa' | 'verdejante';

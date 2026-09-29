@@ -36,7 +36,7 @@ export function Modal({ title, icon, onClose, children, footer, maxWidth = 620, 
         <div className="fv-modal-head">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             {icon && <Icon name={icon} size={19} color="var(--gold)" />}
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(15px,2.4vw,18px)', color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(15px,2.4vw,18px)', color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {title}
             </div>
           </div>

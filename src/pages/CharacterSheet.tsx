@@ -59,7 +59,7 @@ export function CharacterSheet() {
       <Screen actions={<Button onClick={() => navigate('/personagens')}>Voltar</Button>}>
         <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24 }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 22, color: 'var(--ink)' }}>Personagem não encontrado</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>Personagem não encontrado</div>
             <p style={{ color: 'var(--muted)' }}>Talvez ele tenha sido removido. Volte para a seleção de heróis.</p>
             <Button variant="gold" onClick={() => navigate('/personagens')} style={{ marginTop: 8 }}>
               Voltar aos heróis

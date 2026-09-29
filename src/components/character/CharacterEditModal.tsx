@@ -71,7 +71,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
         {/* nível */}
         <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 13, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 16, color: 'var(--gold)' }}>Nível {char.level}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--gold)' }}>Nível {char.level}</div>
             <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>Proficiência {modStr(derived.proficiency)} · PV máx. {derived.maxHp}</div>
           </div>
           <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
@@ -120,7 +120,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
               const total = base + racial;
               return (
                 <div key={k} style={{ textAlign: 'center', background: 'linear-gradient(170deg, var(--panel), var(--panel2))', border: '1px solid var(--line)', borderRadius: 13, padding: '12px 8px' }}>
-                  <div style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.12em', color: 'var(--muted)' }} title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.12em', color: 'var(--muted)' }} title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
                   <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
                   <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
                   <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6 }}>

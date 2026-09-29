@@ -43,14 +43,14 @@ export function AuthCallback() {
       >
         <div className="fv-panel animate-riseIn" style={{ width: '100%', maxWidth: 420, padding: 32, textAlign: 'center' }}>
           <RuneRing size={72}>
-            <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 23, color: 'var(--gold)' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 23, color: 'var(--gold)' }}>
               F
             </span>
           </RuneRing>
           <h1
             style={{
               margin: '18px 0 8px',
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontWeight: 700,
               fontSize: 23,
               color: 'var(--ink)',

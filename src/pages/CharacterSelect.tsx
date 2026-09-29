@@ -85,7 +85,7 @@ export function CharacterSelect() {
           <h1
             style={{
               margin: '6px 0 4px',
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontWeight: 700,
               fontSize: 'clamp(28px,4.5vw,44px)',
               color: 'var(--ink)',
@@ -137,13 +137,13 @@ export function CharacterSelect() {
                 border: '1px solid var(--gold)',
                 color: 'var(--gold)',
                 fontSize: 28,
-                fontFamily: "'Cinzel', serif",
+                fontFamily: 'var(--font-display)',
                 boxShadow: '0 0 24px var(--bloom)',
               }}
             >
               +
             </div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
               Novo Personagem
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</div>
@@ -204,7 +204,7 @@ export function CharacterSelect() {
                     <div style={{ minWidth: 0 }}>
                       <div
                         style={{
-                          fontFamily: "'Cinzel', serif",
+                          fontFamily: 'var(--font-display)',
                           fontWeight: 700,
                           fontSize: 19,
                           color: 'var(--ink)',

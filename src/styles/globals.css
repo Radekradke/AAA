@@ -4,74 +4,122 @@
 
 /* ============================================================
    FICHA VIVA AAA — sistema de temas
-   Dois climas cinematográficos herdados da referência visual:
-   "Arcano Frio" (frio) e "Brasa Heróica" (brasa).
-   As variáveis trocam conforme [data-theme] no elemento raiz.
+   Cada clima é um LUGAR, não só uma cor:
+   · Arcano Frio   — observatório de mago: ardósia, prata lunar, poeira de estrelas
+   · Brasa Heróica — forja: ferro e couro queimados, latão, grão martelado
+   · Mata Ancestral — bosque antigo: madeira escura, âmbar, veios, formas orgânicas
+   Superfícies são SÓLIDAS (nada de vidro tingido); a cor de destaque (--acc)
+   fica para o que é interativo/vivo, e o "metal" (--gold) para seleção e ornamento.
+   As variáveis trocam conforme [data-theme] no elemento raiz; os valores de
+   cor precisam bater com src/data/themes.ts (usado nos estilos inline).
    ============================================================ */
 
 :root,
 [data-theme='frio'] {
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 9px;
-  --shadow-panel: 0 16px 44px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.035);
   --page-x: clamp(14px, 3.6vw, 40px);
   --topbar-h: clamp(62px, 8vh, 84px);
-  --bg: #0a0c10;
-  --bg2: #10141c;
-  --panel: rgba(17, 22, 32, 0.62);
-  --panel2: rgba(27, 35, 50, 0.46);
+
+  --font-display: 'Cinzel', serif;
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  --bg: #07090d;
+  --bg2: #0f141c;
+  --panel: #121823;
+  --panel2: #0d121a;
+  --well: #090d13;
   --steel: #1a2230;
-  --line: rgba(125, 160, 205, 0.16);
+  --line: rgba(170, 186, 212, 0.13);
+  --line-strong: rgba(196, 210, 232, 0.26);
   --acc: #46c8ff;
-  --acc2: #c24dff;
-  --accSoft: rgba(70, 200, 255, 0.1);
-  --gold: #ffe08a;
-  --goldB: #fff0c2;
-  --ink: #eaf1fa;
-  --muted: #8b99b0;
+  --acc2: #9f86ff;
+  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
+  --lift: rgba(214, 228, 255, 0.05);
+  --accSoft: rgba(214, 228, 255, 0.05);
+  --gold: #d9e3f2;
+  --goldB: #ffffff;
+  --ink: #e9eef6;
+  --muted: #8d98ab;
   --danger: #ff6a3d;
-  --bloom: rgba(70, 200, 255, 0.2);
-  --particle: #7de3ff;
+  --bloom: rgba(90, 170, 255, 0.1);
+  --particle: #9fdcff;
+
+  /* material: poeira de estrelas em grade fina */
+  --panel-texture: radial-gradient(rgba(205, 225, 255, 0.055) 1px, transparent 1.3px) 0 0 / 17px 17px;
+  --scene:
+    radial-gradient(90% 60% at 50% -12%, rgba(80, 140, 225, 0.16), transparent 62%),
+    radial-gradient(55% 45% at 88% 112%, rgba(150, 120, 255, 0.08), transparent 62%);
 }
 
 [data-theme='brasa'] {
+  --font-display: 'Grenze', 'Cinzel', serif;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
   --bg: #0b0806;
-  --bg2: #16100b;
-  --panel: rgba(28, 20, 13, 0.62);
-  --panel2: rgba(44, 31, 20, 0.46);
+  --bg2: #1a110a;
+  --panel: #1c1611;
+  --panel2: #15100c;
+  --well: #0f0b08;
   --steel: #241910;
-  --line: rgba(205, 160, 105, 0.16);
-  --acc: #ff8a4d;
-  --acc2: #e0a93e;
-  --accSoft: rgba(255, 140, 70, 0.1);
-  --gold: #ffe3a0;
-  --goldB: #fff1cf;
-  --ink: #faf1e6;
-  --muted: #b49c84;
-  --danger: #ff5430;
-  --bloom: rgba(255, 150, 70, 0.22);
-  --particle: #ffb066;
+  --line: rgba(214, 172, 116, 0.16);
+  --line-strong: rgba(232, 190, 128, 0.32);
+  --acc: #ff7b3a;
+  --acc2: #f0b43c;
+  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
+  --lift: rgba(255, 226, 186, 0.05);
+  --accSoft: rgba(255, 226, 186, 0.05);
+  --gold: #f3c464;
+  --goldB: #ffe3a3;
+  --ink: #f7ede1;
+  --muted: #b39c83;
+  --danger: #ff4d2e;
+  --bloom: rgba(255, 120, 50, 0.12);
+  --particle: #ffa050;
+
+  /* material: metal martelado / couro — grão quente */
+  --panel-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .78  0 0 0 0 .5  0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --scene:
+    radial-gradient(75% 48% at 50% 116%, rgba(255, 105, 35, 0.2), transparent 66%),
+    radial-gradient(80% 50% at 50% -12%, rgba(255, 185, 110, 0.06), transparent 60%);
 }
 
 [data-theme='verdejante'] {
-  --bg: #060b07;
-  --bg2: #0c1610;
-  --panel: rgba(15, 28, 20, 0.62);
-  --panel2: rgba(22, 44, 31, 0.46);
+  --font-display: 'Alegreya SC', 'Cinzel', serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --bg: #060a07;
+  --bg2: #101a12;
+  --panel: #131b15;
+  --panel2: #0f1611;
+  --well: #0a0f0b;
   --steel: #10241a;
-  --line: rgba(120, 205, 150, 0.16);
-  --acc: #3fd98a;
-  --acc2: #8fe04d;
-  --accSoft: rgba(63, 217, 138, 0.1);
-  --gold: #f0e4a8;
-  --goldB: #fbf4cc;
-  --ink: #ecf7ee;
-  --muted: #86a892;
-  --danger: #ff5a3c;
-  --bloom: rgba(63, 217, 138, 0.2);
-  --particle: #7de3a0;
+  --line: rgba(176, 206, 160, 0.13);
+  --line-strong: rgba(196, 224, 176, 0.26);
+  --acc: #5fd38d;
+  --acc2: #d9b45a;
+  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
+  --lift: rgba(222, 246, 208, 0.045);
+  --accSoft: rgba(222, 246, 208, 0.045);
+  --gold: #e6cf8a;
+  --goldB: #f6e9bf;
+  --ink: #edf3ea;
+  --muted: #90a694;
+  --danger: #ff6a45;
+  --bloom: rgba(130, 210, 140, 0.1);
+  --particle: #c2e27f;
+
+  /* material: veios de madeira escura */
+  --panel-texture: repeating-linear-gradient(97deg, rgba(225, 255, 210, 0.02) 0 1px, transparent 1px 7px, rgba(225, 255, 210, 0.012) 7px 8px, transparent 8px 21px);
+  --scene:
+    radial-gradient(80% 55% at 28% -12%, rgba(205, 230, 140, 0.12), transparent 60%),
+    radial-gradient(60% 45% at 82% 112%, rgba(40, 125, 72, 0.2), transparent 66%);
 }
 
 * {
@@ -252,6 +300,50 @@ svg:not([data-free]) {
   }
 }
 
+/* fagulhas da forja (Brasa): sobem rápido oscilando e apagam */
+@keyframes emberRise {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--rune-opacity, 0.6);
+  }
+  50% {
+    transform: translate(var(--sway, 0), -45vh) scale(0.85);
+  }
+  100% {
+    transform: translate(calc(var(--sway, 0) * -0.4), -95vh) scale(0.3);
+    opacity: 0;
+  }
+}
+/* folhas caindo do dossel (Mata): balançam de um lado a outro */
+@keyframes leafFall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--rune-opacity, 0.2);
+  }
+  25% {
+    transform: translate(var(--sway, 40px), 30vh) rotate(70deg);
+  }
+  50% {
+    transform: translate(calc(var(--sway, 40px) * -0.6), 60vh) rotate(150deg);
+  }
+  75% {
+    transform: translate(var(--sway, 40px), 90vh) rotate(230deg);
+  }
+  92% {
+    opacity: var(--rune-opacity, 0.2);
+  }
+  100% {
+    transform: translate(0, 118vh) rotate(300deg);
+    opacity: 0;
+  }
+}
+
 /* fumaça arcana derivando */
 @keyframes smokeDrift {
   0% {
@@ -374,11 +466,10 @@ button:active:not(:disabled) {
 @layer components {
   .fv-panel {
     position: relative;
-    background: linear-gradient(160deg, var(--panel), var(--panel2));
+    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-panel);
-    backdrop-filter: blur(10px);
   }
   /* fio dourado na borda de cima: acabamento de HUD sem poluir (as
      cantoneiras ficam só no cartão do herói) */
@@ -394,22 +485,20 @@ button:active:not(:disabled) {
     background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold), transparent 45%), transparent);
   }
   .fv-panel-soft {
-    background: linear-gradient(160deg, var(--panel), var(--panel2));
+    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
   .fv-surface {
     position: relative;
-    background: linear-gradient(160deg, var(--panel), var(--panel2));
+    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
-    backdrop-filter: blur(10px);
   }
   .fv-label {
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-size: 13px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -448,7 +537,7 @@ button:active:not(:disabled) {
   }
   .fv-btn-gold {
     cursor: pointer;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-weight: 700;
     letter-spacing: 0.08em;
     color: #1a1206;
@@ -510,7 +599,7 @@ button:active:not(:disabled) {
     background: rgba(0, 0, 0, 0.14);
   }
   .fv-empty-title {
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 14px;
     color: var(--ink);
@@ -565,11 +654,9 @@ button:active:not(:disabled) {
     pointer-events: none;
     overflow: visible;
     padding: 14px 15px 13px;
-    border-radius: 10px;
-    border: 1px solid color-mix(in srgb, var(--gold), transparent 18%);
-    background:
-      linear-gradient(180deg, rgba(22, 19, 12, 0.98), rgba(7, 9, 13, 0.97)),
-      radial-gradient(80% 120% at 50% -20%, var(--bloom), transparent 60%);
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--gold), transparent 45%);
+    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--well));
     box-shadow:
       0 18px 48px rgba(0, 0, 0, 0.65),
       0 0 28px color-mix(in srgb, var(--gold), transparent 82%),
@@ -578,7 +665,7 @@ button:active:not(:disabled) {
     animation: popIn 0.14s ease-out;
   }
   .fv-lore-title {
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-weight: 800;
     font-size: 16px;
     line-height: 1.15;
@@ -741,7 +828,7 @@ button:active:not(:disabled) {
 }
 .fv-topbar-logo span {
   transform: rotate(-45deg);
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 13px;
   color: var(--gold);
@@ -887,7 +974,7 @@ button:active:not(:disabled) {
 }
 .fv-stat-chip.is-rollable:hover {
   border-color: color-mix(in srgb, var(--acc), transparent 45%);
-  background: color-mix(in srgb, var(--acc), transparent 92%);
+  background: var(--lift);
 }
 .fv-stat-chip-die {
   position: absolute;
@@ -961,7 +1048,7 @@ button:active:not(:disabled) {
 }
 .fv-sh-lvl-btn:hover:not(:disabled) {
   border-color: var(--acc);
-  background: color-mix(in srgb, var(--acc), transparent 88%);
+  background: var(--lift);
 }
 .fv-sh-lvl-btn:disabled {
   opacity: 0.3;
@@ -1098,7 +1185,7 @@ button:active:not(:disabled) {
   border-radius: 12px;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.28);
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
 }
@@ -1313,9 +1400,9 @@ button:active:not(:disabled) {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid;
-  background: linear-gradient(160deg, rgba(34, 44, 60, 0.96), rgba(18, 24, 34, 0.96));
+  background: var(--panel-texture), linear-gradient(160deg, var(--panel), var(--well));
   color: var(--ink);
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
   white-space: nowrap;
@@ -1402,7 +1489,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px dashed var(--drop-color);
   background: rgba(0, 0, 0, 0.3);
   color: var(--ink);
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 12.5px;
   text-align: center;
@@ -1448,7 +1535,7 @@ body.fv-dragging .fv-screen-scroll {
     letter-spacing: 0.12em;
   }
   .fv-panel {
-    border-radius: 14px;
+    border-radius: var(--radius-lg);
   }
   .fv-input {
     min-height: 46px;
@@ -1565,7 +1652,7 @@ body.fv-dragging .fv-screen-scroll {
   padding-top: 8px;
 }
 .fv-rail-title {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -1601,7 +1688,7 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: 10px;
   background: transparent;
   color: var(--muted);
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
   text-align: left;
@@ -1683,7 +1770,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.3);
   color: var(--ink);
-  font: 700 13px 'Cinzel', serif;
+  font: 700 13px var(--font-display);
   cursor: pointer;
 }
 .fv-foot-hero img {
@@ -1712,7 +1799,7 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--muted);
 }
 .fv-foot-next b {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   color: var(--ink);
 }
 .fv-forge-foot.is-last .fv-foot-hero {
@@ -1762,7 +1849,7 @@ body.fv-dragging .fv-screen-scroll {
   margin-bottom: 16px;
 }
 .fv-step-eyebrow {
-  font: 700 11px 'Cinzel', serif;
+  font: 700 11px var(--font-display);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--gold);
@@ -1770,7 +1857,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-step-head h2 {
   margin: 4px 0;
-  font: 700 clamp(24px, 3vw, 32px) / 1.05 'Cinzel', serif;
+  font: 700 clamp(24px, 3vw, 32px) / 1.05 var(--font-display);
   color: var(--ink);
 }
 .fv-step-head p {
@@ -1861,7 +1948,7 @@ body.fv-dragging .fv-screen-scroll {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--opt-color), transparent 55%));
 }
 .fv-option-name {
-  font: 700 14px / 1.12 'Cinzel', serif;
+  font: 700 14px / 1.12 var(--font-display);
 }
 .fv-option-line {
   font-size: 11px;
@@ -1927,7 +2014,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-detail h3 {
   margin: 3px 0 0;
-  font: 800 clamp(22px, 2.6vw, 28px) / 1.05 'Cinzel', serif;
+  font: 800 clamp(22px, 2.6vw, 28px) / 1.05 var(--font-display);
   color: var(--ink);
 }
 .fv-detail-tag {
@@ -2261,7 +2348,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-kit h3 {
   margin: 3px 0 0;
-  font: 800 22px / 1.1 'Cinzel', serif;
+  font: 800 22px / 1.1 var(--font-display);
   color: var(--ink);
 }
 .fv-kit-ac {
@@ -2307,7 +2394,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-kit-list dd {
   margin: 4px 0 0;
-  font: 700 14px 'Cinzel', serif;
+  font: 700 14px var(--font-display);
   color: var(--ink);
 }
 .fv-kit-attacks {
@@ -2391,7 +2478,7 @@ body.fv-dragging .fv-screen-scroll {
   box-shadow: inset 0 0 0 3px #140d04;
 }
 .fv-gear-name {
-  font: 600 13.5px 'Cinzel', serif;
+  font: 600 13.5px var(--font-display);
 }
 .fv-gear-note {
   max-width: 46vw;
@@ -2459,7 +2546,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-field-name input {
   min-height: 52px;
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-display);
   font-size: 18px;
 }
 .fv-field-grid {
@@ -2539,7 +2626,7 @@ body.fv-dragging .fv-screen-scroll {
   z-index: 2;
 }
 .fv-hero-name {
-  font: 800 20px / 1.1 'Cinzel', serif;
+  font: 800 20px / 1.1 var(--font-display);
   color: var(--ink);
   text-shadow: 0 2px 12px #000;
   overflow-wrap: anywhere;

@@ -41,7 +41,7 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
           <div key={c.k} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.24)' }}>
             <span
               aria-hidden
-              style={{ width: 26, height: 26, flex: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 9, color: '#140d04', background: `radial-gradient(circle at 35% 30%, #fff8, transparent 45%), ${c.color}`, boxShadow: `0 0 10px ${hexA(c.color, 0.4)}` }}
+              style={{ width: 26, height: 26, flex: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: '#140d04', background: `radial-gradient(circle at 35% 30%, #fff8, transparent 45%), ${c.color}`, boxShadow: `0 0 10px ${hexA(c.color, 0.4)}` }}
             >
               {c.code}
             </span>

@@ -72,7 +72,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
         <div className="fv-topbar-logo" aria-hidden>
           <span>F</span>
         </div>
-        <span className="fv-hide-mobile" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+        <span className="fv-hide-mobile" style={{ fontFamily: 'var(--font-display)', letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
           FICHA&nbsp;VIVA
         </span>
       </div>

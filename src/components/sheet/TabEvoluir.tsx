@@ -130,7 +130,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
     border: '1px solid ' + (active ? t.gold : t.line),
     background: active ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.24)',
     color: active ? t.gold : 'var(--muted)',
-    fontFamily: "'Cinzel', serif",
+    fontFamily: 'var(--font-display)',
     fontWeight: 600,
     fontSize: 12.5,
     transition: '.2s',
@@ -144,7 +144,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Icon name="levelup" size={26} color={t.gold} />
             <div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 20, color: 'var(--ink)', lineHeight: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: 'var(--ink)', lineHeight: 1 }}>
                 Evolução do Herói
               </div>
               <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted)' }}>
@@ -383,7 +383,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
       {atCap && (
         <Panel>
-          <div style={{ textAlign: 'center', padding: '14px 0', fontFamily: "'Cinzel', serif", fontSize: 17, color: t.gold }}>
+          <div style={{ textAlign: 'center', padding: '14px 0', fontFamily: 'var(--font-display)', fontSize: 17, color: t.gold }}>
             Lenda consolidada — nível máximo {MAX_LEVEL} alcançado.
           </div>
         </Panel>
@@ -483,7 +483,7 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
         {record.level}
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>
           Nível {record.level} — {cls.label} {record.classLevel}
           {record.synthetic && <span style={{ marginLeft: 8, fontSize: 9.5, letterSpacing: '.08em', color: 'var(--muted)', textTransform: 'uppercase' }}>migrado (média)</span>}
         </div>

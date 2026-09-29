@@ -39,7 +39,7 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
               borderRadius: 999,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 13.5,
               fontWeight: 600,
               letterSpacing: '.03em',

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useTheme } from '@/lib/useTheme';
 
-/** Glifos rúnicos (alfabeto fictício/decorativo) para a atmosfera arcana. */
+/** Glifos por clima: runas (Arcano), folhas e flores (Mata). A Brasa usa fagulhas (pontos de luz). */
 const RUNES = ['ᚠ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᛁ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛏ', 'ᛒ', 'ᛞ', 'ᛟ', '✦', '❂', '⟡'];
+const LEAVES = ['❦', '❧', '☘', '⚘', '❦', '❧'];
 
 interface DriftItem {
   glyph: string;
@@ -11,27 +12,56 @@ interface DriftItem {
   duration: number;
   delay: number;
   opacity: number;
+  sway: number;
 }
 
 /**
- * Camada leve de runas que sobem e giram lentamente + sopros de fumaça arcana.
+ * Motivo animado do fundo, próprio de cada clima:
+ * · runes  — runas que sobem girando devagar + fumaça arcana
+ * · embers — fagulhas da forja subindo rápido, oscilando + calor embaixo
+ * · leaves — folhas caindo do dossel, balançando
  * Tudo em DOM (poucos elementos) e pausado em prefers-reduced-motion.
  */
 export function RuneDrift({ count = 10 }: { count?: number }) {
   const t = useTheme();
+  const motif = t.motif;
 
-  const runes = useMemo<DriftItem[]>(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
+  const items = useMemo<DriftItem[]>(() => {
+    const n = motif === 'embers' ? Math.round(count * 1.8) : count;
+    return Array.from({ length: n }, (_, i) => {
+      if (motif === 'embers') {
+        return {
+          glyph: '',
+          left: 5 + Math.random() * 90,
+          size: 2 + Math.random() * 3.5,
+          duration: 9 + Math.random() * 10,
+          delay: -Math.random() * 18,
+          opacity: 0.35 + Math.random() * 0.45,
+          sway: (Math.random() - 0.5) * 120,
+        };
+      }
+      if (motif === 'leaves') {
+        return {
+          glyph: LEAVES[i % LEAVES.length],
+          left: Math.random() * 100,
+          size: 13 + Math.random() * 14,
+          duration: 24 + Math.random() * 18,
+          delay: -Math.random() * 40,
+          opacity: 0.12 + Math.random() * 0.16,
+          sway: 30 + Math.random() * 60,
+        };
+      }
+      return {
         glyph: RUNES[i % RUNES.length],
         left: Math.random() * 100,
         size: 14 + Math.random() * 26,
         duration: 26 + Math.random() * 26,
         delay: -Math.random() * 40,
         opacity: 0.1 + Math.random() * 0.16,
-      })),
-    [count],
-  );
+        sway: 0,
+      };
+    });
+  }, [count, motif]);
 
   const smoke = useMemo(
     () =>
@@ -46,44 +76,86 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
 
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      {smoke.map((s, i) => (
-        <div
-          key={`s${i}`}
-          style={{
-            position: 'absolute',
-            bottom: '-10%',
-            left: `${s.left}%`,
-            width: s.size,
-            height: s.size,
-            borderRadius: '50%',
-            background: `radial-gradient(circle, ${t.bloom} 0%, transparent 70%)`,
-            filter: 'blur(24px)',
-            animation: `smokeDrift ${s.duration}s ease-in infinite`,
-            animationDelay: `${s.delay}s`,
-          }}
-        />
-      ))}
-      {runes.map((r, i) => (
-        <span
-          key={`r${i}`}
-          style={
-            {
+      {motif !== 'leaves' &&
+        smoke.map((s, i) => (
+          <div
+            key={`s${i}`}
+            style={{
               position: 'absolute',
+              bottom: '-10%',
+              left: `${s.left}%`,
+              width: s.size,
+              height: s.size,
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${t.bloom} 0%, transparent 70%)`,
+              filter: 'blur(24px)',
+              animation: `smokeDrift ${s.duration}s ease-in infinite`,
+              animationDelay: `${s.delay}s`,
+            }}
+          />
+        ))}
+      {items.map((r, i) => {
+        const common = {
+          position: 'absolute',
+          left: `${r.left}%`,
+          animationDelay: `${r.delay}s`,
+          '--rune-opacity': r.opacity,
+          '--sway': `${r.sway}px`,
+        } as React.CSSProperties;
+        if (motif === 'embers') {
+          return (
+            <span
+              key={`e${i}`}
+              style={{
+                ...common,
+                bottom: '-4%',
+                width: r.size,
+                height: r.size,
+                borderRadius: '50%',
+                background: i % 4 === 0 ? t.gold : t.particle,
+                boxShadow: `0 0 ${r.size * 3}px ${t.acc}`,
+                animation: `emberRise ${r.duration}s ease-out infinite`,
+                animationDelay: `${r.delay}s`,
+              }}
+            />
+          );
+        }
+        if (motif === 'leaves') {
+          return (
+            <span
+              key={`l${i}`}
+              style={{
+                ...common,
+                top: '-8%',
+                fontSize: r.size,
+                lineHeight: 1,
+                color: i % 3 === 0 ? t.acc2 : t.particle,
+                animation: `leafFall ${r.duration}s linear infinite`,
+                animationDelay: `${r.delay}s`,
+              }}
+            >
+              {r.glyph}
+            </span>
+          );
+        }
+        return (
+          <span
+            key={`r${i}`}
+            style={{
+              ...common,
               bottom: '-8%',
-              left: `${r.left}%`,
               fontSize: r.size,
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               color: i % 3 === 0 ? t.gold : t.particle,
               textShadow: `0 0 14px ${t.bloom}`,
               animation: `runeFloat ${r.duration}s linear infinite`,
               animationDelay: `${r.delay}s`,
-              '--rune-opacity': r.opacity,
-            } as React.CSSProperties
-          }
-        >
-          {r.glyph}
-        </span>
-      ))}
+            }}
+          >
+            {r.glyph}
+          </span>
+        );
+      })}
     </div>
   );
 }

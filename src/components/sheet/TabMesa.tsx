@@ -105,7 +105,7 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* morrendo: testes contra a morte em destaque */}
         {dying && (
           <div style={{ marginTop: 13, padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.5), background: hexA(t.danger, 0.1), display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, color: t.danger }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: t.danger }}>
               CAINDO — Testes contra a Morte
             </div>
             <DeathPips label="Sucessos" color="#3FC56B" value={char.combat.deathSaves.success} onSet={(n) => store.setDeathSave(char.id, 'success', n)} />
@@ -186,9 +186,9 @@ export function TabMesa({ char, derived }: TabProps) {
                   padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.5)),
-                  background: used ? 'rgba(0,0,0,.32)' : hexA(t.acc, 0.09),
+                  background: used ? 'rgba(0,0,0,.32)' : 'var(--lift)',
                   color: used ? 'var(--muted)' : 'var(--ink)',
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: 'var(--font-display)',
                   fontWeight: 700,
                   fontSize: 12,
                   textDecoration: used ? 'line-through' : 'none',
@@ -227,7 +227,7 @@ export function TabMesa({ char, derived }: TabProps) {
           {derived.attacks.map((atk) => (
             <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
               </div>
               <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown)}>
                 <button onClick={() => attack(atk)} style={atkBtn(t.gold)}>
@@ -299,7 +299,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     <button
                       key={tool.id}
                       onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
-                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : hexA(t.acc, 0.06), color: 'var(--ink)', transition: '.2s' }}
+                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
                       {tool.label} <span style={{ fontSize: 9.5, color: 'var(--muted)' }}>{ABILITY_SHORT[chk.ability]}</span>{' '}
                       <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: "'Chakra Petch', monospace" }}>{modStr(chk.total)}</b>
@@ -333,7 +333,7 @@ export function TabMesa({ char, derived }: TabProps) {
               const slot = char.combat.spellSlots[lv];
               return (
                 <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0' }}>
-                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {Array.from({ length: slot.max }, (_, i) => {
                       const filled = i >= slot.used;
@@ -371,7 +371,7 @@ export function TabMesa({ char, derived }: TabProps) {
             return (
               <div key={res.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
                 <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
-                  <span style={{ cursor: 'help', flex: 1, fontFamily: "'Cinzel', serif", fontSize: 13.5, color: 'var(--ink)' }}>{res.label}</span>
+                  <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>{res.label}</span>
                 </LoreTooltip>
                 <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: left > 0 ? t.gold : 'var(--muted)' }}>
                   {left}/{res.max}
@@ -519,7 +519,7 @@ const restBtn: CSSProperties = {
   borderRadius: 'var(--radius-md)',
   border: '1px solid',
   background: 'rgba(0,0,0,.24)',
-  fontFamily: "'Cinzel', serif",
+  fontFamily: 'var(--font-display)',
   fontWeight: 700,
   fontSize: 12.5,
   transition: '.2s',

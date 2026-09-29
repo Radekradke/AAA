@@ -162,7 +162,7 @@ export function RollOverlay() {
                     {roll.total}
                   </div>
                   <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 13.5, color: 'var(--ink)' }}>{detail}</div>
-                  <div style={{ marginTop: 6, fontFamily: "'Cinzel', serif", fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
+                  <div style={{ marginTop: 6, fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
                 </motion.div>
               )}
             </AnimatePresence>

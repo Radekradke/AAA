@@ -101,7 +101,7 @@ export function CampaignRoom() {
     <Screen scroll actions={<Button onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>Mesas</Button>}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
         <div className="fv-label" style={{ marginBottom: 4 }}>{isMaster ? 'Você comanda esta mesa' : 'Mesa de campanha'}</div>
-        <h1 style={{ margin: '0 0 16px', fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(21px,3.6vw,28px)', color: 'var(--ink)' }}>
+        <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(21px,3.6vw,28px)', color: 'var(--ink)' }}>
           {campaign?.name ?? 'Carregando…'}
         </h1>
         {error && <div style={{ marginBottom: 12, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
@@ -228,7 +228,7 @@ export function CampaignRoom() {
                       <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12 }}>✕</button>
                     )}
                   </div>
-                  <div style={{ marginTop: 3, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{n.title}</div>
+                  <div style={{ marginTop: 3, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{n.title}</div>
                   {n.body && <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>{n.body}</div>}
                 </div>
               ))}
@@ -257,7 +257,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
   return (
     <div className="fv-surface" style={{ padding: '13px 14px', border: '1px solid ' + hexA(mine ? t.acc : t.gold, 0.35) }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
-        <div style={{ minWidth: 0, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {snapshot.name}
         </div>
         {mine && <span style={{ flex: 'none', fontSize: 9, letterSpacing: '.1em', color: t.acc }}>SUA</span>}

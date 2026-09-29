@@ -38,7 +38,7 @@ const TONES: Record<HoloTone, { bg: string; ink: string; edge: string; blend: CS
   gold: { bg: 'linear-gradient(135deg, #fbeebb 0%, #e9c46a 42%, #f6dd98 62%, #c9993c 100%)', ink: '#3b2a07', edge: 'rgba(90,60,10,.35)', blend: 'overlay', glow: 'rgba(255,214,110,.55)' },
   silver: { bg: 'linear-gradient(135deg, #f1f3f6 0%, #c9ced6 45%, #e6e9ee 65%, #a9b0bb 100%)', ink: '#2a3038', edge: 'rgba(40,50,60,.3)', blend: 'overlay', glow: 'rgba(210,220,235,.4)' },
   bronze: { bg: 'linear-gradient(135deg, #f6d7b3 0%, #d69a5c 45%, #efc394 65%, #a8672e 100%)', ink: '#3a1f08', edge: 'rgba(80,40,10,.35)', blend: 'overlay', glow: 'rgba(240,170,100,.45)' },
-  steel: { bg: 'linear-gradient(145deg, rgba(34,44,60,.92) 0%, rgba(18,24,34,.94) 60%, rgba(28,36,50,.92) 100%)', ink: 'var(--ink)', edge: 'var(--line)', blend: 'screen', glow: 'var(--bloom)' },
+  steel: { bg: 'linear-gradient(145deg, var(--panel) 0%, var(--well) 60%, var(--panel2) 100%)', ink: 'var(--ink)', edge: 'var(--line)', blend: 'screen', glow: 'var(--bloom)' },
 };
 
 /** Faixas do arco-íris (mesmas do original). */

@@ -152,7 +152,7 @@ export function TabMagias({ char, derived }: TabProps) {
             return (
               <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
                 <LoreTooltip info={passiveLore(`${lv}º círculo`, `${slot.max - slot.used}/${slot.max} disponíveis`, 'Cada losango é um espaço. Gastos voltam após descanso longo.', ['Magia', 'Recurso'])}>
-                  <span style={{ cursor: 'help', fontFamily: "'Cinzel', serif", fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
+                  <span style={{ cursor: 'help', fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
                 </LoreTooltip>
                 <div style={{ flex: 1, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                   {Array.from({ length: slot.max }, (_, i) => {
@@ -176,7 +176,7 @@ export function TabMagias({ char, derived }: TabProps) {
           <SectionLabel>Magias de Itens</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
-              <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: hexA(t.acc2 ?? t.acc, 0.06) }}>
+              <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                   <span style={{ cursor: 'help', display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
@@ -210,10 +210,10 @@ export function TabMagias({ char, derived }: TabProps) {
           <SectionLabel
             right={
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
+                <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
                   + {learnLabel}
                 </button>
-                <button onClick={() => setLearn('all')} title="Aprender de pergaminho/grimório em troca de ouro" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: hexA(t.acc, 0.1) }}>
+                <button onClick={() => setLearn('all')} title="Aprender de pergaminho/grimório em troca de ouro" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
                   📜 De pergaminho
                 </button>
               </div>
@@ -229,7 +229,7 @@ export function TabMagias({ char, derived }: TabProps) {
           {byCircle.map(([lv, spells]) => (
             <div key={lv} style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 7px' }}>
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
                 <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{spells.length}</span>
               </div>
