@@ -45,93 +45,95 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
       <StepHeader step={6} />
 
       <div className="fv-awaken">
-        <div className="fv-form">
-          <label className="fv-field fv-field-name">
-            <span>Nome</span>
+        <label className="fv-field fv-field-name">
+          <span>Nome</span>
+          <div className="fv-field-row">
+            <input
+              className="fv-input"
+              value={char.name}
+              placeholder="Como a lenda vai chamá-lo?"
+              autoComplete="off"
+              onChange={(e) => update((c) => { c.name = e.target.value; })}
+            />
+            <button type="button" className="fv-dice-btn" aria-label="Sortear nome" title="Sortear nome" onClick={() => update((c) => { c.name = randomName(c.raceId, c.gender); })}>
+              <Icon name="d20" size={20} />
+            </button>
+          </div>
+        </label>
+
+        <div className="fv-field-grid">
+          <div className="fv-field">
+            <span>Aparência</span>
+            <div className="fv-seg" role="radiogroup" aria-label="Aparência">
+              {(['masc', 'fem'] as const).map((g) => (
+                <button key={g} type="button" role="radio" aria-checked={char.gender === g} className={char.gender === g ? 'is-on' : ''} onClick={() => update((c) => { c.gender = g; })}>
+                  {g === 'masc' ? 'Masculina' : 'Feminina'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="fv-field">
+            <span>Idade</span>
             <div className="fv-field-row">
-              <input
-                className="fv-input"
-                value={char.name}
-                placeholder="Como a lenda vai chamá-lo?"
-                autoComplete="off"
-                onChange={(e) => update((c) => { c.name = e.target.value; })}
-              />
-              <button type="button" className="fv-dice-btn" aria-label="Sortear nome" title="Sortear nome" onClick={() => update((c) => { c.name = randomName(c.raceId, c.gender); })}>
+              <input className="fv-input" value={char.age} placeholder="Ex.: 142 anos" onChange={(e) => update((c) => { c.age = e.target.value; })} />
+              <button type="button" className="fv-dice-btn" aria-label="Sortear idade" title="Sortear idade" onClick={() => update((c) => { c.age = randomAge(c.raceId); })}>
                 <Icon name="d20" size={20} />
               </button>
             </div>
           </label>
-
-          <div className="fv-field-grid">
-            <div className="fv-field">
-              <span>Aparência</span>
-              <div className="fv-seg" role="radiogroup" aria-label="Aparência">
-                {(['masc', 'fem'] as const).map((g) => (
-                  <button key={g} type="button" role="radio" aria-checked={char.gender === g} className={char.gender === g ? 'is-on' : ''} onClick={() => update((c) => { c.gender = g; })}>
-                    {g === 'masc' ? 'Masculina' : 'Feminina'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <label className="fv-field">
-              <span>Idade</span>
-              <div className="fv-field-row">
-                <input className="fv-input" value={char.age} placeholder="Ex.: 142 anos" onChange={(e) => update((c) => { c.age = e.target.value; })} />
-                <button type="button" className="fv-dice-btn" aria-label="Sortear idade" title="Sortear idade" onClick={() => update((c) => { c.age = randomAge(c.raceId); })}>
-                  <Icon name="d20" size={20} />
-                </button>
-              </div>
-            </label>
-            <label className="fv-field">
-              <LoreTooltip info={ALIGN_LORE}>
-                <span style={{ cursor: 'help' }}>Alinhamento ⓘ</span>
-              </LoreTooltip>
-              <select className="fv-input" value={char.alignment} onChange={(e) => update((c) => { c.alignment = e.target.value; })}>
-                {ALIGNMENTS.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
           <label className="fv-field">
-            <span>Conceito <small>(opcional)</small></span>
-            <textarea
-              className="fv-input"
-              rows={2}
-              style={{ resize: 'none', lineHeight: 1.5 }}
-              value={char.concept}
-              placeholder="Em uma frase: quem é seu herói e o que o move?"
-              onChange={(e) => update((c) => { c.concept = e.target.value; })}
-            />
+            <LoreTooltip info={ALIGN_LORE}>
+              <span style={{ cursor: 'help' }}>Alinhamento ⓘ</span>
+            </LoreTooltip>
+            <select className="fv-input" value={char.alignment} onChange={(e) => update((c) => { c.alignment = e.target.value; })}>
+              {ALIGNMENTS.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
           </label>
-          <div className="fv-pills">
-            {CONCEPT_SEEDS.map((seed) => (
-              <button key={seed} type="button" className="fv-pill is-ghost" onClick={() => addSeed(seed)}>
-                + {seed}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div>
-          <SectionTitle>A lenda até aqui</SectionTitle>
-          <FactList
-            title=""
-            facts={[
-              { label: 'Origem', value: raceLine(char) },
-              { label: 'Caminho', value: `${cls.label} · nível ${char.level}` },
-              { label: 'Passado', value: bg.label },
-              { label: 'Atributos', value: ABILITY_KEYS.map((k) => `${ABILITY_SHORT[k]} ${d.abilities[k].total}`).join(' · ') },
-              { label: 'Perícias', value: skills.join(', ') || '—' },
-            ]}
-          />
+        <div className="fv-awaken-split">
+          <div className="fv-form">
+            <label className="fv-field">
+              <span>Conceito <small>(opcional)</small></span>
+              <textarea
+                className="fv-input"
+                rows={2}
+                style={{ resize: 'none', lineHeight: 1.5 }}
+                value={char.concept}
+                placeholder="Em uma frase: quem é seu herói e o que o move?"
+                onChange={(e) => update((c) => { c.concept = e.target.value; })}
+              />
+            </label>
+            <div className="fv-pills">
+              {CONCEPT_SEEDS.map((seed) => (
+                <button key={seed} type="button" className="fv-pill is-ghost" onClick={() => addSeed(seed)}>
+                  + {seed}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <SectionTitle>A lenda até aqui</SectionTitle>
+            <FactList
+              title=""
+              facts={[
+                { label: 'Origem', value: raceLine(char) },
+                { label: 'Caminho', value: `${cls.label} · nível ${char.level}` },
+                { label: 'Passado', value: bg.label },
+                { label: 'Atributos', value: ABILITY_KEYS.map((k) => `${ABILITY_SHORT[k]} ${d.abilities[k].total}`).join(' · ') },
+                { label: 'Perícias', value: skills.join(', ') || '—' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
       {/* no celular/tablet o retrato fecha a página, depois do nome (no desktop ele vive na coluna à direita) */}
       <div className="fv-awaken-hero">
-        <HeroPanel char={char} onGoStep={onGoStep} />
+        <HeroPanel char={char} onGoStep={onGoStep} onPortrait={(url) => update((c) => { c.portrait = url; })} />
       </div>
     </div>
   );

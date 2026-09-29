@@ -11,11 +11,14 @@ import { modStr } from '@/engine/dice';
 import { heroAvatar } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from './creatorUi';
+import { PortraitPicker } from './PortraitPicker';
 
 interface HeroPanelProps {
   char: Character;
   /** Leva à etapa onde resolver uma pendência. */
   onGoStep?: (step: number) => void;
+  /** Troca a arte do herói (sem valor: painel só exibe). */
+  onPortrait?: (dataUrl: string | null) => void;
 }
 
 /**
@@ -23,7 +26,7 @@ interface HeroPanelProps {
  * atributos, vitais e o que ainda falta. É a "assinatura" da criação —
  * cada escolha aparece aqui na hora.
  */
-export function HeroPanel({ char, onGoStep }: HeroPanelProps) {
+export function HeroPanel({ char, onGoStep, onPortrait }: HeroPanelProps) {
   const derived = useMemo(() => deriveCharacter(char), [char]);
   const pending = useMemo(() => creationPending(char), [char]);
   const race = getRace(char.raceId);
@@ -36,6 +39,7 @@ export function HeroPanel({ char, onGoStep }: HeroPanelProps) {
     <div className="fv-hero-panel" style={{ ['--race-color' as string]: race.jewel, ['--class-color' as string]: cls.jewel } as CSSProperties}>
       <div className="fv-hero-portrait">
         <img src={heroAvatar(char)} alt="" />
+        {onPortrait && <PortraitPicker portrait={char.portrait} onChange={onPortrait} />}
         <div className="fv-hero-sigil" title={cls.label}>
           <Icon name={themedIcon('class', cls.id)} size={22} />
         </div>

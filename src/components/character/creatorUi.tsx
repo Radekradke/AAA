@@ -91,7 +91,7 @@ export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, ch
           {tag && <div className="fv-detail-tag">{tag}</div>}
         </div>
       </div>
-      <p className="fv-detail-desc">{desc}</p>
+      <p className="fv-detail-desc" title={desc}>{desc}</p>
       {facts && facts.length > 0 && <FactList facts={facts} />}
       {children}
     </section>

@@ -1,7 +1,7 @@
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { BACKGROUNDS, getBackground } from '@/data/backgrounds';
-import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
+import { SKILL_BY_KEY } from '@/data/skills';
 import { backgroundFacts } from '@/engine/creationSummary';
 import { useTheme } from '@/lib/useTheme';
 
@@ -9,7 +9,7 @@ import { useTheme } from '@/lib/useTheme';
 export function StepBackground({ char, update }: StepProps) {
   const t = useTheme();
   const bg = getBackground(char.backgroundId);
-  const facts = [...backgroundFacts(char), { label: 'Favorece', value: bg.suggestedAbilities.map((k) => ABILITY_SHORT[k]).join(' e ') }];
+  const facts = backgroundFacts(char);
 
   return (
     <div className="fv-step">
@@ -31,7 +31,7 @@ export function StepBackground({ char, update }: StepProps) {
 
         <ChoiceDetail icon={themedIcon('bg', bg.id)} color={t.gold} eyebrow="Antecedente" title={bg.label} desc={bg.desc} facts={facts}>
           {bg.feature && (
-            <p className="fv-detail-feature">
+            <p className="fv-detail-feature" title={bg.feature}>
               {bg.featureName && <b>{bg.featureName}. </b>}
               {bg.feature}
             </p>

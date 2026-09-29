@@ -89,6 +89,8 @@ export function CharacterCreator() {
   const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
   const creatorDarken = creatorVideo ? 0.5 : 1;
 
+  const setPortrait = (url: string | null) => update((c) => { c.portrait = url; });
+
   const goStep = (i: number) => {
     setStep(i);
     bump(0.8);
@@ -197,7 +199,7 @@ export function CharacterCreator() {
 
         {/* o herói tomando forma (desktop) */}
         <aside className="fv-forge-hero" aria-label="Seu herói">
-          <HeroPanel char={char} onGoStep={goStep} />
+          <HeroPanel char={char} onGoStep={goStep} onPortrait={setPortrait} />
         </aside>
 
         <footer className="fv-forge-foot">
@@ -235,6 +237,7 @@ export function CharacterCreator() {
               setSummaryOpen(false);
               goStep(i);
             }}
+            onPortrait={setPortrait}
           />
         </Modal>
       )}

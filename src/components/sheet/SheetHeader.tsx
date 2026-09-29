@@ -1,6 +1,7 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import { heroSubtitle, heroAvatar, heroFace } from '@/lib/summary';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
 import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
@@ -19,6 +20,7 @@ interface SheetHeaderProps {
 export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
   const race = getRace(char.raceId);
   const setLevel = useCharacterStore((s) => s.setLevel);
+  const updateCharacter = useCharacterStore((s) => s.updateCharacter);
 
   const lvlBtn: React.CSSProperties = {
     cursor: 'pointer',
@@ -79,6 +81,7 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
             }}
           />
         </div>
+        <PortraitPicker variant="badge" portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>

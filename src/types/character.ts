@@ -162,6 +162,11 @@ export interface Character {
   ownerId: string;
   name: string;
   gender: 'masc' | 'fem';
+  /**
+   * Retrato enviado pelo jogador (data URL WebP ≈ 40–150 KB, já reduzido e
+   * recortado). Sem valor: arte da raça/aparência ou a arte padrão.
+   */
+  portrait?: string | null;
   // identidade
   raceId: string;
   subraceId: string | null;
