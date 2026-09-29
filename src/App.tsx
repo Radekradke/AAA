@@ -14,6 +14,7 @@ import { JoinCampaign } from '@/pages/JoinCampaign';
 import { Diagnostics } from '@/pages/Diagnostics';
 import type { ReactNode } from 'react';
 import { useCloudSync } from '@/hooks/useCloudSync';
+import { PwaStatus } from '@/components/PwaStatus';
 
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -31,6 +32,9 @@ export function App() {
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
 
   return (
+    <>
+    {/* app instalável: avisos de offline pronto / nova versão */}
+    <PwaStatus />
     <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
@@ -82,5 +86,6 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
+    </>
   );
 }

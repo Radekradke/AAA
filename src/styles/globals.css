@@ -1163,6 +1163,25 @@ button:active:not(:disabled) {
   }
 }
 
+/* aviso do app instalável (offline pronto / nova versão) */
+.fv-pwa-toast {
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 210;
+  width: min(440px, calc(100vw - 28px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--gold);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 24px var(--bloom);
+  backdrop-filter: blur(14px);
+}
+
 /* visibilidade por dispositivo */
 .fv-desktop-only {
   display: block;

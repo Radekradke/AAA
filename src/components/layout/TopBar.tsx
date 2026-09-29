@@ -5,6 +5,8 @@ import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
+import { Modal } from '@/components/ui/Modal';
+import { useInstallPrompt } from '@/lib/pwaInstall';
 
 export interface TopBarMenuItem {
   label: string;
@@ -35,6 +37,8 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const t = useTheme();
   const [open, setOpen] = useState(false);
+  const [iosGuide, setIosGuide] = useState(false);
+  const installer = useInstallPrompt();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -56,6 +60,10 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
     { key: 'theme', label: `Atmosfera: ${t.label}`, icon: 'spark', onClick: toggleTheme, mobileOnly: true },
     { key: 'sound', label: sound ? 'Desativar som' : 'Ativar som', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound, mobileOnly: true },
     { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
+    // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
+    ...(installer.canPrompt || installer.needsIOSGuide
+      ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
+      : []),
   ];
 
   return (
@@ -118,6 +126,19 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
           )}
         </div>
       </div>
+
+      {iosGuide && (
+        <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>
+            <li>Abra este site no <b>Safari</b>.</li>
+            <li>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</li>
+            <li>Escolha <b>Adicionar à Tela de Início</b> e confirme.</li>
+          </ol>
+          <p style={{ margin: '14px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>
+            A Ficha Viva vira um ícone na tela e abre em tela cheia — e funciona sem internet depois da primeira visita.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }
