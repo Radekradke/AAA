@@ -1145,7 +1145,16 @@ button:active:not(:disabled) {
   position: relative;
   z-index: 3;
 }
+/* inspiração preparada: pulso mais forte para lembrar que a vantagem está armada */
+.fv-holo.fv-insp-armed .fv-holo-card {
+  animation: holoGlowArmed 1.1s ease-in-out infinite;
+}
+@keyframes holoGlowArmed {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--holo-glow)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)); transform-origin: center; }
+  50% { filter: drop-shadow(0 0 24px var(--holo-glow)) drop-shadow(0 0 6px #fff6d5); }
+}
 @media (prefers-reduced-motion: reduce) {
+  .fv-holo.fv-insp-armed .fv-holo-card,
   .fv-holo-card,
   .fv-holo.is-active .fv-holo-card,
   .fv-holo-shine g {

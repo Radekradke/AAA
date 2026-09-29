@@ -36,7 +36,7 @@ A **ficha** inclui:
 - **Perícias** com proficiência e bônus automáticos.
 - **Combate**: PV com barra colorida (dano/cura/PV temp.), **ataques automáticos** das armas equipadas (acerto e dano), economia de turno (ação/bônus/reação/movimento), recursos de classe, dados de vida e resgate da morte.
 - **Inventário**: três recipientes holográficos que abrem ao toque — **Equipado**, **Mochila** e **Baú** (tesouros e itens mágicos guardados) —, moedas, sintonia (máx. 3), adicionar/remover, **equipar/desequipar arma, armadura e escudo**, favoritar — tudo recalculando **CA, ataques e dano** ao vivo.
-- **Inspiração** em destaque: selo dourado holográfico na Mesa quando disponível.
+- **Pontos de Inspiração** (Mesa): selo dourado holográfico com **+ / −** para ganhar/corrigir; tocar no selo **prepara a vantagem** no próximo teste d20 (ataque, perícia, resistência) e o ponto só é descontado quando o dado rola — cancelar ou trocar de ficha não gasta. A rolagem fica marcada "· Inspiração" no histórico.
 - **Magias** (conjuradores): espaços de magia, CD/ataque de magia e magias preparadas.
 - **Descanso** curto/longo e **condições**.
 - **Diário** de sessões (título, data, resumo, NPCs, locais, missões, tesouros, anotações livres) com **busca** + anotações rápidas.

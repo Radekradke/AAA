@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
+import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStateStorage } from '@/lib/storage/zustandIdb';
 import type { Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
@@ -78,6 +79,10 @@ interface CharacterState {
   /** Evolução guiada (aba Evoluir): valida e aplica um plano de nível. */
   levelUp: (id: string, plan: LevelUpPlan) => { ok: boolean; errors: string[] };
   toggleInspiration: (id: string) => void;
+  /** Pontos de Inspiração: ganhar (+1), gastar (−1) ou ajustar direto. */
+  gainInspiration: (id: string) => void;
+  spendInspiration: (id: string) => void;
+  setInspiration: (id: string, points: number) => void;
   updateCampaign: (id: string, patch: Partial<Character['campaign']>) => void;
 }
 
@@ -599,9 +604,16 @@ export const useCharacterStore = create<CharacterState>()(
           return { ok: true, errors: [] };
         },
         toggleInspiration(id) {
-          mutate(id, (c) => {
-            c.inspiration = !c.inspiration;
-          });
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) > 0 ? 0 : 1));
+        },
+        gainInspiration(id) {
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) + 1));
+        },
+        spendInspiration(id) {
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) - 1));
+        },
+        setInspiration(id, points) {
+          mutate(id, (c) => setInspirationCount(c, points));
         },
         updateCampaign(id, patch) {
           mutate(id, (c) => {

@@ -12,7 +12,7 @@ import { DICE_TYPES, modStr } from '@/engine/dice';
 /** Rolador de dados completo + linha do tempo das rolagens da ficha. */
 export function DiceRoller({ char }: { char?: Character }) {
   const t = useTheme();
-  const { rollDice } = useDiceRoller();
+  const { rollDice, checkD20 } = useDiceRoller();
   const rollMode = useUiStore((s) => s.rollMode);
 
   const [sides, setSides] = useState(20);
@@ -54,15 +54,18 @@ export function DiceRoller({ char }: { char?: Character }) {
         </div>
 
         <button
-          onClick={() =>
-            rollDice(sides, {
+          onClick={() => {
+            const opts = {
               count,
               modifier: mod,
               label: `Rolagem ${expr}`,
               advantage: d20Single && rollMode === 'advantage',
               disadvantage: d20Single && rollMode === 'disadvantage',
-            })
-          }
+            };
+            // d20 avulso também consome a inspiração preparada
+            if (d20Single) checkD20(opts);
+            else rollDice(sides, opts);
+          }}
           className="fv-btn-gold"
           style={{ marginTop: 18, width: '100%', padding: 14, fontSize: 16, boxShadow: '0 10px 28px rgba(0,0,0,.4), 0 0 24px var(--bloom)' }}
         >

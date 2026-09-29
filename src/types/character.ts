@@ -174,7 +174,10 @@ export interface Character {
   asiBonuses: Partial<AbilityScores>;
   /** Linha do tempo de evolução, nível a nível. */
   levelHistory: LevelUpRecord[];
+  /** Legado (PHB 2014: tem/não tem). Espelha `inspirationPoints > 0`. */
   inspiration: boolean;
+  /** Pontos de Inspiração acumulados (mesas que deixam acumular). */
+  inspirationPoints?: number;
   campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)
   baseAbilities: AbilityScores;

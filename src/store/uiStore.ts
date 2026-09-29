@@ -29,6 +29,16 @@ interface UiState {
   bumpAmount: number;
   bump: (amount?: number) => void;
 
+  /**
+   * Inspiração preparada: o próximo teste d20 (ataque, perícia, resistência)
+   * sai com vantagem e só então o ponto é descontado da ficha `armedCharId`.
+   */
+  inspirationArmed: boolean;
+  armedCharId: string | null;
+  armInspiration: (charId: string) => void;
+  /** Desarma e devolve o modo de rolagem anterior (cancelar ou após usar). */
+  disarmInspiration: () => void;
+
   /** Ficha aberta agora: cada rolagem é marcada com ela. */
   activeCharId: string | null;
   setActiveChar: (id: string | null) => void;
@@ -53,6 +63,7 @@ export function historyFor(history: RollResult[], charId: string | null | undefi
 }
 
 let _rollTimer: ReturnType<typeof setTimeout> | null = null;
+let _modeBeforeInspiration: RollMode = 'normal';
 
 function prefersReducedMotion(): boolean {
   try {
@@ -80,7 +91,21 @@ export const useUiStore = create<UiState>()(
 
       rollMode: 'normal',
       setRollMode(m) {
-        set({ rollMode: m });
+        // escolher o modo na mão encerra a inspiração preparada
+        set({ rollMode: m, inspirationArmed: false, armedCharId: null });
+      },
+
+      inspirationArmed: false,
+      armedCharId: null,
+      armInspiration(charId) {
+        const prev = get().rollMode;
+        _modeBeforeInspiration = prev;
+        // vantagem + desvantagem se anulam (PHB 2014)
+        set({ inspirationArmed: true, armedCharId: charId, rollMode: prev === 'disadvantage' ? 'normal' : 'advantage' });
+      },
+      disarmInspiration() {
+        if (!get().inspirationArmed) return;
+        set({ inspirationArmed: false, armedCharId: null, rollMode: _modeBeforeInspiration });
       },
 
       // quem pediu menos animação ao sistema começa com o 3D desligado
@@ -104,6 +129,8 @@ export const useUiStore = create<UiState>()(
 
       activeCharId: null,
       setActiveChar(id) {
+        // saiu da ficha que preparou a inspiração: desarma (o ponto não foi gasto)
+        if (get().inspirationArmed && get().armedCharId !== id) get().disarmInspiration();
         set({ activeCharId: id });
       },
 
