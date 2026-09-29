@@ -19,6 +19,7 @@ import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
 import { useUiStore } from '@/store/uiStore';
+import { loadDice3d } from '@/lib/dice3d';
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,20 @@ export function CharacterSheet() {
   const [editing, setEditing] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
+
+  // dados 3D: pré-carrega em segundo plano (a 1ª rolagem já sai em 3D)
+  const dice3d = useUiStore((s) => s.dice3d);
+  useEffect(() => {
+    if (!dice3d) return;
+    const warm = () => void loadDice3d(useUiStore.getState().theme);
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number; cancelIdleCallback?: (id: number) => void };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(warm);
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(warm, 1200);
+    return () => clearTimeout(id);
+  }, [dice3d]);
 
   // toda rolagem feita com esta ficha aberta entra no histórico dela
   const setActiveChar = useUiStore((s) => s.setActiveChar);

@@ -31,6 +31,8 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const toggleTheme = useUiStore((s) => s.toggleTheme);
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
+  const dice3d = useUiStore((s) => s.dice3d);
+  const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const t = useTheme();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -53,8 +55,8 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
     { key: 'theme', label: `Atmosfera: ${t.label}`, icon: 'spark', onClick: toggleTheme, mobileOnly: true },
     { key: 'sound', label: sound ? 'Desativar som' : 'Ativar som', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound, mobileOnly: true },
+    { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
   ];
-  const hasDesktopItems = items.some((i) => !i.mobileOnly);
 
   return (
     <div className="fv-topbar">
@@ -84,7 +86,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
         <SyncBadge />
         {actions}
 
-        <div ref={menuRef} style={{ position: 'relative' }} className={hasDesktopItems ? undefined : 'fv-mobile-only'}>
+        <div ref={menuRef} style={{ position: 'relative' }}>
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label="Mais opções"

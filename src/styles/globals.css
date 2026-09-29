@@ -1033,6 +1033,24 @@ button:active:not(:disabled) {
   border-top: 1px solid var(--line);
 }
 
+/* mesa dos dados 3D: canvas fixo sobre a tela, sem capturar toques */
+.fv-dice3d {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.fv-dice3d.is-visible {
+  opacity: 1;
+}
+.fv-dice3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* visibilidade por dispositivo */
 .fv-desktop-only {
   display: block;

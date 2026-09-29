@@ -41,6 +41,7 @@ A **ficha** inclui:
 - **Diário** de sessões (título, data, resumo, NPCs, locais, missões, tesouros, anotações livres) com **busca** + anotações rápidas.
 - **"O que eu rolo?"** (aba Mesa): descreva a ação em português ("escalar o muro", "ele está mentindo?") e a ficha sugere o teste, o bônus e de onde ele vem — com um toque para rolar. Sem IA, 100% offline.
 - **Rolador de dados** (d4–d100, quantidade, modificador, vantagem/desvantagem) com **resultado em destaque cinematográfico** e crítico/falha.
+- **Dados 3D com física** ([dice-box-threejs](https://github.com/3d-dice/dice-box-threejs), MIT): os dados rolam pela tela e caem **exatamente** no valor sorteado pela engine (notação `1d20@17`). Carregados sob demanda, com as cores de cada atmosfera; liga/desliga no menu ⋯ (desligado para quem prefere menos animação). d100 e aparelhos sem WebGL usam a animação 2D.
 - **Linha do tempo da sessão**: as últimas 60 rolagens do aparelho, filtradas pela ficha aberta, com horário e críticos em destaque. Sobrevive a recarregar a página e vira anotação do **Diário** com um toque.
 - **Evolução de nível** (aba Evoluir): PV, talentos, aumentos de atributo e subclasses, com validação.
 - **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
@@ -117,7 +118,6 @@ Ideias trazidas do antigo *dnd-companion* e de projetos open source de RPG:
 - **Importador do dnd-companion**: converter as fichas antigas para o modelo atual.
 - **Recursos personalizados/homebrew**: contadores próprios com recarga por descanso.
 - **Compartilhar ficha por link/QR** (somente leitura, revogável) e **impressão**.
-- **Dados 3D com física** (ex.: [Dice Box](https://github.com/3d-dice/dice-box), MIT) com opção sem animação para celulares modestos.
 - **Ícones consistentes** para itens, magias e condições (ex.: [game-icons.net](https://game-icons.net), CC BY 3.0).
 - **Inventário visual** com comparação do item atual × selecionado (efeito na CA/ataque antes de equipar).
 - **Rastreador de iniciativa** do mestre conectado às fichas da mesa.
@@ -134,6 +134,9 @@ cinematográfico e funcional — sem descaracterizar o design.
 ---
 
 ## 🎨 Créditos
+
+Dados 3D: [@3d-dice/dice-box-threejs](https://github.com/3d-dice/dice-box-threejs)
+(MIT, Frank Ali; baseado nos 3D Dice de MajorVictory e Teall Dice).
 
 Ícones temáticos (abas, dados, forja…) de **[game-icons.net](https://game-icons.net)**,
 por Lorc, Delapouite e colaboradores, sob licença

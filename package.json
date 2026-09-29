@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@3d-dice/dice-box-threejs": "^0.0.12",
     "@supabase/supabase-js": "^2.110.0",
     "framer-motion": "^11.3.19",
     "react": "^18.3.1",

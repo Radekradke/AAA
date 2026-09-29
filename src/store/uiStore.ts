@@ -16,6 +16,10 @@ interface UiState {
   rollMode: RollMode;
   setRollMode: (m: RollMode) => void;
 
+  /** Dados 3D com física no lugar do dado 2D do overlay. */
+  dice3d: boolean;
+  toggleDice3d: () => void;
+
   /** Efeitos sonoros opcionais (sessão; ativados por gesto do usuário). */
   sound: boolean;
   toggleSound: () => void;
@@ -50,6 +54,14 @@ export function historyFor(history: RollResult[], charId: string | null | undefi
 
 let _rollTimer: ReturnType<typeof setTimeout> | null = null;
 
+function prefersReducedMotion(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
+
 export const useUiStore = create<UiState>()(
   persist(
     (set, get) => ({
@@ -69,6 +81,12 @@ export const useUiStore = create<UiState>()(
       rollMode: 'normal',
       setRollMode(m) {
         set({ rollMode: m });
+      },
+
+      // quem pediu menos animação ao sistema começa com o 3D desligado
+      dice3d: !prefersReducedMotion(),
+      toggleDice3d() {
+        set((s) => ({ dice3d: !s.dice3d }));
       },
 
       sound: false,
@@ -112,7 +130,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, history: s.history }),
+      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d }),
     },
   ),
 );
