@@ -2,10 +2,13 @@ import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from './AppShell';
 import { TopBar } from './TopBar';
+import type { TopBarMenuItem } from './TopBar';
 
 interface ScreenProps {
   children: ReactNode;
   actions?: ReactNode;
+  /** Ações secundárias no menu "⋯" da barra superior. */
+  menu?: TopBarMenuItem[];
   video?: string | null;
   videoOpacity?: number;
   darken?: number;
@@ -17,10 +20,10 @@ interface ScreenProps {
  * Tela completa: casca + barra superior + área de conteúdo com entrada
  * cinematográfica. Base de todas as páginas.
  */
-export function Screen({ children, actions, video, videoOpacity, darken, scroll }: ScreenProps) {
+export function Screen({ children, actions, menu, video, videoOpacity, darken, scroll }: ScreenProps) {
   return (
     <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
-      <TopBar actions={actions} />
+      <TopBar actions={actions} menu={menu} />
       <motion.div
         initial={{ opacity: 0, scale: 1.035, y: 10, filter: 'blur(6px)' }}
         animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}

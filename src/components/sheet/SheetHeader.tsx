@@ -11,10 +11,12 @@ import { passiveLore, calcLore } from '@/lib/lore';
 interface SheetHeaderProps {
   char: Character;
   derived: DerivedCharacter;
+  /** Só identidade (sem os blocos de defesa) — usado na Mesa, que já os mostra. */
+  compact?: boolean;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
   const race = getRace(char.raceId);
   const setLevel = useCharacterStore((s) => s.setLevel);
 
@@ -50,14 +52,14 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        gap: 'clamp(14px,2.5vw,26px)',
+        gap: 'clamp(12px,2.5vw,26px)',
         flexWrap: 'wrap',
         borderRadius: 18,
-        padding: 'clamp(16px,2.4vw,24px)',
+        padding: compact ? 'clamp(12px,1.8vw,16px) clamp(16px,2.4vw,24px)' : 'clamp(16px,2.4vw,24px)',
       }}
     >
       <OrnateCorners size={18} inset={10} />
-      <div style={{ position: 'relative', width: 'clamp(64px,9vw,86px)', height: 'clamp(64px,9vw,86px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
+      <div style={{ position: 'relative', width: compact ? 'clamp(52px,6vw,64px)' : 'clamp(64px,9vw,86px)', height: compact ? 'clamp(52px,6vw,64px)' : 'clamp(64px,9vw,86px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
         <div
           style={{
             position: 'absolute',
@@ -80,12 +82,12 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         </div>
       </div>
 
-      <div style={{ flex: 1, minWidth: 180 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
           {char.name}
         </div>
         <div style={{ marginTop: 6, fontSize: 13.5, color: 'var(--acc)', letterSpacing: '.04em' }}>{heroSubtitle(char)}</div>
-        <div style={{ marginTop: 11, maxWidth: 340 }}>
+        <div style={{ marginTop: compact ? 8 : 11, maxWidth: 340 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <button onClick={() => setLevel(char.id, char.level - 1)} style={lvlBtn} aria-label="Diminuir nível">−</button>
@@ -108,20 +110,22 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      {!compact && (
+      <div className="fv-header-stats">
         {defense.map((d) => (
           <LoreTooltip
             key={d.label}
             info={d.info}
             anchorStyle={{ display: 'block' }}
           >
-            <div style={{ cursor: 'help', textAlign: 'center', minWidth: 62, padding: '11px 12px', borderRadius: 13, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)' }}>
-              <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)' }}>{d.val}</div>
-              <div style={{ fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{d.label}</div>
+            <div className="fv-header-stat">
+              <div className="fv-header-stat-val">{d.val}</div>
+              <div className="fv-header-stat-label">{d.label}</div>
             </div>
           </LoreTooltip>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -52,6 +52,9 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
       <p style={{ margin: '16px 0 0', fontSize: 11, color: 'var(--muted)', textAlign: 'center' }}>
         Apoiar é totalmente opcional — o app continua 100% gratuito.
       </p>
+      <p style={{ margin: '8px 0 0', fontSize: 10.5, color: 'var(--muted)', textAlign: 'center', opacity: 0.8 }}>
+        Ícones: <a href="https://game-icons.net" target="_blank" rel="noreferrer" style={{ color: 'var(--acc)' }}>game-icons.net</a> (Lorc, Delapouite e colaboradores) — CC BY 3.0.
+      </p>
     </Modal>
   );
 }

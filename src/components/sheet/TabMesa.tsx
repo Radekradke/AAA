@@ -14,7 +14,6 @@ import { getClass } from '@/data/classes';
 import { SPELL_BY_ID } from '@/data/spells';
 import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { CONDITIONS, getCondition } from '@/data/conditions';
-import { heroSubtitle } from '@/lib/summary';
 import { modStr } from '@/engine/dice';
 import { calculateToolCheck } from '@/engine/toolCheck';
 import { damageExpr } from '@/engine/combat';
@@ -65,15 +64,9 @@ export function TabMesa({ char, derived }: TabProps) {
     <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px,1.4vw,16px)' }}>
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(20px,3vw,26px)', color: 'var(--ink)', lineHeight: 1 }}>
-              {char.name}
-            </div>
-            <div style={{ marginTop: 4, fontSize: 12.5, color: 'var(--acc)' }}>
-              {heroSubtitle(char)}{derived.subclassLabel ? ` · ${derived.subclassLabel}` : ''}
-            </div>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
+          <div className="fv-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
           <LoreTooltip info={passiveLore('Inspiração', char.inspiration ? 'Disponível' : 'Sem inspiração', 'Concedida pelo mestre. Gaste para ter vantagem em um teste, ataque ou salvaguarda.', ['Mesa'])}>
             <button
               onClick={() => store.toggleInspiration(char.id)}
@@ -101,7 +94,7 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
 
         {/* PV gigante + barra */}
-        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 'clamp(12px,2vw,22px)', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 'clamp(12px,2vw,22px)', flexWrap: 'wrap' }}>
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })}>
             <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor }}>
               {char.hpCurrent}

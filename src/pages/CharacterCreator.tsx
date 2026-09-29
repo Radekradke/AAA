@@ -120,6 +120,7 @@ export function CharacterCreator() {
   };
 
   const discard = () => {
+    if (!window.confirm(`Descartar ${char.name.trim() || 'este herói'}? Tudo o que foi escolhido até aqui será perdido.`)) return;
     deleteCharacter(char.id);
     navigate('/personagens');
   };
@@ -142,15 +143,12 @@ export function CharacterCreator() {
       videoOpacity={creatorVideoOpacity}
       darken={creatorDarken}
       actions={
-        <>
-          <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
-            Salvar rascunho
-          </Button>
-          <Button variant="danger" onClick={discard} style={{ fontSize: 12.5 }}>
-            Descartar
-          </Button>
-        </>
+        <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
+          Salvar e sair
+        </Button>
       }
+      // destrutivo fica no menu, longe do polegar
+      menu={[{ label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true }]}
     >
       <RaceAura raceId={char.raceId} />
       <div
@@ -297,18 +295,7 @@ export function CharacterCreator() {
         </div>
 
         {/* navegação */}
-        <div
-          style={{
-            flex: 'none',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            paddingTop: 14,
-            borderTop: '1px solid var(--line)',
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="fv-creator-foot">
           <button
             onClick={prev}
             style={{
@@ -318,8 +305,9 @@ export function CharacterCreator() {
               fontSize: 14,
               color: step === 0 ? 'transparent' : 'var(--muted)',
               minHeight: 42,
-              padding: '11px 18px',
+              padding: '11px 16px',
               borderRadius: 12,
+              whiteSpace: 'nowrap',
               border: '1px solid ' + (step === 0 ? 'transparent' : 'var(--line)'),
               background: step === 0 ? 'transparent' : 'var(--panel)',
               pointerEvents: step === 0 ? 'none' : 'auto',
@@ -328,8 +316,8 @@ export function CharacterCreator() {
           >
             ‹ Voltar
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 auto' }}>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 0 }}>
+            <span className="fv-hide-mobile" style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
               PASSO {step + 1} DE {STEP_LABELS.length}
             </span>
             {/* resumo do herói no celular: bottom sheet */}
@@ -361,7 +349,7 @@ export function CharacterCreator() {
             disabled={isLast && pending.length > 0}
             title={isLast && pending.length > 0 ? `Faltam ${pending.length} escolha(s) — veja o Resumo do Herói.` : undefined}
             className="fv-btn-gold"
-            style={{ minHeight: 44, padding: '12px 26px', fontSize: 15, whiteSpace: 'nowrap', opacity: isLast && pending.length > 0 ? 0.55 : 1 }}
+            style={{ minHeight: 44, padding: '12px clamp(16px,4vw,26px)', fontSize: 15, whiteSpace: 'nowrap', opacity: isLast && pending.length > 0 ? 0.55 : 1 }}
           >
             {isLast ? 'Despertar o Herói' : 'Avançar ›'}
           </button>

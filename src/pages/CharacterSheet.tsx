@@ -91,11 +91,15 @@ export function CharacterSheet() {
       actions={
         <>
           <RollModeToggle />
-          <Button variant="accent" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
-          <Button onClick={exportJson} style={{ fontSize: 12.5 }}>Exportar</Button>
-          <Button onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
+          <Button variant="accent" className="fv-hide-mobile" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
+          <Button className="fv-hide-mobile" onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
         </>
       }
+      menu={[
+        { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
+        { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
+        { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+      ]}
     >
       <div
         style={{
@@ -104,7 +108,8 @@ export function CharacterSheet() {
           padding: 'clamp(70px,9vh,92px) clamp(14px,3.6vw,40px) calc(86px + env(safe-area-inset-bottom))',
         }}
       >
-        <SheetHeader char={char} derived={derived} />
+        {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />

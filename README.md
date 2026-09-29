@@ -130,3 +130,13 @@ Ideias trazidas do antigo *dnd-companion* e de projetos open source de RPG:
 Confirmado: **`Ficha Viva AAA.dc.html`** foi usado como base visual e de UX. A
 estética original foi preservada e evoluída para um produto completo, interativo,
 cinematográfico e funcional — sem descaracterizar o design.
+
+---
+
+## 🎨 Créditos
+
+Ícones temáticos (abas, dados, forja…) de **[game-icons.net](https://game-icons.net)**,
+por Lorc, Delapouite e colaboradores, sob licença
+**[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)**. Os caminhos usados
+ficam em `src/components/ui/gameIcons.ts`.
+

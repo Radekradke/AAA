@@ -3,6 +3,8 @@ import type { IconName } from '@/components/ui/Icon';
 export interface SheetTabDef {
   id: string;
   label: string;
+  /** Rótulo curto para a barra do celular. */
+  short?: string;
   icon: IconName;
   /** Visível apenas para conjuradores. */
   caster?: boolean;
@@ -13,7 +15,7 @@ export const SHEET_TABS: SheetTabDef[] = [
   { id: 'mesa', label: 'Mesa', icon: 'banner' },
   { id: 'ficha', label: 'Ficha', icon: 'crest' },
   { id: 'combate', label: 'Combate', icon: 'swords' },
-  { id: 'inventario', label: 'Inventário', icon: 'satchel' },
+  { id: 'inventario', label: 'Inventário', short: 'Itens', icon: 'satchel' },
   { id: 'magias', label: 'Magias', icon: 'spark', caster: true },
   { id: 'evoluir', label: 'Evoluir', icon: 'levelup' },
   { id: 'descanso', label: 'Descanso', icon: 'moon' },

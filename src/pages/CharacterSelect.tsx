@@ -171,7 +171,7 @@ export function CharacterSelect() {
               >
                 <button
                   onClick={() => open(c)}
-                  style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', padding: 18 }}
+                  style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18 }}
                 >
                   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                     <div

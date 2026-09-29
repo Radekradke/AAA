@@ -41,7 +41,9 @@ export function SyncBadge() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 7,
-          minHeight: 36,
+          minHeight: 38,
+          minWidth: 38,
+          justifyContent: 'center',
           padding: '6px 12px',
           borderRadius: 999,
           border: '1px solid ' + (view.click ? hexA(t.danger, 0.55) : 'var(--line)'),
@@ -64,7 +66,8 @@ export function SyncBadge() {
             animation: view.pulse ? 'glowPulse 1.1s ease-in-out infinite' : 'none',
           }}
         />
-        {view.text}
+        {/* no celular, só o ponto colorido (o texto está no title/aria-label) */}
+        <span className="fv-hide-mobile">{view.text}</span>
       </button>
 
       {open && (
