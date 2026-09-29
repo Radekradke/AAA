@@ -1182,6 +1182,183 @@ button:active:not(:disabled) {
   backdrop-filter: blur(14px);
 }
 
+/* ===== inventário: arrastar entre recipientes (estilo BG3) ===== */
+.fv-drop {
+  border-radius: 16px;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.fv-drop.is-target {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--drop-color);
+  animation: dropInvite 1.2s ease-in-out infinite;
+}
+.fv-drop.is-over {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--drop-color), 0 0 28px var(--drop-color);
+  animation: none;
+}
+.fv-drop.is-refuse {
+  opacity: 0.45;
+}
+.fv-drop.is-refuse.is-over {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--drop-color);
+}
+.fv-drop.is-source {
+  opacity: 0.6;
+}
+@keyframes dropInvite {
+  0%, 100% { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--drop-color); }
+  50% { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--drop-color), 0 0 16px var(--drop-color); }
+}
+.fv-draggable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+  transition: opacity 0.15s;
+}
+.fv-draggable:active {
+  cursor: grabbing;
+}
+.fv-drag-handle {
+  cursor: grab;
+  margin-left: 2px;
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+}
+.fv-drag-handle:hover,
+.fv-drag-handle:focus-visible {
+  border-color: var(--line);
+  color: var(--ink);
+}
+.fv-carried {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid;
+  background: linear-gradient(160deg, rgba(34, 44, 60, 0.96), rgba(18, 24, 34, 0.96));
+  color: var(--ink);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  transform: rotate(-3deg) scale(1.04);
+  cursor: grabbing;
+}
+.fv-compare {
+  margin-top: 9px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  background: rgba(0, 0, 0, 0.22);
+}
+.fv-compare-head {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.fv-compare-head span {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+}
+.fv-compare-chip {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+.fv-compare-chip b {
+  font-weight: 700;
+  margin-right: 2px;
+}
+/* item na mão: a página não rola por baixo do dedo */
+body.fv-dragging,
+body.fv-dragging .fv-screen-scroll {
+  overflow: hidden !important;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+.fv-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 215;
+  width: min(560px, calc(100vw - 20px));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(6, 8, 12, 0.88);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.55);
+  /* só opacidade: a posição precisa estar certa desde o 1º quadro (o dnd-kit mede) */
+  animation: dockFade 0.16s ease-out;
+}
+@keyframes dockFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (max-width: 760px) {
+  .fv-dock {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+.fv-dock-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  border-radius: 12px;
+  border: 1px dashed var(--drop-color);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ink);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  text-align: center;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+.fv-dock-zone.is-over:not(.is-refuse):not(.is-source) {
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 22px var(--drop-color);
+}
+.fv-dock-zone.is-refuse {
+  opacity: 0.55;
+  color: var(--danger);
+}
+.fv-dock-zone.is-source {
+  opacity: 0.45;
+  border-style: dotted;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-drop.is-target {
+    animation: none;
+  }
+}
+
 /* visibilidade por dispositivo */
 .fv-desktop-only {
   display: block;

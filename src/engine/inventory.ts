@@ -76,3 +76,43 @@ export function attunedCount(char: Character): number {
 }
 
 export const MAX_ATTUNEMENT = 3;
+
+/* ---------- recipientes: Equipado · Mochila · Baú ---------- */
+
+export type ContainerId = 'equipado' | 'mochila' | 'bau';
+
+/** Categorias que, sem escolha do jogador, ficam guardadas no Baú. */
+const STASH_BY_DEFAULT = new Set(['treasure', 'wondrous', 'ring']);
+
+/** Em qual recipiente o item aparece. */
+export function containerOf(char: Character, it: InventoryItem): ContainerId {
+  if (isEquipped(char, it)) return 'equipado';
+  if (it.location) return it.location;
+  return STASH_BY_DEFAULT.has(it.category) ? 'bau' : 'mochila';
+}
+
+export type MoveResult = { ok: true } | { ok: false; reason: string };
+
+/**
+ * Move um item para um recipiente (muta o rascunho da ficha):
+ * - Equipado: ocupa o slot do item (troca o que estava lá);
+ * - Mochila/Baú: desequipa, se preciso, e guarda no lugar escolhido.
+ */
+export function moveItemTo(char: Character, uid: string, target: ContainerId): MoveResult {
+  const it = char.inventory.find((i) => i.uid === uid);
+  if (!it) return { ok: false, reason: 'Item não encontrado.' };
+  if (target === 'equipado') {
+    const slot = slotForItem(it);
+    if (!slot) return { ok: false, reason: `${it.name} não é arma, armadura nem escudo — não dá para equipar.` };
+    if (!isEquipped(char, it)) char.equipped = { ...char.equipped, [slot]: it.uid };
+    return { ok: true };
+  }
+  if (isEquipped(char, it)) {
+    const equipped = { ...char.equipped };
+    for (const k of Object.keys(equipped) as (keyof EquippedSlots)[]) if (equipped[k] === uid) equipped[k] = null;
+    char.equipped = equipped;
+  }
+  it.location = target;
+  return { ok: true };
+}
+

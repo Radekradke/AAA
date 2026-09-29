@@ -8,7 +8,8 @@ import type { Item, SkillKey } from '@/types/dnd';
 import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/characterBuilder';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
-import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT } from '@/engine/inventory';
+import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
+import type { ContainerId, MoveResult } from '@/engine/inventory';
 import { spellSlotsForClass, buildResources } from '@/engine/progression';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
 import type { LevelUpPlan } from '@/engine/levelUp';
@@ -45,6 +46,8 @@ interface CharacterState {
   updateInventoryItem: (id: string, uid: string, patch: Partial<InventoryItem>) => void;
   removeInventoryItem: (id: string, uid: string) => void;
   toggleEquip: (id: string, uid: string) => void;
+  /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
+  moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
   toggleFavorite: (id: string, uid: string) => void;
   toggleAttune: (id: string, uid: string) => void;
   adjustCoin: (id: string, coin: CoinKey, delta: number) => void;
@@ -260,6 +263,15 @@ export const useCharacterStore = create<CharacterState>()(
           mutate(id, (c) => {
             c.equipped = equipped;
           });
+        },
+        moveItem(id, uid, target) {
+          const char = get().getCharacter(id);
+          if (!char) return { ok: false, reason: 'Ficha não encontrada.' };
+          // valida num rascunho: movimento recusado não marca a ficha como editada
+          const probe = moveItemTo(structuredClone(char), uid, target);
+          if (!probe.ok) return probe;
+          mutate(id, (c) => void moveItemTo(c, uid, target));
+          return probe;
         },
         toggleFavorite(id, uid) {
           mutate(id, (c) => {

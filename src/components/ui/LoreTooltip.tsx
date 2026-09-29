@@ -108,6 +108,17 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     lpTimer.current = null;
   };
 
+  // desativado no meio do gesto (ex.: o "segurar" virou arrastar item):
+  // cancela o long-press pendente e fecha a dica
+  const disabledRef = useRef(disabled);
+  disabledRef.current = disabled;
+  useEffect(() => {
+    if (!disabled) return;
+    cancelLongPress();
+    hide();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disabled]);
+
   const onPointerDownCapture = (e: PointerEvent<HTMLSpanElement>) => {
     if (!isCoarsePointer() || disabled) return;
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
@@ -115,6 +126,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     lpStart.current = { x: e.clientX, y: e.clientY };
     cancelLongPress();
     lpTimer.current = setTimeout(() => {
+      if (disabledRef.current) return;
       lpFired.current = true;
       show(true, lpStart.current ?? undefined);
     }, 450);

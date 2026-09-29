@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { HoloBadge } from '@/components/ui/holo-badge';
 import type { TabProps } from './tabProps';
@@ -12,7 +13,15 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT } from '@/engine/inventory';
+import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT, containerOf } from '@/engine/inventory';
+import type { ContainerId } from '@/engine/inventory';
+import { previewEquip } from '@/engine/equipPreview';
+import type { EquipPreview } from '@/engine/equipPreview';
+import { useUiStore } from '@/store/uiStore';
+import {
+  DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, MouseSensor, TouchSensor, pointerWithin, rectIntersection, useDraggable, useDroppable, useSensor, useSensors,
+} from '@dnd-kit/core';
+import type { CollisionDetection, DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core';
 import type { InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -34,24 +43,29 @@ function groupOf(it: InventoryItem): string {
   return GROUP_DEFS.find((g) => g.match(it))!.id;
 }
 
-type ContainerId = 'equipado' | 'mochila' | 'bau';
-
 /**
- * Recipientes do inventário: o que está no corpo, o que vai na mochila e o
- * que fica guardado no baú (tesouros e itens mágicos fora de uso). Cada um
- * é um selo holográfico que "abre" ao toque.
+ * Recipientes do inventário (estilo BG3): o que está no corpo, o que vai na
+ * mochila e o que fica guardado no baú. Cada um é um selo holográfico que
+ * "abre" ao toque — e recebe itens arrastados.
  */
 const CONTAINERS: { id: ContainerId; label: string; icon: IconName; openIcon: IconName; color: string; empty: string; hint: string }[] = [
-  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: '#46C8FF', empty: 'Nada equipado', hint: 'Abra a Mochila e toque em Equipar numa arma, armadura ou escudo.' },
+  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: '#46C8FF', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura ou escudo para cá — ou toque em Equipar.' },
   { id: 'mochila', label: 'Mochila', icon: 'satchel', openIcon: 'backpackOpen', color: '#FFE08A', empty: 'Mochila vazia', hint: 'Use + Adicionar para o catálogo ou Forjar para criar algo único.' },
-  { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Tesouros e itens mágicos que não estão em uso ficam guardados aqui.' },
+  { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Arraste para cá o que você quer guardar fora da mochila.' },
 ];
 
-function containerOf(char: TabProps['char'], it: InventoryItem): ContainerId {
-  if (isEquipped(char, it)) return 'equipado';
-  const g = groupOf(it);
-  return g === 'treasure' || g === 'magic' ? 'bau' : 'mochila';
-}
+/** Leitor de tela: anúncios do arrastar em português. */
+const DND_A11Y = {
+  screenReaderInstructions: {
+    draggable: 'Para mover este item, pressione espaço ou Enter. Use as setas para escolher o recipiente e espaço ou Enter de novo para soltar. Esc cancela.',
+  },
+  announcements: {
+    onDragStart: ({ active }: DragStartEvent) => `Pegou ${String(active.data.current?.name ?? 'o item')}.`,
+    onDragOver: ({ over }: DragOverEvent) => (over ? `Sobre ${String(over.data.current?.label ?? over.id)}.` : 'Fora dos recipientes.'),
+    onDragEnd: ({ over }: DragEndEvent) => (over ? `Soltou em ${String(over.data.current?.label ?? over.id)}.` : 'Soltou fora — nada mudou.'),
+    onDragCancel: () => 'Movimento cancelado.',
+  },
+};
 
 const CATEGORY_ICON: Record<string, IconName> = {
   weapon: 'sword', armor: 'crest', shield: 'crest', gear: 'satchel', tool: 'anvil',
@@ -66,6 +80,52 @@ export function TabInventario({ char, derived }: TabProps) {
   const [forge, setForge] = useState<false | string>(false);
   const [coins, setCoins] = useState(false);
   const [editing, setEditing] = useState<InventoryItem | null>(null);
+  const [dragging, setDragging] = useState<InventoryItem | null>(null);
+  const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null);
+  const bump = useUiStore((s) => s.bump);
+
+  // mouse: arrasta após 6px; toque: segurar ~0,25 s (não briga com a rolagem da tela)
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  useEffect(() => () => document.body.classList.remove('fv-dragging'), []);
+
+  useEffect(() => {
+    if (!flash) return;
+    const id = setTimeout(() => setFlash(null), 2600);
+    return () => clearTimeout(id);
+  }, [flash]);
+
+  const move = (it: InventoryItem, target: ContainerId) => {
+    const from = containerOf(char, it);
+    if (from === target) return;
+    const r = store.moveItem(char.id, it.uid, target);
+    const label = CONTAINERS.find((c) => c.id === target)!.label;
+    if (r.ok) {
+      setFlash({ ok: true, text: `${it.name} → ${label}` });
+      bump(0.8);
+    } else setFlash({ ok: false, text: r.reason });
+  };
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const it = char.inventory.find((i) => i.uid === e.active.id);
+    setDragging(null);
+    document.body.classList.remove('fv-dragging');
+    if (it && e.over) move(it, String(e.over.id).replace('dock-', '') as ContainerId);
+  };
+
+  // comparação estilo BG3 para cada item equipável ainda não equipado
+  const previews = useMemo(() => {
+    const map = new Map<string, EquipPreview>();
+    for (const it of char.inventory) {
+      const p = previewEquip(char, it.uid, derived);
+      if (p) map.set(it.uid, p);
+    }
+    return map;
+  }, [char, derived]);
 
   const attuneItems = char.inventory.filter((i) => i.attunement);
 
@@ -197,35 +257,44 @@ export function TabInventario({ char, derived }: TabProps) {
           Itens
         </SectionLabel>
 
-        {/* recipientes: toque para abrir */}
-        <div role="group" aria-label="Recipientes" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'clamp(8px,1.4vw,14px)', marginBottom: 16 }}>
+        <DndContext
+          sensors={sensors}
+          accessibility={DND_A11Y}
+          autoScroll={false}
+          collisionDetection={pointerFirst}
+          // a barra de destinos é fixa: mede sempre, não só no início do arraste
+          measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+          onDragStart={(e) => {
+            setDragging(char.inventory.find((i) => i.uid === e.active.id) ?? null);
+            document.body.classList.add('fv-dragging'); // trava a rolagem da página
+          }}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => {
+            setDragging(null);
+            document.body.classList.remove('fv-dragging');
+          }}
+        >
+        {/* recipientes: toque para abrir, arraste itens para cá */}
+        <div role="group" aria-label="Recipientes" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'clamp(8px,1.4vw,14px)', marginBottom: 8 }}>
           {CONTAINERS.map((c) => {
-            const items = inContainer(c.id);
-            const count = items.reduce((n, it) => n + Math.max(1, it.quantity), 0);
-            const kg = items.reduce((w, it) => w + it.weight * it.quantity, 0);
-            const isOpen = open === c.id;
+            const items = char.inventory.filter((it) => containerOf(char, it) === c.id);
             return (
-              <HoloBadge
+              <ContainerDrop
                 key={c.id}
-                tone="steel"
-                active={isOpen}
-                expanded={isOpen}
-                controls="fv-container-panel"
-                ariaLabel={`${c.label}: ${count} ${count === 1 ? 'item' : 'itens'}${isOpen ? ' (aberto)' : ''}`}
-                onClick={() => setOpen(c.id)}
-                style={{ width: '100%' }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${c.color}, inset 0 -3px 0 ${c.color}` : undefined, borderRadius: 14 }}>
-                  <Icon name={isOpen ? c.openIcon : c.icon} size={34} color={isOpen ? c.color : t.muted} style={{ filter: isOpen ? `drop-shadow(0 0 8px ${hexA(c.color, 0.6)})` : undefined, transition: 'color .25s' }} />
-                  <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: isOpen ? 'var(--ink)' : 'var(--muted)' }}>{c.label}</div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
-                    <div>{count} {count === 1 ? 'item' : 'itens'}</div>
-                    <div>{kg.toFixed(1).replace('.', ',')} kg</div>
-                  </div>
-                </div>
-              </HoloBadge>
+                def={c}
+                count={items.reduce((n, it) => n + Math.max(1, it.quantity), 0)}
+                kg={items.reduce((w, it) => w + it.weight * it.quantity, 0)}
+                isOpen={open === c.id}
+                dragging={dragging}
+                accepts={!dragging || c.id !== 'equipado' || slotForItem(dragging) !== null}
+                isSource={!!dragging && containerOf(char, dragging) === c.id}
+                onOpen={() => setOpen(c.id)}
+              />
             );
           })}
+        </div>
+        <div aria-live="polite" style={{ minHeight: 20, marginBottom: 8, fontSize: 12, textAlign: 'center', color: flash ? (flash.ok ? '#3FC56B' : t.danger) : 'var(--muted)' }}>
+          {flash ? flash.text : dragging ? `Solte ${dragging.name} num recipiente` : 'Segure e arraste um item para outro recipiente'}
         </div>
 
         <AnimatePresence mode="wait">
@@ -252,23 +321,45 @@ export function TabInventario({ char, derived }: TabProps) {
               <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 10 }}>
-              {g.items.map((it) => (
-                <ItemCard
-                  key={it.uid}
-                  item={it}
-                  equipped={isEquipped(char, it)}
-                  equippable={slotForItem(it) !== null}
-                  onEquip={() => store.toggleEquip(char.id, it.uid)}
-                  onFavorite={() => store.toggleFavorite(char.id, it.uid)}
-                  onEdit={() => setEditing(it)}
-                  onRemove={() => store.removeInventoryItem(char.id, it.uid)}
-                />
-              ))}
+              {g.items.map((it) => {
+                const where = containerOf(char, it);
+                return (
+                  <DraggableItem key={it.uid} item={it}>
+                    {(handle) => (
+                      <ItemCard
+                        item={it}
+                        equipped={where === 'equipado'}
+                        equippable={slotForItem(it) !== null}
+                        preview={previews.get(it.uid) ?? null}
+                        handle={handle}
+                        stashLabel={where === 'bau' ? 'Levar na Mochila' : 'Guardar no Baú'}
+                        loreDisabled={!!dragging}
+                        onStash={() => move(it, where === 'bau' ? 'mochila' : 'bau')}
+                        onEquip={() => move(it, where === 'equipado' ? 'mochila' : 'equipado')}
+                        onFavorite={() => store.toggleFavorite(char.id, it.uid)}
+                        onEdit={() => setEditing(it)}
+                        onRemove={() => store.removeInventoryItem(char.id, it.uid)}
+                      />
+                    )}
+                  </DraggableItem>
+                );
+              })}
             </div>
           </div>
         ))}
           </motion.div>
         </AnimatePresence>
+
+        {/* o item "na mão" enquanto arrasta */}
+        {/* destinos sempre à mão enquanto arrasta (a lista pode ser longa) */}
+        {dragging && createPortal(<DropDock dragging={dragging} sourceId={containerOf(char, dragging)} />, document.body)}
+        {createPortal(
+          <DragOverlay zIndex={220} dropAnimation={{ duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }}>
+            {dragging ? <CarriedItem item={dragging} /> : null}
+          </DragOverlay>,
+          document.body,
+        )}
+        </DndContext>
       </Panel>
 
       {picker && (
@@ -297,12 +388,126 @@ export function TabInventario({ char, derived }: TabProps) {
   );
 }
 
+/** Solta onde o dedo/ponteiro está; sem ponteiro (teclado), pela caixa do item. */
+const pointerFirst: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  return hits.length ? hits : rectIntersection(args);
+};
+
+/** Barra de destinos fixa embaixo da tela, visível só durante o arrastar. */
+function DropDock({ dragging, sourceId }: { dragging: InventoryItem; sourceId: ContainerId }) {
+  return (
+    <div className="fv-dock" role="group" aria-label="Soltar em">
+      {CONTAINERS.map((c) => (
+        <DockZone key={c.id} def={c} accepts={c.id !== 'equipado' || slotForItem(dragging) !== null} isSource={c.id === sourceId} />
+      ))}
+    </div>
+  );
+}
+
+function DockZone({ def, accepts, isSource }: { def: (typeof CONTAINERS)[number]; accepts: boolean; isSource: boolean }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `dock-${def.id}`, data: { label: def.label } });
+  const lit = isOver && accepts && !isSource;
+  const color = accepts ? def.color : 'var(--danger)';
+  return (
+    <div
+      ref={setNodeRef}
+      className={'fv-dock-zone' + (isOver ? ' is-over' : '') + (!accepts ? ' is-refuse' : '') + (isSource ? ' is-source' : '')}
+      style={{ ['--drop-color' as string]: color }}
+    >
+      <Icon name={lit ? def.openIcon : def.icon} size={26} color={isSource ? 'var(--muted)' : color} />
+      <span>{isSource ? `${def.label} (aqui)` : !accepts ? 'Não equipa' : def.label}</span>
+    </div>
+  );
+}
+
+/* ---------- recipientes que recebem itens arrastados ---------- */
+
+function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, onOpen }: {
+  def: (typeof CONTAINERS)[number];
+  count: number;
+  kg: number;
+  isOpen: boolean;
+  dragging: InventoryItem | null;
+  accepts: boolean;
+  isSource: boolean;
+  onOpen: () => void;
+}) {
+  const t = useTheme();
+  const { setNodeRef, isOver } = useDroppable({ id: def.id, data: { label: def.label } });
+  const target = !!dragging && !isSource;
+  const hovering = isOver && target;
+  // a tampa abre quando você passa com o item por cima
+  const lit = isOpen || (hovering && accepts);
+  const state = !dragging ? '' : !accepts ? ' is-refuse' : isSource ? ' is-source' : ' is-target';
+  return (
+    <div ref={setNodeRef} className={'fv-drop' + state + (hovering ? ' is-over' : '')} style={{ ['--drop-color' as string]: accepts ? def.color : t.danger }}>
+      <HoloBadge
+        tone="steel"
+        active={lit}
+        expanded={isOpen}
+        controls="fv-container-panel"
+        ariaLabel={`${def.label}: ${count} ${count === 1 ? 'item' : 'itens'}${isOpen ? ' (aberto)' : ''}`}
+        onClick={onOpen}
+        style={{ width: '100%' }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 14 }}>
+          <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} style={{ filter: lit ? `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` : undefined, transition: 'color .25s' }} />
+          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
+          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+            <div>{count} {count === 1 ? 'item' : 'itens'}</div>
+            <div>{kg.toFixed(1).replace('.', ',')} kg</div>
+          </div>
+        </div>
+      </HoloBadge>
+    </div>
+  );
+}
+
+/* ---------- item arrastável ---------- */
+
+interface DragHandle {
+  ref: (el: HTMLElement | null) => void;
+  props: Record<string, unknown>;
+}
+
+/**
+ * Mouse e toque arrastam pelo card inteiro (toque: segurar); o teclado usa
+ * só a alça ⠿ — assim Enter nos botões do card continua sendo clique.
+ */
+function DraggableItem({ item, children }: { item: InventoryItem; children: (handle: DragHandle) => React.ReactNode }) {
+  const { setNodeRef, setActivatorNodeRef, listeners, attributes, isDragging } = useDraggable({ id: item.uid, data: { name: item.name } });
+  const { onKeyDown, ...pointerListeners } = (listeners ?? {}) as Record<string, (e: unknown) => void>;
+  return (
+    <div ref={setNodeRef} {...pointerListeners} className="fv-draggable" style={{ opacity: isDragging ? 0.3 : 1 }}>
+      {children({ ref: setActivatorNodeRef, props: { ...attributes, onKeyDown } })}
+    </div>
+  );
+}
+
+/** O item "na mão" durante o arrastar. */
+function CarriedItem({ item: it }: { item: InventoryItem }) {
+  const rc = RARITY[it.rarity] ?? RARITY.comum;
+  return (
+    <div className="fv-carried" style={{ borderColor: rc.color, boxShadow: `0 18px 40px rgba(0,0,0,.6), 0 0 22px ${hexA(rc.color, 0.45)}` }}>
+      <Icon name={CATEGORY_ICON[it.category] ?? 'satchel'} size={18} color={rc.color} />
+      <span>{it.name}</span>
+    </div>
+  );
+}
+
 /* ---------- carta de item ---------- */
 
-function ItemCard({ item: it, equipped, equippable, onEquip, onFavorite, onEdit, onRemove }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove }: {
   item: InventoryItem;
+  /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
+  loreDisabled: boolean;
   equipped: boolean;
   equippable: boolean;
+  preview: EquipPreview | null;
+  handle: DragHandle;
+  stashLabel: string;
+  onStash: () => void;
   onEquip: () => void;
   onFavorite: () => void;
   onEdit: () => void;
@@ -315,7 +520,7 @@ function ItemCard({ item: it, equipped, equippable, onEquip, onFavorite, onEdit,
   const borderColor = equipped ? t.gold : it.favorite ? hexA(t.gold, 0.55) : hexA(rc.color, big ? 0.5 : 0.18);
 
   return (
-    <LoreTooltip info={itemLore(it)} anchorStyle={{ display: 'block' }}>
+    <LoreTooltip info={itemLore(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
       <div
         style={{
           position: 'relative',
@@ -340,6 +545,9 @@ function ItemCard({ item: it, equipped, equippable, onEquip, onFavorite, onEdit,
           <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: rc.color }}>
             <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
             {rc.label}
+            <button ref={handle.ref} {...handle.props} type="button" aria-label={`Arrastar ${it.name}`} title="Arrastar para outro recipiente" className="fv-drag-handle">
+              ⠿
+            </button>
           </span>
         </div>
 
@@ -367,12 +575,35 @@ function ItemCard({ item: it, equipped, equippable, onEquip, onFavorite, onEdit,
             .join(' · ')}
         </div>
 
+        {/* comparação estilo BG3: o que muda se equipar */}
+        {preview && (preview.deltas.length > 0 || preview.warnings.length > 0) && (
+          <div className="fv-compare">
+            <div className="fv-compare-head">
+              Ao equipar{preview.replaces ? <span> · troca {preview.replaces.name}</span> : null}
+            </div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {preview.deltas.map((d) => {
+                const c = d.better === true ? '#3FC56B' : d.better === false ? t.danger : t.acc;
+                return (
+                  <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: c }}>
+                    <b>{d.label}</b> {d.from} → {d.to}{d.better === true ? ' ▲' : d.better === false ? ' ▼' : ''}
+                  </span>
+                );
+              })}
+            </div>
+            {preview.warnings.map((w) => (
+              <div key={w} style={{ marginTop: 5, fontSize: 11, color: '#E0A93E' }}>⚠ {w}</div>
+            ))}
+          </div>
+        )}
+
         <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
               {equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
+          {!equipped && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
           <ItemBtn danger onClick={onRemove}>Remover</ItemBtn>
         </div>

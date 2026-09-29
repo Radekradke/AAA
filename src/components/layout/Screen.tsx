@@ -29,6 +29,7 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
         animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
         exit={{ opacity: 0, scale: 0.99, filter: 'blur(4px)' }}
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+        className="fv-screen-scroll"
         style={{
           position: 'absolute',
           inset: 0,

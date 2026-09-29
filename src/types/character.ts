@@ -32,6 +32,12 @@ export interface InventoryItem {
   grantsSpells?: ItemSpellGrant[];
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
+  /**
+   * Onde o item fica quando NÃO está equipado (escolha do jogador ao arrastar
+   * ou em "Guardar no Baú"). Sem valor: tesouros e itens mágicos vão ao Baú,
+   * o resto à Mochila.
+   */
+  location?: 'mochila' | 'bau';
 }
 
 /** Magia concedida por um item (recarga por descanso ou à vontade). */
