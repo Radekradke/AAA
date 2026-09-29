@@ -146,6 +146,14 @@ export function TabMagias({ char, derived }: TabProps) {
             </span>
           </div>
 
+          {/* fichas antigas (antes da correção) podem ter vindo com truques a mais */}
+          {cantripTarget > 0 && cantripsHave > cantripTarget && (
+            <div role="note" className="fv-spell-warn">
+              <b>Truques a mais:</b> você tem {cantripsHave}, mas {cls.label} no nível {char.level} conhece {cantripTarget}.
+              {' '}Esqueça {cantripsHave - cantripTarget === 1 ? '1 truque' : `${cantripsHave - cantripTarget} truques`} com o <span aria-hidden>×</span> na lista abaixo (ou mantenha, se o mestre liberou).
+            </div>
+          )}
+
           {slotLevels.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
           {slotLevels.map((lv) => {
             const slot = char.combat.spellSlots[lv];

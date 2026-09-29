@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
 import { useAuthStore } from '@/store/authStore';
 import { resolveConflict } from '@/services/offlineSyncService';
-import { cloudEnabled } from '@/services/supabaseClient';
 import { Modal } from './Modal';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
@@ -24,10 +23,10 @@ export function SyncBadge() {
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
     if (cloud === 'syncing') return { dot: t.acc, text: 'Sincronizando…', pulse: true };
-    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia' };
+    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia', calm: true };
     if (cloud === 'pending') return { dot: t.acc, text: 'Aguardando nuvem' };
     // nuvem desativada (sem Supabase ou convidado): só o estado local
-    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: cloudEnabled() ? 'Salvo neste aparelho' : 'Salvo neste aparelho' };
+    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: 'Salvo neste aparelho', calm: true };
   })();
 
   return (
@@ -66,8 +65,8 @@ export function SyncBadge() {
             animation: view.pulse ? 'glowPulse 1.1s ease-in-out infinite' : 'none',
           }}
         />
-        {/* no celular, só o ponto colorido (o texto está no title/aria-label) */}
-        <span className="fv-hide-mobile">{view.text}</span>
+        {/* tudo certo → só o ponto (texto no title/aria-label); atenção → texto visível no desktop */}
+        {!('calm' in view && view.calm) && <span className="fv-hide-mobile">{view.text}</span>}
       </button>
 
       {open && (

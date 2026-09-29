@@ -870,6 +870,192 @@ button:active:not(:disabled) {
   border-color: var(--acc);
   color: var(--ink);
 }
+/* ----- modo de rolagem (Normal / Vantagem / Desvantagem) ----- */
+.fv-rollmode {
+  position: relative;
+}
+.fv-rollmode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.fv-rollmode-btn:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.fv-rollmode-btn.is-on {
+  color: var(--mode-color);
+  border-color: var(--mode-color);
+  background: color-mix(in srgb, var(--mode-color), var(--panel) 88%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--mode-color), transparent 70%);
+}
+.fv-rollmode-caret {
+  font-size: 10px;
+  opacity: 0.7;
+}
+.fv-rollmode-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 70;
+  width: min(360px, calc(100vw - 24px));
+  max-width: none;
+  padding: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+.fv-rollmode-head {
+  margin: 2px 4px 10px;
+  font: 700 12px var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-rollmode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fv-rollmode-opt {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--well);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-rollmode-opt:hover {
+  border-color: var(--line-strong);
+  background: var(--lift);
+}
+.fv-rollmode-opt.is-active {
+  border-color: var(--mode-color);
+  box-shadow: inset 3px 0 0 var(--mode-color);
+}
+.fv-rollmode-sym {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mode-color), transparent 55%);
+  color: var(--mode-color);
+  font-size: 13px;
+}
+.fv-rollmode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fv-rollmode-text b {
+  font: 700 14px var(--font-display);
+  color: var(--mode-color);
+}
+.fv-rollmode-opt:not(.is-active) .fv-rollmode-text b {
+  color: var(--ink);
+}
+.fv-rollmode-text span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fv-rollmode-text small {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.fv-rollmode-notes {
+  margin: 10px 2px 0;
+  padding: 10px 0 0 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-rollmode-notes b {
+  color: var(--ink);
+}
+@media (max-width: 640px) {
+  /* celular: só o ícone + nome curto; o balão ocupa a largura da tela */
+  .fv-rollmode-caret {
+    display: none;
+  }
+  .fv-rollmode-pop {
+    position: fixed;
+    top: calc(var(--topbar-h) + 4px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+
+.fv-topbar-themes {
+  padding: 8px 8px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.fv-topbar-themes > span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-topbar-themes > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fv-topbar-theme {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.fv-topbar-theme:hover {
+  background: var(--lift);
+}
+.fv-topbar-theme.is-on {
+  border-color: color-mix(in srgb, var(--gold), transparent 50%);
+  background: var(--lift);
+}
+.fv-topbar-theme i {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
 .fv-topbar-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -957,6 +1143,69 @@ button:active:not(:disabled) {
 .fv-amt-input::placeholder {
   font-weight: 400;
   opacity: 0.6;
+}
+/* ----- painel de vida (Mesa) ----- */
+.fv-spell-warn {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, #e0a93e, transparent 50%);
+  background: var(--lift);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.fv-spell-warn b {
+  color: #e0a93e;
+}
+.fv-hp {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'label label insp'
+    'num meter meter';
+  align-items: center;
+  column-gap: clamp(12px, 2vw, 22px);
+  row-gap: 8px;
+}
+.fv-hp-label {
+  grid-area: label;
+}
+.fv-hp-insp {
+  grid-area: insp;
+  justify-self: end;
+}
+.fv-hp-meter {
+  grid-area: meter;
+  min-width: 0;
+}
+.fv-hp-btns {
+  margin-top: 9px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .fv-hp {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'label label'
+      'num insp'
+      'meter meter';
+    row-gap: 10px;
+  }
+  /* os cinco botões rápidos cabem numa linha só */
+  .fv-hp-btns {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .fv-hp-btns > button {
+    padding-inline: 4px;
+    white-space: nowrap;
+  }
+  .fv-hp-btns > button:nth-child(6) {
+    grid-column: 1 / -1;
+  }
 }
 .fv-stat-chip {
   position: relative;
@@ -1084,9 +1333,27 @@ button:active:not(:disabled) {
   cursor: help;
   text-align: center;
   padding: 11px 12px;
-  border-radius: 13px;
-  background: rgba(0, 0, 0, 0.28);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--well) 84%, transparent);
+  backdrop-filter: blur(4px);
   border: 1px solid var(--line);
+}
+.fv-sheet-head-art {
+  position: absolute;
+  inset: 0 0 0 36%;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.32;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 60%);
+  mask-image: linear-gradient(90deg, transparent, #000 60%);
+}
+@media (max-width: 640px) {
+  .fv-sheet-head-art {
+    inset: 0 0 0 30%;
+    opacity: 0.22;
+  }
 }
 .fv-header-stat-val {
   font-family: 'Chakra Petch', monospace;
@@ -1110,7 +1377,7 @@ button:active:not(:disabled) {
   }
   .fv-header-stat {
     padding: 8px 2px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
   }
   .fv-header-stat-val {
     font-size: 17px;
@@ -1316,6 +1583,16 @@ button:active:not(:disabled) {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* recipientes do inventário: brilho holográfico contido (o destaque forte fica com a Inspiração) */
+.fv-holo-subtle .fv-holo-shine {
+  /* o componente põe a opacidade inline; aqui ela precisa vencer */
+  opacity: 0.3 !important;
+}
+.fv-holo-subtle.is-active .fv-holo-card {
+  animation: none;
+  filter: drop-shadow(0 0 6px var(--holo-glow)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
 }
 
 /* aviso do app instalável (offline pronto / nova versão) */

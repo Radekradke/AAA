@@ -450,6 +450,7 @@ function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, on
     <div ref={setNodeRef} className={'fv-drop' + state + (hovering ? ' is-over' : '')} style={{ ['--drop-color' as string]: accepts ? def.color : t.danger }}>
       <HoloBadge
         tone="steel"
+        className="fv-holo-subtle"
         active={lit}
         expanded={isOpen}
         controls="fv-container-panel"

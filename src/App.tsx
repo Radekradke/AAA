@@ -6,13 +6,22 @@ import { Home } from '@/pages/Home';
 import { Login } from '@/pages/Login';
 import { AuthCallback } from '@/pages/AuthCallback';
 import { CharacterSelect } from '@/pages/CharacterSelect';
-import { CharacterCreator } from '@/pages/CharacterCreator';
-import { CharacterSheet } from '@/pages/CharacterSheet';
-import { Campaigns } from '@/pages/Campaigns';
-import { CampaignRoom } from '@/pages/CampaignRoom';
-import { JoinCampaign } from '@/pages/JoinCampaign';
-import { Diagnostics } from '@/pages/Diagnostics';
+import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
+
+// telas pesadas carregam só quando abertas (o pacote inicial fica bem menor);
+// o app instalado guarda todas no cache, então continuam funcionando offline
+const CharacterCreator = lazy(() => import('@/pages/CharacterCreator').then((m) => ({ default: m.CharacterCreator })));
+const CharacterSheet = lazy(() => import('@/pages/CharacterSheet').then((m) => ({ default: m.CharacterSheet })));
+const Campaigns = lazy(() => import('@/pages/Campaigns').then((m) => ({ default: m.Campaigns })));
+const CampaignRoom = lazy(() => import('@/pages/CampaignRoom').then((m) => ({ default: m.CampaignRoom })));
+const JoinCampaign = lazy(() => import('@/pages/JoinCampaign').then((m) => ({ default: m.JoinCampaign })));
+const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
+
+/** Enquanto a tela baixa: fundo vazio (a cena de fundo continua atrás). */
+function Page({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<div role="status" aria-label="Carregando" style={{ position: 'fixed', inset: 0 }} />}>{children}</Suspense>;
+}
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { PwaStatus } from '@/components/PwaStatus';
 
@@ -40,7 +49,7 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/entrar" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/diagnostico" element={<Diagnostics />} />
+        <Route path="/diagnostico" element={<Page><Diagnostics /></Page>} />
         <Route
           path="/personagens"
           element={
@@ -53,7 +62,7 @@ export function App() {
           path="/criar"
           element={
             <RequireAuth>
-              <CharacterCreator />
+              <Page><CharacterCreator /></Page>
             </RequireAuth>
           }
         />
@@ -61,7 +70,7 @@ export function App() {
           path="/ficha/:id"
           element={
             <RequireAuth>
-              <CharacterSheet />
+              <Page><CharacterSheet /></Page>
             </RequireAuth>
           }
         />
@@ -69,7 +78,7 @@ export function App() {
           path="/mesas"
           element={
             <RequireAuth>
-              <Campaigns />
+              <Page><Campaigns /></Page>
             </RequireAuth>
           }
         />
@@ -77,12 +86,12 @@ export function App() {
           path="/mesa/:id"
           element={
             <RequireAuth>
-              <CampaignRoom />
+              <Page><CampaignRoom /></Page>
             </RequireAuth>
           }
         />
         {/* convite: acessível sem login (a página guia para entrar) */}
-        <Route path="/sala/:token" element={<JoinCampaign />} />
+        <Route path="/sala/:token" element={<Page><JoinCampaign /></Page>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>

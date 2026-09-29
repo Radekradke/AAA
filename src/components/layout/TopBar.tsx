@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
-import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
+import { THEMES, THEME_ORDER } from '@/data/themes';
 
 export interface TopBarMenuItem {
   label: string;
@@ -30,12 +30,12 @@ interface TopBarProps {
  * vai para o menu "⋯", para nada ser cortado na borda da tela.
  */
 export function TopBar({ actions, menu = [] }: TopBarProps) {
-  const toggleTheme = useUiStore((s) => s.toggleTheme);
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
   const dice3d = useUiStore((s) => s.dice3d);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
-  const t = useTheme();
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
   const installer = useInstallPrompt();
@@ -57,8 +57,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
   const items: (TopBarMenuItem & { key: string })[] = [
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
-    { key: 'theme', label: `Atmosfera: ${t.label}`, icon: 'spark', onClick: toggleTheme, mobileOnly: true },
-    { key: 'sound', label: sound ? 'Desativar som' : 'Ativar som', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound, mobileOnly: true },
+    { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
     { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
@@ -78,19 +77,6 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
-        <button onClick={toggleTheme} aria-label="Alternar atmosfera" className="fv-topbar-pill fv-hide-mobile">
-          <span style={{ width: 11, height: 11, borderRadius: 999, background: 'linear-gradient(135deg, var(--acc), var(--acc2))', boxShadow: '0 0 10px var(--acc)' }} />
-          {t.label}
-        </button>
-        <button
-          onClick={toggleSound}
-          aria-label={sound ? 'Desativar som' : 'Ativar som'}
-          title={sound ? 'Som ativado' : 'Som desativado'}
-          className="fv-topbar-icon fv-hide-mobile"
-          style={{ borderColor: sound ? 'var(--gold)' : undefined, color: sound ? 'var(--gold)' : undefined }}
-        >
-          <Icon name={sound ? 'volume' : 'volumeOff'} size={17} />
-        </button>
         <SyncBadge />
         {actions}
 
@@ -107,6 +93,29 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
           </button>
           {open && (
             <div role="menu" className="fv-topbar-menu fv-panel">
+              {/* atmosfera: os três climas lado a lado, escolha direta */}
+              <div className="fv-topbar-themes" role="group" aria-label="Atmosfera">
+                <span>Atmosfera</span>
+                <div>
+                  {THEME_ORDER.map((id) => {
+                    const th = THEMES[id];
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={theme === id}
+                        className={'fv-topbar-theme' + (theme === id ? ' is-on' : '')}
+                        onClick={() => setTheme(id)}
+                        title={th.label}
+                      >
+                        <i aria-hidden style={{ background: `linear-gradient(135deg, ${th.panel} 30%, ${th.acc} 30% 62%, ${th.gold} 62%)` }} />
+                        {th.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {items.map((it) => (
                 <button
                   key={it.key}

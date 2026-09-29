@@ -1,6 +1,6 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
-import { heroSubtitle, heroAvatar, heroFace } from '@/lib/summary';
+import { heroSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { PortraitPicker } from '@/components/character/PortraitPicker';
 import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
@@ -41,10 +41,18 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
         alignItems: 'center',
         gap: 'clamp(12px,2.5vw,26px)',
         flexWrap: 'wrap',
-        borderRadius: 18,
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        isolation: 'isolate',
         padding: compact ? 'clamp(12px,1.8vw,16px) clamp(16px,2.4vw,24px)' : 'clamp(16px,2.4vw,24px)',
       }}
     >
+      {/* a arte do herói ao fundo, esmaecendo para a esquerda (assinatura da ficha) */}
+      <div
+        aria-hidden
+        className="fv-sheet-head-art"
+        style={{ backgroundImage: `url("${heroAvatar(char)}")`, backgroundPosition: heroPortraitPosition(char) }}
+      />
       <span className="fv-hide-mobile" aria-hidden>
         <OrnateCorners size={18} inset={10} />
       </span>

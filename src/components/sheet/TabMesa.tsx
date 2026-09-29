@@ -68,33 +68,35 @@ export function TabMesa({ char, derived }: TabProps) {
     <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px,1.4vw,16px)' }}>
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
+        <div className="fv-hp">
           {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
-          <div className="fv-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
+          <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
-          <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
-        </div>
+          <div className="fv-hp-insp">
+            <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
+          </div>
 
-        {/* PV gigante + barra */}
-        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 'clamp(12px,2vw,22px)', flexWrap: 'wrap' }}>
-          <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })}>
-            <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor }}>
+          <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
+            <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
               {char.hpCurrent}
               <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
               {char.combat.hpTemp > 0 && <span style={{ fontSize: '.42em', color: t.acc }}> +{char.combat.hpTemp}</span>}
             </div>
           </LoreTooltip>
-          <div style={{ flex: 1, minWidth: 180 }}>
+          <div className="fv-hp-meter">
             <div style={{ height: 18, borderRadius: 4, background: 'rgba(0,0,0,.44)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s' }} />
               <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)' }} />
             </div>
-            <div style={{ marginTop: 9, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div className="fv-hp-btns">
               <QuickBtn color={t.danger} strong onClick={() => store.applyDamage(char.id, 5)}>−5</QuickBtn>
               <QuickBtn color={t.danger} onClick={() => store.applyDamage(char.id, 1)}>−1</QuickBtn>
               <QuickBtn color="#3FC56B" onClick={() => store.heal(char.id, 1)}>+1</QuickBtn>
               <QuickBtn color="#3FC56B" strong onClick={() => store.heal(char.id, 5)}>+5</QuickBtn>
-              <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>+5 Temp</QuickBtn>
+              <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>
+                +5 <small style={{ fontSize: '.78em', opacity: 0.85 }}>Temp</small>
+              </QuickBtn>
               {char.combat.hpTemp > 0 && (
                 <QuickBtn color={t.muted} onClick={() => store.setTempHp(char.id, 0)}>Zerar Temp</QuickBtn>
               )}
