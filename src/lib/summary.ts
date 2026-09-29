@@ -48,11 +48,11 @@ for (const [path, url] of Object.entries(
  */
 const FACE: Record<string, [number, number]> = {
   'barbarian-masc': [40, 19],
-  'barbarian-fem': [38, 17],
+  'barbarian-fem': [40, 18],
   'bard-masc': [40, 17],
   'bard-fem': [52, 16],
-  'cleric-masc': [39, 17],
-  'cleric-fem': [53, 19],
+  'cleric-masc': [37, 16],
+  'cleric-fem': [50, 18],
   'druid-masc': [38, 13],
   'druid-fem': [48, 16],
   'fighter-masc': [37, 14],

@@ -6,9 +6,9 @@ O retrato do herói muda conforme a **classe** e a **aparência** (masculina/fem
 
 | Classe | Masculino | Feminino | Situação |
 | --- | --- | --- | --- |
-| Bárbaro | `Bárbaro masculino` ou `barbarian-masc` | `Bárbara feminina` ou `barbarian-fem` | ✔ masc |
-| Bardo | `Bardo masculino` ou `bard-masc` | `Barda feminina` ou `bard-fem` | falta |
-| Clérigo | `Clérigo masculino` ou `cleric-masc` | `Clériga feminina` ou `cleric-fem` | falta |
+| Bárbaro | `Bárbaro masculino` ou `barbarian-masc` | `Bárbara feminina` ou `barbarian-fem` | ✔ |
+| Bardo | `Bardo masculino` ou `bard-masc` | `Barda feminina` ou `bard-fem` | ✔ |
+| Clérigo | `Clérigo masculino` ou `cleric-masc` | `Clériga feminina` ou `cleric-fem` | ✔ |
 | Druida | `Druida masculino` ou `druid-masc` | `Druida feminina` ou `druid-fem` | ✔ |
 | Guerreiro | `Guerreiro masculino` ou `fighter-masc` | `Guerreira feminina` ou `fighter-fem` | ✔ |
 | Monge | `Monge masculino` | `Monja feminina` | falta |
