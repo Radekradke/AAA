@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStateStorage } from '@/lib/storage/zustandIdb';
@@ -639,3 +640,18 @@ export const useCharacterStore = create<CharacterState>()(
     },
   ),
 );
+
+/**
+ * As fichas vivem no IndexedDB (leitura assíncrona). Até a hidratação
+ * terminar, o store está VAZIO — qualquer escrita nesse intervalo (criar
+ * rascunho, sincronizar) gravaria a lista vazia por cima dos heróis.
+ * Rotas e sync esperam por este sinal.
+ */
+export function useCharactersHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(() => useCharacterStore.persist.hasHydrated());
+  useEffect(() => {
+    if (useCharacterStore.persist.hasHydrated()) setHydrated(true);
+    return useCharacterStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+  return hydrated;
+}

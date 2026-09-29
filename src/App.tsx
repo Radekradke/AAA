@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useCharactersHydrated } from '@/store/characterStore';
 import { Home } from '@/pages/Home';
 import { Login } from '@/pages/Login';
 import { AuthCallback } from '@/pages/AuthCallback';
@@ -17,7 +18,11 @@ import { useCloudSync } from '@/hooks/useCloudSync';
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
+  const hydrated = useCharactersHydrated();
   if (!user) return <Navigate to="/entrar" replace />;
+  // fichas ainda carregando do IndexedDB: não renderiza a página (que poderia
+  // criar rascunho/editar sobre uma lista vazia e apagar os heróis salvos)
+  if (!hydrated) return <div role="status" aria-label="Carregando heróis" style={{ position: 'fixed', inset: 0 }} />;
   return <>{children}</>;
 }
 

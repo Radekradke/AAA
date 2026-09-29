@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useCharacterStore } from '@/store/characterStore';
+import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { syncNow } from '@/services/offlineSyncService';
@@ -17,7 +17,9 @@ const SYNC_DEBOUNCE_MS = 4000;
 export function useCloudSync(): void {
   const user = useAuthStore((s) => s.user);
   const online = useOnlineStatus();
-  const canSync = cloudEnabled() && !!user && !user.guest;
+  // só sincroniza depois que as fichas locais carregaram do IndexedDB
+  const hydrated = useCharactersHydrated();
+  const canSync = cloudEnabled() && !!user && !user.guest && hydrated;
 
   // restaura a sessão persistida do Supabase (login lembrado entre visitas)
   useEffect(() => {
