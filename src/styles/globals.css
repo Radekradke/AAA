@@ -815,6 +815,8 @@ button:active:not(:disabled) {
   min-height: var(--topbar-h);
   padding: clamp(10px, 2vw, 20px) var(--page-x);
   pointer-events: none;
+  /* véu escuro: o conteúdo que rola por baixo não briga com os botões */
+  background: linear-gradient(180deg, rgba(5, 7, 10, 0.92) 0%, rgba(5, 7, 10, 0.7) 62%, rgba(5, 7, 10, 0) 100%);
 }
 .fv-topbar-logo {
   width: 30px;
@@ -1049,6 +1051,107 @@ button:active:not(:disabled) {
   display: block;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ===== selo holográfico (HoloBadge) ===== */
+@keyframes holoSweep1 {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(10deg); }
+}
+@keyframes holoSweep2 {
+  0%, 100% { transform: rotate(10deg); }
+  50% { transform: rotate(20deg); }
+}
+@keyframes holoSweep3 {
+  0%, 100% { transform: rotate(20deg); }
+  50% { transform: rotate(30deg); }
+}
+@keyframes holoSweep4 {
+  0%, 100% { transform: rotate(30deg); }
+  50% { transform: rotate(40deg); }
+}
+@keyframes holoSweep5 {
+  0%, 100% { transform: rotate(40deg); }
+  50% { transform: rotate(50deg); }
+}
+@keyframes holoSweep6 {
+  0%, 100% { transform: rotate(50deg); }
+  50% { transform: rotate(60deg); }
+}
+@keyframes holoSweep7 {
+  0%, 100% { transform: rotate(60deg); }
+  50% { transform: rotate(70deg); }
+}
+@keyframes holoSweep8 {
+  0%, 100% { transform: rotate(70deg); }
+  50% { transform: rotate(80deg); }
+}
+@keyframes holoSweep9 {
+  0%, 100% { transform: rotate(80deg); }
+  50% { transform: rotate(90deg); }
+}
+@keyframes holoSweep10 {
+  0%, 100% { transform: rotate(90deg); }
+  50% { transform: rotate(100deg); }
+}
+.fv-holo {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  cursor: pointer;
+  border-radius: 14px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.fv-holo:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.fv-holo-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  transform-origin: center center;
+  transition: transform 200ms ease-out, box-shadow 0.3s, filter 0.3s;
+  will-change: transform;
+}
+.fv-holo.is-active .fv-holo-card {
+  animation: holoGlow 3.2s ease-in-out infinite;
+}
+.fv-holo:not(.is-active) .fv-holo-card {
+  filter: saturate(0.55) brightness(0.8);
+}
+@keyframes holoGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--holo-glow)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)); }
+  50% { filter: drop-shadow(0 0 16px var(--holo-glow)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)); }
+}
+.fv-holo-frame {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid;
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
+.fv-holo-shine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.fv-holo-content {
+  position: relative;
+  z-index: 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-holo-card,
+  .fv-holo.is-active .fv-holo-card,
+  .fv-holo-shine g {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* visibilidade por dispositivo */

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { HoloBadge } from '@/components/ui/holo-badge';
 import type { TabProps } from './tabProps';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
@@ -32,6 +34,25 @@ function groupOf(it: InventoryItem): string {
   return GROUP_DEFS.find((g) => g.match(it))!.id;
 }
 
+type ContainerId = 'equipado' | 'mochila' | 'bau';
+
+/**
+ * Recipientes do inventário: o que está no corpo, o que vai na mochila e o
+ * que fica guardado no baú (tesouros e itens mágicos fora de uso). Cada um
+ * é um selo holográfico que "abre" ao toque.
+ */
+const CONTAINERS: { id: ContainerId; label: string; icon: IconName; openIcon: IconName; color: string; empty: string; hint: string }[] = [
+  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: '#46C8FF', empty: 'Nada equipado', hint: 'Abra a Mochila e toque em Equipar numa arma, armadura ou escudo.' },
+  { id: 'mochila', label: 'Mochila', icon: 'satchel', openIcon: 'backpackOpen', color: '#FFE08A', empty: 'Mochila vazia', hint: 'Use + Adicionar para o catálogo ou Forjar para criar algo único.' },
+  { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Tesouros e itens mágicos que não estão em uso ficam guardados aqui.' },
+];
+
+function containerOf(char: TabProps['char'], it: InventoryItem): ContainerId {
+  if (isEquipped(char, it)) return 'equipado';
+  const g = groupOf(it);
+  return g === 'treasure' || g === 'magic' ? 'bau' : 'mochila';
+}
+
 const CATEGORY_ICON: Record<string, IconName> = {
   weapon: 'sword', armor: 'crest', shield: 'crest', gear: 'satchel', tool: 'anvil',
   consumable: 'spark', wondrous: 'star', ring: 'star', treasure: 'starFill', other: 'quill',
@@ -40,7 +61,7 @@ const CATEGORY_ICON: Record<string, IconName> = {
 export function TabInventario({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
-  const [filter, setFilter] = useState('all');
+  const [open, setOpen] = useState<ContainerId>(() => (char.inventory.some((it) => isEquipped(char, it)) ? 'equipado' : 'mochila'));
   const [picker, setPicker] = useState(false);
   const [forge, setForge] = useState<false | string>(false);
   const [coins, setCoins] = useState(false);
@@ -57,9 +78,11 @@ export function TabInventario({ char, derived }: TabProps) {
   const loadColor = over ? t.danger : heavy ? '#E0A93E' : '#3FC56B';
   const loadStatus = over ? 'Sobrecarregado' : heavy ? 'Carga pesada' : 'Dentro do limite';
 
+  const inContainer = (id: ContainerId) => char.inventory.filter((it) => containerOf(char, it) === id);
+  const openDef = CONTAINERS.find((c) => c.id === open)!;
   const visibleGroups = GROUP_DEFS
-    .map((g) => ({ ...g, items: char.inventory.filter((it) => groupOf(it) === g.id) }))
-    .filter((g) => g.items.length > 0 && (filter === 'all' || filter === g.id));
+    .map((g) => ({ ...g, items: inContainer(open).filter((it) => groupOf(it) === g.id) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div
@@ -150,10 +173,6 @@ export function TabInventario({ char, derived }: TabProps) {
         <SectionLabel
           right={
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-              <FilterChip active={filter === 'all'} onClick={() => setFilter('all')}>Todos</FilterChip>
-              {GROUP_DEFS.filter((g) => g.id !== 'other' || char.inventory.some((it) => groupOf(it) === 'other')).map((g) => (
-                <FilterChip key={g.id} active={filter === g.id} onClick={() => setFilter(g.id)}>{g.label}</FilterChip>
-              ))}
               <button onClick={() => setPicker(true)} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.12) }}>
                 + Adicionar
               </button>
@@ -175,15 +194,51 @@ export function TabInventario({ char, derived }: TabProps) {
             </div>
           }
         >
-          Mochila &amp; Equipamento
+          Itens
         </SectionLabel>
 
-        {char.inventory.length === 0 && (
-          <EmptyState
-            icon="satchel"
-            title="Mochila vazia"
-            hint={<>Use <b style={{ color: t.gold }}>+ Adicionar</b> para o catálogo ou <b style={{ color: t.acc }}>Forjar</b> para criar algo único.</>}
-          />
+        {/* recipientes: toque para abrir */}
+        <div role="group" aria-label="Recipientes" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'clamp(8px,1.4vw,14px)', marginBottom: 16 }}>
+          {CONTAINERS.map((c) => {
+            const items = inContainer(c.id);
+            const count = items.reduce((n, it) => n + Math.max(1, it.quantity), 0);
+            const kg = items.reduce((w, it) => w + it.weight * it.quantity, 0);
+            const isOpen = open === c.id;
+            return (
+              <HoloBadge
+                key={c.id}
+                tone="steel"
+                active={isOpen}
+                expanded={isOpen}
+                controls="fv-container-panel"
+                ariaLabel={`${c.label}: ${count} ${count === 1 ? 'item' : 'itens'}${isOpen ? ' (aberto)' : ''}`}
+                onClick={() => setOpen(c.id)}
+                style={{ width: '100%' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${c.color}, inset 0 -3px 0 ${c.color}` : undefined, borderRadius: 14 }}>
+                  <Icon name={isOpen ? c.openIcon : c.icon} size={34} color={isOpen ? c.color : t.muted} style={{ filter: isOpen ? `drop-shadow(0 0 8px ${hexA(c.color, 0.6)})` : undefined, transition: 'color .25s' }} />
+                  <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: isOpen ? 'var(--ink)' : 'var(--muted)' }}>{c.label}</div>
+                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+                    <div>{count} {count === 1 ? 'item' : 'itens'}</div>
+                    <div>{kg.toFixed(1).replace('.', ',')} kg</div>
+                  </div>
+                </div>
+              </HoloBadge>
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={open}
+            id="fv-container-panel"
+            initial={{ opacity: 0, y: -10, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, transition: { duration: 0.12 } }}
+            transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+          >
+        {visibleGroups.length === 0 && (
+          <EmptyState icon={openDef.openIcon} title={openDef.empty} hint={openDef.hint} />
         )}
 
         {visibleGroups.map((g) => (
@@ -212,6 +267,8 @@ export function TabInventario({ char, derived }: TabProps) {
             </div>
           </div>
         ))}
+          </motion.div>
+        </AnimatePresence>
       </Panel>
 
       {picker && (
@@ -324,17 +381,6 @@ function ItemCard({ item: it, equipped, equippable, onEquip, onFavorite, onEdit,
   );
 }
 
-function FilterChip({ children, active, onClick }: { children: React.ReactNode; active: boolean; onClick: () => void }) {
-  const t = useTheme();
-  return (
-    <button
-      onClick={onClick}
-      style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11.5, minHeight: 30, padding: '5px 12px', borderRadius: 999, border: '1px solid ' + (active ? t.gold : t.line), color: active ? t.gold : t.muted, background: active ? hexA(t.gold, 0.1) : 'transparent' }}
-    >
-      {children}
-    </button>
-  );
-}
 
 function ItemBtn({ children, onClick, active, danger }: { children: React.ReactNode; onClick: () => void; active?: boolean; danger?: boolean }) {
   return (

@@ -35,7 +35,8 @@ A **ficha** inclui:
 - **Atributos** com modificadores automáticos e **testes/resistências** roláveis (1d20 + mod).
 - **Perícias** com proficiência e bônus automáticos.
 - **Combate**: PV com barra colorida (dano/cura/PV temp.), **ataques automáticos** das armas equipadas (acerto e dano), economia de turno (ação/bônus/reação/movimento), recursos de classe, dados de vida e resgate da morte.
-- **Inventário**: moedas, sintonia (máx. 3), adicionar/remover, **equipar/desequipar arma, armadura e escudo**, favoritar — tudo recalculando **CA, ataques e dano** ao vivo.
+- **Inventário**: três recipientes holográficos que abrem ao toque — **Equipado**, **Mochila** e **Baú** (tesouros e itens mágicos guardados) —, moedas, sintonia (máx. 3), adicionar/remover, **equipar/desequipar arma, armadura e escudo**, favoritar — tudo recalculando **CA, ataques e dano** ao vivo.
+- **Inspiração** em destaque: selo dourado holográfico na Mesa quando disponível.
 - **Magias** (conjuradores): espaços de magia, CD/ataque de magia e magias preparadas.
 - **Descanso** curto/longo e **condições**.
 - **Diário** de sessões (título, data, resumo, NPCs, locais, missões, tesouros, anotações livres) com **busca** + anotações rápidas.
@@ -137,6 +138,10 @@ cinematográfico e funcional — sem descaracterizar o design.
 
 Dados 3D: [@3d-dice/dice-box-threejs](https://github.com/3d-dice/dice-box-threejs)
 (MIT, Frank Ali; baseado nos 3D Dice de MajorVictory e Teall Dice).
+
+Selo holográfico (`src/components/ui/holo-badge.tsx`, usado na Inspiração e nos
+recipientes do inventário): adaptado do efeito do *AwardBadge* (21st.dev), sem a
+marca original.
 
 Ícones temáticos (abas, dados, forja…) de **[game-icons.net](https://game-icons.net)**,
 por Lorc, Delapouite e colaboradores, sob licença

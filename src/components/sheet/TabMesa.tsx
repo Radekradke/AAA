@@ -18,6 +18,8 @@ import { modStr } from '@/engine/dice';
 import { calculateToolCheck } from '@/engine/toolCheck';
 import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
 
@@ -29,6 +31,7 @@ import { RollAdvisor } from '@/components/dice/RollAdvisor';
 export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
+  const bump = useUiStore((s) => s.bump);
   const { rollDice, check, attack, damage } = useDiceRoller();
   const cls = getClass(char.classId);
   const bd = derived.breakdowns;
@@ -67,29 +70,32 @@ export function TabMesa({ char, derived }: TabProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
           <div className="fv-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
+          {/* Inspiração: selo holográfico — impossível não ver quando está disponível */}
           <LoreTooltip info={passiveLore('Inspiração', char.inspiration ? 'Disponível' : 'Sem inspiração', 'Concedida pelo mestre. Gaste para ter vantagem em um teste, ataque ou salvaguarda.', ['Mesa'])}>
-            <button
-              onClick={() => store.toggleInspiration(char.id)}
-              style={{
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 15px',
-                borderRadius: 999,
-                border: '1px solid ' + (char.inspiration ? t.gold : t.line),
-                background: char.inspiration ? hexA(t.gold, 0.14) : 'rgba(0,0,0,.24)',
-                color: char.inspiration ? t.gold : 'var(--muted)',
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 12.5,
-                boxShadow: char.inspiration ? '0 0 18px ' + hexA(t.gold, 0.35) : 'none',
-                transition: '.25s',
+            <HoloBadge
+              tone={char.inspiration ? 'gold' : 'steel'}
+              active={char.inspiration}
+              pressed={char.inspiration}
+              ariaLabel={char.inspiration ? 'Inspiração disponível — toque para gastar' : 'Sem inspiração — toque quando o mestre conceder'}
+              onClick={() => {
+                if (!char.inspiration) bump(1.6);
+                store.toggleInspiration(char.id);
               }}
+              style={{ width: 'clamp(190px, 44vw, 250px)' }}
             >
-              <Icon name={char.inspiration ? 'starFill' : 'star'} size={15} />
-              Inspiração
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '9px 14px 9px 11px' }}>
+                <Icon name="inspiration" size={30} color={char.inspiration ? '#5a3d05' : 'var(--muted)'} />
+                <div style={{ minWidth: 0, textAlign: 'left', lineHeight: 1.1 }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.2em', opacity: 0.75 }}>INSPIRAÇÃO</div>
+                  <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 16, marginTop: 2 }}>
+                    {char.inspiration ? 'Disponível' : 'Sem inspiração'}
+                  </div>
+                  <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.7, marginTop: 2, whiteSpace: 'nowrap' }}>
+                    {char.inspiration ? 'Toque para gastar' : 'Toque ao ganhar'}
+                  </div>
+                </div>
+              </div>
+            </HoloBadge>
           </LoreTooltip>
         </div>
 
