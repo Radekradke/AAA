@@ -39,7 +39,12 @@ A **ficha** inclui:
 - **Magias** (conjuradores): espaços de magia, CD/ataque de magia e magias preparadas.
 - **Descanso** curto/longo e **condições**.
 - **Diário** de sessões (título, data, resumo, NPCs, locais, missões, tesouros, anotações livres) com **busca** + anotações rápidas.
-- **Rolador de dados** (d4–d100, quantidade, modificador, histórico) com **resultado em destaque cinematográfico** e crítico/falha.
+- **"O que eu rolo?"** (aba Mesa): descreva a ação em português ("escalar o muro", "ele está mentindo?") e a ficha sugere o teste, o bônus e de onde ele vem — com um toque para rolar. Sem IA, 100% offline.
+- **Rolador de dados** (d4–d100, quantidade, modificador, vantagem/desvantagem) com **resultado em destaque cinematográfico** e crítico/falha.
+- **Linha do tempo da sessão**: as últimas 60 rolagens do aparelho, filtradas pela ficha aberta, com horário e críticos em destaque. Sobrevive a recarregar a página e vira anotação do **Diário** com um toque.
+- **Evolução de nível** (aba Evoluir): PV, talentos, aumentos de atributo e subclasses, com validação.
+- **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
+- **Nuvem opcional (Supabase)**: login, sincronização local ↔ nuvem com resolução de conflitos e **mesas de campanha** com convite. Sem Supabase configurado, tudo funciona localmente. Veja `docs/SUPABASE.md`.
 - **Exportar/Importar** personagem em **JSON**.
 
 A engine de regras (`/src/engine`) é simples, tipada e expansível, com suporte a homebrew.
@@ -56,7 +61,10 @@ npm run dev        # ambiente de desenvolvimento (http://localhost:5173)
 npm run build      # build de produção em /dist
 npm run preview    # serve o build localmente
 npm run typecheck  # checagem de tipos sem emitir
+npm test           # testes automatizados (engine de regras, sync, "O que eu rolo?")
 ```
+
+Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 
 ---
 
@@ -76,8 +84,10 @@ src/
     diary/       JournalCard
   pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet
   data/          races, classes, backgrounds, skills, weapons, armors, items, spells, themes
-  engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout
-  store/         characterStore, authStore, uiStore (Zustand + persist)
+  engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout,
+                 levelUp, spellcasting, rollAdvisor ("O que eu rolo?") + __tests__
+  services/      Supabase: auth, sync offline, campanhas
+  store/         characterStore (IndexedDB), authStore, uiStore (Zustand + persist)
   types/         character.ts, dnd.ts
   lib/           color, useTheme, useTilt, summary
   styles/        globals.css (temas, keyframes, utilitários)
@@ -100,14 +110,18 @@ public/assets/   heroi.png, heroi-fem.png, bg.mp4
 
 ---
 
-## 🔭 O que pode melhorar depois
+## 🔭 Próximos passos
 
-- Progressão de nível (subir de nível, ASI/talentos, espaços de magia por nível).
-- Edição direta de nome/atributos na própria ficha e múltiplos rascunhos simultâneos.
-- Sincronização em nuvem opcional (hoje é 100% local, por dispositivo).
-- Mais raças, classes, subclasses, magias e itens (a arquitetura já suporta).
-- Animação 3D de dado rolando (hoje o impacto é o overlay cinematográfico).
-- Testes automatizados (unitários da engine + e2e do fluxo).
+Ideias trazidas do antigo *dnd-companion* e de projetos open source de RPG:
+
+- **Importador do dnd-companion**: converter as fichas antigas para o modelo atual.
+- **Recursos personalizados/homebrew**: contadores próprios com recarga por descanso.
+- **Compartilhar ficha por link/QR** (somente leitura, revogável) e **impressão**.
+- **Dados 3D com física** (ex.: [Dice Box](https://github.com/3d-dice/dice-box), MIT) com opção sem animação para celulares modestos.
+- **Ícones consistentes** para itens, magias e condições (ex.: [game-icons.net](https://game-icons.net), CC BY 3.0).
+- **Inventário visual** com comparação do item atual × selecionado (efeito na CA/ataque antes de equipar).
+- **Rastreador de iniciativa** do mestre conectado às fichas da mesa.
+- **Diário conectado**: NPCs, locais e relações ligados às sessões.
 
 ---
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,7 @@ import { TabMesa } from '@/components/sheet/TabMesa';
 import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
+import { useUiStore } from '@/store/uiStore';
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +31,13 @@ export function CharacterSheet() {
   const [editing, setEditing] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
+
+  // toda rolagem feita com esta ficha aberta entra no histórico dela
+  const setActiveChar = useUiStore((s) => s.setActiveChar);
+  useEffect(() => {
+    setActiveChar(id ?? null);
+    return () => setActiveChar(null);
+  }, [id, setActiveChar]);
 
   if (!char || !derived) {
     return (
@@ -72,7 +80,7 @@ export function CharacterSheet() {
       case 'magias': return <TabMagias char={char} derived={derived} />;
       case 'descanso': return <TabDescanso char={char} derived={derived} />;
       case 'diario': return <TabDiario char={char} derived={derived} />;
-      case 'dados': return <DiceRoller />;
+      case 'dados': return <DiceRoller char={char} />;
       default: return <TabFicha char={char} derived={derived} />;
     }
   };

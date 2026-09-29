@@ -25,11 +25,27 @@ interface UiState {
   bumpAmount: number;
   bump: (amount?: number) => void;
 
+  /** Ficha aberta agora: cada rolagem é marcada com ela. */
+  activeCharId: string | null;
+  setActiveChar: (id: string | null) => void;
+
   /** Rolagem atual em destaque (overlay cinematográfico). */
   currentRoll: RollResult | null;
+  /** Linha do tempo da sessão (mais recente primeiro), persistida. */
   history: RollResult[];
   pushRoll: (r: RollResult) => void;
   clearRoll: () => void;
+  /** Limpa o histórico de uma ficha (ou tudo, sem id). */
+  clearHistory: (charId?: string) => void;
+}
+
+/** Quantas rolagens guardamos no total (todas as fichas). */
+export const HISTORY_MAX = 60;
+
+/** Rolagens de uma ficha (rolagens antigas, sem dono, aparecem em todas). */
+export function historyFor(history: RollResult[], charId: string | null | undefined): RollResult[] {
+  if (!charId) return history;
+  return history.filter((r) => !r.charId || r.charId === charId);
 }
 
 let _rollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -68,11 +84,16 @@ export const useUiStore = create<UiState>()(
         set((s) => ({ bumpSignal: s.bumpSignal + 1, bumpAmount: amount }));
       },
 
+      activeCharId: null,
+      setActiveChar(id) {
+        set({ activeCharId: id });
+      },
+
       currentRoll: null,
       history: [],
-      pushRoll(r) {
-        // mantém apenas as 5 últimas rolagens (histórico curto na aba Mesa)
-        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, 5) }));
+      pushRoll(roll) {
+        const r = roll.charId || !get().activeCharId ? roll : { ...roll, charId: get().activeCharId! };
+        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, HISTORY_MAX) }));
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);
@@ -83,11 +104,15 @@ export const useUiStore = create<UiState>()(
         if (_rollTimer) clearTimeout(_rollTimer);
         set({ currentRoll: null });
       },
+      clearHistory(charId) {
+        set((s) => ({ history: charId ? s.history.filter((r) => r.charId && r.charId !== charId) : [] }));
+      },
     }),
     {
       name: 'fv-ui',
-      // não persistimos rolagem/partículas, apenas tema
-      partialize: (s) => ({ theme: s.theme }),
+      // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
+      // rolagem em destaque e partículas são efêmeras
+      partialize: (s) => ({ theme: s.theme, history: s.history }),
     },
   ),
 );

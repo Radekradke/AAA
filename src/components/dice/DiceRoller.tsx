@@ -5,14 +5,14 @@ import { hexA } from '@/lib/color';
 import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from './useDiceRoller';
 import { RollModeToggle } from './RollModeToggle';
+import { RollTimeline } from './RollTimeline';
+import type { Character } from '@/types/character';
 import { DICE_TYPES, modStr } from '@/engine/dice';
 
-/** Rolador de dados completo + histórico das últimas rolagens. */
-export function DiceRoller() {
+/** Rolador de dados completo + linha do tempo das rolagens da ficha. */
+export function DiceRoller({ char }: { char?: Character }) {
   const t = useTheme();
   const { rollDice } = useDiceRoller();
-  const history = useUiStore((s) => s.history);
-
   const rollMode = useUiStore((s) => s.rollMode);
 
   const [sides, setSides] = useState(20);
@@ -72,22 +72,7 @@ export function DiceRoller() {
       </Panel>
 
       <Panel>
-        <div className="fv-label" style={{ marginBottom: 11 }}>Histórico</div>
-        {history.length === 0 ? (
-          <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 13, color: 'var(--muted)' }}>
-            Nenhuma rolagem ainda. Escolha um dado e role.
-          </div>
-        ) : (
-          history.map((h) => (
-            <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '9px 4px', borderBottom: '1px solid var(--line)' }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.label}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{h.expr} [{h.rolls.join(', ')}]</div>
-              </div>
-              <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 18, color: h.crit ? t.gold : h.fail ? t.danger : h.damage ? t.danger : 'var(--ink)' }}>{h.total}</span>
-            </div>
-          ))
-        )}
+        <RollTimeline char={char} />
       </Panel>
     </div>
   );

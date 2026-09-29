@@ -24,6 +24,8 @@ export interface RollResult {
   /** Marca rolagens de dano (cor diferente). */
   damage?: boolean;
   timestamp: number;
+  /** Personagem que rolou (histórico por ficha). */
+  charId?: string;
 }
 
 let _seq = 0;

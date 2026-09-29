@@ -17,9 +17,10 @@ import { CONDITIONS, getCondition } from '@/data/conditions';
 import { heroSubtitle } from '@/lib/summary';
 import { modStr } from '@/engine/dice';
 import { calculateToolCheck } from '@/engine/toolCheck';
-import { useUiStore } from '@/store/uiStore';
 import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
+import { RollTimeline } from '@/components/dice/RollTimeline';
+import { RollAdvisor } from '@/components/dice/RollAdvisor';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -237,6 +238,11 @@ export function TabMesa({ char, derived }: TabProps) {
 
       {/* ===== MASONRY: painéis de jogo (sobem e preenchem os vãos) ===== */}
       <div className="fv-masonry">
+        {/* "O que eu rolo?" — descreve a intenção, a ficha sugere o teste */}
+        <Panel>
+          <RollAdvisor char={char} derived={derived} />
+        </Panel>
+
         {/* Ataques */}
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>
@@ -328,8 +334,8 @@ export function TabMesa({ char, derived }: TabProps) {
               </div>
             </>
           )}
-          {/* histórico curto: últimas rolagens da sessão */}
-          <RollHistory />
+          {/* histórico curto: últimas rolagens desta ficha */}
+          <RollTimeline char={char} compact limit={5} />
         </Panel>
 
         {/* Magia (se conjurador) */}
@@ -463,26 +469,6 @@ export function TabMesa({ char, derived }: TabProps) {
 }
 
 /* ---------- blocos auxiliares ---------- */
-
-/** Últimas 5 rolagens da sessão (nome, d20, bônus, total). */
-function RollHistory() {
-  const history = useUiStore((s) => s.history);
-  if (history.length === 0) return null;
-  return (
-    <>
-      <div className="fv-label" style={{ margin: '13px 0 8px' }}>Últimas Rolagens</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {history.slice(0, 5).map((r) => (
-          <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: "'Chakra Petch', monospace" }}>
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: "'Inter', sans-serif" }}>{r.label}</span>
-            <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
-            <b style={{ color: r.crit ? 'var(--gold)' : r.fail ? 'var(--danger)' : 'var(--ink)', fontSize: 13 }}>{r.total}</b>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
 
 function StatChip({ label, value, info, onRoll }: { label: string; value: string; info: ReturnType<typeof passiveLore>; onRoll?: () => void }) {
   return (
