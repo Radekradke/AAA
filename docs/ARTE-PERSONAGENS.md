@@ -7,7 +7,7 @@ Guia para gerar retratos **no mesmo estilo, formato e nível de detalhe** das du
 
 Serve para dois usos:
 
-1. **Artes oficiais por raça.** Salve em `src/assets/herois/<raça>-<masc|fem>.webp` e o app passa a usá-las sozinho (veja o `LEIA-ME.md` da pasta).
+1. **Retratos oficiais por classe.** Salve em `src/assets/herois/` com o nome da classe e da aparência, em português mesmo (`Clériga feminina.webp`, `Bardo masculino.webp`), e o app passa a usá-los sozinho. Veja o `LEIA-ME.md` da pasta.
 2. **Arte própria do jogador.** Gere com o prompt e envie pelo botão **Sua arte**, no retrato do herói (criação) ou no avatar (ficha). Se a imagem vier com fundo branco liso, o app recorta o fundo automaticamente.
 
 ---
@@ -21,7 +21,7 @@ Serve para dois usos:
 | **Movimento** | Cabelo longo em mechas finas e pontudas, soprado pelo vento para um lado. Capa com dobras quebradas e geométricas, como papel rasgado. |
 | **Figurino** | Capa/manto **preto** de gola alta, filigrana **bronze/ouro envelhecido** com motivos de espinhos e galhos, **gemas esmeralda** lapidadas (broche, brincos, colar). |
 | **Paleta** | Preto profundo + bronze + verde-esmeralda, e **uma** cor forte de acento (cor do cabelo: loiro-cinza, rosa-queimado…). Pele com tom quente e sombra marrom. |
-| **Fundo** | **Branco liso, sem cenário**, sem moldura. A figura é recortada, como um sticker. |
+| **Fundo** | Liso e sem cenário: **cinza-escuro** (retratos de classe atuais, combina direto com o app) ou branco (artes padrão, que precisam de recorte). |
 | **Acabamento** | Muito detalhe no rosto, nas joias e nos ornamentos. Nada de brilho difuso, bokeh ou efeito 3D. |
 
 ---
@@ -34,15 +34,16 @@ Os geradores entendem melhor em inglês, então o prompt está em inglês.
 Dark fantasy character portrait in semi-realistic anime / manhwa gacha splash-art style.
 Half-body bust, three-quarter view, head in the upper third of the frame, face centered,
 calm confident expression, looking slightly off-camera.
-Subject: [RACE DESCRIPTION], [GENDER] adventurer.
+Subject: [RACE DESCRIPTION], [GENDER] [CLASS].
 Hair: [HAIR], long flowing strands blown by the wind to one side, sharp thin locks.
 Outfit: high-collared black cloak with sharp angular folds like torn paper, ornate antique-bronze
 filigree with thorn and branch motifs on the shoulders, faceted emerald gemstones on a brooch,
 earrings and necklace, dark leather straps underneath.
 Palette: deep black, antique bronze-gold and emerald green, with [ACCENT] as the only bright accent.
 Crisp fine line art, hard cel shading with angular shadows, highly detailed face and jewelry,
-clean silhouette, isolated on a plain pure white background, no scenery, no frame.
-Vertical 4:5 composition, the character fills the frame down to mid-torso.
+clean silhouette, isolated on a plain flat dark charcoal-grey background, no scenery, no frame.
+Vertical 3:4 composition, low-angle heroic view, the character fills the frame down to the waist,
+holding the class weapon or focus: [CLASS GEAR].
 ```
 
 **Negativo** (para quem aceita *negative prompt*: SD, Leonardo, Midjourney com `--no`):
@@ -57,28 +58,28 @@ multiple characters, full body, cropped head, hands covering face, extra fingers
 
 ## 3. Como travar o estilo em cada ferramenta
 
-O que mais faz a arte "casar" com as atuais é **usar as duas artes como referência de estilo**.
+O que mais faz a arte "casar" com as atuais é **usar retratos da coleção como referência de estilo**: de preferência dois de `src/assets/herois/`, ou as duas artes padrão.
 
 - **ChatGPT / GPT-Image**
   1. Anexe `heroi.png` e `heroi-fem.png`.
   2. Comece com: *"Use these two images only as STYLE reference (line art, shading, palette, framing, white background). Create a NEW character:"* e cole o prompt-mestre.
-  3. Peça formato **retrato 4:5** (1024×1280).
+  3. Peça formato **retrato 3:4** (768×1024 ou maior).
 - **Midjourney (v6/v7)**
   1. Suba as duas imagens e use como `--sref`.
-  2. Acrescente `--ar 4:5 --style raw --stylize 200 --no background, text, frame`.
+  2. Acrescente `--ar 3:4 --style raw --stylize 200 --no background, text, frame`.
   3. Mantenha o mesmo `--sref` e o mesmo `--seed` para toda a coleção.
 - **Leonardo / Stable Diffusion XL**
-  - Use um modelo anime (ex.: Anime XL / Illustrious), **Style Reference** com as duas artes (força ~0.6) e 1024×1280.
+  - Use um modelo anime (ex.: Anime XL / Illustrious), **Style Reference** com as duas artes (força ~0.6) e 768×1024.
 
 Gere 4 variações e escolha a que tiver o **rosto mais nítido e centralizado**.
 
 ---
 
-## 4. Campos prontos por raça
+## 4. Campos prontos por raça (misture com a classe)
 
-Cole em `[RACE DESCRIPTION]`, `[HAIR]` e `[ACCENT]`. Mantenha capa, bronze e esmeralda: é a assinatura da coleção.
+Os retratos são escolhidos pela **classe**, mas a raça dá personalidade (os atuais têm anão, elfa, meio-orc, tiefling, draconato…). Cole em `[RACE DESCRIPTION]`, `[HAIR]` e `[ACCENT]`.
 
-| Arquivo | [RACE DESCRIPTION] | [HAIR] | [ACCENT] |
+| Raça · aparência | [RACE DESCRIPTION] | [HAIR] | [ACCENT] |
 | --- | --- | --- | --- |
 | `human-masc` | human man, rugged handsome face, light stubble, warm tan skin | dark brown wavy hair | dark brown hair |
 | `human-fem` | human woman, strong elegant face, warm olive skin | long raven-black hair | raven-black hair with blue sheen |
@@ -99,7 +100,7 @@ Cole em `[RACE DESCRIPTION]`, `[HAIR]` e `[ACCENT]`. Mantenha capa, bronze e esm
 | `dragonborn-masc` | dragonborn man, draconic head with bronze scales, swept-back horns, reptilian gold eyes, no hair | (troque a linha Hair por: "a crest of sharp horns and a frilled neck") | bronze scales |
 | `dragonborn-fem` | dragonborn woman, sleek draconic head with emerald-green scales, elegant swept-back horns | (troque por: "a sleek crest of horns") | emerald scales |
 
-**Sub-raças** (opcional, nome `<raça>-<sub-raça>-<masc|fem>`):
+**Sub-raças** (variações de descrição):
 
 | Sub-raça | Troque [RACE DESCRIPTION] por |
 | --- | --- |
@@ -114,8 +115,25 @@ Cole em `[RACE DESCRIPTION]`, `[HAIR]` e `[ACCENT]`. Mantenha capa, bronze e esm
 
 ## 5. Checklist de formato (para encaixar no app sem ajuste)
 
-- [ ] **4:5 vertical**, 1024×1280 (mínimo 640×800).
-- [ ] **Rosto no centro horizontal** e **olhos a ~25% da altura**, pois o avatar redondo da ficha recorta ali.
-- [ ] Nada encostando na borda de cima; o corpo pode sair pela borda de baixo.
-- [ ] **Fundo branco liso**. Para as artes oficiais, remova o fundo e salve em **WebP** (até ~200 KB).
-- [ ] Nome do arquivo exatamente como na tabela (ex.: `tiefling-fem.webp`) em `src/assets/herois/`.
+- [ ] **3:4 vertical**, 768×1024 ou maior (o app reduz).
+- [ ] Rosto no **terço de cima**, sem encostar na borda de cima.
+- [ ] **Fundo cinza-escuro liso**, sem cenário.
+- [ ] Nome do arquivo com classe + aparência (ex.: `Paladina feminina.webp`), salvo em `src/assets/herois/`.
+- [ ] Se o rosto ficar muito fora do padrão, ajuste o ponto dele em `FACE` (`src/lib/summary.ts`).
+
+### [CLASS GEAR] por classe
+
+| Classe | [CLASS GEAR] |
+| --- | --- |
+| Bárbaro | a massive great-axe over the shoulder, fur mantle, bone and fang trophies |
+| Bardo | an ornate lute or harp, elegant layered garments |
+| Clérigo | a sun-disc mace or censer staff, holy symbol medallions, white-and-gold vestments |
+| Druida | a gnarled wooden staff wrapped in vines and leaves, antlers, moss |
+| Guerreiro | a spear or warhammer, plate armor pieces, battle cape |
+| Monge | wrapped hands, simple robes, prayer beads, a quarterstaff |
+| Paladino | a longsword and a heraldic shield, radiant plate armor |
+| Patrulheiro | a longbow and quiver, hooded travel cloak, hunting knives |
+| Ladino | twin daggers, dark hood, leather armor, lockpicks |
+| Feiticeiro | raw arcane fire swirling around one hand, draconic markings |
+| Bruxo | an eldritch pact tome, a glowing otherworldly eye sigil |
+| Mago | a spellbook and an arcane staff, pointed hat or scholar robes |

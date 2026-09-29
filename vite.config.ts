@@ -33,7 +33,7 @@ export default defineConfig({
       },
       workbox: {
         // código do app (inclui o chunk dos dados 3D) + ícones
-        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/*.png'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2,webp}', 'icons/*.png'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [

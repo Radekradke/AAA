@@ -8,7 +8,7 @@ import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
-import { heroAvatar } from '@/lib/summary';
+import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from './creatorUi';
 import { PortraitPicker } from './PortraitPicker';
@@ -40,7 +40,7 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
   return (
     <div className="fv-hero-panel" style={{ ['--race-color' as string]: race.jewel, ['--class-color' as string]: cls.jewel } as CSSProperties}>
       <div className="fv-hero-portrait">
-        <img src={heroAvatar(char)} alt="" />
+        <img src={heroAvatar(char)} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
         {onPortrait && <PortraitPicker portrait={char.portrait} onChange={onPortrait} />}
         <div className="fv-hero-sigil" title={cls.label}>
           <Icon name={themedIcon('class', cls.id)} size={22} />

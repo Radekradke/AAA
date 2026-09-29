@@ -1,24 +1,26 @@
-# Artes oficiais por raça
+# Retratos oficiais por classe
 
-Solte aqui a arte de cada raça/aparência. O app encontra os arquivos sozinho: não precisa mexer em código.
+O retrato do herói muda conforme a **classe** e a **aparência** (masculina/feminina) escolhidas. Solte o arquivo nesta pasta e o app encontra sozinho, sem mexer em código.
 
-**Nome do arquivo:** `<raça>-<masc|fem>.webp`
+**Nome do arquivo:** pode ser em português, do jeito natural, ou no padrão do código.
 
-| Raça | Masculina | Feminina |
-| --- | --- | --- |
-| Humano | `human-masc.webp` | `human-fem.webp` |
-| Elfo | `elf-masc.webp` | `elf-fem.webp` |
-| Anão | `dwarf-masc.webp` | `dwarf-fem.webp` |
-| Halfling | `halfling-masc.webp` | `halfling-fem.webp` |
-| Meio-Elfo | `half-elf-masc.webp` | `half-elf-fem.webp` |
-| Meio-Orc | `half-orc-masc.webp` | `half-orc-fem.webp` |
-| Gnomo | `gnome-masc.webp` | `gnome-fem.webp` |
-| Tiefling | `tiefling-masc.webp` | `tiefling-fem.webp` |
-| Draconato | `dragonborn-masc.webp` | `dragonborn-fem.webp` |
+| Classe | Masculino | Feminino | Situação |
+| --- | --- | --- | --- |
+| Bárbaro | `Bárbaro masculino` ou `barbarian-masc` | `Bárbara feminina` ou `barbarian-fem` | ✔ masc |
+| Bardo | `Bardo masculino` ou `bard-masc` | `Barda feminina` ou `bard-fem` | falta |
+| Clérigo | `Clérigo masculino` ou `cleric-masc` | `Clériga feminina` ou `cleric-fem` | falta |
+| Druida | `Druida masculino` ou `druid-masc` | `Druida feminina` ou `druid-fem` | ✔ |
+| Guerreiro | `Guerreiro masculino` ou `fighter-masc` | `Guerreira feminina` ou `fighter-fem` | ✔ |
+| Monge | `Monge masculino` | `Monja feminina` | falta |
+| Paladino | `Paladino masculino` | `Paladina feminina` | falta |
+| Patrulheiro | `Patrulheiro masculino` | `Patrulheira feminina` | falta |
+| Ladino | `Ladino masculino` | `Ladina feminina` | falta |
+| Feiticeiro | `Feiticeiro masculino` | `Feiticeira feminina` | falta |
+| Bruxo | `Bruxo masculino` | `Bruxa feminina` | falta |
+| Mago | `Mago masculino` | `Maga feminina` | falta |
 
-- **Sub-raça (opcional, tem prioridade):** `elf-drow-fem.webp`, `dwarf-hill-dwarf-masc.webp`, `elf-wood-elf-masc.webp`… O id da sub-raça fica em `src/data/races.ts`.
-- **Formatos:** `.webp` (recomendado), `.png` ou `.jpg`.
-- **Tamanho:** 1024×1280 (4:5), com fundo transparente ou já recortado, e até ~200 KB.
-- **Fundo branco:** retire o fundo antes de salvar aqui, com qualquer removedor de fundo. O recorte automático só acontece quando o jogador envia a própria arte pelo botão **Sua arte**.
-- **Sem arquivo:** a raça usa a arte padrão (`public/assets/heroi-recorte.webp` / `heroi-fem-recorte.webp`).
+- **Formatos:** `.webp` (recomendado), `.png` ou `.jpg`. Retrato **3:4**, idealmente 768×1024 e até ~150 KB. O fundo cinza-escuro liso das artes atuais combina com o app e não precisa recortar.
+- **Sem arquivo:** a classe usa a arte padrão (`public/assets/heroi-recorte.webp` / `heroi-fem-recorte.webp`).
+- **Enquadramento:** o avatar redondo da ficha mira o rosto. Os pontos de cada retrato ficam em `FACE`, em `src/lib/summary.ts`; retrato novo sem ponto usa um padrão (rosto um pouco à esquerda, no terço de cima).
+- **Foto do jogador** (botão **Sua arte**) sempre tem prioridade.
 - **Prompt para gerar no mesmo estilo:** `docs/ARTE-PERSONAGENS.md`.
