@@ -94,7 +94,7 @@ export interface ProcessedPortrait {
  * branco/claro liso (≥ metade da borda — bustos costumam encostar embaixo), recorta. Saída WebP (PNG se o
  * navegador não gerar WebP).
  */
-export async function processPortraitFile(file: File, opts: { cutout?: boolean } = {}): Promise<ProcessedPortrait> {
+export async function processPortraitFile(file: File, opts: { cutout?: boolean; max?: { w: number; h: number }; quality?: number } = {}): Promise<ProcessedPortrait> {
   if (!file.type.startsWith('image/')) throw new Error('Escolha um arquivo de imagem (PNG, JPG ou WebP).');
   if (file.size > PORTRAIT_INPUT_LIMIT) throw new Error('Imagem muito grande (máx. 15 MB).');
 
@@ -103,7 +103,8 @@ export async function processPortraitFile(file: File, opts: { cutout?: boolean }
     const img = new Image();
     img.src = url;
     await img.decode();
-    const scale = Math.min(1, PORTRAIT_MAX.w / img.naturalWidth, PORTRAIT_MAX.h / img.naturalHeight);
+    const max = opts.max ?? PORTRAIT_MAX;
+    const scale = Math.min(1, max.w / img.naturalWidth, max.h / img.naturalHeight);
     const w = Math.max(1, Math.round(img.naturalWidth * scale));
     const h = Math.max(1, Math.round(img.naturalHeight * scale));
     const canvas = document.createElement('canvas');
@@ -123,7 +124,7 @@ export async function processPortraitFile(file: File, opts: { cutout?: boolean }
       }
     }
 
-    let dataUrl = canvas.toDataURL('image/webp', 0.86);
+    let dataUrl = canvas.toDataURL('image/webp', opts.quality ?? 0.86);
     if (!dataUrl.startsWith('data:image/webp')) {
       // Safari antigo não gera WebP: sem recorte, JPEG é bem menor que PNG
       dataUrl = cutout ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.86);

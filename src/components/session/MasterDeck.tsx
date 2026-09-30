@@ -7,6 +7,9 @@ import type { SharedCharacterSheet } from '@/types/models';
 import { MONSTERS, MONSTER_BY_ID } from '@/data/bestiary';
 import { encounterBudget } from '@/engine/monsters';
 import { BestiaryPicker } from './BestiaryPicker';
+import { NpcAvatar, useCampaignNpcs } from '@/components/campaign/NpcGallery';
+import { useCharacterStore } from '@/store/characterStore';
+import type { CampaignNpc } from '@/types/npc';
 
 export interface SharedHero {
   share: SharedCharacterSheet;
@@ -121,6 +124,8 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
         />
       )}
 
+      <NpcPicker />
+
       <EncounterDifficulty heroes={heroes} />
       <XpAward />
 
@@ -172,6 +177,44 @@ function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
         {' '}Vitória: <b>{b.perPlayer.toLocaleString('pt-BR')} XP</b> por herói.
         {unknown > 0 && ` ${unknown} criatura${unknown > 1 ? 's' : ''} manual${unknown > 1 ? 'is' : ''} fora da conta.`}
       </p>
+    </section>
+  );
+}
+
+/** NPCs da campanha entram no encontro com os números secretos do mestre. */
+function NpcPicker() {
+  const s = useSessionStore();
+  const { npcs, secrets } = useCampaignNpcs(s.campaignId, true);
+  const characters = useCharacterStore((c) => c.characters);
+  if (!npcs.length) return null;
+  const inFight = new Set(s.combatants.map((c) => c.name));
+  const add = (n: CampaignNpc) => {
+    const st = secrets[n.id]?.stats ?? {};
+    const sheet = st.sheetId ? characters.find((c) => c.id === st.sheetId) : undefined;
+    const d = sheet ? deriveCharacter(sheet) : null;
+    const base = st.monsterRef ? MONSTER_BY_ID[st.monsterRef] : undefined;
+    const hp = d ? sheet!.hpCurrent ?? d.maxHp : st.hp ?? base?.hp ?? null;
+    void s.addCombatant({
+      type: 'npc',
+      name: n.name,
+      initiativeBonus: d?.initiative ?? st.initiativeBonus ?? 0,
+      hpCurrent: hp,
+      hpMax: d?.maxHp ?? st.hp ?? base?.hp ?? null,
+      armorClass: d?.ac ?? st.ac ?? base?.ac ?? null,
+      hidden: !n.revealed,
+      monsterRef: st.monsterRef ?? null,
+    });
+  };
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-label">NPCs da campanha</div>
+      <div className="fv-live-chips">
+        {npcs.map((n) => (
+          <button key={n.id} type="button" className={'fv-live-chip fv-npc-chip' + (inFight.has(n.name) ? ' is-on' : '')} disabled={s.busy || inFight.has(n.name)} onClick={() => add(n)}>
+            <NpcAvatar npc={n} size={22} /> {inFight.has(n.name) ? '✓ ' : '+ '}{n.name}
+          </button>
+        ))}
+      </div>
     </section>
   );
 }

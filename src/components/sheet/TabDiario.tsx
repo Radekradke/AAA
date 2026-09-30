@@ -7,11 +7,14 @@ import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useSheetNpcs, MentionField, NpcMentionChip, mentionedNpcs } from '@/components/diary/NpcMentions';
 
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
   const [query, setQuery] = useState('');
+  // NPCs das mesas desta ficha: @ para citar, retrato ao passar o mouse
+  const npcs = useSheetNpcs(char.id);
 
   const entries = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,14 +56,21 @@ export function TabDiario({ char }: TabProps) {
       {/* Anotações rápidas */}
       <Panel style={{ marginBottom: 14 }}>
         <div className="fv-label" style={{ marginBottom: 10 }}>Anotações rápidas</div>
-        <textarea
+        <MentionField
           value={char.notes}
-          onChange={(e) => store.setNotes(char.id, e.target.value)}
-          placeholder="Ideias, lembretes, segredos do mestre que você descobriu…"
+          onChange={(v) => store.setNotes(char.id, v)}
+          npcs={npcs}
+          placeholder={`Ideias, lembretes, segredos do mestre que você descobriu…${npcs.length ? ' (@ cita um NPC)' : ''}`}
           rows={3}
           className="fv-input"
           style={{ resize: 'vertical', lineHeight: 1.6 }}
         />
+        {mentionedNpcs([char.notes], npcs).length > 0 && (
+          <div className="fv-npc-cited">
+            <span>Citados</span>
+            {mentionedNpcs([char.notes], npcs).map((n) => <NpcMentionChip key={n.id} npc={n} />)}
+          </div>
+        )}
       </Panel>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 14 }}>
@@ -70,6 +80,7 @@ export function TabDiario({ char }: TabProps) {
             entry={entry}
             onChange={(patch) => store.updateJournalEntry(char.id, entry.id, patch)}
             onDelete={() => store.deleteJournalEntry(char.id, entry.id)}
+            npcs={npcs}
           />
         ))}
       </div>

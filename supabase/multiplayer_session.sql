@@ -498,3 +498,57 @@ do $fn$ begin
 exception when undefined_table or invalid_schema_name or undefined_function then
   raise notice 'Realtime Authorization indisponível neste projeto — o canal da sessão vai rodar como público (o estado continua protegido pelo RLS).';
 end $fn$;
+
+-- =====================================================================
+-- NPCs DA CAMPANHA
+-- Duas tabelas de propósito: o que os JOGADORES podem saber (nome, retrato,
+-- papel, resumo) e o que só o MESTRE sabe (segredos, estatísticas). Assim o
+-- RLS protege os segredos linha a linha — a interface não precisa "esconder".
+-- =====================================================================
+create table if not exists public.campaign_npcs (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  name text not null check (length(trim(name)) between 1 and 80),
+  role text,
+  summary text,
+  -- retrato pequeno (WebP em data URL, ~20–60 KB)
+  portrait text check (portrait is null or length(portrait) < 400000),
+  -- revelado: jogadores veem na galeria e nas menções do diário
+  revealed boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists campaign_npcs_campaign_idx on public.campaign_npcs (campaign_id, name);
+
+create table if not exists public.campaign_npc_secrets (
+  npc_id uuid primary key references public.campaign_npcs (id) on delete cascade,
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  notes text,
+  -- { monsterRef, ac, hp, hpMax, initiativeBonus, level, sheetId, abilities… }
+  stats jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.campaign_npcs enable row level security;
+alter table public.campaign_npc_secrets enable row level security;
+
+drop policy if exists "npcs_read" on public.campaign_npcs;
+create policy "npcs_read" on public.campaign_npcs for select
+  using (public.is_campaign_master(campaign_id) or (revealed and public.is_campaign_member(campaign_id)));
+drop policy if exists "npcs_master_write" on public.campaign_npcs;
+create policy "npcs_master_write" on public.campaign_npcs for all
+  using (public.is_campaign_master(campaign_id)) with check (public.is_campaign_master(campaign_id));
+
+-- segredos: SÓ o mestre lê e escreve
+drop policy if exists "npc_secrets_master" on public.campaign_npc_secrets;
+create policy "npc_secrets_master" on public.campaign_npc_secrets for all
+  using (public.is_campaign_master(campaign_id))
+  with check (
+    public.is_campaign_master(campaign_id)
+    and exists (select 1 from public.campaign_npcs n where n.id = npc_id and n.campaign_id = campaign_npc_secrets.campaign_id)
+  );
+
+grant select, insert, update, delete on public.campaign_npcs to authenticated;
+grant select, insert, update, delete on public.campaign_npc_secrets to authenticated;
+
+do $fn$ begin alter publication supabase_realtime add table public.campaign_npcs; exception when duplicate_object then null; end $fn$;

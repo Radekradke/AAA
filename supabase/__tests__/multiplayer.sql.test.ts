@@ -129,6 +129,18 @@ describe('SQL do multiplayer (sessão, encontro, iniciativa)', () => {
     const [ses3] = await as('gm', `select * from start_session($1,null)`, [camp.id]);
     eq('nova sessão ganha nome automático', ses3.name, 'Sessão 2');
 
+    // ---- NPCs da campanha: público x segredo ----
+    const [voss] = await as('gm', `insert into campaign_npcs (campaign_id, name, role, summary) values ($1,'Barão Voss','Senhor de Pedra Branca','Nobre de fala mansa') returning *`, [camp.id]);
+    const [hiddenNpc] = await as('gm', `insert into campaign_npcs (campaign_id, name, revealed) values ($1,'Espiã Sem Nome', false) returning *`, [camp.id]);
+    await expectOk('mestre grava o segredo do NPC', () => as('gm', `insert into campaign_npc_secrets (npc_id, campaign_id, notes, stats) values ($1,$2,'É um vampiro','{"monsterRef":"vampire"}') returning npc_id`, [voss.id, camp.id]));
+    eq('jogador vê o NPC revelado', (await as('p1', `select name from campaign_npcs`)).map((r) => r.name), ['Barão Voss']);
+    eq('jogador NÃO vê o segredo', (await as('p1', `select notes from campaign_npc_secrets`)).length, 0);
+    eq('mestre vê o segredo', (await as('gm', `select notes from campaign_npc_secrets`))[0].notes, 'É um vampiro');
+    eq('intruso não vê NPC nenhum', (await as('x', `select id from campaign_npcs`)).length, 0);
+    await expectErr('jogador não cria NPC', /violates|policy/, () => as('p1', `insert into campaign_npcs (campaign_id, name) values ($1,'Falso')`, [camp.id]));
+    await expectErr('jogador não edita NPC', /policy|0 linhas/, () => as('p1', `update campaign_npcs set name='X' where id=$1 returning id`, [voss.id]).then((r) => { if (!r.length) throw new Error('policy: 0 linhas'); }));
+    eq('NPC oculto não aparece para o jogador', (await as('p1', `select id from campaign_npcs where id=$1`, [hiddenNpc.id])).length, 0);
+
 
     expect(failures).toEqual([]);
     expect(fail).toBe(0);

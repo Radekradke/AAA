@@ -985,3 +985,92 @@
 .fv-xp-award { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .fv-xp-award .fv-input { width: 90px; padding: 7px 9px; font-size: 13px; }
 .fv-xp-award button { min-height: 36px; padding: 0 12px; font-size: 12.5px; }
+
+/* ---------- NPCs da campanha ---------- */
+.fv-npcs { display: flex; flex-direction: column; gap: 10px; }
+.fv-npcs-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fv-npcs-head .fv-btn-gold { min-height: 36px; padding: 0 14px; font-size: 12.5px; }
+.fv-npcs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 10px; }
+.fv-npc-card {
+  display: flex; align-items: center; gap: 12px; padding: 10px; text-align: left; cursor: pointer; color: var(--ink);
+  border-radius: var(--radius-md); border: 1px solid var(--line); background: linear-gradient(160deg, var(--panel), var(--panel2));
+  transition: border-color 0.2s, transform 0.2s;
+}
+.fv-npc-card:hover { border-color: color-mix(in srgb, var(--gold), transparent 40%); transform: translateY(-1px); }
+.fv-npc-card.is-hidden { border-style: dashed; opacity: 0.75; }
+.fv-npc-card-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fv-npc-card-text b { font-family: var(--font-display); font-size: 15px; }
+.fv-npc-card-text small { font-size: 12px; color: var(--muted); }
+.fv-npc-card-text em { font-style: normal; font-size: 10.5px; color: var(--acc2); letter-spacing: 0.04em; }
+.fv-npc-avatar {
+  flex: none; border-radius: var(--radius-md); object-fit: cover; object-position: 50% 20%;
+  border: 1px solid var(--line-strong); background: var(--sunk-deep);
+}
+.fv-npc-avatar.is-empty { display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; color: var(--gold); }
+.fv-npc-profile { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.fv-npc-profile img { width: min(260px, 100%); border-radius: var(--radius-lg); border: 1px solid var(--line-strong); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); }
+.fv-npc-profile p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
+
+.fv-npc-editor { display: grid; grid-template-columns: 150px 1fr; gap: 14px; }
+@media (max-width: 560px) { .fv-npc-editor { grid-template-columns: 1fr; } }
+.fv-npc-portrait-pick {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; min-height: 180px;
+  border-radius: var(--radius-lg); border: 1px dashed var(--line-strong); background: var(--sunk); color: var(--muted); font-weight: 600; overflow: hidden;
+}
+.fv-npc-portrait-pick img { width: 100%; height: 170px; object-fit: cover; object-position: 50% 20%; }
+.fv-npc-portrait-pick small { font-size: 11px; padding-bottom: 6px; }
+.fv-npc-editor-fields { display: flex; flex-direction: column; gap: 8px; }
+.fv-npc-editor-fields .fv-input { padding: 9px 12px; font-size: 14px; }
+.fv-npc-public-tag, .fv-npc-secret-tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.fv-npc-public-tag { color: var(--live-ok); }
+.fv-npc-secret-tag { color: var(--danger); }
+.fv-npc-secret {
+  margin-top: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 60%); background: color-mix(in srgb, var(--danger), transparent 94%);
+}
+.fv-npc-secret .fv-input { padding: 8px 10px; font-size: 13.5px; }
+.fv-npc-stats { display: grid; grid-template-columns: 2fr repeat(4, minmax(0, 1fr)) 2fr; gap: 6px; }
+@media (max-width: 640px) { .fv-npc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fv-npc-stats label { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.fv-npc-editor-foot { display: flex; align-items: center; gap: 10px; width: 100%; }
+.fv-npc-editor-foot .fv-btn-gold { margin-left: auto; min-height: 40px; padding: 0 20px; }
+.fv-npc-editor-foot .fv-btn-ghost { min-height: 40px; padding: 0 14px; }
+.fv-npc-editor-err { font-size: 12px; color: var(--danger); }
+.fv-npc-chip { display: inline-flex; align-items: center; gap: 6px; }
+.fv-npc-chip .fv-npc-avatar { border-radius: 50%; }
+
+/* ---------- diário: @ para citar NPC e retrato ao passar o mouse ---------- */
+.fv-mention { position: relative; display: block; }
+.fv-mention-list {
+  position: absolute; left: 0; top: calc(100% + 4px); z-index: 40; min-width: 240px; max-width: 100%;
+  display: flex; flex-direction: column; gap: 2px; padding: 5px; border-radius: var(--radius-md);
+  background: var(--panel2); border: 1px solid var(--line-strong); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+.fv-mention-list button {
+  display: flex; align-items: center; gap: 9px; padding: 6px 8px; cursor: pointer; text-align: left;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink);
+}
+.fv-mention-list button.is-on, .fv-mention-list button:hover { background: var(--lift); }
+.fv-mention-list .fv-npc-avatar { border-radius: 50%; }
+.fv-mention-list b { display: block; font-size: 13px; }
+.fv-mention-list small { display: block; font-size: 11px; color: var(--muted); }
+.fv-npc-cited { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.fv-npc-cited > span:first-child { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.fv-npc-mention {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; cursor: default;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold), transparent 55%); background: color-mix(in srgb, var(--gold), transparent 90%);
+  font-size: 12px; font-weight: 600; color: var(--gold); outline: none;
+}
+.fv-npc-mention .fv-npc-avatar { border-radius: 50%; }
+.fv-npc-hover {
+  position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 50; width: 220px; transform: translateX(-50%) translateY(6px);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px; text-align: center;
+  border-radius: var(--radius-lg); background: var(--panel2); border: 1px solid var(--line-strong); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
+  opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s;
+}
+.fv-npc-mention:hover .fv-npc-hover, .fv-npc-mention:focus .fv-npc-hover { opacity: 1; transform: translateX(-50%) translateY(0); }
+.fv-npc-hover img { width: 100%; height: 220px; object-fit: cover; object-position: 50% 20%; border-radius: var(--radius-md); }
+.fv-npc-hover b { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.fv-npc-hover small { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.fv-npc-hover p { margin: 2px 0 0; font-size: 12px; line-height: 1.45; font-weight: 400; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .fv-npc-hover { transition: none; } }
