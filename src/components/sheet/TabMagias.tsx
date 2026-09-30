@@ -8,7 +8,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
 import { getClass } from '@/data/classes';
-import { casterKind, casterOf, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
+import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { bonusSpellIds } from '@/engine/classChoices';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
@@ -47,9 +47,12 @@ export function TabMagias({ char, derived }: TabProps) {
   const prepared = char.preparedSpells;
   const spellbook = char.knownSpells; // usado só pelo mago (nível ≥1)
 
+  // magias de Domínio/Juramento/Círculo: sempre preparadas, fora do limite
+  const granted = useMemo(() => grantedSpells(char), [char.subclassId, char.classLevels, char.level, char.choices]);
+  const grantedFrom = useMemo(() => new Map(granted.map((g) => [g.id, g.source])), [granted]);
   const activeIds = useMemo(
-    () => (isWizard ? Array.from(new Set([...prepared, ...spellbook])) : prepared),
-    [isWizard, prepared, spellbook],
+    () => Array.from(new Set([...(isWizard ? [...prepared, ...spellbook] : prepared), ...granted.map((g) => g.id)])),
+    [isWizard, prepared, spellbook, granted],
   );
   const active = useMemo(
     () => activeIds.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)),
@@ -58,15 +61,22 @@ export function TabMagias({ char, derived }: TabProps) {
 
   // magias bônus (Livro das Sombras, Arcano Místico, Assinatura…) não contam nos limites
   const bonusIds = useMemo(() => bonusSpellIds(char), [char.choices]);
-  const counted = active.filter((s) => !bonusIds.has(s.id));
+  const counted = active.filter((s) => !bonusIds.has(s.id) && !grantedFrom.has(s.id));
   const cantripsHave = counted.filter((s) => s.level === 0).length;
   const spellsHave = counted.filter((s) => s.level >= 1).length;
-  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1 && !bonusIds.has(s.id)).length;
+  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1 && !bonusIds.has(s.id) && !grantedFrom.has(s.id)).length;
   const cantripTarget = caster?.cantrips ?? 0;
   const guide = caster?.guide ?? { count: 0, label: '—' };
   // Cavaleiro/Trapaceiro Arcano: quase todas as magias de 2 escolas; algumas livres (níveis 3, 8, 14, 20)
   const offSchool = caster?.schools ? active.filter((sp) => sp.level >= 1 && !caster.schools!.allowed.includes(sp.school)).length : 0;
   const prepMax = Math.max(1, castMod + (char.classId === 'paladin' ? Math.floor(char.level / 2) : char.level));
+
+  // lista da classe + lista expandida do patrono (Bruxo)
+  const classLearnList = useMemo(() => {
+    const base = spellsForClass(listClass, 9);
+    const extra = expandedSpellIds(char).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
+    return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+  }, [listClass, char.subclassId]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -261,14 +271,17 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
                 {spells.map((sp) => {
+                  const grantSource = grantedFrom.get(sp.id);
+                  const learned = prepared.includes(sp.id) || spellbook.includes(sp.id);
                   const isPrepared = prepared.includes(sp.id);
-                  const canPrepare = isWizard && sp.level >= 1; // truques do mago sempre ativos
+                  const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
                   return (
                     <div key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'rgba(0,0,0,.24)' }}>
                       <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                         <span style={{ cursor: 'help', display: 'block' }}>
                           <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
+                            {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
                             <Mini>{sp.school}</Mini>
                             {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
@@ -287,9 +300,11 @@ export function TabMagias({ char, derived }: TabProps) {
                           {isPrepared ? '★ Preparada' : '☆ Preparar'}
                         </button>
                       )}
-                      <button type="button" className="fv-item-remove" onClick={() => removeSpell(sp.id)} aria-label={`Esquecer ${sp.name}`} title="Esquecer magia">
-                        <Icon name="close" size={14} />
-                      </button>
+                      {learned && (
+                        <button type="button" className="fv-item-remove" onClick={() => removeSpell(sp.id)} aria-label={`Esquecer ${sp.name}`} title="Esquecer magia">
+                          <Icon name="close" size={14} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -302,7 +317,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {learn && (
         <SpellLibrary
           title={learn === 'all' ? 'Aprender de pergaminho/grimório' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
-          spells={(learn === 'all' ? SPELLS : spellsForClass(listClass, 9)).filter((s) => s.level <= maxCircle)}
+          spells={(learn === 'all' ? SPELLS : classLearnList).filter((s) => s.level <= maxCircle)}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}
           onClose={() => setLearn(false)}

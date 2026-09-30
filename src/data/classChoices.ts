@@ -9,6 +9,8 @@
  */
 import { TOOLS } from './tools';
 import { SKILLS } from './skills';
+import { SPELL_BY_ID } from './spells';
+import { LAND_SPELLS } from './subclassSpells';
 
 export interface ChoiceOption {
   id: string;
@@ -148,16 +150,20 @@ export const SKILL_OPTIONS: ChoiceOption[] = SKILLS.map((sk) => ({
 }));
 
 /* ---------- Druida · Círculo da Terra: terreno (3º) ---------- */
-export const DRUID_LANDS: ChoiceOption[] = [
-  { id: 'arctic', label: 'Ártico', desc: 'Magias de círculo: imobilizar pessoa, crescer espinhos · nevasca, lentidão · liberdade de movimento, tempestade de gelo · comunhão com a natureza, cone de frio.' },
-  { id: 'coast', label: 'Costa', desc: 'Magias de círculo: reflexos, passo nebuloso · andar na água, respirar na água · controlar a água, liberdade de movimento · conjurar elemental, vidência.' },
-  { id: 'desert', label: 'Deserto', desc: 'Magias de círculo: nublar, silêncio · criar alimentos e água, proteção contra energia · praga, terreno alucinatório · praga de insetos, muralha de pedra.' },
-  { id: 'forest', label: 'Floresta', desc: 'Magias de círculo: pele de árvore, patas de aranha · convocar relâmpagos, crescimento de plantas · adivinhação, liberdade de movimento · comunhão com a natureza, caminhar em árvores.' },
-  { id: 'grassland', label: 'Pradaria', desc: 'Magias de círculo: invisibilidade, passos sem pegadas · luz do dia, velocidade · adivinhação, liberdade de movimento · sonho, praga de insetos.' },
-  { id: 'mountain', label: 'Montanha', desc: 'Magias de círculo: patas de aranha, crescer espinhos · relâmpago, moldar rochas · pele de pedra, moldar rochas · passar pelas paredes, muralha de pedra.' },
-  { id: 'swamp', label: 'Pântano', desc: 'Magias de círculo: escuridão, flecha ácida de Melf · andar na água, névoa fétida · liberdade de movimento, localizar criatura · praga de insetos, vidência.' },
-  { id: 'underdark', label: 'Subterrâneo', desc: 'Magias de círculo: patas de aranha, teia · forma gasosa, névoa fétida · invisibilidade maior, moldar rochas · névoa mortal, praga de insetos.' },
+const LAND_LABELS: [string, string][] = [
+  ['arctic', 'Ártico'], ['coast', 'Costa'], ['desert', 'Deserto'], ['forest', 'Floresta'],
+  ['grassland', 'Pradaria'], ['mountain', 'Montanha'], ['swamp', 'Pântano'], ['underdark', 'Subterrâneo'],
 ];
+export const DRUID_LANDS: ChoiceOption[] = LAND_LABELS.map(([id, label]) => ({
+  id,
+  label,
+  desc:
+    'Magias de círculo: ' +
+    Object.entries(LAND_SPELLS[id])
+      .map(([lv, ids]) => `${lv}º nível — ${ids.map((sid) => SPELL_BY_ID[sid]?.name.toLowerCase() ?? sid).join(', ')}`)
+      .join(' · ') +
+    '.',
+}));
 
 /* ---------- Monge · Quatro Elementos: disciplinas (3º, 6º, 11º, 17º) ---------- */
 export const ELEMENTAL_DISCIPLINES: ChoiceOption[] = [

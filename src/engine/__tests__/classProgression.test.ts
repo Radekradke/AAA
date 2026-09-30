@@ -151,3 +151,33 @@ describe('subclasses completas do PHB (Clérigo e Mago)', () => {
     expect(d.resistances.some((r) => r.value === 'necrótico')).toBe(true);
   });
 });
+
+describe('magias de subclasse (Domínio, Juramento, Terra, Patrono)', () => {
+  it('todas as magias das tabelas existem na biblioteca', async () => {
+    const { SPELL_BY_ID } = await import('@/data/spells');
+    const tables = await import('@/data/subclassSpells');
+    const all = [tables.DOMAIN_SPELLS, tables.OATH_SPELLS, tables.LAND_SPELLS, tables.PATRON_SPELLS]
+      .flatMap((t) => Object.values(t))
+      .flatMap((byLv) => Object.values(byLv).flat());
+    expect(all.filter((id) => !SPELL_BY_ID[id])).toEqual([]);
+  });
+
+  it('Clérigo da Vida 5º: 6 magias de domínio sempre preparadas', async () => {
+    const { grantedSpells } = await import('../spellcasting');
+    expect(grantedSpells(at('cleric', 5, { subclassId: 'life' })).length).toBe(6);
+    expect(grantedSpells(at('cleric', 1, { subclassId: 'light' })).map((g) => g.id)).toContain('sp-luz');
+  });
+
+  it('Paladino da Devoção: juramento a partir do 3º; Druida da Terra depende do terreno', async () => {
+    const { grantedSpells } = await import('../spellcasting');
+    expect(grantedSpells(at('paladin', 2, { subclassId: 'devotion' }))).toEqual([]);
+    expect(grantedSpells(at('paladin', 9, { subclassId: 'devotion' })).length).toBe(6);
+    expect(grantedSpells(at('druid', 5, { subclassId: 'land' }))).toEqual([]);
+    expect(grantedSpells(at('druid', 5, { subclassId: 'land', choices: { 'druid.land': ['forest'] } })).length).toBe(4);
+  });
+
+  it('Bruxo do Corruptor pode aprender Bola de Fogo', async () => {
+    const { expandedSpellIds } = await import('../spellcasting');
+    expect(expandedSpellIds(at('warlock', 5, { subclassId: 'fiend' }))).toContain('sp-bolafogo');
+  });
+});

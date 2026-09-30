@@ -5,7 +5,7 @@ import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { characterResources } from '@/engine/classResources';
-import { syncSpellSlots } from '@/engine/spellcasting';
+import { grantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
@@ -47,7 +47,10 @@ export function TabMesa({ char, derived }: TabProps) {
   const dying = char.hpCurrent <= 0;
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
-  const prepared = char.preparedSpells.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level);
+  const prepared = [...new Set([...char.preparedSpells, ...grantedSpells(char).map((g) => g.id)])]
+    .map((id) => SPELL_BY_ID[id])
+    .filter(Boolean)
+    .sort((a, b) => a.level - b.level);
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 

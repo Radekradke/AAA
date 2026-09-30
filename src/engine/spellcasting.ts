@@ -1,4 +1,6 @@
 import type { Character } from '@/types/character';
+import { getSubclass } from '@/data/subclasses';
+import { DOMAIN_SPELLS, LAND_SPELLS, OATH_SPELLS, PATRON_SPELLS } from '@/data/subclassSpells';
 import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
 import { getClass } from '@/data/classes';
@@ -171,8 +173,8 @@ export function casterOf(char: Character, castMod = 0): CasterInfo | null {
       ability: cls.spellAbility ?? cls.prim,
       kind: casterKind(char.classId),
       level,
-      // truque extra da subclasse: Círculo da Terra (2º) e Domínio da Luz (luz, 1º)
-      cantrips: cantripsKnown(char.classId, level) + ((char.subclassId === 'land' && level >= 2) || char.subclassId === 'light' ? 1 : 0),
+      // truque extra do Círculo da Terra (2º); o luz do Domínio da Luz vem em grantedSpells
+      cantrips: cantripsKnown(char.classId, level) + (char.subclassId === 'land' && level >= 2 ? 1 : 0),
       guide: spellsKnownOrPrepared(char.classId, level, castMod),
       slots,
     };
@@ -210,4 +212,37 @@ export function syncSpellSlots(char: Character, refill = false): Character['comb
     next[Number(circle)] = { used: Math.min(used, max), max };
   }
   return next;
+}
+
+export interface GrantedSpell {
+  id: string;
+  /** Quem concede (ex.: "Domínio da Vida"). */
+  source: string;
+}
+
+/**
+ * Magias sempre preparadas pela subclasse (não contam no limite):
+ * Domínio do Clérigo, Juramento do Paladino, Círculo da Terra do Druida e o
+ * truque luz do Domínio da Luz.
+ */
+export function grantedSpells(char: Character): GrantedSpell[] {
+  const sub = getSubclass(char.subclassId ?? undefined);
+  if (!sub) return [];
+  const lv = char.classLevels?.find((c) => c.classId === sub.classId)?.level ?? (char.classId === sub.classId ? char.level : 0);
+  let table: Record<number, string[]> | undefined;
+  if (sub.classId === 'cleric') table = DOMAIN_SPELLS[sub.id];
+  else if (sub.classId === 'paladin') table = OATH_SPELLS[sub.id];
+  else if (sub.id === 'land') table = LAND_SPELLS[char.choices?.['druid.land']?.[0] ?? ''];
+  const out: GrantedSpell[] = [];
+  if (sub.id === 'light') out.push({ id: 'sp-luz', source: sub.label });
+  for (const [need, ids] of Object.entries(table ?? {})) {
+    if (lv >= Number(need)) for (const id of ids) if (!out.some((g) => g.id === id)) out.push({ id, source: sub.label });
+  }
+  return out;
+}
+
+/** Magias extras que o bruxo pode aprender pela lista expandida do patrono. */
+export function expandedSpellIds(char: Character): string[] {
+  const table = char.subclassId ? PATRON_SPELLS[char.subclassId] : undefined;
+  return table ? Object.values(table).flat() : [];
 }
