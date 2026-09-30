@@ -39,7 +39,8 @@ describe('SQL do palco (cenas, mapa, handouts, imagens)', () => {
     await db.exec(mp);
     await db.exec(palco);
     await db.exec(palco); // idempotente
-    await db.exec(palcoStorage); // script avulso do Storage também roda por cima
+    await db.exec(`drop function public.fv_media_readable(text) cascade; drop function public.fv_media_master(text) cascade;`);
+    await db.exec(palcoStorage); // script avulso não depende das funções
     await db.exec(`grant all on all tables in schema public to authenticated; grant all on storage.objects to authenticated; grant execute on function auth.uid() to authenticated;`);
 
     const U = { gm: '11111111-1111-1111-1111-111111111111', p1: '22222222-2222-2222-2222-222222222222', p2: '33333333-3333-3333-3333-333333333333', x: '44444444-4444-4444-4444-444444444444' };
