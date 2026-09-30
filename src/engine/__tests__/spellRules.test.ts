@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { forgetBlock, learnBlock, spellLearnState } from '../spellRules';
-import { damageRoll, healRoll, parseDice } from '../spellCast';
+import { damageRoll, damageTypeLabel, damageTypeOptions, healRoll, parseDice, spellAttackPlan, spellHitDamage } from '../spellCast';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { Character } from '@/types/character';
 
@@ -84,5 +84,44 @@ describe('mísseis mágicos', () => {
   it('3 dardos no 1º, 5 no 3º', () => {
     expect(damageRoll(sp('sp-misseis'), 1, 1)).toMatchObject({ count: 3, sides: 4, bonus: 3 });
     expect(damageRoll(sp('sp-misseis'), 3, 5)).toMatchObject({ count: 5, sides: 4, bonus: 5 });
+  });
+});
+
+describe('tipo de dano à escolha', () => {
+  it('Orbe Cromático escolhe entre 6 tipos; Bola de Fogo é fixa', () => {
+    expect(damageTypeOptions(sp('phb-chromatic-orb'))).toEqual(['ácido', 'frio', 'fogo', 'elétrico', 'veneno', 'trovejante']);
+    expect(damageTypeOptions(sp('sp-bolafogo'))).toBeNull();
+    expect(damageRoll(sp('phb-chromatic-orb'), 1, 1, 'fogo')!.label).toBe('Orbe Cromático · fogo');
+    expect(damageRoll(sp('phb-chromatic-orb'), 3, 5, 'frio')).toMatchObject({ count: 5, sides: 8 });
+  });
+  it('Onda Destrutiva só troca a metade radiante', () => {
+    expect(damageTypeLabel(sp('phb-destructive-wave'), 'necrótico')).toBe('trovejante + necrótico');
+    expect(damageTypeLabel(sp('phb-spirit-guardians'), 'necrótico')).toBe('necrótico');
+    expect(damageTypeLabel(sp('phb-spirit-guardians'), 'fogo')).toBe('radiante/necrótico'); // fora da lista: ignora
+  });
+});
+
+describe('ataque de magia: dano só no acerto', () => {
+  it('Orbe: acerto rola 3d8, crítico 6d8, erro nada', () => {
+    const plan = spellAttackPlan(sp('phb-chromatic-orb'), 1, 1, 'fogo')!;
+    expect(plan.beams).toBe(1);
+    expect(spellHitDamage(plan, ['hit'])).toMatchObject({ count: 3, sides: 8, label: 'Orbe Cromático · fogo' });
+    expect(spellHitDamage(plan, ['crit'])).toMatchObject({ count: 6, sides: 8 });
+    expect(spellHitDamage(plan, ['miss'])).toBeNull();
+  });
+  it('Raio Ardente: 3 raios no 2º, 4 no 3º; dano só dos que acertaram', () => {
+    expect(spellAttackPlan(sp('sp-calorabrasante'), 2, 3)!.beams).toBe(3);
+    const plan = spellAttackPlan(sp('sp-calorabrasante'), 3, 5)!;
+    expect(plan.beams).toBe(4);
+    expect(spellHitDamage(plan, ['hit', 'miss', 'crit', 'miss'])).toMatchObject({ count: 6, sides: 6 });
+  });
+  it('Rajada Mística: feixes por nível, 1d10 cada (não soma dados)', () => {
+    expect(spellAttackPlan(sp('sp-eldritch'), 0, 4)).toMatchObject({ beams: 1, perHit: { count: 1, sides: 10 } });
+    expect(spellAttackPlan(sp('sp-eldritch'), 0, 11)!.beams).toBe(3);
+  });
+  it('Flecha Ácida de Melf: errar ainda causa metade', () => {
+    const plan = spellAttackPlan(sp('sp-flechacidamelf'), 2, 3)!;
+    expect(plan.missHalf).toBe(true);
+    expect(spellHitDamage(plan, ['miss'])).toMatchObject({ count: 4, half: true });
   });
 });
