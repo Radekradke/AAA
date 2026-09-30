@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { forgetBlock, learnBlock, spellLearnState } from '../spellRules';
-import { damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, parseDice, spellAttackPlan, spellHitDamage } from '../spellCast';
+import { damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, parseDice, poolAffected, spellAttackPlan, spellHitDamage } from '../spellCast';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { Character } from '@/types/character';
 
@@ -134,5 +134,19 @@ describe('Explosão Agonizante', () => {
     expect(spellHitDamage(plan, ['hit', 'miss', 'crit'])).toMatchObject({ count: 3, sides: 10, bonus: 8 });
     // outras magias não ganham o bônus
     expect(spellAttackPlan(sp('sp-firebolt'), 0, 5, null, { agonizing: 4 })!.perHit.bonus).toBe(0);
+  });
+});
+
+describe('Sono e Leque Cromático (orçamento de PV)', () => {
+  it('Sono: 5d8 no 1º, 9d8 no 3º; Leque 6d10 +2d10', () => {
+    expect(hpPool(sp('sp-sono'), 1)).toMatchObject({ count: 5, sides: 8 });
+    expect(hpPool(sp('sp-sono'), 3)).toMatchObject({ count: 9, sides: 8 });
+    expect(hpPool(sp('phb-color-spray'), 2)).toMatchObject({ count: 8, sides: 10 });
+    expect(hpPool(sp('sp-bolafogo'), 3)).toBeNull();
+  });
+  it('afeta do menor PV ao maior enquanto o total cobrir', () => {
+    // 22 PV: goblins de 7 e 7 dormem (sobram 8); o de 12 não
+    expect(poolAffected(22, [12, 7, 7, 30])).toEqual({ affected: [7, 7], spared: [12, 30], left: 8 });
+    expect(poolAffected(5, [7])).toEqual({ affected: [], spared: [7], left: 5 });
   });
 });

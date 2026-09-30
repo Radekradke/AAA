@@ -67,6 +67,8 @@ export interface CastNotice {
   /** Escolhas rápidas (Em mim / Em outro, Curar em mim). */
   actions?: { label: string; run: () => void; primary?: boolean }[];
   warn?: string;
+  /** Sono / Leque Cromático: total de PV rolado + calculadora de quem é afetado. */
+  pool?: { total: number; effect: string; immune: string };
 }
 
 let _noticeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -162,7 +164,7 @@ export const useUiStore = create<UiState>()(
         // com escolha pendente, fica mais tempo na tela
         _noticeTimer = setTimeout(() => {
           if (get().castNotice?.id === id) set({ castNotice: null });
-        }, n.actions?.length ? 14000 : 5200);
+        }, n.pool ? 45000 : n.actions?.length ? 14000 : 5200);
       },
       clearCastNotice() {
         if (_noticeTimer) clearTimeout(_noticeTimer);

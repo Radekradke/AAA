@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { poolAffected } from '@/engine/spellCast';
 import { useUiStore } from '@/store/uiStore';
 
 /**
@@ -32,6 +34,7 @@ export function CastNotice() {
             {n.lines.map((l) => (
               <span key={l} className="fv-castnote-line">{l}</span>
             ))}
+            {n.pool && <PoolCalc pool={n.pool} />}
             {n.warn && <span className="fv-castnote-warn">⚠ {n.warn}</span>}
             {!!n.actions?.length && (
               <span className="fv-castnote-actions">
@@ -55,5 +58,30 @@ export function CastNotice() {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** Sono / Leque Cromático: digite os PV atuais das criaturas na área e veja quem é afetado. */
+function PoolCalc({ pool }: { pool: { total: number; effect: string; immune: string } }) {
+  const [text, setText] = useState('');
+  const hps = text.split(/[^0-9]+/).filter(Boolean).map(Number);
+  const res = poolAffected(pool.total, hps);
+  return (
+    <span className="fv-castnote-pool">
+      <span className="fv-castnote-pool-total">
+        <b>{pool.total}</b> PV no total. Da criatura com menos PV atuais para a com mais: se o que sobra cobre os PV dela, ela é afetada e os PV dela saem do total.
+      </span>
+      <label>
+        PV atuais das criaturas na área
+        <input className="fv-input" inputMode="numeric" placeholder="ex.: 7 7 12 30" value={text} onChange={(e) => setText(e.target.value)} />
+      </label>
+      {hps.length > 0 && (
+        <span className="fv-castnote-pool-res">
+          {res.affected.length ? <>Afetadas: <b>{res.affected.join(', ')}</b></> : 'Nenhuma criatura afetada'}
+          {res.spared.length > 0 && <> · resistem: {res.spared.join(', ')}</>} · sobram {res.left}
+        </span>
+      )}
+      <small>Afetadas {pool.effect}. {pool.immune}</small>
+    </span>
   );
 }

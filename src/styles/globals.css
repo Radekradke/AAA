@@ -3940,3 +3940,12 @@ body.fv-dragging .fv-screen-scroll {
 .fv-spell-effect b { color: var(--acc); font-weight: 700; }
 .fv-spell-effect small { color: var(--muted); font-size: 10.5px; }
 .fv-spell-effect button { cursor: pointer; border: 0; background: none; color: var(--muted); font-size: 14px; line-height: 1; padding: 0 4px; }
+/* Sono / Leque Cromático: calculadora de quem é afetado */
+.fv-castnote-pool { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--sunk); border: 1px solid var(--line); }
+.fv-castnote-pool-total { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.fv-castnote-pool-total b { font-family: 'Chakra Petch', monospace; font-size: 18px; color: var(--acc); margin-right: 2px; }
+.fv-castnote-pool label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.fv-castnote-pool .fv-input { padding: 7px 10px; font-size: 13.5px; }
+.fv-castnote-pool-res { font-size: 12.5px; color: var(--ink); }
+.fv-castnote-pool-res b { color: var(--gold); }
+.fv-castnote-pool small { font-size: 11px; color: var(--muted); }

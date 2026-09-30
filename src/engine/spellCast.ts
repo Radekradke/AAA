@@ -181,3 +181,49 @@ export function healRoll(sp: Spell, slotLevel: number, castMod: number): CastRol
 export function canRitual(classId: string, sp: Spell): boolean {
   return !!sp.ritual && ['wizard', 'cleric', 'druid', 'bard'].includes(classId);
 }
+
+/**
+ * Magias que rolam um "orçamento" de PV em vez de dano (PHB 2014):
+ * Sono (5d8, +2d8 por círculo) e Leque Cromático (6d10, +2d10). As criaturas
+ * da área são afetadas da que tem MENOS PV atuais para a que tem mais,
+ * enquanto o total cobrir os PV dela (e o que ela gastou sai do total).
+ */
+const HP_POOLS: Record<string, { dice: string; per: string; effect: string; immune: string }> = {
+  'sp-sono': {
+    dice: '5d8', per: '2d8',
+    effect: 'caem inconscientes por 1 minuto (acordam se sofrerem dano ou alguém usar uma ação para acordá-las)',
+    immune: 'Mortos-vivos e criaturas imunes a enfeitiçar não são afetados — pule-os.',
+  },
+  'phb-color-spray': {
+    dice: '6d10', per: '2d10',
+    effect: 'ficam cegas até o fim do seu próximo turno',
+    immune: 'Criaturas inconscientes ou que não enxergam não são afetadas — pule-as.',
+  },
+};
+
+export interface HpPool extends CastRoll {
+  effect: string;
+  immune: string;
+}
+
+export function hpPool(sp: Spell, slotLevel: number): HpPool | null {
+  const def = HP_POOLS[sp.id];
+  const base = def ? parseDice(def.dice) : null;
+  const per = def ? parseDice(def.per) : null;
+  if (!def || !base || !per) return null;
+  const count = base.count + per.count * Math.max(0, slotLevel - sp.level);
+  return { count, sides: base.sides, bonus: 0, label: `${sp.name} · PV afetados`, effect: def.effect, immune: def.immune };
+}
+
+/** Quem é afetado: do menor PV ao maior, enquanto o total cobrir. */
+export function poolAffected(total: number, hps: number[]): { affected: number[]; spared: number[]; left: number } {
+  const sorted = hps.filter((h) => Number.isFinite(h) && h > 0).sort((a, b) => a - b);
+  const affected: number[] = [];
+  let left = total;
+  let i = 0;
+  for (; i < sorted.length && sorted[i] <= left; i++) {
+    affected.push(sorted[i]);
+    left -= sorted[i];
+  }
+  return { affected, spared: sorted.slice(i), left };
+}

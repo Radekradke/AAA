@@ -7,7 +7,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { roll as rollEngine } from '@/engine/dice';
 import { syncSpellSlots } from '@/engine/spellcasting';
-import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
+import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
 import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
 import { castTurnKey, rollTempHp, spellOutcome } from '@/engine/spellEffects';
 import { SPELL_BY_ID } from '@/data/spells';
@@ -86,7 +86,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
    * Toda conjuração deixa rastro: marca a ação no turno, registra "usado",
    * aplica PV temporários/efeitos e mostra o aviso (até truque sem rolagem).
    */
-  const announce = (slotLevel: number, how: 'slot' | 'ritual' | 'free', healed: number | null) => {
+  const announce = (slotLevel: number, how: 'slot' | 'ritual' | 'free', healed: number | null, pool?: { total: number; effect: string; immune: string }) => {
     const turnKey = castTurnKey(spell.castingTime);
     const before = char.combat.castThisTurn ?? [];
     let warn: string | undefined;
@@ -148,6 +148,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
       lines,
       actions: actions.length ? actions : undefined,
       warn,
+      pool,
     });
   };
 
@@ -189,6 +190,13 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     }
     const dmg = damageRoll(spell, lvl, char.level, dmgType);
     const heal = healRoll(spell, lvl, castMod);
+    // Sono / Leque Cromático: rola o total de PV afetados (não é dano)
+    const pool = hpPool(spell, isCantrip ? 0 : slotLevel);
+    if (pool) {
+      const r = roll(pool, '', false);
+      announce(slotLevel, how, null, r ? { total: r.total, effect: pool.effect, immune: pool.immune } : undefined);
+      return;
+    }
     let healed: number | null = null;
     if (dmg) roll(dmg, save);
     else if (heal) healed = roll(heal, '', false)?.total ?? null;
