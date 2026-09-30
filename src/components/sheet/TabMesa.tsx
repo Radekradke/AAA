@@ -92,7 +92,7 @@ export function TabMesa({ char, derived }: TabProps) {
             </div>
           </LoreTooltip>
           <div className="fv-hp-meter">
-            <div style={{ height: 18, borderRadius: 4, background: 'rgba(0,0,0,.44)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
+            <div style={{ height: 18, borderRadius: 4, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s' }} />
               <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)' }} />
             </div>
@@ -159,7 +159,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid ' + hexA(color, 0.3),
                     borderBottom: '2px solid ' + hexA(color, 0.65),
-                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, rgba(0,0,0,.26))`,
+                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, var(--sunk))`,
                     textAlign: 'center',
                     transition: '.2s',
                   }}
@@ -196,7 +196,7 @@ export function TabMesa({ char, derived }: TabProps) {
                   padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.5)),
-                  background: used ? 'rgba(0,0,0,.32)' : 'var(--lift)',
+                  background: used ? 'var(--sunk-deep)' : 'var(--lift)',
                   color: used ? 'var(--muted)' : 'var(--ink)',
                   fontFamily: 'var(--font-display)',
                   fontWeight: 700,
@@ -269,7 +269,7 @@ export function TabMesa({ char, derived }: TabProps) {
                   padding: '8px 4px',
                   borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (a.saveProf ? hexA(t.gold, 0.5) : t.line),
-                  background: a.saveProf ? hexA(t.gold, 0.08) : 'rgba(0,0,0,.24)',
+                  background: a.saveProf ? hexA(t.gold, 0.08) : 'var(--sunk)',
                   textAlign: 'center',
                   transition: '.2s',
                 }}
@@ -442,7 +442,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     <button
                       onClick={() => store.toggleCondition(char.id, c)}
                       aria-label={`Remover ${c}`}
-                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'rgba(0,0,0,.3)', color: t.danger, fontSize: 13 }}
+                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'var(--sunk)', color: t.danger, fontSize: 13 }}
                     >
                       ✕
                     </button>
@@ -537,7 +537,7 @@ const restBtn: CSSProperties = {
   padding: '8px 10px',
   borderRadius: 'var(--radius-md)',
   border: '1px solid',
-  background: 'rgba(0,0,0,.24)',
+  background: 'var(--sunk)',
   fontFamily: 'var(--font-display)',
   fontWeight: 700,
   fontSize: 12.5,
@@ -554,7 +554,7 @@ function atkBtn(color: string): CSSProperties {
     padding: '7px 11px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid ' + hexA(color, 0.4),
-    background: 'rgba(0,0,0,.26)',
+    background: 'var(--sunk)',
     lineHeight: 1.05,
   };
 }

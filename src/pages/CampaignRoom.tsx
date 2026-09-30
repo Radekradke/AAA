@@ -130,7 +130,7 @@ export function CampaignRoom() {
                   <button
                     key={c.id}
                     onClick={() => (linked ? void unshare(c.id) : void share(c.id))}
-                    style={{ cursor: 'pointer', fontSize: 12.5, fontWeight: 600, minHeight: 38, padding: '8px 14px', borderRadius: 999, border: '1px solid ' + (linked ? t.gold : t.line), background: linked ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.24)', color: linked ? t.gold : 'var(--ink)' }}
+                    style={{ cursor: 'pointer', fontSize: 12.5, fontWeight: 600, minHeight: 38, padding: '8px 14px', borderRadius: 999, border: '1px solid ' + (linked ? t.gold : t.line), background: linked ? hexA(t.gold, 0.12) : 'var(--sunk)', color: linked ? t.gold : 'var(--ink)' }}
                   >
                     {linked ? '✓ ' : '+ '}{c.name}
                   </button>
@@ -158,7 +158,7 @@ export function CampaignRoom() {
                       <button
                         key={d.key}
                         onClick={() => setPerm(d.key)}
-                        style={{ cursor: 'pointer', fontSize: 11, fontWeight: 600, minHeight: 32, padding: '5px 11px', borderRadius: 999, border: '1px solid ' + (perms[d.key] ? t.gold : t.line), background: perms[d.key] ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.24)', color: perms[d.key] ? t.gold : 'var(--muted)' }}
+                        style={{ cursor: 'pointer', fontSize: 11, fontWeight: 600, minHeight: 32, padding: '5px 11px', borderRadius: 999, border: '1px solid ' + (perms[d.key] ? t.gold : t.line), background: perms[d.key] ? hexA(t.gold, 0.12) : 'var(--sunk)', color: perms[d.key] ? t.gold : 'var(--muted)' }}
                       >
                         {perms[d.key] ? '✓ ' : ''}{d.label}
                       </button>
@@ -270,7 +270,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
         <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: hpColor }}>
           {snapshot.hpCurrent}<span style={{ fontSize: '.65em', color: 'var(--muted)' }}>/{d.maxHp}</span>
         </span>
-        <div style={{ flex: 1, height: 8, borderRadius: 3, background: 'rgba(0,0,0,.4)', border: '1px solid var(--line)', overflow: 'hidden' }}>
+        <div style={{ flex: 1, height: 8, borderRadius: 3, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: hpColor, transition: 'width .3s' }} />
         </div>
         <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>CA <b style={{ color: 'var(--ink)' }}>{d.ac}</b></span>

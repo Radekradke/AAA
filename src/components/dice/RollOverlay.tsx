@@ -122,7 +122,7 @@ export function RollOverlay() {
             <button
               onClick={clearRoll}
               aria-label="Fechar resultado"
-              style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'rgba(0,0,0,.3)', color: 'var(--muted)', fontSize: 13 }}
+              style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)', fontSize: 13 }}
             >
               ✕
             </button>

@@ -141,7 +141,7 @@ export function Login() {
               gap: 6,
               padding: 4,
               borderRadius: 999,
-              background: 'rgba(0,0,0,.28)',
+              background: 'var(--sunk)',
               border: '1px solid var(--line)',
               marginBottom: 16,
             }}

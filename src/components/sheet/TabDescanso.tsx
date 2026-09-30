@@ -24,7 +24,7 @@ export function TabDescanso({ char, derived }: TabProps) {
         <div className="fv-label" style={{ marginBottom: 13 }}>Descanso</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: 14 }}>
           <LoreTooltip info={passiveLore('Descanso Curto', '1 hora', 'Permite gastar Dados de Vida para curar e restaura recursos marcados como recarga curta.', ['Descanso', 'Cura'])} anchorStyle={{ display: 'block' }}>
-            <button onClick={() => store.shortRest(char.id)} style={{ cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', transition: '.25s' }}>
+            <button onClick={() => store.shortRest(char.id)} style={{ cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--line)', background: 'var(--sunk)', transition: '.25s' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--acc)' }}>Descanso Curto</div>
               <div style={{ marginTop: 5, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
                 1 hora · gaste Dados de Vida para curar e recupere recursos de descanso curto.
@@ -54,7 +54,7 @@ export function TabDescanso({ char, derived }: TabProps) {
               <LoreTooltip key={c.id} info={conditionLore(c.id)}>
                 <button
                   onClick={() => store.toggleCondition(char.id, c.id)}
-                  style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, minHeight: 34, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'rgba(0,0,0,.22)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
+                  style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, minHeight: 34, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'var(--sunk)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
                 >
                   {c.label}
                 </button>

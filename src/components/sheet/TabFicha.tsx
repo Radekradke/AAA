@@ -54,7 +54,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   style={{
                     cursor: 'pointer',
                     position: 'relative',
-                    background: `linear-gradient(180deg, ${hexA(color, 0.1)}, rgba(0,0,0,.26))`,
+                    background: `linear-gradient(180deg, ${hexA(color, 0.1)}, var(--sunk))`,
                     border: '1px solid ' + hexA(color, 0.28),
                     borderTop: `2px solid ${a.saveProf ? t.gold : hexA(color, 0.65)}`,
                     clipPath: 'polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px)',
@@ -182,7 +182,7 @@ export function TabFicha({ char, derived }: TabProps) {
             {(char.toolProfs ?? []).map((tool) => {
               const chk = calculateToolCheck(char, tool);
               return (
-                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.22)' }}>
+                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'var(--sunk)' }}>
                   <LoreTooltip info={passiveLore(tool.label, `${ABILITY_SHORT[chk.ability]} ${modStr(chk.total)}${tool.expertise ? ' · Expertise' : ''}`, `1d20 + ${ABILITY_SHORT[chk.ability]} (${modStr(chk.abilityMod)}) + proficiência (${modStr(chk.proficiency)})${tool.expertise ? ` + expertise (${modStr(chk.expertiseBonus)})` : ''}. Ferramenta não soma perícia — é independente de Prestidigitação.${tool.source ? ` Origem: ${tool.source}.` : ''}`, ['Ferramenta', 'Ver cálculo'])}>
                     <span style={{ cursor: 'help', flex: 1, minWidth: 120, fontSize: 13, color: 'var(--ink)' }}>
                       {tool.label}

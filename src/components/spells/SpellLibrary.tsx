@@ -95,10 +95,10 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
           const on = sel.has(sp.id);
           const expanded = open === sp.id;
           return (
-            <div key={sp.id} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'rgba(0,0,0,.24)', overflow: 'hidden' }}>
+            <div key={sp.id} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'var(--sunk)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
                 <button onClick={() => setOpen(expanded ? null : sp.id)} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'none', border: 'none', minWidth: 0 }}>
-                  <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12.5, color: sp.level === 0 ? 'var(--muted)' : 'var(--acc)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.3)' }}>
+                  <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12.5, color: sp.level === 0 ? 'var(--muted)' : 'var(--acc)', border: '1px solid var(--line)', background: 'var(--sunk)' }}>
                     {sp.level === 0 ? 'T' : sp.level}
                   </span>
                   <span style={{ minWidth: 0 }}>

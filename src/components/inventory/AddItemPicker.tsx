@@ -77,7 +77,7 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
             <LoreTooltip key={item.id} info={itemLore(item)} anchorStyle={{ display: 'block' }}>
               <button
                 onClick={() => onAdd(item)}
-                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}
+                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'var(--sunk)' }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>

@@ -93,7 +93,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
           </button>
           {open && (
             <div role="menu" className="fv-topbar-menu fv-panel">
-              {/* atmosfera: os três climas lado a lado, escolha direta */}
+              {/* atmosfera: os climas lado a lado, escolha direta */}
               <div className="fv-topbar-themes" role="group" aria-label="Atmosfera">
                 <span>Atmosfera</span>
                 <div>
@@ -109,8 +109,18 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
                         onClick={() => setTheme(id)}
                         title={th.label}
                       >
-                        <i aria-hidden style={{ background: `linear-gradient(135deg, ${th.panel} 30%, ${th.acc} 30% 62%, ${th.gold} 62%)` }} />
-                        {th.label}
+                        <i
+                          aria-hidden
+                          style={{
+                            background: `radial-gradient(circle at 70% 72%, ${th.acc} 0 16%, transparent 18%), radial-gradient(circle at 30% 30%, ${th.gold} 0 9%, transparent 11%), radial-gradient(120% 90% at 50% 0%, ${th.bg2}, ${th.bg})`,
+                            borderColor: theme === id ? th.gold : undefined,
+                            boxShadow: `0 0 12px ${th.bloom}`,
+                          }}
+                        />
+                        <span className="fv-topbar-theme-text">
+                          <b style={{ fontFamily: th.font }}>{th.label}</b>
+                          <small>{th.tagline}</small>
+                        </span>
                       </button>
                     );
                   })}

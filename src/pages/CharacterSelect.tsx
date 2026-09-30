@@ -307,7 +307,7 @@ function CardAction({ label, onClick, danger }: { label: string; onClick: () => 
         borderRadius: 999,
         border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : 'var(--line)'),
         color: danger ? 'var(--danger)' : 'var(--muted)',
-        background: 'rgba(0,0,0,.26)',
+        background: 'var(--sunk)',
         transition: '.2s',
       }}
     >

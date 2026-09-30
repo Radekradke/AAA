@@ -69,7 +69,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
         </div>
 
         {/* nível */}
-        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 13, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 13, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--gold)' }}>Nível {char.level}</div>
             <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>Proficiência {modStr(derived.proficiency)} · PV máx. {derived.maxHp}</div>
@@ -157,5 +157,5 @@ export function CharacterEditModal({ char, onClose }: Props) {
 }
 
 function stepBtn(accent: boolean): React.CSSProperties {
-  return { cursor: 'pointer', width: 32, height: 32, borderRadius: 9, border: '1px solid var(--line)', background: 'rgba(0,0,0,.3)', color: accent ? 'var(--acc)' : 'var(--muted)', fontWeight: 700, fontSize: 16 };
+  return { cursor: 'pointer', width: 32, height: 32, borderRadius: 9, border: '1px solid var(--line)', background: 'var(--sunk)', color: accent ? 'var(--acc)' : 'var(--muted)', fontWeight: 700, fontSize: 16 };
 }

@@ -45,7 +45,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
             <button
               key={ex}
               onClick={() => setText(ex)}
-              style={{ cursor: 'pointer', fontSize: 11.5, minHeight: 30, padding: '5px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'rgba(0,0,0,.22)', color: 'var(--muted)' }}
+              style={{ cursor: 'pointer', fontSize: 11.5, minHeight: 30, padding: '5px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)' }}
             >
               {ex}
             </button>
@@ -95,7 +95,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
                       padding: '6px 10px',
                       borderRadius: 'var(--radius-sm)',
                       border: '1px solid ' + hexA(color, 0.6),
-                      background: 'rgba(0,0,0,.28)',
+                      background: 'var(--sunk)',
                       color,
                       fontFamily: "'Chakra Petch', monospace",
                       fontWeight: 700,

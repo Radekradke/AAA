@@ -4,122 +4,220 @@
 
 /* ============================================================
    FICHA VIVA AAA — sistema de temas
-   Cada clima é um LUGAR, não só uma cor:
-   · Arcano Frio   — observatório de mago: ardósia, prata lunar, poeira de estrelas
-   · Brasa Heróica — forja: ferro e couro queimados, latão, grão martelado
-   · Mata Ancestral — bosque antigo: madeira escura, âmbar, veios, formas orgânicas
-   Superfícies são SÓLIDAS (nada de vidro tingido); a cor de destaque (--acc)
-   fica para o que é interativo/vivo, e o "metal" (--gold) para seleção e ornamento.
-   As variáveis trocam conforme [data-theme] no elemento raiz; os valores de
-   cor precisam bater com src/data/themes.ts (usado nos estilos inline).
+   Cada clima é um LUGAR, com material, luz e tipografia próprios:
+   · Noite Arcana   — observatório: índigo profundo, prata lunar, poeira de estrelas
+   · Forja Dourada  — forja: couro escuro, latão polido, brasas subindo
+   · Bosque Élfico  — floresta sob o luar: esmeralda, jade e folha de ouro
+   · Corte Carmesim — salão gótico: veludo vinho, carmesim e ouro rosé
+   · Véu Astral     — crepúsculo: violeta, rosa e constelações douradas
+   Superfícies são SÓLIDAS e mais claras que o fundo (hierarquia nítida);
+   --acc é o que é vivo/interativo, --gold é metal (seleção e ornamento).
+   Os valores de cor precisam bater com src/data/themes.ts.
    ============================================================ */
 
 :root,
 [data-theme='frio'] {
-  --shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.035);
   --page-x: clamp(14px, 3.6vw, 40px);
   --topbar-h: clamp(62px, 8vh, 84px);
 
   --font-display: 'Cinzel', serif;
-  --radius-sm: 4px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-  --bg: #07090d;
-  --bg2: #0f141c;
-  --panel: #121823;
-  --panel2: #0d121a;
-  --well: #090d13;
-  --steel: #1a2230;
-  --line: rgba(170, 186, 212, 0.13);
-  --line-strong: rgba(196, 210, 232, 0.26);
-  --acc: #46c8ff;
-  --acc2: #9f86ff;
-  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
-  --lift: rgba(214, 228, 255, 0.05);
-  --accSoft: rgba(214, 228, 255, 0.05);
-  --gold: #d9e3f2;
+  --bg: #060a19;
+  --bg2: #12204a;
+  --panel: #131c38;
+  --panel2: #0d1429;
+  --well: #0a1022;
+  --steel: #1b2650;
+  --line: rgba(150, 178, 255, 0.17);
+  --line-strong: rgba(176, 198, 255, 0.34);
+  --acc: #5cd6ff;
+  --acc2: #a68bff;
+  --lift: rgba(170, 200, 255, 0.07);
+  --accSoft: rgba(170, 200, 255, 0.07);
+  --gold: #d5e0ff;
   --goldB: #ffffff;
-  --ink: #e9eef6;
-  --muted: #8d98ab;
-  --danger: #ff6a3d;
-  --bloom: rgba(90, 170, 255, 0.1);
-  --particle: #9fdcff;
+  --ink: #eef2ff;
+  --muted: #97a3c8;
+  --danger: #ff6b5e;
+  --bloom: rgba(92, 160, 255, 0.18);
+  --particle: #a9e6ff;
 
-  /* material: poeira de estrelas em grade fina */
-  --panel-texture: radial-gradient(rgba(205, 225, 255, 0.055) 1px, transparent 1.3px) 0 0 / 17px 17px;
+  --shadow-panel: 0 26px 60px -22px rgba(1, 4, 20, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(200, 220, 255, 0.07);
+  --shadow-soft: 0 14px 30px -12px rgba(1, 4, 20, 0.75), inset 0 1px 0 rgba(200, 220, 255, 0.05);
+  /* material: poeira de estrelas em duas escalas */
+  --panel-texture:
+    radial-gradient(rgba(200, 222, 255, 0.07) 1px, transparent 1.4px) 0 0 / 19px 19px,
+    radial-gradient(rgba(170, 150, 255, 0.09) 1.2px, transparent 1.8px) 7px 11px / 61px 61px;
   --scene:
-    radial-gradient(90% 60% at 50% -12%, rgba(80, 140, 225, 0.16), transparent 62%),
-    radial-gradient(55% 45% at 88% 112%, rgba(150, 120, 255, 0.08), transparent 62%);
+    radial-gradient(85% 60% at 50% -14%, rgba(72, 118, 255, 0.34), transparent 64%),
+    radial-gradient(50% 45% at 92% 108%, rgba(160, 112, 255, 0.24), transparent 64%),
+    radial-gradient(40% 38% at 4% 64%, rgba(40, 200, 255, 0.1), transparent 66%);
 }
 
 [data-theme='brasa'] {
   --font-display: 'Grenze', 'Cinzel', serif;
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 
-  --bg: #0b0806;
-  --bg2: #1a110a;
-  --panel: #1c1611;
-  --panel2: #15100c;
-  --well: #0f0b08;
-  --steel: #241910;
-  --line: rgba(214, 172, 116, 0.16);
-  --line-strong: rgba(232, 190, 128, 0.32);
-  --acc: #ff7b3a;
-  --acc2: #f0b43c;
-  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
-  --lift: rgba(255, 226, 186, 0.05);
-  --accSoft: rgba(255, 226, 186, 0.05);
-  --gold: #f3c464;
-  --goldB: #ffe3a3;
-  --ink: #f7ede1;
-  --muted: #b39c83;
-  --danger: #ff4d2e;
-  --bloom: rgba(255, 120, 50, 0.12);
-  --particle: #ffa050;
+  --bg: #0d0806;
+  --bg2: #2a150b;
+  --panel: #221812;
+  --panel2: #170f0b;
+  --well: #120c09;
+  --steel: #2e1d12;
+  --line: rgba(232, 184, 112, 0.19);
+  --line-strong: rgba(244, 200, 130, 0.38);
+  --acc: #ff8a3d;
+  --acc2: #ffc45c;
+  --lift: rgba(255, 214, 160, 0.07);
+  --accSoft: rgba(255, 214, 160, 0.07);
+  --gold: #f2c466;
+  --goldB: #ffe6a6;
+  --ink: #fcf2e6;
+  --muted: #c2a78b;
+  --danger: #ff5436;
+  --bloom: rgba(255, 130, 50, 0.2);
+  --particle: #ffb060;
 
-  /* material: metal martelado / couro — grão quente */
-  --panel-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .78  0 0 0 0 .5  0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --shadow-panel: 0 26px 60px -22px rgba(10, 3, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 220, 160, 0.08);
+  --shadow-soft: 0 14px 30px -12px rgba(10, 3, 0, 0.75), inset 0 1px 0 rgba(255, 220, 160, 0.06);
+  /* material: couro curtido — grão quente + marcas de martelo */
+  --panel-texture:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .8  0 0 0 0 .55  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 190, 110, 0.05), transparent 70%);
   --scene:
-    radial-gradient(75% 48% at 50% 116%, rgba(255, 105, 35, 0.2), transparent 66%),
-    radial-gradient(80% 50% at 50% -12%, rgba(255, 185, 110, 0.06), transparent 60%);
+    radial-gradient(80% 55% at 50% 118%, rgba(255, 108, 28, 0.36), transparent 66%),
+    radial-gradient(70% 45% at 50% -14%, rgba(255, 196, 120, 0.12), transparent 62%),
+    radial-gradient(35% 32% at 94% 40%, rgba(255, 80, 30, 0.1), transparent 70%);
 }
 
 [data-theme='verdejante'] {
   --font-display: 'Alegreya SC', 'Cinzel', serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 7px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
 
-  --bg: #060a07;
-  --bg2: #101a12;
-  --panel: #131b15;
-  --panel2: #0f1611;
-  --well: #0a0f0b;
-  --steel: #10241a;
-  --line: rgba(176, 206, 160, 0.13);
-  --line-strong: rgba(196, 224, 176, 0.26);
-  --acc: #5fd38d;
-  --acc2: #d9b45a;
-  /* realce neutro: seleção/hover no material do tema, sem tingir de --acc */
-  --lift: rgba(222, 246, 208, 0.045);
-  --accSoft: rgba(222, 246, 208, 0.045);
-  --gold: #e6cf8a;
-  --goldB: #f6e9bf;
-  --ink: #edf3ea;
-  --muted: #90a694;
-  --danger: #ff6a45;
-  --bloom: rgba(130, 210, 140, 0.1);
-  --particle: #c2e27f;
+  --bg: #030f0c;
+  --bg2: #0a2e25;
+  --panel: #0f241e;
+  --panel2: #0a1a16;
+  --well: #081410;
+  --steel: #113329;
+  --line: rgba(140, 232, 194, 0.16);
+  --line-strong: rgba(160, 240, 204, 0.32);
+  --acc: #3ee0a4;
+  --acc2: #e9c46a;
+  --lift: rgba(170, 240, 210, 0.06);
+  --accSoft: rgba(170, 240, 210, 0.06);
+  --gold: #ebd592;
+  --goldB: #fbf1c8;
+  --ink: #ebf8f2;
+  --muted: #8fb5a6;
+  --danger: #ff6b52;
+  --bloom: rgba(60, 224, 164, 0.16);
+  --particle: #bdf5a0;
 
-  /* material: veios de madeira escura */
-  --panel-texture: repeating-linear-gradient(97deg, rgba(225, 255, 210, 0.02) 0 1px, transparent 1px 7px, rgba(225, 255, 210, 0.012) 7px 8px, transparent 8px 21px);
+  --shadow-panel: 0 26px 60px -22px rgba(0, 10, 6, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(200, 255, 225, 0.07);
+  --shadow-soft: 0 14px 30px -12px rgba(0, 10, 6, 0.75), inset 0 1px 0 rgba(200, 255, 225, 0.05);
+  /* material: veios de madeira clara sob o luar */
+  --panel-texture:
+    repeating-linear-gradient(97deg, rgba(200, 255, 225, 0.022) 0 1px, transparent 1px 7px, rgba(200, 255, 225, 0.014) 7px 8px, transparent 8px 23px),
+    radial-gradient(90% 55% at 20% 0%, rgba(233, 196, 106, 0.045), transparent 70%);
   --scene:
-    radial-gradient(80% 55% at 28% -12%, rgba(205, 230, 140, 0.12), transparent 60%),
-    radial-gradient(60% 45% at 82% 112%, rgba(40, 125, 72, 0.2), transparent 66%);
+    radial-gradient(75% 55% at 24% -14%, rgba(150, 245, 205, 0.22), transparent 62%),
+    radial-gradient(60% 45% at 86% 112%, rgba(16, 170, 116, 0.28), transparent 66%),
+    radial-gradient(30% 28% at 72% 18%, rgba(233, 196, 106, 0.07), transparent 70%);
+}
+
+[data-theme='carmesim'] {
+  --font-display: 'Cormorant SC', 'Cinzel', serif;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --bg: #0c0407;
+  --bg2: #2e0916;
+  --panel: #211017;
+  --panel2: #170a10;
+  --well: #12070b;
+  --steel: #301320;
+  --line: rgba(255, 156, 176, 0.16);
+  --line-strong: rgba(255, 176, 192, 0.32);
+  --acc: #ff4d6d;
+  --acc2: #e0a47a;
+  --lift: rgba(255, 190, 205, 0.06);
+  --accSoft: rgba(255, 190, 205, 0.06);
+  --gold: #ebb9a2;
+  --goldB: #ffe4d8;
+  --ink: #fceff2;
+  --muted: #bc98a1;
+  --danger: #ff8a3d;
+  --bloom: rgba(255, 60, 100, 0.18);
+  --particle: #ff8fa3;
+
+  --shadow-panel: 0 26px 60px -22px rgba(12, 0, 4, 0.92), 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 200, 215, 0.07);
+  --shadow-soft: 0 14px 30px -12px rgba(12, 0, 4, 0.78), inset 0 1px 0 rgba(255, 200, 215, 0.05);
+  /* material: veludo com treliça de damasco */
+  --panel-texture:
+    repeating-linear-gradient(45deg, rgba(255, 190, 205, 0.022) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-45deg, rgba(255, 190, 205, 0.022) 0 1px, transparent 1px 14px),
+    radial-gradient(100% 60% at 50% 0%, rgba(224, 164, 122, 0.05), transparent 70%);
+  --scene:
+    radial-gradient(80% 55% at 50% -14%, rgba(210, 30, 72, 0.3), transparent 64%),
+    radial-gradient(60% 45% at 8% 112%, rgba(120, 16, 56, 0.34), transparent 66%),
+    radial-gradient(35% 30% at 92% 34%, rgba(224, 164, 122, 0.08), transparent 70%);
+}
+
+[data-theme='astral'] {
+  --font-display: 'Marcellus SC', 'Cinzel', serif;
+  --radius-sm: 8px;
+  --radius-md: 13px;
+  --radius-lg: 20px;
+
+  --bg: #090616;
+  --bg2: #241548;
+  --panel: #1a1336;
+  --panel2: #120d28;
+  --well: #0d0920;
+  --steel: #26194f;
+  --line: rgba(196, 166, 255, 0.18);
+  --line-strong: rgba(214, 190, 255, 0.34);
+  --acc: #c590ff;
+  --acc2: #ff9ed2;
+  --lift: rgba(210, 190, 255, 0.07);
+  --accSoft: rgba(210, 190, 255, 0.07);
+  --gold: #f5d07c;
+  --goldB: #fff1c4;
+  --ink: #f4f0ff;
+  --muted: #a99dcc;
+  --danger: #ff6a5c;
+  --bloom: rgba(180, 120, 255, 0.2);
+  --particle: #ffe7a8;
+
+  --shadow-panel: 0 26px 60px -22px rgba(6, 2, 20, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(230, 210, 255, 0.08);
+  --shadow-soft: 0 14px 30px -12px rgba(6, 2, 20, 0.75), inset 0 1px 0 rgba(230, 210, 255, 0.06);
+  /* material: nebulosa suave com constelações douradas */
+  --panel-texture:
+    radial-gradient(rgba(255, 231, 168, 0.1) 1px, transparent 1.5px) 0 0 / 47px 47px,
+    radial-gradient(rgba(210, 180, 255, 0.07) 1px, transparent 1.4px) 13px 21px / 23px 23px,
+    radial-gradient(80% 60% at 100% 0%, rgba(255, 158, 210, 0.05), transparent 70%);
+  --scene:
+    radial-gradient(90% 60% at 50% -14%, rgba(150, 90, 255, 0.34), transparent 64%),
+    radial-gradient(60% 50% at 94% 108%, rgba(255, 120, 200, 0.2), transparent 66%),
+    radial-gradient(45% 40% at 2% 80%, rgba(90, 120, 255, 0.14), transparent 68%);
+  /* Marcellus só tem peso 400: sem negrito falso nos títulos */
+  font-synthesis-weight: none;
+}
+
+/* "poço": fundo afundado de campos, chips e botões, na cor do clima
+   (antes era preto puro e virava buraco escuro em qualquer tema) */
+[data-theme] {
+  --sunk: color-mix(in srgb, var(--well) 64%, transparent);
+  --sunk-deep: color-mix(in srgb, var(--well) 86%, transparent);
 }
 
 * {
@@ -134,7 +232,7 @@ body,
 }
 
 body {
-  background: #06080c;
+  background: var(--bg);
   color: var(--ink);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -345,6 +443,25 @@ svg:not([data-free]) {
 }
 
 /* fumaça arcana derivando */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: calc(var(--rune-opacity, 0.5) * 0.25);
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: var(--rune-opacity, 0.5);
+    transform: scale(1);
+  }
+}
+@keyframes starDrift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--sway, 20px), -18px);
+  }
+}
 @keyframes smokeDrift {
   0% {
     transform: translate(-50%, 0) scale(1);
@@ -466,7 +583,9 @@ button:active:not(:disabled) {
 @layer components {
   .fv-panel {
     position: relative;
-    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
+    background:
+      var(--panel-texture),
+      linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 3.5%) 0%, var(--panel) 34%, var(--panel2) 100%);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-panel);
@@ -482,7 +601,7 @@ button:active:not(:disabled) {
     top: -1px;
     height: 1px;
     pointer-events: none;
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold), transparent 45%), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold), transparent 30%), transparent);
   }
   .fv-panel-soft {
     background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
@@ -492,7 +611,9 @@ button:active:not(:disabled) {
   }
   .fv-surface {
     position: relative;
-    background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
+    background:
+      var(--panel-texture),
+      linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 3.5%) 0%, var(--panel) 34%, var(--panel2) 100%);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
@@ -506,7 +627,7 @@ button:active:not(:disabled) {
   }
   .fv-input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.28);
+    background: var(--sunk);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     padding: 13px 15px;
@@ -517,7 +638,7 @@ button:active:not(:disabled) {
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   }
   .fv-input:hover {
-    background: rgba(0, 0, 0, 0.34);
+    background: var(--sunk-deep);
   }
   .fv-input:focus {
     border-color: var(--gold);
@@ -563,7 +684,7 @@ button:active:not(:disabled) {
     color: var(--muted);
     border-radius: var(--radius-md);
     border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.26);
+    background: var(--sunk);
     transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
   .fv-btn-ghost:hover {
@@ -596,7 +717,7 @@ button:active:not(:disabled) {
     padding: clamp(18px, 3vw, 28px) 14px;
     border: 1px dashed color-mix(in srgb, var(--gold), transparent 72%);
     border-radius: var(--radius-lg);
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--sunk);
   }
   .fv-empty-title {
     font-family: var(--font-display);
@@ -618,7 +739,7 @@ button:active:not(:disabled) {
     max-width: 100%;
     border-radius: 999px;
     border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.24);
+    background: var(--sunk);
     color: var(--muted);
     font-size: 12px;
     font-weight: 700;
@@ -739,7 +860,7 @@ button:active:not(:disabled) {
     gap: 12px;
     padding: 14px 16px 12px;
     border-bottom: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--sunk);
   }
   .fv-modal-close {
     cursor: pointer;
@@ -750,7 +871,7 @@ button:active:not(:disabled) {
     place-items: center;
     border-radius: var(--radius-md);
     border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.26);
+    background: var(--sunk);
     color: var(--muted);
     font-size: 15px;
     transition: 0.2s;
@@ -774,7 +895,7 @@ button:active:not(:disabled) {
     gap: 10px;
     padding: 12px 16px;
     border-top: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--sunk);
   }
 
   /* ----- faixa de atributos da Ficha: 6 placas na mesma linha no desktop ----- */
@@ -1051,16 +1172,32 @@ button:active:not(:disabled) {
 }
 .fv-topbar-theme i {
   flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+.fv-topbar-theme-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+.fv-topbar-theme-text b {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.fv-topbar-theme-text small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
 }
 .fv-topbar-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 220px;
+  min-width: 250px;
   padding: 6px;
   border-radius: 14px;
   display: flex;
@@ -1385,7 +1522,7 @@ button:active:not(:disabled) {
   padding: 9px 6px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.26);
+  background: var(--sunk);
   cursor: help;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -1458,7 +1595,7 @@ button:active:not(:disabled) {
   place-items: center;
   border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
   color: var(--acc);
   font-size: 13px;
   font-weight: 700;
@@ -1481,7 +1618,7 @@ button:active:not(:disabled) {
   height: 6px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--sunk-deep);
   border: 1px solid var(--line);
 }
 .fv-sh-level-bar > span {
@@ -1601,7 +1738,7 @@ button:active:not(:disabled) {
   inset: 0;
   z-index: 44;
   align-items: flex-end;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--sunk-deep);
   padding: 0 10px calc(78px + env(safe-area-inset-bottom));
 }
 .fv-nav-more {
@@ -1622,7 +1759,7 @@ button:active:not(:disabled) {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--sunk);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
@@ -1712,7 +1849,7 @@ button:active:not(:disabled) {
   animation: holoGlow 3.2s ease-in-out infinite;
 }
 .fv-holo:not(.is-active) .fv-holo-card {
-  filter: saturate(0.55) brightness(0.8);
+  filter: saturate(0.9) brightness(0.92);
 }
 @keyframes holoGlow {
   0%, 100% { filter: drop-shadow(0 0 6px var(--holo-glow)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)); }
@@ -1862,7 +1999,7 @@ button:active:not(:disabled) {
   padding: 8px 9px;
   border-radius: 10px;
   border: 1px dashed var(--line);
-  background: rgba(0, 0, 0, 0.22);
+  background: var(--sunk);
 }
 .fv-compare-head {
   font-size: 9.5px;
@@ -1883,7 +2020,7 @@ button:active:not(:disabled) {
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--sunk);
   white-space: nowrap;
 }
 .fv-compare-chip b {
@@ -1935,7 +2072,7 @@ body.fv-dragging .fv-screen-scroll {
   min-height: 72px;
   border-radius: 12px;
   border: 1px dashed var(--drop-color);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
   color: var(--ink);
   font-family: var(--font-display);
   font-weight: 700;
@@ -2216,7 +2353,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 4px 12px 4px 4px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
   color: var(--ink);
   font: 700 13px var(--font-display);
   cursor: pointer;
@@ -2535,7 +2672,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.24);
+  background: var(--sunk);
   color: var(--muted);
   font-size: 12.5px;
   font-weight: 600;
@@ -2571,7 +2708,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 3px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
 }
 .fv-seg button {
   min-height: 36px;
@@ -2673,7 +2810,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 7px 8px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--sunk-deep);
   color: var(--ink);
   font: 700 14px 'Chakra Petch', monospace;
 }
@@ -2686,7 +2823,7 @@ body.fv-dragging .fv-screen-scroll {
   height: 34px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
   color: var(--ink);
   font-size: 16px;
   font-weight: 700;
@@ -2731,7 +2868,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.24);
+  background: var(--sunk);
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -2808,7 +2945,7 @@ body.fv-dragging .fv-screen-scroll {
   align-content: center;
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--sunk);
 }
 .fv-kit-ac b {
   font: 800 24px / 1 'Chakra Petch', monospace;
@@ -2829,7 +2966,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.24);
+  background: var(--sunk);
 }
 .fv-kit-list dt {
   display: flex;
@@ -2902,7 +3039,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.22);
+  background: var(--sunk);
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -3124,7 +3261,7 @@ body.fv-dragging .fv-screen-scroll {
   text-align: center;
   border-radius: 9px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--sunk);
 }
 .fv-hero-vitals b {
   font: 700 16px 'Chakra Petch', monospace;

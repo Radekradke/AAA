@@ -110,7 +110,7 @@ function StepBtn({ children, label, onClick, disabled, accent }: { children: Rea
         minHeight: 26,
         borderRadius: 10,
         border: '1px solid ' + (accent && !disabled ? 'var(--gold)' : 'var(--line)'),
-        background: accent && !disabled ? 'rgba(255,224,138,.12)' : 'rgba(0,0,0,.28)',
+        background: accent && !disabled ? 'rgba(255,224,138,.12)' : 'var(--sunk)',
         color: disabled ? 'rgba(139,153,176,.4)' : accent ? 'var(--gold)' : 'var(--muted)',
         fontFamily: "'Chakra Petch', monospace",
         fontWeight: 800,

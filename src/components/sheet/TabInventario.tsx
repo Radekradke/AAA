@@ -175,7 +175,7 @@ export function TabInventario({ char, derived }: TabProps) {
           <span style={{ fontWeight: 700, fontSize: 22, color: loadColor }}>{carried.toFixed(1).replace('.', ',')}</span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
         </div>
-        <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'rgba(0,0,0,.4)', border: '1px solid var(--line)', overflow: 'hidden' }}>
+        <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
           <div style={{ width: `${loadPct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(loadColor, 0.55)}, ${loadColor})`, boxShadow: `0 0 12px ${hexA(loadColor, 0.6)}`, transition: 'width .4s, background .3s' }} />
         </div>
         {over && (
@@ -223,7 +223,7 @@ export function TabInventario({ char, derived }: TabProps) {
             <LoreTooltip key={it.uid} info={itemLore(it)} anchorStyle={{ display: 'block' }}>
               <button
                 onClick={() => store.toggleAttune(char.id, it.uid)}
-                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.26)', color: 'var(--ink)' }}
+                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
               >
                 <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
                 <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
@@ -252,7 +252,7 @@ export function TabInventario({ char, derived }: TabProps) {
               <button
                 onClick={() => setForge('other')}
                 title="Criar item livre na categoria Outros"
-                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--line)', color: 'var(--muted)', background: 'rgba(0,0,0,.2)' }}
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--line)', color: 'var(--muted)', background: 'var(--sunk)' }}
               >
                 <Icon name="quill" size={13} />
                 + Outros
@@ -636,7 +636,7 @@ function ItemBtn({ children, onClick, active, danger }: { children: React.ReactN
         borderRadius: 999,
         border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : active ? 'var(--gold)' : 'var(--line)'),
         color: danger ? 'var(--danger)' : active ? 'var(--gold)' : 'var(--muted)',
-        background: active ? 'rgba(255,224,138,.12)' : 'rgba(0,0,0,.26)',
+        background: active ? 'rgba(255,224,138,.12)' : 'var(--sunk)',
         transition: '.2s',
       }}
     >

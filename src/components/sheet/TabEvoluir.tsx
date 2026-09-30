@@ -178,7 +178,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
     padding: '8px 10px',
     borderRadius: 'var(--radius-md)',
     border: '1px solid ' + (active ? t.gold : t.line),
-    background: active ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.24)',
+    background: active ? hexA(t.gold, 0.12) : 'var(--sunk)',
     color: active ? t.gold : 'var(--muted)',
     fontFamily: 'var(--font-display)',
     fontWeight: 600,
@@ -504,7 +504,7 @@ function CampChip({ label, on, onToggle }: { label: string; on: boolean; onToggl
         borderRadius: 999,
         border: '1px solid ' + (on ? t.gold : t.line),
         color: on ? t.gold : 'var(--muted)',
-        background: on ? hexA(t.gold, 0.1) : 'rgba(0,0,0,.22)',
+        background: on ? hexA(t.gold, 0.1) : 'var(--sunk)',
         transition: '.2s',
       }}
     >
@@ -536,7 +536,7 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--line)',
         borderLeft: '3px solid ' + t.gold,
-        background: 'rgba(0,0,0,.22)',
+        background: 'var(--sunk)',
       }}
     >
       <div

@@ -161,7 +161,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           </button>
           <button
             onClick={onClose}
-            style={{ cursor: 'pointer', minHeight: 46, padding: '0 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
+            style={{ cursor: 'pointer', minHeight: 46, padding: '0 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
           >
             Cancelar
           </button>
@@ -418,7 +418,7 @@ function CheckRow({ checked, onChange, text }: { checked: boolean; onChange: (v:
         padding: '0 12px',
         borderRadius: 'var(--radius-md)',
         border: '1px solid ' + (checked ? t.gold : t.line),
-        background: checked ? hexA(t.gold, 0.1) : 'rgba(0,0,0,.24)',
+        background: checked ? hexA(t.gold, 0.1) : 'var(--sunk)',
         color: checked ? t.gold : 'var(--muted)',
         fontSize: 12.5,
         fontWeight: 600,

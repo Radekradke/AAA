@@ -81,7 +81,7 @@ export function TabCombate({ char, derived }: TabProps) {
             marginTop: 12,
             height: 'clamp(20px,2.6vw,26px)',
             borderRadius: 5,
-            background: 'rgba(0,0,0,.44)',
+            background: 'var(--sunk-deep)',
             border: '1px solid var(--line)',
             overflow: 'hidden',
             position: 'relative',
@@ -123,7 +123,7 @@ export function TabCombate({ char, derived }: TabProps) {
               onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}
               onContextMenu={(e) => { e.preventDefault(); store.setTempHp(char.id, 0); }}
               title="Clique: +5 · clique direito: zerar"
-              style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'rgba(0,0,0,.3)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
+              style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'var(--sunk)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
             >
               {char.combat.hpTemp}
             </button>
@@ -178,7 +178,7 @@ export function TabCombate({ char, derived }: TabProps) {
               padding: '10px 14px',
               borderRadius: 'var(--radius-md)',
               border: '1px solid ' + (concentrating ? t.acc : t.line),
-              background: concentrating ? 'var(--lift)' : 'rgba(0,0,0,.26)',
+              background: concentrating ? 'var(--lift)' : 'var(--sunk)',
               color: concentrating ? t.acc : t.muted,
               fontFamily: 'var(--font-display)',
               fontSize: 14,
@@ -213,7 +213,7 @@ export function TabCombate({ char, derived }: TabProps) {
             <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
               <button
                 onClick={() => attack(atk)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', lineHeight: 1.05 }}
+                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
               >
                 {modStr(atk.attackBonus)}
                 <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>ACERTO</div>
@@ -260,7 +260,7 @@ export function TabCombate({ char, derived }: TabProps) {
                   padding: '11px 14px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.45)),
-                  background: used ? 'rgba(0,0,0,.3)' : 'var(--lift)',
+                  background: used ? 'var(--sunk)' : 'var(--lift)',
                   color: used ? t.muted : t.ink,
                   fontFamily: 'var(--font-display)',
                   fontSize: 14.5,
@@ -326,12 +326,12 @@ export function TabCombate({ char, derived }: TabProps) {
             <LoreTooltip info={passiveLore('Dado de Vida', `${derived.hitDiceMax}d${derived.hitDie}`, 'Durante um descanso curto, gaste um dado de vida para rolar cura e somar Constituição. Descanso longo recupera parte deles.', ['Descanso', 'Cura'])}>
               <button
                 onClick={() => { if (char.combat.hitDiceRemaining > 0) { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); } }}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'rgba(0,0,0,.26)' }}
+                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
               >
                 Gastar
               </button>
             </LoreTooltip>
-            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
+            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
               {char.combat.hitDiceRemaining} / {derived.hitDiceMax}
             </div>
           </div>
@@ -371,7 +371,7 @@ export function TabCombate({ char, derived }: TabProps) {
                       fontSize: 12,
                       borderRadius: 7,
                       border: '1px solid ' + (on ? col : 'var(--line)'),
-                      background: on ? hexA(col, 0.16) : 'rgba(0,0,0,.26)',
+                      background: on ? hexA(col, 0.16) : 'var(--sunk)',
                       color: on ? col : 'var(--muted)',
                       boxShadow: on ? `0 0 9px ${hexA(col, 0.5)}` : 'none',
                       transition: '.2s',
@@ -440,7 +440,7 @@ function moveBtn(accent: boolean): React.CSSProperties {
     padding: '8px 0',
     borderRadius: 9,
     border: '1px solid var(--line)',
-    background: 'rgba(0,0,0,.26)',
+    background: 'var(--sunk)',
   };
 }
 
