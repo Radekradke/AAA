@@ -3,6 +3,7 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
 import { abilityModifier } from './modifiers';
 import { effectiveAbilities } from './levelUp';
+import { getFeat } from '@/data/feats';
 
 /**
  * Recursos de classe de um personagem — PHB 2014, calculados a partir do
@@ -157,6 +158,11 @@ export function characterResources(char: Character): ResourceState[] {
     // a subclasse registrada é a da classe principal
     const sub = cl.classId === char.classId ? char.subclassId ?? null : null;
     out.push(...classResources(cl.classId, Math.max(1, cl.level), m, sub, char.choices ?? {}));
+  }
+  // usos de talentos (Desvanecer, Fúria Orc, Segunda Chance)
+  for (const featId of char.feats ?? []) {
+    const u = getFeat(featId)?.uses;
+    if (u) out.push({ id: u.id, label: u.label, desc: u.desc, recharge: u.recharge, max: 1 });
   }
   return out;
 }

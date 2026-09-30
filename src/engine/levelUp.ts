@@ -115,6 +115,9 @@ export function featPrereqIssue(char: Character, feat: Feat): string | null {
   if (feat.prereqRaces && !feat.prereqRaces.includes(char.raceId)) {
     return `${feat.label} exige: ${feat.prereq ?? feat.prereqRaces.join(', ')}.`;
   }
+  if (feat.prereqSubraces && !feat.prereqSubraces.includes(char.subraceId ?? '')) {
+    return `${feat.label} exige: ${feat.prereq ?? feat.prereqSubraces.join(', ')}.`;
+  }
   if (feat.prereqAbility) {
     const totals = effectiveAbilities(char);
     for (const k of ABILITY_KEYS) {

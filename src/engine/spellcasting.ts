@@ -1,5 +1,6 @@
 import type { Character } from '@/types/character';
 import { getSubclass } from '@/data/subclasses';
+import { getFeat } from '@/data/feats';
 import { DOMAIN_SPELLS, LAND_SPELLS, OATH_SPELLS, PATRON_SPELLS } from '@/data/subclassSpells';
 import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
@@ -123,6 +124,21 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
       const usesMax = g.recharge === 'atwill' ? 0 : Math.max(1, g.uses ?? 1);
       const used = uses[key] ?? 0;
       out.push({ key, itemUid: it.uid, itemName: it.name, spell, recharge: g.recharge, usesMax, usesLeft: Math.max(0, usesMax - used) });
+    }
+  }
+  // magias inatas de talentos (Alta Magia Drow, Teleporte Feérico, Magia do Elfo da Floresta)
+  for (const featId of char.feats ?? []) {
+    const feat = getFeat(featId);
+    const grants = [...(feat?.grantsSpells ?? [])];
+    if (featId === 'wood-elf-magic') {
+      for (const id of char.choices?.['feat.woodElfCantrip'] ?? []) grants.unshift({ spellId: id, recharge: 'atwill' });
+    }
+    for (const g of grants) {
+      const spell = getSpell(g.spellId);
+      if (!spell || !feat) continue;
+      const key = `feat:${featId}:${g.spellId}`;
+      const usesMax = g.recharge === 'atwill' ? 0 : 1;
+      out.push({ key, itemUid: `feat:${featId}`, itemName: feat.label, spell, recharge: g.recharge, usesMax, usesLeft: Math.max(0, usesMax - (uses[key] ?? 0)) });
     }
   }
   return out;

@@ -28,6 +28,10 @@ export function initiativeRules(char: Character): InitiativeRules {
   if (res.ki && classLevelOf(char, 'monk') >= 20 && cur('ki') === 0) {
     refills.push({ resId: 'ki', value: 4, label: 'Perfeição: +4 pontos de ki' });
   }
+  // Segunda Chance (XGE): volta ao rolar iniciativa
+  if (res.featSecondChance && cur('featSecondChance') === 0) {
+    refills.push({ resId: 'featSecondChance', value: 1, label: 'Segunda Chance recarregada' });
+  }
   return {
     advantage: barb >= 7,
     advantageSource: barb >= 7 ? 'Instinto Selvagem' : undefined,

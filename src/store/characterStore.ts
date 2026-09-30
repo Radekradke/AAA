@@ -14,6 +14,7 @@ import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
 import { characterResources, syncResources } from '@/engine/classResources';
 import { applyChoicePicks } from '@/engine/classChoices';
 import { grantChoiceEffects } from '@/engine/choiceEffects';
+import { getFeat } from '@/data/feats';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
 import type { LevelUpPlan } from '@/engine/levelUp';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -436,6 +437,12 @@ export const useCharacterStore = create<CharacterState>()(
             for (const it of c.inventory) {
               for (const g of it.grantsSpells ?? []) {
                 if (g.recharge === 'short') delete uses[`${it.uid}:${g.spellId}`];
+              }
+            }
+            // magias de talento com recarga curta (Teleporte Feérico)
+            for (const featId of c.feats ?? []) {
+              for (const g of getFeat(featId)?.grantsSpells ?? []) {
+                if (g.recharge === 'short') delete uses[`feat:${featId}:${g.spellId}`];
               }
             }
             c.combat.itemSpellUses = uses;

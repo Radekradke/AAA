@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { itemGrantedSpells } from '@/engine/spellcasting';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -71,7 +72,8 @@ export function CharacterSheet() {
   }
 
   // o conjurador define se a aba Magias aparece
-  const isCaster = derived.isCaster;
+  // a aba Magias aparece para conjuradores e para quem tem magias de itens ou talentos
+  const isCaster = derived.isCaster || itemGrantedSpells(char).length > 0;
   const activeTab = tab === 'magias' && !isCaster ? 'ficha' : tab;
 
   const exportJson = () => {

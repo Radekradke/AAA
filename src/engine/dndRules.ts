@@ -200,6 +200,19 @@ export function deriveCharacter(char: Character): DerivedCharacter {
 
   // ---- CA: armadura (com teto de DES) + escudo + itens sintonizados ----
   const armorItem = findEquipped(char, char.equipped.armor);
+  // opções de CA sem armadura: a melhor vale (não acumulam)
+  const featUnarmored = feats.find((f) => f.unarmoredAC);
+  const altSources = [
+    subBonus?.unarmoredAC ? { ...subBonus.unarmoredAC, source: subclass!.label, sourceType: 'subclass' as const } : null,
+    featUnarmored ? { ...featUnarmored.unarmoredAC!, source: featUnarmored.label, sourceType: 'feat' as const } : null,
+  ]
+    .filter((x): x is NonNullable<typeof x> => !!x)
+    .map((x) => ({ ...x, total: x.base + abilities[x.ability].mod }));
+  const unarmoredAlt = altSources.sort((a, b) => b.total - a.total)[0];
+  const classUnarmored =
+    char.classId === 'barbarian' ? 10 + dexMod + conMod
+    : char.classId === 'monk' && !char.equipped.shield ? 10 + dexMod + abilities.wis.mod
+    : 10 + dexMod;
   const armor = armorItem ? resolveItemData(armorItem).armor : undefined;
   const acParts = [];
   let acNote: string | undefined;
@@ -214,10 +227,10 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     } else {
       acNote = 'armadura pesada não soma Destreza';
     }
-  } else if (subBonus?.unarmoredAC) {
-    // Defesa sem armadura da subclasse (ex.: Resiliência Dracônica = 13 + DES)
-    const u = subBonus.unarmoredAC;
-    acParts.push(mod('ac', u.base, subclass!.label, 'subclass', { label: 'CA sem armadura' }));
+  } else if (unarmoredAlt && unarmoredAlt.total >= classUnarmored) {
+    // CA sem armadura alternativa: subclasse (Resiliência Dracônica) ou talento (Couro Dracônico) = 13 + DES
+    const u = unarmoredAlt;
+    acParts.push(mod('ac', u.base, u.source, u.sourceType, { label: 'CA sem armadura' }));
     acParts.push(mod('ac', abilities[u.ability].mod, ABILITY_LABELS[u.ability], 'ability', { label: `modificador de ${u.ability.toUpperCase()}` }));
   } else {
     acParts.push(mod('ac', 10, 'Sem armadura', 'base'));
@@ -325,7 +338,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...(race.skillProfs ?? [])]);
   // perícias vindas de escolhas de classe: Colégio do Conhecimento (3) e Influência Enganadora
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
-    if (/\.(loreSkills|knowledgeSkills|natureSkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));
+    if (/\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));
     if (k.endsWith('.invocation') && ids.includes('beguilingInfluence')) {
       skillProfs.add('deception');
       skillProfs.add('persuasion');
@@ -445,6 +458,25 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     });
   }
 
+  // Couro Dracônico (XGE): garras retráteis — golpe desarmado de 1d4 + FOR cortante
+  if (feats.some((f) => f.id === 'dragon-hide') && monkLv < 1) {
+    const hitBd = breakdown([mod('attack', abilities.str.mod, ABILITY_LABELS.str, 'ability'), mod('attack', prof, 'Bônus de proficiência', 'proficiency')]);
+    const dmgBd = breakdown([mod('damage', abilities.str.mod, ABILITY_LABELS.str, 'ability')], '1d4 cortante + FOR');
+    attacks.push({
+      uid: 'dragon-claws',
+      name: 'Garras Dracônicas',
+      note: 'corpo a corpo · golpe desarmado (Couro Dracônico)',
+      attackBonus: hitBd.total,
+      damageDice: 1,
+      damageDie: 4,
+      damageBonus: dmgBd.total,
+      damageType: 'cortante',
+      critMin,
+      hitBreakdown: hitBd,
+      damageBreakdown: dmgBd,
+    });
+  }
+
   // ---- Conjuração ----
   // conjura pela classe ou pela subclasse (Cavaleiro Arcano / Trapaceiro Arcano → INT)
   const caster = casterOf(char);
@@ -476,13 +508,15 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       ...(race.languages ?? ['Comum']),
       ...(subBonus?.languages ?? []),
       ...(char.extraLanguages ?? []),
-      ...Object.entries(char.choices ?? {}).filter(([k]) => k.endsWith('.knowledgeLanguages')).flatMap(([, v]) => v),
+      ...Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage)$/.test(k)).flatMap(([, v]) => v),
+      ...feats.flatMap((f) => f.languages ?? []),
     ]),
   );
   const resistances = [
     ...(race.resistances ?? []).map((value) => ({ value, source: race.label })),
     ...(subrace?.resistances ?? []).map((value) => ({ value, source: subrace!.label })),
     ...(subBonus?.resistances ?? []).map((value) => ({ value, source: subclass!.label })),
+    ...feats.flatMap((f) => (f.resistances ?? []).map((value) => ({ value, source: f.label }))),
     // Acostumado à Morte-Vida (Necromante 10º) e Avatar da Batalha (Guerra 17º)
     ...(char.subclassId === 'necromancy' && levelIn('wizard') >= 10 ? [{ value: 'necrótico', source: 'Acostumado à Morte-Vida' }] : []),
     ...(char.subclassId === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),

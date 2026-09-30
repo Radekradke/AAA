@@ -473,3 +473,20 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
     15: [{ key: 'maneuver', catalog: 'maneuver', label: 'Manobras', count: 2, hint: MANEUVER_HINT, canReplace: true }],
   },
 };
+
+/**
+ * Escolhas de talentos (Xanathar): guardadas em `choices['feat.<chave>']`
+ * e resolvidas em "Escolhas pendentes" depois de pegar o talento.
+ */
+export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
+  'wood-elf-magic': [
+    { key: 'woodElfCantrip', catalog: 'spell', label: 'Magia do Elfo da Floresta (truque)', count: 1, spell: { classes: ['druid'], circle: 0 }, bonusSpells: true, hint: 'Um truque de druida, conjurado com Sabedoria. Não conta no limite de truques da sua classe.' },
+  ],
+  'squat-nimbleness': [
+    { key: 'squatSkill', catalog: 'skill', label: 'Agilidade Atarracada (perícia)', count: 1, only: ['acrobatics', 'athletics'], hint: 'Proficiência em Acrobacia ou Atletismo.' },
+  ],
+  prodigy: [
+    { key: 'prodigySkill', catalog: 'skill', label: 'Prodígio (perícia)', count: 1, hint: 'Proficiência numa perícia à sua escolha.' },
+    { key: 'prodigyLanguage', catalog: 'language', label: 'Prodígio (idioma)', count: 1, hint: 'Fluência num idioma à sua escolha.' },
+  ],
+};

@@ -209,7 +209,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
-          <SectionLabel>Magias de Itens</SectionLabel>
+          <SectionLabel>Magias de Itens e Talentos</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
               <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
@@ -236,7 +236,7 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
+          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias de itens só valem com o item equipado ou sintonizado. Talentos conjuram sem gastar espaço. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 
