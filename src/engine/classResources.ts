@@ -54,6 +54,7 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
     case 'cleric': {
       if (lv >= 2) add({ id: 'channel', label: 'Canalizar Divindade', desc: 'Expulsar Mortos-Vivos ou o poder do seu domínio', recharge: 'short', max: lv >= 18 ? 3 : lv >= 6 ? 2 : 1 });
       if (subclassId === 'light') add({ id: 'wardingFlare', label: 'Labareda Protetora', desc: 'Reação: impõe desvantagem no ataque de quem você vê a 9 m (não funciona em quem não pode ser cegado)', recharge: 'long', max: Math.max(1, m.wis) });
+      if (subclassId === 'tempest') add({ id: 'wrathStorm', label: 'Ira da Tempestade', desc: 'Reação ao ser atingido por criatura a 1,5 m: 2d8 elétrico ou trovejante (salvaguarda de DES para metade)', recharge: 'long', max: Math.max(1, m.wis) });
       if (subclassId === 'war') add({ id: 'warPriest', label: 'Sacerdote da Guerra', desc: 'Ao usar a ação de Ataque, faz um ataque com arma como ação bônus', recharge: 'long', max: Math.max(1, m.wis) });
       if (lv >= 10) add({ id: 'intervention', label: 'Intervenção Divina', desc: `Chance de ${lv >= 20 ? '100%' : `${lv}%`} (d100 ≤ nível); se funcionar, 7 dias até poder de novo`, recharge: 'long', max: 1 });
       break;
@@ -137,6 +138,8 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
     }
     case 'wizard': {
       if (subclassId === 'abjuration' && lv >= 2) add({ id: 'arcaneWard', label: 'Barreira Arcana (PV)', desc: `Absorve dano por você; recupera 2 × círculo ao conjurar abjuração${lv >= 6 ? ' · Barreira Projetada: reação para proteger aliado a 9 m' : ''}`, recharge: 'long', max: 2 * lv + Math.max(0, m.int) });
+      if (subclassId === 'conjuration' && lv >= 6) add({ id: 'benignTransposition', label: 'Transposição Benigna', desc: 'Ação: teleporta até 9 m ou troca de lugar com criatura voluntária Pequena/Média. Volta também ao conjurar magia de conjuração de 1º+', recharge: 'long', max: 1 });
+      if (subclassId === 'illusion' && lv >= 10) add({ id: 'illusorySelf', label: 'Eu Ilusório', desc: 'Reação: um ataque contra você erra automaticamente', recharge: 'short', max: 1 });
       if (subclassId === 'divination' && lv >= 2) add({ id: 'portent', label: 'Portento', desc: 'Role os d20 após o descanso longo e anote; troque qualquer jogada que você vê por um deles', recharge: 'long', max: lv >= 14 ? 3 : 2, die: 'd20' });
       add({ id: 'recovery', label: 'Recuperação Arcana', desc: `Recupera espaços somando até ${Math.ceil(lv / 2)} níveis (nenhum de 6º+) num descanso curto`, recharge: 'long', max: 1 });
       break;

@@ -1,7 +1,7 @@
 import type { Character } from '@/types/character';
 import { toolLabel } from '@/data/tools';
 
-const SPELL_KEYS = /^(magicalSecrets|loreSecrets|tomeCantrips|arcanum\d|spellMastery\d|signature)$/;
+const SPELL_KEYS = /^(magicalSecrets|loreSecrets|tomeCantrips|natureCantrip|arcanum\d|spellMastery\d|signature)$/;
 
 /**
  * Efeitos permanentes de uma escolha de classe no momento em que é feita

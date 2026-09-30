@@ -126,3 +126,28 @@ describe('Bardo, Patrulheiro, Druida, Monge, Bárbaro, Paladino, Ladino', () => 
     expect([p2.max, p14.max]).toEqual([2, 3]);
   });
 });
+
+describe('subclasses completas do PHB (Clérigo e Mago)', () => {
+  it('existem as 7 de Clérigo e as 8 de Mago', async () => {
+    const { subclassesFor } = await import('@/data/subclasses');
+    expect(subclassesFor('cleric').length).toBe(7);
+    expect(subclassesFor('wizard').length).toBe(8);
+  });
+
+  it('Conhecimento: 2 idiomas + 2 perícias com proficiência dobrada', () => {
+    const c = at('cleric', 1, { subclassId: 'knowledge' });
+    const groups = groupSpecs(c, specsAt('cleric', 1, 'knowledge'));
+    expect(groups.map((g) => g.need)).toEqual([2, 2]);
+    const skills = groups[1].options.map((o) => o.id);
+    expect(skills.every((s) => ['arcana', 'history', 'nature', 'religion'].includes(s))).toBe(true);
+    const d = deriveCharacter({ ...c, choices: { 'cleric.knowledgeSkills': ['arcana', 'history'], 'cleric.knowledgeLanguages': ['Dracônico', 'Silvestre'] } });
+    expect(d.skills.find((s) => s.key === 'arcana')!.expertise).toBe(true);
+    expect(d.languages).toEqual(expect.arrayContaining(['Dracônico', 'Silvestre']));
+  });
+
+  it('Tempestade: Ira da Tempestade usa SAB; Necromante 10º resiste a necrótico', () => {
+    expect(characterResources(at('cleric', 1, { subclassId: 'tempest' })).some((r) => r.id === 'wrathStorm')).toBe(true);
+    const d = deriveCharacter(at('wizard', 10, { subclassId: 'necromancy' }));
+    expect(d.resistances.some((r) => r.value === 'necrótico')).toBe(true);
+  });
+});

@@ -62,6 +62,7 @@ export type CatalogId =
   | 'hunterDefense'
   | 'pactBoon'
   | 'invocation'
+  | 'language'
   /** Magias da biblioteca, filtradas pelo `spell` da escolha. */
   | 'spell';
 
@@ -266,6 +267,12 @@ export const INVOCATIONS: ChoiceOption[] = [
   { id: 'witchSight', label: 'Visão da Bruxa', tag: '15º', desc: 'Vê a forma verdadeira de metamorfos e criaturas disfarçadas por ilusão ou transmutação a até 9 m.', prereq: { level: 15 } },
 ];
 
+/* ---------- Idiomas (Domínio do Conhecimento) ---------- */
+export const LANGUAGE_OPTIONS: ChoiceOption[] = [
+  ['Anão', 'padrão'], ['Élfico', 'padrão'], ['Gigante', 'padrão'], ['Gnômico', 'padrão'], ['Goblin', 'padrão'], ['Halfling', 'padrão'], ['Orc', 'padrão'],
+  ['Abissal', 'exótico'], ['Celestial', 'exótico'], ['Dracônico', 'exótico'], ['Dialeto Subterrâneo', 'exótico'], ['Infernal', 'exótico'], ['Primordial', 'exótico'], ['Silvestre', 'exótico'], ['Subcomum', 'exótico'],
+].map(([label, tag]) => ({ id: label, label, tag, desc: `Você fala, lê e escreve ${label}.` }));
+
 export const ARTISAN_TOOLS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === 'artesao').map((tl) => ({
   id: tl.id,
   label: tl.label,
@@ -292,6 +299,7 @@ export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   hunterDefense: HUNTER_DEFENSE,
   pactBoon: PACT_BOONS,
   invocation: INVOCATIONS,
+  language: LANGUAGE_OPTIONS,
   spell: [],
 };
 
@@ -398,6 +406,18 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
   },
   champion: {
     10: [{ key: 'fightingStyle', catalog: 'fightingStyle', label: 'Estilo de Luta adicional', count: 1 }],
+  },
+  knowledge: {
+    1: [
+      { key: 'knowledgeLanguages', catalog: 'language', label: 'Bênçãos do Conhecimento (idiomas)', count: 2, hint: 'Aprende dois idiomas à sua escolha.' },
+      { key: 'knowledgeSkills', catalog: 'skill', label: 'Bênçãos do Conhecimento (perícias)', count: 2, only: ['arcana', 'history', 'nature', 'religion'], hint: 'Proficiência em duas destas perícias — com o bônus de proficiência DOBRADO nelas.' },
+    ],
+  },
+  nature: {
+    1: [
+      { key: 'natureCantrip', catalog: 'spell', label: 'Acólito da Natureza (truque)', count: 1, spell: { classes: ['druid'], circle: 0 }, bonusSpells: true, hint: 'Um truque de druida. Conta como magia de clérigo e não entra no limite de truques.' },
+      { key: 'natureSkill', catalog: 'skill', label: 'Acólito da Natureza (perícia)', count: 1, only: ['animalHandling', 'nature', 'survival'], hint: 'Proficiência em Adestrar Animais, Natureza ou Sobrevivência.' },
+    ],
   },
   totem: {
     3: [{ key: 'totemSpirit', catalog: 'totemSpirit', label: 'Espírito Totêmico', count: 1, hint: 'O animal que guia sua fúria. Você também pode conjurar sentido bestial e falar com animais como rituais (Buscador de Espíritos).' }],

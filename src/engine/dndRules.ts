@@ -325,13 +325,17 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...(race.skillProfs ?? [])]);
   // perícias vindas de escolhas de classe: Colégio do Conhecimento (3) e Influência Enganadora
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
-    if (k.endsWith('.loreSkills')) ids.forEach((id) => skillProfs.add(id as SkillKey));
+    if (/\.(loreSkills|knowledgeSkills|natureSkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));
     if (k.endsWith('.invocation') && ids.includes('beguilingInfluence')) {
       skillProfs.add('deception');
       skillProfs.add('persuasion');
     }
   }
   const expertiseSet = new Set<SkillKey>(char.skillExpertise ?? []);
+  // Bênçãos do Conhecimento: proficiência dobrada nas duas perícias escolhidas
+  for (const [k, ids] of Object.entries(char.choices ?? {})) {
+    if (k.endsWith('.knowledgeSkills')) ids.forEach((id) => expertiseSet.add(id as SkillKey));
+  }
   const skills: DerivedSkill[] = SKILLS.map((sk) => {
     const proficient = skillProfs.has(sk.key);
     const expertise = proficient && expertiseSet.has(sk.key);
@@ -468,12 +472,20 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
   const languages = Array.from(
-    new Set([...(race.languages ?? ['Comum']), ...(subBonus?.languages ?? []), ...(char.extraLanguages ?? [])]),
+    new Set([
+      ...(race.languages ?? ['Comum']),
+      ...(subBonus?.languages ?? []),
+      ...(char.extraLanguages ?? []),
+      ...Object.entries(char.choices ?? {}).filter(([k]) => k.endsWith('.knowledgeLanguages')).flatMap(([, v]) => v),
+    ]),
   );
   const resistances = [
     ...(race.resistances ?? []).map((value) => ({ value, source: race.label })),
     ...(subrace?.resistances ?? []).map((value) => ({ value, source: subrace!.label })),
     ...(subBonus?.resistances ?? []).map((value) => ({ value, source: subclass!.label })),
+    // Acostumado à Morte-Vida (Necromante 10º) e Avatar da Batalha (Guerra 17º)
+    ...(char.subclassId === 'necromancy' && levelIn('wizard') >= 10 ? [{ value: 'necrótico', source: 'Acostumado à Morte-Vida' }] : []),
+    ...(char.subclassId === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),
   ];
   const grantedProficiencies = subBonus?.proficiencies ?? [];
 

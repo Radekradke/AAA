@@ -156,8 +156,14 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   // perícias: só as que o personagem ainda não tem
   if (char && spec.catalog === 'skill') {
     const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...(getRace(char.raceId).skillProfs ?? [])]);
-    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => k.endsWith('.loreSkills')).flatMap(([, v]) => v));
+    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
+  }
+  // idiomas: só os que o personagem ainda não fala
+  if (char && spec.catalog === 'language') {
+    const speaks = new Set([...(getRace(char.raceId).languages ?? []), ...(char.extraLanguages ?? [])]);
+    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => k.endsWith('.knowledgeLanguages')).flatMap(([, v]) => v));
+    all = all.filter((o) => !speaks.has(o.id) || own.has(o.id));
   }
   // magias: esconde as que o personagem já conhece por outro caminho
   if (char && spec.catalog === 'spell') {
@@ -280,7 +286,7 @@ export function bonusSpellIds(char: Character): Set<string> {
   const out = new Set<string>();
   for (const [storeKey, ids] of Object.entries(char.choices ?? {})) {
     const key = storeKey.split('.').slice(1).join('.');
-    if (/^(loreSecrets|tomeCantrips|arcanum\d|signature)$/.test(key)) ids.forEach((id) => out.add(id));
+    if (/^(loreSecrets|tomeCantrips|natureCantrip|arcanum\d|signature)$/.test(key)) ids.forEach((id) => out.add(id));
   }
   return out;
 }
