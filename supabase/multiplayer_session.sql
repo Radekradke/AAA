@@ -275,7 +275,7 @@ begin
 end $fn$;
 
 -- a assinatura ganhou p_monster_ref (bestiário): remove a antiga antes de recriar
-drop function if exists public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text);
+do $fn$ begin execute 'drop function if exists public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text)'; end $fn$;
 create or replace function public.add_combatant(
   p_encounter uuid, p_type text, p_name text, p_sheet_id text default null,
   p_initiative_bonus int default 0, p_hp_current int default null, p_hp_max int default null,
