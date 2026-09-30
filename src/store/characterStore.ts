@@ -464,6 +464,8 @@ export const useCharacterStore = create<CharacterState>()(
             );
             c.combat.resources = syncResources(c, c.combat.resources, true);
             c.combat.spellSlots = syncSpellSlots(c, true);
+            // companheiro de patrulheiro volta com PV cheio
+            if (c.companion) c.companion = { ...c.companion, hpCurrent: undefined };
           });
         },
         addJournalEntry(id) {

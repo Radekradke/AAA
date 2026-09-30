@@ -21,6 +21,7 @@ import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
+import { CompanionPanel } from './CompanionPanel';
 import { inspirationCount } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
@@ -222,6 +223,7 @@ export function TabMesa({ char, derived }: TabProps) {
 
       {/* ===== MASONRY: painéis de jogo (sobem e preenchem os vãos) ===== */}
       <div className="fv-masonry">
+        <CompanionPanel char={char} />
         {/* "O que eu rolo?" — descreve a intenção, a ficha sugere o teste */}
         <Panel>
           <RollAdvisor char={char} derived={derived} />

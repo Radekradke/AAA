@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -230,6 +231,8 @@ export function TabCombate({ char, derived }: TabProps) {
           </div>
         ))}
       </Panel>
+
+      <CompanionPanel char={char} />
 
       {/* Economia de Turno */}
       <Panel>

@@ -188,6 +188,8 @@ export interface Character {
    * chave `classe.chave` → ids das opções (ver data/classChoices).
    */
   choices?: Record<string, string[]>;
+  /** Companheiro de Patrulheiro (Mestre das Feras): nome e PV atuais. A fera vem de `choices['ranger.companion']`. */
+  companion?: { name?: string; hpCurrent?: number };
   /** Aumentos de atributo acumulados por ASI/talentos. */
   asiBonuses: Partial<AbilityScores>;
   /** Linha do tempo de evolução, nível a nível. */

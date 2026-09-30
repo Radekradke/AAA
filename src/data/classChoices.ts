@@ -11,6 +11,7 @@ import { TOOLS } from './tools';
 import { SKILLS } from './skills';
 import { SPELL_BY_ID } from './spells';
 import { LAND_SPELLS } from './subclassSpells';
+import { COMPANION_BEASTS } from './beasts';
 
 export interface ChoiceOption {
   id: string;
@@ -65,6 +66,7 @@ export type CatalogId =
   | 'pactBoon'
   | 'invocation'
   | 'language'
+  | 'beast'
   /** Magias da biblioteca, filtradas pelo `spell` da escolha. */
   | 'spell';
 
@@ -279,6 +281,14 @@ export const LANGUAGE_OPTIONS: ChoiceOption[] = [
   ['Abissal', 'exótico'], ['Celestial', 'exótico'], ['Dracônico', 'exótico'], ['Dialeto Subterrâneo', 'exótico'], ['Infernal', 'exótico'], ['Primordial', 'exótico'], ['Silvestre', 'exótico'], ['Subcomum', 'exótico'],
 ].map(([label, tag]) => ({ id: label, label, tag, desc: `Você fala, lê e escreve ${label}.` }));
 
+/* ---------- Patrulheiro · Mestre das Feras: companheiro (3º) ---------- */
+export const BEAST_OPTIONS: ChoiceOption[] = COMPANION_BEASTS.map((b) => ({
+  id: b.id,
+  label: b.label,
+  tag: `ND ${b.cr}`,
+  desc: `${b.size} · CA ${b.ac} · PV ${b.hp} · ${b.speed} · ${b.attacks.map((a) => `${a.name} ${a.dice}d${a.die}${a.bonus ? `+${a.bonus}` : ''}`).join(', ')}${b.traits.length ? ` · ${b.traits.map((t) => t.name).join(', ')}` : ''}`,
+}));
+
 export const ARTISAN_TOOLS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === 'artesao').map((tl) => ({
   id: tl.id,
   label: tl.label,
@@ -306,6 +316,7 @@ export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   pactBoon: PACT_BOONS,
   invocation: INVOCATIONS,
   language: LANGUAGE_OPTIONS,
+  beast: BEAST_OPTIONS,
   spell: [],
 };
 
@@ -442,6 +453,9 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
     6: [{ key: 'discipline', catalog: 'discipline', label: 'Disciplina Elemental adicional', count: 1, canReplace: true }],
     11: [{ key: 'discipline', catalog: 'discipline', label: 'Disciplina Elemental adicional', count: 1, canReplace: true }],
     17: [{ key: 'discipline', catalog: 'discipline', label: 'Disciplina Elemental adicional', count: 1, canReplace: true }],
+  },
+  beastmaster: {
+    3: [{ key: 'companion', catalog: 'beast', label: 'Companheiro de Patrulheiro', count: 1, hint: 'Uma fera Média ou menor de ND 1/4 ou menor. Soma sua proficiência na CA, ataques, dano e perícias dela; PV máximo = o dela ou 4 × seu nível de patrulheiro (o maior). Se morrer, você pode ligar-se a outra fera com 8 horas.' }],
   },
   hunter: {
     3: [{ key: 'hunterPrey', catalog: 'hunterPrey', label: 'Presa do Caçador', count: 1 }],

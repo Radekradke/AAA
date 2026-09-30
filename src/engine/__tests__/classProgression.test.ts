@@ -181,3 +181,21 @@ describe('magias de subclasse (Domínio, Juramento, Terra, Patrono)', () => {
     expect(expandedSpellIds(at('warlock', 5, { subclassId: 'fiend' }))).toContain('sp-bolafogo');
   });
 });
+
+describe('Companheiro de Patrulheiro (Mestre das Feras)', () => {
+  it('soma proficiência e usa PV = máx(fera, 4 × nível)', async () => {
+    const { companionOf } = await import('../companion');
+    expect(companionOf(at('ranger', 3, { subclassId: 'beastmaster' }))).toBeNull();
+    const c = companionOf(at('ranger', 5, { subclassId: 'beastmaster', choices: { 'ranger.companion': ['wolf'] } }))!;
+    expect(c.ac).toBe(13 + 3);
+    expect(c.maxHp).toBe(20);
+    expect(c.attacks[0].attackBonus).toBe(4 + 3);
+    expect(c.attacks[0].damageBonus).toBe(2 + 3);
+    expect(c.attacksPerAction).toBe(1);
+    expect(companionOf(at('ranger', 11, { subclassId: 'beastmaster', choices: { 'ranger.companion': ['wolf'] } }))!.attacksPerAction).toBe(2);
+  });
+
+  it('a escolha aparece como pendente no 3º nível', () => {
+    expect(pendingChoices(at('ranger', 3, { subclassId: 'beastmaster' })).some((p) => p.spec.key === 'companion')).toBe(true);
+  });
+});
