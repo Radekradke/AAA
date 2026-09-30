@@ -43,6 +43,17 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'fv-imagens', expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 60 } },
           },
+          {
+            // trilha sonora: baixa só a faixa que tocar e guarda para jogar offline
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/music/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fv-musica',
+              rangeRequests: true,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 90 },
+            },
+          },
           // fontes vêm embutidas no build (@fontsource) e entram no precache (woff2)
           // vídeos de fundo (MBs) e Supabase ficam fora do cache de propósito
         ],

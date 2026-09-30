@@ -6,6 +6,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { initiativeRules } from '@/engine/initiative';
 import { modStr } from '@/engine/dice';
+import { music } from '@/lib/music';
 
 /**
  * Rola a iniciativa já com o que a classe muda nela: vantagem do Instinto
@@ -26,6 +27,8 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
     const label = rules.advantage ? `Iniciativa · ${rules.advantageSource}` : 'Iniciativa';
     const r = check(label, derived.initiative, { advantage: adv && !dis, disadvantage: dis && !adv });
     setLast(r.total);
+    // com a trilha tocando, o combate ganha a música de batalha
+    if (music.get().playing) music.setMood('combate');
     for (const f of rules.refills) store.setResource(char.id, f.resId, f.value);
   };
 

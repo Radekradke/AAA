@@ -4,6 +4,7 @@ import { useUiStore } from '@/store/uiStore';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
+import { MusicControl } from './MusicControl';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES, THEME_ORDER } from '@/data/themes';
@@ -78,6 +79,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
       <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
         <SyncBadge />
+        <MusicControl />
         {actions}
 
         <div ref={menuRef} style={{ position: 'relative' }}>
