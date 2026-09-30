@@ -3,7 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
 import type { NewToken, TokenPatch } from '@/services/stageService';
-import { PALCO_SETUP_MISSING } from '@/services/mediaService';
+import { PalcoSetupError } from '@/services/stageService';
 import type { Handout, Scene, StagePing, StageState, Token } from '@/types/stage';
 
 /**
@@ -31,6 +31,8 @@ interface StageStore {
   /** Cutscene que o jogador minimizou (volta ao mudar de quadro). */
   hiddenCutscene: string | null;
   missing: boolean;
+  /** Erro original do banco quando o palco parece faltando (diagnóstico). */
+  missingDetail: string | null;
   error: string | null;
   busy: boolean;
 
@@ -147,6 +149,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     pings: [],
     hiddenCutscene: null,
     missing: false,
+    missingDetail: null,
     error: null,
     busy: false,
 
@@ -196,11 +199,10 @@ export const useStageStore = create<StageStore>()((set, get) => {
           if (firstLoad) markSeen(campaignId, fresh.filter((h) => !recent.includes(h)).map((h) => h.id));
           if (recent.length && !incoming) incoming = recent[0];
         }
-        set({ scenes, stage, handouts, tokens, incoming, missing: false, viewSceneId: isMaster ? view : null });
+        set({ scenes, stage, handouts, tokens, incoming, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
       } catch (e) {
         if (mine !== seq) return;
-        const msg = (e as Error).message;
-        set(msg === PALCO_SETUP_MISSING ? { missing: true, error: null } : { error: msg });
+        set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail, error: null } : { error: (e as Error).message });
       }
     },
 
@@ -213,8 +215,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
         await get().refresh();
         return true;
       } catch (e) {
-        const msg = (e as Error).message;
-        set(msg === PALCO_SETUP_MISSING ? { missing: true } : { error: msg });
+        set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail } : { error: (e as Error).message });
         return false;
       } finally {
         set({ busy: false });

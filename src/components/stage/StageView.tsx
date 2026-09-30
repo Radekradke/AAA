@@ -47,6 +47,8 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             ? 'O banco ainda não tem o palco (mapas, cenas e handouts). No Supabase: SQL Editor → aba nova → cole supabase/palco.sql → Run. Depois recarregue esta página.'
             : 'O mestre ainda precisa atualizar o banco da mesa para usar mapas e cenas.'}
         </p>
+        {isMaster && st.missingDetail && <p className="fv-stage-diag">Resposta do banco: <code>{st.missingDetail}</code></p>}
+        <button type="button" className="fv-btn-ghost" onClick={() => void st.refresh()}>Verificar de novo</button>
       </section>
     );
   }

@@ -15,13 +15,24 @@ function sb() {
   return client;
 }
 
-const missing = (m: string) => /campaign_scenes|campaign_stage|scene_tokens|campaign_handouts|move_token|does not exist|Could not find the (table|function)|schema cache/i.test(m);
+const TABLES = 'campaign_scenes|campaign_stage|scene_tokens|campaign_handouts|move_token';
+/** Só "a tabela/função não existe" — não qualquer erro que cite o nome dela. */
+const missing = (m: string) =>
+  new RegExp(`Could not find the (table|function) '?public\\.(${TABLES})|relation "?(public\\.)?(${TABLES})"? does not exist|function public\\.(${TABLES})\\b.* does not exist`, 'i').test(m);
 
-export function stageError(e: { message: string }): Error {
-  if (missing(e.message)) return new Error(PALCO_SETUP_MISSING);
+/** O banco não tem o palco; `detail` guarda a mensagem original para diagnóstico. */
+export class PalcoSetupError extends Error {
+  constructor(public detail: string) {
+    super(PALCO_SETUP_MISSING);
+  }
+}
+
+export function stageError(e: { message: string; code?: string }): Error {
+  if (missing(e.message)) return new PalcoSetupError(e.message);
   if (/row-level security|violates row/i.test(e.message)) return new Error('O banco recusou: só o mestre desta mesa mexe no palco. Se você é o mestre, saia e entre de novo (sessão expirada).');
   if (/mestre ou o dono/i.test(e.message)) return new Error('Esse peão não é seu — só o mestre ou o dono move.');
-  return new Error(e.message);
+  if (/JWT|not authenticated|permission denied/i.test(e.message)) return new Error(`O banco recusou o acesso (${e.message}). Saia e entre de novo; se continuar, rode supabase/palco.sql outra vez.`);
+  return new Error(`Palco: ${e.message}${e.code ? ` (${e.code})` : ''}`);
 }
 
 const num = (v: unknown, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);

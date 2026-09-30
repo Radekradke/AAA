@@ -215,8 +215,12 @@ do $fn$ begin
   execute $p$drop policy if exists "fv_media_delete" on storage.objects$p$;
   execute $p$create policy "fv_media_delete" on storage.objects for delete to authenticated
     using (bucket_id = 'campaign-media' and public.fv_media_master(name))$p$;
-exception when undefined_table or invalid_schema_name then
-  raise notice 'Storage indisponível neste projeto — mapas e imagens não vão subir.';
+exception
+  when undefined_table or invalid_schema_name then
+    raise notice 'Storage indisponível neste projeto — mapas e imagens não vão subir.';
+  -- nunca derruba o resto do script (tabelas do palco) por causa do Storage
+  when others then
+    raise warning 'Palco criado, mas o Storage recusou a configuração (%). Mapas e imagens podem não subir.', sqlerrm;
 end $fn$;
 
 -- tempo real
@@ -224,3 +228,6 @@ do $fn$ begin alter publication supabase_realtime add table public.campaign_scen
 do $fn$ begin alter publication supabase_realtime add table public.campaign_stage; exception when duplicate_object then null; end $fn$;
 do $fn$ begin alter publication supabase_realtime add table public.scene_tokens; exception when duplicate_object then null; end $fn$;
 do $fn$ begin alter publication supabase_realtime add table public.campaign_handouts; exception when duplicate_object then null; end $fn$;
+
+-- a API do Supabase (PostgREST) passa a enxergar as tabelas novas na hora
+notify pgrst, 'reload schema';

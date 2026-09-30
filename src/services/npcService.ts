@@ -16,7 +16,7 @@ function sb() {
 export const NPC_SETUP_MISSING =
   'O banco ainda não tem as tabelas de NPC. No Supabase: SQL Editor → aba nova → cole supabase/atualizacao_npcs_bestiario.sql → Run.';
 
-const missingTable = (m: string) => /campaign_npc|relation .* does not exist|Could not find the table|schema cache/i.test(m);
+const missingTable = (m: string) => /Could not find the table '?public\.campaign_npc|relation "?(public\.)?campaign_npc\w*"? does not exist/i.test(m);
 
 function friendly(e: { message: string; code?: string }): Error {
   if (missingTable(e.message)) return new Error(NPC_SETUP_MISSING);
