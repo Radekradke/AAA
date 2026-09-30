@@ -16,6 +16,7 @@ const CharacterSheet = lazy(() => import('@/pages/CharacterSheet').then((m) => (
 const Campaigns = lazy(() => import('@/pages/Campaigns').then((m) => ({ default: m.Campaigns })));
 const CampaignRoom = lazy(() => import('@/pages/CampaignRoom').then((m) => ({ default: m.CampaignRoom })));
 const JoinCampaign = lazy(() => import('@/pages/JoinCampaign').then((m) => ({ default: m.JoinCampaign })));
+const LiveSession = lazy(() => import('@/pages/LiveSession').then((m) => ({ default: m.LiveSession })));
 const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) => ({ default: m.PortraitWorkshop })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
 
@@ -25,6 +26,7 @@ function Page({ children }: { children: ReactNode }) {
 }
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { PwaStatus } from '@/components/PwaStatus';
+import { SessionDock } from '@/components/session/SessionDock';
 
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -45,6 +47,8 @@ export function App() {
     <>
     {/* app instalável: avisos de offline pronto / nova versão */}
     <PwaStatus />
+    {/* mesa ao vivo: pílula global + "SEU TURNO" em qualquer tela */}
+    <SessionDock />
     <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
@@ -89,6 +93,15 @@ export function App() {
           element={
             <RequireAuth>
               <Page><CampaignRoom /></Page>
+            </RequireAuth>
+          }
+        />
+        {/* mesa ao vivo: sessão, encontro e iniciativa compartilhada */}
+        <Route
+          path="/mesa/:id/jogar"
+          element={
+            <RequireAuth>
+              <Page><LiveSession /></Page>
             </RequireAuth>
           }
         />

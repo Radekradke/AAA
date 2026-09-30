@@ -20,6 +20,7 @@ import type { Character } from '@/types/character';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
+import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -105,6 +106,9 @@ export function CampaignRoom() {
           {campaign?.name ?? 'Carregando…'}
         </h1>
         {error && <div style={{ marginBottom: 12, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+
+        {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
+        {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
 
         {/* convite (mestre) */}
         {isMaster && invite && (

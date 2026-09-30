@@ -7,6 +7,7 @@ import { useUiStore } from '@/store/uiStore';
 import { initiativeRules } from '@/engine/initiative';
 import { modStr } from '@/engine/dice';
 import { music } from '@/lib/music';
+import { useSessionStore } from '@/store/sessionStore';
 
 /**
  * Rola a iniciativa já com o que a classe muda nela: vantagem do Instinto
@@ -30,6 +31,8 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
     // com a trilha tocando, o combate ganha a música de batalha
     if (music.get().playing) music.setMood('combate');
     for (const f of rules.refills) store.setResource(char.id, f.resId, f.value);
+    // na mesa ao vivo, se este herói está no encontro, o valor vai para a ordem compartilhada
+    void useSessionStore.getState().reportInitiative(char.id, r.total);
   };
 
   const tip = [

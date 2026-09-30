@@ -1,0 +1,884 @@
+/* ============================================================
+   MESA AO VIVO — sessão, encontro e iniciativa compartilhada.
+   Assinatura: medalhão da rodada + trilha de iniciativa com o
+   turno atual aceso; faixa "SEU TURNO" atravessando a tela.
+   ============================================================ */
+
+:root {
+  --live-ok: #5ee39a;
+  --live-warn: #ffc857;
+}
+.fv-live {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(80px, 11vh, 110px) var(--page-x) 40px;
+}
+.fv-live.has-turnbar {
+  padding-bottom: 120px;
+}
+
+/* ---------- cabeçalho ---------- */
+.fv-live-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 24px;
+  margin-bottom: 16px;
+}
+.fv-live-title h1 {
+  margin: 2px 0 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 3.8vw, 32px);
+  color: var(--ink);
+  line-height: 1.1;
+}
+.fv-live-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-live-conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+}
+.fv-live-conn.is-connected {
+  color: var(--live-ok);
+}
+.fv-live-conn.is-reconnecting,
+.fv-live-conn.is-connecting {
+  color: var(--live-warn);
+}
+.fv-live-conn.is-offline {
+  color: var(--danger);
+}
+.fv-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+.fv-live-dot.is-connected {
+  background: var(--live-ok);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--live-ok), transparent 30%);
+  animation: fv-live-ping 2.2s infinite;
+}
+.fv-live-dot.is-connecting,
+.fv-live-dot.is-reconnecting {
+  background: var(--live-warn);
+}
+.fv-live-dot.is-offline {
+  background: var(--danger);
+}
+@keyframes fv-live-ping {
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.fv-live-online {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fv-live-online li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 58px;
+}
+.fv-live-online small {
+  font-size: 10.5px;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-live-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--sunk-deep);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--live-ok), transparent 55%);
+}
+.fv-live-online li.is-master .fv-live-avatar {
+  color: #1a1206;
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  border-color: var(--gold);
+}
+
+.fv-live-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 55%);
+  background: color-mix(in srgb, var(--danger), transparent 88%);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.fv-live-error button {
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ---------- cards e grade ---------- */
+.fv-live-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .fv-live-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.fv-live-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.fv-live-card {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.fv-live-card .fv-label {
+  font-size: 11.5px;
+}
+.fv-live-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.fv-live-center {
+  align-items: center;
+  text-align: center;
+  padding: 28px 18px;
+  max-width: 620px;
+  margin: 10px auto;
+}
+.fv-live-center .fv-live-inline {
+  width: 100%;
+}
+.fv-live-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-live-hint a,
+.fv-live-link {
+  color: var(--acc);
+  font-weight: 600;
+  font-size: 12.5px;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.fv-live-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.fv-live-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fv-live-inline .fv-input {
+  flex: 1 1 200px;
+  padding: 10px 13px;
+  font-size: 14px;
+}
+.fv-live-inline > button {
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+.fv-live-big {
+  min-height: 46px;
+  padding: 0 22px;
+  font-size: 14px;
+}
+.fv-live .fv-btn-gold:disabled,
+.fv-live .fv-btn-ghost:disabled,
+.fv-live-turnbar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+.fv-btn-ghost.is-danger {
+  color: var(--danger);
+}
+.fv-btn-ghost.is-danger:hover {
+  border-color: color-mix(in srgb, var(--danger), transparent 40%);
+}
+
+.fv-live-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fv-live-chip {
+  cursor: pointer;
+  min-height: 34px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+}
+.fv-live-chip:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+.fv-live-chip.is-on {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+}
+.fv-live-chip:disabled {
+  cursor: default;
+}
+
+/* ---------- tabuleiro: medalhão da rodada ---------- */
+.fv-live-board {
+  padding: 16px;
+}
+.fv-live-round {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.fv-live-medal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 78px;
+  height: 78px;
+  flex: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--gold), transparent 78%), transparent 70%),
+    var(--sunk-deep);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold), transparent 85%), 0 0 30px var(--bloom), inset 0 0 18px rgba(0, 0, 0, 0.5);
+}
+.fv-live-medal small {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-live-medal b {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.fv-live-round-info {
+  min-width: 0;
+}
+.fv-live-round-info strong {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: clamp(18px, 3vw, 24px);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-live-empty {
+  padding: 26px 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- trilha de iniciativa ---------- */
+.fv-live-track {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+/* o trilho vertical por onde o turno "desce" */
+.fv-live-track::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--line-strong), var(--line));
+}
+.fv-live-row {
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  transition: border-color 0.25s, background 0.25s, transform 0.25s;
+}
+.fv-live-row::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--panel2);
+  border: 2px solid var(--line-strong);
+}
+.fv-live-row.is-hero {
+  border-left: 3px solid color-mix(in srgb, var(--acc), transparent 30%);
+}
+.fv-live-row.is-foe {
+  border-left: 3px solid color-mix(in srgb, var(--danger), transparent 35%);
+}
+.fv-live-row.is-npc {
+  border-left: 3px solid color-mix(in srgb, var(--acc2), transparent 35%);
+}
+.fv-live-row.is-mine {
+  background: color-mix(in srgb, var(--acc), transparent 90%);
+}
+.fv-live-row.is-hidden {
+  border-style: dashed;
+  opacity: 0.8;
+}
+.fv-live-row.is-down {
+  opacity: 0.45;
+}
+.fv-live-row.is-down .fv-live-name b {
+  text-decoration: line-through;
+}
+.fv-live-row.is-active {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 86%);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 26px var(--bloom);
+  transform: translateX(4px);
+}
+.fv-live-row.is-active::before {
+  background: var(--gold);
+  border-color: var(--goldB);
+  box-shadow: 0 0 12px var(--gold);
+}
+.fv-live-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px 9px 12px;
+  min-height: 52px;
+}
+.fv-live-init {
+  flex: none;
+  width: 40px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.fv-live-row.is-active .fv-live-init {
+  color: var(--gold);
+}
+.fv-live-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fv-live-name b {
+  font-size: 14.5px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-live-name small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-live-now {
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-right: 6px;
+}
+.fv-live-conds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.fv-live-conds i {
+  font-style: normal;
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+}
+.fv-live-row-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fv-live-row-more {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+.fv-live-row-more:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.fv-live-row-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+.fv-live-member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+.fv-live-member-name {
+  flex: 1 1 100%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fv-live-member label,
+.fv-live-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.fv-live-member .fv-input {
+  width: 92px;
+  padding: 7px 9px;
+  font-size: 13px;
+}
+.fv-live-member button {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 12px;
+}
+
+/* ---------- formulário de criatura ---------- */
+.fv-live-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+.fv-live-form .fv-input {
+  padding: 8px 10px;
+  font-size: 13.5px;
+}
+.fv-live-f-name {
+  grid-column: 1 / 3;
+}
+.fv-live-seg {
+  grid-column: 3 / 5;
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 38px;
+}
+.fv-live-seg button {
+  flex: 1;
+  cursor: pointer;
+  border: 0;
+  background: var(--sunk);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.fv-live-seg button.is-on {
+  background: color-mix(in srgb, var(--gold), transparent 84%);
+  color: var(--gold);
+}
+.fv-live-checks {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.fv-live-checks label {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.fv-live-form > button[type='submit'] {
+  grid-column: 1 / -1;
+  min-height: 42px;
+  font-size: 13px;
+}
+
+/* ---------- jogador ---------- */
+.fv-live-hero b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--ink);
+}
+.fv-live-hero small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-live-card.is-calling {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 30px var(--bloom);
+}
+.fv-live-wait {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--gold);
+  animation: fv-live-spin 1.4s linear infinite;
+}
+@keyframes fv-live-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- crônica da sessão ---------- */
+.fv-live-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.fv-live-feed li {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.fv-live-feed time {
+  flex: none;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.fv-live-feed li.is-round span,
+.fv-live-feed li.is-combat span {
+  font-weight: 700;
+  color: var(--gold);
+}
+.fv-live-feed i {
+  font-style: normal;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--acc2);
+}
+.fv-live-session-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fv-live-session-ctl button {
+  flex: 1 1 140px;
+  min-height: 38px;
+  font-size: 12.5px;
+}
+
+/* ---------- barra de turno do mestre ---------- */
+.fv-live-turnbar {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(640px, calc(100% - 24px));
+  padding: 8px;
+  border-radius: calc(var(--radius-lg) + 4px);
+  background: color-mix(in srgb, var(--panel2), transparent 6%);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+.fv-live-turnbar .fv-btn-gold {
+  flex: 1;
+  white-space: nowrap;
+}
+.fv-live-turnbar .fv-btn-ghost {
+  min-height: 46px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.fv-live-turnbar-note {
+  flex: 1;
+  font-size: 12px;
+  color: var(--muted);
+  padding-left: 6px;
+}
+
+/* ---------- card na sala da campanha ---------- */
+.fv-live-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.fv-live-entry.is-live {
+  border-color: color-mix(in srgb, var(--gold), transparent 30%);
+  box-shadow: var(--shadow-soft), 0 0 28px var(--bloom);
+}
+.fv-live-entry-text {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-live-entry-text .fv-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.fv-live-entry-text b {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--ink);
+}
+.fv-live-entry-text small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-live-entry-error {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+/* ---------- pílula global (outras telas) ---------- */
+.fv-live-dock {
+  position: fixed;
+  right: 14px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 28px);
+  padding: 9px 16px 9px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--panel2), transparent 4%);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+}
+.fv-live-dock b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.fv-live-dock small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-live-dock.is-mine {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 30px var(--bloom), 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+.fv-live-dock.is-mine b {
+  color: var(--gold);
+}
+
+/* ---------- faixa SEU TURNO ---------- */
+.fv-turn-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45), transparent 70%);
+  animation: fv-turn-fade 3.4s ease forwards;
+}
+.fv-turn-banner-band {
+  width: 100%;
+  padding: 22px 16px;
+  text-align: center;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--panel2), transparent 8%) 18%, color-mix(in srgb, var(--panel2), transparent 8%) 82%, transparent);
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  box-shadow: 0 0 60px var(--bloom);
+  animation: fv-turn-sweep 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-turn-banner-band small {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-turn-banner-band b {
+  display: block;
+  margin: 2px 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(38px, 9vw, 76px);
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  text-shadow: 0 0 28px var(--bloom), 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+.fv-turn-banner-band span {
+  font-size: 13px;
+  color: var(--ink);
+}
+@keyframes fv-turn-sweep {
+  from {
+    transform: scaleX(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes fv-turn-fade {
+  0%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .fv-live-wide {
+    display: none;
+  }
+  .fv-live-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fv-live-f-name,
+  .fv-live-seg {
+    grid-column: 1 / -1;
+  }
+  .fv-live-medal {
+    width: 64px;
+    height: 64px;
+  }
+  .fv-live-medal b {
+    font-size: 26px;
+  }
+  .fv-live-row-stats {
+    display: none;
+  }
+  .fv-live-turnbar .fv-btn-ghost {
+    padding: 0 10px;
+  }
+  .fv-live-dock {
+    right: 10px;
+    left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-live-dot.is-connected,
+  .fv-live-wait,
+  .fv-turn-banner-band {
+    animation: none;
+  }
+  .fv-live-row.is-active {
+    transform: none;
+  }
+}

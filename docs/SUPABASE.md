@@ -455,3 +455,57 @@ do $$ begin
   alter publication supabase_realtime add table public.campaign_notes;
 exception when duplicate_object then null; end $$;
 ```
+
+## 6. Mesa ao vivo — sessão, encontro e iniciativa (multiplayer)
+
+Script: **`supabase/multiplayer_session.sql`** (re-executável). Rode **depois** da
+seção 5, no SQL Editor do Supabase (cole o arquivo inteiro → *Run*).
+
+O que ele cria:
+
+| Tabela | Para quê |
+|---|---|
+| `sessions` | Uma noite de jogo. No máximo **uma** ativa/pausada por campanha. |
+| `encounters` | Um combate dentro da sessão: `round`, `active_combatant_id`, `revision`. |
+| `combatants` | Heróis (ligados a `sheets` pelo vínculo em `shared_sheets`), monstros e NPCs. |
+| `session_events` | Crônica da sessão, com visibilidade `public` / `master` / `private`. |
+
+Regras de segurança (valem no banco, não na interface):
+
+- **Ninguém escreve direto** em `sessions`, `encounters` e `combatants`: não há
+  policy de insert/update/delete. Toda mudança passa por funções RPC
+  `security definer` que conferem quem chama:
+  `start_session`, `set_session_status`, `create_encounter`, `add_combatant`,
+  `remove_combatant`, `set_initiative`, `set_initiatives`, `update_combatant`,
+  `start_combat`, `advance_turn`, `set_encounter_status`.
+- Só o **mestre** da campanha abre sessão, monta o encontro e passa turno.
+  O **jogador** só consegue rolar a iniciativa do combatente cujo `owner_id` é
+  ele (o dono vem do vínculo da ficha, nunca do navegador).
+- **Turno à prova de corrida:** `advance_turn`/`start_combat`/`set_encounter_status`
+  recebem a `revision` que o cliente viu e travam a linha (`for update`). Se
+  outro aparelho mexeu antes, volta `STALE_REVISION` e a tela recarrega — dois
+  cliques em dois navegadores nunca pulam dois turnos.
+- A ordem (`turn_order`) e a rodada são calculadas **no banco**: iniciativa ↓,
+  bônus ↓, grupo junto; monstros com 0 PV são pulados; virar a ordem soma a rodada.
+- Combatente `hidden` (emboscada) só aparece para o mestre (RLS).
+- Quem não é da campanha não lê nada (RLS com `is_campaign_participant`).
+- A ficha **não** é escrita pelo mestre: o encontro só lê o snapshot para
+  bônus de iniciativa, PV e CA iniciais.
+
+### Realtime
+
+O script coloca as 4 tabelas na publication `supabase_realtime` e cria as
+policies de **canal privado** em `realtime.messages` (tópico
+`campaign:{campaignId}:session:{sessionId}` — só membros da campanha entram).
+
+Para usar canais privados (recomendado): *Project Settings → Realtime →*
+desmarque **“Allow public access”**. Se o projeto não tiver isso, o app cai
+sozinho para um canal comum — os dados continuam protegidos pelo RLS; só a
+lista de presença (quem está online) fica menos blindada.
+
+### Testar o SQL sem Supabase
+
+`npm test` roda `supabase/__tests__/multiplayer.sql.test.ts`, que sobe um
+Postgres em memória (PGlite), aplica a seção 5 + este script e percorre o
+cenário completo: permissões, RLS, ordem, grupos, rodada, corrida de turno e
+visibilidade dos eventos.
