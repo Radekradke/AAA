@@ -1,4 +1,5 @@
 import type { CasterClass, Spell } from '@/types/dnd';
+import { PHB_SPELLS } from './spellsPhb';
 
 /**
  * Banco de magias — D&D 5e (PHB 2014), em português.
@@ -9,7 +10,7 @@ import type { CasterClass, Spell } from '@/types/dnd';
  *
  * Alcances/áreas em metros pela convenção do jogo (1,5 m por 5 pés).
  */
-export const SPELLS: Spell[] = [
+const BASE_SPELLS: Spell[] = [
   // ======================= TRUQUES (nível 0) =======================
   {
     id: 'sp-firebolt', level: 0, name: 'Raio de Fogo', school: 'Evocação',
@@ -21,7 +22,7 @@ export const SPELLS: Spell[] = [
   {
     id: 'sp-raygelo', level: 0, name: 'Raio de Gelo', school: 'Evocação',
     castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Instantânea',
-    classes: ['sorcerer', 'wizard'], attack: 'ranged', damage: { dice: '1d8', type: 'gelo' },
+    classes: ['sorcerer', 'wizard'], attack: 'ranged', damage: { dice: '1d8', type: 'frio' },
     desc: 'Um feixe gélido atinge o alvo e reduz seu deslocamento em 3 m até seu próximo turno.',
     higher: 'O dano aumenta em +1d8 nos níveis 5, 11 e 17.', tags: ['dano', 'controle'],
   },
@@ -93,7 +94,7 @@ export const SPELLS: Spell[] = [
   {
     id: 'sp-estabilizar', level: 0, name: 'Estabilizar Criatura', school: 'Necromancia',
     castingTime: '1 ação', range: 'Toque', components: 'V, S', duration: 'Instantânea',
-    classes: ['cleric', 'druid'],
+    classes: ['cleric'],
     desc: 'Estabiliza uma criatura com 0 PV que esteja fazendo salvaguardas contra a morte.', tags: ['cura', 'utilidade'],
   },
   {
@@ -343,7 +344,7 @@ export const SPELLS: Spell[] = [
     higher: 'Interrompe automaticamente magias de círculo igual ao espaço usado.', tags: ['defesa', 'controle'],
   },
   {
-    id: 'sp-revigorar', level: 3, name: 'Reviver os Mortos', school: 'Necromancia',
+    id: 'sp-revigorar', level: 3, name: 'Revivificar', school: 'Necromancia',
     castingTime: '1 ação', range: 'Toque', components: 'V, S, M', duration: 'Instantânea',
     classes: ['cleric', 'paladin'], material: 'diamantes no valor de 300 po (consumidos)',
     desc: 'Traz de volta uma criatura morta há até 1 minuto, com 1 PV (não restaura membros nem cura doenças).', tags: ['cura', 'utilidade'],
@@ -355,7 +356,7 @@ export const SPELLS: Spell[] = [
     desc: 'Encerra magias de 3º círculo ou menos no alvo; para magias mais altas, faça um teste de conjuração.', tags: ['utilidade', 'defesa'],
   },
   {
-    id: 'sp-palavracoragem', level: 3, name: 'Revigorar (Palavra de Cura em Massa)', school: 'Evocação',
+    id: 'sp-palavracoragem', level: 3, name: 'Palavra Curativa em Massa', school: 'Evocação',
     castingTime: '1 ação', range: '18 m', components: 'V', duration: 'Instantânea',
     classes: ['cleric'], heal: '1d4 + mod.', area: 'até 6 criaturas',
     desc: 'Cura até seis criaturas à distância ao mesmo tempo, com uma única ação.',
@@ -407,22 +408,22 @@ export const SPELLS: Spell[] = [
   {
     id: 'sp-conemar', level: 5, name: 'Cone do Frio', school: 'Evocação',
     castingTime: '1 ação', range: 'Pessoal', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['sorcerer', 'wizard'], save: 'con', damage: { dice: '8d8', type: 'gelo' }, area: 'cone de 18 m',
+    classes: ['sorcerer', 'wizard'], save: 'con', damage: { dice: '8d8', type: 'frio' }, area: 'cone de 18 m',
     desc: 'Uma rajada de frio glacial; salvaguarda de CON reduz à metade. Mortos pelo frio viram estátuas de gelo.',
     higher: 'O dano aumenta em +1d8 por círculo acima do 5º.', tags: ['dano'],
   },
   {
     id: 'sp-coluna', level: 5, name: 'Coluna de Chamas', school: 'Evocação',
     castingTime: '1 ação', range: '18 m', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['cleric', 'druid'], save: 'dex', damage: { dice: '4d6 + 4d6', type: 'fogo/radiante' }, area: 'cilindro de 3 m',
+    classes: ['cleric'], save: 'dex', damage: { dice: '4d6 + 4d6', type: 'fogo/radiante' }, area: 'cilindro de 3 m',
     desc: 'Uma coluna de fogo divino desce do céu (metade fogo, metade radiante); DES reduz à metade.',
     higher: 'O dano aumenta em +1d6 (cada tipo) por círculo acima do 5º.', tags: ['dano'],
   },
   {
-    id: 'sp-revivificar', level: 5, name: 'Ressurreição (Reencarnar)', school: 'Necromancia',
+    id: 'sp-revivificar', level: 5, name: 'Reviver os Mortos', school: 'Necromancia',
     castingTime: '1 hora', range: 'Toque', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['cleric', 'druid'],
-    desc: 'Traz de volta uma criatura morta há até 10 dias, restaurando-a com todos os PV.', tags: ['cura', 'utilidade'],
+    classes: ['bard', 'cleric', 'paladin'], material: 'diamante de 500 po (consumido)',
+    desc: 'Traz de volta uma criatura morta há até 10 dias, com 1 PV; cura venenos e doenças não mágicas, mas não repõe membros. Sofre −4 em testes que diminui a cada descanso longo.', tags: ['cura', 'utilidade'],
   },
   {
     id: 'sp-dominar', level: 5, name: 'Dominar Pessoa', school: 'Encantamento',
@@ -441,10 +442,11 @@ export const SPELLS: Spell[] = [
     higher: 'O dano aumenta em +3d6 por círculo acima do 6º.', tags: ['dano'],
   },
   {
-    id: 'sp-curargrupo', level: 6, name: 'Cura em Massa', school: 'Evocação',
+    id: 'sp-curargrupo', level: 5, name: 'Curar Ferimentos em Massa', school: 'Evocação',
     castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Instantânea',
-    classes: ['cleric'], heal: '3d8 + mod.', area: 'até 6 criaturas',
-    desc: 'Energia curativa flui para até seis criaturas à sua escolha em um raio de 9 m.', tags: ['cura'],
+    classes: ['bard', 'cleric', 'druid'], heal: '3d8 + mod.', area: 'até 6 criaturas',
+    desc: 'Energia curativa flui para até seis criaturas à sua escolha numa esfera de 9 m.',
+    higher: 'A cura aumenta em +1d8 por círculo acima do 5º.', tags: ['cura'],
   },
   {
     id: 'sp-teletransporte', level: 7, name: 'Teletransporte', school: 'Conjuração',
@@ -472,6 +474,9 @@ export const SPELLS: Spell[] = [
   },
 ];
 
+/** Todas as magias do Livro do Jogador (base + restante do PHB). */
+export const SPELLS: Spell[] = [...BASE_SPELLS, ...PHB_SPELLS];
+
 export const SPELL_BY_ID: Record<string, Spell> = Object.fromEntries(
   SPELLS.map((s) => [s.id, s]),
 );
@@ -493,10 +498,23 @@ export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
  * 1º círculo a classe conhece/prepara no nível (antes pegava as 4 primeiras
  * da lista — que eram todas truques).
  */
+/** Escolhas clássicas de iniciante por classe (vêm primeiro; o resto completa em ordem alfabética). */
+const STARTER: Record<string, string[]> = {
+  bard: ['sp-zombaria', 'sp-ilusao', 'sp-palavracura', 'phb-dissonant-whispers', 'sp-fadas', 'sp-sono'],
+  cleric: ['sp-chama', 'sp-orientacao', 'sp-luz', 'sp-curar', 'sp-bencao', 'phb-guiding-bolt', 'sp-palavracura'],
+  druid: ['sp-produzirchama', 'sp-orientacao', 'sp-curar', 'phb-entangle', 'sp-fadas', 'phb-goodberry'],
+  sorcerer: ['sp-firebolt', 'sp-raygelo', 'sp-maosmagicas', 'sp-prestidigitacao', 'sp-misseis', 'sp-escudo'],
+  warlock: ['sp-eldritch', 'sp-ilusao', 'phb-hex', 'phb-armor-agathys'],
+  wizard: ['sp-firebolt', 'sp-maosmagicas', 'sp-prestidigitacao', 'sp-misseis', 'sp-escudo', 'sp-armaduraarcana', 'sp-sono', 'sp-detectar', 'phb-find-familiar'],
+};
+
 export function defaultPreparedForClass(classId: string, maxCircle: number, cantrips = 2, spells = 2): string[] {
   const list = spellsForClass(classId, Math.min(1, maxCircle));
+  const pref = STARTER[classId] ?? [];
+  const rank = (id: string) => (pref.includes(id) ? pref.indexOf(id) : pref.length);
+  const ordered = [...list].sort((a, b) => rank(a.id) - rank(b.id));
   return [
-    ...list.filter((s) => s.level === 0).slice(0, Math.max(0, cantrips)),
-    ...list.filter((s) => s.level === 1).slice(0, Math.max(0, spells)),
+    ...ordered.filter((s) => s.level === 0).slice(0, Math.max(0, cantrips)),
+    ...ordered.filter((s) => s.level === 1).slice(0, Math.max(0, spells)),
   ].map((s) => s.id);
 }
