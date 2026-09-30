@@ -15,6 +15,9 @@ export function sb() {
 /** Erros do banco em português (a RPC já manda a frase pronta). */
 export function rpcError(error: { message: string; code?: string } | null): Error | null {
   if (!error) return null;
+  if (/row-level security|JWT|Faça login/i.test(error.message)) {
+    return new Error('Sua sessão na nuvem expirou. Toque em Sair e entre de novo com sua conta.');
+  }
   if (/function .* does not exist|Could not find the function/i.test(error.message)) {
     return new Error('O banco ainda não tem a sessão ao vivo — rode supabase/multiplayer_session.sql (docs/SUPABASE.md seção 6).');
   }

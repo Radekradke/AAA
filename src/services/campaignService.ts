@@ -15,6 +15,26 @@ function sb() {
   return client;
 }
 
+const SESSION_LOST = 'Sua sessão na nuvem expirou (isso acontece, por exemplo, quando o Supabase fica pausado). Toque em Sair e entre de novo com sua conta — suas fichas continuam salvas no aparelho.';
+
+/**
+ * Confere a sessão REAL do Supabase antes de gravar. O app lembra o usuário
+ * localmente, mas o token pode ter expirado: aí o banco recebe a escrita como
+ * anônimo e o RLS recusa ("new row violates row-level security policy").
+ */
+async function sessionUserId(expected?: string): Promise<string> {
+  const { data, error } = await sb().auth.getUser();
+  const id = data.user?.id;
+  if (error || !id || (expected && expected !== id)) throw new Error(SESSION_LOST);
+  return id;
+}
+
+/** Erros do banco em português; RLS recusando quase sempre é sessão perdida. */
+function dbError(error: { message: string }): Error {
+  if (/row-level security|JWT|not authenticated|Faça login/i.test(error.message)) return new Error(SESSION_LOST);
+  return new Error(error.message);
+}
+
 function token(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => b.toString(36).padStart(2, '0').slice(0, 1)).join('') +
     Date.now().toString(36).slice(-4);
@@ -22,10 +42,11 @@ function token(): string {
 
 export const campaignService = {
   async createCampaign(masterId: string, name: string): Promise<Campaign> {
+    const uid = await sessionUserId(masterId);
     const now = Date.now();
-    const row = { master_id: masterId, name: name.trim(), created_at: now, updated_at: now };
+    const row = { master_id: uid, name: name.trim(), created_at: now, updated_at: now };
     const { data, error } = await sb().from('campaigns').insert(row).select().single();
-    if (error) throw new Error(error.message);
+    if (error) throw dbError(error);
     return mapCampaign(data);
   },
 
@@ -57,16 +78,18 @@ export const campaignService = {
     const client = sb();
     const { data: existing } = await client.from('invite_links').select('*').eq('campaign_id', campaign.id).limit(1);
     if (existing?.length) return mapInvite(existing[0]);
-    const row = { campaign_id: campaign.id, token: token(), created_by: userId, expires_at: null, max_uses: null, uses: 0 };
+    const uid = await sessionUserId(userId);
+    const row = { campaign_id: campaign.id, token: token(), created_by: uid, expires_at: null, max_uses: null, uses: 0 };
     const { data, error } = await client.from('invite_links').insert(row).select().single();
-    if (error) throw new Error(error.message);
+    if (error) throw dbError(error);
     return mapInvite(data);
   },
 
   /** Entra numa campanha pelo token do convite (RPC segura no banco). */
   async joinByToken(inviteToken: string): Promise<string> {
+    await sessionUserId();
     const { data, error } = await sb().rpc('join_campaign', { invite_token: inviteToken });
-    if (error) throw new Error(error.message);
+    if (error) throw dbError(error);
     return data as string; // campaign_id
   },
 
@@ -81,9 +104,10 @@ export const campaignService = {
 
   /** Jogador vincula a própria ficha à sala (a ficha precisa existir na nuvem). */
   async shareSheet(campaignId: string, sheetId: string, ownerId: string, permissions: MasterPermission = DEFAULT_MASTER_PERMISSION): Promise<void> {
-    const row = { campaign_id: campaignId, sheet_id: sheetId, owner_id: ownerId, permissions, shared_at: Date.now() };
+    const uid = await sessionUserId(ownerId);
+    const row = { campaign_id: campaignId, sheet_id: sheetId, owner_id: uid, permissions, shared_at: Date.now() };
     const { error } = await sb().from('shared_sheets').upsert(row, { onConflict: 'campaign_id,sheet_id' });
-    if (error) throw new Error(error.message);
+    if (error) throw dbError(error);
   },
 
   async unshareSheet(campaignId: string, sheetId: string): Promise<void> {
