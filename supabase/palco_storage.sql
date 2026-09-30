@@ -2,8 +2,43 @@
 -- Ficha Viva — só o ESPAÇO DE IMAGENS do palco (bucket "campaign-media").
 -- Use se o app disser: falta o espaço de imagens "campaign-media".
 -- Sem "engolir" erros: se algo falhar, o Supabase mostra o motivo exato.
--- Rode depois do supabase/palco.sql (usa fv_media_readable/fv_media_master).
+-- Rode depois do supabase/palco.sql. Traz junto as funções de permissão,
+-- então funciona mesmo se o palco.sql tiver parado no meio.
 -- =====================================================================
+
+-- 0) funções de permissão (quem é mestre da pasta / quem já pode ver a imagem)
+alter table public.scene_tokens add column if not exists image_path text;
+
+create or replace function public.fv_media_master(p_name text)
+returns boolean language sql security definer stable set search_path = public as $fn$
+  select exists (select 1 from campaigns c where c.id::text = split_part(p_name, '/', 1) and c.master_id = auth.uid());
+$fn$;
+
+create or replace function public.fv_media_readable(p_name text)
+returns boolean language sql security definer stable set search_path = public as $fn$
+  select public.fv_media_master(p_name)
+    or exists (
+      select 1 from campaign_scenes s
+       where s.campaign_id::text = split_part(p_name, '/', 1)
+         and s.revealed and public.is_campaign_member(s.campaign_id)
+         and (s.image_path = p_name or s.beats @> jsonb_build_array(jsonb_build_object('path', p_name)))
+    )
+    or exists (
+      select 1 from scene_tokens t join campaign_scenes s on s.id = t.scene_id
+       where t.campaign_id::text = split_part(p_name, '/', 1)
+         and t.image_path = p_name and not t.hidden and s.revealed
+         and public.is_campaign_member(t.campaign_id)
+    )
+    or exists (
+      select 1 from campaign_handouts h
+       where h.campaign_id::text = split_part(p_name, '/', 1)
+         and h.image_path = p_name and h.shown_at is not null
+         and public.is_campaign_member(h.campaign_id)
+         and (h.recipients is null or auth.uid() = any (h.recipients))
+    );
+$fn$;
+grant execute on function public.fv_media_master(text) to authenticated;
+grant execute on function public.fv_media_readable(text) to authenticated;
 
 -- 1) o bucket (privado, até 10 MB, só imagens)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
