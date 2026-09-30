@@ -10,7 +10,10 @@ import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
 import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
 import type { ContainerId, MoveResult } from '@/engine/inventory';
-import { spellSlotsForClass, buildResources } from '@/engine/progression';
+import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
+import { characterResources, syncResources } from '@/engine/classResources';
+import { applyChoicePicks } from '@/engine/classChoices';
+import { grantChoiceEffects } from '@/engine/choiceEffects';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
 import type { LevelUpPlan } from '@/engine/levelUp';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -81,6 +84,8 @@ interface CharacterState {
   editCharacter: (id: string, patch: Partial<Character>) => void;
   /** Evolução guiada (aba Evoluir): valida e aplica um plano de nível. */
   levelUp: (id: string, plan: LevelUpPlan) => { ok: boolean; errors: string[] };
+  /** Preenche escolhas de classe pendentes (ex.: ficha antiga sem Estilo de Luta). */
+  setClassChoices: (id: string, picks: Record<string, string[]>) => void;
   toggleInspiration: (id: string) => void;
   /** Pontos de Inspiração: ganhar (+1), gastar (−1) ou ajustar direto. */
   gainInspiration: (id: string) => void;
@@ -395,6 +400,7 @@ export const useCharacterStore = create<CharacterState>()(
         },
         toggleSpellSlot(id, level, index) {
           mutate(id, (c) => {
+            if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
             const slot = c.combat.spellSlots[level];
             if (!slot) return;
             // clicar no pip n alterna: se já gasto até n, devolve; senão gasta até n
@@ -421,10 +427,9 @@ export const useCharacterStore = create<CharacterState>()(
         shortRest(id) {
           const char = get().getCharacter(id);
           if (!char) return;
-          const cls = getClass(char.classId);
           mutate(id, (c) => {
-            for (const r of cls.resources ?? []) {
-              if (r.recharge === 'short') c.combat.resources[r.id] = r.max;
+            for (const r of characterResources(c)) {
+              if (r.recharge === 'short' && !r.unlimited) c.combat.resources[r.id] = r.max;
             }
             // magias de item com recarga em descanso curto voltam
             const uses = { ...(c.combat.itemSpellUses ?? {}) };
@@ -440,7 +445,6 @@ export const useCharacterStore = create<CharacterState>()(
           const char = get().getCharacter(id);
           if (!char) return;
           const derived = deriveCharacter(char);
-          const cls = getClass(char.classId);
           mutate(id, (c) => {
             c.hpCurrent = derived.maxHp;
             c.combat.hpTemp = 0;
@@ -458,10 +462,8 @@ export const useCharacterStore = create<CharacterState>()(
               derived.hitDiceMax,
               c.combat.hitDiceRemaining + Math.max(1, Math.floor(derived.hitDiceMax / 2)),
             );
-            for (const r of cls.resources ?? []) c.combat.resources[r.id] = r.max;
-            for (const lv of Object.keys(c.combat.spellSlots)) {
-              c.combat.spellSlots[Number(lv)].used = 0;
-            }
+            c.combat.resources = syncResources(c, c.combat.resources, true);
+            c.combat.spellSlots = syncSpellSlots(c, true);
           });
         },
         addJournalEntry(id) {
@@ -533,7 +535,7 @@ export const useCharacterStore = create<CharacterState>()(
               ? Math.min(newLevel, c.combat.hitDiceRemaining + (newLevel - char.level))
               : Math.min(newLevel, c.combat.hitDiceRemaining);
             // espaços de magia
-            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const slotMax = spellSlotsFor(c);
             const nextSlots: typeof c.combat.spellSlots = {};
             for (const [circle, max] of Object.entries(slotMax)) {
               const used = leveledUp ? 0 : c.combat.spellSlots[Number(circle)]?.used ?? 0;
@@ -541,12 +543,7 @@ export const useCharacterStore = create<CharacterState>()(
             }
             c.combat.spellSlots = nextSlots;
             // recursos: ao subir restaura tudo; ao descer, mantém dentro do novo máximo
-            const resMax = buildResources(c.classId, newLevel);
-            const nextRes: Record<string, number> = {};
-            for (const [rid, max] of Object.entries(resMax)) {
-              nextRes[rid] = leveledUp ? max : Math.min(c.combat.resources[rid] ?? max, max);
-            }
-            c.combat.resources = nextRes;
+            c.combat.resources = syncResources(c, c.combat.resources, leveledUp);
           });
         },
         levelUp(id, plan) {
@@ -581,6 +578,12 @@ export const useCharacterStore = create<CharacterState>()(
               }
             }
 
+            // escolhas de classe (Metamagia, Estilo de Luta, Manobras…) e seus efeitos na ficha
+            if (plan.choices || plan.replace) {
+              applyChoicePicks(c, plan.choices ?? {}, plan.replace ?? {});
+              grantChoiceEffects(c, plan.choices ?? {});
+            }
+
             c.levelHistory.push({
               level: newLevel,
               classId: plan.classId,
@@ -590,20 +593,20 @@ export const useCharacterStore = create<CharacterState>()(
               features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? c.subclassId),
               asi: plan.asi,
               subclassId: plan.subclassId,
+              choices: plan.choices && Object.keys(plan.choices).length ? plan.choices : undefined,
               at: Date.now(),
             });
 
             // dados de vida, espaços de magia e recursos acompanham o novo nível
             c.combat.hitDiceRemaining = Math.min(newLevel, c.combat.hitDiceRemaining + 1);
-            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const slotMax = spellSlotsFor(c);
             const nextSlots: typeof c.combat.spellSlots = {};
             for (const [circle, max] of Object.entries(slotMax)) {
               const used = c.combat.spellSlots[Number(circle)]?.used ?? 0;
               nextSlots[Number(circle)] = { used: Math.min(used, max), max };
             }
             c.combat.spellSlots = nextSlots;
-            const resMax = buildResources(c.classId, newLevel);
-            for (const [rid, max] of Object.entries(resMax)) c.combat.resources[rid] = max;
+            c.combat.resources = syncResources(c, c.combat.resources, true);
           });
 
           // PV atual sobe junto com o novo máximo
@@ -614,6 +617,13 @@ export const useCharacterStore = create<CharacterState>()(
             if (gain) mutate(id, (c) => { c.hpCurrent = Math.min(afterMax, c.hpCurrent + gain); });
           }
           return { ok: true, errors: [] };
+        },
+        setClassChoices(id, picks) {
+          mutate(id, (c) => {
+            Object.assign(c, ensureCharacterV2(c));
+            applyChoicePicks(c, picks);
+            grantChoiceEffects(c, picks);
+          });
         },
         toggleInspiration(id) {
           mutate(id, (c) => setInspirationCount(c, inspirationCount(c) > 0 ? 0 : 1));
@@ -636,6 +646,11 @@ export const useCharacterStore = create<CharacterState>()(
         editCharacter(id, patch) {
           mutate(id, (c) => {
             Object.assign(c, patch);
+            // subclasse conjuradora (Cavaleiro/Trapaceiro Arcano) muda os espaços e recursos
+            if ('subclassId' in patch) {
+              c.combat.spellSlots = syncSpellSlots(c);
+              c.combat.resources = syncResources(c, c.combat.resources, false);
+            }
           });
           // garante PV dentro do novo máximo após editar atributos/nível
           const updated = get().getCharacter(id);

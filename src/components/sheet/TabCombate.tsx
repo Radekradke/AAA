@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { InitiativeButton } from './InitiativeButton';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { getClass } from '@/data/classes';
 import { damageExpr } from '@/engine/combat';
 import { modStr } from '@/engine/dice';
+import { characterResources } from '@/engine/classResources';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
@@ -27,7 +28,6 @@ export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
   const { attack, damage, rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
-  const cls = getClass(char.classId);
   const [amt, setAmt] = useState('');
   // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
   const [concDC, setConcDC] = useState<number | null>(null);
@@ -233,7 +233,8 @@ export function TabCombate({ char, derived }: TabProps) {
 
       {/* Economia de Turno */}
       <Panel>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13 }}>
+        <InitiativeButton char={char} derived={derived} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13, marginTop: 14 }}>
           <div className="fv-label">Economia de Turno</div>
           <button onClick={() => store.resetTurn(char.id)} style={{ cursor: 'pointer', fontSize: 11, color: 'var(--acc)', background: 'none', border: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
             ↺ Novo turno
@@ -288,20 +289,24 @@ export function TabCombate({ char, derived }: TabProps) {
       <Panel>
         <div className="fv-label" style={{ marginBottom: 13 }}>Recursos de Combate</div>
 
-        {(cls.resources ?? []).map((res) => {
-          const left = char.combat.resources[res.id] ?? 0;
+        {characterResources(char).map((res) => {
+          const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
           return (
-            <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>{res.label}</div>
+            <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>
+                  {res.label}
+                  {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>{res.die}</span>}
+                </div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
               </div>
-              <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
+              <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
                 <button
+                  disabled={res.unlimited}
                   onClick={() => store.setResource(char.id, res.id, left > 0 ? left - 1 : res.max)}
-                  style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (left > 0 ? t.gold : t.line), color: left > 0 ? t.gold : t.muted, background: left > 0 ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.26)' }}
+                  style={{ cursor: res.unlimited ? 'default' : 'pointer', flex: 'none', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (res.unlimited || left > 0 ? t.gold : t.line), color: res.unlimited || left > 0 ? t.gold : t.muted, background: 'var(--lift)' }}
                 >
-                  {left} / {res.max}
+                  {res.unlimited ? '∞' : `${left} / ${res.max}`}
                 </button>
               </LoreTooltip>
             </div>

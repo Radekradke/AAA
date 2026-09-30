@@ -28,8 +28,9 @@ export function RollOverlay() {
   const flickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // natural do dado (face que "para"): 1d20 mostra o dado; vários dados mostram a soma
-  const naturalFace = roll ? (roll.rolls.length === 1 ? roll.rolls[0] : roll.rolls.reduce((a, b) => a + b, 0)) : 0;
+  // natural do dado (face que "para"): 1d20 mostra o dado (com vantagem/desvantagem, o escolhido);
+  // vários dados mostram a soma
+  const naturalFace = roll ? (roll.rolls.length === 1 ? roll.rolls[0] : roll.total - roll.modifier) : 0;
 
   useEffect(() => {
     rollIdRef.current = roll?.id ?? null;

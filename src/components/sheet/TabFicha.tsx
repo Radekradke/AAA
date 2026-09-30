@@ -16,6 +16,7 @@ import { calculateToolCheck } from '@/engine/toolCheck';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
+import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { SkillsModal } from './SkillsModal';
 
 /**
@@ -317,6 +318,9 @@ export function TabFicha({ char, derived }: TabProps) {
           )}
         </Panel>
       </div>
+
+      {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
+      <ClassFeaturesPanel char={char} />
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>

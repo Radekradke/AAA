@@ -10,6 +10,7 @@ import { toolLabel } from '@/data/tools';
 import { defaultPreparedForClass } from '@/data/spells';
 import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
+import { resourceMaxMap } from './classResources';
 import { buildLoadout, defaultSelection } from './loadout';
 
 /** Valores do Array Padrão de D&D 5e. */
@@ -205,6 +206,8 @@ export function finalizeCharacter(draft: Character): Character {
     draft: false,
     updatedAt: Date.now(),
   };
+  // recursos calculados com o personagem pronto (nível, atributos, subclasse)
+  finalized.combat.resources = resourceMaxMap(finalized);
 
   return finalized;
 }

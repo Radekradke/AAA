@@ -4,13 +4,14 @@ import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { characterResources } from '@/engine/classResources';
+import { syncSpellSlots } from '@/engine/spellcasting';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { getClass } from '@/data/classes';
 import { SPELL_BY_ID } from '@/data/spells';
 import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { CONDITIONS, getCondition } from '@/data/conditions';
@@ -19,6 +20,7 @@ import { calculateToolCheck } from '@/engine/toolCheck';
 import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
+import { InitiativeButton } from './InitiativeButton';
 import { inspirationCount } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
@@ -34,7 +36,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const store = useCharacterStore();
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check, attack, damage } = useDiceRoller();
-  const cls = getClass(char.classId);
+  const resources = characterResources(char);
   const bd = derived.breakdowns;
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [condPick, setCondPick] = useState('');
@@ -46,7 +48,8 @@ export function TabMesa({ char, derived }: TabProps) {
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
   const prepared = char.preparedSpells.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level);
-  const slotLevels = Object.keys(char.combat.spellSlots).map(Number).sort((a, b) => a - b);
+  const slotView = syncSpellSlots(char);
+  const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
   // teste contra a morte: rola e registra automaticamente (PHB 2014)
   const rollDeathSave = () => {
@@ -171,6 +174,7 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* economia de turno: ação, bônus, reação e movimento */}
         <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <InitiativeButton char={char} derived={derived} compact />
           {([
             { k: 'action' as const, label: 'Ação' },
             { k: 'bonus' as const, label: 'Bônus' },
@@ -332,7 +336,7 @@ export function TabMesa({ char, derived }: TabProps) {
               </span>
             </div>
             {slotLevels.map((lv) => {
-              const slot = char.combat.spellSlots[lv];
+              const slot = slotView[lv];
               return (
                 <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0' }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
@@ -368,18 +372,26 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* Recursos + descansos */}
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Recursos &amp; Descanso</div>
-          {(cls.resources ?? []).map((res) => {
-            const left = char.combat.resources[res.id] ?? 0;
+          {resources.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--muted)', padding: '4px 0 6px' }}>Nenhum recurso de classe neste nível.</div>}
+          {resources.map((res) => {
+            const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
             return (
               <div key={res.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
-                <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
-                  <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>{res.label}</span>
+                <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
+                  <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>
+                    {res.label}
+                    {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>{res.die}</span>}
+                  </span>
                 </LoreTooltip>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: left > 0 ? t.gold : 'var(--muted)' }}>
-                  {left}/{res.max}
+                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
+                  {res.unlimited ? '∞' : `${left}/${res.max}`}
                 </span>
-                <QuickBtn color={t.danger} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
-                <QuickBtn color={t.acc} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
+                {!res.unlimited && (
+                  <>
+                    <QuickBtn color={t.danger} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
+                    <QuickBtn color={t.acc} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
+                  </>
+                )}
               </div>
             );
           })}

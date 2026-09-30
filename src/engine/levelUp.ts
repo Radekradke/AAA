@@ -8,6 +8,8 @@ import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
 import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
+import { specsAt, validateChoicePicks } from './classChoices';
+import type { ReplacePick } from './classChoices';
 
 export const MAX_LEVEL = 20;
 export const ABILITY_CAP = 20;
@@ -25,6 +27,10 @@ export interface LevelUpPlan {
   hpValue: number;
   asi?: AsiChoice;
   subclassId?: string;
+  /** Escolhas de classe deste nível (chave `classe.chave` → ids novos). */
+  choices?: Record<string, string[]>;
+  /** Trocas permitidas (ex.: uma Manobra antiga por uma nova). */
+  replace?: Record<string, ReplacePick | undefined>;
 }
 
 /** Nível atual do personagem numa classe específica. */
@@ -93,6 +99,10 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
     errors.push('Escolha a subclasse deste nível antes de confirmar.');
   }
 
+  // escolhas de classe/subclasse do novo nível (Metamagia, Estilo de Luta, Manobras…)
+  const subForLevel = plan.subclassId ?? (plan.classId === char.classId ? char.subclassId : null);
+  errors.push(...validateChoicePicks(char, specsAt(plan.classId, newClassLevel, subForLevel), plan.choices, plan.replace));
+
   return errors;
 }
 
@@ -151,9 +161,11 @@ export function effectiveAbilities(char: Character): AbilityScores {
 
 /** Características ganhas ao atingir um nível de classe (classe + subclasse). */
 export function featuresGained(classId: string, classLevel: number, subclassId: string | null): string[] {
-  const base = featuresAt(classId, classLevel);
   const sub = getSubclass(subclassId ?? undefined);
-  const subFeatures = sub && sub.classId === classId ? sub.features[classLevel] ?? [] : [];
+  const hasSub = !!sub && sub.classId === classId;
+  // com subclasse escolhida, o marcador genérico ("Característica de Origem") dá lugar às reais
+  const base = featuresAt(classId, classLevel).filter((f) => !(hasSub && f.startsWith('Característica de ')));
+  const subFeatures = hasSub ? sub!.features[classLevel] ?? [] : [];
   return [...base, ...subFeatures.map((f) => `${f} (${sub!.label})`)];
 }
 

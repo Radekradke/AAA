@@ -1144,6 +1144,177 @@ button:active:not(:disabled) {
   font-weight: 400;
   opacity: 0.6;
 }
+/* ----- escolhas de classe (Evoluir) ----- */
+.fv-choice-picker {
+  margin-top: 16px;
+}
+.fv-choice-picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.fv-choice-picker-head b {
+  font: 700 14px var(--font-display);
+  color: var(--ink);
+}
+.fv-choice-picker-source {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-choice-picker-count {
+  flex: none;
+  font: 700 12px 'Chakra Petch', monospace;
+  color: var(--acc);
+}
+.fv-choice-picker-count.is-done {
+  color: var(--gold);
+}
+.fv-choice-picker-hint {
+  margin: 0 0 9px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-choice-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 8px;
+}
+.fv-choice-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--well);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-choice-opt:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--lift);
+}
+.fv-choice-opt.is-on {
+  border-color: var(--gold);
+  box-shadow: inset 3px 0 0 var(--gold);
+  background: var(--lift);
+}
+.fv-choice-opt:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.fv-choice-opt.is-taken {
+  opacity: 0.55;
+}
+.fv-choice-opt-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.fv-choice-opt-name {
+  font: 700 13.5px var(--font-display);
+}
+.fv-choice-opt.is-on .fv-choice-opt-name {
+  color: var(--gold);
+}
+.fv-choice-opt-tag {
+  flex: none;
+  font: 600 10.5px 'Chakra Petch', monospace;
+  color: var(--muted);
+}
+.fv-choice-opt-desc {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-choice-replace {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-choice-replace .fv-input {
+  width: auto;
+  min-width: 170px;
+  min-height: 38px;
+  padding: 6px 30px 6px 10px;
+  font-size: 12.5px;
+}
+.fv-pending-card {
+  border-color: color-mix(in srgb, #e0a93e, transparent 45%);
+}
+
+/* ----- características de classe (Ficha) ----- */
+.fv-feat-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.fv-feat-choice {
+  display: grid;
+  grid-template-columns: minmax(110px, 26%) minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+.fv-feat-choice-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-feat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.fv-feat-chips .fv-chip {
+  white-space: normal;
+  text-align: left;
+  line-height: 1.25;
+}
+.fv-feat-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.fv-feat-row:first-child {
+  border-top: 0;
+}
+.fv-feat-lv {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
+  font: 700 12px 'Chakra Petch', monospace;
+  color: var(--gold);
+}
+@media (max-width: 640px) {
+  .fv-feat-choice {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
 /* ----- painel de vida (Mesa) ----- */
 .fv-spell-warn {
   margin: 0 0 12px;
@@ -3302,3 +3473,55 @@ body.fv-dragging .fv-screen-scroll {
     transition: none;
   }
 }
+
+/* ===== Botão Rolar Iniciativa ===== */
+.fv-init-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--acc) 55%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 16%, var(--panel)), var(--panel));
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.fv-init-btn:hover { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
+.fv-init-btn:active { transform: translateY(1px); }
+.fv-init-btn:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.fv-init-btn-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  font-size: 16px;
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent);
+}
+.fv-init-btn-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; flex: 1; }
+.fv-init-btn-text b { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.04em; }
+.fv-init-btn-text small { font-family: 'Chakra Petch', monospace; font-size: 11px; color: var(--muted); }
+.fv-init-btn-last {
+  flex: none;
+  min-width: 38px;
+  padding: 4px 8px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+}
+.fv-init-btn.is-compact { width: auto; flex: 1 1 170px; min-height: 36px; padding: 4px 10px 4px 6px; gap: 8px; }
+.fv-init-btn.is-compact .fv-init-btn-icon { width: 26px; height: 26px; font-size: 13px; }
+.fv-init-btn.is-compact .fv-init-btn-text b { font-size: 12px; }
+.fv-init-btn.is-compact .fv-init-btn-last { font-size: 15px; min-width: 32px; padding: 2px 6px; }
+@media (prefers-reduced-motion: reduce) { .fv-init-btn { transition: none; } }

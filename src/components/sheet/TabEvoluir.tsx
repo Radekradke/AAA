@@ -27,6 +27,11 @@ import {
   validateLevelUp,
 } from '@/engine/levelUp';
 import { proficiencyBonus } from '@/engine/modifiers';
+import { catalogFor, chosenFor, optionLabel, specsAt } from '@/engine/classChoices';
+import type { ReplacePick, ResolvedSpec } from '@/engine/classChoices';
+import { casterOf } from '@/engine/spellcasting';
+import { ChoicePicker } from './ChoicePicker';
+import { PendingChoices } from './PendingChoices';
 import { modStr } from '@/engine/dice';
 
 type AsiMode = 'none' | 'plus2' | 'plus11' | 'feat';
@@ -64,6 +69,21 @@ export function TabEvoluir({ char, derived }: TabProps) {
   const needsSubclass = newClassLevel >= subLevel && !char.subclassId;
   const [subPick, setSubPick] = useState('');
 
+  // escolhas de classe do novo nível (Metamagia, Estilo de Luta, Manobras…)
+  const [picks, setPicks] = useState<Record<string, string[]>>({});
+  const [replace, setReplace] = useState<Record<string, ReplacePick | undefined>>({});
+  const subForLevel = needsSubclass && newClassLevel === subLevel ? subPick || null : classId === char.classId ? char.subclassId : null;
+  const choiceGroups = useMemo(() => {
+    const groups = new Map<string, { spec: ResolvedSpec; need: number }>();
+    for (const spec of specsAt(classId, newClassLevel, subForLevel)) {
+      const cur = groups.get(spec.storeKey);
+      groups.set(spec.storeKey, { spec: cur?.spec ?? spec, need: (cur?.need ?? 0) + spec.count });
+    }
+    return [...groups.values()];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId, newClassLevel, subForLevel, char]);
+  const choiceKeys = new Set(choiceGroups.map((g) => g.spec.storeKey));
+
   const conMod = derived.abilities.con.mod;
   const totals = effectiveAbilities(char);
 
@@ -82,8 +102,11 @@ export function TabEvoluir({ char, derived }: TabProps) {
       hpValue,
       asi,
       subclassId: needsSubclass && newClassLevel === subLevel && subPick ? subPick : undefined,
+      choices: Object.fromEntries(Object.entries(picks).filter(([k]) => choiceKeys.has(k))),
+      replace: Object.fromEntries(Object.entries(replace).filter(([k, r]) => choiceKeys.has(k) && r?.from && r.to)),
     };
-  }, [classId, hpMethod, hpValue, asiHere, asiMode, asiPicks, featId, featAbility, needsSubclass, newClassLevel, subLevel, subPick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId, hpMethod, hpValue, asiHere, asiMode, asiPicks, featId, featAbility, needsSubclass, newClassLevel, subLevel, subPick, picks, replace, choiceGroups]);
 
   const errors = atCap ? [`Nível máximo (${MAX_LEVEL}) alcançado.`] : validateLevelUp(char, plan);
   const pendingChoice =
@@ -92,7 +115,37 @@ export function TabEvoluir({ char, derived }: TabProps) {
     (asiHere && asiMode === 'none') ||
     (asiHere && asiMode === 'plus2' && asiPicks.length !== 1) ||
     (asiHere && asiMode === 'plus11' && asiPicks.length !== 2) ||
-    (asiHere && asiMode === 'feat' && (!featId || (getFeat(featId)?.abilityChoice && !featAbility)));
+    (asiHere && asiMode === 'feat' && (!featId || (getFeat(featId)?.abilityChoice && !featAbility))) ||
+    choiceGroups.some((g) => (picks[g.spec.storeKey]?.length ?? 0) !== g.need) ||
+    Object.values(replace).some((r) => r?.from && !r.to);
+
+  // magias novas deste nível: compara o perfil de conjurador de agora com o do próximo nível
+  const spellNews = (() => {
+    if (classId !== char.classId) return '';
+    const next = {
+      ...char,
+      level: newLevel,
+      classLevels: char.classLevels.map((c) => (c.classId === classId ? { ...c, level: c.level + 1 } : c)),
+      subclassId: subForLevel ?? char.subclassId,
+    };
+    const now = casterOf(char, 0);
+    const after = casterOf(next, 0);
+    if (!after) return '';
+    const dc = after.cantrips - (now?.cantrips ?? 0);
+    const ds = after.kind === 'prepared' ? 0 : after.guide.count - (now?.guide.count ?? 0);
+    const parts = [
+      ds > 0 ? `+${ds} ${after.kind === 'spellbook' ? `magia${ds > 1 ? 's' : ''} no grimório` : `magia${ds > 1 ? 's' : ''} conhecida${ds > 1 ? 's' : ''}`}` : '',
+      dc > 0 ? `+${dc} truque${dc > 1 ? 's' : ''}` : '',
+    ].filter(Boolean);
+    const newCircle = Math.max(0, ...Object.keys(after.slots).map(Number)) > Math.max(0, ...Object.keys(now?.slots ?? {}).map(Number));
+    const lines = [
+      !now ? `Você passa a conjurar (${after.via ?? getClass(classId).label}).` : '',
+      parts.length ? `${parts.join(' e ')}.` : '',
+      newCircle ? 'Novo círculo de magia liberado.' : '',
+      after.kind === 'known' && now ? 'Pode trocar 1 magia que conhece por outra da lista.' : '',
+    ].filter(Boolean);
+    return lines.join(' ');
+  })();
 
   const features = featuresGained(classId, newClassLevel, plan.subclassId ?? char.subclassId);
   const profNow = proficiencyBonus(char.level);
@@ -113,6 +166,8 @@ export function TabEvoluir({ char, derived }: TabProps) {
       setFeatId('');
       setFeatAbility('');
       setSubPick('');
+      setPicks({});
+      setReplace({});
     }
   };
 
@@ -138,6 +193,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
   return (
     <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(13px,1.5vw,18px)' }}>
+      <PendingChoices char={char} />
       {/* status + configurações da campanha */}
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -244,6 +300,30 @@ export function TabEvoluir({ char, derived }: TabProps) {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* escolhas de classe deste nível */}
+          {choiceGroups.map(({ spec, need }) => (
+            <ChoicePicker
+              key={spec.storeKey}
+              label={spec.label}
+              hint={spec.hint}
+              source={`${spec.source} · nível ${spec.classLevel}`}
+              options={catalogFor(spec)}
+              taken={chosenFor(char, spec.storeKey)}
+              need={need}
+              value={picks[spec.storeKey] ?? []}
+              onChange={(next) => setPicks((p) => ({ ...p, [spec.storeKey]: next }))}
+              canReplace={spec.canReplace}
+              replace={replace[spec.storeKey]}
+              onReplace={(r) => setReplace((p) => ({ ...p, [spec.storeKey]: r }))}
+            />
+          ))}
+
+          {spellNews && (
+            <div className="fv-spell-warn" style={{ marginTop: 16, borderColor: 'var(--line-strong)' }}>
+              <b style={{ color: 'var(--acc)' }}>Magias:</b> {spellNews} Escolha na aba Magias depois de confirmar.
             </div>
           )}
 
@@ -490,6 +570,11 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
         <div style={{ marginTop: 3, fontSize: 12, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
           {hpLabel}: {record.hpValue} ({methodLabel}) {conMod >= 0 ? '+' : ''}{conMod} CON
         </div>
+        {record.choices && Object.entries(record.choices).map(([key, ids]) => (
+          <div key={key} style={{ marginTop: 3, fontSize: 12, color: 'var(--acc)' }}>
+            {ids.map((id) => optionLabel(key, id)).join(', ')}
+          </div>
+        ))}
         {sub && record.subclassId && (
           <div style={{ marginTop: 3, fontSize: 12, color: t.gold }}>Subclasse escolhida: {sub.label}</div>
         )}

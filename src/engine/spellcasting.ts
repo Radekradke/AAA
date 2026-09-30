@@ -1,6 +1,8 @@
 import type { Character } from '@/types/character';
-import type { Spell } from '@/types/dnd';
+import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
+import { getClass } from '@/data/classes';
+import { spellSlotsForClass, thirdCasterSlots } from './progression';
 
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
@@ -122,4 +124,89 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
     }
   }
   return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Perfil de conjurador (classe OU subclasse)                          */
+/* ------------------------------------------------------------------ */
+
+/** Magias conhecidas do Cavaleiro Arcano / Trapaceiro Arcano por nível de classe. */
+const THIRD_KNOWN = [0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13];
+/** Níveis em que uma magia pode vir de qualquer escola (em vez das duas da subclasse). */
+const THIRD_FREE_LEVELS = [3, 8, 14, 20];
+
+const THIRD_CASTERS: Record<string, { classId: string; schools: string[]; cantrips: (lv: number) => number; label: string }> = {
+  eldritch: { classId: 'fighter', schools: ['Abjuração', 'Evocação'], cantrips: (lv) => (lv >= 10 ? 3 : 2), label: 'Cavaleiro Arcano' },
+  trickster: { classId: 'rogue', schools: ['Encantamento', 'Ilusão'], cantrips: (lv) => (lv >= 10 ? 4 : 3), label: 'Trapaceiro Arcano' },
+};
+
+export interface CasterInfo {
+  /** Classe dona da lista de magias (Cavaleiro Arcano usa a de mago). */
+  listClass: string;
+  ability: AbilityKey;
+  kind: CasterKind;
+  /** Nível de classe que conta para as tabelas. */
+  level: number;
+  cantrips: number;
+  guide: { count: number; label: string };
+  slots: Record<number, number>;
+  /** Subclasse que concede a conjuração, quando for o caso. */
+  via?: string;
+  /** Restrição de escolas (Cavaleiro/Trapaceiro Arcano). */
+  schools?: { allowed: string[]; free: number };
+}
+
+/**
+ * Como o personagem conjura (ou null). Classes conjuradoras usam as próprias
+ * tabelas; Guerreiro Cavaleiro Arcano e Ladino Trapaceiro Arcano conjuram
+ * pela subclasse (lista de mago, Inteligência, um terço de conjurador).
+ */
+export function casterOf(char: Character, castMod = 0): CasterInfo | null {
+  const cls = getClass(char.classId);
+  const level = char.classLevels?.find((c) => c.classId === char.classId)?.level ?? char.level;
+  if (cls.spellcasting) {
+    const slots = spellSlotsForClass(char.classId, level);
+    return {
+      listClass: char.classId,
+      ability: cls.spellAbility ?? cls.prim,
+      kind: casterKind(char.classId),
+      level,
+      cantrips: cantripsKnown(char.classId, level),
+      guide: spellsKnownOrPrepared(char.classId, level, castMod),
+      slots,
+    };
+  }
+  const third = char.subclassId ? THIRD_CASTERS[char.subclassId] : undefined;
+  if (third && third.classId === char.classId && level >= 3) {
+    return {
+      listClass: 'wizard',
+      ability: 'int',
+      kind: 'known',
+      level,
+      cantrips: third.cantrips(level),
+      guide: { count: THIRD_KNOWN[level - 1] ?? 0, label: 'conhecidas' },
+      slots: thirdCasterSlots(level),
+      via: third.label,
+      schools: { allowed: third.schools, free: THIRD_FREE_LEVELS.filter((l) => level >= l).length },
+    };
+  }
+  return null;
+}
+
+/** Espaços de magia do personagem (classe ou subclasse conjuradora). */
+export function spellSlotsFor(char: Character): Record<number, number> {
+  return casterOf(char)?.slots ?? {};
+}
+
+/**
+ * Ajusta os espaços guardados na ficha ao máximo atual (classe + subclasse
+ * conjuradora). Mantém o que já foi gasto, a menos que `refill`.
+ */
+export function syncSpellSlots(char: Character, refill = false): Character['combat']['spellSlots'] {
+  const next: Character['combat']['spellSlots'] = {};
+  for (const [circle, max] of Object.entries(spellSlotsFor(char))) {
+    const used = refill ? 0 : char.combat.spellSlots?.[Number(circle)]?.used ?? 0;
+    next[Number(circle)] = { used: Math.min(used, max), max };
+  }
+  return next;
 }

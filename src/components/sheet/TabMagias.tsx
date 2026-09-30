@@ -8,7 +8,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
 import { getClass } from '@/data/classes';
-import { casterKind, cantripsKnown, spellsKnownOrPrepared, itemGrantedSpells } from '@/engine/spellcasting';
+import { casterKind, casterOf, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
@@ -27,12 +27,17 @@ export function TabMagias({ char, derived }: TabProps) {
   const [learn, setLearn] = useState<false | 'class' | 'all'>(false);
 
   const cls = getClass(char.classId);
-  const kind = casterKind(char.classId);
-  const isWizard = kind === 'spellbook';
-  const castAbility = cls.spellAbility ?? cls.prim;
+  // conjura pela classe ou pela subclasse (Cavaleiro Arcano / Trapaceiro Arcano: lista de mago, INT)
+  const castAbility = casterOf(char)?.ability ?? cls.spellAbility ?? cls.prim;
   const castMod = derived.abilities[castAbility].mod;
+  const caster = casterOf(char, castMod);
+  const kind = caster?.kind ?? casterKind(char.classId);
+  const isWizard = kind === 'spellbook';
+  const listClass = caster?.listClass ?? char.classId;
 
-  const slotLevels = Object.keys(char.combat.spellSlots).map(Number).sort((a, b) => a - b);
+  // máximos vêm das regras (classe + subclasse); o gasto vem da ficha
+  const slotView = syncSpellSlots(char);
+  const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
   const maxCircle = Math.max(0, ...slotLevels);
 
   const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses]);
@@ -53,8 +58,10 @@ export function TabMagias({ char, derived }: TabProps) {
   const cantripsHave = active.filter((s) => s.level === 0).length;
   const spellsHave = active.filter((s) => s.level >= 1).length;
   const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1).length;
-  const cantripTarget = cantripsKnown(char.classId, char.level);
-  const guide = spellsKnownOrPrepared(char.classId, char.level, castMod);
+  const cantripTarget = caster?.cantrips ?? 0;
+  const guide = caster?.guide ?? { count: 0, label: '—' };
+  // Cavaleiro/Trapaceiro Arcano: quase todas as magias de 2 escolas; algumas livres (níveis 3, 8, 14, 20)
+  const offSchool = caster?.schools ? active.filter((sp) => sp.level >= 1 && !caster.schools!.allowed.includes(sp.school)).length : 0;
   const prepMax = Math.max(1, castMod + (char.classId === 'paladin' ? Math.floor(char.level / 2) : char.level));
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
@@ -154,9 +161,16 @@ export function TabMagias({ char, derived }: TabProps) {
             </div>
           )}
 
+          {caster?.schools && (
+            <div role="note" className="fv-spell-warn" style={offSchool > caster.schools.free ? undefined : { borderColor: 'var(--line)' }}>
+              <b style={offSchool > caster.schools.free ? undefined : { color: 'var(--acc)' }}>{caster.via}:</b> magias de {caster.schools.allowed.join(' ou ')}.
+              {' '}Fora dessas escolas: {offSchool} de {caster.schools.free} permitida{caster.schools.free === 1 ? '' : 's'} (uma a mais nos níveis 3, 8, 14 e 20).
+            </div>
+          )}
+
           {slotLevels.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
           {slotLevels.map((lv) => {
-            const slot = char.combat.spellSlots[lv];
+            const slot = slotView[lv];
             return (
               <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
                 <LoreTooltip info={passiveLore(`${lv}º círculo`, `${slot.max - slot.used}/${slot.max} disponíveis`, 'Cada losango é um espaço. Gastos voltam após descanso longo.', ['Magia', 'Recurso'])}>
@@ -283,8 +297,8 @@ export function TabMagias({ char, derived }: TabProps) {
 
       {learn && (
         <SpellLibrary
-          title={learn === 'all' ? 'Aprender de pergaminho/grimório' : `${learnLabel} magias — ${cls.label}`}
-          spells={(learn === 'all' ? SPELLS : spellsForClass(char.classId, 9)).filter((s) => s.level <= maxCircle)}
+          title={learn === 'all' ? 'Aprender de pergaminho/grimório' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
+          spells={(learn === 'all' ? SPELLS : spellsForClass(listClass, 9)).filter((s) => s.level <= maxCircle)}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}
           onClose={() => setLearn(false)}

@@ -129,6 +129,8 @@ export interface LevelUpRecord {
   asi?: AsiChoice;
   /** Subclasse escolhida neste nível, se aplicável. */
   subclassId?: string;
+  /** Escolhas de classe feitas neste nível (chave `classe.chave` → ids). */
+  choices?: Record<string, string[]>;
   /** Registro sintetizado na migração (média), não escolhido pelo jogador. */
   synthetic?: boolean;
   at: number;
@@ -181,6 +183,11 @@ export interface Character {
   subclassId: string | null;
   /** Talentos escolhidos (ids de data/feats). */
   feats: string[];
+  /**
+   * Escolhas de classe acumuladas (Metamagia, Estilo de Luta, Manobras…):
+   * chave `classe.chave` → ids das opções (ver data/classChoices).
+   */
+  choices?: Record<string, string[]>;
   /** Aumentos de atributo acumulados por ASI/talentos. */
   asiBonuses: Partial<AbilityScores>;
   /** Linha do tempo de evolução, nível a nível. */

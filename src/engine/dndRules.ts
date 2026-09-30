@@ -9,7 +9,7 @@ import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
 import { SKILLS, ABILITY_LABELS } from '@/data/skills';
 import { getItem } from '@/data/items';
-import { spellSlotsForClass } from './progression';
+import { casterOf } from './spellcasting';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown } from './effects';
 import { breakdown, mod } from './effects';
@@ -223,6 +223,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     if (data.acBonus) acParts.push(mod('ac', data.acBonus, it.name, it.homebrew ? 'homebrew' : 'item'));
   }
   if (subBonus?.acBonus) acParts.push(mod('ac', subBonus.acBonus, subclass!.label, 'subclass'));
+  // Estilo de Luta (Guerreiro 1º, Paladino/Patrulheiro 2º, Campeão 10º) — escolhido na aba Evoluir
+  const styles = new Set(
+    Object.entries(char.choices ?? {})
+      .filter(([k]) => k.endsWith('.fightingStyle'))
+      .flatMap(([, ids]) => ids),
+  );
+  if (styles.has('defense') && armor) acParts.push(mod('ac', 1, 'Estilo de Luta: Defesa', 'class', { label: 'usando armadura' }));
   const acBd = breakdown(acParts, acNote);
 
   // ---- PV máximo: linha do tempo (rolagens/média) + CON×nível + linhagem + Durão ----
@@ -265,8 +272,22 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   ]);
 
   // ---- Iniciativa: DES + talentos ----
+  // Meia proficiência em testes sem proficiência (não acumulam; vale o maior):
+  // Pau pra Toda Obra (Bardo 2º, arredonda para baixo, qualquer atributo) e
+  // Atleta Notável (Campeão 7º, arredonda para cima, só FOR/DES/CON).
+  const levelIn = (id: string) => (char.classLevels?.find((c) => c.classId === id)?.level ?? (char.classId === id ? char.level : 0));
+  const jackOfAllTrades = levelIn('bard') >= 2;
+  const remarkableAthlete = char.subclassId === 'champion' && levelIn('fighter') >= 7;
+  const halfProfFor = (ability: AbilityKey): { value: number; label: string } | null => {
+    const ra = remarkableAthlete && (ability === 'str' || ability === 'dex' || ability === 'con') ? Math.ceil(prof / 2) : 0;
+    const jack = jackOfAllTrades ? Math.floor(prof / 2) : 0;
+    if (!ra && !jack) return null;
+    return ra >= jack ? { value: ra, label: 'Atleta Notável' } : { value: jack, label: 'Pau pra Toda Obra' };
+  };
+  const initHalf = halfProfFor('dex');
   const initBd = breakdown([
     mod('initiative', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }),
+    initHalf ? mod('initiative', initHalf.value, initHalf.label, 'class', { label: 'meia proficiência' }) : null,
     ...feats.map((f) => (f.initiativeBonus ? mod('initiative', f.initiativeBonus, f.label, 'feat') : null)),
     subBonus?.initiativeBonus ? mod('initiative', subBonus.initiativeBonus, subclass!.label, 'subclass') : null,
   ]);
@@ -277,7 +298,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const skills: DerivedSkill[] = SKILLS.map((sk) => {
     const proficient = skillProfs.has(sk.key);
     const expertise = proficient && expertiseSet.has(sk.key);
-    const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : 0);
+    const half = proficient ? null : halfProfFor(sk.ability);
+    const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : half?.value ?? 0);
     return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise };
   });
   const perception = skills.find((s) => s.key === 'perception')!;
@@ -311,10 +333,17 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const abilMod = abilities[abilKey].mod;
     const magic = weaponMagicBonus(w);
     const srcType = it.homebrew ? 'homebrew' : 'item';
+    // Duelo: arma corpo a corpo numa mão só, sem outra arma empunhada
+    const heldWeapons = [char.equipped.mainHand, char.equipped.offHand]
+      .map((u) => findEquipped(char, u))
+      .filter((x, i, arr) => x && arr.findIndex((y) => y?.uid === x.uid) === i && resolveItemData(x).weapon);
+    const dueling =
+      styles.has('dueling') && w.range === 'melee' && !w.properties.includes('Duas mãos') && heldWeapons.length === 1;
     const hitBd = breakdown([
       mod('attack', abilMod, ABILITY_LABELS[abilKey], 'ability'),
       mod('attack', prof, 'Bônus de proficiência', 'proficiency'),
       magic ? mod('attack', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
+      styles.has('archery') && w.range === 'ranged' ? mod('attack', 2, 'Estilo de Luta: Arquearia', 'class') : null,
     ]);
     const bonusDamage = w.bonusDamage && w.bonusDamage.dice > 0
       ? { dice: w.bonusDamage.dice, die: w.bonusDamage.die, type: w.bonusDamage.type }
@@ -323,6 +352,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       [
         mod('damage', abilMod, ABILITY_LABELS[abilKey], 'ability'),
         magic ? mod('damage', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
+        dueling ? mod('damage', 2, 'Estilo de Luta: Duelo', 'class') : null,
       ],
       `${w.damageDice}d${w.damageDie} ${w.damageType}${bonusDamage ? ` + ${bonusDamage.dice}d${bonusDamage.die} ${bonusDamage.type}` : ''} + modificadores`,
     );
@@ -344,9 +374,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
 
   // ---- Conjuração ----
-  const isCaster = !!cls.spellcasting && Object.keys(spellSlotsForClass(char.classId, char.level)).length > 0;
+  // conjura pela classe ou pela subclasse (Cavaleiro Arcano / Trapaceiro Arcano → INT)
+  const caster = casterOf(char);
+  const isCaster = !!caster && Object.keys(caster.slots).length > 0;
   // atributo de conjuração pode diferir do primário (ex.: Patrulheiro → SAB)
-  const castAbility = cls.spellAbility ?? cls.prim;
+  const castAbility = caster?.ability ?? cls.spellAbility ?? cls.prim;
   const castMod = abilities[castAbility].mod;
   const dcBd = isCaster
     ? breakdown([
