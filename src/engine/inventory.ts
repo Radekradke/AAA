@@ -24,6 +24,10 @@ export function itemToInventory(item: Item, quantity = 1): InventoryItem {
     armor: item.armor,
     acBonus: item.acBonus,
     attunement: item.attunement,
+    value: item.value,
+    magic: item.magic,
+    heal: item.heal,
+    grantsSpells: item.grantsSpells,
   };
 }
 

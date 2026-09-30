@@ -294,6 +294,29 @@ export interface ArmorData {
   /** Requisito mínimo de Força (penalidade de deslocamento ignorada por simplicidade). */
   strReq?: number;
   stealthDisadvantage?: boolean;
+  /** Armadura mágica +1/+2/+3 (soma na CA). */
+  magicBonus?: number;
+}
+
+/**
+ * Efeitos de itens mágicos (DMG 2014) que a ficha aplica sozinha.
+ * Itens que exigem sintonia só valem sintonizados.
+ */
+export interface MagicEffects {
+  /** CA extra (Manto/Anel de Proteção, Braçadeiras de Defesa…). */
+  ac?: number;
+  /** A CA extra só vale sem armadura e sem escudo (Braçadeiras de Defesa). */
+  unarmoredOnly?: boolean;
+  /** Bônus em todas as salvaguardas. */
+  saves?: number;
+  /** O atributo passa a valer X (se o seu for menor): Manoplas de Força do Ogro, Amuleto da Saúde… */
+  setAbility?: Partial<Record<AbilityKey, number>>;
+  /** Bônus em ataque e CD de magia (Varinha do Mago de Guerra, Bastão do Guardião do Pacto…). */
+  spellAttack?: number;
+  spellDC?: number;
+  /** Deslocamento extra, em metros. */
+  speed?: number;
+  resistances?: string[];
 }
 
 export interface Item {
@@ -309,6 +332,16 @@ export interface Item {
   armor?: ArmorData;
   /** Bônus de CA fixo (escudos, anéis de proteção). */
   acBonus?: number;
+  /** Preço de referência em peças de ouro (Livro do Jogador / Guia do Mestre). */
+  value?: number;
+  /** Subgrupo no catálogo (ex.: "Munição", "Instrumentos", "Poções"). */
+  group?: string;
+  /** Efeitos automáticos de item mágico. */
+  magic?: MagicEffects;
+  /** Poções/consumíveis que curam: dados de cura (ex.: "2d4+2"). */
+  heal?: string;
+  /** Magias que o item concede (varinhas, cajados). */
+  grantsSpells?: import('./character').ItemSpellGrant[];
 }
 
 /** Classes conjuradoras que podem ter uma magia na lista. */

@@ -3872,3 +3872,16 @@ body.fv-dragging .fv-screen-scroll {
 .fv-cast-pop .fv-atk-chip.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .fv-cast-pop .fv-atk-chip:disabled { opacity: 0.45; cursor: default; }
 .fv-atk-fixed { font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--gold) 50%, transparent); color: var(--gold); }
+
+/* Adicionar item: subgrupos, encantamento +1/+2/+3 e sintonia */
+.fv-picker-subs { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: thin; }
+.fv-picker-subs button, .fv-picker-enchant button {
+  flex: none; cursor: pointer; font-size: 11.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--muted); white-space: nowrap;
+}
+.fv-picker-subs button.is-on, .fv-picker-enchant button.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.fv-picker-enchant { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding: 8px 10px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--gold) 40%, transparent); }
+.fv-picker-enchant > span { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.fv-picker-enchant small { font-size: 11px; color: var(--gold); }
+.fv-picker-added { position: sticky; top: 0; z-index: 2; margin-bottom: 8px; padding: 7px 12px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; color: #3FC56B; background: color-mix(in srgb, #3FC56B 12%, var(--panel)); border: 1px solid color-mix(in srgb, #3FC56B 40%, transparent); }
+.fv-picker-attune { margin-left: 7px; font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: 0.8; vertical-align: middle; }

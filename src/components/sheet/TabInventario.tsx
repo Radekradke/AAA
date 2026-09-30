@@ -8,6 +8,9 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { AddItemPicker } from '@/components/inventory/AddItemPicker';
+import { useDiceRoller } from '@/components/dice/useDiceRoller';
+import { parseDice } from '@/engine/spellCast';
+import { getItem } from '@/data/items';
 import { ItemEditorModal } from '@/components/inventory/ItemEditorModal';
 import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/CoinsModal';
 import { Icon } from '@/components/ui/Icon';
@@ -81,6 +84,16 @@ const CATEGORY_LABEL: Record<string, string> = {
 export function TabInventario({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
+  const { rollDice } = useDiceRoller();
+  // poção de cura: rola, cura e gasta uma unidade
+  const drink = (it: InventoryItem) => {
+    const dice = parseDice(healOf(it));
+    if (!dice) return;
+    const r = rollDice(dice.sides, { count: dice.count, modifier: dice.bonus, label: `${it.name} · cura` });
+    store.heal(char.id, r.total);
+    if (it.quantity > 1) store.updateInventoryItem(char.id, it.uid, { quantity: it.quantity - 1 });
+    else store.removeInventoryItem(char.id, it.uid);
+  };
   const [open, setOpen] = useState<ContainerId>(() => (char.inventory.some((it) => isEquipped(char, it)) ? 'equipado' : 'mochila'));
   const [picker, setPicker] = useState(false);
   const [forge, setForge] = useState<false | string>(false);
@@ -345,6 +358,7 @@ export function TabInventario({ char, derived }: TabProps) {
                         onFavorite={() => store.toggleFavorite(char.id, it.uid)}
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
+                        onDrink={healOf(it) ? () => drink(it) : undefined}
                       />
                     )}
                   </DraggableItem>
@@ -505,7 +519,10 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 
 /* ---------- carta de item ---------- */
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove }: {
+/** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
+const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
+
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -519,6 +536,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onFavorite: () => void;
   onEdit: () => void;
   onRemove: () => void;
+  /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
+  onDrink?: () => void;
 }) {
   const t = useTheme();
   const rc = RARITY[it.rarity] ?? RARITY.comum;
@@ -610,6 +629,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               {equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
+          {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
           {!equipped && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
           <button type="button" className="fv-item-remove" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remover ${it.name}`} title="Remover">

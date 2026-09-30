@@ -22,6 +22,10 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Efeitos automáticos de item mágico (ver MagicEffects). */
+  magic?: import('./dnd').MagicEffects;
+  /** Dados de cura ao beber/usar (poções). */
+  heal?: string;
   /** Valor aproximado em peças de ouro. */
   value?: number;
   /**

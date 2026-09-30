@@ -1,4 +1,4 @@
-import type { AbilityKey, ArmorData, Rarity, SkillKey, Spell, WeaponData } from '@/types/dnd';
+import type { AbilityKey, ArmorData, MagicEffects, Rarity, SkillKey, Spell, WeaponData } from '@/types/dnd';
 import type { Breakdown } from '@/engine/effects';
 import { breakdownBody } from '@/engine/effects';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
@@ -139,8 +139,23 @@ export function itemLore(item: {
   armor?: ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  magic?: MagicEffects;
+  heal?: string;
 }): LoreInfo {
   const tags = [item.category, item.rarity];
+  const m = item.magic;
+  const auto = m
+    ? [
+        m.ac ? `+${m.ac} CA${m.unarmoredOnly ? ' (sem armadura/escudo)' : ''}` : '',
+        m.saves ? `+${m.saves} salvaguardas` : '',
+        ...Object.entries(m.setAbility ?? {}).map(([k, v]) => `${k.toUpperCase()} ${v}`),
+        m.spellAttack ? `+${m.spellAttack} ataque de magia` : '',
+        m.spellDC ? `+${m.spellDC} CD de magia` : '',
+        m.speed ? `+${m.speed} m deslocamento` : '',
+        ...(m.resistances ?? []).map((r) => `resistência: ${r}`),
+      ].filter(Boolean)
+    : [];
+  if (item.heal) tags.push(`cura ${item.heal}`);
   if (item.attunement) tags.push('Sintonia');
   if (item.weight) tags.push(`${item.weight} kg`);
   if (item.weapon) tags.push(`${item.weapon.damageDice}d${item.weapon.damageDie} ${item.weapon.damageType}`);
@@ -154,7 +169,11 @@ export function itemLore(item: {
       ? 'Arma equipada gera ataques automáticos na aba Combate. O bônus usa proficiência e o melhor atributo aplicável pelas propriedades da arma.'
       : item.armor
         ? 'Armadura equipada recalcula sua Classe de Armadura. Armaduras médias limitam Destreza e armaduras pesadas não somam Destreza.'
-        : item.attunement
+        : auto.length
+          ? `A ficha aplica sozinha${item.attunement ? ' (quando sintonizado — máximo de 3)' : ''}: ${auto.join(', ')}.`
+          : item.heal
+            ? 'Toque em “Beber” no inventário: rola a cura, soma nos seus PV e gasta uma poção.'
+            : item.attunement
           ? 'Item mágico que exige sintonia. Um personagem só mantém até três itens sintonizados ao mesmo tempo.'
           : 'Item de inventário. Use a nota para entender o efeito rápido, peso e papel narrativo durante a aventura.',
     tags,
