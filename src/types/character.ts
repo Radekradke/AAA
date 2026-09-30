@@ -94,13 +94,19 @@ export interface CombatState {
   hpTemp: number;
   hitDiceRemaining: number;
   deathSaves: { success: number; fail: number };
-  turn: { action: boolean; bonus: boolean; reaction: boolean };
+  /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
+  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean };
   moveUsed: number;
   conditions: string[];
   /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */
   exhaustion?: number;
   /** Concentração ativa numa magia (lembrete de salvaguarda de CON). */
   concentration?: boolean;
+  /**
+   * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
+   * (somem ao romper a concentração) e Fúria (some no descanso).
+   */
+  marks?: Array<'hex' | 'huntersMark' | 'rage'>;
   /** Recursos de classe consumidos (id -> usados). */
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */

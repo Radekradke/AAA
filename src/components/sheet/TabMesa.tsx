@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
+import { AttackActions } from './AttackActions';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -17,7 +18,6 @@ import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { CONDITIONS, getCondition } from '@/data/conditions';
 import { modStr } from '@/engine/dice';
 import { calculateToolCheck } from '@/engine/toolCheck';
-import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
@@ -37,7 +37,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
   const bump = useUiStore((s) => s.bump);
-  const { rollDice, check, attack, damage } = useDiceRoller();
+  const { rollDice, check } = useDiceRoller();
   const resources = characterResources(char);
   const bd = derived.breakdowns;
   const [skillsOpen, setSkillsOpen] = useState(false);
@@ -242,18 +242,7 @@ export function TabMesa({ char, derived }: TabProps) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
               </div>
-              <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown)}>
-                <button onClick={() => attack(atk)} style={atkBtn(t.gold)}>
-                  {modStr(atk.attackBonus)}
-                  <div style={atkSub}>ACERTO</div>
-                </button>
-              </LoreTooltip>
-              <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType}` })}>
-                <button onClick={() => damage(atk)} style={atkBtn(t.danger)}>
-                  {damageExpr(atk)}
-                  <div style={atkSub}>DANO</div>
-                </button>
-              </LoreTooltip>
+              <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}
         </Panel>

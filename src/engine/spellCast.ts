@@ -95,7 +95,27 @@ export interface SpellAttackPlan {
   note?: string;
 }
 
-export function spellAttackPlan(sp: Spell, slotLevel: number, charLevel: number, chosenType?: string | null): SpellAttackPlan | null {
+/** Invocação Explosão Agonizante escolhida (soma CAR em cada feixe da Rajada Mística). */
+export function hasAgonizingBlast(choices: Record<string, string[]> | undefined): boolean {
+  return Object.entries(choices ?? {}).some(([k, ids]) => k.endsWith('.invocation') && ids.includes('agonizingBlast'));
+}
+
+export function spellAttackPlan(
+  sp: Spell,
+  slotLevel: number,
+  charLevel: number,
+  chosenType?: string | null,
+  opts: { agonizing?: number } = {},
+): SpellAttackPlan | null {
+  const plan = baseAttackPlan(sp, slotLevel, charLevel, chosenType);
+  // Explosão Agonizante: +CAR em CADA feixe da Rajada Mística
+  if (plan && opts.agonizing && sp.id === 'sp-eldritch') {
+    return { ...plan, perHit: { ...plan.perHit, bonus: plan.perHit.bonus + opts.agonizing, label: `${plan.perHit.label} · Explosão Agonizante` } };
+  }
+  return plan;
+}
+
+function baseAttackPlan(sp: Spell, slotLevel: number, charLevel: number, chosenType?: string | null): SpellAttackPlan | null {
   if (!sp.attack || !sp.damage) return null;
   const type = damageTypeLabel(sp, chosenType);
   // feixes que escalam com o nível do personagem (Rajada Mística)

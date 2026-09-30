@@ -48,6 +48,14 @@ export interface DerivedAttack {
   critMin: number;
   /** Dados de arma extras no crítico (Crítico Brutal do Bárbaro). */
   critExtraDice?: number;
+  /** Corpo a corpo ou à distância (golpes desarmados contam como corpo a corpo). */
+  range?: 'melee' | 'ranged';
+  /** Atributo usado no ataque (Fúria só vale com FOR). */
+  ability?: AbilityKey;
+  /** Arma com Acuidade (Ataque Furtivo exige acuidade ou distância). */
+  finesse?: boolean;
+  /** Ataque com ARMA (não golpe desarmado/garras) — Furtivo/Destruição Divina/Marca. */
+  weapon?: boolean;
   hitBreakdown: Breakdown;
   damageBreakdown: Breakdown;
 }
@@ -430,6 +438,10 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       bonusDamage,
       critMin,
       critExtraDice: w.range === 'melee' && brutal ? brutal : undefined,
+      range: w.range,
+      ability: abilKey,
+      finesse: !!w.finesse,
+      weapon: true,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });
@@ -453,6 +465,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       damageBonus: dmgBd.total,
       damageType: 'concussão',
       critMin,
+      range: 'melee',
+      ability: k,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });
@@ -472,6 +486,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       damageBonus: dmgBd.total,
       damageType: 'cortante',
       critMin,
+      range: 'melee',
+      ability: 'str',
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });

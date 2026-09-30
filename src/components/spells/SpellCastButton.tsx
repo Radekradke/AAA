@@ -7,7 +7,8 @@ import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { roll as rollEngine } from '@/engine/dice';
 import { syncSpellSlots } from '@/engine/spellcasting';
-import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, healRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
+import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
+import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
 import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCast';
 import { ABILITY_SHORT } from '@/data/skills';
 
@@ -83,13 +84,19 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
 
   const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free') => {
     setOpen(false);
+    if (spell.concentration) {
+      // nova concentração encerra Bruxaria/Marca anteriores; estas duas já ficam ligadas
+      store.setMark(char.id, 'hex', spell.id === 'phb-hex');
+      store.setMark(char.id, 'huntersMark', spell.id === 'phb-hunters-mark');
+    }
     if (how === 'slot' && !isCantrip) store.castWithSlot(char.id, slotLevel, spell.concentration);
     else if (spell.concentration) {
       if (!char.combat.concentration) store.toggleConcentration(char.id);
     }
     const lvl = isCantrip ? 0 : slotLevel;
     const save = spell.save ? ` · CD ${derived.spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
-    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType) : null;
+    const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
+    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing }) : null;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
@@ -124,12 +131,15 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     const dmg = spellHitDamage(pending.plan, outcomes);
     setPending(null);
     if (!dmg) return;
-    if (dmg.half) {
-      const r = rollEngine(dmg.sides, { count: dmg.count, modifier: dmg.bonus, label: dmg.label, damage: true });
-      pushRoll({ ...r, total: Math.floor(r.total / 2), expr: `(${r.expr}) ÷ 2` });
-    } else {
-      roll(dmg);
+    const r = rollEngine(dmg.sides, { count: dmg.count, modifier: dmg.bonus, label: dmg.label, damage: true });
+    if (dmg.half) return pushRoll({ ...r, total: Math.floor(r.total / 2), expr: `(${r.expr}) ÷ 2` });
+    // Bruxaria: +1d6 necrótico por acerto (dobra no crítico)
+    const hits = outcomes.filter((o) => o !== 'miss').length;
+    const crits = outcomes.filter((o) => o === 'crit').length;
+    if (hexOn && hits) {
+      return pushRoll(withExtraDice(r, [{ count: hits + crits, die: 6, type: 'necrótico', source: 'Bruxaria' }], false, 0, `${dmg.label} · Bruxaria`));
     }
+    pushRoll(r);
   };
 
   const onMain = () => {
@@ -142,6 +152,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     setOpen((o) => !o);
   };
 
+  const hexAvail = knowsSpell(char, 'phb-hex') || hasMark(char, 'hex');
+  const hexOn = hasMark(char, 'hex');
   const outcomes = pending?.attacks.map(outcomeOf) ?? [];
   const decided = outcomes.every((o) => o !== null);
   const hits = outcomes.filter((o) => o === 'hit' || o === 'crit').length;
@@ -228,6 +240,11 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
               </span>
             );
           })}
+          {hexAvail && (
+            <button type="button" className={'fv-atk-chip' + (hexOn ? ' is-on' : '')} aria-pressed={hexOn} onClick={() => store.setMark(char.id, 'hex', !hexOn)}>
+              Bruxaria no alvo · +1d6 necrótico por acerto
+            </button>
+          )}
           <button type="button" className="fv-cast-hit-go" disabled={!decided} onClick={rollHits}>
             {!decided
               ? 'Marque acerto ou erro'

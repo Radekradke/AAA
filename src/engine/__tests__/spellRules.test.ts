@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { forgetBlock, learnBlock, spellLearnState } from '../spellRules';
-import { damageRoll, damageTypeLabel, damageTypeOptions, healRoll, parseDice, spellAttackPlan, spellHitDamage } from '../spellCast';
+import { damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, parseDice, spellAttackPlan, spellHitDamage } from '../spellCast';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { Character } from '@/types/character';
 
@@ -123,5 +123,16 @@ describe('ataque de magia: dano só no acerto', () => {
     const plan = spellAttackPlan(sp('sp-flechacidamelf'), 2, 3)!;
     expect(plan.missHalf).toBe(true);
     expect(spellHitDamage(plan, ['miss'])).toMatchObject({ count: 4, half: true });
+  });
+});
+
+describe('Explosão Agonizante', () => {
+  it('soma CAR em cada feixe acertado da Rajada Mística', () => {
+    expect(hasAgonizingBlast({ 'warlock.2.invocation': ['agonizingBlast'] })).toBe(true);
+    const plan = spellAttackPlan(sp('sp-eldritch'), 0, 11, null, { agonizing: 4 })!;
+    expect(plan.beams).toBe(3);
+    expect(spellHitDamage(plan, ['hit', 'miss', 'crit'])).toMatchObject({ count: 3, sides: 10, bonus: 8 });
+    // outras magias não ganham o bônus
+    expect(spellAttackPlan(sp('sp-firebolt'), 0, 5, null, { agonizing: 4 })!.perHit.bonus).toBe(0);
   });
 });

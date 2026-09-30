@@ -75,6 +75,10 @@ interface CharacterState {
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
+  /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage', on: boolean) => void;
+  /** Ataque Furtivo gasto neste turno. */
+  useSneakAttack: (id: string) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
   forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */
@@ -397,6 +401,19 @@ export const useCharacterStore = create<CharacterState>()(
         toggleConcentration(id) {
           mutate(id, (c) => {
             c.combat.concentration = !c.combat.concentration;
+            // romper a concentração encerra Bruxaria e Marca do Caçador
+            if (!c.combat.concentration) c.combat.marks = (c.combat.marks ?? []).filter((m) => m === 'rage');
+          });
+        },
+        setMark(id, mark, on) {
+          mutate(id, (c) => {
+            const cur = (c.combat.marks ?? []).filter((m) => m !== mark);
+            c.combat.marks = on ? [...cur, mark] : cur;
+          });
+        },
+        useSneakAttack(id) {
+          mutate(id, (c) => {
+            c.combat.turn = { ...c.combat.turn, sneak: true };
           });
         },
         useItemSpell(id, key) {
@@ -478,6 +495,8 @@ export const useCharacterStore = create<CharacterState>()(
               }
             }
             c.combat.itemSpellUses = uses;
+            // a Fúria dura 1 minuto: não sobrevive a um descanso
+            c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage');
           });
         },
         longRest(id) {
@@ -492,6 +511,7 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.turn = { action: false, bonus: false, reaction: false };
             c.combat.moveUsed = 0;
             c.combat.concentration = false;
+            c.combat.marks = [];
             // descanso longo remove 1 nível de exaustão (PHB 2014)
             c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
             // todas as magias de item recarregam no descanso longo

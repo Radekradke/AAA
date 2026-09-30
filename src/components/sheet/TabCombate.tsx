@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
+import { AttackActions } from './AttackActions';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { damageExpr } from '@/engine/combat';
 import { modStr } from '@/engine/dice';
 import { characterResources } from '@/engine/classResources';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -27,7 +27,7 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
-  const { attack, damage, rollDice, check } = useDiceRoller();
+  const { rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
   const [amt, setAmt] = useState('');
   // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
@@ -210,24 +210,14 @@ export function TabCombate({ char, derived }: TabProps) {
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{atk.note}</div>
             </div>
-            <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
-              <button
-                onClick={() => attack(atk)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
-              >
-                {modStr(atk.attackBonus)}
-                <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>ACERTO</div>
-              </button>
-            </LoreTooltip>
-            <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType} + os bônus abaixo (crítico: dobre os dados).` })}>
-              <button
-                onClick={() => damage(atk)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
-              >
-                {damageExpr(atk)}
-                <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>{atk.damageType.toUpperCase()}</div>
-              </button>
-            </LoreTooltip>
+            <AttackActions
+              char={char}
+              atk={atk}
+              hitStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
+              dmgStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
+              subStyle={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
+              dmgSub={atk.damageType.toUpperCase()}
+            />
           </div>
         ))}
       </Panel>
