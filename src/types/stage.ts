@@ -59,6 +59,8 @@ export interface Token {
   combatantId: string | null;
   monsterRef: string | null;
   color: string | null;
+  /** Retrato enviado pelo mestre (Storage) — vence a arte da ficha/NPC. */
+  imagePath: string | null;
   /** Posição em casas (canto superior esquerdo). */
   x: number;
   y: number;

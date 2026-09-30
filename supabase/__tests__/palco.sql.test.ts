@@ -102,6 +102,15 @@ describe('SQL do palco (cenas, mapa, handouts, imagens)', () => {
     eq('revelar peão cutuca o palco', (await as('gm', `select updated_at > $1 as moved from campaign_stage`, [before]))[0].moved, true);
     eq('monstro revelado aparece', (await as('p1', `select label from scene_tokens order by label`)).map((r) => r.label), ['Kael', 'Orc']);
 
+    // retrato do peão: jogador só baixa se o peão está visível
+    const orcArt = `${cid}/orc.webp`;
+    await as('gm', `insert into storage.objects (bucket_id, name) values ('campaign-media', $1)`, [orcArt]);
+    await as('gm', `update scene_tokens set image_path = $1, hidden = true where id = $2`, [orcArt, orc.id]);
+    eq('retrato de peão escondido não baixa', (await as('p1', `select name from storage.objects where name = $1`, [orcArt])).length, 0);
+    await as('gm', `update scene_tokens set hidden = false where id = $1`, [orc.id]);
+    eq('retrato de peão visível baixa', (await as('p1', `select name from storage.objects where name = $1`, [orcArt])).length, 1);
+    eq('intruso não baixa retrato', (await as('x', `select name from storage.objects where name = $1`, [orcArt])).length, 0);
+
     // handouts
     const cartaPath = `${cid}/carta.webp`;
     await as('gm', `insert into storage.objects (bucket_id, name) values ('campaign-media', $1)`, [cartaPath]);

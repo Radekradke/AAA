@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
-import type { NewToken } from '@/services/stageService';
+import type { NewToken, TokenPatch } from '@/services/stageService';
 import { PALCO_SETUP_MISSING } from '@/services/mediaService';
 import type { Handout, Scene, StagePing, StageState, Token } from '@/types/stage';
 
@@ -47,7 +47,9 @@ interface StageStore {
   removeScene: (scene: Scene) => Promise<void>;
 
   addTokens: (list: NewToken[]) => Promise<void>;
-  updateToken: (id: string, patch: Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color'>>) => Promise<void>;
+  updateToken: (id: string, patch: TokenPatch) => Promise<void>;
+  /** Mesmo patch em vários peões (ex.: retrato de todos os Goblins). */
+  updateTokens: (ids: string[], patch: TokenPatch) => Promise<void>;
   removeToken: (id: string) => Promise<void>;
   moveToken: (id: string, x: number, y: number) => Promise<void>;
   dragPreview: (id: string, x: number, y: number) => void;
@@ -252,6 +254,14 @@ export const useStageStore = create<StageStore>()((set, get) => {
     updateToken: (id, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
       return get().run(() => stageService.updateToken(id, patch)).then(() => undefined);
+    },
+    updateTokens: (ids, patch) => {
+      set((s) => ({ tokens: s.tokens.map((t) => (ids.includes(t.id) ? { ...t, ...patch } : t)) }));
+      return get()
+        .run(async () => {
+          for (const id of ids) await stageService.updateToken(id, patch);
+        })
+        .then(() => undefined);
     },
     removeToken: (id) => {
       set((s) => ({ tokens: s.tokens.filter((t) => t.id !== id) }));

@@ -62,6 +62,7 @@ export function mapToken(r: Record<string, unknown>): Token {
     combatantId: (r.combatant_id as string) ?? null,
     monsterRef: (r.monster_ref as string) ?? null,
     color: (r.color as string) ?? null,
+    imagePath: (r.image_path as string) ?? null,
     x: num(r.x),
     y: num(r.y),
     size: num(r.size, 1),
@@ -96,6 +97,7 @@ function sceneRow(campaignId: string, s: Partial<Scene>) {
 }
 
 export type NewToken = Omit<Token, 'id' | 'campaignId'>;
+export type TokenPatch = Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y' | 'imagePath'>>;
 
 export const stageService = {
   async scenes(campaignId: string): Promise<Scene[]> {
@@ -157,14 +159,16 @@ export const stageService = {
     await sessionUserId();
     const rows = list.map((t) => ({
       scene_id: t.sceneId, campaign_id: campaignId, kind: t.kind, label: t.label.slice(0, 60), sheet_id: t.sheetId, owner_id: t.ownerId,
-      npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
+      npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, image_path: t.imagePath, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
     }));
     const { error } = await sb().from('scene_tokens').insert(rows);
     if (error) throw stageError(error);
   },
 
-  async updateToken(id: string, patch: Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y'>>): Promise<void> {
-    const { error } = await sb().from('scene_tokens').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+  async updateToken(id: string, patch: TokenPatch): Promise<void> {
+    const { imagePath, ...rest } = patch;
+    const row = { ...rest, ...(imagePath !== undefined ? { image_path: imagePath } : {}), updated_at: new Date().toISOString() };
+    const { error } = await sb().from('scene_tokens').update(row).eq('id', id);
     if (error) throw stageError(error);
   },
 

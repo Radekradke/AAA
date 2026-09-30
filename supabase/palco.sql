@@ -62,6 +62,8 @@ create table if not exists public.scene_tokens (
   updated_at timestamptz not null default now()
 );
 create index if not exists scene_tokens_scene_idx on public.scene_tokens (scene_id);
+-- retrato do peão (inimigo, NPC ou herói) enviado pelo mestre: "<campaign_id>/<arquivo>"
+alter table public.scene_tokens add column if not exists image_path text;
 
 -- ---------------------------------------------------------------------
 -- HANDOUTS: cartas, pistas e imagens entregues a todos ou a alguns
@@ -178,6 +180,12 @@ returns boolean language sql security definer stable set search_path = public as
        where s.campaign_id::text = split_part(p_name, '/', 1)
          and s.revealed and public.is_campaign_member(s.campaign_id)
          and (s.image_path = p_name or s.beats @> jsonb_build_array(jsonb_build_object('path', p_name)))
+    )
+    or exists (
+      select 1 from scene_tokens t join campaign_scenes s on s.id = t.scene_id
+       where t.campaign_id::text = split_part(p_name, '/', 1)
+         and t.image_path = p_name and not t.hidden and s.revealed
+         and public.is_campaign_member(t.campaign_id)
     )
     or exists (
       select 1 from campaign_handouts h
