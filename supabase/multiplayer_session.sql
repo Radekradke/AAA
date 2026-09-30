@@ -83,6 +83,8 @@ create table if not exists public.combatants (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- ficha do bestiário (id do SRD) — só referência; os números ficam na linha
+alter table public.combatants add column if not exists monster_ref text;
 create index if not exists combatants_encounter_idx on public.combatants (encounter_id, turn_order);
 create index if not exists combatants_session_idx on public.combatants (session_id);
 
@@ -272,10 +274,13 @@ begin
   return e;
 end $fn$;
 
+-- a assinatura ganhou p_monster_ref (bestiário): remove a antiga antes de recriar
+drop function if exists public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text);
 create or replace function public.add_combatant(
   p_encounter uuid, p_type text, p_name text, p_sheet_id text default null,
   p_initiative_bonus int default 0, p_hp_current int default null, p_hp_max int default null,
-  p_armor_class int default null, p_hidden boolean default false, p_group_key text default null
+  p_armor_class int default null, p_hidden boolean default false, p_group_key text default null,
+  p_monster_ref text default null
 ) returns public.combatants language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters; c public.combatants; v_owner uuid;
 begin
@@ -292,9 +297,10 @@ begin
     if found then return c; end if;
   end if;
   insert into combatants (encounter_id, session_id, campaign_id, type, sheet_id, owner_id, name,
-    initiative_bonus, hp_current, hp_max, armor_class, hidden, group_key)
+    initiative_bonus, hp_current, hp_max, armor_class, hidden, group_key, monster_ref)
   values (p_encounter, e.session_id, e.campaign_id, p_type, p_sheet_id, v_owner, left(trim(p_name), 60),
-    coalesce(p_initiative_bonus, 0), p_hp_current, p_hp_max, p_armor_class, coalesce(p_hidden, false), nullif(trim(p_group_key), ''))
+    coalesce(p_initiative_bonus, 0), p_hp_current, p_hp_max, p_armor_class, coalesce(p_hidden, false), nullif(trim(p_group_key), ''),
+    nullif(trim(p_monster_ref), ''))
   returning * into c;
   perform public._fv_recompute_order(p_encounter);
   update encounters set revision = revision + 1, updated_at = now() where id = p_encounter;
@@ -458,7 +464,7 @@ end $fn$;
 grant execute on function public.start_session(uuid, text) to authenticated;
 grant execute on function public.set_session_status(uuid, text) to authenticated;
 grant execute on function public.create_encounter(uuid, text) to authenticated;
-grant execute on function public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text) to authenticated;
+grant execute on function public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text, text) to authenticated;
 grant execute on function public.remove_combatant(uuid) to authenticated;
 grant execute on function public.set_initiative(uuid, int) to authenticated;
 grant execute on function public.set_initiatives(uuid, jsonb) to authenticated;

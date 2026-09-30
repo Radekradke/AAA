@@ -7,6 +7,8 @@ import { InitiativeTrack } from '@/components/session/InitiativeTrack';
 import { MasterDeck } from '@/components/session/MasterDeck';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import { EventFeed } from '@/components/session/EventFeed';
+import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import { MONSTER_BY_ID } from '@/data/bestiary';
 import { InitiativeButton } from '@/components/sheet/InitiativeButton';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useAuthStore } from '@/store/authStore';
@@ -183,6 +185,13 @@ export function LiveSession() {
             </div>
 
             <aside className="fv-live-side">
+              {/* vez de um monstro do bestiário: a ficha dele fica à mão do mestre */}
+              {isMaster && active?.monsterRef && MONSTER_BY_ID[active.monsterRef] && (
+                <section className="fv-panel fv-live-card fv-live-turncard">
+                  <div className="fv-label">Vez de {active.name}</div>
+                  <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} />
+                </section>
+              )}
               {isMaster ? <MasterDeck heroes={heroes} /> : <PlayerCard heroes={heroes} />}
               <EventFeed events={s.events} />
               {isMaster && (

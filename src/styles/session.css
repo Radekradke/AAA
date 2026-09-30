@@ -882,3 +882,70 @@
     transform: none;
   }
 }
+
+/* ---------- bestiário e ficha de monstro ---------- */
+.fv-bestiary-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.fv-bestiary-item { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--sunk); overflow: hidden; }
+.fv-bestiary-item.is-open { border-color: color-mix(in srgb, var(--gold), transparent 40%); }
+.fv-bestiary-row {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; text-align: left;
+  background: none; border: 0; color: var(--ink);
+}
+.fv-bestiary-cr {
+  flex: none; min-width: 58px; text-align: center; font-family: 'Chakra Petch', monospace; font-size: 11.5px; font-weight: 700;
+  padding: 3px 6px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--gold);
+}
+.fv-bestiary-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.fv-bestiary-name b { font-family: var(--font-display); font-size: 15px; }
+.fv-bestiary-name small, .fv-bestiary-stats { font-size: 11.5px; color: var(--muted); }
+.fv-bestiary-stats { flex: none; font-family: 'Chakra Petch', monospace; }
+.fv-bestiary-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
+.fv-bestiary-foot label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.fv-bestiary-foot .fv-input { width: 64px; padding: 7px 8px; }
+.fv-bestiary-foot .fv-live-seg { min-height: 36px; }
+.fv-bestiary-foot .fv-btn-gold { margin-left: auto; min-height: 40px; padding: 0 16px; font-size: 13px; }
+.fv-bestiary-check { font-size: 12px; }
+.fv-bestiary-credit { font-size: 10.5px; color: var(--muted); }
+.fv-bestiary-card .fv-btn-gold { min-height: 40px; font-size: 13px; }
+
+.fv-mstat { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--panel2), transparent 20%); }
+.fv-live-turncard .fv-mstat, .fv-live-row-edit .fv-mstat { border: 1px solid var(--line); border-radius: var(--radius-md); }
+.fv-mstat-head b { display: block; font-family: var(--font-display); font-size: 18px; color: var(--gold); }
+.fv-mstat-head small { font-size: 11.5px; color: var(--muted); font-style: italic; }
+.fv-mstat-core { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink); }
+.fv-mstat-core b, .fv-mstat-lines b, .fv-mstat-traits b, .fv-mstat-multi b { color: var(--acc); font-weight: 700; }
+.fv-mstat-abil { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.fv-mstat-abil span { display: flex; flex-direction: column; align-items: center; padding: 4px 0; border-radius: var(--radius-sm); background: var(--sunk); }
+.fv-mstat-abil small { font-size: 9.5px; letter-spacing: 0.1em; color: var(--muted); }
+.fv-mstat-abil b { font-family: 'Chakra Petch', monospace; font-size: 14px; color: var(--ink); }
+.fv-mstat-abil i { font-style: normal; font-size: 11px; color: var(--muted); }
+.fv-mstat-lines p, .fv-mstat-traits p, .fv-mstat-multi { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink); }
+.fv-mstat-lines, .fv-mstat-traits { display: flex; flex-direction: column; gap: 3px; }
+.fv-mstat-actions { display: flex; flex-direction: column; gap: 6px; }
+.fv-mstat-actions .fv-label { font-size: 11px; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+.fv-mstat-action { display: flex; align-items: flex-start; gap: 10px; }
+.fv-mstat-action-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.4; }
+.fv-mstat-action-text b { color: var(--ink); }
+.fv-mstat-action-text small { color: var(--muted); }
+.fv-mstat-action-text span { display: block; color: var(--muted); font-family: 'Chakra Petch', monospace; font-size: 11.5px; }
+.fv-mstat-action-text em { display: block; font-style: normal; font-size: 11.5px; color: var(--muted); }
+.fv-mstat-btns { flex: none; display: flex; gap: 5px; }
+.fv-mstat-btns button {
+  cursor: pointer; min-height: 32px; padding: 4px 10px; border-radius: var(--radius-sm); font-family: 'Chakra Petch', monospace; font-weight: 700; font-size: 12.5px;
+  border: 1px solid var(--line-strong); background: var(--sunk); color: var(--gold);
+}
+.fv-mstat-btns button.is-dmg { color: var(--danger); border-color: color-mix(in srgb, var(--danger), transparent 55%); }
+.fv-mstat-btns button.is-crit { background: color-mix(in srgb, var(--danger), transparent 82%); box-shadow: 0 0 12px color-mix(in srgb, var(--danger), transparent 60%); }
+.fv-mstat.is-compact .fv-mstat-traits p { font-size: 11.5px; }
+
+/* ---------- dificuldade ---------- */
+.fv-diff { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; }
+.fv-diff.is-trivial { color: var(--muted); }
+.fv-diff.is-easy { color: var(--live-ok); }
+.fv-diff.is-medium { color: var(--live-warn); }
+.fv-diff.is-hard { color: #ff9a3d; }
+.fv-diff.is-deadly { color: var(--danger); }
+.fv-diff-bar { position: relative; height: 8px; border-radius: 999px; background: var(--sunk-deep); overflow: hidden; }
+.fv-diff-bar b { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: linear-gradient(90deg, var(--live-ok), var(--live-warn), var(--danger)); }
+.fv-diff-bar i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line-strong); z-index: 1; }
+.fv-bestiary-foot .fv-live-seg button { white-space: nowrap; padding: 0 12px; }

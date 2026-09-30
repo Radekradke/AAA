@@ -4,6 +4,9 @@ import type { NewCombatant } from '@/services/encounterService';
 import { useSessionStore } from '@/store/sessionStore';
 import type { Character } from '@/types/character';
 import type { SharedCharacterSheet } from '@/types/models';
+import { MONSTERS, MONSTER_BY_ID } from '@/data/bestiary';
+import { encounterBudget } from '@/engine/monsters';
+import { BestiaryPicker } from './BestiaryPicker';
 
 export interface SharedHero {
   share: SharedCharacterSheet;
@@ -51,6 +54,7 @@ export function buildCreatures(f: { name: string; type: 'monster' | 'npc'; qty: 
 export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
   const s = useSessionStore();
   const [encName, setEncName] = useState('');
+  const [bestiary, setBestiary] = useState(false);
   const enc = s.encounter;
 
   if (!enc) {
@@ -98,6 +102,27 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
         </div>
       </section>
 
+      <section className="fv-panel fv-live-card fv-bestiary-card">
+        <div className="fv-live-card-head">
+          <div className="fv-label">Bestiário</div>
+          <small className="fv-live-hint">{MONSTERS.length} criaturas do SRD</small>
+        </div>
+        <p className="fv-live-hint">Goblins, orcs, ogros, dragões… com CA, PV, ataques e ND prontos. Os ataques rolam na ficha do monstro.</p>
+        <button type="button" className="fv-btn-gold" onClick={() => setBestiary(true)}>Abrir bestiário</button>
+      </section>
+      {bestiary && (
+        <BestiaryPicker
+          busy={s.busy}
+          onClose={() => setBestiary(false)}
+          onAdd={(list) => {
+            void s.addCombatants(list);
+            setBestiary(false);
+          }}
+        />
+      )}
+
+      <EncounterDifficulty heroes={heroes} />
+
       <CreatureForm />
 
       <section className="fv-panel fv-live-card">
@@ -113,6 +138,40 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
         </div>
       </section>
     </>
+  );
+}
+
+const DIFF_CLASS: Record<string, string> = { trivial: 'is-trivial', fácil: 'is-easy', médio: 'is-medium', difícil: 'is-hard', mortal: 'is-deadly' };
+
+/** Dificuldade do encontro (Guia do Mestre): heróis no encontro × monstros do bestiário. */
+function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
+  const s = useSessionStore();
+  const levels = s.combatants
+    .filter((c) => c.type === 'player')
+    .map((c) => heroes.find((h) => h.share.sheetId === c.sheetId)?.snapshot?.level ?? 0)
+    .filter((l) => l > 0);
+  const foes = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && MONSTER_BY_ID[c.monsterRef]);
+  const unknown = s.combatants.filter((c) => c.type === 'monster' && !c.monsterRef).length;
+  const b = encounterBudget(levels, foes.map((c) => MONSTER_BY_ID[c.monsterRef!].xp));
+  if (!b || !foes.length) return null;
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-live-card-head">
+        <div className="fv-label">Dificuldade</div>
+        <span className={'fv-diff ' + DIFF_CLASS[b.difficulty]}>{b.difficulty}</span>
+      </div>
+      <div className="fv-diff-bar" aria-hidden>
+        {(['easy', 'medium', 'hard', 'deadly'] as const).map((k) => (
+          <i key={k} style={{ left: `${Math.min(100, (b.thresholds[k] / (b.thresholds.deadly * 1.25)) * 100)}%` }} />
+        ))}
+        <b style={{ width: `${Math.min(100, (b.adjusted / (b.thresholds.deadly * 1.25)) * 100)}%` }} />
+      </div>
+      <p className="fv-live-hint">
+        {b.xp.toLocaleString('pt-BR')} XP ({b.adjusted.toLocaleString('pt-BR')} ajustado, ×{b.multiplier}) para {levels.length} herói{levels.length === 1 ? '' : 's'} de nível {[...new Set(levels)].join('/')}.
+        {' '}Vitória: <b>{b.perPlayer.toLocaleString('pt-BR')} XP</b> por herói.
+        {unknown > 0 && ` ${unknown} criatura${unknown > 1 ? 's' : ''} manual${unknown > 1 ? 'is' : ''} fora da conta.`}
+      </p>
+    </section>
   );
 }
 

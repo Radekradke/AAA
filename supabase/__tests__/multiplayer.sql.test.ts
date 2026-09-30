@@ -73,7 +73,8 @@ describe('SQL do multiplayer (sessão, encontro, iniciativa)', () => {
     await expectErr('ficha não vinculada é recusada', /vinculada/, () => as('gm', `select * from add_combatant($1,'player','Z','s-nada')`, [enc.id]));
     const gobs = [];
     for (let i = 1; i <= 3; i++) gobs.push((await as('gm', `select * from add_combatant($1,'monster',$2,null,2,7,7,15,false,'goblin')`, [enc.id, `Goblin #${i}`]))[0]);
-    const [ogro] = await as('gm', `select * from add_combatant($1,'monster','Ogro',null,-1,59,59,11)`, [enc.id]);
+    const [ogro] = await as('gm', `select * from add_combatant($1,'monster','Ogro',null,-1,59,59,11,false,null,'ogre')`, [enc.id]);
+    eq('monstro do bestiário guarda a referência', ogro.monster_ref, 'ogre');
     const [spy] = await as('gm', `select * from add_combatant($1,'npc','Espião',null,3,20,20,12,true)`, [enc.id]);
     eq('jogador não vê combatente oculto', (await as('p1', `select name from combatants where encounter_id=$1`, [enc.id])).some((r) => r.name === 'Espião'), false);
     eq('mestre vê combatente oculto', (await as('gm', `select name from combatants where encounter_id=$1`, [enc.id])).some((r) => r.name === 'Espião'), true);

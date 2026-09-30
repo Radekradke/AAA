@@ -34,7 +34,7 @@ vi.stubGlobal('sessionStorage', storage);
 const { useSessionStore, myActiveCombatant } = await import('../sessionStore');
 const { encounterService } = await import('@/services/encounterService');
 
-const base = { encounterId: 'enc', sessionId: 'sess', campaignId: 'camp', monsterInstanceId: null, initiativeBonus: 0, hpCurrent: 10, hpMax: 10, armorClass: 12, conditions: [], hidden: false, groupKey: null };
+const base = { encounterId: 'enc', sessionId: 'sess', campaignId: 'camp', monsterInstanceId: null, initiativeBonus: 0, hpCurrent: 10, hpMax: 10, armorClass: 12, conditions: [], hidden: false, groupKey: null, monsterRef: null };
 const kael: Combatant = { ...base, id: 'c-kael', type: 'player', sheetId: 'sheet-kael', ownerId: 'user-p1', name: 'Kael', initiative: 18, turnOrder: 1 };
 const gob: Combatant = { ...base, id: 'c-gob', type: 'monster', sheetId: null, ownerId: null, name: 'Goblin', initiative: 12, turnOrder: 2 };
 const enc = (round: number, active: string): Encounter => ({ id: 'enc', sessionId: 'sess', campaignId: 'camp', name: 'Emboscada', status: 'active', round, activeCombatantId: active, revision: round * 10, startedAt: null, endedAt: null, updatedAt: '' });

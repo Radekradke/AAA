@@ -61,6 +61,8 @@ export interface Combatant {
   hidden: boolean;
   /** Monstros iguais que agem juntos. */
   groupKey: string | null;
+  /** Ficha do bestiário (id do SRD), se veio de lá. */
+  monsterRef: string | null;
 }
 
 export interface SessionEvent {

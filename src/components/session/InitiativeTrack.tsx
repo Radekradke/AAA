@@ -3,6 +3,8 @@ import { healthState, initiativeRows } from '@/engine/encounter';
 import type { InitiativeRow } from '@/engine/encounter';
 import type { Combatant, Encounter } from '@/types/session';
 import { useSessionStore } from '@/store/sessionStore';
+import { MONSTER_BY_ID } from '@/data/bestiary';
+import { MonsterStatBlock } from './MonsterStatBlock';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -73,6 +75,7 @@ function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boole
       {isMaster && open && (
         <div className="fv-live-row-edit">
           {row.members.map((m) => <MemberEditor key={m.id} c={m} />)}
+          {lead.monsterRef && MONSTER_BY_ID[lead.monsterRef] && <MonsterStatBlock m={MONSTER_BY_ID[lead.monsterRef]} who={lead.name} compact />}
         </div>
       )}
     </li>
