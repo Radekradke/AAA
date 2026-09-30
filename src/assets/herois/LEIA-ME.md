@@ -1,5 +1,10 @@
 # Retratos oficiais por classe
 
+> **Arte pesada demais para o GitHub?** Abra o app em **⋯ → Oficina de retratos** (`/retratos`),
+> solte as imagens originais e baixe o `.zip`: sai tudo em WebP 768×1024 (~100–300 KB) com o nome
+> certo e o `rostos.json` (ponto do rosto de cada retrato). Depois é só subir os arquivos desta pasta
+> pelo site do GitHub (**Add file → Upload files**).
+
 O retrato do herói muda conforme a **classe** e a **aparência** (masculina/feminina) escolhidas. Solte o arquivo nesta pasta e o app encontra sozinho, sem mexer em código.
 
 **Nome do arquivo:** pode ser em português, do jeito natural, ou no padrão do código.
@@ -21,6 +26,6 @@ O retrato do herói muda conforme a **classe** e a **aparência** (masculina/fem
 
 - **Formatos:** `.webp` (recomendado), `.png` ou `.jpg`. Retrato **3:4**, idealmente 768×1024 e até ~150 KB. O fundo cinza-escuro liso das artes atuais combina com o app e não precisa recortar.
 - **Sem arquivo:** a classe usa a arte padrão (`public/assets/heroi-recorte.webp` / `heroi-fem-recorte.webp`).
-- **Enquadramento:** o avatar redondo da ficha mira o rosto. Os pontos de cada retrato ficam em `FACE`, em `src/lib/summary.ts`; retrato novo sem ponto usa um padrão (rosto um pouco à esquerda, no terço de cima).
+- **Enquadramento:** o avatar redondo da ficha mira o rosto. Os pontos de cada retrato ficam em `rostos.json` (nesta pasta); retrato novo sem ponto usa um padrão (rosto um pouco à esquerda, no terço de cima).
 - **Foto do jogador** (botão **Sua arte**) sempre tem prioridade.
 - **Prompt para gerar no mesmo estilo:** `docs/ARTE-PERSONAGENS.md`.

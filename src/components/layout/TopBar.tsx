@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { Icon } from '@/components/ui/Icon';
@@ -40,6 +41,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
   const installer = useInstallPrompt();
+  const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -60,6 +62,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
     { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
     { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
+    { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
       ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]

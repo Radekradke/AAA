@@ -3,6 +3,7 @@ import { getRace, getSubrace } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { artKeyFromFileName } from './heroArtName';
+import facesJson from '@/assets/herois/rostos.json';
 
 /** "Anão da Montanha · Guerreiro" */
 export function raceLine(char: Character): string {
@@ -35,6 +36,13 @@ export function shortSubtitle(char: Character): string {
  * Veja o LEIA-ME de lá e docs/ARTE-PERSONAGENS.md.
  */
 const HERO_ART: Record<string, string> = {};
+/** Chaves `<classe>-<masc|fem>` que já têm retrato oficial. */
+export function heroArtKeys(): Record<string, string> {
+  return HERO_ART;
+}
+export function heroFaces(): Record<string, [number, number]> {
+  return FACE;
+}
 for (const [path, url] of Object.entries(
   import.meta.glob('../assets/herois/*.{webp,png,jpg,jpeg}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>,
 )) {
@@ -44,20 +52,10 @@ for (const [path, url] of Object.entries(
 
 /**
  * Onde fica o rosto em cada retrato (% da largura, % da altura) — o avatar
- * redondo e o painel centralizam ali. Retrato novo sem entrada usa o padrão.
+ * redondo e o painel centralizam ali. Fica em src/assets/herois/rostos.json
+ * (a Oficina de Retratos gera esse arquivo). Retrato sem entrada usa o padrão.
  */
-const FACE: Record<string, [number, number]> = {
-  'barbarian-masc': [40, 19],
-  'barbarian-fem': [40, 18],
-  'bard-masc': [40, 17],
-  'bard-fem': [52, 16],
-  'cleric-masc': [37, 16],
-  'cleric-fem': [50, 18],
-  'druid-masc': [38, 13],
-  'druid-fem': [48, 16],
-  'fighter-masc': [37, 14],
-  'fighter-fem': [37, 18],
-};
+const FACE = facesJson as unknown as Record<string, [number, number]>;
 const FACE_DEFAULT: [number, number] = [42, 17];
 /** Retratos oficiais são 3:4 (altura / largura). */
 const ART_ASPECT = 4 / 3;

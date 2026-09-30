@@ -16,6 +16,7 @@ const CharacterSheet = lazy(() => import('@/pages/CharacterSheet').then((m) => (
 const Campaigns = lazy(() => import('@/pages/Campaigns').then((m) => ({ default: m.Campaigns })));
 const CampaignRoom = lazy(() => import('@/pages/CampaignRoom').then((m) => ({ default: m.CampaignRoom })));
 const JoinCampaign = lazy(() => import('@/pages/JoinCampaign').then((m) => ({ default: m.JoinCampaign })));
+const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) => ({ default: m.PortraitWorkshop })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
 
 /** Enquanto a tela baixa: fundo vazio (a cena de fundo continua atrás). */
@@ -50,6 +51,7 @@ export function App() {
         <Route path="/entrar" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/diagnostico" element={<Page><Diagnostics /></Page>} />
+        <Route path="/retratos" element={<Page><PortraitWorkshop /></Page>} />
         <Route
           path="/personagens"
           element={
