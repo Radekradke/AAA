@@ -84,7 +84,7 @@ export function Login() {
   const tabStyle = (active: boolean): React.CSSProperties => ({
     flex: 1,
     cursor: 'pointer',
-    fontFamily: "'Cinzel', serif",
+    fontFamily: 'var(--font-display)',
     fontWeight: 600,
     fontSize: 14,
     letterSpacing: '.04em',
@@ -115,14 +115,14 @@ export function Login() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
             <RuneRing size={60}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 20, color: 'var(--gold)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--gold)' }}>
                 F
               </span>
             </RuneRing>
             <h1
               style={{
                 margin: '12px 0 4px',
-                fontFamily: "'Cinzel', serif",
+                fontFamily: 'var(--font-display)',
                 fontWeight: 700,
                 fontSize: 21,
                 color: 'var(--ink)',
@@ -141,7 +141,7 @@ export function Login() {
               gap: 6,
               padding: 4,
               borderRadius: 999,
-              background: 'rgba(0,0,0,.28)',
+              background: 'var(--sunk)',
               border: '1px solid var(--line)',
               marginBottom: 16,
             }}

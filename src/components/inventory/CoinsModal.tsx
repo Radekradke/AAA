@@ -38,10 +38,10 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {COIN_DEFS.map((c) => (
-          <div key={c.k} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.24)' }}>
+          <div key={c.k} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'var(--sunk)' }}>
             <span
               aria-hidden
-              style={{ width: 26, height: 26, flex: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 9, color: '#140d04', background: `radial-gradient(circle at 35% 30%, #fff8, transparent 45%), ${c.color}`, boxShadow: `0 0 10px ${hexA(c.color, 0.4)}` }}
+              style={{ width: 26, height: 26, flex: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: '#140d04', background: `radial-gradient(circle at 35% 30%, #fff8, transparent 45%), ${c.color}`, boxShadow: `0 0 10px ${hexA(c.color, 0.4)}` }}
             >
               {c.code}
             </span>
@@ -85,7 +85,7 @@ function coinBtn(color: string): React.CSSProperties {
     padding: '0 6px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid var(--line)',
-    background: 'rgba(0,0,0,.3)',
+    background: 'var(--sunk)',
     color,
     fontWeight: 700,
     fontSize: 12,

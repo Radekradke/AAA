@@ -35,11 +35,19 @@ A **ficha** inclui:
 - **Atributos** com modificadores automáticos e **testes/resistências** roláveis (1d20 + mod).
 - **Perícias** com proficiência e bônus automáticos.
 - **Combate**: PV com barra colorida (dano/cura/PV temp.), **ataques automáticos** das armas equipadas (acerto e dano), economia de turno (ação/bônus/reação/movimento), recursos de classe, dados de vida e resgate da morte.
-- **Inventário**: moedas, sintonia (máx. 3), adicionar/remover, **equipar/desequipar arma, armadura e escudo**, favoritar — tudo recalculando **CA, ataques e dano** ao vivo.
+- **Inventário estilo BG3**: três recipientes holográficos — **Equipado**, **Mochila** e **Baú** — com **arrastar e soltar** ([dnd-kit](https://dndkit.com), MIT; no celular: segurar e arrastar; teclado pela alça ⠿). Ao pegar um item, uma barra de destinos aparece perto do polegar. Cada item equipável mostra **o que muda antes de equipar** ("CA 18 → 20 ▲", "Dano 1d8+3 → 1d12+3 ▲") calculado pela mesma engine da ficha, com avisos de regra (Força mínima, Furtividade, duas mãos com escudo). Moedas, sintonia (máx. 3), favoritos e Forja continuam.
+- **App instalável e offline** ([vite-plugin-pwa](https://vite-pwa-org.netlify.app), MIT): "Instalar app no aparelho" no menu ⋯ (no iPhone, passo a passo do Compartilhar → Tela de Início). A ficha abre e rola dados sem internet; novas versões pedem confirmação antes de atualizar.
+- **Pontos de Inspiração** (Mesa): selo dourado holográfico com **+ / −** para ganhar/corrigir; tocar no selo **prepara a vantagem** no próximo teste d20 (ataque, perícia, resistência) e o ponto só é descontado quando o dado rola — cancelar ou trocar de ficha não gasta. A rolagem fica marcada "· Inspiração" no histórico.
 - **Magias** (conjuradores): espaços de magia, CD/ataque de magia e magias preparadas.
 - **Descanso** curto/longo e **condições**.
 - **Diário** de sessões (título, data, resumo, NPCs, locais, missões, tesouros, anotações livres) com **busca** + anotações rápidas.
-- **Rolador de dados** (d4–d100, quantidade, modificador, histórico) com **resultado em destaque cinematográfico** e crítico/falha.
+- **"O que eu rolo?"** (aba Mesa): descreva a ação em português ("escalar o muro", "ele está mentindo?") e a ficha sugere o teste, o bônus e de onde ele vem — com um toque para rolar. Sem IA, 100% offline.
+- **Rolador de dados** (d4–d100, quantidade, modificador, vantagem/desvantagem) com **resultado em destaque cinematográfico** e crítico/falha.
+- **Dados 3D com física** ([dice-box-threejs](https://github.com/3d-dice/dice-box-threejs), MIT): os dados rolam pela tela e caem **exatamente** no valor sorteado pela engine (notação `1d20@17`). Carregados sob demanda, com as cores de cada atmosfera; liga/desliga no menu ⋯ (desligado para quem prefere menos animação). d100 e aparelhos sem WebGL usam a animação 2D.
+- **Linha do tempo da sessão**: as últimas 60 rolagens do aparelho, filtradas pela ficha aberta, com horário e críticos em destaque. Sobrevive a recarregar a página e vira anotação do **Diário** com um toque.
+- **Evolução de nível** (aba Evoluir): PV, talentos, aumentos de atributo e subclasses, com validação.
+- **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
+- **Nuvem opcional (Supabase)**: login, sincronização local ↔ nuvem com resolução de conflitos e **mesas de campanha** com convite. Sem Supabase configurado, tudo funciona localmente. Veja `docs/SUPABASE.md`.
 - **Exportar/Importar** personagem em **JSON**.
 
 A engine de regras (`/src/engine`) é simples, tipada e expansível, com suporte a homebrew.
@@ -56,7 +64,10 @@ npm run dev        # ambiente de desenvolvimento (http://localhost:5173)
 npm run build      # build de produção em /dist
 npm run preview    # serve o build localmente
 npm run typecheck  # checagem de tipos sem emitir
+npm test           # testes automatizados (engine de regras, sync, "O que eu rolo?")
 ```
+
+Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 
 ---
 
@@ -76,8 +87,10 @@ src/
     diary/       JournalCard
   pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet
   data/          races, classes, backgrounds, skills, weapons, armors, items, spells, themes
-  engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout
-  store/         characterStore, authStore, uiStore (Zustand + persist)
+  engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout,
+                 levelUp, spellcasting, rollAdvisor ("O que eu rolo?") + __tests__
+  services/      Supabase: auth, sync offline, campanhas
+  store/         characterStore (IndexedDB), authStore, uiStore (Zustand + persist)
   types/         character.ts, dnd.ts
   lib/           color, useTheme, useTilt, summary
   styles/        globals.css (temas, keyframes, utilitários)
@@ -100,14 +113,17 @@ public/assets/   heroi.png, heroi-fem.png, bg.mp4
 
 ---
 
-## 🔭 O que pode melhorar depois
+## 🔭 Próximos passos
 
-- Progressão de nível (subir de nível, ASI/talentos, espaços de magia por nível).
-- Edição direta de nome/atributos na própria ficha e múltiplos rascunhos simultâneos.
-- Sincronização em nuvem opcional (hoje é 100% local, por dispositivo).
-- Mais raças, classes, subclasses, magias e itens (a arquitetura já suporta).
-- Animação 3D de dado rolando (hoje o impacto é o overlay cinematográfico).
-- Testes automatizados (unitários da engine + e2e do fluxo).
+Ideias trazidas do antigo *dnd-companion* e de projetos open source de RPG:
+
+- **Importador do dnd-companion**: converter as fichas antigas para o modelo atual.
+- **Recursos personalizados/homebrew**: contadores próprios com recarga por descanso.
+- **Compartilhar ficha por link/QR** (somente leitura, revogável) e **impressão**.
+- **Ícones consistentes** para itens, magias e condições (ex.: [game-icons.net](https://game-icons.net), CC BY 3.0).
+- **Inventário visual** com comparação do item atual × selecionado (efeito na CA/ataque antes de equipar).
+- **Rastreador de iniciativa** do mestre conectado às fichas da mesa.
+- **Diário conectado**: NPCs, locais e relações ligados às sessões.
 
 ---
 
@@ -116,3 +132,20 @@ public/assets/   heroi.png, heroi-fem.png, bg.mp4
 Confirmado: **`Ficha Viva AAA.dc.html`** foi usado como base visual e de UX. A
 estética original foi preservada e evoluída para um produto completo, interativo,
 cinematográfico e funcional — sem descaracterizar o design.
+
+---
+
+## 🎨 Créditos
+
+Dados 3D: [@3d-dice/dice-box-threejs](https://github.com/3d-dice/dice-box-threejs)
+(MIT, Frank Ali; baseado nos 3D Dice de MajorVictory e Teall Dice).
+
+Selo holográfico (`src/components/ui/holo-badge.tsx`, usado na Inspiração e nos
+recipientes do inventário): adaptado do efeito do *AwardBadge* (21st.dev), sem a
+marca original.
+
+Ícones temáticos (abas, dados, forja…) de **[game-icons.net](https://game-icons.net)**,
+por Lorc, Delapouite e colaboradores, sob licença
+**[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)**. Os caminhos usados
+ficam em `src/components/ui/gameIcons.ts`.
+

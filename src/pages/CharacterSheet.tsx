@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { itemGrantedSpells } from '@/engine/spellcasting';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +19,8 @@ import { TabMesa } from '@/components/sheet/TabMesa';
 import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
+import { useUiStore } from '@/store/uiStore';
+import { loadDice3d } from '@/lib/dice3d';
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -31,12 +34,33 @@ export function CharacterSheet() {
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
 
+  // dados 3D: pré-carrega em segundo plano (a 1ª rolagem já sai em 3D)
+  const dice3d = useUiStore((s) => s.dice3d);
+  useEffect(() => {
+    if (!dice3d) return;
+    const warm = () => void loadDice3d(useUiStore.getState().theme);
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number; cancelIdleCallback?: (id: number) => void };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(warm);
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(warm, 1200);
+    return () => clearTimeout(id);
+  }, [dice3d]);
+
+  // toda rolagem feita com esta ficha aberta entra no histórico dela
+  const setActiveChar = useUiStore((s) => s.setActiveChar);
+  useEffect(() => {
+    setActiveChar(id ?? null);
+    return () => setActiveChar(null);
+  }, [id, setActiveChar]);
+
   if (!char || !derived) {
     return (
       <Screen actions={<Button onClick={() => navigate('/personagens')}>Voltar</Button>}>
         <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24 }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 22, color: 'var(--ink)' }}>Personagem não encontrado</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>Personagem não encontrado</div>
             <p style={{ color: 'var(--muted)' }}>Talvez ele tenha sido removido. Volte para a seleção de heróis.</p>
             <Button variant="gold" onClick={() => navigate('/personagens')} style={{ marginTop: 8 }}>
               Voltar aos heróis
@@ -48,7 +72,8 @@ export function CharacterSheet() {
   }
 
   // o conjurador define se a aba Magias aparece
-  const isCaster = derived.isCaster;
+  // a aba Magias aparece para conjuradores e para quem tem magias de itens ou talentos
+  const isCaster = derived.isCaster || itemGrantedSpells(char).length > 0;
   const activeTab = tab === 'magias' && !isCaster ? 'ficha' : tab;
 
   const exportJson = () => {
@@ -72,7 +97,7 @@ export function CharacterSheet() {
       case 'magias': return <TabMagias char={char} derived={derived} />;
       case 'descanso': return <TabDescanso char={char} derived={derived} />;
       case 'diario': return <TabDiario char={char} derived={derived} />;
-      case 'dados': return <DiceRoller />;
+      case 'dados': return <DiceRoller char={char} />;
       default: return <TabFicha char={char} derived={derived} />;
     }
   };
@@ -83,11 +108,15 @@ export function CharacterSheet() {
       actions={
         <>
           <RollModeToggle />
-          <Button variant="accent" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
-          <Button onClick={exportJson} style={{ fontSize: 12.5 }}>Exportar</Button>
-          <Button onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
+          <Button variant="accent" className="fv-hide-mobile" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
+          <Button className="fv-hide-mobile" onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
         </>
       }
+      menu={[
+        { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
+        { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
+        { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+      ]}
     >
       <div
         style={{
@@ -96,7 +125,8 @@ export function CharacterSheet() {
           padding: 'clamp(70px,9vh,92px) clamp(14px,3.6vw,40px) calc(86px + env(safe-area-inset-bottom))',
         }}
       >
-        <SheetHeader char={char} derived={derived} />
+        {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />

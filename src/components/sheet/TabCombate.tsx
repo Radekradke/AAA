@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { CompanionPanel } from './CompanionPanel';
+import { InitiativeButton } from './InitiativeButton';
+import { AttackActions } from './AttackActions';
+import { ActiveEffects } from './ActiveEffects';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { getClass } from '@/data/classes';
-import { damageExpr } from '@/engine/combat';
 import { modStr } from '@/engine/dice';
+import { characterResources } from '@/engine/classResources';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
@@ -25,9 +28,8 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
-  const { attack, damage, rollDice, check } = useDiceRoller();
+  const { rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
-  const cls = getClass(char.classId);
   const [amt, setAmt] = useState('');
   // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
   const [concDC, setConcDC] = useState<number | null>(null);
@@ -80,7 +82,7 @@ export function TabCombate({ char, derived }: TabProps) {
             marginTop: 12,
             height: 'clamp(20px,2.6vw,26px)',
             borderRadius: 5,
-            background: 'rgba(0,0,0,.44)',
+            background: 'var(--sunk-deep)',
             border: '1px solid var(--line)',
             overflow: 'hidden',
             position: 'relative',
@@ -122,7 +124,7 @@ export function TabCombate({ char, derived }: TabProps) {
               onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}
               onContextMenu={(e) => { e.preventDefault(); store.setTempHp(char.id, 0); }}
               title="Clique: +5 · clique direito: zerar"
-              style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'rgba(0,0,0,.3)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
+              style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'var(--sunk)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
             >
               {char.combat.hpTemp}
             </button>
@@ -132,13 +134,13 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* dano/cura por valor exato */}
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
-            className="fv-input"
             value={amt}
             onChange={(e) => setAmt(e.target.value.replace(/[^0-9]/g, ''))}
             onKeyDown={(e) => { if (e.key === 'Enter') applyAmount(false); }}
             inputMode="numeric"
-            placeholder="valor"
+            placeholder="Qtd."
             aria-label="Valor de dano ou cura"
+            className="fv-input fv-amt-input"
             style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
           />
           <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>
@@ -147,19 +149,22 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
         {concentrating && concDC !== null && (
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: hexA(t.acc, 0.1) }}>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: 'var(--lift)' }}>
             <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
               Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: "'Chakra Petch', monospace" }}>{concDC}</b>
             </span>
             <button
               onClick={() => { check(`Concentração · CON (CD ${concDC})`, derived.abilities.con.save); setConcDC(null); }}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: hexA(t.acc, 0.14), color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: 'var(--lift)', color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
             >
               Rolar {modStr(derived.abilities.con.save)}
             </button>
             <button onClick={() => setConcDC(null)} aria-label="Dispensar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
           </div>
         )}
+
+        {/* magias e efeitos ligados (Armadura Arcana, Escudo, Auxílio, Bruxaria…) */}
+        <div style={{ marginTop: 12 }}><ActiveEffects char={char} /></div>
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>
@@ -177,9 +182,9 @@ export function TabCombate({ char, derived }: TabProps) {
               padding: '10px 14px',
               borderRadius: 'var(--radius-md)',
               border: '1px solid ' + (concentrating ? t.acc : t.line),
-              background: concentrating ? hexA(t.acc, 0.12) : 'rgba(0,0,0,.26)',
+              background: concentrating ? 'var(--lift)' : 'var(--sunk)',
               color: concentrating ? t.acc : t.muted,
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 14,
               transition: '.2s',
             }}
@@ -206,34 +211,27 @@ export function TabCombate({ char, derived }: TabProps) {
         {derived.attacks.map((atk) => (
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{atk.note}</div>
             </div>
-            <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
-              <button
-                onClick={() => attack(atk)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', lineHeight: 1.05 }}
-              >
-                {modStr(atk.attackBonus)}
-                <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>ACERTO</div>
-              </button>
-            </LoreTooltip>
-            <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType} + os bônus abaixo (crítico: dobre os dados).` })}>
-              <button
-                onClick={() => damage(atk)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
-              >
-                {damageExpr(atk)}
-                <div style={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>{atk.damageType.toUpperCase()}</div>
-              </button>
-            </LoreTooltip>
+            <AttackActions
+              char={char}
+              atk={atk}
+              hitStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
+              dmgStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
+              subStyle={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
+              dmgSub={atk.damageType.toUpperCase()}
+            />
           </div>
         ))}
       </Panel>
 
+      <CompanionPanel char={char} />
+
       {/* Economia de Turno */}
       <Panel>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13 }}>
+        <InitiativeButton char={char} derived={derived} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13, marginTop: 14 }}>
           <div className="fv-label">Economia de Turno</div>
           <button onClick={() => store.resetTurn(char.id)} style={{ cursor: 'pointer', fontSize: 11, color: 'var(--acc)', background: 'none', border: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
             ↺ Novo turno
@@ -256,9 +254,9 @@ export function TabCombate({ char, derived }: TabProps) {
                   padding: '11px 14px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.45)),
-                  background: used ? 'rgba(0,0,0,.3)' : hexA(t.acc, 0.08),
+                  background: used ? 'var(--sunk)' : 'var(--lift)',
                   color: used ? t.muted : t.ink,
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: 'var(--font-display)',
                   fontSize: 14.5,
                   transition: '.2s',
                 }}
@@ -272,7 +270,7 @@ export function TabCombate({ char, derived }: TabProps) {
         </div>
         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>
               {moveLeft} m de {derived.speed.toString().replace('.', ',')} m
             </div>
@@ -288,20 +286,24 @@ export function TabCombate({ char, derived }: TabProps) {
       <Panel>
         <div className="fv-label" style={{ marginBottom: 13 }}>Recursos de Combate</div>
 
-        {(cls.resources ?? []).map((res) => {
-          const left = char.combat.resources[res.id] ?? 0;
+        {characterResources(char).map((res) => {
+          const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
           return (
-            <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
-              <div>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>{res.label}</div>
+            <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>
+                  {res.label}
+                  {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>{res.die}</span>}
+                </div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
               </div>
-              <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
+              <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
                 <button
+                  disabled={res.unlimited}
                   onClick={() => store.setResource(char.id, res.id, left > 0 ? left - 1 : res.max)}
-                  style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (left > 0 ? t.gold : t.line), color: left > 0 ? t.gold : t.muted, background: left > 0 ? hexA(t.gold, 0.12) : 'rgba(0,0,0,.26)' }}
+                  style={{ cursor: res.unlimited ? 'default' : 'pointer', flex: 'none', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (res.unlimited || left > 0 ? t.gold : t.line), color: res.unlimited || left > 0 ? t.gold : t.muted, background: 'var(--lift)' }}
                 >
-                  {left} / {res.max}
+                  {res.unlimited ? '∞' : `${left} / ${res.max}`}
                 </button>
               </LoreTooltip>
             </div>
@@ -311,19 +313,19 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Dados de Vida */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Dados de Vida</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Dados de Vida</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>{derived.hitDiceMax}d{derived.hitDie} · gaste no descanso</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <LoreTooltip info={passiveLore('Dado de Vida', `${derived.hitDiceMax}d${derived.hitDie}`, 'Durante um descanso curto, gaste um dado de vida para rolar cura e somar Constituição. Descanso longo recupera parte deles.', ['Descanso', 'Cura'])}>
               <button
                 onClick={() => { if (char.combat.hitDiceRemaining > 0) { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); } }}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'rgba(0,0,0,.26)' }}
+                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
               >
                 Gastar
               </button>
             </LoreTooltip>
-            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)' }}>
+            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
               {char.combat.hitDiceRemaining} / {derived.hitDiceMax}
             </div>
           </div>
@@ -331,7 +333,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Resgate da Morte */}
         <div style={{ padding: '13px 0 2px' }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)', marginBottom: 9 }}>Resgate da Morte</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)', marginBottom: 9 }}>Resgate da Morte</div>
           <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
             <DeathRow label="Sucesso" color="#3FC56B" value={char.combat.deathSaves.success} onClick={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathRow label="Falha" color={t.danger} value={char.combat.deathSaves.fail} onClick={(n) => store.setDeathSave(char.id, 'fail', n)} />
@@ -341,7 +343,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Exaustão (0–6, PHB 2014) */}
         <div style={{ padding: '13px 0 2px', borderTop: '1px solid var(--line)', marginTop: 6 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
             <span style={{ fontSize: 11, color: exhaustion >= 4 ? t.danger : 'var(--muted)', fontWeight: 600 }}>{EXHAUSTION_EFFECT[exhaustion]}</span>
           </div>
           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
@@ -363,7 +365,7 @@ export function TabCombate({ char, derived }: TabProps) {
                       fontSize: 12,
                       borderRadius: 7,
                       border: '1px solid ' + (on ? col : 'var(--line)'),
-                      background: on ? hexA(col, 0.16) : 'rgba(0,0,0,.26)',
+                      background: on ? hexA(col, 0.16) : 'var(--sunk)',
                       color: on ? col : 'var(--muted)',
                       boxShadow: on ? `0 0 9px ${hexA(col, 0.5)}` : 'none',
                       transition: '.2s',
@@ -432,7 +434,7 @@ function moveBtn(accent: boolean): React.CSSProperties {
     padding: '8px 0',
     borderRadius: 9,
     border: '1px solid var(--line)',
-    background: 'rgba(0,0,0,.26)',
+    background: 'var(--sunk)',
   };
 }
 

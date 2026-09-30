@@ -7,8 +7,10 @@ import { getClass } from '@/data/classes';
 import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
 import { toolLabel } from '@/data/tools';
-import { defaultPreparedForClass } from '@/data/spells';
+import { defaultPreparedForClass, getSpell } from '@/data/spells';
+import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
+import { resourceMaxMap } from './classResources';
 import { buildLoadout, defaultSelection } from './loadout';
 
 /** Valores do Array Padrão de D&D 5e. */
@@ -174,7 +176,23 @@ export function finalizeCharacter(draft: Character): Character {
   const resources = buildResources(draft.classId, draft.level);
   const maxCircle = Math.max(0, ...Object.keys(spellSlots).map(Number));
   const preparedSpells =
-    maxCircle > 0 && draft.preparedSpells.length === 0 ? defaultPreparedForClass(draft.classId, maxCircle) : draft.preparedSpells;
+    maxCircle > 0 && draft.preparedSpells.length === 0
+      ? defaultPreparedForClass(
+          draft.classId,
+          maxCircle,
+          cantripsKnown(draft.classId, draft.level),
+          // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
+          Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
+        )
+      : draft.preparedSpells;
+  // Mago: grimório inicial com 6 magias de 1º círculo (as preparadas saem dele)
+  const knownSpells =
+    draft.classId === 'wizard' && maxCircle > 0 && (draft.knownSpells ?? []).length === 0
+      ? Array.from(new Set([
+          ...preparedSpells.filter((id) => (getSpell(id)?.level ?? 0) >= 1),
+          ...defaultPreparedForClass('wizard', 1, 0, 6),
+        ])).slice(0, 6)
+      : draft.knownSpells;
 
   const finalized: Character = {
     ...draft,
@@ -187,6 +205,7 @@ export function finalizeCharacter(draft: Character): Character {
     toolProfs,
     coins: bg.startingGold ? { ...draft.coins, gp: Math.max(draft.coins.gp, bg.startingGold) } : draft.coins,
     preparedSpells,
+    knownSpells,
     combat: {
       ...emptyCombat(),
       hitDiceRemaining: draft.level,
@@ -196,6 +215,8 @@ export function finalizeCharacter(draft: Character): Character {
     draft: false,
     updatedAt: Date.now(),
   };
+  // recursos calculados com o personagem pronto (nível, atributos, subclasse)
+  finalized.combat.resources = resourceMaxMap(finalized);
 
   return finalized;
 }

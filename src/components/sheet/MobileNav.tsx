@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SHEET_TABS } from './sheetTabDefs';
+import type { SheetTabDef } from './sheetTabDefs';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
 interface MobileNavProps {
   active: string;
@@ -10,76 +13,85 @@ interface MobileNavProps {
   isCaster: boolean;
 }
 
+/** Abas que ficam sempre na barra; o resto vai para "Mais". */
+const PRIMARY = ['mesa', 'ficha', 'combate', 'inventario', 'magias'];
+
 /**
- * Navegação inferior por abas (modo mobile / mesa de RPG).
- * Renderizada num portal em document.body: `position: fixed` dentro de
- * ancestrais com transform/filter (animações de página) faz a barra
- * "congelar" no meio do conteúdo — o portal escapa desse containing block.
+ * Navegação inferior (celular). No máximo 6 botões com rótulo inteiro —
+ * as abas de uso ocasional (Evoluir, Descanso, Diário, Dados) ficam numa
+ * gaveta "Mais". Renderizada num portal em document.body: `position: fixed`
+ * dentro de ancestrais com transform/filter "congela" a barra no conteúdo.
  */
 export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
   const t = useTheme();
+  const [moreOpen, setMoreOpen] = useState(false);
   const tabs = SHEET_TABS.filter((tab) => !tab.caster || isCaster);
+  const primary = tabs.filter((tab) => PRIMARY.includes(tab.id));
+  const secondary = tabs.filter((tab) => !PRIMARY.includes(tab.id));
+  const activeSecondary = secondary.find((tab) => tab.id === active);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMoreOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [moreOpen]);
+
+  const select = (id: string) => {
+    setMoreOpen(false);
+    onSelect(id);
+  };
 
   return createPortal(
-    <nav
-      className="fv-mobile-only"
-      style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 45,
-        justifyContent: 'space-around',
-        gap: 2,
-        padding: '8px 6px calc(8px + env(safe-area-inset-bottom))',
-        background: 'linear-gradient(180deg, rgba(6,8,12,.4), rgba(6,8,12,.9))',
-        borderTop: '1px solid var(--line)',
-        backdropFilter: 'blur(14px)',
-        overflowX: 'auto',
-        WebkitOverflowScrolling: 'touch',
-      }}
-    >
-      {tabs.map((tab) => {
-        const isActive = active === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onSelect(tab.id)}
-            aria-label={tab.label}
-            style={{
-              flex: '1 0 46px',
-              minWidth: 46,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              padding: '6px 2px',
-              borderRadius: 12,
-              border: 'none',
-              background: isActive ? hexA(t.gold, 0.12) : 'transparent',
-              transition: '.2s',
-            }}
-          >
-            <Icon name={tab.icon} size={19} color={isActive ? t.gold : t.muted} />
-            <span
-              style={{
-                fontSize: 9.5,
-                fontWeight: 600,
-                letterSpacing: '.02em',
-                color: isActive ? t.gold : t.muted,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '100%',
-              }}
-            >
-              {tab.label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>,
+    <>
+      {moreOpen && (
+        <div className="fv-mobile-only fv-nav-more-backdrop" onClick={() => setMoreOpen(false)}>
+          <div className="fv-panel fv-nav-more" role="menu" aria-label="Mais abas" onClick={(e) => e.stopPropagation()}>
+            {secondary.map((tab) => (
+              <MoreItem key={tab.id} tab={tab} active={active === tab.id} onClick={() => select(tab.id)} />
+            ))}
+          </div>
+        </div>
+      )}
+      <nav className="fv-mobile-only fv-mobile-nav" aria-label="Abas da ficha">
+        {primary.map((tab) => (
+          <NavButton key={tab.id} icon={tab.icon} label={tab.short ?? tab.label} active={active === tab.id} onClick={() => select(tab.id)} gold={t.gold} muted={t.muted} />
+        ))}
+        <NavButton
+          icon={activeSecondary?.icon ?? 'more'}
+          label={activeSecondary?.label ?? 'Mais'}
+          active={!!activeSecondary || moreOpen}
+          onClick={() => setMoreOpen((o) => !o)}
+          gold={t.gold}
+          muted={t.muted}
+          expanded={moreOpen}
+        />
+      </nav>
+    </>,
     document.body,
+  );
+}
+
+function NavButton({ icon, label, active, onClick, gold, muted, expanded }: { icon: IconName; label: string; active: boolean; onClick: () => void; gold: string; muted: string; expanded?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-current={active && expanded === undefined ? 'page' : undefined}
+      aria-expanded={expanded}
+      className="fv-mobile-nav-btn"
+      style={{ background: active ? hexA(gold, 0.12) : 'transparent', color: active ? gold : muted }}
+    >
+      <Icon name={icon} size={22} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function MoreItem({ tab, active, onClick }: { tab: SheetTabDef; active: boolean; onClick: () => void }) {
+  return (
+    <button role="menuitem" onClick={onClick} className="fv-nav-more-item" style={{ color: active ? 'var(--gold)' : 'var(--ink)', borderColor: active ? 'var(--gold)' : 'var(--line)' }}>
+      <Icon name={tab.icon} size={26} color="var(--gold)" />
+      <span>{tab.label}</span>
+    </button>
   );
 }

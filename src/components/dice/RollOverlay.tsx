@@ -4,39 +4,79 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import { modStr } from '@/engine/dice';
+import { canRoll3d, clear3d, roll3d } from '@/lib/dice3d';
 
 const TUMBLE_MS = 620;
 
-/** Overlay cinematográfico: dado 3D tombando e revelando o resultado. */
+/**
+ * Overlay cinematográfico do resultado. Com "Dados 3D" ligado, os dados com
+ * física rolam pela tela e caem nas faces sorteadas; o painel com o total
+ * aparece embaixo quando eles param. Sem 3D (ou d100), o dado 2D tomba.
+ */
 export function RollOverlay() {
   const roll = useUiStore((s) => s.currentRoll);
   const clearRoll = useUiStore((s) => s.clearRoll);
+  const dice3d = useUiStore((s) => s.dice3d);
+  const themeName = useUiStore((s) => s.theme);
   const t = useTheme();
 
-  const [phase, setPhase] = useState<'tumble' | 'result'>('tumble');
+  const [phase, setPhase] = useState<'physics' | 'tumble' | 'result'>('tumble');
+  /** Esta rolagem foi encenada em 3D (painel vai para baixo, sem dado 2D). */
+  const [staged3d, setStaged3d] = useState(false);
+  const rollIdRef = useRef<string | null>(null);
   const [face, setFace] = useState(0);
   const flickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // natural do dado (face que "para"): 1d20 mostra o dado; vários dados mostram a soma
-  const naturalFace = roll ? (roll.rolls.length === 1 ? roll.rolls[0] : roll.rolls.reduce((a, b) => a + b, 0)) : 0;
+  // natural do dado (face que "para"): 1d20 mostra o dado (com vantagem/desvantagem, o escolhido);
+  // vários dados mostram a soma
+  const naturalFace = roll ? (roll.rolls.length === 1 ? roll.rolls[0] : roll.total - roll.modifier) : 0;
 
   useEffect(() => {
-    if (!roll) return;
-    setPhase('tumble');
-    const max = roll.sides || 20;
-    flickerRef.current = setInterval(() => setFace(1 + Math.floor(Math.random() * max)), 70);
-    timerRef.current = setTimeout(() => {
-      if (flickerRef.current) clearInterval(flickerRef.current);
-      setFace(naturalFace);
-      setPhase('result');
-    }, TUMBLE_MS);
+    rollIdRef.current = roll?.id ?? null;
+    if (!roll) {
+      clear3d();
+      return;
+    }
+
+    const tumble2d = () => {
+      setStaged3d(false);
+      setPhase('tumble');
+      const max = roll.sides || 20;
+      flickerRef.current = setInterval(() => setFace(1 + Math.floor(Math.random() * max)), 70);
+      timerRef.current = setTimeout(() => {
+        if (flickerRef.current) clearInterval(flickerRef.current);
+        setFace(naturalFace);
+        setPhase('result');
+      }, TUMBLE_MS);
+    };
+
+    if (dice3d && canRoll3d(roll)) {
+      setStaged3d(true);
+      setPhase('physics');
+      void roll3d(roll, themeName).then((outcome) => {
+        if (rollIdRef.current !== roll.id) return; // já veio outra rolagem
+        if (outcome === 'unavailable') {
+          clear3d();
+          tumble2d();
+        } else {
+          // 'slow': aparelho lento — o total aparece e os dados terminam de cair
+          setPhase('result');
+        }
+      });
+    } else {
+      clear3d();
+      tumble2d();
+    }
     return () => {
       if (flickerRef.current) clearInterval(flickerRef.current);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roll?.id]);
+
+  // ao desmontar (sair da ficha), recolhe os dados da mesa
+  useEffect(() => () => clear3d(), []);
 
   const color = roll ? (roll.crit ? t.gold : roll.fail ? t.danger : roll.damage ? t.danger : t.acc) : t.acc;
   const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : 'rolagem') : '';
@@ -46,8 +86,19 @@ export function RollOverlay() {
   // (transform/filter) desloca o overlay — fora da árvore, centraliza sempre
   return createPortal(
     <AnimatePresence>
-      {roll && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'grid', placeItems: 'center', padding: 14, pointerEvents: 'none' }}>
+      {roll && phase !== 'physics' && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+            display: 'grid',
+            // 3D: painel embaixo, para não cobrir os dados que caíram no centro
+            placeItems: staged3d ? 'end center' : 'center',
+            padding: staged3d ? '14px 14px calc(92px + env(safe-area-inset-bottom))' : 14,
+            pointerEvents: 'none',
+          }}
+        >
           <motion.div
             key={roll.id}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -71,13 +122,14 @@ export function RollOverlay() {
             <button
               onClick={clearRoll}
               aria-label="Fechar resultado"
-              style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'rgba(0,0,0,.3)', color: 'var(--muted)', fontSize: 13 }}
+              style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)', fontSize: 13 }}
             >
               ✕
             </button>
             <div style={{ fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)' }}>{roll.label}</div>
 
-            {/* dado 3D */}
+            {/* dado 2D tombando (com os dados 3D, eles já estão na mesa) */}
+            {!staged3d && (
             <div style={{ perspective: 600, height: 92, display: 'grid', placeItems: 'center', margin: '6px 0 2px' }}>
               <div
                 key={`${roll.id}-${phase}`}
@@ -101,6 +153,7 @@ export function RollOverlay() {
                 </span>
               </div>
             </div>
+            )}
 
             {/* total + detalhes (revelados após o tombo) */}
             <AnimatePresence mode="wait">
@@ -110,7 +163,7 @@ export function RollOverlay() {
                     {roll.total}
                   </div>
                   <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 13.5, color: 'var(--ink)' }}>{detail}</div>
-                  <div style={{ marginTop: 6, fontFamily: "'Cinzel', serif", fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
+                  <div style={{ marginTop: 6, fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
                 </motion.div>
               )}
             </AnimatePresence>

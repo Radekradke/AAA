@@ -1,0 +1,12 @@
+{
+  "barbarian-masc": [40, 19],
+  "barbarian-fem": [40, 18],
+  "bard-masc": [40, 17],
+  "bard-fem": [52, 16],
+  "cleric-masc": [37, 16],
+  "cleric-fem": [50, 18],
+  "druid-masc": [38, 13],
+  "druid-fem": [48, 16],
+  "fighter-masc": [37, 14],
+  "fighter-fem": [37, 18]
+}

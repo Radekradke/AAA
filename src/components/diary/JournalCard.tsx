@@ -29,7 +29,7 @@ export function JournalCard({ entry, onChange, onDelete }: JournalCardProps) {
           value={entry.title}
           onChange={(e) => onChange({ title: e.target.value })}
           aria-label="Título da sessão"
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}
         />
         <input
           value={entry.date}

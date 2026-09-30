@@ -161,7 +161,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           </button>
           <button
             onClick={onClose}
-            style={{ cursor: 'pointer', minHeight: 46, padding: '0 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'rgba(0,0,0,.26)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
+            style={{ cursor: 'pointer', minHeight: 46, padding: '0 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)', fontWeight: 600, fontSize: 14 }}
           >
             Cancelar
           </button>
@@ -172,7 +172,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
         <label style={{ gridColumn: '1 / -1' }}>
           <span style={label}>Nome</span>
-          <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: "'Cinzel', serif" }} />
+          <input className="fv-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lâmina do Crepúsculo" style={{ fontFamily: 'var(--font-display)' }} />
         </label>
         <label>
           <span style={label}>Categoria</span>
@@ -394,7 +394,7 @@ function fieldsetStyle(t: ReturnType<typeof useTheme>): React.CSSProperties {
 function legendStyle(t: ReturnType<typeof useTheme>): React.CSSProperties {
   return {
     padding: '0 8px',
-    fontFamily: "'Cinzel', serif",
+    fontFamily: 'var(--font-display)',
     fontSize: 12,
     letterSpacing: '.12em',
     textTransform: 'uppercase',
@@ -418,7 +418,7 @@ function CheckRow({ checked, onChange, text }: { checked: boolean; onChange: (v:
         padding: '0 12px',
         borderRadius: 'var(--radius-md)',
         border: '1px solid ' + (checked ? t.gold : t.line),
-        background: checked ? hexA(t.gold, 0.1) : 'rgba(0,0,0,.24)',
+        background: checked ? hexA(t.gold, 0.1) : 'var(--sunk)',
         color: checked ? t.gold : 'var(--muted)',
         fontSize: 12.5,
         fontWeight: 600,

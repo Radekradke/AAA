@@ -1,13 +1,21 @@
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
+import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStateStorage } from '@/lib/storage/zustandIdb';
-import type { Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { ActiveSpellEffect, Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/characterBuilder';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';
-import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT } from '@/engine/inventory';
-import { spellSlotsForClass, buildResources } from '@/engine/progression';
+import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
+import type { ContainerId, MoveResult } from '@/engine/inventory';
+import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
+import { gainsSpellSwap } from '@/engine/spellRules';
+import { characterResources, syncResources } from '@/engine/classResources';
+import { applyChoicePicks } from '@/engine/classChoices';
+import { grantChoiceEffects } from '@/engine/choiceEffects';
+import { getFeat } from '@/data/feats';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
 import type { LevelUpPlan } from '@/engine/levelUp';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -43,6 +51,8 @@ interface CharacterState {
   updateInventoryItem: (id: string, uid: string, patch: Partial<InventoryItem>) => void;
   removeInventoryItem: (id: string, uid: string) => void;
   toggleEquip: (id: string, uid: string) => void;
+  /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
+  moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
   toggleFavorite: (id: string, uid: string) => void;
   toggleAttune: (id: string, uid: string) => void;
   adjustCoin: (id: string, coin: CoinKey, delta: number) => void;
@@ -63,6 +73,27 @@ interface CharacterState {
   /** Gasta um uso de uma magia concedida por item (recarga por descanso). */
   useItemSpell: (id: string, key: string) => void;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
+  /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
+  castWithSlot: (id: string, level: number, concentration?: boolean) => void;
+  /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage', on: boolean) => void;
+  /** Ataque Furtivo gasto neste turno. */
+  useSneakAttack: (id: string) => void;
+  /** Efeito de magia passa a valer em você (troca o da mesma magia). */
+  applySpellEffect: (id: string, effect: ActiveSpellEffect) => void;
+  removeSpellEffect: (id: string, spellId: string) => void;
+  /** Acaba com os efeitos que dependem de concentração (nova concentração / romper). */
+  endConcentrationEffects: (id: string) => void;
+  /** PV temporários não acumulam: fica o maior. */
+  gainTempHp: (id: string, amount: number) => void;
+  /** Marca ação/bônus/reação como gasta (sem desmarcar). */
+  useTurn: (id: string, key: 'action' | 'bonus' | 'reaction') => void;
+  /** Registra a magia conjurada neste turno. */
+  noteCast: (id: string, spellId: string) => void;
+  /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
+  forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
+  /** Mago: copia uma magia para o grimório pagando ouro. */
+  copySpell: (id: string, spellId: string, cost: number) => void;
   setResource: (id: string, resId: string, value: number) => void;
   spendHitDie: (id: string) => void;
   setDeathSave: (id: string, type: 'success' | 'fail', n: number) => void;
@@ -76,7 +107,13 @@ interface CharacterState {
   editCharacter: (id: string, patch: Partial<Character>) => void;
   /** Evolução guiada (aba Evoluir): valida e aplica um plano de nível. */
   levelUp: (id: string, plan: LevelUpPlan) => { ok: boolean; errors: string[] };
+  /** Preenche escolhas de classe pendentes (ex.: ficha antiga sem Estilo de Luta). */
+  setClassChoices: (id: string, picks: Record<string, string[]>) => void;
   toggleInspiration: (id: string) => void;
+  /** Pontos de Inspiração: ganhar (+1), gastar (−1) ou ajustar direto. */
+  gainInspiration: (id: string) => void;
+  spendInspiration: (id: string) => void;
+  setInspiration: (id: string, points: number) => void;
   updateCampaign: (id: string, patch: Partial<Character['campaign']>) => void;
 }
 
@@ -255,6 +292,15 @@ export const useCharacterStore = create<CharacterState>()(
             c.equipped = equipped;
           });
         },
+        moveItem(id, uid, target) {
+          const char = get().getCharacter(id);
+          if (!char) return { ok: false, reason: 'Ficha não encontrada.' };
+          // valida num rascunho: movimento recusado não marca a ficha como editada
+          const probe = moveItemTo(structuredClone(char), uid, target);
+          if (!probe.ok) return probe;
+          mutate(id, (c) => void moveItemTo(c, uid, target));
+          return probe;
+        },
         toggleFavorite(id, uid) {
           mutate(id, (c) => {
             const it = c.inventory.find((i) => i.uid === uid);
@@ -339,6 +385,12 @@ export const useCharacterStore = create<CharacterState>()(
           mutate(id, (c) => {
             c.combat.turn = { action: false, bonus: false, reaction: false };
             c.combat.moveUsed = 0;
+            c.combat.castThisTurn = [];
+            // Escudo Arcano acaba no início do seu turno; Heroísmo renova os PV temporários
+            const effects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'turn');
+            c.combat.spellEffects = effects;
+            const perTurn = Math.max(0, ...effects.map((e) => e.tempPerTurn ?? 0));
+            if (perTurn > c.combat.hpTemp) c.combat.hpTemp = perTurn;
           });
         },
         adjustMove(id, delta) {
@@ -366,6 +418,58 @@ export const useCharacterStore = create<CharacterState>()(
         toggleConcentration(id) {
           mutate(id, (c) => {
             c.combat.concentration = !c.combat.concentration;
+            // romper a concentração encerra Bruxaria, Marca do Caçador e os efeitos de concentração
+            if (!c.combat.concentration) {
+              c.combat.marks = (c.combat.marks ?? []).filter((m) => m === 'rage');
+              c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
+            }
+          });
+        },
+        setMark(id, mark, on) {
+          mutate(id, (c) => {
+            const cur = (c.combat.marks ?? []).filter((m) => m !== mark);
+            c.combat.marks = on ? [...cur, mark] : cur;
+          });
+        },
+        applySpellEffect(id, effect) {
+          mutate(id, (c) => {
+            const list = c.combat.spellEffects ?? [];
+            const had = list.find((e) => e.spellId === effect.spellId);
+            // Auxílio: o PV atual sobe junto com o máximo (só na primeira vez)
+            if (effect.maxHp && !had) c.hpCurrent += effect.maxHp;
+            c.combat.spellEffects = [...list.filter((e) => e.spellId !== effect.spellId), effect];
+          });
+        },
+        removeSpellEffect(id, spellId) {
+          mutate(id, (c) => {
+            const gone = (c.combat.spellEffects ?? []).find((e) => e.spellId === spellId);
+            c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.spellId !== spellId);
+            if (gone?.maxHp) c.hpCurrent = Math.min(c.hpCurrent, deriveCharacter(c).maxHp);
+          });
+        },
+        endConcentrationEffects(id) {
+          mutate(id, (c) => {
+            c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
+          });
+        },
+        gainTempHp(id, amount) {
+          mutate(id, (c) => {
+            c.combat.hpTemp = Math.max(c.combat.hpTemp, Math.max(0, amount));
+          });
+        },
+        useTurn(id, key) {
+          mutate(id, (c) => {
+            c.combat.turn = { ...c.combat.turn, [key]: true };
+          });
+        },
+        noteCast(id, spellId) {
+          mutate(id, (c) => {
+            c.combat.castThisTurn = [...(c.combat.castThisTurn ?? []).filter((x) => x !== spellId), spellId];
+          });
+        },
+        useSneakAttack(id) {
+          mutate(id, (c) => {
+            c.combat.turn = { ...c.combat.turn, sneak: true };
           });
         },
         useItemSpell(id, key) {
@@ -375,8 +479,34 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.itemSpellUses = uses;
           });
         },
+        castWithSlot(id, level, concentration) {
+          mutate(id, (c) => {
+            if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
+            const slot = c.combat.spellSlots[level];
+            if (!slot || slot.used >= slot.max) return;
+            slot.used += 1;
+            if (concentration) c.combat.concentration = true;
+          });
+        },
+        forgetSpell(id, spellId, useSwap) {
+          mutate(id, (c) => {
+            c.preparedSpells = c.preparedSpells.filter((x) => x !== spellId);
+            c.knownSpells = (c.knownSpells ?? []).filter((x) => x !== spellId);
+            c.spellbookCopied = (c.spellbookCopied ?? []).filter((x) => x !== spellId);
+            if (useSwap) c.spellSwaps = Math.max(0, (c.spellSwaps ?? 0) - 1);
+          });
+        },
+        copySpell(id, spellId, cost) {
+          mutate(id, (c) => {
+            if (c.coins.gp < cost || (c.knownSpells ?? []).includes(spellId)) return;
+            c.coins.gp -= cost;
+            c.knownSpells = [...(c.knownSpells ?? []), spellId];
+            c.spellbookCopied = [...(c.spellbookCopied ?? []), spellId];
+          });
+        },
         toggleSpellSlot(id, level, index) {
           mutate(id, (c) => {
+            if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
             const slot = c.combat.spellSlots[level];
             if (!slot) return;
             // clicar no pip n alterna: se já gasto até n, devolve; senão gasta até n
@@ -403,10 +533,9 @@ export const useCharacterStore = create<CharacterState>()(
         shortRest(id) {
           const char = get().getCharacter(id);
           if (!char) return;
-          const cls = getClass(char.classId);
           mutate(id, (c) => {
-            for (const r of cls.resources ?? []) {
-              if (r.recharge === 'short') c.combat.resources[r.id] = r.max;
+            for (const r of characterResources(c)) {
+              if (r.recharge === 'short' && !r.unlimited) c.combat.resources[r.id] = r.max;
             }
             // magias de item com recarga em descanso curto voltam
             const uses = { ...(c.combat.itemSpellUses ?? {}) };
@@ -415,14 +544,21 @@ export const useCharacterStore = create<CharacterState>()(
                 if (g.recharge === 'short') delete uses[`${it.uid}:${g.spellId}`];
               }
             }
+            // magias de talento com recarga curta (Teleporte Feérico)
+            for (const featId of c.feats ?? []) {
+              for (const g of getFeat(featId)?.grantsSpells ?? []) {
+                if (g.recharge === 'short') delete uses[`feat:${featId}:${g.spellId}`];
+              }
+            }
             c.combat.itemSpellUses = uses;
+            // a Fúria dura 1 minuto: não sobrevive a um descanso
+            c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage');
           });
         },
         longRest(id) {
           const char = get().getCharacter(id);
           if (!char) return;
           const derived = deriveCharacter(char);
-          const cls = getClass(char.classId);
           mutate(id, (c) => {
             c.hpCurrent = derived.maxHp;
             c.combat.hpTemp = 0;
@@ -431,6 +567,9 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.turn = { action: false, bonus: false, reaction: false };
             c.combat.moveUsed = 0;
             c.combat.concentration = false;
+            c.combat.marks = [];
+            c.combat.spellEffects = [];
+            c.combat.castThisTurn = [];
             // descanso longo remove 1 nível de exaustão (PHB 2014)
             c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
             // todas as magias de item recarregam no descanso longo
@@ -440,10 +579,10 @@ export const useCharacterStore = create<CharacterState>()(
               derived.hitDiceMax,
               c.combat.hitDiceRemaining + Math.max(1, Math.floor(derived.hitDiceMax / 2)),
             );
-            for (const r of cls.resources ?? []) c.combat.resources[r.id] = r.max;
-            for (const lv of Object.keys(c.combat.spellSlots)) {
-              c.combat.spellSlots[Number(lv)].used = 0;
-            }
+            c.combat.resources = syncResources(c, c.combat.resources, true);
+            c.combat.spellSlots = syncSpellSlots(c, true);
+            // companheiro de patrulheiro volta com PV cheio
+            if (c.companion) c.companion = { ...c.companion, hpCurrent: undefined };
           });
         },
         addJournalEntry(id) {
@@ -515,7 +654,7 @@ export const useCharacterStore = create<CharacterState>()(
               ? Math.min(newLevel, c.combat.hitDiceRemaining + (newLevel - char.level))
               : Math.min(newLevel, c.combat.hitDiceRemaining);
             // espaços de magia
-            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const slotMax = spellSlotsFor(c);
             const nextSlots: typeof c.combat.spellSlots = {};
             for (const [circle, max] of Object.entries(slotMax)) {
               const used = leveledUp ? 0 : c.combat.spellSlots[Number(circle)]?.used ?? 0;
@@ -523,12 +662,7 @@ export const useCharacterStore = create<CharacterState>()(
             }
             c.combat.spellSlots = nextSlots;
             // recursos: ao subir restaura tudo; ao descer, mantém dentro do novo máximo
-            const resMax = buildResources(c.classId, newLevel);
-            const nextRes: Record<string, number> = {};
-            for (const [rid, max] of Object.entries(resMax)) {
-              nextRes[rid] = leveledUp ? max : Math.min(c.combat.resources[rid] ?? max, max);
-            }
-            c.combat.resources = nextRes;
+            c.combat.resources = syncResources(c, c.combat.resources, leveledUp);
           });
         },
         levelUp(id, plan) {
@@ -550,6 +684,8 @@ export const useCharacterStore = create<CharacterState>()(
             else c.classLevels.push({ classId: plan.classId, level: 1 });
 
             if (plan.subclassId) c.subclassId = plan.subclassId;
+            // magias conhecidas: ao subir de nível pode trocar uma (PHB 2014)
+            if (plan.classId === c.classId && gainsSpellSwap(c)) c.spellSwaps = (c.spellSwaps ?? 0) + 1;
             if (plan.asi?.kind === 'asi') {
               for (const k of ABILITY_KEYS) {
                 const inc = plan.asi.increases[k] ?? 0;
@@ -563,6 +699,12 @@ export const useCharacterStore = create<CharacterState>()(
               }
             }
 
+            // escolhas de classe (Metamagia, Estilo de Luta, Manobras…) e seus efeitos na ficha
+            if (plan.choices || plan.replace) {
+              applyChoicePicks(c, plan.choices ?? {}, plan.replace ?? {});
+              grantChoiceEffects(c, plan.choices ?? {});
+            }
+
             c.levelHistory.push({
               level: newLevel,
               classId: plan.classId,
@@ -572,20 +714,20 @@ export const useCharacterStore = create<CharacterState>()(
               features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? c.subclassId),
               asi: plan.asi,
               subclassId: plan.subclassId,
+              choices: plan.choices && Object.keys(plan.choices).length ? plan.choices : undefined,
               at: Date.now(),
             });
 
             // dados de vida, espaços de magia e recursos acompanham o novo nível
             c.combat.hitDiceRemaining = Math.min(newLevel, c.combat.hitDiceRemaining + 1);
-            const slotMax = spellSlotsForClass(c.classId, newLevel);
+            const slotMax = spellSlotsFor(c);
             const nextSlots: typeof c.combat.spellSlots = {};
             for (const [circle, max] of Object.entries(slotMax)) {
               const used = c.combat.spellSlots[Number(circle)]?.used ?? 0;
               nextSlots[Number(circle)] = { used: Math.min(used, max), max };
             }
             c.combat.spellSlots = nextSlots;
-            const resMax = buildResources(c.classId, newLevel);
-            for (const [rid, max] of Object.entries(resMax)) c.combat.resources[rid] = max;
+            c.combat.resources = syncResources(c, c.combat.resources, true);
           });
 
           // PV atual sobe junto com o novo máximo
@@ -597,10 +739,25 @@ export const useCharacterStore = create<CharacterState>()(
           }
           return { ok: true, errors: [] };
         },
-        toggleInspiration(id) {
+        setClassChoices(id, picks) {
           mutate(id, (c) => {
-            c.inspiration = !c.inspiration;
+            Object.assign(c, ensureCharacterV2(c));
+            applyChoicePicks(c, picks);
+            grantChoiceEffects(c, picks);
+            c.combat.resources = syncResources(c, c.combat.resources, false);
           });
+        },
+        toggleInspiration(id) {
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) > 0 ? 0 : 1));
+        },
+        gainInspiration(id) {
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) + 1));
+        },
+        spendInspiration(id) {
+          mutate(id, (c) => setInspirationCount(c, inspirationCount(c) - 1));
+        },
+        setInspiration(id, points) {
+          mutate(id, (c) => setInspirationCount(c, points));
         },
         updateCampaign(id, patch) {
           mutate(id, (c) => {
@@ -611,6 +768,11 @@ export const useCharacterStore = create<CharacterState>()(
         editCharacter(id, patch) {
           mutate(id, (c) => {
             Object.assign(c, patch);
+            // subclasse conjuradora (Cavaleiro/Trapaceiro Arcano) muda os espaços e recursos
+            if ('subclassId' in patch) {
+              c.combat.spellSlots = syncSpellSlots(c);
+              c.combat.resources = syncResources(c, c.combat.resources, false);
+            }
           });
           // garante PV dentro do novo máximo após editar atributos/nível
           const updated = get().getCharacter(id);
@@ -639,3 +801,18 @@ export const useCharacterStore = create<CharacterState>()(
     },
   ),
 );
+
+/**
+ * As fichas vivem no IndexedDB (leitura assíncrona). Até a hidratação
+ * terminar, o store está VAZIO — qualquer escrita nesse intervalo (criar
+ * rascunho, sincronizar) gravaria a lista vazia por cima dos heróis.
+ * Rotas e sync esperam por este sinal.
+ */
+export function useCharactersHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(() => useCharacterStore.persist.hasHydrated());
+  useEffect(() => {
+    if (useCharacterStore.persist.hasHydrated()) setHydrated(true);
+    return useCharacterStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+  return hydrated;
+}

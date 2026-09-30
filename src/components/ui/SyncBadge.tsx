@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
 import { useAuthStore } from '@/store/authStore';
 import { resolveConflict } from '@/services/offlineSyncService';
-import { cloudEnabled } from '@/services/supabaseClient';
 import { Modal } from './Modal';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
@@ -24,10 +23,10 @@ export function SyncBadge() {
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
     if (cloud === 'syncing') return { dot: t.acc, text: 'Sincronizando…', pulse: true };
-    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia' };
+    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia', calm: true };
     if (cloud === 'pending') return { dot: t.acc, text: 'Aguardando nuvem' };
     // nuvem desativada (sem Supabase ou convidado): só o estado local
-    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: cloudEnabled() ? 'Salvo neste aparelho' : 'Salvo neste aparelho' };
+    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: 'Salvo neste aparelho', calm: true };
   })();
 
   return (
@@ -41,7 +40,9 @@ export function SyncBadge() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 7,
-          minHeight: 36,
+          minHeight: 38,
+          minWidth: 38,
+          justifyContent: 'center',
           padding: '6px 12px',
           borderRadius: 999,
           border: '1px solid ' + (view.click ? hexA(t.danger, 0.55) : 'var(--line)'),
@@ -64,7 +65,8 @@ export function SyncBadge() {
             animation: view.pulse ? 'glowPulse 1.1s ease-in-out infinite' : 'none',
           }}
         />
-        {view.text}
+        {/* tudo certo → só o ponto (texto no title/aria-label); atenção → texto visível no desktop */}
+        {!('calm' in view && view.calm) && <span className="fv-hide-mobile">{view.text}</span>}
       </button>
 
       {open && (
@@ -74,8 +76,8 @@ export function SyncBadge() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {conflicts.map((c) => (
-              <div key={c.sheetId} style={{ padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.4), background: 'rgba(0,0,0,.24)' }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>{c.name}</div>
+              <div key={c.sheetId} style={{ padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.4), background: 'var(--sunk)' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>{c.name}</div>
                 <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
                   local {new Date(c.localUpdatedAt).toLocaleString('pt-BR')} · nuvem {new Date(c.remoteUpdatedAt).toLocaleString('pt-BR')}
                 </div>

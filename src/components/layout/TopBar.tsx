@@ -1,125 +1,168 @@
-import { useUiStore } from '@/store/uiStore';
-import { useTheme } from '@/lib/useTheme';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { useUiStore } from '@/store/uiStore';
 import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
+import { MusicControl } from './MusicControl';
+import { Modal } from '@/components/ui/Modal';
+import { useInstallPrompt } from '@/lib/pwaInstall';
+import { THEMES, THEME_ORDER } from '@/data/themes';
 
-interface TopBarProps {
-  /** Ações extras à direita (ex.: sair, recomeçar). */
-  actions?: ReactNode;
+export interface TopBarMenuItem {
+  label: string;
+  onClick: () => void;
+  icon?: IconName;
+  /** Só aparece no menu em telas pequenas (no desktop já está visível na barra). */
+  mobileOnly?: boolean;
+  danger?: boolean;
 }
 
-/** Barra superior fixa: marca + alternador de atmosfera + ações contextuais. */
-export function TopBar({ actions }: TopBarProps) {
-  const toggleTheme = useUiStore((s) => s.toggleTheme);
+interface TopBarProps {
+  /** Ações principais à direita (sempre visíveis). */
+  actions?: ReactNode;
+  /** Ações secundárias, recolhidas no menu "⋯". */
+  menu?: TopBarMenuItem[];
+}
+
+/**
+ * Barra superior fixa. Desktop: marca, atmosfera, som, salvamento e ações.
+ * Celular: só o essencial (marca, salvamento, ações principais) — o resto
+ * vai para o menu "⋯", para nada ser cortado na borda da tela.
+ */
+export function TopBar({ actions, menu = [] }: TopBarProps) {
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
-  const t = useTheme();
+  const dice3d = useUiStore((s) => s.dice3d);
+  const toggleDice3d = useUiStore((s) => s.toggleDice3d);
+  const [open, setOpen] = useState(false);
+  const [iosGuide, setIosGuide] = useState(false);
+  const installer = useInstallPrompt();
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const items: (TopBarMenuItem & { key: string })[] = [
+    ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
+    { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
+    { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
+    { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
+    // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
+    ...(installer.canPrompt || installer.needsIOSGuide
+      ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
+      : []),
+  ];
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 40,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: 12,
-        minHeight: 'var(--topbar-h)',
-        padding: 'clamp(10px,2vw,20px) var(--page-x)',
-        pointerEvents: 'none',
-      }}
-    >
+    <div className="fv-topbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0, pointerEvents: 'auto' }}>
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            border: '1px solid var(--gold)',
-            borderRadius: 8,
-            display: 'grid',
-            placeItems: 'center',
-            transform: 'rotate(45deg)',
-            boxShadow: '0 0 16px var(--bloom)',
-          }}
-        >
-          <span
-            style={{
-              transform: 'rotate(-45deg)',
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 13,
-              color: 'var(--gold)',
-            }}
-          >
-            F
-          </span>
+        <div className="fv-topbar-logo" aria-hidden>
+          <span>F</span>
         </div>
-        <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span className="fv-hide-mobile" style={{ fontFamily: 'var(--font-display)', letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
           FICHA&nbsp;VIVA
         </span>
       </div>
 
-      <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0, overflowX: 'auto' }}>
-        <button
-          onClick={toggleTheme}
-          aria-label="Alternar atmosfera"
-          style={{
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 9,
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 600,
-            fontSize: 12.5,
-            letterSpacing: '.04em',
-            color: 'var(--ink)',
-            padding: '9px 15px',
-            borderRadius: 999,
-            border: '1px solid var(--line)',
-            background: 'var(--panel)',
-            backdropFilter: 'blur(8px)',
-            transition: '.25s',
-          }}
-        >
-          <span
-            style={{
-              width: 11,
-              height: 11,
-              borderRadius: 999,
-              background: 'linear-gradient(135deg, var(--acc), var(--acc2))',
-              boxShadow: '0 0 10px var(--acc)',
-            }}
-          />
-          {t.label}
-        </button>
-        <button
-          onClick={toggleSound}
-          aria-label={sound ? 'Desativar som' : 'Ativar som'}
-          title={sound ? 'Som ativado' : 'Som desativado'}
-          style={{
-            cursor: 'pointer',
-            width: 36,
-            height: 36,
-            display: 'grid',
-            placeItems: 'center',
-            fontSize: 15,
-            borderRadius: 999,
-            border: '1px solid ' + (sound ? 'var(--gold)' : 'var(--line)'),
-            background: 'var(--panel)',
-            backdropFilter: 'blur(8px)',
-            color: sound ? 'var(--gold)' : 'var(--muted)',
-            transition: '.25s',
-          }}
-        >
-          <Icon name={sound ? 'volume' : 'volumeOff'} size={16} />
-        </button>
+      <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
         <SyncBadge />
+        <MusicControl />
         {actions}
+
+        <div ref={menuRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Mais opções"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            className="fv-topbar-icon"
+            style={{ borderColor: open ? 'var(--gold)' : undefined, color: open ? 'var(--gold)' : undefined }}
+          >
+            <Icon name="more" size={18} />
+          </button>
+          {open && (
+            <div role="menu" className="fv-topbar-menu fv-panel">
+              {/* atmosfera: os climas lado a lado, escolha direta */}
+              <div className="fv-topbar-themes" role="group" aria-label="Atmosfera">
+                <span>Atmosfera</span>
+                <div>
+                  {THEME_ORDER.map((id) => {
+                    const th = THEMES[id];
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={theme === id}
+                        className={'fv-topbar-theme' + (theme === id ? ' is-on' : '')}
+                        onClick={() => setTheme(id)}
+                        title={th.label}
+                      >
+                        <i
+                          aria-hidden
+                          style={{
+                            background: `radial-gradient(circle at 70% 72%, ${th.acc} 0 16%, transparent 18%), radial-gradient(circle at 30% 30%, ${th.gold} 0 9%, transparent 11%), radial-gradient(120% 90% at 50% 0%, ${th.bg2}, ${th.bg})`,
+                            borderColor: theme === id ? th.gold : undefined,
+                            boxShadow: `0 0 12px ${th.bloom}`,
+                          }}
+                        />
+                        <span className="fv-topbar-theme-text">
+                          <b style={{ fontFamily: th.font }}>{th.label}</b>
+                          <small>{th.tagline}</small>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {items.map((it) => (
+                <button
+                  key={it.key}
+                  role="menuitem"
+                  className={'fv-topbar-menu-item' + (it.mobileOnly ? ' fv-mobile-only' : '')}
+                  style={{ color: it.danger ? 'var(--danger)' : undefined }}
+                  onClick={() => {
+                    setOpen(false);
+                    it.onClick();
+                  }}
+                >
+                  {it.icon && <Icon name={it.icon} size={16} color={it.danger ? 'var(--danger)' : 'var(--gold)'} />}
+                  {it.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {iosGuide && (
+        <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>
+            <li>Abra este site no <b>Safari</b>.</li>
+            <li>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</li>
+            <li>Escolha <b>Adicionar à Tela de Início</b> e confirme.</li>
+          </ol>
+          <p style={{ margin: '14px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>
+            A Ficha Viva vira um ícone na tela e abre em tela cheia — e funciona sem internet depois da primeira visita.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

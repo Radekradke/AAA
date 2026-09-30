@@ -16,6 +16,10 @@ interface UiState {
   rollMode: RollMode;
   setRollMode: (m: RollMode) => void;
 
+  /** Dados 3D com física no lugar do dado 2D do overlay. */
+  dice3d: boolean;
+  toggleDice3d: () => void;
+
   /** Efeitos sonoros opcionais (sessão; ativados por gesto do usuário). */
   sound: boolean;
   toggleSound: () => void;
@@ -25,14 +29,70 @@ interface UiState {
   bumpAmount: number;
   bump: (amount?: number) => void;
 
+  /**
+   * Inspiração preparada: o próximo teste d20 (ataque, perícia, resistência)
+   * sai com vantagem e só então o ponto é descontado da ficha `armedCharId`.
+   */
+  inspirationArmed: boolean;
+  armedCharId: string | null;
+  armInspiration: (charId: string) => void;
+  /** Desarma e devolve o modo de rolagem anterior (cancelar ou após usar). */
+  disarmInspiration: () => void;
+
+  /** Ficha aberta agora: cada rolagem é marcada com ela. */
+  activeCharId: string | null;
+  setActiveChar: (id: string | null) => void;
+
   /** Rolagem atual em destaque (overlay cinematográfico). */
   currentRoll: RollResult | null;
+  /** Linha do tempo da sessão (mais recente primeiro), persistida. */
   history: RollResult[];
   pushRoll: (r: RollResult) => void;
   clearRoll: () => void;
+  /** Limpa o histórico de uma ficha (ou tudo, sem id). */
+  clearHistory: (charId?: string) => void;
+
+  /** Aviso de conjuração (toda magia, inclusive truques sem rolagem). */
+  castNotice: CastNotice | null;
+  pushCastNotice: (n: Omit<CastNotice, 'id'>) => void;
+  clearCastNotice: () => void;
+}
+
+export interface CastNotice {
+  id: number;
+  title: string;
+  /** Linha de contexto: círculo, ação gasta, duração. */
+  sub: string;
+  lines: string[];
+  /** Escolhas rápidas (Em mim / Em outro, Curar em mim). */
+  actions?: { label: string; run: () => void; primary?: boolean }[];
+  warn?: string;
+  /** Sono / Leque Cromático: total de PV rolado + calculadora de quem é afetado. */
+  pool?: { total: number; effect: string; immune: string };
+}
+
+let _noticeTimer: ReturnType<typeof setTimeout> | null = null;
+let _noticeSeq = 0;
+
+/** Quantas rolagens guardamos no total (todas as fichas). */
+export const HISTORY_MAX = 60;
+
+/** Rolagens de uma ficha (rolagens antigas, sem dono, aparecem em todas). */
+export function historyFor(history: RollResult[], charId: string | null | undefined): RollResult[] {
+  if (!charId) return history;
+  return history.filter((r) => !r.charId || r.charId === charId);
 }
 
 let _rollTimer: ReturnType<typeof setTimeout> | null = null;
+let _modeBeforeInspiration: RollMode = 'normal';
+
+function prefersReducedMotion(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
 
 export const useUiStore = create<UiState>()(
   persist(
@@ -52,7 +112,27 @@ export const useUiStore = create<UiState>()(
 
       rollMode: 'normal',
       setRollMode(m) {
-        set({ rollMode: m });
+        // escolher o modo na mão encerra a inspiração preparada
+        set({ rollMode: m, inspirationArmed: false, armedCharId: null });
+      },
+
+      inspirationArmed: false,
+      armedCharId: null,
+      armInspiration(charId) {
+        const prev = get().rollMode;
+        _modeBeforeInspiration = prev;
+        // vantagem + desvantagem se anulam (PHB 2014)
+        set({ inspirationArmed: true, armedCharId: charId, rollMode: prev === 'disadvantage' ? 'normal' : 'advantage' });
+      },
+      disarmInspiration() {
+        if (!get().inspirationArmed) return;
+        set({ inspirationArmed: false, armedCharId: null, rollMode: _modeBeforeInspiration });
+      },
+
+      // quem pediu menos animação ao sistema começa com o 3D desligado
+      dice3d: !prefersReducedMotion(),
+      toggleDice3d() {
+        set((s) => ({ dice3d: !s.dice3d }));
       },
 
       sound: false,
@@ -68,11 +148,34 @@ export const useUiStore = create<UiState>()(
         set((s) => ({ bumpSignal: s.bumpSignal + 1, bumpAmount: amount }));
       },
 
+      activeCharId: null,
+      setActiveChar(id) {
+        // saiu da ficha que preparou a inspiração: desarma (o ponto não foi gasto)
+        if (get().inspirationArmed && get().armedCharId !== id) get().disarmInspiration();
+        set({ activeCharId: id });
+      },
+
+      castNotice: null,
+      pushCastNotice(n) {
+        const id = ++_noticeSeq;
+        set({ castNotice: { ...n, id } });
+        get().bump(1.2);
+        if (_noticeTimer) clearTimeout(_noticeTimer);
+        // com escolha pendente, fica mais tempo na tela
+        _noticeTimer = setTimeout(() => {
+          if (get().castNotice?.id === id) set({ castNotice: null });
+        }, n.pool ? 45000 : n.actions?.length ? 14000 : 5200);
+      },
+      clearCastNotice() {
+        if (_noticeTimer) clearTimeout(_noticeTimer);
+        set({ castNotice: null });
+      },
+
       currentRoll: null,
       history: [],
-      pushRoll(r) {
-        // mantém apenas as 5 últimas rolagens (histórico curto na aba Mesa)
-        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, 5) }));
+      pushRoll(roll) {
+        const r = roll.charId || !get().activeCharId ? roll : { ...roll, charId: get().activeCharId! };
+        set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, HISTORY_MAX) }));
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);
@@ -83,11 +186,15 @@ export const useUiStore = create<UiState>()(
         if (_rollTimer) clearTimeout(_rollTimer);
         set({ currentRoll: null });
       },
+      clearHistory(charId) {
+        set((s) => ({ history: charId ? s.history.filter((r) => r.charId && r.charId !== charId) : [] }));
+      },
     }),
     {
       name: 'fv-ui',
-      // não persistimos rolagem/partículas, apenas tema
-      partialize: (s) => ({ theme: s.theme }),
+      // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
+      // rolagem em destaque e partículas são efêmeras
+      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d }),
     },
   ),
 );

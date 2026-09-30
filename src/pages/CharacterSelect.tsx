@@ -8,7 +8,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useTilt } from '@/lib/useTilt';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
-import { shortSubtitle, heroAvatar } from '@/lib/summary';
+import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { getRace } from '@/data/races';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -85,7 +85,7 @@ export function CharacterSelect() {
           <h1
             style={{
               margin: '6px 0 4px',
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontWeight: 700,
               fontSize: 'clamp(28px,4.5vw,44px)',
               color: 'var(--ink)',
@@ -137,13 +137,13 @@ export function CharacterSelect() {
                 border: '1px solid var(--gold)',
                 color: 'var(--gold)',
                 fontSize: 28,
-                fontFamily: "'Cinzel', serif",
+                fontFamily: 'var(--font-display)',
                 boxShadow: '0 0 24px var(--bloom)',
               }}
             >
               +
             </div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
               Novo Personagem
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</div>
@@ -169,9 +169,15 @@ export function CharacterSelect() {
                   transformStyle: 'preserve-3d',
                 }}
               >
+                {/* arte do herói ao fundo, esmaecendo para a esquerda (estilo seleção de personagem) */}
+                <div
+                  aria-hidden
+                  className="fv-hero-card-art"
+                  style={{ backgroundImage: `url("${heroAvatar(c)}")`, backgroundPosition: heroPortraitPosition(c) }}
+                />
                 <button
                   onClick={() => open(c)}
-                  style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', padding: 18 }}
+                  style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18, position: 'relative', zIndex: 1 }}
                 >
                   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                     <div
@@ -191,15 +197,14 @@ export function CharacterSelect() {
                           width: '100%',
                           height: '100%',
                           backgroundImage: `url("${heroAvatar(c)}")`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: '50% 22%',
+                          ...heroFace(c),
                         }}
                       />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div
                         style={{
-                          fontFamily: "'Cinzel', serif",
+                          fontFamily: 'var(--font-display)',
                           fontWeight: 700,
                           fontSize: 19,
                           color: 'var(--ink)',
@@ -227,7 +232,8 @@ export function CharacterSelect() {
                           textAlign: 'center',
                           padding: '9px 4px',
                           borderRadius: 11,
-                          background: 'rgba(0,0,0,.26)',
+                          background: 'rgba(6,8,12,.62)',
+                          backdropFilter: 'blur(4px)',
                           border: '1px solid var(--line)',
                         }}
                       >
@@ -248,6 +254,8 @@ export function CharacterSelect() {
                     gap: 6,
                     padding: '0 18px 16px',
                     justifyContent: 'flex-end',
+                    position: 'relative',
+                    zIndex: 1,
                   }}
                 >
                   <CardAction label="Duplicar" onClick={() => duplicateCharacter(c.id)} />
@@ -299,7 +307,7 @@ function CardAction({ label, onClick, danger }: { label: string; onClick: () => 
         borderRadius: 999,
         border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : 'var(--line)'),
         color: danger ? 'var(--danger)' : 'var(--muted)',
-        background: 'rgba(0,0,0,.26)',
+        background: 'var(--sunk)',
         transition: '.2s',
       }}
     >

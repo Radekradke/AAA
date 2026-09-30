@@ -15,8 +15,8 @@ interface BackgroundSceneProps {
  * (bloom superior, brilho arcano inferior, vinheta) + partículas.
  */
 export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }: BackgroundSceneProps) {
-  const topDark = 0.62 * darken;
-  const botDark = 0.78 * darken;
+  const topDark = Math.min(1, 0.4 * darken);
+  const botDark = Math.min(1, 0.66 * darken);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -56,27 +56,14 @@ export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }
         style={{
           position: 'absolute',
           inset: 0,
-          background: `linear-gradient(180deg, rgba(6,8,12,${topDark}), rgba(6,8,12,${botDark}))`,
+          // escurece na cor do próprio clima (antes era cinza-azulado fixo e "lavava" os temas)
+          background: `linear-gradient(180deg, color-mix(in srgb, var(--bg) ${Math.round(topDark * 100)}%, transparent), color-mix(in srgb, var(--bg) ${Math.round(botDark * 100)}%, transparent))`,
         }}
       />
-      {/* bloom superior na cor do tema */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(70% 55% at 50% -8%, var(--bloom), transparent 62%)',
-        }}
-      />
+      {/* luz própria do clima: céu, calor da forja, luar, salão carmesim, nebulosa */}
+      <div style={{ position: 'absolute', inset: 0, background: 'var(--scene)' }} />
       <RuneDrift count={9} />
       <ParticleField />
-      {/* brilho arcano inferior */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(45% 70% at 50% 118%, var(--accSoft), transparent 60%)',
-        }}
-      />
       {/* vinheta */}
       <div
         style={{

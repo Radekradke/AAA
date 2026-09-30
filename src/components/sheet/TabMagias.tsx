@@ -8,16 +8,19 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
 import { getClass } from '@/data/classes';
-import { casterKind, cantripsKnown, spellsKnownOrPrepared, itemGrantedSpells } from '@/engine/spellcasting';
+import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
+import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
+import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
+import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 
-/** Custo em ouro para escrever uma magia de um pergaminho/grimório (estilo BG3). */
+/** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
-  return sp.level === 0 ? 25 : sp.level * 50;
+  return sp.level * 50;
 }
 
 export function TabMagias({ char, derived }: TabProps) {
@@ -26,13 +29,21 @@ export function TabMagias({ char, derived }: TabProps) {
   const [learn, setLearn] = useState<false | 'class' | 'all'>(false);
 
   const cls = getClass(char.classId);
-  const kind = casterKind(char.classId);
-  const isWizard = kind === 'spellbook';
-  const castAbility = cls.spellAbility ?? cls.prim;
+  // conjura pela classe ou pela subclasse (Cavaleiro Arcano / Trapaceiro Arcano: lista de mago, INT)
+  const castAbility = casterOf(char)?.ability ?? cls.spellAbility ?? cls.prim;
   const castMod = derived.abilities[castAbility].mod;
+  const caster = casterOf(char, castMod);
+  const kind = caster?.kind ?? casterKind(char.classId);
+  const isWizard = kind === 'spellbook';
+  const listClass = caster?.listClass ?? char.classId;
+  // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
+  const st = useMemo(() => spellLearnState(char, castMod), [char, castMod]);
+  const [freeMode, setFreeMode] = useState(false);
+  const blockFor = (sp: Spell, mode: 'class' | 'copy') => (freeMode || !st ? null : learnBlock(char, st, sp, mode));
 
-  const slotLevels = Object.keys(char.combat.spellSlots).map(Number).sort((a, b) => a - b);
-  const maxCircle = Math.max(0, ...slotLevels);
+  // máximos vêm das regras (classe + subclasse); o gasto vem da ficha
+  const slotView = syncSpellSlots(char);
+  const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
   const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses]);
 
@@ -40,55 +51,60 @@ export function TabMagias({ char, derived }: TabProps) {
   const prepared = char.preparedSpells;
   const spellbook = char.knownSpells; // usado só pelo mago (nível ≥1)
 
+  // magias de Domínio/Juramento/Círculo: sempre preparadas, fora do limite
+  const granted = useMemo(() => grantedSpells(char), [char.subclassId, char.classLevels, char.level, char.choices]);
+  const grantedFrom = useMemo(() => new Map(granted.map((g) => [g.id, g.source])), [granted]);
   const activeIds = useMemo(
-    () => (isWizard ? Array.from(new Set([...prepared, ...spellbook])) : prepared),
-    [isWizard, prepared, spellbook],
+    () => Array.from(new Set([...(isWizard ? [...prepared, ...spellbook] : prepared), ...granted.map((g) => g.id)])),
+    [isWizard, prepared, spellbook, granted],
   );
   const active = useMemo(
     () => activeIds.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)),
     [activeIds],
   );
 
-  const cantripsHave = active.filter((s) => s.level === 0).length;
-  const spellsHave = active.filter((s) => s.level >= 1).length;
-  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1).length;
-  const cantripTarget = cantripsKnown(char.classId, char.level);
-  const guide = spellsKnownOrPrepared(char.classId, char.level, castMod);
-  const prepMax = Math.max(1, castMod + (char.classId === 'paladin' ? Math.floor(char.level / 2) : char.level));
+  // Cavaleiro/Trapaceiro Arcano: quase todas as magias de 2 escolas; algumas livres (níveis 3, 8, 14, 20)
+  const offSchool = st?.offSchool ?? 0;
+
+  // lista da classe + lista expandida do patrono (Bruxo)
+  const classLearnList = useMemo(() => {
+    const base = spellsForClass(listClass, 9);
+    const extra = expandedSpellIds(char).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
+    return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+  }, [listClass, char.subclassId]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
-  // adiciona/remove magia (com custo de ouro no caminho "pergaminho")
-  const learnSpell = (id: string, scroll: boolean) => {
+  // esquecer: respeita as regras (troca ao subir de nível, truques fixos, grimório)
+  const forgetInfo = (sp: Spell) => (freeMode || !st ? { block: null, usesSwap: false } : forgetBlock(st, sp));
+  const removeSpell = (id: string) => {
+    const sp = SPELL_BY_ID[id];
+    if (!sp) return;
+    const f = forgetInfo(sp);
+    if (f.block) return;
+    store.forgetSpell(char.id, id, f.usesSwap);
+  };
+
+  // aprender/preparar (lista da classe) ou copiar para o grimório (mago, custa ouro)
+  const learnSpell = (id: string, copy: boolean) => {
     const sp = SPELL_BY_ID[id];
     if (!sp) return;
     const field: 'knownSpells' | 'preparedSpells' = isWizard && sp.level >= 1 ? 'knownSpells' : 'preparedSpells';
-    const already = char[field].includes(id);
-    if (already) {
-      update((c) => {
-        c[field] = c[field].filter((x) => x !== id);
-        if (field === 'knownSpells') c.preparedSpells = c.preparedSpells.filter((x) => x !== id);
-      });
-      return;
-    }
-    const cost = scroll ? scrollCost(sp) : 0;
-    if (cost && char.coins.gp < cost) return;
+    if (char[field].includes(id)) return removeSpell(id);
+    if (blockFor(sp, copy ? 'copy' : 'class')) return;
+    if (copy) return store.copySpell(char.id, id, scrollCost(sp));
     update((c) => {
-      if (cost) c.coins.gp = Math.max(0, c.coins.gp - cost);
       c[field] = [...c[field], id];
     });
   };
 
-  const togglePrepared = (id: string) =>
+  const togglePrepared = (id: string) => {
+    const isOn = char.preparedSpells.includes(id);
+    if (!isOn && !freeMode && st && prepareBlock(st, false)) return;
     update((c) => {
-      c.preparedSpells = c.preparedSpells.includes(id) ? c.preparedSpells.filter((x) => x !== id) : [...c.preparedSpells, id];
+      c.preparedSpells = isOn ? c.preparedSpells.filter((x) => x !== id) : [...c.preparedSpells, id];
     });
-
-  const removeSpell = (id: string) =>
-    update((c) => {
-      c.preparedSpells = c.preparedSpells.filter((x) => x !== id);
-      c.knownSpells = (c.knownSpells ?? []).filter((x) => x !== id);
-    });
+  };
 
   const byCircle = useMemo(() => {
     const map = new Map<number, Spell[]>();
@@ -130,28 +146,62 @@ export function TabMagias({ char, derived }: TabProps) {
             Espaços de Magia
           </SectionLabel>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-            {cantripTarget > 0 && <GuideChip label="Truques" have={cantripsHave} target={cantripTarget} color={t.acc} />}
-            {isWizard ? (
-              <>
-                <GuideChip label="grimório" have={spellsHave} target={guide.count} color={t.gold} />
-                <GuideChip label="preparadas" have={preparedCount} target={prepMax} color="#C24DFF" />
-              </>
-            ) : guide.count > 0 ? (
-              <GuideChip label={guide.label} have={spellsHave} target={guide.count} color={t.gold} />
-            ) : null}
-            <span style={{ fontSize: 11, color: 'var(--muted)', alignSelf: 'center' }}>
-              {kind === 'known' ? 'Escolhe magias fixas ao subir de nível.' : isWizard ? 'Grimório: aprende ao subir e copia de pergaminhos (custa ouro).' : 'Prepara magias da lista da classe por dia.'}
-            </span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
+            {st && st.cantrips.max > 0 && <GuideChip label="Truques" have={st.cantrips.have} target={st.cantrips.max} color={t.acc} />}
+            {st?.known && <GuideChip label={isWizard ? 'grimório (grátis)' : 'conhecidas'} have={st.known.have} target={st.known.max} color={t.gold} />}
+            {st?.prepared && <GuideChip label="preparadas" have={st.prepared.have} target={st.prepared.max} color="#C24DFF" />}
+            {st && st.maxCircle > 0 && (
+              <span className="fv-spell-rule-chip">até o {st.maxCircle}º círculo</span>
+            )}
+            <button
+              type="button"
+              className={'fv-spell-free' + (freeMode ? ' is-on' : '')}
+              aria-pressed={freeMode}
+              onClick={() => setFreeMode((f) => !f)}
+              title="Libera adicionar/remover sem as regras (correções combinadas com o mestre)"
+            >
+              {freeMode ? '🔓 Modo mestre ligado' : '🔒 Regras do PHB'}
+            </button>
           </div>
+          <p className="fv-spell-rule-text">
+            {kind === 'known'
+              ? 'Você conhece um número fixo de magias da lista da sua classe. Ao subir de nível, aprende as novas e pode trocar UMA que já conhece.'
+              : isWizard
+                ? 'Seu grimório ganha 2 magias grátis por nível (de círculos que você conjura). Outras podem ser copiadas de pergaminhos: 50 po por círculo. Prepare até INT + nível por dia.'
+                : 'Você conhece a lista inteira da classe e prepara magias todo dia (troca após descanso longo), até o limite.'}
+          </p>
+          {!freeMode && st && st.swaps > 0 && kind === 'known' && (
+            <div role="note" className="fv-spell-warn" style={{ borderColor: 'var(--acc)' }}>
+              <b style={{ color: 'var(--acc)' }}>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
+            </div>
+          )}
+
+          {/* fichas antigas (antes da correção) podem ter vindo com magias a mais */}
+          {st && st.cantrips.have > st.cantrips.max && (
+            <div role="note" className="fv-spell-warn">
+              <b>Truques a mais:</b> você tem {st.cantrips.have}, mas o limite é {st.cantrips.max}. Esqueça o excedente com o <span aria-hidden>×</span> (ou ligue o modo mestre, se foi combinado).
+            </div>
+          )}
+          {st?.known && st.known.have > st.known.max && (
+            <div role="note" className="fv-spell-warn">
+              <b>Magias a mais:</b> {st.known.have} de {st.known.max}. Esqueça o excedente com o <span aria-hidden>×</span>.
+            </div>
+          )}
+
+          {caster?.schools && (
+            <div role="note" className="fv-spell-warn" style={offSchool > caster.schools.free ? undefined : { borderColor: 'var(--line)' }}>
+              <b style={offSchool > caster.schools.free ? undefined : { color: 'var(--acc)' }}>{caster.via}:</b> magias de {caster.schools.allowed.join(' ou ')}.
+              {' '}Fora dessas escolas: {offSchool} de {caster.schools.free} permitida{caster.schools.free === 1 ? '' : 's'} (uma a mais nos níveis 3, 8, 14 e 20).
+            </div>
+          )}
 
           {slotLevels.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
           {slotLevels.map((lv) => {
-            const slot = char.combat.spellSlots[lv];
+            const slot = slotView[lv];
             return (
               <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
                 <LoreTooltip info={passiveLore(`${lv}º círculo`, `${slot.max - slot.used}/${slot.max} disponíveis`, 'Cada losango é um espaço. Gastos voltam após descanso longo.', ['Magia', 'Recurso'])}>
-                  <span style={{ cursor: 'help', fontFamily: "'Cinzel', serif", fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
+                  <span style={{ cursor: 'help', fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
                 </LoreTooltip>
                 <div style={{ flex: 1, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                   {Array.from({ length: slot.max }, (_, i) => {
@@ -172,10 +222,10 @@ export function TabMagias({ char, derived }: TabProps) {
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
-          <SectionLabel>Magias de Itens</SectionLabel>
+          <SectionLabel>Magias de Itens e Talentos</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
-              <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: hexA(t.acc2 ?? t.acc, 0.06) }}>
+              <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                   <span style={{ cursor: 'help', display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
@@ -199,7 +249,7 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
+          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias de itens só valem com o item equipado ou sintonizado. Talentos conjuram sem gastar espaço. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 
@@ -209,12 +259,14 @@ export function TabMagias({ char, derived }: TabProps) {
           <SectionLabel
             right={
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
+                <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
                   + {learnLabel}
                 </button>
-                <button onClick={() => setLearn('all')} title="Aprender de pergaminho/grimório em troca de ouro" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: hexA(t.acc, 0.1) }}>
-                  📜 De pergaminho
-                </button>
+                {isWizard && (
+                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
+                    📜 Copiar para o grimório
+                  </button>
+                )}
               </div>
             }
           >
@@ -222,26 +274,29 @@ export function TabMagias({ char, derived }: TabProps) {
           </SectionLabel>
 
           {active.length === 0 && (
-            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para a lista da sua classe, ou <b style={{ color: t.acc }}>📜 De pergaminho</b> (custa ouro) para aprender de um pergaminho/grimório.</>} />
+            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para escolher da lista da sua classe — só aparecem liberadas as magias que você pode pegar agora.</>} />
           )}
 
           {byCircle.map(([lv, spells]) => (
             <div key={lv} style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 7px' }}>
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
                 <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
                 <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{spells.length}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
                 {spells.map((sp) => {
+                  const grantSource = grantedFrom.get(sp.id);
+                  const learned = prepared.includes(sp.id) || spellbook.includes(sp.id);
                   const isPrepared = prepared.includes(sp.id);
-                  const canPrepare = isWizard && sp.level >= 1; // truques do mago sempre ativos
+                  const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
                   return (
-                    <div key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'rgba(0,0,0,.24)' }}>
+                    <div key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
                       <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                         <span style={{ cursor: 'help', display: 'block' }}>
                           <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
+                            {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
                             <Mini>{sp.school}</Mini>
                             {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
@@ -260,7 +315,20 @@ export function TabMagias({ char, derived }: TabProps) {
                           {isPrepared ? '★ Preparada' : '☆ Preparar'}
                         </button>
                       )}
-                      <button onClick={() => removeSpell(sp.id)} aria-label="Esquecer" style={{ cursor: 'pointer', flex: 'none', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                      {(sp.level === 0 || !isWizard || isPrepared || grantSource || (sp.ritual && isWizard)) && (
+                        <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />
+                      )}
+                      {learned && !forgetInfo(sp).block && (
+                        <button
+                          type="button"
+                          className="fv-item-remove"
+                          onClick={() => removeSpell(sp.id)}
+                          aria-label={`Esquecer ${sp.name}`}
+                          title={forgetInfo(sp).usesSwap ? 'Esquecer (usa sua troca de nível)' : kind === 'prepared' ? 'Despreparar' : 'Esquecer magia'}
+                        >
+                          <Icon name="close" size={14} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -272,14 +340,14 @@ export function TabMagias({ char, derived }: TabProps) {
 
       {learn && (
         <SpellLibrary
-          title={learn === 'all' ? 'Aprender de pergaminho/grimório' : `${learnLabel} magias — ${cls.label}`}
-          spells={(learn === 'all' ? SPELLS : spellsForClass(char.classId, 9)).filter((s) => s.level <= maxCircle)}
+          title={learn === 'all' ? 'Copiar para o grimório (50 po por círculo)' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
+          spells={learn === 'all' ? SPELLS.filter((s) => s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
+          blockReason={(s) => blockFor(s, learn === 'all' ? 'copy' : 'class')}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}
           onClose={() => setLearn(false)}
           actionLabel={learnLabel}
           costOf={learn === 'all' ? (s) => scrollCost(s) : undefined}
-          blockedAdd={learn === 'all' ? (s) => char.coins.gp < scrollCost(s) : undefined}
         />
       )}
     </div>

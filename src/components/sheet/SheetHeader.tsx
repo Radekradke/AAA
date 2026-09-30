@@ -1,6 +1,7 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
-import { heroSubtitle, heroAvatar } from '@/lib/summary';
+import { heroSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
 import { getRace } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
@@ -11,27 +12,15 @@ import { passiveLore, calcLore } from '@/lib/lore';
 interface SheetHeaderProps {
   char: Character;
   derived: DerivedCharacter;
+  /** Só identidade (sem os blocos de defesa) — usado na Mesa, que já os mostra. */
+  compact?: boolean;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
   const race = getRace(char.raceId);
   const setLevel = useCharacterStore((s) => s.setLevel);
-
-  const lvlBtn: React.CSSProperties = {
-    cursor: 'pointer',
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    border: '1px solid var(--line)',
-    background: 'rgba(0,0,0,.3)',
-    color: 'var(--acc)',
-    fontWeight: 700,
-    fontSize: 12,
-    lineHeight: 1,
-    display: 'grid',
-    placeItems: 'center',
-  };
+  const updateCharacter = useCharacterStore((s) => s.updateCharacter);
 
   // valores derivados com cálculo rastreável (tooltip mostra cada origem)
   const bd = derived.breakdowns;
@@ -50,14 +39,24 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        gap: 'clamp(14px,2.5vw,26px)',
+        gap: 'clamp(12px,2.5vw,26px)',
         flexWrap: 'wrap',
-        borderRadius: 18,
-        padding: 'clamp(16px,2.4vw,24px)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        isolation: 'isolate',
+        padding: compact ? 'clamp(12px,1.8vw,16px) clamp(16px,2.4vw,24px)' : 'clamp(16px,2.4vw,24px)',
       }}
     >
-      <OrnateCorners size={18} inset={10} />
-      <div style={{ position: 'relative', width: 'clamp(64px,9vw,86px)', height: 'clamp(64px,9vw,86px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
+      {/* a arte do herói ao fundo, esmaecendo para a esquerda (assinatura da ficha) */}
+      <div
+        aria-hidden
+        className="fv-sheet-head-art"
+        style={{ backgroundImage: `url("${heroAvatar(char)}")`, backgroundPosition: heroPortraitPosition(char) }}
+      />
+      <span className="fv-hide-mobile" aria-hidden>
+        <OrnateCorners size={18} inset={10} />
+      </span>
+      <div style={{ position: 'relative', width: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', height: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
         <div
           style={{
             position: 'absolute',
@@ -73,55 +72,50 @@ export function SheetHeader({ char, derived }: SheetHeaderProps) {
               width: '100%',
               height: '100%',
               backgroundImage: `url("${heroAvatar(char)}")`,
-              backgroundSize: 'cover',
-              backgroundPosition: '50% 22%',
+              ...heroFace(char),
             }}
           />
         </div>
+        <PortraitPicker variant="badge" portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
       </div>
 
-      <div style={{ flex: 1, minWidth: 180 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
           {char.name}
         </div>
-        <div style={{ marginTop: 6, fontSize: 13.5, color: 'var(--acc)', letterSpacing: '.04em' }}>{heroSubtitle(char)}</div>
-        <div style={{ marginTop: 11, maxWidth: 340 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <button onClick={() => setLevel(char.id, char.level - 1)} style={lvlBtn} aria-label="Diminuir nível">−</button>
-              NÍVEL {char.level}
-              <button onClick={() => setLevel(char.id, char.level + 1)} style={lvlBtn} aria-label="Aumentar nível">+</button>
-            </span>
-            <span>{char.alignment}</span>
-          </div>
-          <div style={{ height: 7, borderRadius: 999, background: 'rgba(0,0,0,.35)', overflow: 'hidden', border: '1px solid var(--line)' }}>
-            <div
-              style={{
-                width: `${Math.min(100, (char.level / 20) * 100)}%`,
-                height: '100%',
-                borderRadius: 999,
-                background: 'linear-gradient(90deg, var(--accSoft), var(--acc))',
-                boxShadow: '0 0 12px var(--bloom)',
-              }}
-            />
-          </div>
+        <div className="fv-sh-sub">
+          <span>{heroSubtitle(char)}</span>
+          {char.alignment && <span className="fv-sh-align">{char.alignment}</span>}
+        </div>
+        <div className="fv-sh-level" style={{ marginTop: compact ? 8 : 12 }}>
+          <span className="fv-sh-level-ctrl">
+            <button onClick={() => setLevel(char.id, char.level - 1)} className="fv-sh-lvl-btn" aria-label="Diminuir nível" disabled={char.level <= 1}>−</button>
+            <b>Nível {char.level}</b>
+            <button onClick={() => setLevel(char.id, char.level + 1)} className="fv-sh-lvl-btn" aria-label="Aumentar nível" disabled={char.level >= 20}>+</button>
+          </span>
+          <span className="fv-sh-level-bar" aria-hidden title={`Nível ${char.level} de 20`}>
+            <span style={{ width: `${Math.min(100, (char.level / 20) * 100)}%` }} />
+          </span>
+          <span className="fv-sh-level-max">/ 20</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      {!compact && (
+      <div className="fv-header-stats">
         {defense.map((d) => (
           <LoreTooltip
             key={d.label}
             info={d.info}
             anchorStyle={{ display: 'block' }}
           >
-            <div style={{ cursor: 'help', textAlign: 'center', minWidth: 62, padding: '11px 12px', borderRadius: 13, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)' }}>
-              <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)' }}>{d.val}</div>
-              <div style={{ fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{d.label}</div>
+            <div className="fv-header-stat">
+              <div className="fv-header-stat-val">{d.val}</div>
+              <div className="fv-header-stat-label">{d.label}</div>
             </div>
           </LoreTooltip>
         ))}
       </div>
+      )}
     </div>
   );
 }

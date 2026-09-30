@@ -104,6 +104,18 @@ export interface Feat {
   initiativeBonus?: number;
   /** Bônus de Percepção passiva (Observador). */
   passivePerceptionBonus?: number;
+  /** Sub-raças exigidas (ex.: Alta Magia Drow → drow). */
+  prereqSubraces?: string[];
+  /** Resistências a dano concedidas (Constituição Infernal). */
+  resistances?: string[];
+  /** Idiomas concedidos (Teleporte Feérico → Silvestre). */
+  languages?: string[];
+  /** CA sem armadura alternativa (Couro Dracônico: 13 + DES). */
+  unarmoredAC?: { base: number; ability: AbilityKey };
+  /** Magias inatas concedidas, com recarga. */
+  grantsSpells?: { spellId: string; recharge: 'atwill' | 'short' | 'long' }[];
+  /** Usos por descanso que viram recurso na ficha (Desvanecer, Fúria Orc…). */
+  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long' };
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
@@ -282,6 +294,29 @@ export interface ArmorData {
   /** Requisito mínimo de Força (penalidade de deslocamento ignorada por simplicidade). */
   strReq?: number;
   stealthDisadvantage?: boolean;
+  /** Armadura mágica +1/+2/+3 (soma na CA). */
+  magicBonus?: number;
+}
+
+/**
+ * Efeitos de itens mágicos (DMG 2014) que a ficha aplica sozinha.
+ * Itens que exigem sintonia só valem sintonizados.
+ */
+export interface MagicEffects {
+  /** CA extra (Manto/Anel de Proteção, Braçadeiras de Defesa…). */
+  ac?: number;
+  /** A CA extra só vale sem armadura e sem escudo (Braçadeiras de Defesa). */
+  unarmoredOnly?: boolean;
+  /** Bônus em todas as salvaguardas. */
+  saves?: number;
+  /** O atributo passa a valer X (se o seu for menor): Manoplas de Força do Ogro, Amuleto da Saúde… */
+  setAbility?: Partial<Record<AbilityKey, number>>;
+  /** Bônus em ataque e CD de magia (Varinha do Mago de Guerra, Bastão do Guardião do Pacto…). */
+  spellAttack?: number;
+  spellDC?: number;
+  /** Deslocamento extra, em metros. */
+  speed?: number;
+  resistances?: string[];
 }
 
 export interface Item {
@@ -297,6 +332,16 @@ export interface Item {
   armor?: ArmorData;
   /** Bônus de CA fixo (escudos, anéis de proteção). */
   acBonus?: number;
+  /** Preço de referência em peças de ouro (Livro do Jogador / Guia do Mestre). */
+  value?: number;
+  /** Subgrupo no catálogo (ex.: "Munição", "Instrumentos", "Poções"). */
+  group?: string;
+  /** Efeitos automáticos de item mágico. */
+  magic?: MagicEffects;
+  /** Poções/consumíveis que curam: dados de cura (ex.: "2d4+2"). */
+  heal?: string;
+  /** Magias que o item concede (varinhas, cajados). */
+  grantsSpells?: import('./character').ItemSpellGrant[];
 }
 
 /** Classes conjuradoras que podem ter uma magia na lista. */
@@ -369,6 +414,12 @@ export interface ThemeDef {
   bloom: string;
   particle: string;
   label: string;
+  /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas ou estrelas. */
+  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars';
+  /** Frase curta que descreve o clima no seletor. */
+  tagline: string;
+  /** Fonte de título do clima (a mesma de --font-display). */
+  font: string;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral';

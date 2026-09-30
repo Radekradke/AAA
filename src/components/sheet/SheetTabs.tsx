@@ -1,6 +1,7 @@
 import { SHEET_TABS } from './sheetTabDefs';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { Icon } from '@/components/ui/Icon';
 
 interface SheetTabsProps {
   active: string;
@@ -29,15 +30,16 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
           <button
             key={tab.id}
             onClick={() => onSelect(tab.id)}
+            aria-current={isActive ? 'page' : undefined}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 9,
-              padding: '8px 16px',
+              gap: 8,
+              padding: '8px 15px 8px 12px',
               borderRadius: 999,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontSize: 13.5,
               fontWeight: 600,
               letterSpacing: '.03em',
@@ -49,15 +51,7 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
               transition: '.25s',
             }}
           >
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: 999,
-                background: isActive ? t.gold : t.muted,
-                boxShadow: isActive ? '0 0 9px ' + hexA(t.gold, 0.7) : 'none',
-              }}
-            />
+            <Icon name={tab.icon} size={17} color={isActive ? t.gold : t.muted} />
             {tab.label}
           </button>
         );

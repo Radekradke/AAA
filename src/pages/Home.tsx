@@ -38,7 +38,7 @@ export function Home() {
         <RuneRing size="clamp(120px,18vw,168px)" className="mb-[clamp(22px,4vh,40px)]">
           <span
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: 'var(--font-display)',
               fontWeight: 800,
               fontSize: 'clamp(34px,5vw,46px)',
               color: 'var(--gold)',
@@ -51,7 +51,7 @@ export function Home() {
 
         <div
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: 'var(--font-display)',
             fontWeight: 800,
             fontSize: 'clamp(40px,8vw,82px)',
             lineHeight: 0.96,
@@ -85,7 +85,7 @@ export function Home() {
           style={{
             marginTop: 'clamp(26px,5vh,46px)',
             cursor: 'pointer',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: 'var(--font-display)',
             fontWeight: 700,
             letterSpacing: '.12em',
             fontSize: 'clamp(15px,1.7vw,17px)',

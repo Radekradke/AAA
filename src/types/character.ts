@@ -22,6 +22,10 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Efeitos automáticos de item mágico (ver MagicEffects). */
+  magic?: import('./dnd').MagicEffects;
+  /** Dados de cura ao beber/usar (poções). */
+  heal?: string;
   /** Valor aproximado em peças de ouro. */
   value?: number;
   /**
@@ -32,6 +36,33 @@ export interface InventoryItem {
   grantsSpells?: ItemSpellGrant[];
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
+  /**
+   * Onde o item fica quando NÃO está equipado (escolha do jogador ao arrastar
+   * ou em "Guardar no Baú"). Sem valor: tesouros e itens mágicos vão ao Baú,
+   * o resto à Mochila.
+   */
+  location?: 'mochila' | 'bau';
+}
+
+/** Efeito de magia ativo no personagem — somado pela ficha até acabar. */
+export interface ActiveSpellEffect {
+  spellId: string;
+  name: string;
+  /** Quando acaba: no início do seu próximo turno, ao romper a concentração, ou no descanso longo. */
+  until: 'turn' | 'concentration' | 'rest';
+  /** Resumo curto para o chip ("+5 CA", "CA 13 + DES"…). */
+  label: string;
+  ac?: number;
+  /** CA base alternativa sem armadura (Armadura Arcana: 13 + DES). */
+  acBase?: number;
+  /** CA mínima (Pele de Árvore: 16). */
+  acMin?: number;
+  speed?: number;
+  /** Deslocamento dobrado (Acelerar). */
+  speedDouble?: boolean;
+  maxHp?: number;
+  /** PV temporários renovados no início de cada turno (Heroísmo). */
+  tempPerTurn?: number;
 }
 
 /** Magia concedida por um item (recarga por descanso ou à vontade). */
@@ -88,13 +119,23 @@ export interface CombatState {
   hpTemp: number;
   hitDiceRemaining: number;
   deathSaves: { success: number; fail: number };
-  turn: { action: boolean; bonus: boolean; reaction: boolean };
+  /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
+  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean };
   moveUsed: number;
   conditions: string[];
   /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */
   exhaustion?: number;
   /** Concentração ativa numa magia (lembrete de salvaguarda de CON). */
   concentration?: boolean;
+  /**
+   * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
+   * (somem ao romper a concentração) e Fúria (some no descanso).
+   */
+  marks?: Array<'hex' | 'huntersMark' | 'rage'>;
+  /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
+  spellEffects?: ActiveSpellEffect[];
+  /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */
+  castThisTurn?: string[];
   /** Recursos de classe consumidos (id -> usados). */
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
@@ -123,6 +164,8 @@ export interface LevelUpRecord {
   asi?: AsiChoice;
   /** Subclasse escolhida neste nível, se aplicável. */
   subclassId?: string;
+  /** Escolhas de classe feitas neste nível (chave `classe.chave` → ids). */
+  choices?: Record<string, string[]>;
   /** Registro sintetizado na migração (média), não escolhido pelo jogador. */
   synthetic?: boolean;
   at: number;
@@ -156,6 +199,11 @@ export interface Character {
   ownerId: string;
   name: string;
   gender: 'masc' | 'fem';
+  /**
+   * Retrato enviado pelo jogador (data URL WebP ≈ 40–150 KB, já reduzido e
+   * recortado). Sem valor: arte da raça/aparência ou a arte padrão.
+   */
+  portrait?: string | null;
   // identidade
   raceId: string;
   subraceId: string | null;
@@ -170,11 +218,25 @@ export interface Character {
   subclassId: string | null;
   /** Talentos escolhidos (ids de data/feats). */
   feats: string[];
+  /**
+   * Escolhas de classe acumuladas (Metamagia, Estilo de Luta, Manobras…):
+   * chave `classe.chave` → ids das opções (ver data/classChoices).
+   */
+  choices?: Record<string, string[]>;
+  /** Companheiro de Patrulheiro (Mestre das Feras): nome e PV atuais. A fera vem de `choices['ranger.companion']`. */
+  companion?: { name?: string; hpCurrent?: number };
+  /** Trocas de magia conhecida disponíveis (1 por nível ganho em classe de magias conhecidas). */
+  spellSwaps?: number;
+  /** Mago: magias copiadas para o grimório pagando ouro (não gastam as grátis do nível). */
+  spellbookCopied?: string[];
   /** Aumentos de atributo acumulados por ASI/talentos. */
   asiBonuses: Partial<AbilityScores>;
   /** Linha do tempo de evolução, nível a nível. */
   levelHistory: LevelUpRecord[];
+  /** Legado (PHB 2014: tem/não tem). Espelha `inspirationPoints > 0`. */
   inspiration: boolean;
+  /** Pontos de Inspiração acumulados (mesas que deixam acumular). */
+  inspirationPoints?: number;
   campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)
   baseAbilities: AbilityScores;

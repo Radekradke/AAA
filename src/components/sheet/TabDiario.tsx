@@ -30,7 +30,7 @@ export function TabDiario({ char }: TabProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name="quill" size={22} color={t.gold} />
           <div>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--ink)', lineHeight: 1 }}>Crônica da Aventura</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--ink)', lineHeight: 1 }}>Crônica da Aventura</div>
             <div style={{ marginTop: 3, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
               {char.journal.length} sessão(ões) registradas
             </div>
@@ -44,7 +44,7 @@ export function TabDiario({ char }: TabProps) {
             onChange={(e) => setQuery(e.target.value)}
             style={{ width: 200, fontSize: 13, padding: '9px 13px' }}
           />
-          <button onClick={() => store.addJournalEntry(char.id)} style={{ cursor: 'pointer', fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 13, color: 'var(--gold)', padding: '9px 18px', borderRadius: 999, border: '1px solid var(--gold)', background: hexA(t.gold, 0.08) }}>
+          <button onClick={() => store.addJournalEntry(char.id)} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: 'var(--gold)', padding: '9px 18px', borderRadius: 999, border: '1px solid var(--gold)', background: hexA(t.gold, 0.08) }}>
             + Nova sessão
           </button>
         </div>

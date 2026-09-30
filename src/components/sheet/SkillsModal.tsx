@@ -48,7 +48,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
             <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
               {ABILITY_SHORT[g.key]}
             </span>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
               {ABILITY_LABELS[g.key]}
             </span>
             <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>
@@ -68,7 +68,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
                 border: '1px solid ' + (sk.expertise ? t.gold : strong ? hexA(t.gold, 0.45) : t.line),
                 borderLeft: '3px solid ' + hexA(color, strong ? 0.9 : 0.35),
                 borderRadius: 'var(--radius-md)',
-                background: strong ? hexA(t.gold, 0.05) : 'rgba(0,0,0,.22)',
+                background: strong ? hexA(t.gold, 0.05) : 'var(--sunk)',
                 padding: '9px 10px 8px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -115,7 +115,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
                     placeItems: 'center',
                     borderRadius: 5,
                     border: '1px solid ' + (sk.expertise ? t.gold : t.line),
-                    background: sk.expertise ? hexA(t.gold, 0.18) : 'rgba(0,0,0,.3)',
+                    background: sk.expertise ? hexA(t.gold, 0.18) : 'var(--sunk)',
                     color: sk.expertise ? t.gold : 'var(--muted)',
                     fontSize: 10,
                     opacity: !sk.expertise && used >= slots ? 0.35 : 1,

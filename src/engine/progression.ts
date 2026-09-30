@@ -17,6 +17,24 @@ const HALF_CASTER: number[][] = [
   [4, 3, 3, 3, 1], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2], [4, 3, 3, 3, 2],
 ];
 
+/**
+ * Um terço de conjurador (Cavaleiro Arcano / Trapaceiro Arcano) — pelo nível
+ * da classe (Guerreiro/Ladino), a partir do 3º.
+ */
+const THIRD_CASTER: number[][] = [
+  [], [], [2], [3], [3], [3], [4, 2], [4, 2], [4, 2], [4, 3],
+  [4, 3], [4, 3], [4, 3, 2], [4, 3, 2], [4, 3, 2], [4, 3, 3], [4, 3, 3], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 1],
+];
+
+export function thirdCasterSlots(level: number): Record<number, number> {
+  const row = THIRD_CASTER[Math.max(1, Math.min(20, level)) - 1] ?? [];
+  const out: Record<number, number> = {};
+  row.forEach((count, i) => {
+    if (count > 0) out[i + 1] = count;
+  });
+  return out;
+}
+
 const FULL_CASTERS = new Set(['bard', 'cleric', 'druid', 'sorcerer', 'wizard']);
 const HALF_CASTERS = new Set(['paladin', 'ranger']);
 

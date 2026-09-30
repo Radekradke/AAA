@@ -1,25 +1,33 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
+import { AttackActions } from './AttackActions';
+import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { characterResources } from '@/engine/classResources';
+import { casterOf, grantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { getClass } from '@/data/classes';
 import { SPELL_BY_ID } from '@/data/spells';
 import { ABILITY_LABELS, ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { CONDITIONS, getCondition } from '@/data/conditions';
-import { heroSubtitle } from '@/lib/summary';
 import { modStr } from '@/engine/dice';
 import { calculateToolCheck } from '@/engine/toolCheck';
-import { useUiStore } from '@/store/uiStore';
-import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
+import { InspirationControl } from './InspirationControl';
+import { InitiativeButton } from './InitiativeButton';
+import { SpellCastButton } from '@/components/spells/SpellCastButton';
+import { CompanionPanel } from './CompanionPanel';
+import { inspirationCount } from '@/engine/inspiration';
+import { useUiStore } from '@/store/uiStore';
+import { RollTimeline } from '@/components/dice/RollTimeline';
+import { RollAdvisor } from '@/components/dice/RollAdvisor';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -29,8 +37,9 @@ import { SkillsModal } from './SkillsModal';
 export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
-  const { rollDice, check, attack, damage } = useDiceRoller();
-  const cls = getClass(char.classId);
+  const bump = useUiStore((s) => s.bump);
+  const { rollDice, check } = useDiceRoller();
+  const resources = characterResources(char);
   const bd = derived.breakdowns;
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [condPick, setCondPick] = useState('');
@@ -41,8 +50,13 @@ export function TabMesa({ char, derived }: TabProps) {
   const dying = char.hpCurrent <= 0;
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
-  const prepared = char.preparedSpells.map((id) => SPELL_BY_ID[id]).filter(Boolean).sort((a, b) => a.level - b.level);
-  const slotLevels = Object.keys(char.combat.spellSlots).map(Number).sort((a, b) => a - b);
+  const castModMesa = derived.abilities[casterOf(char)?.ability ?? 'int'].mod;
+  const prepared = [...new Set([...char.preparedSpells, ...grantedSpells(char).map((g) => g.id)])]
+    .map((id) => SPELL_BY_ID[id])
+    .filter(Boolean)
+    .sort((a, b) => a.level - b.level);
+  const slotView = syncSpellSlots(char);
+  const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
   // teste contra a morte: rola e registra automaticamente (PHB 2014)
   const rollDeathSave = () => {
@@ -64,61 +78,35 @@ export function TabMesa({ char, derived }: TabProps) {
     <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px,1.4vw,16px)' }}>
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: 'clamp(20px,3vw,26px)', color: 'var(--ink)', lineHeight: 1 }}>
-              {char.name}
-            </div>
-            <div style={{ marginTop: 4, fontSize: 12.5, color: 'var(--acc)' }}>
-              {heroSubtitle(char)}{derived.subclassLabel ? ` · ${derived.subclassLabel}` : ''}
-            </div>
+        {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
+        <div className="fv-hp">
+          {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
+          <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
+          {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
+          <div className="fv-hp-insp">
+            <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
           </div>
-          <LoreTooltip info={passiveLore('Inspiração', char.inspiration ? 'Disponível' : 'Sem inspiração', 'Concedida pelo mestre. Gaste para ter vantagem em um teste, ataque ou salvaguarda.', ['Mesa'])}>
-            <button
-              onClick={() => store.toggleInspiration(char.id)}
-              style={{
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 15px',
-                borderRadius: 999,
-                border: '1px solid ' + (char.inspiration ? t.gold : t.line),
-                background: char.inspiration ? hexA(t.gold, 0.14) : 'rgba(0,0,0,.24)',
-                color: char.inspiration ? t.gold : 'var(--muted)',
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 12.5,
-                boxShadow: char.inspiration ? '0 0 18px ' + hexA(t.gold, 0.35) : 'none',
-                transition: '.25s',
-              }}
-            >
-              <Icon name={char.inspiration ? 'starFill' : 'star'} size={15} />
-              Inspiração
-            </button>
-          </LoreTooltip>
-        </div>
 
-        {/* PV gigante + barra */}
-        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 'clamp(12px,2vw,22px)', flexWrap: 'wrap' }}>
-          <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })}>
-            <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor }}>
+          <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
+            <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
               {char.hpCurrent}
               <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
               {char.combat.hpTemp > 0 && <span style={{ fontSize: '.42em', color: t.acc }}> +{char.combat.hpTemp}</span>}
             </div>
           </LoreTooltip>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <div style={{ height: 18, borderRadius: 4, background: 'rgba(0,0,0,.44)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
+          <div className="fv-hp-meter">
+            <div style={{ height: 18, borderRadius: 4, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s' }} />
               <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)' }} />
             </div>
-            <div style={{ marginTop: 9, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div className="fv-hp-btns">
               <QuickBtn color={t.danger} strong onClick={() => store.applyDamage(char.id, 5)}>−5</QuickBtn>
               <QuickBtn color={t.danger} onClick={() => store.applyDamage(char.id, 1)}>−1</QuickBtn>
               <QuickBtn color="#3FC56B" onClick={() => store.heal(char.id, 1)}>+1</QuickBtn>
               <QuickBtn color="#3FC56B" strong onClick={() => store.heal(char.id, 5)}>+5</QuickBtn>
-              <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>+5 Temp</QuickBtn>
+              <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>
+                +5 <small style={{ fontSize: '.78em', opacity: 0.85 }}>Temp</small>
+              </QuickBtn>
               {char.combat.hpTemp > 0 && (
                 <QuickBtn color={t.muted} onClick={() => store.setTempHp(char.id, 0)}>Zerar Temp</QuickBtn>
               )}
@@ -129,7 +117,7 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* morrendo: testes contra a morte em destaque */}
         {dying && (
           <div style={{ marginTop: 13, padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.5), background: hexA(t.danger, 0.1), display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, color: t.danger }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: t.danger }}>
               CAINDO — Testes contra a Morte
             </div>
             <DeathPips label="Sucessos" color="#3FC56B" value={char.combat.deathSaves.success} onSet={(n) => store.setDeathSave(char.id, 'success', n)} />
@@ -174,7 +162,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid ' + hexA(color, 0.3),
                     borderBottom: '2px solid ' + hexA(color, 0.65),
-                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, rgba(0,0,0,.26))`,
+                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, var(--sunk))`,
                     textAlign: 'center',
                     transition: '.2s',
                   }}
@@ -193,6 +181,7 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* economia de turno: ação, bônus, reação e movimento */}
         <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <InitiativeButton char={char} derived={derived} compact />
           {([
             { k: 'action' as const, label: 'Ação' },
             { k: 'bonus' as const, label: 'Bônus' },
@@ -210,9 +199,9 @@ export function TabMesa({ char, derived }: TabProps) {
                   padding: '6px 10px',
                   borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.5)),
-                  background: used ? 'rgba(0,0,0,.32)' : hexA(t.acc, 0.09),
+                  background: used ? 'var(--sunk-deep)' : 'var(--lift)',
                   color: used ? 'var(--muted)' : 'var(--ink)',
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: 'var(--font-display)',
                   fontWeight: 700,
                   fontSize: 12,
                   textDecoration: used ? 'line-through' : 'none',
@@ -237,8 +226,20 @@ export function TabMesa({ char, derived }: TabProps) {
 
       {/* ===== MASONRY: painéis de jogo (sobem e preenchem os vãos) ===== */}
       <div className="fv-masonry">
+        <CompanionPanel char={char} />
+        {/* "O que eu rolo?" — descreve a intenção, a ficha sugere o teste */}
+        <Panel>
+          <RollAdvisor char={char} derived={derived} />
+        </Panel>
+
         {/* Ataques */}
         <Panel>
+          {((char.combat.spellEffects?.length ?? 0) > 0 || (char.combat.marks?.length ?? 0) > 0) && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="fv-label" style={{ marginBottom: 7 }}>Efeitos ativos</div>
+              <ActiveEffects char={char} />
+            </div>
+          )}
           <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
@@ -246,20 +247,9 @@ export function TabMesa({ char, derived }: TabProps) {
           {derived.attacks.map((atk) => (
             <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
               </div>
-              <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown)}>
-                <button onClick={() => attack(atk)} style={atkBtn(t.gold)}>
-                  {modStr(atk.attackBonus)}
-                  <div style={atkSub}>ACERTO</div>
-                </button>
-              </LoreTooltip>
-              <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType}` })}>
-                <button onClick={() => damage(atk)} style={atkBtn(t.danger)}>
-                  {damageExpr(atk)}
-                  <div style={atkSub}>DANO</div>
-                </button>
-              </LoreTooltip>
+              <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}
         </Panel>
@@ -277,7 +267,7 @@ export function TabMesa({ char, derived }: TabProps) {
                   padding: '8px 4px',
                   borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (a.saveProf ? hexA(t.gold, 0.5) : t.line),
-                  background: a.saveProf ? hexA(t.gold, 0.08) : 'rgba(0,0,0,.24)',
+                  background: a.saveProf ? hexA(t.gold, 0.08) : 'var(--sunk)',
                   textAlign: 'center',
                   transition: '.2s',
                 }}
@@ -318,7 +308,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     <button
                       key={tool.id}
                       onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
-                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : hexA(t.acc, 0.06), color: 'var(--ink)', transition: '.2s' }}
+                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
                       {tool.label} <span style={{ fontSize: 9.5, color: 'var(--muted)' }}>{ABILITY_SHORT[chk.ability]}</span>{' '}
                       <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: "'Chakra Petch', monospace" }}>{modStr(chk.total)}</b>
@@ -328,8 +318,8 @@ export function TabMesa({ char, derived }: TabProps) {
               </div>
             </>
           )}
-          {/* histórico curto: últimas rolagens da sessão */}
-          <RollHistory />
+          {/* histórico curto: últimas rolagens desta ficha */}
+          <RollTimeline char={char} compact limit={5} />
         </Panel>
 
         {/* Magia (se conjurador) */}
@@ -349,10 +339,10 @@ export function TabMesa({ char, derived }: TabProps) {
               </span>
             </div>
             {slotLevels.map((lv) => {
-              const slot = char.combat.spellSlots[lv];
+              const slot = slotView[lv];
               return (
                 <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0' }}>
-                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {Array.from({ length: slot.max }, (_, i) => {
                       const filled = i >= slot.used;
@@ -369,14 +359,17 @@ export function TabMesa({ char, derived }: TabProps) {
               );
             })}
             {prepared.length > 0 && (
-              <div style={{ marginTop: 8, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {prepared.slice(0, 8).map((sp) => (
-                  <LoreTooltip key={sp.id} info={spellLore(sp)}>
-                    <span className="fv-chip" style={{ cursor: 'help', fontSize: 10.5, padding: '4px 9px' }}>
-                      {sp.level === 0 ? 'T' : sp.level} · {sp.name}
-                    </span>
-                  </LoreTooltip>
+              <div className="fv-mesa-spells">
+                {prepared.slice(0, 10).map((sp) => (
+                  <div key={sp.id} className="fv-mesa-spell">
+                    <span className="fv-mesa-spell-lv">{sp.level === 0 ? 'T' : sp.level}</span>
+                    <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
+                      <span className="fv-mesa-spell-name">{sp.name}</span>
+                    </LoreTooltip>
+                    <SpellCastButton char={char} derived={derived} spell={sp} castMod={castModMesa} compact />
+                  </div>
                 ))}
+                {prepared.length > 10 && <span className="fv-mesa-spell-more">+{prepared.length - 10} na aba Magias</span>}
               </div>
             )}
           </Panel>
@@ -385,18 +378,26 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* Recursos + descansos */}
         <Panel>
           <div className="fv-label" style={{ marginBottom: 8 }}>Recursos &amp; Descanso</div>
-          {(cls.resources ?? []).map((res) => {
-            const left = char.combat.resources[res.id] ?? 0;
+          {resources.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--muted)', padding: '4px 0 6px' }}>Nenhum recurso de classe neste nível.</div>}
+          {resources.map((res) => {
+            const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
             return (
               <div key={res.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
-                <LoreTooltip info={passiveLore(res.label, `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
-                  <span style={{ cursor: 'help', flex: 1, fontFamily: "'Cinzel', serif", fontSize: 13.5, color: 'var(--ink)' }}>{res.label}</span>
+                <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
+                  <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>
+                    {res.label}
+                    {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>{res.die}</span>}
+                  </span>
                 </LoreTooltip>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: left > 0 ? t.gold : 'var(--muted)' }}>
-                  {left}/{res.max}
+                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
+                  {res.unlimited ? '∞' : `${left}/${res.max}`}
                 </span>
-                <QuickBtn color={t.danger} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
-                <QuickBtn color={t.acc} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
+                {!res.unlimited && (
+                  <>
+                    <QuickBtn color={t.danger} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
+                    <QuickBtn color={t.acc} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
+                  </>
+                )}
               </div>
             );
           })}
@@ -442,7 +443,7 @@ export function TabMesa({ char, derived }: TabProps) {
                     <button
                       onClick={() => store.toggleCondition(char.id, c)}
                       aria-label={`Remover ${c}`}
-                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'rgba(0,0,0,.3)', color: t.danger, fontSize: 13 }}
+                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'var(--sunk)', color: t.danger, fontSize: 13 }}
                     >
                       ✕
                     </button>
@@ -464,43 +465,15 @@ export function TabMesa({ char, derived }: TabProps) {
 
 /* ---------- blocos auxiliares ---------- */
 
-/** Últimas 5 rolagens da sessão (nome, d20, bônus, total). */
-function RollHistory() {
-  const history = useUiStore((s) => s.history);
-  if (history.length === 0) return null;
-  return (
-    <>
-      <div className="fv-label" style={{ margin: '13px 0 8px' }}>Últimas Rolagens</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {history.slice(0, 5).map((r) => (
-          <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: "'Chakra Petch', monospace" }}>
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: "'Inter', sans-serif" }}>{r.label}</span>
-            <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
-            <b style={{ color: r.crit ? 'var(--gold)' : r.fail ? 'var(--danger)' : 'var(--ink)', fontSize: 13 }}>{r.total}</b>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
 function StatChip({ label, value, info, onRoll }: { label: string; value: string; info: ReturnType<typeof passiveLore>; onRoll?: () => void }) {
   return (
     <LoreTooltip info={info} anchorStyle={{ display: 'block' }}>
       <button
         onClick={onRoll}
-        style={{
-          cursor: onRoll ? 'pointer' : 'help',
-          width: '100%',
-          textAlign: 'center',
-          padding: '9px 6px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--line)',
-          borderTop: '2px solid ' + (onRoll ? 'var(--acc)' : 'var(--line)'),
-          background: 'rgba(0,0,0,.26)',
-          transition: '.2s',
-        }}
+        className={'fv-stat-chip' + (onRoll ? ' is-rollable' : '')}
+        aria-label={onRoll ? `Rolar ${label} (${value})` : undefined}
       >
+        {onRoll && <Icon name="d20" size={11} className="fv-stat-chip-die" />}
         <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{value}</div>
         <div style={{ fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{label}</div>
       </button>
@@ -565,8 +538,8 @@ const restBtn: CSSProperties = {
   padding: '8px 10px',
   borderRadius: 'var(--radius-md)',
   border: '1px solid',
-  background: 'rgba(0,0,0,.24)',
-  fontFamily: "'Cinzel', serif",
+  background: 'var(--sunk)',
+  fontFamily: 'var(--font-display)',
   fontWeight: 700,
   fontSize: 12.5,
   transition: '.2s',
@@ -582,7 +555,7 @@ function atkBtn(color: string): CSSProperties {
     padding: '7px 11px',
     borderRadius: 'var(--radius-sm)',
     border: '1px solid ' + hexA(color, 0.4),
-    background: 'rgba(0,0,0,.26)',
+    background: 'var(--sunk)',
     lineHeight: 1.05,
   };
 }

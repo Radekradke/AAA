@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/useTheme';
 import { themeToVars } from '@/data/themes';
 import { BackgroundScene } from '@/components/animations/BackgroundScene';
 import { RollOverlay } from '@/components/dice/RollOverlay';
+import { CastNotice } from '@/components/spells/CastNotice';
 
 interface AppShellProps {
   children: ReactNode;
@@ -44,6 +45,7 @@ export function AppShell({ children, video = null, videoOpacity, darken }: AppSh
       <BackgroundScene video={video} videoOpacity={videoOpacity} darken={darken} />
       {children}
       <RollOverlay />
+      <CastNotice />
     </div>
   );
 }

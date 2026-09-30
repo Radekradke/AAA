@@ -16,6 +16,7 @@ import { calculateToolCheck } from '@/engine/toolCheck';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
+import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { SkillsModal } from './SkillsModal';
 
 /**
@@ -53,7 +54,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   style={{
                     cursor: 'pointer',
                     position: 'relative',
-                    background: `linear-gradient(180deg, ${hexA(color, 0.1)}, rgba(0,0,0,.26))`,
+                    background: `linear-gradient(180deg, ${hexA(color, 0.1)}, var(--sunk))`,
                     border: '1px solid ' + hexA(color, 0.28),
                     borderTop: `2px solid ${a.saveProf ? t.gold : hexA(color, 0.65)}`,
                     clipPath: 'polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px)',
@@ -62,7 +63,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <div style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
                   {/* modificador dentro de um d20 na cor do atributo */}
@@ -163,7 +164,7 @@ export function TabFicha({ char, derived }: TabProps) {
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
-            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: hexA(t.acc, 0.06) }}>
+            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>
               {derived.subclassLabel && (
                 <div style={{ fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 6 }}>{derived.subclassLabel}</div>
               )}
@@ -181,7 +182,7 @@ export function TabFicha({ char, derived }: TabProps) {
             {(char.toolProfs ?? []).map((tool) => {
               const chk = calculateToolCheck(char, tool);
               return (
-                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'rgba(0,0,0,.22)' }}>
+                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'var(--sunk)' }}>
                   <LoreTooltip info={passiveLore(tool.label, `${ABILITY_SHORT[chk.ability]} ${modStr(chk.total)}${tool.expertise ? ' · Expertise' : ''}`, `1d20 + ${ABILITY_SHORT[chk.ability]} (${modStr(chk.abilityMod)}) + proficiência (${modStr(chk.proficiency)})${tool.expertise ? ` + expertise (${modStr(chk.expertiseBonus)})` : ''}. Ferramenta não soma perícia — é independente de Prestidigitação.${tool.source ? ` Origem: ${tool.source}.` : ''}`, ['Ferramenta', 'Ver cálculo'])}>
                     <span style={{ cursor: 'help', flex: 1, minWidth: 120, fontSize: 13, color: 'var(--ink)' }}>
                       {tool.label}
@@ -242,9 +243,10 @@ export function TabFicha({ char, derived }: TabProps) {
                   setToolPick('');
                 }}
                 className="fv-btn-gold"
-                style={{ minHeight: 40, padding: '0 16px', fontSize: 13 }}
+                disabled={!toolPick}
+                style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: toolPick ? 1 : 0.45, cursor: toolPick ? 'pointer' : 'default' }}
               >
-                +
+                Adicionar
               </button>
             </div>
           </div>
@@ -275,9 +277,10 @@ export function TabFicha({ char, derived }: TabProps) {
             <button
               onClick={() => { store.addLanguage(char.id, langDraft); setLangDraft(''); }}
               className="fv-btn-gold"
-              style={{ minHeight: 40, padding: '0 16px', fontSize: 13 }}
+              disabled={!langDraft.trim()}
+              style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: langDraft.trim() ? 1 : 0.45, cursor: langDraft.trim() ? 'pointer' : 'default' }}
             >
-              +
+              Adicionar
             </button>
           </div>
 
@@ -289,7 +292,7 @@ export function TabFicha({ char, derived }: TabProps) {
               { label: 'Intuição', value: derived.passiveInsight, desc: 'Leitura passiva de intenções e mentiras.' },
             ] as const).map((pas) => (
               <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
-                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>
+                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)', gap: 6 }}>
                   {pas.label} <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{pas.value}</b>
                 </span>
               </LoreTooltip>
@@ -315,6 +318,9 @@ export function TabFicha({ char, derived }: TabProps) {
           )}
         </Panel>
       </div>
+
+      {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
+      <ClassFeaturesPanel char={char} />
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>

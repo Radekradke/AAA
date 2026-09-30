@@ -36,7 +36,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
           >
             <span style={{ fontSize: 20, color: l.color }}>{l.icon}</span>
             <span style={{ flex: 1 }}>
-              <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{l.label}</span>
+              <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{l.label}</span>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>{l.desc}</span>
             </span>
             <span style={{ color: l.color, fontSize: 18 }}>→</span>
@@ -51,6 +51,9 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
 
       <p style={{ margin: '16px 0 0', fontSize: 11, color: 'var(--muted)', textAlign: 'center' }}>
         Apoiar é totalmente opcional — o app continua 100% gratuito.
+      </p>
+      <p style={{ margin: '8px 0 0', fontSize: 10.5, color: 'var(--muted)', textAlign: 'center', opacity: 0.8 }}>
+        Ícones: <a href="https://game-icons.net" target="_blank" rel="noreferrer" style={{ color: 'var(--acc)' }}>game-icons.net</a> (Lorc, Delapouite e colaboradores) — CC BY 3.0.
       </p>
     </Modal>
   );

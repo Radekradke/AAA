@@ -16,7 +16,8 @@ export function rollAttack(atk: DerivedAttack, opts: { advantage?: boolean; disa
 /** Rola o dano da arma (Xd Y + modificador), opcionalmente versátil e/ou crítico. */
 export function rollDamage(atk: DerivedAttack, opts: { versatile?: boolean; crit?: boolean } = {}): RollResult {
   const die = opts.versatile && atk.versatileDie ? atk.versatileDie : atk.damageDie;
-  const count = atk.damageDice * (opts.crit ? 2 : 1);
+  // crítico dobra os dados; Crítico Brutal (Bárbaro) soma dados extras da arma
+  const count = atk.damageDice * (opts.crit ? 2 : 1) + (opts.crit ? atk.critExtraDice ?? 0 : 0);
   const main = roll(die, {
     label: `Dano · ${atk.name}`,
     count,
