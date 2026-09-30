@@ -19,6 +19,12 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { deriveCharacter } from '@/engine/dndRules';
 import { modStr } from '@/engine/dice';
 import { music } from '@/lib/music';
+import { StageView } from '@/components/stage/StageView';
+import { SceneLibrary } from '@/components/stage/SceneLibrary';
+import { HandoutDesk, HandoutInbox, IncomingHandout } from '@/components/stage/Handouts';
+import { CutsceneOverlay } from '@/components/stage/CutsceneOverlay';
+import { useCampaignNpcs } from '@/components/campaign/NpcGallery';
+import { liveScene, useStageStore } from '@/store/stageStore';
 import type { Campaign } from '@/types/models';
 import type { ConnectionState } from '@/types/session';
 
@@ -29,6 +35,19 @@ const CONN: Record<ConnectionState, string> = {
   reconnecting: 'Reconectando…',
   offline: 'Sem conexão',
 };
+
+type MasterTab = 'palco' | 'encontro' | 'cenas' | 'handouts';
+const MASTER_TABS: [MasterTab, string][] = [['palco', 'Palco'], ['encontro', 'Encontro'], ['cenas', 'Cenas'], ['handouts', 'Handouts']];
+const TAB_KEY = 'fv-live-tab';
+function savedTab(): MasterTab {
+  try {
+    const v = localStorage.getItem(TAB_KEY);
+    if (MASTER_TABS.some(([t]) => t === v)) return v as MasterTab;
+  } catch {
+    /* ignora */
+  }
+  return 'palco';
+}
 
 /**
  * Mesa ao vivo (/mesa/:id/jogar): a sessão da noite. O mestre abre a
@@ -48,6 +67,24 @@ export function LiveSession() {
 
   const canPlay = cloudEnabled() && !!user && !user.guest;
   const isMaster = !!campaign && !!user && campaign.masterId === user.id;
+  const [tab, setTab] = useState<MasterTab>(() => savedTab());
+  const pickTab = (t: MasterTab) => {
+    setTab(t);
+    try {
+      localStorage.setItem(TAB_KEY, t);
+    } catch {
+      /* ignora */
+    }
+  };
+  const { npcs } = useCampaignNpcs(campaign?.id, isMaster);
+  const stageLive = useStageStore((st) => liveScene(st));
+  const stageMissing = useStageStore((st) => st.missing);
+
+  // nome no ping do jogador acompanha o herói escolhido
+  const myHeroName = s.me?.characterName ?? null;
+  useEffect(() => {
+    if (campaign && user && !isMaster) useStageStore.setState({ who: myHeroName ?? user.name });
+  }, [myHeroName, campaign, user, isMaster]);
 
   // entra na mesa (idempotente: voltar da ficha não reconecta)
   useEffect(() => {
@@ -58,6 +95,11 @@ export function LiveSession() {
       if (!c) return setLoadError('Mesa não encontrada — você faz parte dela?');
       setCampaign(c);
       const cur = useSessionStore.getState().me;
+      useStageStore.getState().open(c.id, {
+        isMaster: c.masterId === user.id,
+        userId: user.id,
+        who: c.masterId === user.id ? 'Mestre' : cur?.characterName ?? user.name,
+      });
       void s.join(c.id, {
         userId: user.id,
         name: user.name,
@@ -143,87 +185,161 @@ export function LiveSession() {
           </div>
         )}
 
-        {/* sem sessão */}
-        {!s.session && !s.loading && campaign && (
-          isMaster ? (
-            <section className="fv-panel fv-live-card fv-live-center">
-              <div className="fv-label">Nenhuma sessão aberta</div>
-              <p className="fv-live-hint">Ao abrir a sessão, os jogadores da mesa podem entrar e acompanhar a iniciativa ao vivo.</p>
-              <div className="fv-live-inline">
-                <input className="fv-input" placeholder="Nome da sessão (opcional)" value={sessName} onChange={(e) => setSessName(e.target.value)} maxLength={60} />
-                <button type="button" className="fv-btn-gold fv-live-big" disabled={s.busy} onClick={() => void s.startSession(sessName || undefined)}>
-                  Iniciar sessão
-                </button>
-              </div>
-            </section>
-          ) : (
-            <section className="fv-panel fv-live-card fv-live-center">
-              <div className="fv-live-wait" aria-hidden />
-              <div className="fv-label">Aguardando o mestre</div>
-              <p className="fv-live-hint">Quando o mestre abrir a sessão, esta tela entra sozinha.</p>
-            </section>
-          )
-        )}
-
-        {s.session && (
-          <div className="fv-live-grid">
-            <div className="fv-live-main">
-              {/* medalhão da rodada + trilha */}
-              <section className="fv-panel fv-live-board">
-                {enc ? (
-                  <>
-                    <div className="fv-live-round">
-                      <div className="fv-live-medal" aria-label={`Rodada ${enc.round}`}>
-                        <small>Rodada</small>
-                        <b>{enc.round || '—'}</b>
-                      </div>
-                      <div className="fv-live-round-info">
-                        <div className="fv-label">{enc.name}</div>
-                        <strong>
-                          {enc.status === 'preparing' && 'Rolando iniciativa'}
-                          {enc.status === 'active' && (mineNow ? 'Seu turno!' : active ? `Vez de ${active.name}` : '—')}
-                          {enc.status === 'paused' && 'Combate pausado'}
-                        </strong>
-                      </div>
-                    </div>
-                    <InitiativeTrack encounter={enc} combatants={s.combatants} isMaster={isMaster} userId={user!.id} />
-                  </>
-                ) : (
-                  <div className="fv-live-empty">{isMaster ? 'Sem combate agora. Prepare um encontro quando a história pedir.' : 'Sem combate agora — a sessão está aberta.'}</div>
-                )}
-              </section>
-            </div>
-
-            <aside className="fv-live-side">
-              {/* vez de um monstro do bestiário: a ficha dele fica à mão do mestre */}
-              {isMaster && active?.monsterRef && MONSTER_BY_ID[active.monsterRef] && (
-                <section className="fv-panel fv-live-card fv-live-turncard">
-                  <div className="fv-label">Vez de {active.name}</div>
-                  <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} />
-                </section>
-              )}
-              {isMaster ? <MasterDeck heroes={heroes} /> : <PlayerCard heroes={heroes} />}
-              <EventFeed events={s.events} />
-              {isMaster && (
-                <section className="fv-live-session-ctl">
-                  {s.session.status === 'active' ? (
-                    <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setSessionStatus('paused')}>Pausar sessão</button>
-                  ) : (
-                    <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setSessionStatus('active')}>Retomar sessão</button>
-                  )}
-                  <button
-                    type="button"
-                    className="fv-btn-ghost is-danger"
-                    disabled={s.busy}
-                    onClick={() => window.confirm('Encerrar a sessão para todos? O encontro aberto também termina.') && void s.setSessionStatus('finished')}
-                  >
-                    Encerrar sessão
+        {(() => {
+          if (!campaign) return null;
+          const startCard = !s.session && !s.loading && (
+            isMaster ? (
+              <section className="fv-panel fv-live-card fv-live-center">
+                <div className="fv-label">Nenhuma sessão aberta</div>
+                <p className="fv-live-hint">Ao abrir a sessão, os jogadores entram, rolam iniciativa e as rolagens aparecem para a mesa. Cenas e handouts funcionam mesmo antes.</p>
+                <div className="fv-live-inline">
+                  <input className="fv-input" placeholder="Nome da sessão (opcional)" value={sessName} onChange={(e) => setSessName(e.target.value)} maxLength={60} />
+                  <button type="button" className="fv-btn-gold fv-live-big" disabled={s.busy} onClick={() => void s.startSession(sessName || undefined)}>
+                    Iniciar sessão
                   </button>
+                </div>
+              </section>
+            ) : (
+              !stageLive && (
+                <section className="fv-panel fv-live-card fv-live-center">
+                  <div className="fv-live-wait" aria-hidden />
+                  <div className="fv-label">Aguardando o mestre</div>
+                  <p className="fv-live-hint">Quando o mestre abrir a sessão ou mostrar uma cena, esta tela muda sozinha.</p>
                 </section>
+              )
+            )
+          );
+
+          const board = s.session && (
+            <section className="fv-panel fv-live-board">
+              {enc ? (
+                <>
+                  <div className="fv-live-round">
+                    <div className="fv-live-medal" aria-label={`Rodada ${enc.round}`}>
+                      <small>Rodada</small>
+                      <b>{enc.round || '—'}</b>
+                    </div>
+                    <div className="fv-live-round-info">
+                      <div className="fv-label">{enc.name}</div>
+                      <strong>
+                        {enc.status === 'preparing' && 'Rolando iniciativa'}
+                        {enc.status === 'active' && (mineNow ? 'Seu turno!' : active ? `Vez de ${active.name}` : '—')}
+                        {enc.status === 'paused' && 'Combate pausado'}
+                      </strong>
+                    </div>
+                  </div>
+                  <InitiativeTrack encounter={enc} combatants={s.combatants} isMaster={isMaster} userId={user!.id} />
+                </>
+              ) : (
+                <div className="fv-live-empty">{isMaster ? 'Sem combate agora. Prepare um encontro na aba Encontro.' : 'Sem combate agora — a sessão está aberta.'}</div>
               )}
-            </aside>
-          </div>
-        )}
+            </section>
+          );
+
+          // vez de um monstro do bestiário: a ficha dele fica à mão do mestre
+          const turnCard = isMaster && active?.monsterRef && MONSTER_BY_ID[active.monsterRef] && (
+            <section className="fv-panel fv-live-card fv-live-turncard">
+              <div className="fv-label">Vez de {active.name}</div>
+              <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} />
+            </section>
+          );
+
+          const stage = (
+            <StageView
+              isMaster={isMaster}
+              userId={user!.id}
+              heroes={heroes}
+              npcs={npcs}
+              combatants={s.combatants}
+              encounter={enc}
+              onOpenLibrary={() => pickTab('cenas')}
+            />
+          );
+
+          if (!isMaster) {
+            // JOGADOR: o palco em primeiro plano; herói, pistas e mesa embaixo
+            return (
+              <>
+                {startCard}
+                {(stageLive || s.session || stageMissing) && stage}
+                {s.session && (
+                  <div className="fv-live-grid">
+                    <div className="fv-live-main">{board}</div>
+                    <aside className="fv-live-side">
+                      <PlayerCard heroes={heroes} />
+                      <HandoutInbox />
+                      <EventFeed events={s.events} />
+                    </aside>
+                  </div>
+                )}
+                {!s.session && <HandoutInbox />}
+                <IncomingHandout />
+                <CutsceneOverlay isMaster={false} />
+              </>
+            );
+          }
+
+          // MESTRE: cabine com abas
+          return (
+            <>
+              <nav className="fv-live-tabs" role="tablist" aria-label="Cabine do mestre">
+                {MASTER_TABS.map(([t, label]) => (
+                  <button key={t} type="button" role="tab" aria-selected={tab === t} className={tab === t ? 'is-on' : ''} onClick={() => pickTab(t)}>
+                    {label}
+                    {t === 'palco' && stageLive && <i className="fv-live-tabs-dot" aria-label="cena no ar" />}
+                    {t === 'encontro' && enc?.status === 'active' && <i className="fv-live-tabs-dot is-combat" aria-label="combate rolando" />}
+                  </button>
+                ))}
+              </nav>
+
+              {tab === 'palco' && (
+                <div className="fv-live-grid is-stage">
+                  <div className="fv-live-main">{stage}</div>
+                  <aside className="fv-live-side">
+                    {turnCard}
+                    {board ?? startCard}
+                    {s.session && <EventFeed events={s.events} />}
+                  </aside>
+                </div>
+              )}
+
+              {tab === 'encontro' && (
+                <>
+                  {startCard}
+                  {s.session && (
+                    <div className="fv-live-grid">
+                      <div className="fv-live-main">{board}</div>
+                      <aside className="fv-live-side">
+                        {turnCard}
+                        <MasterDeck heroes={heroes} />
+                        <EventFeed events={s.events} />
+                        <section className="fv-live-session-ctl">
+                          {s.session.status === 'active' ? (
+                            <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setSessionStatus('paused')}>Pausar sessão</button>
+                          ) : (
+                            <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setSessionStatus('active')}>Retomar sessão</button>
+                          )}
+                          <button
+                            type="button"
+                            className="fv-btn-ghost is-danger"
+                            disabled={s.busy}
+                            onClick={() => window.confirm('Encerrar a sessão para todos? O encontro aberto também termina.') && void s.setSessionStatus('finished')}
+                          >
+                            Encerrar sessão
+                          </button>
+                        </section>
+                      </aside>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {tab === 'cenas' && <SceneLibrary campaignId={campaign.id} onShow={() => pickTab('palco')} />}
+              {tab === 'handouts' && <HandoutDesk campaignId={campaign.id} heroes={heroes} />}
+              <CutsceneOverlay isMaster />
+            </>
+          );
+        })()}
 
         {/* portal: a tela anima com transform/filter, o que prenderia o position:fixed ao conteúdo */}
         {isMaster && enc && createPortal(<TurnBar />, document.body)}

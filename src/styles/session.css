@@ -1074,3 +1074,7 @@
 .fv-npc-hover small { font-size: 11.5px; color: var(--muted); font-weight: 500; }
 .fv-npc-hover p { margin: 2px 0 0; font-size: 12px; line-height: 1.45; font-weight: 400; color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .fv-npc-hover { transition: none; } }
+.fv-npc-alert {
+  margin: 8px 0 4px; padding: 10px 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.5;
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 55%); background: color-mix(in srgb, var(--danger), transparent 88%); color: var(--ink);
+}

@@ -509,3 +509,17 @@ lista de presença (quem está online) fica menos blindada.
 Postgres em memória (PGlite), aplica a seção 5 + este script e percorre o
 cenário completo: permissões, RLS, ordem, grupos, rodada, corrida de turno e
 visibilidade dos eventos.
+
+## 7. Palco da mesa — mapas, cenas, cutscenes e handouts
+
+Rode `supabase/palco.sql` (depois do `multiplayer_session.sql` e de `supabase/atualizacao_npcs_bestiario.sql`), numa aba nova do SQL Editor, sem nada selecionado. Pode rodar de novo sem problema.
+
+O script cria:
+
+- `campaign_scenes` — cenas preparadas pelo mestre (mapa tático, ambiente, cutscene). Jogadores só enxergam depois que a cena vai ao ar pela primeira vez.
+- `campaign_stage` — o que está na tela de todos agora (uma linha por campanha).
+- `scene_tokens` — peões do mapa. Peão escondido só o mestre vê; jogador move **só o próprio** peão pela RPC `move_token`.
+- `campaign_handouts` — cartas e pistas, para todos ou para jogadores escolhidos.
+- Bucket privado `campaign-media` no Storage (máx. 10 MB por arquivo, só imagens). O mestre envia para a pasta da campanha; cada jogador só baixa imagens de cenas reveladas ou de handouts entregues a ele (`fv_media_readable`).
+
+As imagens são comprimidas no aparelho do mestre antes de subir (WebP; mapas até 3072 px) e ficam guardadas no aparelho de cada jogador depois do primeiro download, para poupar a franquia de tráfego do plano grátis.
