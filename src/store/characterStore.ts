@@ -11,6 +11,7 @@ import { deriveCharacter } from '@/engine/dndRules';
 import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
 import type { ContainerId, MoveResult } from '@/engine/inventory';
 import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
+import { gainsSpellSwap } from '@/engine/spellRules';
 import { characterResources, syncResources } from '@/engine/classResources';
 import { applyChoicePicks } from '@/engine/classChoices';
 import { grantChoiceEffects } from '@/engine/choiceEffects';
@@ -72,6 +73,12 @@ interface CharacterState {
   /** Gasta um uso de uma magia concedida por item (recarga por descanso). */
   useItemSpell: (id: string, key: string) => void;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
+  /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
+  castWithSlot: (id: string, level: number, concentration?: boolean) => void;
+  /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
+  forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
+  /** Mago: copia uma magia para o grimório pagando ouro. */
+  copySpell: (id: string, spellId: string, cost: number) => void;
   setResource: (id: string, resId: string, value: number) => void;
   spendHitDie: (id: string) => void;
   setDeathSave: (id: string, type: 'success' | 'fail', n: number) => void;
@@ -399,6 +406,31 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.itemSpellUses = uses;
           });
         },
+        castWithSlot(id, level, concentration) {
+          mutate(id, (c) => {
+            if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
+            const slot = c.combat.spellSlots[level];
+            if (!slot || slot.used >= slot.max) return;
+            slot.used += 1;
+            if (concentration) c.combat.concentration = true;
+          });
+        },
+        forgetSpell(id, spellId, useSwap) {
+          mutate(id, (c) => {
+            c.preparedSpells = c.preparedSpells.filter((x) => x !== spellId);
+            c.knownSpells = (c.knownSpells ?? []).filter((x) => x !== spellId);
+            c.spellbookCopied = (c.spellbookCopied ?? []).filter((x) => x !== spellId);
+            if (useSwap) c.spellSwaps = Math.max(0, (c.spellSwaps ?? 0) - 1);
+          });
+        },
+        copySpell(id, spellId, cost) {
+          mutate(id, (c) => {
+            if (c.coins.gp < cost || (c.knownSpells ?? []).includes(spellId)) return;
+            c.coins.gp -= cost;
+            c.knownSpells = [...(c.knownSpells ?? []), spellId];
+            c.spellbookCopied = [...(c.spellbookCopied ?? []), spellId];
+          });
+        },
         toggleSpellSlot(id, level, index) {
           mutate(id, (c) => {
             if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
@@ -574,6 +606,8 @@ export const useCharacterStore = create<CharacterState>()(
             else c.classLevels.push({ classId: plan.classId, level: 1 });
 
             if (plan.subclassId) c.subclassId = plan.subclassId;
+            // magias conhecidas: ao subir de nível pode trocar uma (PHB 2014)
+            if (plan.classId === c.classId && gainsSpellSwap(c)) c.spellSwaps = (c.spellSwaps ?? 0) + 1;
             if (plan.asi?.kind === 'asi') {
               for (const k of ABILITY_KEYS) {
                 const inc = plan.asi.increases[k] ?? 0;

@@ -190,6 +190,10 @@ export interface Character {
   choices?: Record<string, string[]>;
   /** Companheiro de Patrulheiro (Mestre das Feras): nome e PV atuais. A fera vem de `choices['ranger.companion']`. */
   companion?: { name?: string; hpCurrent?: number };
+  /** Trocas de magia conhecida disponíveis (1 por nível ganho em classe de magias conhecidas). */
+  spellSwaps?: number;
+  /** Mago: magias copiadas para o grimório pagando ouro (não gastam as grátis do nível). */
+  spellbookCopied?: string[];
   /** Aumentos de atributo acumulados por ASI/talentos. */
   asiBonuses: Partial<AbilityScores>;
   /** Linha do tempo de evolução, nível a nível. */

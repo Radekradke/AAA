@@ -5,7 +5,7 @@ import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { characterResources } from '@/engine/classResources';
-import { grantedSpells, syncSpellSlots } from '@/engine/spellcasting';
+import { casterOf, grantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, abilityLore, conditionLore, passiveLore, spellLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
@@ -21,6 +21,7 @@ import { damageExpr } from '@/engine/combat';
 import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
+import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { CompanionPanel } from './CompanionPanel';
 import { inspirationCount } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
@@ -48,6 +49,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const dying = char.hpCurrent <= 0;
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
+  const castModMesa = derived.abilities[casterOf(char)?.ability ?? 'int'].mod;
   const prepared = [...new Set([...char.preparedSpells, ...grantedSpells(char).map((g) => g.id)])]
     .map((id) => SPELL_BY_ID[id])
     .filter(Boolean)
@@ -361,14 +363,17 @@ export function TabMesa({ char, derived }: TabProps) {
               );
             })}
             {prepared.length > 0 && (
-              <div style={{ marginTop: 8, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {prepared.slice(0, 8).map((sp) => (
-                  <LoreTooltip key={sp.id} info={spellLore(sp)}>
-                    <span className="fv-chip" style={{ cursor: 'help', fontSize: 10.5, padding: '4px 9px' }}>
-                      {sp.level === 0 ? 'T' : sp.level} · {sp.name}
-                    </span>
-                  </LoreTooltip>
+              <div className="fv-mesa-spells">
+                {prepared.slice(0, 10).map((sp) => (
+                  <div key={sp.id} className="fv-mesa-spell">
+                    <span className="fv-mesa-spell-lv">{sp.level === 0 ? 'T' : sp.level}</span>
+                    <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
+                      <span className="fv-mesa-spell-name">{sp.name}</span>
+                    </LoreTooltip>
+                    <SpellCastButton char={char} derived={derived} spell={sp} castMod={castModMesa} compact />
+                  </div>
                 ))}
+                {prepared.length > 10 && <span className="fv-mesa-spell-more">+{prepared.length - 10} na aba Magias</span>}
               </div>
             )}
           </Panel>

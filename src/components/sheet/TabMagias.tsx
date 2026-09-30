@@ -9,7 +9,8 @@ import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
-import { bonusSpellIds } from '@/engine/classChoices';
+import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
+import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
@@ -17,9 +18,9 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 
-/** Custo em ouro para escrever uma magia de um pergaminho/grimório (estilo BG3). */
+/** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
-  return sp.level === 0 ? 25 : sp.level * 50;
+  return sp.level * 50;
 }
 
 export function TabMagias({ char, derived }: TabProps) {
@@ -35,11 +36,14 @@ export function TabMagias({ char, derived }: TabProps) {
   const kind = caster?.kind ?? casterKind(char.classId);
   const isWizard = kind === 'spellbook';
   const listClass = caster?.listClass ?? char.classId;
+  // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
+  const st = useMemo(() => spellLearnState(char, castMod), [char, castMod]);
+  const [freeMode, setFreeMode] = useState(false);
+  const blockFor = (sp: Spell, mode: 'class' | 'copy') => (freeMode || !st ? null : learnBlock(char, st, sp, mode));
 
   // máximos vêm das regras (classe + subclasse); o gasto vem da ficha
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
-  const maxCircle = Math.max(0, ...slotLevels);
 
   const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses]);
 
@@ -59,17 +63,8 @@ export function TabMagias({ char, derived }: TabProps) {
     [activeIds],
   );
 
-  // magias bônus (Livro das Sombras, Arcano Místico, Assinatura…) não contam nos limites
-  const bonusIds = useMemo(() => bonusSpellIds(char), [char.choices]);
-  const counted = active.filter((s) => !bonusIds.has(s.id) && !grantedFrom.has(s.id));
-  const cantripsHave = counted.filter((s) => s.level === 0).length;
-  const spellsHave = counted.filter((s) => s.level >= 1).length;
-  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1 && !bonusIds.has(s.id) && !grantedFrom.has(s.id)).length;
-  const cantripTarget = caster?.cantrips ?? 0;
-  const guide = caster?.guide ?? { count: 0, label: '—' };
   // Cavaleiro/Trapaceiro Arcano: quase todas as magias de 2 escolas; algumas livres (níveis 3, 8, 14, 20)
-  const offSchool = caster?.schools ? active.filter((sp) => sp.level >= 1 && !caster.schools!.allowed.includes(sp.school)).length : 0;
-  const prepMax = Math.max(1, castMod + (char.classId === 'paladin' ? Math.floor(char.level / 2) : char.level));
+  const offSchool = st?.offSchool ?? 0;
 
   // lista da classe + lista expandida do patrono (Bruxo)
   const classLearnList = useMemo(() => {
@@ -80,37 +75,36 @@ export function TabMagias({ char, derived }: TabProps) {
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
-  // adiciona/remove magia (com custo de ouro no caminho "pergaminho")
-  const learnSpell = (id: string, scroll: boolean) => {
+  // esquecer: respeita as regras (troca ao subir de nível, truques fixos, grimório)
+  const forgetInfo = (sp: Spell) => (freeMode || !st ? { block: null, usesSwap: false } : forgetBlock(st, sp));
+  const removeSpell = (id: string) => {
+    const sp = SPELL_BY_ID[id];
+    if (!sp) return;
+    const f = forgetInfo(sp);
+    if (f.block) return;
+    store.forgetSpell(char.id, id, f.usesSwap);
+  };
+
+  // aprender/preparar (lista da classe) ou copiar para o grimório (mago, custa ouro)
+  const learnSpell = (id: string, copy: boolean) => {
     const sp = SPELL_BY_ID[id];
     if (!sp) return;
     const field: 'knownSpells' | 'preparedSpells' = isWizard && sp.level >= 1 ? 'knownSpells' : 'preparedSpells';
-    const already = char[field].includes(id);
-    if (already) {
-      update((c) => {
-        c[field] = c[field].filter((x) => x !== id);
-        if (field === 'knownSpells') c.preparedSpells = c.preparedSpells.filter((x) => x !== id);
-      });
-      return;
-    }
-    const cost = scroll ? scrollCost(sp) : 0;
-    if (cost && char.coins.gp < cost) return;
+    if (char[field].includes(id)) return removeSpell(id);
+    if (blockFor(sp, copy ? 'copy' : 'class')) return;
+    if (copy) return store.copySpell(char.id, id, scrollCost(sp));
     update((c) => {
-      if (cost) c.coins.gp = Math.max(0, c.coins.gp - cost);
       c[field] = [...c[field], id];
     });
   };
 
-  const togglePrepared = (id: string) =>
+  const togglePrepared = (id: string) => {
+    const isOn = char.preparedSpells.includes(id);
+    if (!isOn && !freeMode && st && prepareBlock(st, false)) return;
     update((c) => {
-      c.preparedSpells = c.preparedSpells.includes(id) ? c.preparedSpells.filter((x) => x !== id) : [...c.preparedSpells, id];
+      c.preparedSpells = isOn ? c.preparedSpells.filter((x) => x !== id) : [...c.preparedSpells, id];
     });
-
-  const removeSpell = (id: string) =>
-    update((c) => {
-      c.preparedSpells = c.preparedSpells.filter((x) => x !== id);
-      c.knownSpells = (c.knownSpells ?? []).filter((x) => x !== id);
-    });
+  };
 
   const byCircle = useMemo(() => {
     const map = new Map<number, Spell[]>();
@@ -152,26 +146,45 @@ export function TabMagias({ char, derived }: TabProps) {
             Espaços de Magia
           </SectionLabel>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-            {cantripTarget > 0 && <GuideChip label="Truques" have={cantripsHave} target={cantripTarget} color={t.acc} />}
-            {isWizard ? (
-              <>
-                <GuideChip label="grimório" have={spellsHave} target={guide.count} color={t.gold} />
-                <GuideChip label="preparadas" have={preparedCount} target={prepMax} color="#C24DFF" />
-              </>
-            ) : guide.count > 0 ? (
-              <GuideChip label={guide.label} have={spellsHave} target={guide.count} color={t.gold} />
-            ) : null}
-            <span style={{ fontSize: 11, color: 'var(--muted)', alignSelf: 'center' }}>
-              {kind === 'known' ? 'Escolhe magias fixas ao subir de nível.' : isWizard ? 'Grimório: aprende ao subir e copia de pergaminhos (custa ouro).' : 'Prepara magias da lista da classe por dia.'}
-            </span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
+            {st && st.cantrips.max > 0 && <GuideChip label="Truques" have={st.cantrips.have} target={st.cantrips.max} color={t.acc} />}
+            {st?.known && <GuideChip label={isWizard ? 'grimório (grátis)' : 'conhecidas'} have={st.known.have} target={st.known.max} color={t.gold} />}
+            {st?.prepared && <GuideChip label="preparadas" have={st.prepared.have} target={st.prepared.max} color="#C24DFF" />}
+            {st && st.maxCircle > 0 && (
+              <span className="fv-spell-rule-chip">até o {st.maxCircle}º círculo</span>
+            )}
+            <button
+              type="button"
+              className={'fv-spell-free' + (freeMode ? ' is-on' : '')}
+              aria-pressed={freeMode}
+              onClick={() => setFreeMode((f) => !f)}
+              title="Libera adicionar/remover sem as regras (correções combinadas com o mestre)"
+            >
+              {freeMode ? '🔓 Modo mestre ligado' : '🔒 Regras do PHB'}
+            </button>
           </div>
+          <p className="fv-spell-rule-text">
+            {kind === 'known'
+              ? 'Você conhece um número fixo de magias da lista da sua classe. Ao subir de nível, aprende as novas e pode trocar UMA que já conhece.'
+              : isWizard
+                ? 'Seu grimório ganha 2 magias grátis por nível (de círculos que você conjura). Outras podem ser copiadas de pergaminhos: 50 po por círculo. Prepare até INT + nível por dia.'
+                : 'Você conhece a lista inteira da classe e prepara magias todo dia (troca após descanso longo), até o limite.'}
+          </p>
+          {!freeMode && st && st.swaps > 0 && kind === 'known' && (
+            <div role="note" className="fv-spell-warn" style={{ borderColor: 'var(--acc)' }}>
+              <b style={{ color: 'var(--acc)' }}>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
+            </div>
+          )}
 
-          {/* fichas antigas (antes da correção) podem ter vindo com truques a mais */}
-          {cantripTarget > 0 && cantripsHave > cantripTarget && (
+          {/* fichas antigas (antes da correção) podem ter vindo com magias a mais */}
+          {st && st.cantrips.have > st.cantrips.max && (
             <div role="note" className="fv-spell-warn">
-              <b>Truques a mais:</b> você tem {cantripsHave}, mas {cls.label} no nível {char.level} conhece {cantripTarget}.
-              {' '}Esqueça {cantripsHave - cantripTarget === 1 ? '1 truque' : `${cantripsHave - cantripTarget} truques`} com o <span aria-hidden>×</span> na lista abaixo (ou mantenha, se o mestre liberou).
+              <b>Truques a mais:</b> você tem {st.cantrips.have}, mas o limite é {st.cantrips.max}. Esqueça o excedente com o <span aria-hidden>×</span> (ou ligue o modo mestre, se foi combinado).
+            </div>
+          )}
+          {st?.known && st.known.have > st.known.max && (
+            <div role="note" className="fv-spell-warn">
+              <b>Magias a mais:</b> {st.known.have} de {st.known.max}. Esqueça o excedente com o <span aria-hidden>×</span>.
             </div>
           )}
 
@@ -249,9 +262,11 @@ export function TabMagias({ char, derived }: TabProps) {
                 <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
                   + {learnLabel}
                 </button>
-                <button onClick={() => setLearn('all')} title="Aprender de pergaminho/grimório em troca de ouro" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
-                  📜 De pergaminho
-                </button>
+                {isWizard && (
+                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
+                    📜 Copiar para o grimório
+                  </button>
+                )}
               </div>
             }
           >
@@ -259,7 +274,7 @@ export function TabMagias({ char, derived }: TabProps) {
           </SectionLabel>
 
           {active.length === 0 && (
-            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para a lista da sua classe, ou <b style={{ color: t.acc }}>📜 De pergaminho</b> (custa ouro) para aprender de um pergaminho/grimório.</>} />
+            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para escolher da lista da sua classe — só aparecem liberadas as magias que você pode pegar agora.</>} />
           )}
 
           {byCircle.map(([lv, spells]) => (
@@ -300,8 +315,17 @@ export function TabMagias({ char, derived }: TabProps) {
                           {isPrepared ? '★ Preparada' : '☆ Preparar'}
                         </button>
                       )}
-                      {learned && (
-                        <button type="button" className="fv-item-remove" onClick={() => removeSpell(sp.id)} aria-label={`Esquecer ${sp.name}`} title="Esquecer magia">
+                      {(sp.level === 0 || !isWizard || isPrepared || grantSource || (sp.ritual && isWizard)) && (
+                        <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />
+                      )}
+                      {learned && !forgetInfo(sp).block && (
+                        <button
+                          type="button"
+                          className="fv-item-remove"
+                          onClick={() => removeSpell(sp.id)}
+                          aria-label={`Esquecer ${sp.name}`}
+                          title={forgetInfo(sp).usesSwap ? 'Esquecer (usa sua troca de nível)' : kind === 'prepared' ? 'Despreparar' : 'Esquecer magia'}
+                        >
                           <Icon name="close" size={14} />
                         </button>
                       )}
@@ -316,14 +340,14 @@ export function TabMagias({ char, derived }: TabProps) {
 
       {learn && (
         <SpellLibrary
-          title={learn === 'all' ? 'Aprender de pergaminho/grimório' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
-          spells={(learn === 'all' ? SPELLS : classLearnList).filter((s) => s.level <= maxCircle)}
+          title={learn === 'all' ? 'Copiar para o grimório (50 po por círculo)' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
+          spells={learn === 'all' ? SPELLS.filter((s) => s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
+          blockReason={(s) => blockFor(s, learn === 'all' ? 'copy' : 'class')}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}
           onClose={() => setLearn(false)}
           actionLabel={learnLabel}
           costOf={learn === 'all' ? (s) => scrollCost(s) : undefined}
-          blockedAdd={learn === 'all' ? (s) => char.coins.gp < scrollCost(s) : undefined}
         />
       )}
     </div>
