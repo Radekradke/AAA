@@ -122,6 +122,7 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
       )}
 
       <EncounterDifficulty heroes={heroes} />
+      <XpAward />
 
       <CreatureForm />
 
@@ -171,6 +172,47 @@ function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
         {' '}Vitória: <b>{b.perPlayer.toLocaleString('pt-BR')} XP</b> por herói.
         {unknown > 0 && ` ${unknown} criatura${unknown > 1 ? 's' : ''} manual${unknown > 1 ? 'is' : ''} fora da conta.`}
       </p>
+    </section>
+  );
+}
+
+/**
+ * Recompensa: XP dos monstros derrotados (bestiário, PV 0) dividido entre os
+ * heróis do encontro. O valor vai para a ficha de cada jogador sozinho.
+ */
+function XpAward() {
+  const s = useSessionStore();
+  const heroes = s.combatants.filter((c) => c.type === 'player' && c.sheetId);
+  const defeated = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && (c.hpCurrent ?? 1) <= 0);
+  const pool = defeated.reduce((n, c) => n + (MONSTER_BY_ID[c.monsterRef!]?.xp ?? 0), 0);
+  const suggested = heroes.length ? Math.floor(pool / heroes.length) : 0;
+  const [amount, setAmount] = useState('');
+  if (!heroes.length) return null;
+  const value = amount.trim() === '' ? suggested : Number(amount);
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-label">Recompensa em XP</div>
+      <p className="fv-live-hint">
+        {defeated.length
+          ? `${defeated.length} derrotado${defeated.length > 1 ? 's' : ''} = ${pool.toLocaleString('pt-BR')} XP ÷ ${heroes.length} herói${heroes.length > 1 ? 's' : ''}.`
+          : 'Monstros do bestiário com 0 PV entram na conta sozinhos. Ou digite um valor (marco, missão…).'}
+      </p>
+      <div className="fv-xp-award">
+        <input className="fv-input" inputMode="numeric" placeholder={String(suggested)} value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} aria-label="XP por herói" />
+        <button
+          type="button"
+          className="fv-btn-gold"
+          disabled={s.busy || !value}
+          onClick={() => {
+            if (window.confirm(`Dar ${value} XP para cada herói do encontro (${heroes.map((h) => h.name).join(', ')})?`)) {
+              void s.awardXp(value, s.encounter?.name);
+              setAmount('');
+            }
+          }}
+        >
+          Dar {value || 0} XP a cada herói
+        </button>
+      </div>
     </section>
   );
 }

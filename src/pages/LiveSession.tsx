@@ -112,6 +112,16 @@ export function LiveSession() {
             <div className="fv-live-sub">
               <span className={`fv-live-conn is-${s.connection}`}><i className={`fv-live-dot is-${s.connection}`} aria-hidden />{CONN[s.connection]}</span>
               {s.session && <span>{s.session.name}{s.session.status === 'paused' ? ' · pausada' : ''}</span>}
+              {s.session && (
+                <span className="fv-live-vis" title="Quem vê as suas rolagens (ficha, mesa, monstros)">
+                  Rolagens:
+                  <span className="fv-live-seg" role="group" aria-label="Visibilidade das rolagens">
+                    {([['public', 'Todos'], ['master', isMaster ? 'Só eu (mestre)' : 'Só o mestre'], ['private', 'Não enviar']] as const).map(([v, label]) => (
+                      <button key={v} type="button" className={s.rollVisibility === v ? 'is-on' : ''} onClick={() => s.setRollVisibility(v)}>{label}</button>
+                    ))}
+                  </span>
+                </span>
+              )}
             </div>
           </div>
           {s.session && (

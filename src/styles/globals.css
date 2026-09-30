@@ -3949,3 +3949,17 @@ body.fv-dragging .fv-screen-scroll {
 .fv-castnote-pool-res { font-size: 12.5px; color: var(--ink); }
 .fv-castnote-pool-res b { color: var(--gold); }
 .fv-castnote-pool small { font-size: 11px; color: var(--muted); }
+
+/* XP na aba Evoluir */
+.fv-xp { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; }
+.fv-xp-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+.fv-xp-top .fv-label { font-size: 11px; }
+.fv-xp-top b { font-family: 'Chakra Petch', monospace; font-size: 16px; color: var(--gold); }
+.fv-xp-top small { font-size: 11.5px; color: var(--muted); }
+.fv-xp-top em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #3FC56B; }
+.fv-xp-bar { height: 6px; border-radius: 999px; background: var(--sunk-deep); overflow: hidden; }
+.fv-xp-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--acc), var(--gold)); }
+.fv-xp-add { display: flex; gap: 6px; max-width: 240px; }
+.fv-xp-add .fv-input { padding: 6px 10px; font-size: 13px; }
+.fv-xp-add button { cursor: pointer; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); color: var(--ink); font-weight: 600; font-size: 12px; }
+.fv-xp-add button:disabled { opacity: 0.5; cursor: default; }
