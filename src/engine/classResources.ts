@@ -34,7 +34,7 @@ function mods(char: Character): Mods {
 }
 
 /** Recursos de UMA classe no nível dado (subclasse só vale para a classe dela). */
-function classResources(classId: string, lv: number, m: Mods, subclassId: string | null): ResourceState[] {
+function classResources(classId: string, lv: number, m: Mods, subclassId: string | null, choices: Record<string, string[]> = {}): ResourceState[] {
   const out: ResourceState[] = [];
   const add = (r: ResourceState) => out.push(r);
 
@@ -53,6 +53,8 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
     }
     case 'cleric': {
       if (lv >= 2) add({ id: 'channel', label: 'Canalizar Divindade', desc: 'Expulsar Mortos-Vivos ou o poder do seu domínio', recharge: 'short', max: lv >= 18 ? 3 : lv >= 6 ? 2 : 1 });
+      if (subclassId === 'light') add({ id: 'wardingFlare', label: 'Labareda Protetora', desc: 'Reação: impõe desvantagem no ataque de quem você vê a 9 m (não funciona em quem não pode ser cegado)', recharge: 'long', max: Math.max(1, m.wis) });
+      if (subclassId === 'war') add({ id: 'warPriest', label: 'Sacerdote da Guerra', desc: 'Ao usar a ação de Ataque, faz um ataque com arma como ação bônus', recharge: 'long', max: Math.max(1, m.wis) });
       if (lv >= 10) add({ id: 'intervention', label: 'Intervenção Divina', desc: `Chance de ${lv >= 20 ? '100%' : `${lv}%`} (d100 ≤ nível); se funcionar, 7 dias até poder de novo`, recharge: 'long', max: 1 });
       break;
     }
@@ -72,13 +74,24 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
       break;
     }
     case 'monk': {
-      if (lv >= 2) add({ id: 'ki', label: 'Pontos de Ki', desc: 'Rajada de Golpes, Defesa Paciente, Passo do Vento…', recharge: 'short', max: lv });
+      if (lv >= 2) add({ id: 'ki', label: 'Pontos de Ki', desc: "Rajada de Golpes, Defesa Paciente, Passo do Vento… (CD = 8 + prof. + SAB)", recharge: 'short', max: lv });
+      if (subclassId === 'openhand' && lv >= 6) add({ id: 'wholeness', label: 'Integridade do Corpo', desc: `Ação: recupera ${lv * 3} PV (3 × nível de monge)`, recharge: 'long', max: 1 });
       break;
     }
     case 'paladin': {
       add({ id: 'divineSense', label: 'Sentido Divino', desc: 'Detecta celestiais, corruptores e mortos-vivos a 18 m', recharge: 'long', max: 1 + Math.max(0, m.cha) });
       add({ id: 'layhands', label: 'Cura pelas Mãos', desc: 'Reserva de PV para curar pelo toque (5 pontos curam uma doença/veneno)', recharge: 'long', max: 5 * lv });
       if (lv >= 3) add({ id: 'channel', label: 'Canalizar Divindade', desc: 'Poder do seu juramento', recharge: 'short', max: 1 });
+      if (subclassId === 'ancients' && lv >= 15) add({ id: 'undyingSentinel', label: 'Sentinela Imortal', desc: 'Ao cair a 0 PV sem morrer, fica com 1 PV', recharge: 'long', max: 1 });
+      if (lv >= 20 && subclassId) {
+        const avatar: Record<string, [string, string]> = {
+          devotion: ['Nimbo Sagrado', 'Aura de luz solar por 1 min: 10 de dano radiante em inimigos que começam o turno a 9 m; vantagem contra magias de corruptores e mortos-vivos'],
+          ancients: ['Campeão Ancião', 'Forma ancestral por 1 min: regenera 10 PV/turno, conjura magias de paladino de 1 ação como ação bônus, inimigos a 3 m têm desvantagem contra suas magias'],
+          vengeance: ['Anjo Vingador', 'Forma angelical por 1 h: voo de 18 m e aura de terror de 9 m'],
+        };
+        const a = avatar[subclassId];
+        if (a) add({ id: 'oathAvatar', label: a[0], desc: a[1], recharge: 'long', max: 1 });
+      }
       if (lv >= 14) add({ id: 'cleansing', label: 'Toque Purificador', desc: 'Encerra uma magia em você ou numa criatura voluntária', recharge: 'long', max: Math.max(1, m.cha) });
       break;
     }
@@ -96,10 +109,35 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
       for (const [need, circle] of [[11, 6], [13, 7], [15, 8], [17, 9]] as const) {
         if (lv >= need) add({ id: `arcanum${circle}`, label: `Arcano Místico (${circle}º)`, desc: `Conjura sua magia de ${circle}º círculo sem gastar espaço`, recharge: 'long', max: 1 });
       }
+      if (subclassId === 'archfey') {
+        add({ id: 'feyPresence', label: 'Presença Feérica', desc: 'Ação: cubo de 3 m — salvaguarda de SAB ou encantado/amedrontado até o fim do seu próximo turno', recharge: 'short', max: 1 });
+        if (lv >= 6) add({ id: 'mistyEscape', label: 'Fuga Enevoada', desc: 'Reação ao sofrer dano: fica invisível e teleporta até 18 m', recharge: 'short', max: 1 });
+        if (lv >= 14) add({ id: 'darkDelirium', label: 'Delírio Sombrio', desc: 'Ação: criatura a 18 m faz salvaguarda de SAB ou fica encantada/amedrontada num reino ilusório por 1 min', recharge: 'short', max: 1 });
+      }
+      if (subclassId === 'fiend') {
+        if (lv >= 6) add({ id: 'darkLuck', label: 'Sorte do Tinhoso', desc: 'Soma 1d10 a um teste de atributo ou salvaguarda (depois de rolar, antes do resultado)', recharge: 'short', max: 1 });
+        if (lv >= 14) add({ id: 'hurlHell', label: 'Arremesso pelo Inferno', desc: 'Ao acertar, envia o alvo ao inferno até o fim do seu próximo turno: 10d10 psíquico se não for corruptor', recharge: 'long', max: 1 });
+      }
+      if (subclassId === 'oldone' && lv >= 6) add({ id: 'entropicWard', label: 'Escudo Entrópico', desc: 'Reação: desvantagem num ataque contra você; se errar, vantagem no seu próximo ataque contra ele', recharge: 'short', max: 1 });
+      // invocações que conjuram uma magia 1× por descanso longo (com espaço de pacto)
+      const onceInv: Record<string, string> = {
+        bewitchingWhispers: 'Sussurros Enfeitiçantes (compulsão)',
+        dreadfulWord: 'Palavra Terrível (confusão)',
+        minionsOfChaos: 'Lacaios do Caos (conjurar elemental)',
+        mireTheMind: 'Atolar a Mente (lentidão)',
+        sculptorOfFlesh: 'Escultor de Carne (metamorfose)',
+        illOmen: 'Sinal de Mau Agouro (rogar maldição)',
+        fiveFates: 'Ladrão dos Cinco Destinos (perdição)',
+      };
+      for (const id of choices['warlock.invocation'] ?? []) {
+        if (onceInv[id]) add({ id: `inv-${id}`, label: onceInv[id], desc: 'Invocação: conjura com um espaço de Magia de Pacto, uma vez por descanso longo', recharge: 'long', max: 1 });
+      }
       if (lv >= 20) add({ id: 'eldritchMaster', label: 'Mestre Místico', desc: 'Recupera todos os espaços de Magia de Pacto (1 minuto)', recharge: 'long', max: 1 });
       break;
     }
     case 'wizard': {
+      if (subclassId === 'abjuration' && lv >= 2) add({ id: 'arcaneWard', label: 'Barreira Arcana (PV)', desc: `Absorve dano por você; recupera 2 × círculo ao conjurar abjuração${lv >= 6 ? ' · Barreira Projetada: reação para proteger aliado a 9 m' : ''}`, recharge: 'long', max: 2 * lv + Math.max(0, m.int) });
+      if (subclassId === 'divination' && lv >= 2) add({ id: 'portent', label: 'Portento', desc: 'Role os d20 após o descanso longo e anote; troque qualquer jogada que você vê por um deles', recharge: 'long', max: lv >= 14 ? 3 : 2, die: 'd20' });
       add({ id: 'recovery', label: 'Recuperação Arcana', desc: `Recupera espaços somando até ${Math.ceil(lv / 2)} níveis (nenhum de 6º+) num descanso curto`, recharge: 'long', max: 1 });
       break;
     }
@@ -115,7 +153,7 @@ export function characterResources(char: Character): ResourceState[] {
   for (const cl of levels) {
     // a subclasse registrada é a da classe principal
     const sub = cl.classId === char.classId ? char.subclassId ?? null : null;
-    out.push(...classResources(cl.classId, Math.max(1, cl.level), m, sub));
+    out.push(...classResources(cl.classId, Math.max(1, cl.level), m, sub, char.choices ?? {}));
   }
   return out;
 }

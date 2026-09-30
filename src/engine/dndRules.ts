@@ -46,6 +46,8 @@ export interface DerivedAttack {
   bonusDamage?: { dice: number; die: number; type: string };
   /** Menor resultado natural do d20 que conta como crítico (20 padrão; 19/18 com Campeão). */
   critMin: number;
+  /** Dados de arma extras no crítico (Crítico Brutal do Bárbaro). */
+  critExtraDice?: number;
   hitBreakdown: Breakdown;
   damageBreakdown: Breakdown;
 }
@@ -149,6 +151,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   )?.asi as { kind: 'feat'; featId: string; ability?: AbilityKey } | undefined;
   const saveProfs = new Set<AbilityKey>(char.savingThrowProfs);
   if (resilientSave?.ability) saveProfs.add(resilientSave.ability);
+  const levelIn = (id: string) => (char.classLevels?.find((c) => c.classId === id)?.level ?? (char.classId === id ? char.level : 0));
+  // Alma de Diamante (Monge 14º): proficiência em todas as salvaguardas
+  if (levelIn('monk') >= 14) ABILITY_KEYS.forEach((k) => saveProfs.add(k));
+  // Mente Escorregadia (Ladino 15º): proficiência em salvaguarda de SAB
+  if (levelIn('rogue') >= 15) saveProfs.add('wis');
+  // Campeão Primal (Bárbaro 20º): FOR e CON +4, teto 24
+  const primalChampion = levelIn('barbarian') >= 20;
 
   // ---- Atributos: base + raça + sub-raça + ASI/talentos (teto 20) ----
   const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId);
@@ -156,16 +165,19 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const abilities = {} as Record<AbilityKey, DerivedAbility>;
   const abilityList: DerivedAbility[] = ABILITY_KEYS.map((key) => {
     const asi = char.asiBonuses?.[key] ?? 0;
-    const raw = raceTotals[key] + asi;
-    const total = Math.min(ABILITY_CAP, raw);
+    const primal = primalChampion && (key === 'str' || key === 'con') ? 4 : 0;
+    const cap = primal ? 24 : ABILITY_CAP;
+    const raw = Math.min(ABILITY_CAP, raceTotals[key] + asi) + primal;
+    const total = Math.min(cap, raw);
     const bd = breakdown(
       [
         mod(key, char.baseAbilities[key], 'Valores de criação', 'base'),
         mod(key, race.abilityBonus[key] ?? 0, race.label, 'race'),
         subrace ? mod(key, subrace.abilityBonus?.[key] ?? 0, subrace.label, 'subrace') : null,
         asi ? mod(key, asi, 'Aumentos de nível', 'asi') : null,
+        primal ? mod(key, primal, 'Campeão Primal', 'class', { label: 'Bárbaro 20º (teto 24)' }) : null,
       ],
-      raw > ABILITY_CAP ? `limitado ao teto de ${ABILITY_CAP}` : undefined,
+      raceTotals[key] + asi > ABILITY_CAP ? `limitado ao teto de ${ABILITY_CAP}` : undefined,
     );
     bd.total = total;
     abilityBreakdowns[key] = bd;
@@ -176,6 +188,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     abilities[key] = d;
     return d;
   });
+
+  // Aura de Proteção (Paladino 6º): soma CAR (mín. +1) a todas as salvaguardas
+  if (levelIn('paladin') >= 6) {
+    const aura = Math.max(1, abilities.cha.mod);
+    for (const a of abilityList) a.save += aura;
+  }
 
   const dexMod = abilities.dex.mod;
   const conMod = abilities.con.mod;
@@ -263,19 +281,30 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const maxHp = Math.max(1, hpBd.total);
   hpBd.total = maxHp;
 
-  // ---- Deslocamento: raça + sub-raça + talentos ----
+  // ---- Deslocamento: raça + sub-raça + talentos + classe ----
+  const monkLv = levelIn('monk');
+  // dado de Artes Marciais: d4 → d6 (5º) → d8 (11º) → d10 (17º)
+  const maDie = monkLv >= 17 ? 10 : monkLv >= 11 ? 8 : monkLv >= 5 ? 6 : 4;
+  const monkMove = monkLv >= 18 ? 9 : monkLv >= 14 ? 7.5 : monkLv >= 10 ? 6 : monkLv >= 6 ? 4.5 : monkLv >= 2 ? 3 : 0;
   const speedBd = breakdown([
     mod('speed', race.speed, race.label, 'race', { unit: 'm', label: 'deslocamento base' }),
     subrace?.speedBonus ? mod('speed', subrace.speedBonus, subrace.label, 'subrace', { unit: 'm', label: 'Pés Ligeiros' }) : null,
     ...feats.map((f) => (f.speedBonus ? mod('speed', f.speedBonus, f.label, 'feat', { unit: 'm' }) : null)),
     subBonus?.speedBonus ? mod('speed', subBonus.speedBonus, subclass!.label, 'subclass', { unit: 'm' }) : null,
+    // Movimento Rápido (Bárbaro 5º): +3 m sem armadura pesada
+    levelIn('barbarian') >= 5 && armor?.category !== 'pesada'
+      ? mod('speed', 3, 'Movimento Rápido', 'class', { unit: 'm', label: 'Bárbaro 5º, sem armadura pesada' })
+      : null,
+    // Movimento sem Armadura (Monge 2º+): sem armadura e sem escudo
+    monkMove && !armor && !char.equipped.shield
+      ? mod('speed', monkMove, 'Movimento sem Armadura', 'class', { unit: 'm', label: 'Monge, sem armadura nem escudo' })
+      : null,
   ]);
 
   // ---- Iniciativa: DES + talentos ----
   // Meia proficiência em testes sem proficiência (não acumulam; vale o maior):
   // Pau pra Toda Obra (Bardo 2º, arredonda para baixo, qualquer atributo) e
   // Atleta Notável (Campeão 7º, arredonda para cima, só FOR/DES/CON).
-  const levelIn = (id: string) => (char.classLevels?.find((c) => c.classId === id)?.level ?? (char.classId === id ? char.level : 0));
   const jackOfAllTrades = levelIn('bard') >= 2;
   const remarkableAthlete = char.subclassId === 'champion' && levelIn('fighter') >= 7;
   const halfProfFor = (ability: AbilityKey): { value: number; label: string } | null => {
@@ -294,6 +323,14 @@ export function deriveCharacter(char: Character): DerivedCharacter {
 
   // ---- Perícias (proficiências: escolhas + antecedente + raça; expertise dobra) ----
   const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...(race.skillProfs ?? [])]);
+  // perícias vindas de escolhas de classe: Colégio do Conhecimento (3) e Influência Enganadora
+  for (const [k, ids] of Object.entries(char.choices ?? {})) {
+    if (k.endsWith('.loreSkills')) ids.forEach((id) => skillProfs.add(id as SkillKey));
+    if (k.endsWith('.invocation') && ids.includes('beguilingInfluence')) {
+      skillProfs.add('deception');
+      skillProfs.add('persuasion');
+    }
+  }
   const expertiseSet = new Set<SkillKey>(char.skillExpertise ?? []);
   const skills: DerivedSkill[] = SKILLS.map((sk) => {
     const proficient = skillProfs.has(sk.key);
@@ -319,6 +356,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const passiveInsight = 10 + insight.bonus;
 
   // ---- Ataques (armas equipadas) ----
+  // Crítico Brutal (Bárbaro 9º/13º/17º): dados extras de arma no crítico corpo a corpo
+  const barbLv = levelIn('barbarian');
+  const brutal = barbLv >= 17 ? 3 : barbLv >= 13 ? 2 : barbLv >= 9 ? 1 : 0;
   const attacks: DerivedAttack[] = [];
   const seen = new Set<string>();
   for (const slot of [char.equipped.mainHand, char.equipped.offHand, char.equipped.ranged]) {
@@ -328,8 +368,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const w = resolveItemData(it).weapon;
     if (!w) continue;
     let abilKey: AbilityKey = 'str';
+    // Artes Marciais: armas de monge (espada curta e armas simples corpo a corpo sem Duas mãos/Pesada) usam FOR ou DES
+    const monkWeapon = monkLv >= 1 && !armor && !char.equipped.shield && w.range === 'melee' &&
+      (/espada curta/i.test(it.name) || (w.type === 'simple' && !w.properties.includes('Duas mãos') && !w.properties.includes('Pesada')));
     if (w.range === 'ranged') abilKey = 'dex';
-    else if (w.finesse) abilKey = abilities.dex.mod > abilities.str.mod ? 'dex' : 'str';
+    else if (w.finesse || monkWeapon) abilKey = abilities.dex.mod > abilities.str.mod ? 'dex' : 'str';
     const abilMod = abilities[abilKey].mod;
     const magic = weaponMagicBonus(w);
     const srcType = it.homebrew ? 'homebrew' : 'item';
@@ -359,14 +402,39 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     attacks.push({
       uid: it.uid,
       name: it.name,
-      note: `${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}`,
+      note: `${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
       attackBonus: hitBd.total,
       damageDice: w.damageDice,
-      damageDie: w.damageDie,
+      // Artes Marciais: usa o dado do monge se for maior que o da arma
+      damageDie: monkWeapon && w.damageDice === 1 ? Math.max(w.damageDie, maDie) : w.damageDie,
       damageBonus: dmgBd.total,
       damageType: w.damageType,
       versatileDie: w.versatileDie,
       bonusDamage,
+      critMin,
+      critExtraDice: w.range === 'melee' && brutal ? brutal : undefined,
+      hitBreakdown: hitBd,
+      damageBreakdown: dmgBd,
+    });
+  }
+
+  // Golpe desarmado do Monge (Artes Marciais): FOR ou DES, dado de artes marciais
+  if (monkLv >= 1) {
+    const k: AbilityKey = abilities.dex.mod > abilities.str.mod ? 'dex' : 'str';
+    const hitBd = breakdown([
+      mod('attack', abilities[k].mod, ABILITY_LABELS[k], 'ability'),
+      mod('attack', prof, 'Bônus de proficiência', 'proficiency'),
+    ]);
+    const dmgBd = breakdown([mod('damage', abilities[k].mod, ABILITY_LABELS[k], 'ability')], `1d${maDie} concussão + modificador`);
+    attacks.push({
+      uid: 'monk-unarmed',
+      name: 'Golpe Desarmado',
+      note: `corpo a corpo · Artes Marciais (1d${maDie})${monkLv >= 6 ? ' · conta como mágico' : ''} · ação bônus após Atacar`,
+      attackBonus: hitBd.total,
+      damageDice: 1,
+      damageDie: maDie,
+      damageBonus: dmgBd.total,
+      damageType: 'concussão',
       critMin,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,

@@ -69,7 +69,7 @@ export function PendingChoices({ char }: { char: Character }) {
               label={spec.label}
               hint={spec.hint}
               source={`${spec.source} · até o nível ${char.level}`}
-              options={catalogFor(spec)}
+              options={catalogFor(spec, char)}
               taken={chosenFor(char, spec.storeKey)}
               need={missing}
               value={value}

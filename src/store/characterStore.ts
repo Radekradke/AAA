@@ -623,6 +623,7 @@ export const useCharacterStore = create<CharacterState>()(
             Object.assign(c, ensureCharacterV2(c));
             applyChoicePicks(c, picks);
             grantChoiceEffects(c, picks);
+            c.combat.resources = syncResources(c, c.combat.resources, false);
           });
         },
         toggleInspiration(id) {

@@ -9,6 +9,7 @@ import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
+import { bonusSpellIds } from '@/engine/classChoices';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
@@ -55,9 +56,12 @@ export function TabMagias({ char, derived }: TabProps) {
     [activeIds],
   );
 
-  const cantripsHave = active.filter((s) => s.level === 0).length;
-  const spellsHave = active.filter((s) => s.level >= 1).length;
-  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1).length;
+  // magias bônus (Livro das Sombras, Arcano Místico, Assinatura…) não contam nos limites
+  const bonusIds = useMemo(() => bonusSpellIds(char), [char.choices]);
+  const counted = active.filter((s) => !bonusIds.has(s.id));
+  const cantripsHave = counted.filter((s) => s.level === 0).length;
+  const spellsHave = counted.filter((s) => s.level >= 1).length;
+  const preparedCount = prepared.map((id) => SPELL_BY_ID[id]).filter((s) => s && s.level >= 1 && !bonusIds.has(s.id)).length;
   const cantripTarget = caster?.cantrips ?? 0;
   const guide = caster?.guide ?? { count: 0, label: '—' };
   // Cavaleiro/Trapaceiro Arcano: quase todas as magias de 2 escolas; algumas livres (níveis 3, 8, 14, 20)

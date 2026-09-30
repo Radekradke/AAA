@@ -171,7 +171,8 @@ export function casterOf(char: Character, castMod = 0): CasterInfo | null {
       ability: cls.spellAbility ?? cls.prim,
       kind: casterKind(char.classId),
       level,
-      cantrips: cantripsKnown(char.classId, level),
+      // truque extra da subclasse: Círculo da Terra (2º) e Domínio da Luz (luz, 1º)
+      cantrips: cantripsKnown(char.classId, level) + ((char.subclassId === 'land' && level >= 2) || char.subclassId === 'light' ? 1 : 0),
       guide: spellsKnownOrPrepared(char.classId, level, castMod),
       slots,
     };

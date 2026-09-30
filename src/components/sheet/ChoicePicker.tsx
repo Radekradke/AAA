@@ -39,13 +39,22 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
           <b>{label}</b>
           {source && <span className="fv-choice-picker-source">{source}</span>}
         </div>
-        <span className={'fv-choice-picker-count' + (done ? ' is-done' : '')}>
-          {done ? '✓ ' : ''}
-          {value.length} de {need}
-        </span>
+        {need > 0 ? (
+          <span className={'fv-choice-picker-count' + (done ? ' is-done' : '')}>
+            {done ? '✓ ' : ''}
+            {value.length} de {need}
+          </span>
+        ) : (
+          <span className="fv-choice-picker-count">opcional</span>
+        )}
       </div>
       {hint && <p className="fv-choice-picker-hint">{hint}</p>}
-      <div className="fv-choice-picker-grid" role="group" aria-label={label}>
+      {need === 0 && takenOptions.length > 0 && (
+        <p className="fv-choice-picker-hint">
+          Você tem: {takenOptions.map((o) => o.label).join(', ')}.
+        </p>
+      )}
+      {need > 0 && <div className="fv-choice-picker-grid" role="group" aria-label={label}>
         {options.map((o) => {
           const has = taken.includes(o.id);
           const on = value.includes(o.id);
@@ -67,7 +76,7 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
             </button>
           );
         })}
-      </div>
+      </div>}
 
       {canReplace && onReplace && takenOptions.length > 0 && (
         <div className="fv-choice-replace">

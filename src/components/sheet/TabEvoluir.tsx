@@ -27,8 +27,8 @@ import {
   validateLevelUp,
 } from '@/engine/levelUp';
 import { proficiencyBonus } from '@/engine/modifiers';
-import { catalogFor, chosenFor, optionLabel, specsAt } from '@/engine/classChoices';
-import type { ReplacePick, ResolvedSpec } from '@/engine/classChoices';
+import { chosenFor, groupSpecs, optionLabel, specsAt } from '@/engine/classChoices';
+import type { ReplacePick } from '@/engine/classChoices';
 import { casterOf } from '@/engine/spellcasting';
 import { ChoicePicker } from './ChoicePicker';
 import { PendingChoices } from './PendingChoices';
@@ -73,15 +73,10 @@ export function TabEvoluir({ char, derived }: TabProps) {
   const [picks, setPicks] = useState<Record<string, string[]>>({});
   const [replace, setReplace] = useState<Record<string, ReplacePick | undefined>>({});
   const subForLevel = needsSubclass && newClassLevel === subLevel ? subPick || null : classId === char.classId ? char.subclassId : null;
-  const choiceGroups = useMemo(() => {
-    const groups = new Map<string, { spec: ResolvedSpec; need: number }>();
-    for (const spec of specsAt(classId, newClassLevel, subForLevel)) {
-      const cur = groups.get(spec.storeKey);
-      groups.set(spec.storeKey, { spec: cur?.spec ?? spec, need: (cur?.need ?? 0) + spec.count });
-    }
-    return [...groups.values()];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, newClassLevel, subForLevel, char]);
+  const choiceGroups = useMemo(
+    () => groupSpecs(char, specsAt(classId, newClassLevel, subForLevel, { ...(char.choices ?? {}), ...picks })),
+    [char, classId, newClassLevel, subForLevel, picks],
+  );
   const choiceKeys = new Set(choiceGroups.map((g) => g.spec.storeKey));
 
   const conMod = derived.abilities.con.mod;
@@ -304,18 +299,18 @@ export function TabEvoluir({ char, derived }: TabProps) {
           )}
 
           {/* escolhas de classe deste nível */}
-          {choiceGroups.map(({ spec, need }) => (
+          {choiceGroups.map(({ spec, need, canReplace, options }) => (
             <ChoicePicker
               key={spec.storeKey}
               label={spec.label}
               hint={spec.hint}
               source={`${spec.source} · nível ${spec.classLevel}`}
-              options={catalogFor(spec)}
+              options={options}
               taken={chosenFor(char, spec.storeKey)}
               need={need}
               value={picks[spec.storeKey] ?? []}
               onChange={(next) => setPicks((p) => ({ ...p, [spec.storeKey]: next }))}
-              canReplace={spec.canReplace}
+              canReplace={canReplace}
               replace={replace[spec.storeKey]}
               onReplace={(r) => setReplace((p) => ({ ...p, [spec.storeKey]: r }))}
             />

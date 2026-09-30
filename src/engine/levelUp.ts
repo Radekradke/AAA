@@ -101,7 +101,7 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
 
   // escolhas de classe/subclasse do novo nível (Metamagia, Estilo de Luta, Manobras…)
   const subForLevel = plan.subclassId ?? (plan.classId === char.classId ? char.subclassId : null);
-  errors.push(...validateChoicePicks(char, specsAt(plan.classId, newClassLevel, subForLevel), plan.choices, plan.replace));
+  errors.push(...validateChoicePicks(char, specsAt(plan.classId, newClassLevel, subForLevel, { ...(char.choices ?? {}), ...(plan.choices ?? {}) }), plan.choices, plan.replace));
 
   return errors;
 }
