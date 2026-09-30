@@ -10,7 +10,7 @@ const chars = {
   heal: (id: string, n: number) => calls.push(`cura ${id} ${n}`),
   addXp: (id: string, n: number) => calls.push(`xp ${id} ${n}`),
   toggleCondition: (id: string, c: string) => { calls.push(`cond ${id} ${c}`); hero.combat.conditions.push(c); },
-  markEventApplied: (id: string, e: string) => { hero.appliedEvents.push(e); },
+  markEventApplied: (_id: string, e: string) => { hero.appliedEvents.push(e); },
   resetTurn: vi.fn(),
 };
 vi.mock('@/store/characterStore', () => ({ useCharacterStore: { getState: () => chars } }));
