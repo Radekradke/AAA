@@ -20,7 +20,18 @@ export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // sessão da nuvem expirou (useCloudSync deslogou): explica em vez de só mostrar a tela
+  const [error, setError] = useState<string | null>(() => {
+    try {
+      if (sessionStorage.getItem('fv-session-expired')) {
+        sessionStorage.removeItem('fv-session-expired');
+        return 'Sua sessão na nuvem expirou. Entre de novo com a mesma conta — suas fichas continuam no aparelho.';
+      }
+    } catch {
+      /* ignora */
+    }
+    return null;
+  });
 
   const handleGoogleLogin = async () => {
     setError(null);

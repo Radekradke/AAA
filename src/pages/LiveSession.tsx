@@ -7,6 +7,8 @@ import { InitiativeTrack } from '@/components/session/InitiativeTrack';
 import { MasterDeck } from '@/components/session/MasterDeck';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import { EventFeed } from '@/components/session/EventFeed';
+import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import { MONSTER_BY_ID } from '@/data/bestiary';
 import { InitiativeButton } from '@/components/sheet/InitiativeButton';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useAuthStore } from '@/store/authStore';
@@ -110,6 +112,16 @@ export function LiveSession() {
             <div className="fv-live-sub">
               <span className={`fv-live-conn is-${s.connection}`}><i className={`fv-live-dot is-${s.connection}`} aria-hidden />{CONN[s.connection]}</span>
               {s.session && <span>{s.session.name}{s.session.status === 'paused' ? ' · pausada' : ''}</span>}
+              {s.session && (
+                <span className="fv-live-vis" title="Quem vê as suas rolagens (ficha, mesa, monstros)">
+                  Rolagens:
+                  <span className="fv-live-seg" role="group" aria-label="Visibilidade das rolagens">
+                    {([['public', 'Todos'], ['master', isMaster ? 'Só eu (mestre)' : 'Só o mestre'], ['private', 'Não enviar']] as const).map(([v, label]) => (
+                      <button key={v} type="button" className={s.rollVisibility === v ? 'is-on' : ''} onClick={() => s.setRollVisibility(v)}>{label}</button>
+                    ))}
+                  </span>
+                </span>
+              )}
             </div>
           </div>
           {s.session && (
@@ -183,6 +195,13 @@ export function LiveSession() {
             </div>
 
             <aside className="fv-live-side">
+              {/* vez de um monstro do bestiário: a ficha dele fica à mão do mestre */}
+              {isMaster && active?.monsterRef && MONSTER_BY_ID[active.monsterRef] && (
+                <section className="fv-panel fv-live-card fv-live-turncard">
+                  <div className="fv-label">Vez de {active.name}</div>
+                  <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} />
+                </section>
+              )}
               {isMaster ? <MasterDeck heroes={heroes} /> : <PlayerCard heroes={heroes} />}
               <EventFeed events={s.events} />
               {isMaster && (

@@ -90,6 +90,10 @@ interface CharacterState {
   useTurn: (id: string, key: 'action' | 'bonus' | 'reaction') => void;
   /** Registra a magia conjurada neste turno. */
   noteCast: (id: string, spellId: string) => void;
+  /** Soma XP (recompensa do mestre ou manual). */
+  addXp: (id: string, amount: number) => void;
+  /** Marca uma ordem da mesa ao vivo como aplicada nesta ficha. */
+  markEventApplied: (id: string, eventId: string) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
   forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */
@@ -460,6 +464,16 @@ export const useCharacterStore = create<CharacterState>()(
         useTurn(id, key) {
           mutate(id, (c) => {
             c.combat.turn = { ...c.combat.turn, [key]: true };
+          });
+        },
+        markEventApplied(id, eventId) {
+          mutate(id, (c) => {
+            c.appliedEvents = [...(c.appliedEvents ?? []).filter((x) => x !== eventId).slice(-150), eventId];
+          });
+        },
+        addXp(id, amount) {
+          mutate(id, (c) => {
+            c.xp = Math.max(0, (c.xp ?? 0) + Math.round(amount));
           });
         },
         noteCast(id, spellId) {

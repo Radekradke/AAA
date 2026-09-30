@@ -3,6 +3,9 @@ import { healthState, initiativeRows } from '@/engine/encounter';
 import type { InitiativeRow } from '@/engine/encounter';
 import type { Combatant, Encounter } from '@/types/session';
 import { useSessionStore } from '@/store/sessionStore';
+import { MONSTER_BY_ID } from '@/data/bestiary';
+import { CONDITIONS } from '@/data/conditions';
+import { MonsterStatBlock } from './MonsterStatBlock';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -73,6 +76,7 @@ function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boole
       {isMaster && open && (
         <div className="fv-live-row-edit">
           {row.members.map((m) => <MemberEditor key={m.id} c={m} />)}
+          {lead.monsterRef && MONSTER_BY_ID[lead.monsterRef] && <MonsterStatBlock m={MONSTER_BY_ID[lead.monsterRef]} who={lead.name} compact />}
         </div>
       )}
     </li>
@@ -91,9 +95,21 @@ function MemberEditor({ c }: { c: Combatant }) {
     if (!Number.isFinite(n)) return;
     const base = c.hpCurrent ?? c.hpMax ?? 0;
     const next = /^[+-]/.test(v) ? base + n : n;
+    // herói: vira ordem para a ficha do jogador (que aplica sozinha) — "-7" dano, "+5" cura
+    if (c.type === 'player') {
+      const delta = /^[+-]/.test(v) ? n : n - base;
+      if (delta) void s.sendHeroHp(c, delta);
+      setHp('');
+      return;
+    }
     const clamped = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, next) : next);
     void s.updateCombatant(c.id, { hp_current: clamped });
     setHp('');
+  };
+  const toggleCond = (cond: string) => {
+    const on = !c.conditions.includes(cond);
+    if (c.type === 'player') void s.sendHeroCondition(c, cond, on);
+    else void s.updateCombatant(c.id, { conditions: on ? [...c.conditions, cond] : c.conditions.filter((x) => x !== cond) });
   };
   return (
     <div className="fv-live-member">
@@ -109,9 +125,9 @@ function MemberEditor({ c }: { c: Combatant }) {
           onKeyDown={(e) => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
         />
       </label>
-      {c.type !== 'player' && (
-        <label>
-          PV {c.hpCurrent ?? '?'}{c.hpMax !== null ? `/${c.hpMax}` : ''}
+      {(
+        <label title={c.type === 'player' ? 'Dano/cura vai direto para a ficha do jogador' : undefined}>
+          PV {c.hpCurrent ?? '?'}{c.hpMax !== null ? `/${c.hpMax}` : ''}{c.type === 'player' ? ' → ficha' : ''}
           <input
             className="fv-input"
             placeholder="-7 / +5"
@@ -129,6 +145,13 @@ function MemberEditor({ c }: { c: Combatant }) {
       <button type="button" className="fv-btn-ghost is-danger" onClick={() => void s.removeCombatant(c.id)}>
         Remover
       </button>
+      <span className="fv-live-conds-edit" aria-label="Condições">
+        {CONDITIONS.filter((x) => x.id !== 'Exausto').map((x) => (
+          <button key={x.id} type="button" className={c.conditions.includes(x.id) ? 'is-on' : ''} onClick={() => toggleCond(x.id)} title={x.short}>
+            {x.label}
+          </button>
+        ))}
+      </span>
     </div>
   );
 }

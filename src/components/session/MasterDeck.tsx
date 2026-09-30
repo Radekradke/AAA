@@ -4,6 +4,12 @@ import type { NewCombatant } from '@/services/encounterService';
 import { useSessionStore } from '@/store/sessionStore';
 import type { Character } from '@/types/character';
 import type { SharedCharacterSheet } from '@/types/models';
+import { MONSTERS, MONSTER_BY_ID } from '@/data/bestiary';
+import { encounterBudget } from '@/engine/monsters';
+import { BestiaryPicker } from './BestiaryPicker';
+import { NpcAvatar, useCampaignNpcs } from '@/components/campaign/NpcGallery';
+import { useCharacterStore } from '@/store/characterStore';
+import type { CampaignNpc } from '@/types/npc';
 
 export interface SharedHero {
   share: SharedCharacterSheet;
@@ -51,6 +57,7 @@ export function buildCreatures(f: { name: string; type: 'monster' | 'npc'; qty: 
 export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
   const s = useSessionStore();
   const [encName, setEncName] = useState('');
+  const [bestiary, setBestiary] = useState(false);
   const enc = s.encounter;
 
   if (!enc) {
@@ -98,6 +105,30 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
         </div>
       </section>
 
+      <section className="fv-panel fv-live-card fv-bestiary-card">
+        <div className="fv-live-card-head">
+          <div className="fv-label">Bestiário</div>
+          <small className="fv-live-hint">{MONSTERS.length} criaturas do SRD</small>
+        </div>
+        <p className="fv-live-hint">Goblins, orcs, ogros, dragões… com CA, PV, ataques e ND prontos. Os ataques rolam na ficha do monstro.</p>
+        <button type="button" className="fv-btn-gold" onClick={() => setBestiary(true)}>Abrir bestiário</button>
+      </section>
+      {bestiary && (
+        <BestiaryPicker
+          busy={s.busy}
+          onClose={() => setBestiary(false)}
+          onAdd={(list) => {
+            void s.addCombatants(list);
+            setBestiary(false);
+          }}
+        />
+      )}
+
+      <NpcPicker />
+
+      <EncounterDifficulty heroes={heroes} />
+      <XpAward />
+
       <CreatureForm />
 
       <section className="fv-panel fv-live-card">
@@ -113,6 +144,119 @@ export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
         </div>
       </section>
     </>
+  );
+}
+
+const DIFF_CLASS: Record<string, string> = { trivial: 'is-trivial', fácil: 'is-easy', médio: 'is-medium', difícil: 'is-hard', mortal: 'is-deadly' };
+
+/** Dificuldade do encontro (Guia do Mestre): heróis no encontro × monstros do bestiário. */
+function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
+  const s = useSessionStore();
+  const levels = s.combatants
+    .filter((c) => c.type === 'player')
+    .map((c) => heroes.find((h) => h.share.sheetId === c.sheetId)?.snapshot?.level ?? 0)
+    .filter((l) => l > 0);
+  const foes = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && MONSTER_BY_ID[c.monsterRef]);
+  const unknown = s.combatants.filter((c) => c.type === 'monster' && !c.monsterRef).length;
+  const b = encounterBudget(levels, foes.map((c) => MONSTER_BY_ID[c.monsterRef!].xp));
+  if (!b || !foes.length) return null;
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-live-card-head">
+        <div className="fv-label">Dificuldade</div>
+        <span className={'fv-diff ' + DIFF_CLASS[b.difficulty]}>{b.difficulty}</span>
+      </div>
+      <div className="fv-diff-bar" aria-hidden>
+        {(['easy', 'medium', 'hard', 'deadly'] as const).map((k) => (
+          <i key={k} style={{ left: `${Math.min(100, (b.thresholds[k] / (b.thresholds.deadly * 1.25)) * 100)}%` }} />
+        ))}
+        <b style={{ width: `${Math.min(100, (b.adjusted / (b.thresholds.deadly * 1.25)) * 100)}%` }} />
+      </div>
+      <p className="fv-live-hint">
+        {b.xp.toLocaleString('pt-BR')} XP ({b.adjusted.toLocaleString('pt-BR')} ajustado, ×{b.multiplier}) para {levels.length} herói{levels.length === 1 ? '' : 's'} de nível {[...new Set(levels)].join('/')}.
+        {' '}Vitória: <b>{b.perPlayer.toLocaleString('pt-BR')} XP</b> por herói.
+        {unknown > 0 && ` ${unknown} criatura${unknown > 1 ? 's' : ''} manual${unknown > 1 ? 'is' : ''} fora da conta.`}
+      </p>
+    </section>
+  );
+}
+
+/** NPCs da campanha entram no encontro com os números secretos do mestre. */
+function NpcPicker() {
+  const s = useSessionStore();
+  const { npcs, secrets } = useCampaignNpcs(s.campaignId, true);
+  const characters = useCharacterStore((c) => c.characters);
+  if (!npcs.length) return null;
+  const inFight = new Set(s.combatants.map((c) => c.name));
+  const add = (n: CampaignNpc) => {
+    const st = secrets[n.id]?.stats ?? {};
+    const sheet = st.sheetId ? characters.find((c) => c.id === st.sheetId) : undefined;
+    const d = sheet ? deriveCharacter(sheet) : null;
+    const base = st.monsterRef ? MONSTER_BY_ID[st.monsterRef] : undefined;
+    const hp = d ? sheet!.hpCurrent ?? d.maxHp : st.hp ?? base?.hp ?? null;
+    void s.addCombatant({
+      type: 'npc',
+      name: n.name,
+      initiativeBonus: d?.initiative ?? st.initiativeBonus ?? 0,
+      hpCurrent: hp,
+      hpMax: d?.maxHp ?? st.hp ?? base?.hp ?? null,
+      armorClass: d?.ac ?? st.ac ?? base?.ac ?? null,
+      hidden: !n.revealed,
+      monsterRef: st.monsterRef ?? null,
+    });
+  };
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-label">NPCs da campanha</div>
+      <div className="fv-live-chips">
+        {npcs.map((n) => (
+          <button key={n.id} type="button" className={'fv-live-chip fv-npc-chip' + (inFight.has(n.name) ? ' is-on' : '')} disabled={s.busy || inFight.has(n.name)} onClick={() => add(n)}>
+            <NpcAvatar npc={n} size={22} /> {inFight.has(n.name) ? '✓ ' : '+ '}{n.name}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Recompensa: XP dos monstros derrotados (bestiário, PV 0) dividido entre os
+ * heróis do encontro. O valor vai para a ficha de cada jogador sozinho.
+ */
+function XpAward() {
+  const s = useSessionStore();
+  const heroes = s.combatants.filter((c) => c.type === 'player' && c.sheetId);
+  const defeated = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && (c.hpCurrent ?? 1) <= 0);
+  const pool = defeated.reduce((n, c) => n + (MONSTER_BY_ID[c.monsterRef!]?.xp ?? 0), 0);
+  const suggested = heroes.length ? Math.floor(pool / heroes.length) : 0;
+  const [amount, setAmount] = useState('');
+  if (!heroes.length) return null;
+  const value = amount.trim() === '' ? suggested : Number(amount);
+  return (
+    <section className="fv-panel fv-live-card">
+      <div className="fv-label">Recompensa em XP</div>
+      <p className="fv-live-hint">
+        {defeated.length
+          ? `${defeated.length} derrotado${defeated.length > 1 ? 's' : ''} = ${pool.toLocaleString('pt-BR')} XP ÷ ${heroes.length} herói${heroes.length > 1 ? 's' : ''}.`
+          : 'Monstros do bestiário com 0 PV entram na conta sozinhos. Ou digite um valor (marco, missão…).'}
+      </p>
+      <div className="fv-xp-award">
+        <input className="fv-input" inputMode="numeric" placeholder={String(suggested)} value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} aria-label="XP por herói" />
+        <button
+          type="button"
+          className="fv-btn-gold"
+          disabled={s.busy || !value}
+          onClick={() => {
+            if (window.confirm(`Dar ${value} XP para cada herói do encontro (${heroes.map((h) => h.name).join(', ')})?`)) {
+              void s.awardXp(value, s.encounter?.name);
+              setAmount('');
+            }
+          }}
+        >
+          Dar {value || 0} XP a cada herói
+        </button>
+      </div>
+    </section>
   );
 }
 

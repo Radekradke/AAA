@@ -213,6 +213,14 @@ export interface Character {
   age: string;
   concept: string;
   level: number;
+  /** Pontos de experiência acumulados (opcional: mesas por marco não usam). */
+  xp?: number;
+  /**
+   * Ordens do mestre já aplicadas nesta ficha (ids de eventos da mesa ao
+   * vivo). Fica na ficha — que sincroniza — para o celular e o PC não
+   * aplicarem o mesmo dano duas vezes.
+   */
+  appliedEvents?: string[];
   /** Níveis por classe (pronto para multiclasse). */
   classLevels: { classId: string; level: number }[];
   subclassId: string | null;

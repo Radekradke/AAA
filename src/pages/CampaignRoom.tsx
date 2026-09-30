@@ -21,6 +21,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
+import { NpcGallery } from '@/components/campaign/NpcGallery';
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -190,6 +191,13 @@ export function CampaignRoom() {
             <SheetCard key={share.id} snapshot={snapshot} mine={share.ownerId === user?.id} />
           ))}
         </div>
+
+        {/* NPCs da campanha: retrato + o que os jogadores sabem; segredos só do mestre */}
+        {campaign && user && !user.guest && (
+          <div style={{ marginTop: 22 }}>
+            <NpcGallery campaignId={campaign.id} isMaster={isMaster} masterSheets={isMaster ? mySheets : []} />
+          </div>
+        )}
 
         {/* Crônica da Mesa: notas, NPCs e missões (mestre escreve, todos leem) */}
         {campaign && (

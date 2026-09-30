@@ -7,7 +7,8 @@ import { getSupabase } from '@/services/supabaseClient';
 import type { LiveChannel } from '@/services/realtimeService';
 import { useCharacterStore } from './characterStore';
 import { rollEnemyInitiatives } from '@/engine/encounter';
-import type { Combatant, ConnectionState, Encounter, EncounterStatus, GameSession, PresencePlayer, SessionEvent } from '@/types/session';
+import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent } from '@/types/session';
+import { useUiStore } from './uiStore';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -64,6 +65,73 @@ interface SessionState {
 
   /** Chamado pela ficha ao rolar iniciativa: se o personagem está no encontro, manda o valor. */
   reportInitiative: (characterId: string, total: number) => Promise<boolean>;
+
+  /** Quem vê minhas rolagens na mesa: todos, só o mestre, ou ninguém (não envia). */
+  rollVisibility: EventVisibility;
+  setRollVisibility: (v: EventVisibility) => void;
+  /** Última rolagem de OUTRA pessoa da mesa (aviso rápido na tela). */
+  lastTableRoll: SessionEvent | null;
+
+  // mestre → ficha do jogador (o jogador aplica na própria ficha)
+  /** delta < 0: dano; > 0: cura. */
+  sendHeroHp: (c: Combatant, delta: number) => Promise<void>;
+  sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
+  awardXp: (amount: number, note?: string) => Promise<void>;
+}
+
+/** Eventos do mestre que mexem na ficha do jogador. */
+export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award'] as const;
+const VIS_KEY = 'fv-roll-visibility';
+let seenEvents = new Set<string>();
+let seeded = false;
+
+/**
+ * O mestre mandou dano/cura/condição/XP para um herói: se o herói é MEU
+ * (está neste aparelho), aplico na ficha — uma vez só, mesmo após reload ou
+ * em outro aparelho (o id do evento fica gravado na própria ficha).
+ * Só vale evento cujo autor é o mestre da sessão (quem abriu a sessão).
+ */
+function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
+  if (!masterId) return;
+  const chars = useCharacterStore.getState();
+  const pending = (sheetId: string, eventId: string) => {
+    const c = useCharacterStore.getState().characters.find((x) => x.id === sheetId);
+    return !!c && !(c.appliedEvents ?? []).includes(eventId);
+  };
+  for (const e of [...events].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+    if (!(HERO_EVENTS as readonly string[]).includes(e.type) || e.actorId !== masterId) continue;
+    const p = e.payload as Record<string, unknown>;
+    if (e.type === 'xp_award') {
+      for (const id of ((p.sheetIds as string[] | undefined) ?? []).filter((x) => pending(x, e.id))) {
+        chars.addXp(id, Number(p.amount) || 0);
+        chars.markEventApplied(id, e.id);
+      }
+      continue;
+    }
+    const sheetId = String(p.sheetId ?? '');
+    if (!pending(sheetId, e.id)) continue;
+    if (e.type === 'hero_hp') {
+      const n = Math.abs(Number(p.amount) || 0);
+      if (p.kind === 'heal') chars.heal(sheetId, n);
+      else chars.applyDamage(sheetId, n);
+    } else if (e.type === 'hero_condition') {
+      const cur = useCharacterStore.getState().characters.find((c) => c.id === sheetId)?.combat.conditions ?? [];
+      const cond = String(p.condition ?? '');
+      if (cond && cur.includes(cond) !== Boolean(p.on)) chars.toggleCondition(sheetId, cond);
+    }
+    chars.markEventApplied(sheetId, e.id);
+  }
+}
+
+function savedVisibility(isMaster: boolean): EventVisibility {
+  try {
+    const v = localStorage.getItem(VIS_KEY);
+    if (v === 'public' || v === 'master' || v === 'private') return v;
+  } catch {
+    /* ignora */
+  }
+  // o mestre rola atrás do escudo por padrão
+  return isMaster ? 'master' : 'public';
 }
 
 const RESUME_KEY = 'fv-live-session';
@@ -154,6 +222,49 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     busy: false,
     error: null,
     myTurnKey: null,
+    rollVisibility: 'public',
+    lastTableRoll: null,
+
+    setRollVisibility(v) {
+      try {
+        localStorage.setItem(VIS_KEY, v);
+      } catch {
+        /* ignora */
+      }
+      set({ rollVisibility: v });
+    },
+
+    sendHeroHp: (c, delta) =>
+      act(async () => {
+        const { session, campaignId, me } = get();
+        if (!session || !campaignId || !me || !c.sheetId || !delta) return;
+        // a linha do encontro mostra o novo PV para o mestre; a ficha do jogador aplica o evento
+        if (c.hpCurrent !== null) {
+          const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, c.hpCurrent + delta) : c.hpCurrent + delta);
+          await encounterService.update(c.id, { hp_current: next });
+        }
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal' }, 'public');
+      }),
+
+    sendHeroCondition: (c, condition, on) =>
+      act(async () => {
+        const { session, campaignId, me } = get();
+        if (!session || !campaignId || !me) return;
+        const next = on ? [...new Set([...c.conditions, condition])] : c.conditions.filter((x) => x !== condition);
+        await encounterService.update(c.id, { conditions: next });
+        if (c.sheetId) await sessionService.log(session.id, campaignId, me.userId, 'hero_condition', { sheetId: c.sheetId, name: c.name, condition, on }, 'public');
+      }),
+
+    awardXp: (amount, note) =>
+      act(async () => {
+        const { session, campaignId, me, combatants } = get();
+        if (!session || !campaignId || !me || amount <= 0) return;
+        const heroes = combatants.filter((c) => c.type === 'player' && c.sheetId);
+        if (!heroes.length) throw new Error('Nenhum herói no encontro para receber XP.');
+        await sessionService.log(session.id, campaignId, me.userId, 'xp_award', {
+          amount: Math.round(amount), sheetIds: heroes.map((h) => h.sheetId), names: heroes.map((h) => h.name), note: note ?? null,
+        }, 'public');
+      }),
 
     async join(campaignId, me) {
       const cur = get();
@@ -162,7 +273,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         return get().refresh();
       }
       get().leave();
-      set({ campaignId, me, loading: true, error: null });
+      set({ campaignId, me, loading: true, error: null, rollVisibility: savedVisibility(me.isMaster) });
       try {
         localStorage.setItem(RESUME_KEY, JSON.stringify({ campaignId, userId: me.userId }));
       } catch {
@@ -183,7 +294,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       } catch {
         /* ignora */
       }
-      set({ campaignId: null, me: null, session: null, encounter: null, combatants: [], events: [], online: [], connection: 'idle', myTurnKey: null, error: null });
+      seenEvents = new Set();
+      seeded = false;
+      set({ campaignId: null, me: null, session: null, encounter: null, combatants: [], events: [], online: [], connection: 'idle', myTurnKey: null, error: null, lastTableRoll: null });
     },
 
     setCharacter(characterId, characterName) {
@@ -204,6 +317,16 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         const events = session ? await sessionService.events(session.id) : [];
         if (seq !== refreshSeq || get().campaignId !== campaignId) return; // resposta velha
         set({ session, encounter: open?.encounter ?? null, combatants: open?.combatants ?? [], events });
+
+        // eventos novos: rolagens da mesa (aviso) e ordens do mestre para a ficha
+        const fresh = events.filter((e) => !seenEvents.has(e.id));
+        fresh.forEach((e) => seenEvents.add(e.id));
+        applyHeroEvents(seeded ? fresh : events, session?.createdBy ?? null);
+        if (seeded) {
+          const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
+          if (roll) set({ lastTableRoll: roll });
+        }
+        seeded = true;
 
         // canal da sessão: entra/troca quando a sessão aparece ou muda
         const topicSession = session?.id ?? null;
@@ -288,3 +411,22 @@ function watchSessions(campaignId: string, onChange: () => void): () => void {
     .subscribe();
   return () => void client.removeChannel(ch);
 }
+
+/**
+ * Rolagens compartilhadas: toda rolagem feita durante a sessão (ficha, mesa,
+ * ficha de monstro) vira um evento com a visibilidade escolhida. "Só eu" não
+ * envia nada. O RLS garante que "só mestre" chega só ao mestre.
+ */
+useUiStore.subscribe((s, prev) => {
+  const r = s.history[0];
+  if (!r || r === prev.history[0]) return;
+  if (Date.now() - r.timestamp > 5000) return; // hidratação do histórico salvo, não é rolagem nova
+  const st = useSessionStore.getState();
+  if (!st.session || st.session.status !== 'active' || !st.me || !st.campaignId || st.rollVisibility === 'private') return;
+  const who = st.me.isMaster ? 'Mestre' : st.me.characterName ?? st.me.name;
+  void sessionService
+    .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
+      who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
+    }, st.rollVisibility)
+    .catch(() => undefined);
+});

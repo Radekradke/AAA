@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { campaignService } from '@/services/campaignService';
 import { TurnBanner } from './TurnBanner';
+import { TableRollToast } from './TableRollToast';
 
 /**
  * Presença global da mesa ao vivo: enquanto estou numa sessão, uma pílula
@@ -50,6 +51,7 @@ export function SessionDock() {
   return (
     <>
       <TurnBanner />
+      <TableRollToast />
       {!onLivePage && (
         <button type="button" className={'fv-live-dock' + (mine ? ' is-mine' : '')} onClick={() => nav(`/mesa/${campaignId}/jogar`)} title="Voltar para a mesa ao vivo">
           <i className={`fv-live-dot is-${connection}`} aria-hidden />

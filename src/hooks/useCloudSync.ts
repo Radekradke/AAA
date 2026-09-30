@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
-import { cloudEnabled } from '@/services/supabaseClient';
+import { cloudEnabled, getSupabase } from '@/services/supabaseClient';
 import { syncNow } from '@/services/offlineSyncService';
 import { useOnlineStatus } from './useOnlineStatus';
 
@@ -30,6 +30,28 @@ export function useCloudSync(): void {
       }),
     );
   }, []);
+
+  // o app lembra o usuário, mas o token do Supabase pode ter morrido (projeto
+  // pausado/restaurado, sessão revogada): aí toda escrita vira "anônimo" e o
+  // RLS recusa. Detecta e pede login de novo — as fichas ficam no aparelho.
+  useEffect(() => {
+    // só contas da nuvem (id UUID); contas locais/offline não têm sessão Supabase
+    if (!canSync || !online || !/^[0-9a-f-]{36}$/i.test(user!.id)) return;
+    const sb = getSupabase();
+    if (!sb) return;
+    void sb.auth.getUser().then(({ data, error }) => {
+      const lost = !data.user && (!error || /session|jwt|expired|invalid|not found|missing/i.test(error.message));
+      const other = !!data.user && data.user.id !== user!.id;
+      if (lost || other) {
+        try {
+          sessionStorage.setItem('fv-session-expired', '1');
+        } catch {
+          /* ignora */
+        }
+        useAuthStore.getState().logout();
+      }
+    }).catch(() => undefined); // sem rede: tenta de novo quando voltar
+  }, [canSync, online, user]);
 
   // estado-base do indicador
   useEffect(() => {

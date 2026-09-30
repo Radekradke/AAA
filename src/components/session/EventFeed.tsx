@@ -16,23 +16,28 @@ function text(e: SessionEvent): string {
     case 'encounter_paused': return 'Combate pausado';
     case 'encounter_active': return 'Combate retomado';
     case 'encounter_finished': return `Fim do encontro — ${p.round ?? 0} rodada${Number(p.round) === 1 ? '' : 's'}`;
+    case 'roll': return `${p.who ?? '—'} · ${String(p.label ?? 'rolagem').replace(/^Rolagem /, '')}: ${p.total}${p.crit ? ' (crítico!)' : p.fail ? ' (falha)' : ''}`;
+    case 'hero_hp': return p.kind === 'heal' ? `${p.name} recuperou ${p.amount} PV` : `${p.name} sofreu ${p.amount} de dano`;
+    case 'hero_condition': return `${p.name} ${p.on ? 'ficou' : 'não está mais'} ${String(p.condition ?? '').toLowerCase()}`;
+    case 'xp_award': return `+${p.amount} XP para ${((p.names as unknown as string[]) ?? []).join(', ')}${p.note ? ` — ${p.note}` : ''}`;
     default: return e.type.replace(/_/g, ' ');
   }
 }
 
 /** Crônica curta da sessão (o banco já filtra o que é só do mestre). */
 export function EventFeed({ events }: { events: SessionEvent[] }) {
-  const recent = events.slice(-12).reverse();
+  const recent = events.slice(-16).reverse();
   if (!recent.length) return null;
   return (
     <section className="fv-panel fv-live-card">
       <div className="fv-label">Acontecimentos</div>
       <ul className="fv-live-feed">
         {recent.map((e) => (
-          <li key={e.id} className={`is-${e.type.split('_')[0]}` + (e.visibility !== 'public' ? ' is-secret' : '')}>
+          <li key={e.id} className={`is-${e.type.split('_')[0]}` + (e.visibility !== 'public' ? ' is-secret' : '') + ((e.payload as { crit?: boolean }).crit ? ' is-crit' : '')}>
             <time>{new Date(e.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</time>
             <span>{text(e)}</span>
             {e.visibility === 'master' && <i title="Só o mestre vê">mestre</i>}
+            {e.visibility === 'private' && <i title="Só você vê">privado</i>}
           </li>
         ))}
       </ul>

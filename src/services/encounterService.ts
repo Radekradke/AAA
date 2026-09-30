@@ -58,6 +58,7 @@ export function mapCombatant(r: Record<string, unknown>): Combatant {
     conditions: Array.isArray(r.conditions) ? (r.conditions as string[]) : [],
     hidden: Boolean(r.hidden),
     groupKey: (r.group_key as string) ?? null,
+    monsterRef: (r.monster_ref as string) ?? null,
   };
 }
 
@@ -71,6 +72,8 @@ export interface NewCombatant {
   armorClass?: number | null;
   hidden?: boolean;
   groupKey?: string | null;
+  /** Id do bestiário (SRD). */
+  monsterRef?: string | null;
 }
 
 export interface CombatantPatch {
@@ -118,6 +121,9 @@ export const encounterService = {
       p_armor_class: c.armorClass ?? null,
       p_hidden: c.hidden ?? false,
       p_group_key: c.groupKey ?? null,
+      // só manda o parâmetro novo quando existe: um banco sem o SQL
+      // atualizado continua aceitando os combatentes comuns
+      ...(c.monsterRef ? { p_monster_ref: c.monsterRef } : {}),
     });
     fail(error);
     return mapCombatant(data as Record<string, unknown>);

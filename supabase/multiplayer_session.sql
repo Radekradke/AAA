@@ -19,9 +19,9 @@ alter table public.campaigns add column if not exists settings jsonb not null de
 
 -- mestre OU jogador da campanha (o mestre não fica em campaign_members)
 create or replace function public.is_campaign_participant(cid uuid)
-returns boolean language sql security definer stable set search_path = public as $$
+returns boolean language sql security definer stable set search_path = public as $fn$
   select public.is_campaign_master(cid) or public.is_campaign_member(cid);
-$$;
+$fn$;
 grant execute on function public.is_campaign_participant(uuid) to authenticated;
 
 -- ===== TABELAS =====
@@ -83,6 +83,8 @@ create table if not exists public.combatants (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- ficha do bestiário (id do SRD) — só referência; os números ficam na linha
+alter table public.combatants add column if not exists monster_ref text;
 create index if not exists combatants_encounter_idx on public.combatants (encounter_id, turn_order);
 create index if not exists combatants_session_idx on public.combatants (session_id);
 
@@ -141,15 +143,15 @@ create policy "events_insert_own" on public.session_events for insert
 
 -- ===== FUNÇÕES INTERNAS =====
 create or replace function public._fv_log(p_session uuid, p_campaign uuid, p_type text, p_target text, p_payload jsonb, p_visibility text default 'public')
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public as $fn$
   insert into session_events (session_id, campaign_id, type, actor_id, target_id, payload, visibility)
   values (p_session, p_campaign, p_type, auth.uid(), p_target, coalesce(p_payload, '{}'::jsonb), p_visibility);
-$$;
+$fn$;
 revoke execute on function public._fv_log(uuid, uuid, text, text, jsonb, text) from public, anon, authenticated;
 
 -- ordem: iniciativa (maior primeiro; sem iniciativa vai ao fim) → bônus → grupo junto
 create or replace function public._fv_recompute_order(p_encounter uuid)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public as $fn$
   update combatants c set turn_order = o.rn, updated_at = now()
   from (
     select id, row_number() over (
@@ -158,13 +160,13 @@ returns void language sql security definer set search_path = public as $$
     from combatants where encounter_id = p_encounter
   ) o
   where c.id = o.id and c.turn_order is distinct from o.rn;
-$$;
+$fn$;
 revoke execute on function public._fv_recompute_order(uuid) from public, anon, authenticated;
 
 -- próximo/anterior "lugar" na ordem: grupos contam como um só turno;
 -- monstros/NPCs derrotados (PV ≤ 0) são pulados; jogadores caídos não.
 create or replace function public._fv_step(p_encounter uuid, p_current uuid, p_dir int, out next_id uuid, out wrapped boolean)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public as $fn$
 declare
   ids uuid[]; keys text[]; os int[];
   n int; idx int; cur_key text; cur_o int; i int;
@@ -206,20 +208,20 @@ begin
   else
     if idx > 1 then next_id := ids[idx - 1]; else next_id := ids[n]; wrapped := true; end if;
   end if;
-end $$;
+end $fn$;
 revoke execute on function public._fv_step(uuid, uuid, int) from public, anon, authenticated;
 
 create or replace function public._fv_require_master(p_campaign uuid)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public as $fn$
 begin
   if auth.uid() is null then raise exception 'Faça login.'; end if;
   if not public.is_campaign_master(p_campaign) then raise exception 'Só o mestre da mesa pode fazer isso.'; end if;
-end $$;
+end $fn$;
 revoke execute on function public._fv_require_master(uuid) from public, anon, authenticated;
 
 -- ===== RPCs: SESSÃO =====
 create or replace function public.start_session(p_campaign uuid, p_name text default null)
-returns public.sessions language plpgsql security definer set search_path = public as $$
+returns public.sessions language plpgsql security definer set search_path = public as $fn$
 declare s public.sessions; n int;
 begin
   perform public._fv_require_master(p_campaign);
@@ -231,10 +233,10 @@ begin
   returning * into s;
   perform public._fv_log(s.id, p_campaign, 'session_started', null, jsonb_build_object('name', s.name));
   return s;
-end $$;
+end $fn$;
 
 create or replace function public.set_session_status(p_session uuid, p_status text)
-returns public.sessions language plpgsql security definer set search_path = public as $$
+returns public.sessions language plpgsql security definer set search_path = public as $fn$
 declare s public.sessions;
 begin
   select * into s from sessions where id = p_session for update;
@@ -251,11 +253,11 @@ begin
   end if;
   perform public._fv_log(s.id, s.campaign_id, 'session_' || p_status, null, '{}'::jsonb);
   return s;
-end $$;
+end $fn$;
 
 -- ===== RPCs: ENCONTRO =====
 create or replace function public.create_encounter(p_session uuid, p_name text default null)
-returns public.encounters language plpgsql security definer set search_path = public as $$
+returns public.encounters language plpgsql security definer set search_path = public as $fn$
 declare s public.sessions; e public.encounters; n int;
 begin
   select * into s from sessions where id = p_session;
@@ -270,13 +272,16 @@ begin
   returning * into e;
   perform public._fv_log(s.id, s.campaign_id, 'encounter_created', e.id::text, jsonb_build_object('name', e.name));
   return e;
-end $$;
+end $fn$;
 
+-- a assinatura ganhou p_monster_ref (bestiário): remove a antiga antes de recriar
+do $fn$ begin execute 'drop function if exists public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text)'; end $fn$;
 create or replace function public.add_combatant(
   p_encounter uuid, p_type text, p_name text, p_sheet_id text default null,
   p_initiative_bonus int default 0, p_hp_current int default null, p_hp_max int default null,
-  p_armor_class int default null, p_hidden boolean default false, p_group_key text default null
-) returns public.combatants language plpgsql security definer set search_path = public as $$
+  p_armor_class int default null, p_hidden boolean default false, p_group_key text default null,
+  p_monster_ref text default null
+) returns public.combatants language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters; c public.combatants; v_owner uuid;
 begin
   select * into e from encounters where id = p_encounter for update;
@@ -292,18 +297,19 @@ begin
     if found then return c; end if;
   end if;
   insert into combatants (encounter_id, session_id, campaign_id, type, sheet_id, owner_id, name,
-    initiative_bonus, hp_current, hp_max, armor_class, hidden, group_key)
+    initiative_bonus, hp_current, hp_max, armor_class, hidden, group_key, monster_ref)
   values (p_encounter, e.session_id, e.campaign_id, p_type, p_sheet_id, v_owner, left(trim(p_name), 60),
-    coalesce(p_initiative_bonus, 0), p_hp_current, p_hp_max, p_armor_class, coalesce(p_hidden, false), nullif(trim(p_group_key), ''))
+    coalesce(p_initiative_bonus, 0), p_hp_current, p_hp_max, p_armor_class, coalesce(p_hidden, false), nullif(trim(p_group_key), ''),
+    nullif(trim(p_monster_ref), ''))
   returning * into c;
   perform public._fv_recompute_order(p_encounter);
   update encounters set revision = revision + 1, updated_at = now() where id = p_encounter;
   select * into c from combatants where id = c.id;
   return c;
-end $$;
+end $fn$;
 
 create or replace function public.remove_combatant(p_combatant uuid)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public as $fn$
 declare c public.combatants; e public.encounters; v_next uuid; v_wrapped boolean;
 begin
   select * into c from combatants where id = p_combatant;
@@ -320,11 +326,11 @@ begin
     active_combatant_id = case when active_combatant_id = c.id then v_next else active_combatant_id end,
     round = case when active_combatant_id = c.id and coalesce(v_wrapped, false) then round + 1 else round end
   where id = e.id;
-end $$;
+end $fn$;
 
 -- jogador rola a PRÓPRIA iniciativa; o mestre pode definir de qualquer um
 create or replace function public.set_initiative(p_combatant uuid, p_value int)
-returns public.combatants language plpgsql security definer set search_path = public as $$
+returns public.combatants language plpgsql security definer set search_path = public as $fn$
 declare c public.combatants; e public.encounters;
 begin
   if auth.uid() is null then raise exception 'Faça login.'; end if;
@@ -343,11 +349,11 @@ begin
     jsonb_build_object('name', c.name, 'value', p_value), case when c.hidden then 'master' else 'public' end);
   select * into c from combatants where id = p_combatant;
   return c;
-end $$;
+end $fn$;
 
 -- mestre: várias iniciativas de uma vez (inimigos, grupos) numa só revisão
 create or replace function public.set_initiatives(p_encounter uuid, p_values jsonb)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters; item jsonb;
 begin
   select * into e from encounters where id = p_encounter for update;
@@ -361,11 +367,11 @@ begin
   update encounters set revision = revision + 1, updated_at = now() where id = p_encounter;
   perform public._fv_log(e.session_id, e.campaign_id, 'initiative_batch', e.id::text,
     jsonb_build_object('count', jsonb_array_length(coalesce(p_values, '[]'::jsonb))), 'master');
-end $$;
+end $fn$;
 
 -- mestre ajusta PV, CA, condições, nome ou visibilidade (não mexe na ordem)
 create or replace function public.update_combatant(p_combatant uuid, p_patch jsonb)
-returns public.combatants language plpgsql security definer set search_path = public as $$
+returns public.combatants language plpgsql security definer set search_path = public as $fn$
 declare c public.combatants;
 begin
   select * into c from combatants where id = p_combatant;
@@ -383,10 +389,10 @@ begin
   -- avisa todos pelo encontro: quem deixou de ver um combatente oculto não recebe o UPDATE dele (RLS)
   update encounters set updated_at = now() where id = c.encounter_id;
   return c;
-end $$;
+end $fn$;
 
 create or replace function public.start_combat(p_encounter uuid, p_revision int)
-returns public.encounters language plpgsql security definer set search_path = public as $$
+returns public.encounters language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters; nx record;
 begin
   select * into e from encounters where id = p_encounter for update;
@@ -408,11 +414,11 @@ begin
   where id = p_encounter returning * into e;
   perform public._fv_log(e.session_id, e.campaign_id, 'combat_started', e.id::text, jsonb_build_object('name', e.name, 'round', e.round));
   return e;
-end $$;
+end $fn$;
 
 -- avança (+1) ou volta (−1) o turno; controla a rodada. Autoritativo e à prova de corrida.
 create or replace function public.advance_turn(p_encounter uuid, p_direction int, p_revision int)
-returns public.encounters language plpgsql security definer set search_path = public as $$
+returns public.encounters language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters; nx record; v_round int; who text;
 begin
   select * into e from encounters where id = p_encounter for update;
@@ -433,11 +439,11 @@ begin
     jsonb_build_object('round', e.round, 'name', who),
     case when exists (select 1 from combatants where id = nx.next_id and hidden) then 'master' else 'public' end);
   return e;
-end $$;
+end $fn$;
 
 -- pausar / retomar / encerrar o encontro
 create or replace function public.set_encounter_status(p_encounter uuid, p_status text, p_revision int)
-returns public.encounters language plpgsql security definer set search_path = public as $$
+returns public.encounters language plpgsql security definer set search_path = public as $fn$
 declare e public.encounters;
 begin
   select * into e from encounters where id = p_encounter for update;
@@ -453,12 +459,12 @@ begin
   where id = p_encounter returning * into e;
   perform public._fv_log(e.session_id, e.campaign_id, 'encounter_' || p_status, e.id::text, jsonb_build_object('name', e.name, 'round', e.round));
   return e;
-end $$;
+end $fn$;
 
 grant execute on function public.start_session(uuid, text) to authenticated;
 grant execute on function public.set_session_status(uuid, text) to authenticated;
 grant execute on function public.create_encounter(uuid, text) to authenticated;
-grant execute on function public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text) to authenticated;
+grant execute on function public.add_combatant(uuid, text, text, text, int, int, int, int, boolean, text, text) to authenticated;
 grant execute on function public.remove_combatant(uuid) to authenticated;
 grant execute on function public.set_initiative(uuid, int) to authenticated;
 grant execute on function public.set_initiatives(uuid, jsonb) to authenticated;
@@ -469,14 +475,14 @@ grant execute on function public.set_encounter_status(uuid, text, int) to authen
 
 -- ===== REALTIME =====
 -- mudanças de estado (respeitam o RLS de leitura acima)
-do $$ begin alter publication supabase_realtime add table public.sessions; exception when duplicate_object then null; end $$;
-do $$ begin alter publication supabase_realtime add table public.encounters; exception when duplicate_object then null; end $$;
-do $$ begin alter publication supabase_realtime add table public.combatants; exception when duplicate_object then null; end $$;
-do $$ begin alter publication supabase_realtime add table public.session_events; exception when duplicate_object then null; end $$;
+do $fn$ begin alter publication supabase_realtime add table public.sessions; exception when duplicate_object then null; end $fn$;
+do $fn$ begin alter publication supabase_realtime add table public.encounters; exception when duplicate_object then null; end $fn$;
+do $fn$ begin alter publication supabase_realtime add table public.combatants; exception when duplicate_object then null; end $fn$;
+do $fn$ begin alter publication supabase_realtime add table public.session_events; exception when duplicate_object then null; end $fn$;
 
 -- canal PRIVADO da sessão (Presence + Broadcast): tópico
 -- "campaign:<campaignId>:session:<sessionId>" — só participantes da campanha.
-do $$ begin
+do $fn$ begin
   execute $p$drop policy if exists "fv_session_channel_read" on realtime.messages$p$;
   execute $p$create policy "fv_session_channel_read" on realtime.messages for select to authenticated using (
     split_part(realtime.topic(), ':', 1) = 'campaign'
@@ -491,4 +497,58 @@ do $$ begin
   )$p$;
 exception when undefined_table or invalid_schema_name or undefined_function then
   raise notice 'Realtime Authorization indisponível neste projeto — o canal da sessão vai rodar como público (o estado continua protegido pelo RLS).';
-end $$;
+end $fn$;
+
+-- =====================================================================
+-- NPCs DA CAMPANHA
+-- Duas tabelas de propósito: o que os JOGADORES podem saber (nome, retrato,
+-- papel, resumo) e o que só o MESTRE sabe (segredos, estatísticas). Assim o
+-- RLS protege os segredos linha a linha — a interface não precisa "esconder".
+-- =====================================================================
+create table if not exists public.campaign_npcs (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  name text not null check (length(trim(name)) between 1 and 80),
+  role text,
+  summary text,
+  -- retrato pequeno (WebP em data URL, ~20–60 KB)
+  portrait text check (portrait is null or length(portrait) < 400000),
+  -- revelado: jogadores veem na galeria e nas menções do diário
+  revealed boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists campaign_npcs_campaign_idx on public.campaign_npcs (campaign_id, name);
+
+create table if not exists public.campaign_npc_secrets (
+  npc_id uuid primary key references public.campaign_npcs (id) on delete cascade,
+  campaign_id uuid not null references public.campaigns (id) on delete cascade,
+  notes text,
+  -- { monsterRef, ac, hp, hpMax, initiativeBonus, level, sheetId, abilities… }
+  stats jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.campaign_npcs enable row level security;
+alter table public.campaign_npc_secrets enable row level security;
+
+drop policy if exists "npcs_read" on public.campaign_npcs;
+create policy "npcs_read" on public.campaign_npcs for select
+  using (public.is_campaign_master(campaign_id) or (revealed and public.is_campaign_member(campaign_id)));
+drop policy if exists "npcs_master_write" on public.campaign_npcs;
+create policy "npcs_master_write" on public.campaign_npcs for all
+  using (public.is_campaign_master(campaign_id)) with check (public.is_campaign_master(campaign_id));
+
+-- segredos: SÓ o mestre lê e escreve
+drop policy if exists "npc_secrets_master" on public.campaign_npc_secrets;
+create policy "npc_secrets_master" on public.campaign_npc_secrets for all
+  using (public.is_campaign_master(campaign_id))
+  with check (
+    public.is_campaign_master(campaign_id)
+    and exists (select 1 from public.campaign_npcs n where n.id = npc_id and n.campaign_id = campaign_npc_secrets.campaign_id)
+  );
+
+grant select, insert, update, delete on public.campaign_npcs to authenticated;
+grant select, insert, update, delete on public.campaign_npc_secrets to authenticated;
+
+do $fn$ begin alter publication supabase_realtime add table public.campaign_npcs; exception when duplicate_object then null; end $fn$;

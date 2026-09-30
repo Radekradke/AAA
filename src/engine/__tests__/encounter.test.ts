@@ -6,7 +6,7 @@ let n = 0;
 const mk = (name: string, init: number | null, p: Partial<Combatant> = {}): Combatant => ({
   id: `c${++n}`, encounterId: 'e', sessionId: 's', campaignId: 'k', type: 'monster', sheetId: null, ownerId: null,
   monsterInstanceId: null, name, initiative: init, initiativeBonus: 0, turnOrder: 0, hpCurrent: 10, hpMax: 10,
-  armorClass: 12, conditions: [], hidden: false, groupKey: null, ...p,
+  armorClass: 12, conditions: [], hidden: false, groupKey: null, monsterRef: null, ...p,
 });
 
 function scene() {

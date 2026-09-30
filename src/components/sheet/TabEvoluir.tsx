@@ -1,3 +1,4 @@
+import { xpProgress } from '@/engine/xp';
 import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
@@ -41,6 +42,34 @@ type AsiMode = 'none' | 'plus2' | 'plus11' | 'feat';
  * manual + CON), subclasse e ASI/talento nos níveis corretos, com validação
  * e linha do tempo completa da evolução.
  */
+/** XP do herói: recompensa do mestre (mesa ao vivo) ou soma manual. */
+function XpBar({ char }: { char: TabProps['char'] }) {
+  const store = useCharacterStore();
+  const [add, setAdd] = useState('');
+  const xp = char.xp ?? 0;
+  const p = xpProgress(xp, char.level);
+  const give = () => {
+    const n = Number(add);
+    if (Number.isFinite(n) && n !== 0) store.addXp(char.id, n);
+    setAdd('');
+  };
+  return (
+    <div className="fv-xp">
+      <div className="fv-xp-top">
+        <span className="fv-label">Experiência</span>
+        <b>{xp.toLocaleString('pt-BR')} XP</b>
+        {p.next !== null && <small>próximo nível: {p.next.toLocaleString('pt-BR')}</small>}
+        {p.canLevel && <em>pode subir de nível!</em>}
+      </div>
+      <div className="fv-xp-bar" aria-hidden><i style={{ width: `${p.pct}%` }} /></div>
+      <div className="fv-xp-add">
+        <input className="fv-input" inputMode="numeric" placeholder="+ XP" value={add} onChange={(e) => setAdd(e.target.value.replace(/[^0-9-]/g, ''))} onKeyDown={(e) => e.key === 'Enter' && give()} aria-label="Somar XP" />
+        <button type="button" onClick={give} disabled={!add}>Somar</button>
+      </div>
+    </div>
+  );
+}
+
 export function TabEvoluir({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
@@ -212,6 +241,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
             </span>
           </div>
         </div>
+        <XpBar char={char} />
       </Panel>
 
       {/* plano do próximo nível */}
