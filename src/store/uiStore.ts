@@ -51,7 +51,26 @@ interface UiState {
   clearRoll: () => void;
   /** Limpa o histórico de uma ficha (ou tudo, sem id). */
   clearHistory: (charId?: string) => void;
+
+  /** Aviso de conjuração (toda magia, inclusive truques sem rolagem). */
+  castNotice: CastNotice | null;
+  pushCastNotice: (n: Omit<CastNotice, 'id'>) => void;
+  clearCastNotice: () => void;
 }
+
+export interface CastNotice {
+  id: number;
+  title: string;
+  /** Linha de contexto: círculo, ação gasta, duração. */
+  sub: string;
+  lines: string[];
+  /** Escolhas rápidas (Em mim / Em outro, Curar em mim). */
+  actions?: { label: string; run: () => void; primary?: boolean }[];
+  warn?: string;
+}
+
+let _noticeTimer: ReturnType<typeof setTimeout> | null = null;
+let _noticeSeq = 0;
 
 /** Quantas rolagens guardamos no total (todas as fichas). */
 export const HISTORY_MAX = 60;
@@ -132,6 +151,22 @@ export const useUiStore = create<UiState>()(
         // saiu da ficha que preparou a inspiração: desarma (o ponto não foi gasto)
         if (get().inspirationArmed && get().armedCharId !== id) get().disarmInspiration();
         set({ activeCharId: id });
+      },
+
+      castNotice: null,
+      pushCastNotice(n) {
+        const id = ++_noticeSeq;
+        set({ castNotice: { ...n, id } });
+        get().bump(1.2);
+        if (_noticeTimer) clearTimeout(_noticeTimer);
+        // com escolha pendente, fica mais tempo na tela
+        _noticeTimer = setTimeout(() => {
+          if (get().castNotice?.id === id) set({ castNotice: null });
+        }, n.actions?.length ? 14000 : 5200);
+      },
+      clearCastNotice() {
+        if (_noticeTimer) clearTimeout(_noticeTimer);
+        set({ castNotice: null });
       },
 
       currentRoll: null,

@@ -9,6 +9,8 @@ import { roll as rollEngine } from '@/engine/dice';
 import { syncSpellSlots } from '@/engine/spellcasting';
 import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
 import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
+import { castTurnKey, rollTempHp, spellOutcome } from '@/engine/spellEffects';
+import { SPELL_BY_ID } from '@/data/spells';
 import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCast';
 import { ABILITY_SHORT } from '@/data/skills';
 
@@ -29,6 +31,7 @@ interface PendingAttack {
 }
 
 const TYPE_KEY = 'fv-spell-damage-type';
+const TURN_LABEL = { action: 'Ação', bonus: 'Ação bônus', reaction: 'Reação' } as const;
 
 /** Último tipo escolhido por magia (conveniência deste aparelho). */
 function lastType(spellId: string): string | null {
@@ -56,6 +59,8 @@ function saveType(spellId: string, type: string) {
 export function SpellCastButton({ char, derived, spell, castMod, free, compact }: Props) {
   const store = useCharacterStore();
   const pushRoll = useUiStore((s) => s.pushRoll);
+  const pushCastNotice = useUiStore((s) => s.pushCastNotice);
+  const [flash, setFlash] = useState(0);
   const { rollDice, check } = useDiceRoller();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<PendingAttack | null>(null);
@@ -72,9 +77,78 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
   const isCantrip = spell.level === 0;
   const noSlot = !isCantrip && !free && options.length === 0;
 
-  const roll = (r: CastRoll | null, suffix = '') => {
-    if (!r) return;
-    rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: true });
+  const roll = (r: CastRoll | null, suffix = '', isDamage = true) => {
+    if (!r) return null;
+    return rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: isDamage });
+  };
+
+  /**
+   * Toda conjuração deixa rastro: marca a ação no turno, registra "usado",
+   * aplica PV temporários/efeitos e mostra o aviso (até truque sem rolagem).
+   */
+  const announce = (slotLevel: number, how: 'slot' | 'ritual' | 'free', healed: number | null) => {
+    const turnKey = castTurnKey(spell.castingTime);
+    const before = char.combat.castThisTurn ?? [];
+    let warn: string | undefined;
+    if (turnKey && char.combat.turn[turnKey]) warn = `Você já tinha usado a ${TURN_LABEL[turnKey].toLowerCase()} neste turno.`;
+    // PHB: magia de ação bônus → no mesmo turno só um truque de 1 ação
+    const prevBonus = before.some((id) => castTurnKey(SPELL_BY_ID[id]?.castingTime) === 'bonus' && id !== spell.id);
+    const cantripAction = isCantrip && turnKey === 'action';
+    if (turnKey === 'bonus' && before.some((id) => { const p = SPELL_BY_ID[id]; return p && p.id !== spell.id && !(p.level === 0 && castTurnKey(p.castingTime) === 'action'); })) {
+      warn = 'Com magia de ação bônus, a outra magia do turno só pode ser um truque de 1 ação.';
+    } else if (prevBonus && !cantripAction && turnKey) {
+      warn = 'Você já conjurou uma magia de ação bônus: neste turno só cabe um truque de 1 ação.';
+    }
+    if (turnKey) store.useTurn(char.id, turnKey);
+    store.noteCast(char.id, spell.id);
+    setFlash((f) => f + 1);
+
+    const lines: string[] = [];
+    const actions: { label: string; run: () => void; primary?: boolean }[] = [];
+    const out = spellOutcome(spell, isCantrip ? 0 : slotLevel, castMod);
+    const applyOnMe = () => {
+      if (out?.tempHp) {
+        const n = rollTempHp(out.tempHp);
+        store.gainTempHp(char.id, n);
+        return n;
+      }
+      return 0;
+    };
+    const effectOnMe = () => {
+      if (out?.effect) store.applySpellEffect(char.id, { spellId: spell.id, name: spell.name, ...out.effect });
+    };
+    if (out?.target === 'self') {
+      const n = applyOnMe();
+      effectOnMe();
+      if (n) lines.push(`+${n} PV temporários${n <= char.combat.hpTemp ? ` (você já tinha ${char.combat.hpTemp}: fica o maior)` : ''}`);
+      if (out.effect) lines.push(out.effect.label);
+    } else if (out?.target === 'choose') {
+      if (out.effect) lines.push(out.effect.label);
+      actions.push({
+        label: 'Em mim',
+        primary: true,
+        run: () => {
+          applyOnMe();
+          effectOnMe();
+        },
+      });
+      actions.push({ label: 'Em outra criatura', run: () => undefined });
+    }
+    if (out?.reminder) lines.push(out.reminder);
+    if (healed !== null) {
+      lines.push(`Cura rolada: ${healed} PV`);
+      actions.unshift({ label: `Curar em mim (+${healed})`, primary: true, run: () => store.heal(char.id, healed) });
+      if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
+    }
+    if (spell.concentration) lines.push('Concentração ligada');
+    const spent = isCantrip ? 'Truque (não gasta espaço)' : how === 'ritual' ? 'Ritual (+10 min, sem espaço)' : how === 'free' ? 'Sem gastar espaço' : `Espaço de ${slotLevel}º círculo`;
+    pushCastNotice({
+      title: `${spell.name}${!isCantrip && slotLevel > spell.level ? ` (${slotLevel}º)` : ''}`,
+      sub: [spent, turnKey ? `${TURN_LABEL[turnKey]} usada` : spell.castingTime, spell.duration].filter(Boolean).join(' · '),
+      lines,
+      actions: actions.length ? actions : undefined,
+      warn,
+    });
   };
 
   const pickType = (t: string) => {
@@ -85,9 +159,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
   const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free') => {
     setOpen(false);
     if (spell.concentration) {
-      // nova concentração encerra Bruxaria/Marca anteriores; estas duas já ficam ligadas
+      // nova concentração encerra Bruxaria/Marca/efeitos anteriores; estas duas já ficam ligadas
       store.setMark(char.id, 'hex', spell.id === 'phb-hex');
       store.setMark(char.id, 'huntersMark', spell.id === 'phb-hunters-mark');
+      store.endConcentrationEffects(char.id);
     }
     if (how === 'slot' && !isCantrip) store.castWithSlot(char.id, slotLevel, spell.concentration);
     else if (spell.concentration) {
@@ -104,16 +179,20 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
         return { total: r.total, crit: r.crit, fail: r.fail, pick: null };
       });
       setPending({ plan, attacks });
+      announce(slotLevel, how, null);
       return;
     }
     if (spell.attack && derived.spellAttack !== null) {
       check(`${spell.name} · ataque de magia`, derived.spellAttack);
+      announce(slotLevel, how, null);
       return;
     }
     const dmg = damageRoll(spell, lvl, char.level, dmgType);
     const heal = healRoll(spell, lvl, castMod);
+    let healed: number | null = null;
     if (dmg) roll(dmg, save);
-    else if (heal) roll(heal);
+    else if (heal) healed = roll(heal, '', false)?.total ?? null;
+    announce(slotLevel, how, healed);
   };
 
   const ac = targetAc.trim() === '' ? null : Number(targetAc);
@@ -162,7 +241,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     <span className="fv-cast">
       <button
         type="button"
-        className={'fv-cast-btn' + (compact ? ' is-compact' : '') + (pending ? ' is-pending' : '')}
+        key={flash}
+        className={'fv-cast-btn' + (compact ? ' is-compact' : '') + (pending ? ' is-pending' : '') + (flash ? ' is-cast' : '') + ((char.combat.castThisTurn ?? []).includes(spell.id) && !pending ? ' is-used' : '')}
         onClick={onMain}
         disabled={noSlot && !ritual && !pending}
         title={noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
 import { AttackActions } from './AttackActions';
+import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -233,6 +234,12 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* Ataques */}
         <Panel>
+          {((char.combat.spellEffects?.length ?? 0) > 0 || (char.combat.marks?.length ?? 0) > 0) && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="fv-label" style={{ marginBottom: 7 }}>Efeitos ativos</div>
+              <ActiveEffects char={char} />
+            </div>
+          )}
           <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />

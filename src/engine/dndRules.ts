@@ -239,9 +239,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const armorItem = findEquipped(char, char.equipped.armor);
   // opções de CA sem armadura: a melhor vale (não acumulam)
   const featUnarmored = feats.find((f) => f.unarmoredAC);
+  const spellEffects = char.combat.spellEffects ?? [];
+  const mageArmor = spellEffects.find((e) => e.acBase);
   const altSources = [
-    subBonus?.unarmoredAC ? { ...subBonus.unarmoredAC, source: subclass!.label, sourceType: 'subclass' as const } : null,
+    subBonus?.unarmoredAC ? { ...subBonus.unarmoredAC, source: subclass!.label, sourceType: 'subclass' as 'subclass' | 'feat' | 'spell' } : null,
     featUnarmored ? { ...featUnarmored.unarmoredAC!, source: featUnarmored.label, sourceType: 'feat' as const } : null,
+    // Armadura Arcana: CA base 13 + DES sem armadura
+    mageArmor ? { base: mageArmor.acBase!, ability: 'dex' as AbilityKey, source: mageArmor.name, sourceType: 'spell' as const } : null,
   ]
     .filter((x): x is NonNullable<typeof x> => !!x)
     .map((x) => ({ ...x, total: x.base + abilities[x.ability].mod }));
@@ -305,7 +309,14 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       .flatMap(([, ids]) => ids),
   );
   if (styles.has('defense') && armor) acParts.push(mod('ac', 1, 'Estilo de Luta: Defesa', 'class', { label: 'usando armadura' }));
-  const acBd = breakdown(acParts, acNote);
+  // magias ativas: Escudo (+5), Escudo da Fé (+2), Acelerar (+2)…
+  for (const e of spellEffects) if (e.ac) acParts.push(mod('ac', e.ac, e.name, 'spell'));
+  let acBd = breakdown(acParts, acNote);
+  // Pele de Árvore: a CA não fica abaixo de 16
+  const acFloor = spellEffects.filter((e) => e.acMin).sort((a, b) => b.acMin! - a.acMin!)[0];
+  if (acFloor && acBd.total < acFloor.acMin!) {
+    acBd = breakdown([...acParts, mod('ac', acFloor.acMin! - acBd.total, acFloor.name, 'spell', { label: `CA mínima ${acFloor.acMin}` })], acNote);
+  }
 
   // ---- PV máximo: linha do tempo (rolagens/média) + CON×nível + linhagem + Durão ----
   const history = char.levelHistory ?? [];
@@ -334,6 +345,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   if (subBonus?.hpPerLevel) {
     hpParts.push(mod('hp', subBonus.hpPerLevel * char.level, subclass!.label, 'subclass', { label: 'PV por nível' }));
   }
+  // Auxílio: +5 de PV máximo por círculo acima do 1º
+  for (const e of spellEffects) if (e.maxHp) hpParts.push(mod('hp', e.maxHp, e.name, 'spell'));
   const hpBd = breakdown(hpParts);
   const maxHp = Math.max(1, hpBd.total);
   hpBd.total = maxHp;
@@ -357,7 +370,14 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       ? mod('speed', monkMove, 'Movimento sem Armadura', 'class', { unit: 'm', label: 'Monge, sem armadura nem escudo' })
       : null,
     ...magicItems.map((m) => (m.magic.speed ? mod('speed', m.magic.speed, m.name, 'item', { unit: 'm' }) : null)),
+    ...spellEffects.map((e) => (e.speed ? mod('speed', e.speed, e.name, 'spell', { unit: 'm' }) : null)),
   ]);
+  // Acelerar: deslocamento dobrado (depois de todos os bônus)
+  const hasted = spellEffects.find((e) => e.speedDouble);
+  if (hasted) {
+    speedBd.parts.push(mod('speed', speedBd.total, hasted.name, 'spell', { unit: 'm', label: 'deslocamento dobrado' }));
+    speedBd.total *= 2;
+  }
 
   // ---- Iniciativa: DES + talentos ----
   // Meia proficiência em testes sem proficiência (não acumulam; vale o maior):

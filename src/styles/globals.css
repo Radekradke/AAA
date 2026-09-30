@@ -3885,3 +3885,58 @@ body.fv-dragging .fv-screen-scroll {
 .fv-picker-enchant small { font-size: 11px; color: var(--gold); }
 .fv-picker-added { position: sticky; top: 0; z-index: 2; margin-bottom: 8px; padding: 7px 12px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; color: #3FC56B; background: color-mix(in srgb, #3FC56B 12%, var(--panel)); border: 1px solid color-mix(in srgb, #3FC56B 40%, transparent); }
 .fv-picker-attune { margin-left: 7px; font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: 0.8; vertical-align: middle; }
+
+/* Aviso de conjuração (toda magia, inclusive truques sem rolagem) */
+.fv-castnote {
+  /* canto inferior direito: não cobre a CA/PV do cabeçalho, que é o que muda */
+  position: fixed; z-index: 150; right: 20px; bottom: 20px;
+  width: min(420px, calc(100vw - 24px)); display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 12px 14px;
+  border-radius: var(--radius-lg); color: var(--ink);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--panel) 96%, var(--acc)), var(--panel2));
+  border: 1px solid color-mix(in srgb, var(--acc) 55%, transparent);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 32px color-mix(in srgb, var(--acc) 22%, transparent);
+}
+.fv-castnote-sigil {
+  position: relative; flex: none; width: 38px; height: 38px; display: grid; place-items: center;
+  font-size: 17px; color: var(--acc); text-shadow: 0 0 12px var(--acc);
+}
+.fv-castnote-sigil i {
+  position: absolute; inset: 0; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--acc) 70%, transparent);
+  animation: fv-castnote-spin 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+@keyframes fv-castnote-spin { from { transform: rotate(-120deg) scale(0.6); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+.fv-castnote-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-castnote-body b { font-family: var(--font-display); font-size: 16px; line-height: 1.15; }
+.fv-castnote-body small { font-size: 11.5px; color: var(--muted); }
+.fv-castnote-line { font-size: 12.5px; color: var(--ink); }
+.fv-castnote-line::before { content: '› '; color: var(--acc); }
+.fv-castnote-warn { font-size: 11.5px; color: #E0A93E; }
+.fv-castnote-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.fv-castnote-actions button {
+  cursor: pointer; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--muted);
+}
+.fv-castnote-actions button.is-primary { color: #1a1206; border-color: var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold)); }
+.fv-castnote-close { flex: none; cursor: pointer; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 4px; }
+@media (prefers-reduced-motion: reduce) { .fv-castnote-sigil i { animation: none; } }
+@media (max-width: 760px) { .fv-castnote { right: 12px; bottom: calc(86px + env(safe-area-inset-bottom)); } }
+
+/* botão Conjurar: acabou de ser usado / já usado neste turno */
+.fv-cast-btn.is-cast { animation: fv-cast-flash 0.9s ease-out 1; }
+@keyframes fv-cast-flash {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 70%, transparent); background: color-mix(in srgb, var(--acc) 35%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+.fv-cast-btn.is-used { border-style: dashed; opacity: 0.85; }
+.fv-cast-btn.is-used::after { content: ' ✓'; }
+@media (prefers-reduced-motion: reduce) { .fv-cast-btn.is-cast { animation: none; } }
+
+/* efeitos de magia ativos (aba Combate / Mesa) */
+.fv-spell-effects { display: flex; flex-wrap: wrap; gap: 6px; }
+.fv-spell-effect {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 6px 5px 11px; border-radius: 999px; font-size: 12px;
+  border: 1px solid color-mix(in srgb, var(--acc) 50%, transparent); background: color-mix(in srgb, var(--acc) 10%, transparent); color: var(--ink);
+}
+.fv-spell-effect b { color: var(--acc); font-weight: 700; }
+.fv-spell-effect small { color: var(--muted); font-size: 10.5px; }
+.fv-spell-effect button { cursor: pointer; border: 0; background: none; color: var(--muted); font-size: 14px; line-height: 1; padding: 0 4px; }

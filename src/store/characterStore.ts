@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStateStorage } from '@/lib/storage/zustandIdb';
-import type { Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { ActiveSpellEffect, Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/characterBuilder';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
@@ -79,6 +79,17 @@ interface CharacterState {
   setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage', on: boolean) => void;
   /** Ataque Furtivo gasto neste turno. */
   useSneakAttack: (id: string) => void;
+  /** Efeito de magia passa a valer em você (troca o da mesma magia). */
+  applySpellEffect: (id: string, effect: ActiveSpellEffect) => void;
+  removeSpellEffect: (id: string, spellId: string) => void;
+  /** Acaba com os efeitos que dependem de concentração (nova concentração / romper). */
+  endConcentrationEffects: (id: string) => void;
+  /** PV temporários não acumulam: fica o maior. */
+  gainTempHp: (id: string, amount: number) => void;
+  /** Marca ação/bônus/reação como gasta (sem desmarcar). */
+  useTurn: (id: string, key: 'action' | 'bonus' | 'reaction') => void;
+  /** Registra a magia conjurada neste turno. */
+  noteCast: (id: string, spellId: string) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
   forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */
@@ -374,6 +385,12 @@ export const useCharacterStore = create<CharacterState>()(
           mutate(id, (c) => {
             c.combat.turn = { action: false, bonus: false, reaction: false };
             c.combat.moveUsed = 0;
+            c.combat.castThisTurn = [];
+            // Escudo Arcano acaba no início do seu turno; Heroísmo renova os PV temporários
+            const effects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'turn');
+            c.combat.spellEffects = effects;
+            const perTurn = Math.max(0, ...effects.map((e) => e.tempPerTurn ?? 0));
+            if (perTurn > c.combat.hpTemp) c.combat.hpTemp = perTurn;
           });
         },
         adjustMove(id, delta) {
@@ -401,14 +418,53 @@ export const useCharacterStore = create<CharacterState>()(
         toggleConcentration(id) {
           mutate(id, (c) => {
             c.combat.concentration = !c.combat.concentration;
-            // romper a concentração encerra Bruxaria e Marca do Caçador
-            if (!c.combat.concentration) c.combat.marks = (c.combat.marks ?? []).filter((m) => m === 'rage');
+            // romper a concentração encerra Bruxaria, Marca do Caçador e os efeitos de concentração
+            if (!c.combat.concentration) {
+              c.combat.marks = (c.combat.marks ?? []).filter((m) => m === 'rage');
+              c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
+            }
           });
         },
         setMark(id, mark, on) {
           mutate(id, (c) => {
             const cur = (c.combat.marks ?? []).filter((m) => m !== mark);
             c.combat.marks = on ? [...cur, mark] : cur;
+          });
+        },
+        applySpellEffect(id, effect) {
+          mutate(id, (c) => {
+            const list = c.combat.spellEffects ?? [];
+            const had = list.find((e) => e.spellId === effect.spellId);
+            // Auxílio: o PV atual sobe junto com o máximo (só na primeira vez)
+            if (effect.maxHp && !had) c.hpCurrent += effect.maxHp;
+            c.combat.spellEffects = [...list.filter((e) => e.spellId !== effect.spellId), effect];
+          });
+        },
+        removeSpellEffect(id, spellId) {
+          mutate(id, (c) => {
+            const gone = (c.combat.spellEffects ?? []).find((e) => e.spellId === spellId);
+            c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.spellId !== spellId);
+            if (gone?.maxHp) c.hpCurrent = Math.min(c.hpCurrent, deriveCharacter(c).maxHp);
+          });
+        },
+        endConcentrationEffects(id) {
+          mutate(id, (c) => {
+            c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
+          });
+        },
+        gainTempHp(id, amount) {
+          mutate(id, (c) => {
+            c.combat.hpTemp = Math.max(c.combat.hpTemp, Math.max(0, amount));
+          });
+        },
+        useTurn(id, key) {
+          mutate(id, (c) => {
+            c.combat.turn = { ...c.combat.turn, [key]: true };
+          });
+        },
+        noteCast(id, spellId) {
+          mutate(id, (c) => {
+            c.combat.castThisTurn = [...(c.combat.castThisTurn ?? []).filter((x) => x !== spellId), spellId];
           });
         },
         useSneakAttack(id) {
@@ -512,6 +568,8 @@ export const useCharacterStore = create<CharacterState>()(
             c.combat.moveUsed = 0;
             c.combat.concentration = false;
             c.combat.marks = [];
+            c.combat.spellEffects = [];
+            c.combat.castThisTurn = [];
             // descanso longo remove 1 nível de exaustão (PHB 2014)
             c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
             // todas as magias de item recarregam no descanso longo

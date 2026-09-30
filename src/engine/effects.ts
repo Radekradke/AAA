@@ -16,6 +16,7 @@ export type ModifierSourceType =
   | 'feat'
   | 'item'
   | 'condition'
+  | 'spell'
   | 'homebrew';
 
 export interface Modifier {
@@ -71,6 +72,7 @@ const SOURCE_LABEL: Record<ModifierSourceType, string> = {
   feat: 'talento',
   item: 'item',
   condition: 'condição',
+  spell: 'magia',
   homebrew: 'homebrew',
 };
 

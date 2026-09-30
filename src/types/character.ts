@@ -44,6 +44,27 @@ export interface InventoryItem {
   location?: 'mochila' | 'bau';
 }
 
+/** Efeito de magia ativo no personagem — somado pela ficha até acabar. */
+export interface ActiveSpellEffect {
+  spellId: string;
+  name: string;
+  /** Quando acaba: no início do seu próximo turno, ao romper a concentração, ou no descanso longo. */
+  until: 'turn' | 'concentration' | 'rest';
+  /** Resumo curto para o chip ("+5 CA", "CA 13 + DES"…). */
+  label: string;
+  ac?: number;
+  /** CA base alternativa sem armadura (Armadura Arcana: 13 + DES). */
+  acBase?: number;
+  /** CA mínima (Pele de Árvore: 16). */
+  acMin?: number;
+  speed?: number;
+  /** Deslocamento dobrado (Acelerar). */
+  speedDouble?: boolean;
+  maxHp?: number;
+  /** PV temporários renovados no início de cada turno (Heroísmo). */
+  tempPerTurn?: number;
+}
+
 /** Magia concedida por um item (recarga por descanso ou à vontade). */
 export interface ItemSpellGrant {
   spellId: string;
@@ -111,6 +132,10 @@ export interface CombatState {
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
   marks?: Array<'hex' | 'huntersMark' | 'rage'>;
+  /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
+  spellEffects?: ActiveSpellEffect[];
+  /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */
+  castThisTurn?: string[];
   /** Recursos de classe consumidos (id -> usados). */
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
