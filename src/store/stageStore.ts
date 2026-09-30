@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
-import type { NewToken } from '@/services/stageService';
-import { PALCO_SETUP_MISSING } from '@/services/mediaService';
+import type { NewToken, TokenPatch } from '@/services/stageService';
+import { PalcoSetupError } from '@/services/stageService';
 import type { Handout, Scene, StagePing, StageState, Token } from '@/types/stage';
 
 /**
@@ -31,6 +31,8 @@ interface StageStore {
   /** Cutscene que o jogador minimizou (volta ao mudar de quadro). */
   hiddenCutscene: string | null;
   missing: boolean;
+  /** Erro original do banco quando o palco parece faltando (diagnóstico). */
+  missingDetail: string | null;
   error: string | null;
   busy: boolean;
 
@@ -47,7 +49,9 @@ interface StageStore {
   removeScene: (scene: Scene) => Promise<void>;
 
   addTokens: (list: NewToken[]) => Promise<void>;
-  updateToken: (id: string, patch: Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color'>>) => Promise<void>;
+  updateToken: (id: string, patch: TokenPatch) => Promise<void>;
+  /** Mesmo patch em vários peões (ex.: retrato de todos os Goblins). */
+  updateTokens: (ids: string[], patch: TokenPatch) => Promise<void>;
   removeToken: (id: string) => Promise<void>;
   moveToken: (id: string, x: number, y: number) => Promise<void>;
   dragPreview: (id: string, x: number, y: number) => void;
@@ -145,6 +149,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     pings: [],
     hiddenCutscene: null,
     missing: false,
+    missingDetail: null,
     error: null,
     busy: false,
 
@@ -194,11 +199,10 @@ export const useStageStore = create<StageStore>()((set, get) => {
           if (firstLoad) markSeen(campaignId, fresh.filter((h) => !recent.includes(h)).map((h) => h.id));
           if (recent.length && !incoming) incoming = recent[0];
         }
-        set({ scenes, stage, handouts, tokens, incoming, missing: false, viewSceneId: isMaster ? view : null });
+        set({ scenes, stage, handouts, tokens, incoming, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
       } catch (e) {
         if (mine !== seq) return;
-        const msg = (e as Error).message;
-        set(msg === PALCO_SETUP_MISSING ? { missing: true, error: null } : { error: msg });
+        set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail, error: null } : { error: (e as Error).message });
       }
     },
 
@@ -211,8 +215,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
         await get().refresh();
         return true;
       } catch (e) {
-        const msg = (e as Error).message;
-        set(msg === PALCO_SETUP_MISSING ? { missing: true } : { error: msg });
+        set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail } : { error: (e as Error).message });
         return false;
       } finally {
         set({ busy: false });
@@ -252,6 +255,14 @@ export const useStageStore = create<StageStore>()((set, get) => {
     updateToken: (id, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
       return get().run(() => stageService.updateToken(id, patch)).then(() => undefined);
+    },
+    updateTokens: (ids, patch) => {
+      set((s) => ({ tokens: s.tokens.map((t) => (ids.includes(t.id) ? { ...t, ...patch } : t)) }));
+      return get()
+        .run(async () => {
+          for (const id of ids) await stageService.updateToken(id, patch);
+        })
+        .then(() => undefined);
     },
     removeToken: (id) => {
       set((s) => ({ tokens: s.tokens.filter((t) => t.id !== id) }));

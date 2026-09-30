@@ -552,3 +552,6 @@ grant select, insert, update, delete on public.campaign_npcs to authenticated;
 grant select, insert, update, delete on public.campaign_npc_secrets to authenticated;
 
 do $fn$ begin alter publication supabase_realtime add table public.campaign_npcs; exception when duplicate_object then null; end $fn$;
+
+-- a API do Supabase (PostgREST) passa a enxergar as tabelas novas na hora
+notify pgrst, 'reload schema';

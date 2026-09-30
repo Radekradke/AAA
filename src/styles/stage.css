@@ -677,3 +677,8 @@
 .fv-calib { align-items: start; }
 .fv-calib-controls label.fv-bestiary-check { flex-direction: row; align-items: flex-start; gap: 8px; }
 .fv-stage-actions select { flex: 1 1 200px; }
+.fv-tokenbar-art { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; font-size: 12.5px; cursor: pointer; }
+.fv-tokenbar-art:focus-within { outline: 2px solid var(--acc); }
+.fv-stage-diag { margin: 8px 0; font-size: 12px; color: var(--muted); word-break: break-word; }
+.fv-stage-diag code { color: var(--ink); font-family: 'Chakra Petch', monospace; }
+.fv-stage-empty > .fv-btn-ghost { min-height: 38px; padding: 0 14px; margin-top: 6px; }

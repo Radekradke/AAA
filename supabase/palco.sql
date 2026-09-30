@@ -62,6 +62,8 @@ create table if not exists public.scene_tokens (
   updated_at timestamptz not null default now()
 );
 create index if not exists scene_tokens_scene_idx on public.scene_tokens (scene_id);
+-- retrato do peão (inimigo, NPC ou herói) enviado pelo mestre: "<campaign_id>/<arquivo>"
+alter table public.scene_tokens add column if not exists image_path text;
 
 -- ---------------------------------------------------------------------
 -- HANDOUTS: cartas, pistas e imagens entregues a todos ou a alguns
@@ -180,6 +182,12 @@ returns boolean language sql security definer stable set search_path = public as
          and (s.image_path = p_name or s.beats @> jsonb_build_array(jsonb_build_object('path', p_name)))
     )
     or exists (
+      select 1 from scene_tokens t join campaign_scenes s on s.id = t.scene_id
+       where t.campaign_id::text = split_part(p_name, '/', 1)
+         and t.image_path = p_name and not t.hidden and s.revealed
+         and public.is_campaign_member(t.campaign_id)
+    )
+    or exists (
       select 1 from campaign_handouts h
        where h.campaign_id::text = split_part(p_name, '/', 1)
          and h.image_path = p_name and h.shown_at is not null
@@ -207,8 +215,12 @@ do $fn$ begin
   execute $p$drop policy if exists "fv_media_delete" on storage.objects$p$;
   execute $p$create policy "fv_media_delete" on storage.objects for delete to authenticated
     using (bucket_id = 'campaign-media' and public.fv_media_master(name))$p$;
-exception when undefined_table or invalid_schema_name then
-  raise notice 'Storage indisponível neste projeto — mapas e imagens não vão subir.';
+exception
+  when undefined_table or invalid_schema_name then
+    raise notice 'Storage indisponível neste projeto — mapas e imagens não vão subir.';
+  -- nunca derruba o resto do script (tabelas do palco) por causa do Storage
+  when others then
+    raise warning 'Palco criado, mas o Storage recusou a configuração (%). Mapas e imagens podem não subir.', sqlerrm;
 end $fn$;
 
 -- tempo real
@@ -216,3 +228,6 @@ do $fn$ begin alter publication supabase_realtime add table public.campaign_scen
 do $fn$ begin alter publication supabase_realtime add table public.campaign_stage; exception when duplicate_object then null; end $fn$;
 do $fn$ begin alter publication supabase_realtime add table public.scene_tokens; exception when duplicate_object then null; end $fn$;
 do $fn$ begin alter publication supabase_realtime add table public.campaign_handouts; exception when duplicate_object then null; end $fn$;
+
+-- a API do Supabase (PostgREST) passa a enxergar as tabelas novas na hora
+notify pgrst, 'reload schema';

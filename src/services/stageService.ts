@@ -15,13 +15,24 @@ function sb() {
   return client;
 }
 
-const missing = (m: string) => /campaign_scenes|campaign_stage|scene_tokens|campaign_handouts|move_token|does not exist|Could not find the (table|function)|schema cache/i.test(m);
+const TABLES = 'campaign_scenes|campaign_stage|scene_tokens|campaign_handouts|move_token';
+/** Só "a tabela/função não existe" — não qualquer erro que cite o nome dela. */
+const missing = (m: string) =>
+  new RegExp(`Could not find the (table|function) '?public\\.(${TABLES})|relation "?(public\\.)?(${TABLES})"? does not exist|function public\\.(${TABLES})\\b.* does not exist`, 'i').test(m);
 
-export function stageError(e: { message: string }): Error {
-  if (missing(e.message)) return new Error(PALCO_SETUP_MISSING);
+/** O banco não tem o palco; `detail` guarda a mensagem original para diagnóstico. */
+export class PalcoSetupError extends Error {
+  constructor(public detail: string) {
+    super(PALCO_SETUP_MISSING);
+  }
+}
+
+export function stageError(e: { message: string; code?: string }): Error {
+  if (missing(e.message)) return new PalcoSetupError(e.message);
   if (/row-level security|violates row/i.test(e.message)) return new Error('O banco recusou: só o mestre desta mesa mexe no palco. Se você é o mestre, saia e entre de novo (sessão expirada).');
   if (/mestre ou o dono/i.test(e.message)) return new Error('Esse peão não é seu — só o mestre ou o dono move.');
-  return new Error(e.message);
+  if (/JWT|not authenticated|permission denied/i.test(e.message)) return new Error(`O banco recusou o acesso (${e.message}). Saia e entre de novo; se continuar, rode supabase/palco.sql outra vez.`);
+  return new Error(`Palco: ${e.message}${e.code ? ` (${e.code})` : ''}`);
 }
 
 const num = (v: unknown, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
@@ -62,6 +73,7 @@ export function mapToken(r: Record<string, unknown>): Token {
     combatantId: (r.combatant_id as string) ?? null,
     monsterRef: (r.monster_ref as string) ?? null,
     color: (r.color as string) ?? null,
+    imagePath: (r.image_path as string) ?? null,
     x: num(r.x),
     y: num(r.y),
     size: num(r.size, 1),
@@ -96,6 +108,7 @@ function sceneRow(campaignId: string, s: Partial<Scene>) {
 }
 
 export type NewToken = Omit<Token, 'id' | 'campaignId'>;
+export type TokenPatch = Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y' | 'imagePath'>>;
 
 export const stageService = {
   async scenes(campaignId: string): Promise<Scene[]> {
@@ -157,14 +170,16 @@ export const stageService = {
     await sessionUserId();
     const rows = list.map((t) => ({
       scene_id: t.sceneId, campaign_id: campaignId, kind: t.kind, label: t.label.slice(0, 60), sheet_id: t.sheetId, owner_id: t.ownerId,
-      npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
+      npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, image_path: t.imagePath, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
     }));
     const { error } = await sb().from('scene_tokens').insert(rows);
     if (error) throw stageError(error);
   },
 
-  async updateToken(id: string, patch: Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y'>>): Promise<void> {
-    const { error } = await sb().from('scene_tokens').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+  async updateToken(id: string, patch: TokenPatch): Promise<void> {
+    const { imagePath, ...rest } = patch;
+    const row = { ...rest, ...(imagePath !== undefined ? { image_path: imagePath } : {}), updated_at: new Date().toISOString() };
+    const { error } = await sb().from('scene_tokens').update(row).eq('id', id);
     if (error) throw stageError(error);
   },
 

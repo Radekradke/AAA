@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StageMap } from './StageMap';
 import type { TokenFace } from './StageMap';
-import { useMediaUrl } from '@/services/mediaService';
+import { mediaService, useMediaUrl, useMediaUrls } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -36,7 +36,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   const scene = isMaster ? st.scenes.find((s) => s.id === st.viewSceneId) ?? live : live;
   const isLive = !!scene && scene.id === live?.id;
   const [selected, setSelected] = useState<string | null>(null);
-  const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster });
+  const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens: st.tokens });
 
   if (st.missing) {
     return (
@@ -47,6 +47,8 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             ? 'O banco ainda não tem o palco (mapas, cenas e handouts). No Supabase: SQL Editor → aba nova → cole supabase/palco.sql → Run. Depois recarregue esta página.'
             : 'O mestre ainda precisa atualizar o banco da mesa para usar mapas e cenas.'}
         </p>
+        {isMaster && st.missingDetail && <p className="fv-stage-diag">Resposta do banco: <code>{st.missingDetail}</code></p>}
+        <button type="button" className="fv-btn-ghost" onClick={() => void st.refresh()}>Verificar de novo</button>
       </section>
     );
   }
@@ -170,8 +172,25 @@ function CutsceneThumb({ scene, beat }: { scene: Scene; beat: number }) {
 /** Mestre: peão selecionado — tamanho, esconder, tirar do mapa. */
 function TokenBar({ token, onClose }: { token: Token | null; onClose: () => void }) {
   const st = useStageStore();
+  const [busy, setBusy] = useState(false);
   if (!token) return null;
   const sizes = [0.5, 1, 2, 3, 4];
+  // mesmo monstro (ou mesmo nome sem o "#2"): o retrato vale para todos
+  const key = artKey(token.monsterRef, token.label);
+  const same = st.tokens.filter((t) => t.kind === token.kind && artKey(t.monsterRef, t.label) === key);
+  const setArt = async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const { path } = await mediaService.upload(token.campaignId, file, 360);
+      rememberArt(token.campaignId, key, path);
+      await st.updateTokens(same.map((t) => t.id), { imagePath: path });
+    } catch (e) {
+      useStageStore.setState({ error: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="fv-tokenbar" role="toolbar" aria-label={`Peão ${token.label}`}>
       <b>{token.label || 'Peão'}</b>
@@ -182,6 +201,15 @@ function TokenBar({ token, onClose }: { token: Token | null; onClose: () => void
           </button>
         ))}
       </span>
+      <label className="fv-btn-ghost fv-tokenbar-art" title={same.length > 1 ? `Vale para os ${same.length} peões iguais` : 'Retrato do peão'}>
+        <input type="file" accept="image/png,image/jpeg,image/webp" hidden disabled={busy} onChange={(e) => { void setArt(e.target.files?.[0]); e.target.value = ''; }} />
+        {busy ? 'Enviando…' : token.imagePath ? 'Trocar retrato' : same.length > 1 ? `Retrato (${same.length})` : 'Retrato'}
+      </label>
+      {token.imagePath && (
+        <button type="button" className="fv-btn-ghost" onClick={() => { forgetArt(token.campaignId, key); void st.updateTokens(same.map((t) => t.id), { imagePath: null }); }}>
+          Sem retrato
+        </button>
+      )}
       <button type="button" className="fv-btn-ghost" onClick={() => void st.updateToken(token.id, { hidden: !token.hidden })}>
         {token.hidden ? 'Revelar' : 'Esconder'}
       </button>
@@ -189,6 +217,36 @@ function TokenBar({ token, onClose }: { token: Token | null; onClose: () => void
       <button type="button" className="fv-tokenbar-x" onClick={onClose} aria-label="Fechar">×</button>
     </div>
   );
+}
+
+/** Chave do retrato: o monstro do bestiário ou o nome sem numeração ("Goblin #2" → "goblin"). */
+function artKey(monsterRef: string | null, label: string): string {
+  return monsterRef ? `m:${monsterRef}` : `n:${label.replace(/\s*#?\d+$/, '').trim().toLowerCase()}`;
+}
+const artStore = (cid: string) => `fv-token-art-${cid}`;
+/** Retratos que o mestre já escolheu nesta mesa (próximos Goblins já entram com rosto). */
+function tokenArt(cid: string): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(artStore(cid)) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+function rememberArt(cid: string, key: string, path: string) {
+  try {
+    localStorage.setItem(artStore(cid), JSON.stringify({ ...tokenArt(cid), [key]: path }));
+  } catch {
+    /* ignora */
+  }
+}
+function forgetArt(cid: string, key: string) {
+  const all = tokenArt(cid);
+  delete all[key];
+  try {
+    localStorage.setItem(artStore(cid), JSON.stringify(all));
+  } catch {
+    /* ignora */
+  }
 }
 
 const SIZE_NAME: Record<number, string> = { 0.5: 'Miúdo', 1: 'Pequeno/Médio', 2: 'Grande', 3: 'Enorme', 4: 'Imenso' };
@@ -217,7 +275,8 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
     return out;
   };
 
-  const base = { sheetId: null, ownerId: null, npcId: null, combatantId: null, monsterRef: null, color: null, size: 1, hidden: false } as const;
+  const base = { sheetId: null, ownerId: null, npcId: null, combatantId: null, monsterRef: null, color: null, imagePath: null, size: 1, hidden: false } as const;
+  const remembered = tokenArt(scene.campaignId);
   const heroesOff = heroes.filter((h) => !onMap((t) => t.sheetId === h.share.sheetId));
   const npcsOff = npcs.filter((n) => !onMap((t) => t.npcId === n.id));
   const combOff = combatants.filter((c) => !onMap((t) => t.combatantId === c.id || (!!c.sheetId && t.sheetId === c.sheetId)));
@@ -225,10 +284,14 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
   const addEncounter = () =>
     void st.addTokens(place(combOff.map((c) => {
       const m = c.monsterRef ? MONSTER_BY_ID[c.monsterRef] : null;
+      // NPC do encontro com o mesmo nome de um NPC da galeria → usa o retrato dele
+      const npc = c.type === 'npc' ? npcs.find((n) => n.name.trim().toLowerCase() === c.name.trim().toLowerCase()) : undefined;
       return {
         ...base,
         kind: c.type === 'player' ? 'hero' : c.type === 'npc' ? 'npc' : 'monster',
         label: c.name,
+        npcId: npc?.id ?? null,
+        imagePath: remembered[artKey(c.monsterRef, c.name)] ?? null,
         sheetId: c.sheetId,
         ownerId: c.type === 'player' ? c.ownerId : null,
         combatantId: c.id,
@@ -299,8 +362,9 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
 }
 
 /** Rosto, deslocamento, vida e turno de cada peão (a partir das fichas, NPCs e do encontro). */
-function useTokenContext({ heroes, npcs, combatants, encounter, isMaster }: { heroes: SharedHero[]; npcs: CampaignNpc[]; combatants: Combatant[]; encounter: Encounter | null; isMaster: boolean }) {
+function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens }: { heroes: SharedHero[]; npcs: CampaignNpc[]; combatants: Combatant[]; encounter: Encounter | null; isMaster: boolean; tokens: Token[] }) {
   const local = useCharacterStore((c) => c.characters);
+  const art = useMediaUrls(tokens.map((t) => t.imagePath));
   const bySheet = useMemo(() => {
     const m = new Map<string, { face: TokenFace; speed: number | null }>();
     for (const h of heroes) {
@@ -321,6 +385,8 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster }: { he
 
   return {
     faceFor: (t: Token): TokenFace | null => {
+      // retrato enviado pelo mestre vence tudo
+      if (t.imagePath && art[t.imagePath]) return { url: art[t.imagePath], style: { backgroundSize: 'cover', backgroundPosition: '50% 22%' } };
       if (t.sheetId && bySheet.has(t.sheetId)) return bySheet.get(t.sheetId)!.face;
       const n = t.npcId ? npcById.get(t.npcId) : null;
       if (n?.portrait) return { url: n.portrait, style: { backgroundSize: 'cover', backgroundPosition: '50% 20%' } };
