@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Modal } from '@/components/ui/Modal';
-import { npcService } from '@/services/npcService';
+import { npcService, NPC_SETUP_MISSING } from '@/services/npcService';
 import { getSupabase } from '@/services/supabaseClient';
 import { processPortraitFile } from '@/lib/portrait';
 import { MONSTERS, MONSTER_BY_ID } from '@/data/bestiary';
@@ -28,7 +28,13 @@ export function useCampaignNpcs(campaignId: string | null | undefined, isMaster:
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(() => {
     if (!campaignId) return;
-    npcService.list(campaignId).then(setNpcs).catch((e) => setError((e as Error).message));
+    npcService
+      .list(campaignId)
+      .then((l) => {
+        setNpcs(l);
+        setError(null);
+      })
+      .catch((e) => setError((e as Error).message));
     if (isMaster) void npcService.secrets(campaignId).then(setSecrets);
   }, [campaignId, isMaster]);
   useEffect(load, [load]);
@@ -36,7 +42,7 @@ export function useCampaignNpcs(campaignId: string | null | undefined, isMaster:
     const client = getSupabase();
     if (!client || !campaignId) return;
     const ch = client
-      .channel(`npcs-${campaignId}`)
+      .channel(`npcs-${campaignId}-${Math.random().toString(36).slice(2, 8)}`) // nome único: dois componentes podem ouvir a mesma mesa
       .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_npcs', filter: `campaign_id=eq.${campaignId}` }, load)
       .subscribe();
     return () => void client.removeChannel(ch);
@@ -58,11 +64,15 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
       <div className="fv-npcs-head">
         <div className="fv-label">Personagens da campanha · {npcs.length}</div>
         {isMaster && (
-          <button type="button" className="fv-btn-gold" onClick={() => setEditing('new')}>+ Novo NPC</button>
+          <button type="button" className="fv-btn-gold" disabled={error === NPC_SETUP_MISSING} onClick={() => setEditing('new')}>+ Novo NPC</button>
         )}
       </div>
-      {error && <p className="fv-live-hint">{error}</p>}
-      {!npcs.length && (
+      {error && (
+        <div className="fv-npc-alert" role="alert">
+          {error === NPC_SETUP_MISSING && !isMaster ? 'Os NPCs ainda não estão disponíveis — o mestre precisa atualizar o banco da mesa.' : error}
+        </div>
+      )}
+      {!npcs.length && !error && (
         <p className="fv-live-hint">
           {isMaster
             ? 'Crie os NPCs da história com retrato: os jogadores veem o que você revelar e podem citá-los no diário com @.'
@@ -187,14 +197,18 @@ function NpcEditor({ campaignId, npc, secret, masterSheets, onClose, onSaved }: 
               disabled={busy}
               onClick={async () => {
                 if (!window.confirm(`Apagar ${npc.name}? Menções no diário dos jogadores viram texto comum.`)) return;
-                await npcService.remove(npc.id).catch((e) => setErr((e as Error).message));
-                onSaved();
+                try {
+                  await npcService.remove(npc.id);
+                  onSaved();
+                } catch (e) {
+                  setErr((e as Error).message);
+                }
               }}
             >
               Apagar
             </button>
           )}
-          {err && <span className="fv-npc-editor-err">{err}</span>}
+          {err && <span className="fv-npc-editor-err" role="alert">{err}</span>}
           <button type="button" className="fv-btn-gold" disabled={busy} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar'}</button>
         </div>
       }

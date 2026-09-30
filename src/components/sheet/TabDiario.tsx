@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useCharacterStore } from '@/store/characterStore';
@@ -8,6 +8,32 @@ import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useSheetNpcs, MentionField, NpcMentionChip, mentionedNpcs } from '@/components/diary/NpcMentions';
+import { HandoutModal } from '@/components/stage/Handouts';
+import { stageService } from '@/services/stageService';
+import { cloudEnabled } from '@/services/supabaseClient';
+import { useAuthStore } from '@/store/authStore';
+import type { Handout } from '@/types/stage';
+
+/** Pistas (handouts) que o mestre entregou nas mesas desta ficha — com cópia offline. */
+function useSheetHandouts(sheetId: string): Handout[] {
+  const user = useAuthStore((s) => s.user);
+  const [list, setList] = useState<Handout[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`fv-handouts-${sheetId}`) ?? '[]');
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    if (!cloudEnabled() || !user || user.guest) return;
+    let alive = true;
+    void stageService.handoutsForSheet(sheetId).then((l) => alive && setList(l));
+    return () => {
+      alive = false;
+    };
+  }, [sheetId, user]);
+  return list;
+}
 
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
@@ -15,6 +41,8 @@ export function TabDiario({ char }: TabProps) {
   const [query, setQuery] = useState('');
   // NPCs das mesas desta ficha: @ para citar, retrato ao passar o mouse
   const npcs = useSheetNpcs(char.id);
+  const clues = useSheetHandouts(char.id);
+  const [clue, setClue] = useState<Handout | null>(null);
 
   const entries = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -72,6 +100,25 @@ export function TabDiario({ char }: TabProps) {
           </div>
         )}
       </Panel>
+
+      {/* Pistas entregues pelo mestre na mesa */}
+      {clues.length > 0 && (
+        <Panel style={{ marginBottom: 14 }}>
+          <div className="fv-label" style={{ marginBottom: 10 }}>Pistas da mesa · {clues.length}</div>
+          <div className="fv-diary-clues">
+            {clues.map((h) => (
+              <button key={h.id} type="button" className="fv-handout-open" onClick={() => setClue(h)}>
+                <span className="fv-handout-seal" aria-hidden>✉</span>
+                <span>
+                  <b>{h.title}</b>
+                  <small>{h.shownAt ? new Date(h.shownAt).toLocaleDateString('pt-BR') : ''}{h.recipients ? ' · só para você' : ''}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+          {clue && <HandoutModal handout={clue} onClose={() => setClue(null)} />}
+        </Panel>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 14 }}>
         {entries.map((entry) => (

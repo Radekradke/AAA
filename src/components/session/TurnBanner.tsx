@@ -21,9 +21,15 @@ export function TurnBanner() {
     } catch {
       /* sem vibração */
     }
+  }, [key, mine]);
+
+  // some sozinho: o timer depende só do aviso aberto (a mesa atualiza o
+  // combatente toda hora, e isso não pode reiniciar/cancelar a saída)
+  useEffect(() => {
+    if (!shown) return;
     const t = setTimeout(() => setShown(null), 3400);
     return () => clearTimeout(t);
-  }, [key, mine]);
+  }, [shown]);
 
   if (!shown || !mine) return null;
   return (

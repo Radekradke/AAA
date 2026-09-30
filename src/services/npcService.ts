@@ -1,4 +1,5 @@
 import { getSupabase } from './supabaseClient';
+import { sessionUserId } from './campaignService';
 import type { CampaignNpc, NpcSecret, NpcStats } from '@/types/npc';
 
 /**
@@ -11,12 +12,20 @@ function sb() {
   return client;
 }
 
-function friendly(e: { message: string }): Error {
-  if (/relation .*campaign_npcs.* does not exist|Could not find the table/i.test(e.message)) {
-    return new Error('O banco ainda não tem NPCs — rode de novo o supabase/multiplayer_session.sql.');
+/** Banco sem as tabelas de NPC (o SQL da atualização ainda não rodou). */
+export const NPC_SETUP_MISSING =
+  'O banco ainda não tem as tabelas de NPC. No Supabase: SQL Editor → aba nova → cole supabase/atualizacao_npcs_bestiario.sql → Run.';
+
+const missingTable = (m: string) => /campaign_npc|relation .* does not exist|Could not find the table|schema cache/i.test(m);
+
+function friendly(e: { message: string; code?: string }): Error {
+  if (missingTable(e.message)) return new Error(NPC_SETUP_MISSING);
+  if (/row-level security|violates row/i.test(e.message)) {
+    return new Error('O banco recusou: só o mestre desta mesa edita NPCs. Se você é o mestre, sua sessão pode ter expirado — saia e entre de novo.');
   }
-  if (/row-level security|violates/i.test(e.message)) return new Error('Só o mestre da mesa edita os NPCs.');
-  return new Error(e.message);
+  if (/check constraint.*portrait|value too long/i.test(e.message)) return new Error('Retrato grande demais — tente outra imagem.');
+  if (/check constraint.*name/i.test(e.message)) return new Error('O nome precisa ter de 1 a 80 letras.');
+  return new Error(`Não deu para salvar o NPC: ${e.message}`);
 }
 
 export function mapNpc(r: Record<string, unknown>): CampaignNpc {
@@ -35,10 +44,7 @@ export function mapNpc(r: Record<string, unknown>): CampaignNpc {
 export const npcService = {
   async list(campaignId: string): Promise<CampaignNpc[]> {
     const { data, error } = await sb().from('campaign_npcs').select('*').eq('campaign_id', campaignId).order('name');
-    if (error) {
-      if (/does not exist|Could not find the table/i.test(error.message)) return [];
-      throw friendly(error);
-    }
+    if (error) throw friendly(error);
     return (data ?? []).map(mapNpc);
   },
 
@@ -55,6 +61,7 @@ export const npcService = {
   },
 
   async save(campaignId: string, npc: Partial<CampaignNpc> & { name: string }, secret?: { notes: string; stats: NpcStats }): Promise<CampaignNpc> {
+    await sessionUserId();
     const row = {
       campaign_id: campaignId,
       name: npc.name.trim(),
@@ -81,6 +88,7 @@ export const npcService = {
   },
 
   async remove(id: string): Promise<void> {
+    await sessionUserId();
     const { error } = await sb().from('campaign_npcs').delete().eq('id', id);
     if (error) throw friendly(error);
   },

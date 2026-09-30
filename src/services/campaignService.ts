@@ -22,7 +22,7 @@ const SESSION_LOST = 'Sua sessão na nuvem expirou (isso acontece, por exemplo, 
  * localmente, mas o token pode ter expirado: aí o banco recebe a escrita como
  * anônimo e o RLS recusa ("new row violates row-level security policy").
  */
-async function sessionUserId(expected?: string): Promise<string> {
+export async function sessionUserId(expected?: string): Promise<string> {
   const { data, error } = await sb().auth.getUser();
   const id = data.user?.id;
   if (error || !id || (expected && expected !== id)) throw new Error(SESSION_LOST);
