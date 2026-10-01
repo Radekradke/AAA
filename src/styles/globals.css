@@ -3714,6 +3714,31 @@ body.fv-dragging .fv-screen-scroll {
 
 /* notebooks bem baixos (≈600px úteis): aperta os respiros do formulário */
 @media (min-width: 1180px) and (max-height: 640px) {
+  .fv-step-head {
+    margin-bottom: 8px;
+  }
+  .fv-detail-desc {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    margin-block: 6px;
+  }
+  .fv-facts dl > div {
+    padding: 3px 0;
+  }
+  .fv-detail-head {
+    gap: 10px;
+  }
+  .fv-detail-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .fv-option,
+  .fv-options.is-compact .fv-option {
+    padding-block: 6px;
+  }
+  .fv-voice {
+    margin-top: 8px;
+  }
   .fv-awaken {
     gap: 10px;
   }
@@ -5911,5 +5936,123 @@ body.fv-dragging .fv-screen-scroll {
   }
   .fv-roll-burst {
     display: none;
+  }
+}
+
+/* Eclipse em telas baixas: o título editorial encolhe e a cápsula do capítulo
+   divide a linha com ele, para a etapa caber sem barra de rolagem */
+@media (max-height: 860px) {
+  [data-theme='eclipse'] .fv-forge-main {
+    padding: 14px clamp(14px, 1.8vw, 22px) 8px;
+  }
+  [data-theme='eclipse'] .fv-step-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 2px;
+    margin-bottom: 12px;
+  }
+  [data-theme='eclipse'] .fv-step-head h2 {
+    margin: 0;
+    font-size: clamp(34px, 3.4vw, 44px);
+  }
+  [data-theme='eclipse'] .fv-step-eyebrow {
+    padding-block: 3px;
+  }
+  [data-theme='eclipse'] .fv-step-num {
+    width: 26px;
+    height: 26px;
+  }
+  [data-theme='eclipse'] .fv-forge-foot {
+    padding-block: 8px;
+  }
+  [data-theme='eclipse'] .fv-forge {
+    padding-bottom: calc(30px + env(safe-area-inset-bottom));
+  }  [data-theme='eclipse'] .fv-detail h3 {
+    font-size: 28px;
+  }
+  [data-theme='eclipse'] .fv-detail {
+    padding: 12px 14px;
+  }
+  [data-theme='eclipse'] .fv-voice {
+    gap: 6px;
+    margin-top: 10px;
+  }
+  [data-theme='eclipse'] .fv-voice .fv-seg button {
+    padding-inline: 11px;
+  }  /* o cartão de detalhe ganha largura para a voz caber numa linha */
+  [data-theme='eclipse'] .fv-choice {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+/* Eclipse em notebooks baixos: a trilha já numera os capítulos */
+@media (min-width: 1180px) and (max-height: 720px) {
+  [data-theme='eclipse'] .fv-step-head h2 {
+    font-size: 34px;
+  }
+  [data-theme='eclipse'] .fv-forge {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  [data-theme='eclipse'] .fv-step-eyebrow {
+    display: none;
+  }
+  [data-theme='eclipse'] .fv-forge-main {
+    padding-top: 10px;
+  }
+  [data-theme='eclipse'] .fv-step-head {
+    margin-bottom: 8px;
+  }
+  [data-theme='eclipse'] .fv-forge-foot {
+    padding-block: 6px;
+  }
+  [data-theme='eclipse'] .fv-detail-desc {
+    margin-block: 6px;
+  }
+}
+
+/* escolhas extras (sublinhagem, idiomas) sob a grade de opções */
+.fv-choice-extras > .fv-detail-sub:first-child {
+  margin-top: 12px;
+}
+@media (min-width: 1180px) and (max-height: 860px) {
+  .fv-choice-extras .fv-detail-sub {
+    margin-top: 8px;
+  }
+  .fv-choice-extras .fv-pills {
+    gap: 5px;
+  }
+  .fv-choice-extras .fv-pill {
+    min-height: 28px;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+  /* antecedentes: cartões mais baixos para sobrar altura aos idiomas */
+  .fv-options.is-compact .fv-option {
+    padding-block: 5px;
+  }
+  .fv-hb-new {
+    min-height: 0;
+  }
+}
+/* antecedentes no desktop alto: cartão deitado (ícone ao lado), sobra altura para os idiomas
+   (telas baixas já têm o próprio modo compacto acima) */
+@media (min-width: 1180px) and (min-height: 861px) {
+  .fv-options.is-compact .fv-option {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 1px;
+    min-height: 0;
+    padding: 10px 22px 10px 12px;
+  }
+  .fv-options.is-compact .fv-option-icon {
+    grid-row: span 2;
+    width: 26px;
+    height: 26px;
+    margin: 0;
   }
 }
