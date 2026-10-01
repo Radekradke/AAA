@@ -1,3 +1,4 @@
+import { haptic } from '@/lib/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -75,6 +76,13 @@ export function RollOverlay() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roll?.id]);
+
+  // crítico e falha crítica também se sentem na mão (celular)
+  useEffect(() => {
+    if (phase !== 'result' || !roll) return;
+    if (roll.crit) haptic([30, 40, 90]);
+    else if (roll.fail) haptic(70);
+  }, [phase, roll?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ao desmontar (sair da ficha), recolhe os dados da mesa
   useEffect(() => () => clear3d(), []);

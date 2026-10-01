@@ -11,6 +11,8 @@ import { useFeedback } from '@/store/feedbackStore';
 export function FeedbackHost() {
   const toasts = useFeedback((s) => s.toasts);
   const dismiss = useFeedback((s) => s.dismiss);
+  const pause = useFeedback((s) => s.pause);
+  const resume = useFeedback((s) => s.resume);
   const confirm = useFeedback((s) => s.confirm);
   const okRef = useRef<HTMLButtonElement | null>(null);
 
@@ -32,11 +34,20 @@ export function FeedbackHost() {
             <motion.div
               key={t.id}
               layout
-              className={`fv-toast is-${t.tone}`}
+              className={`fv-toast is-${t.tone}` + (t.action ? ' has-action' : '')}
               initial={{ opacity: 0, y: 14, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, transition: { duration: 0.16 } }}
+              exit={{ opacity: 0, x: 0, y: 8, transition: { duration: 0.16 } }}
               transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+              // arrastar para o lado dispensa (celular); mouse/foco em cima segura o tempo
+              drag="x"
+              dragSnapToOrigin
+              dragElastic={0.5}
+              onDragEnd={(_, info) => Math.abs(info.offset.x) > 90 && dismiss(t.id)}
+              onMouseEnter={() => pause(t.id)}
+              onMouseLeave={() => resume(t.id)}
+              onFocus={() => pause(t.id)}
+              onBlur={() => resume(t.id)}
             >
               <span className="fv-toast-dot" aria-hidden />
               <span className="fv-toast-msg">{t.message}</span>
@@ -55,6 +66,8 @@ export function FeedbackHost() {
               <button type="button" className="fv-toast-close" aria-label="Fechar aviso" onClick={() => dismiss(t.id)}>
                 ×
               </button>
+              {/* quanto tempo resta para desfazer */}
+              {t.action && <i className="fv-toast-time" style={{ animationDuration: `${t.ms}ms` }} aria-hidden />}
             </motion.div>
           ))}
         </AnimatePresence>

@@ -119,7 +119,7 @@ export function CampaignRoom() {
               <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12.5, color: 'var(--acc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{invite}</div>
             </div>
             <button onClick={copy} className="fv-btn-gold" style={{ minHeight: 40, padding: '0 18px', fontSize: 13 }}>
-              {copied ? 'Copiado!' : 'Copiar link'}
+              {copied ? <><i className="fv-tick" aria-hidden>✓</i> Copiado!</> : 'Copiar link'}
             </button>
           </div>
         )}

@@ -67,7 +67,7 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
                       <div className="fv-live-round">
                         <div className="fv-live-medal" aria-label={`Rodada ${enc.round}`}>
                           <small>Rodada</small>
-                          <b>{enc.round || '—'}</b>
+                          <b key={enc.round}>{enc.round || '—'}</b>
                         </div>
                         <div className="fv-live-round-info">
                           <div className="fv-label">{enc.name}</div>

@@ -1,3 +1,4 @@
+import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
@@ -36,6 +37,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
+  const hpFx = useValueDelta(char.hpCurrent, char.id);
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
 
   const turnDefs = [
@@ -72,7 +74,8 @@ export function TabCombate({ char, derived }: TabProps) {
           <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
             <div className="fv-label" style={{ cursor: 'help' }}>Pontos de Vida</div>
           </LoreTooltip>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: hpColor }}>
+          <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: hpColor }}>
+            <HpPops pops={hpFx.pops} />
             {char.hpCurrent}
             <span style={{ fontSize: '.5em', color: 'var(--muted)' }}> / {hpMax}</span>
           </div>
@@ -90,8 +93,11 @@ export function TabCombate({ char, derived }: TabProps) {
             clipPath: 'polygon(7px 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 7px 100%, 0 50%)',
           }}
         >
+          <HpTrail key={char.id} pct={pct} />
           <div
             style={{
+              position: 'relative',
+              zIndex: 1,
               width: `${pct}%`,
               height: '100%',
               background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`,
@@ -243,6 +249,8 @@ export function TabCombate({ char, derived }: TabProps) {
             return (
               <LoreTooltip key={d.k} info={passiveLore(d.label, used ? 'Usada' : 'Disponível', 'Marque para controlar o que seu personagem já gastou no turno atual. Use “Novo turno” para limpar ação, bônus, reação e movimento.', ['Economia de turno'])} anchorStyle={{ display: 'block' }}>
                 <button
+                  className={'fv-turn-btn' + (used ? ' is-used' : '')}
+                  aria-pressed={used}
                   onClick={() => store.toggleTurn(char.id, d.k)}
                   style={{
                   cursor: 'pointer',
@@ -261,7 +269,7 @@ export function TabCombate({ char, derived }: TabProps) {
                   transition: '.2s',
                 }}
                 >
-                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used ? '✓ ' : ''}{d.label}</span>
+                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used && <i className="fv-tick" aria-hidden>✓ </i>}{d.label}</span>
                   <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: used ? t.muted : t.acc }}>{used ? 'Usada' : 'Disponível'}</span>
                 </button>
               </LoreTooltip>

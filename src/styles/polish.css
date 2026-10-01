@@ -1,0 +1,218 @@
+/* ============================================================
+   POLIMENTO — movimento e resposta às ações.
+   Princípios: cada animação confirma algo que a pessoa fez ou
+   mostra uma mudança de estado; 120–250 ms nas respostas,
+   ~1 s só nos números que contam uma história (dano, cura);
+   nada pisca sozinho; "reduzir movimento" desliga tudo.
+   ============================================================ */
+
+:root {
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-press: 90ms;
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --fx-dmg: #ff5a4a;
+  --fx-heal: #4ee08a;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gold), transparent 62%);
+  color: var(--ink);
+}
+
+/* ---------- botões: afundam ao tocar ---------- */
+:where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action) {
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action):active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: var(--dur-press);
+}
+.fv-btn-ghost,
+.fv-btn-danger {
+  transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+}
+/* desabilitado é desabilitado: sem brilho nem lift no hover */
+:is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-btn):disabled {
+  cursor: not-allowed;
+  filter: saturate(0.6);
+}
+.fv-btn-gold:disabled:hover {
+  transform: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+/* campos: o rótulo ganha cor quando o campo está em foco */
+label:focus-within > small {
+  color: var(--ink);
+  transition: color var(--dur-fast);
+}
+
+/* ---------- avisos ---------- */
+.fv-toast {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+}
+.fv-toast:active { cursor: grabbing; }
+.fv-toast.is-danger { border-color: color-mix(in srgb, var(--danger), var(--line-strong) 55%); }
+.fv-toast.is-ok .fv-toast-dot { animation: fv-dot-ping 0.9s var(--ease-out) 1; }
+.fv-toast-action:hover { background: color-mix(in srgb, var(--gold), transparent 78%); }
+/* tempo restante para desfazer: encolhe e para quando o mouse está em cima */
+.fv-toast-time {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold), transparent 30%), var(--gold));
+  transform-origin: left;
+  animation: fv-toast-time linear forwards;
+}
+.fv-toast:is(:hover, :focus-within) .fv-toast-time { animation-play-state: paused; }
+@keyframes fv-toast-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes fv-dot-ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, #3fc56b, transparent 30%); }
+  100% { box-shadow: 0 0 0 9px color-mix(in srgb, #3fc56b, transparent 100%); }
+}
+
+/* ---------- vida: rastro do dano, número que sobe, pulso ---------- */
+.fv-hp-trail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  display: block;
+  background: linear-gradient(90deg, rgba(255, 236, 214, 0.55), rgba(255, 190, 160, 0.85));
+  transition: width 0.55s var(--ease-out);
+  pointer-events: none;
+}
+.fv-ins-hp-bar { position: relative; }
+.fv-ins-hp-bar i:not(.fv-hp-trail) { position: relative; z-index: 1; }
+.fv-ins-hp-bar .fv-hp-trail { border-radius: inherit; }
+
+.fv-hp-num { position: relative; display: inline-block; }
+.fv-hp-num.is-dmg { animation: fv-hp-hit 0.32s var(--ease-out) 1; }
+.fv-hp-num.is-heal { animation: fv-hp-heal 0.7s var(--ease-out) 1; }
+.fv-hp-pops {
+  position: absolute;
+  left: calc(100% + 0.15em);
+  top: 0.55em;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.fv-hp-pops b {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  font-family: 'Chakra Petch', monospace;
+  font-size: max(15px, 0.42em);
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  animation: fv-hp-pop 1.05s var(--ease-out) forwards;
+}
+.fv-hp-pops b.is-dmg { color: var(--fx-dmg); }
+.fv-hp-pops b.is-heal { color: var(--fx-heal); }
+@keyframes fv-hp-pop {
+  0% { opacity: 0; transform: translateY(6px) scale(0.7); }
+  18% { opacity: 1; transform: translateY(-4px) scale(1.12); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-30px) scale(1); }
+}
+@keyframes fv-hp-hit {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  45% { transform: translateX(3px); }
+  70% { transform: translateX(-1.5px); }
+}
+@keyframes fv-hp-heal {
+  0% { text-shadow: 0 0 0 transparent; }
+  35% { text-shadow: 0 0 18px color-mix(in srgb, var(--fx-heal), transparent 25%); }
+  100% { text-shadow: 0 0 0 transparent; }
+}
+
+/* ---------- economia de turno: o ✓ entra com um estalo ---------- */
+.fv-tick {
+  display: inline-block;
+  font-style: normal;
+  animation: fv-tick 0.28s var(--ease-spring) 1;
+}
+@keyframes fv-tick { from { opacity: 0; transform: scale(0.3) rotate(-20deg); } }
+
+/* ---------- console do mestre ---------- */
+/* vez de alguém: o chip acende com um pulso quando o turno chega */
+.fv-initdock-chip.is-active { animation: fv-turn-arrive 0.6s var(--ease-out) 1; }
+@keyframes fv-turn-arrive {
+  0% { transform: scale(0.94); box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold), transparent 20%); }
+  60% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.fv-initdock-round b { display: inline-block; }
+.fv-initdock-hp i { transition: width 0.4s var(--ease-out); }
+/* ☆ → ★ com estalo */
+.fv-star.is-on { animation: fv-star-pop 0.36s var(--ease-spring) 1; }
+@keyframes fv-star-pop {
+  0% { transform: scale(0.5) rotate(-30deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+/* o que acabou de entrar numa lista desliza para o lugar */
+.fv-bandeja-chip,
+.fv-notes li,
+.fv-ins-conds button.is-on {
+  animation: fv-enter 0.22s var(--ease-out) 1;
+}
+@keyframes fv-enter { from { opacity: 0; transform: translateY(4px) scale(0.97); } }
+/* item selecionado na lista dos bastidores: barra de destaque à esquerda */
+.fv-bs-list li { position: relative; }
+.fv-bs-list li.is-on::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+/* inspetor troca de conteúdo com um leve deslize */
+.fv-ins { animation: fv-ins-in 0.2s var(--ease-out); }
+@keyframes fv-ins-in { from { opacity: 0; transform: translateX(6px); } }
+
+/* ---------- abas: o conteúdo novo entra suave ---------- */
+.fv-backstage-panel > * { animation: fv-fade-up 0.2s var(--ease-out); }
+@keyframes fv-fade-up { from { opacity: 0; transform: translateY(4px); } }
+
+/* ---------- reduzir movimento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .fv-hp-num,
+  .fv-hp-pops b,
+  .fv-tick,
+  .fv-initdock-chip.is-active,
+  .fv-star.is-on,
+  .fv-bandeja-chip,
+  .fv-notes li,
+  .fv-ins-conds button.is-on,
+  .fv-ins,
+  .fv-backstage-panel > *,
+  .fv-toast-dot {
+    animation: none !important;
+  }
+  .fv-hp-trail { transition: none; }
+  :where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip):active:not(:disabled) { transform: none; }
+  /* sem animação, a barra do Desfazer some: o texto e o botão bastam */
+  .fv-toast-time { display: none; }
+}
+
+/* nova rodada no console: o número entra girando de leve */
+.fv-initdock-round b,
+.fv-live-medal b { animation: fv-round-in 0.4s var(--ease-spring) 1; }
+@keyframes fv-round-in { from { opacity: 0; transform: translateY(-8px) rotateX(70deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .fv-initdock-round b,
+  .fv-live-medal b { animation: none; }
+}

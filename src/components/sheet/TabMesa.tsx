@@ -1,3 +1,4 @@
+import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
@@ -48,6 +49,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
   const dying = char.hpCurrent <= 0;
+  const hpFx = useValueDelta(char.hpCurrent, char.id);
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
   const castModMesa = derived.abilities[casterOf(char)?.ability ?? 'int'].mod;
@@ -88,7 +90,8 @@ export function TabMesa({ char, derived }: TabProps) {
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
+            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
+              <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
               <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
               {char.combat.hpTemp > 0 && <span style={{ fontSize: '.42em', color: t.acc }}> +{char.combat.hpTemp}</span>}
@@ -96,7 +99,8 @@ export function TabMesa({ char, derived }: TabProps) {
           </LoreTooltip>
           <div className="fv-hp-meter">
             <div style={{ height: 18, borderRadius: 4, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s' }} />
+              <HpTrail key={char.id} pct={pct} />
+              <div style={{ position: 'relative', zIndex: 1, width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s cubic-bezier(.2,.8,.2,1)' }} />
               <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)' }} />
             </div>
             <div className="fv-hp-btns">
@@ -191,6 +195,8 @@ export function TabMesa({ char, derived }: TabProps) {
             return (
               <button
                 key={d.k}
+                className={'fv-turn-btn' + (used ? ' is-used' : '')}
+                aria-pressed={used}
                 onClick={() => store.toggleTurn(char.id, d.k)}
                 style={{
                   cursor: 'pointer',
@@ -208,7 +214,8 @@ export function TabMesa({ char, derived }: TabProps) {
                   transition: '.2s',
                 }}
               >
-                {used ? '✓ ' : ''}{d.label}
+                {used && <i className="fv-tick" aria-hidden>✓ </i>}
+                {d.label}
               </button>
             );
           })}
