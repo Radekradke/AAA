@@ -251,7 +251,7 @@ export function CharacterSelect() {
                           border: '1px solid var(--line)',
                         }}
                       >
-                        <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
+                        <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
                           {stat.v}
                         </div>
                         <div style={{ fontSize: 9, letterSpacing: '.1em', color: 'var(--muted)', marginTop: 2 }}>
@@ -305,7 +305,7 @@ function CardAction({ label, onClick, danger }: { label: string; onClick: () => 
       onClick={onClick}
       style={{
         cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: 'var(--font-body)',
         fontWeight: 600,
         fontSize: 11.5,
         padding: '6px 12px',

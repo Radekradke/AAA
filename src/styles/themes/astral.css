@@ -1,0 +1,393 @@
+/* ============================================================
+   VÉU ASTRAL — "planetário"
+   Ideia: um planetário ao cair da noite. Tudo é órbita: cápsulas,
+   círculos, trilhos. O horizonte do crepúsculo (damasco → rosa →
+   turquesa) corre no topo dos painéis. Paleta assimétrica: violeta de
+   base, damasco quente como cor viva, turquesa como contraponto frio,
+   ouro só para o que está escolhido.
+   Tipografia: Marcellus SC (títulos) + Nunito (texto e números redondos).
+   ============================================================ */
+
+/* ---------- identidade (vale nos dois modos) ---------- */
+[data-theme='astral'] {
+  --font-display: 'Marcellus SC', 'Cinzel', serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-num: 'Nunito', system-ui, sans-serif;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --horizon: linear-gradient(90deg, #ff9f7a, #ff7eb6 45%, #6ee7d8);
+
+  /* paleta escura: crepúsculo */
+  --bg: #0e0a24;
+  --bg2: #2a1a55;
+  --panel: #1b1438;
+  --panel2: #140f2c;
+  --well: #0c0820;
+  --steel: #2a1f55;
+  --line: rgba(201, 180, 255, 0.16);
+  --line-strong: rgba(214, 196, 255, 0.34);
+  --acc: #ff9f7a;
+  --acc2: #6ee7d8;
+  --lift: rgba(220, 200, 255, 0.07);
+  --accSoft: rgba(220, 200, 255, 0.07);
+  --gold: #f4d58d;
+  --goldB: #fff0c7;
+  --on-gold: #2a1640;
+  --on-acc: #2a1206;
+  --ink: #f5f1ff;
+  --muted: #a89ccb;
+  --danger: #ff5e7a;
+  --bloom: rgba(255, 140, 120, 0.18);
+  --particle: #ffe3a8;
+  --shadow-panel: 0 30px 60px -30px rgba(4, 2, 18, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-soft: 0 16px 34px -18px rgba(4, 2, 18, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --panel-texture:
+    radial-gradient(rgba(255, 240, 210, 0.08) 1px, transparent 1.5px) 0 0 / 29px 29px,
+    radial-gradient(rgba(110, 231, 216, 0.08) 1px, transparent 1.6px) 13px 17px / 71px 71px;
+  --scene:
+    radial-gradient(70% 50% at 50% 118%, rgba(255, 140, 110, 0.32), transparent 70%),
+    radial-gradient(45% 40% at 88% 8%, rgba(110, 231, 216, 0.14), transparent 70%),
+    radial-gradient(60% 55% at 8% 30%, rgba(150, 100, 255, 0.24), transparent 70%);
+}
+
+/* paleta clara: céu lavanda de manhã */
+[data-theme='astral'][data-mode='light'] {
+  --bg: #eee9fb;
+  --bg2: #fdf0ea;
+  --panel: #ffffff;
+  --panel2: #f6f2ff;
+  --well: #e7e0f8;
+  --steel: #dcd3f3;
+  --line: rgba(60, 30, 120, 0.14);
+  --line-strong: rgba(60, 30, 120, 0.3);
+  --acc: #d4552f;
+  --acc2: #0f8277;
+  --lift: rgba(110, 70, 210, 0.06);
+  --accSoft: rgba(110, 70, 210, 0.06);
+  --gold: #6b3fd1;
+  --goldB: #8a63e8;
+  --on-gold: #ffffff;
+  --on-acc: #ffffff;
+  --ink: #1e1537;
+  --muted: #675e84;
+  --danger: #c8304e;
+  --bloom: rgba(140, 90, 240, 0.12);
+  --particle: #b89bff;
+  --horizon: linear-gradient(90deg, #e86a43, #d6478c 45%, #12968a);
+  --shadow-panel: 0 24px 50px -30px rgba(70, 40, 140, 0.35), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --shadow-soft: 0 12px 28px -18px rgba(70, 40, 140, 0.3);
+  --panel-texture: none;
+  --scene:
+    radial-gradient(70% 50% at 50% 118%, rgba(255, 170, 140, 0.35), transparent 70%),
+    radial-gradient(50% 45% at 90% 6%, rgba(110, 231, 216, 0.22), transparent 70%),
+    radial-gradient(60% 55% at 6% 28%, rgba(170, 130, 255, 0.25), transparent 70%);
+}
+
+/* ---------- superfícies: vidro violeta com o horizonte no topo ---------- */
+[data-theme='astral'] .fv-panel {
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--acc2), transparent 93%), transparent 55%),
+    var(--panel-texture),
+    linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+[data-theme='astral'] .fv-panel::after {
+  left: 28px;
+  right: 28px;
+  top: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--horizon);
+  opacity: 0.85;
+}
+
+/* rótulo de seção: estrela + caixa-alta suave em turquesa */
+[data-theme='astral'] .fv-label {
+  letter-spacing: 0.2em;
+  color: var(--acc2);
+}
+[data-theme='astral'] .fv-panel .fv-label::before {
+  content: '✦';
+  margin-right: 0.6em;
+  color: var(--acc);
+  letter-spacing: 0;
+}
+
+/* ---------- botões: cápsulas, o principal tem o pôr do sol ---------- */
+[data-theme='astral'] .fv-btn-gold {
+  border-radius: 999px;
+  border: 0;
+  color: var(--on-acc);
+  background: linear-gradient(100deg, #ffb48f, var(--acc) 45%, #ff7eb6);
+  box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--acc), transparent 20%), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.06em;
+}
+[data-theme='astral'][data-mode='light'] .fv-btn-gold {
+  background: linear-gradient(100deg, #ef7b52, var(--acc) 45%, #c43a7c);
+}
+[data-theme='astral'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, input.fv-input, select.fv-input, .fv-topbar-pill, .fv-seg) {
+  border-radius: 999px;
+}
+[data-theme='astral'] .fv-input:focus {
+  border-color: var(--acc2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc2), transparent 75%);
+}
+
+/* marca: um planeta com anel */
+[data-theme='astral'] .fv-topbar-logo {
+  transform: none;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gold), transparent 55%), transparent 60%);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px color-mix(in srgb, var(--acc2), transparent 40%);
+}
+[data-theme='astral'] .fv-topbar-logo span {
+  transform: none;
+}
+
+/* ---------- menu principal: cápsulas em órbita ---------- */
+[data-theme='astral'] .fv-menu-title {
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+[data-theme='astral'] .fv-menu-tag {
+  color: var(--acc);
+}
+[data-theme='astral'] .fv-menu-item {
+  border-radius: 999px;
+  padding: 8px 20px 8px 8px;
+}
+[data-theme='astral'] :is(.fv-menu-icon, .fv-menu-face) {
+  border-radius: 999px;
+}
+[data-theme='astral'] .fv-menu-item:hover {
+  border-color: color-mix(in srgb, var(--acc2), transparent 40%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc2), transparent 88%), transparent 70%), var(--panel);
+}
+[data-theme='astral'] .fv-menu-item.is-primary {
+  color: var(--on-acc);
+  border: 0;
+  background: linear-gradient(100deg, #ffb48f, var(--acc) 45%, #ff7eb6);
+}
+[data-theme='astral'][data-mode='light'] .fv-menu-item.is-primary {
+  background: linear-gradient(100deg, #ef7b52, var(--acc) 45%, #c43a7c);
+}
+[data-theme='astral'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
+  color: var(--on-acc);
+}
+
+/* ---------- ficha: cabeçalho com o retrato em órbita ---------- */
+[data-theme='astral'] .fv-sh-portrait::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -9px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--acc2), transparent 35%);
+  animation: fvAstralOrbit 40s linear infinite;
+}
+[data-theme='astral'] .fv-sh-portrait::after {
+  /* o "planeta" que corre na órbita: o pseudo inteiro gira com o ponto na borda */
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 2px, var(--acc) 2.5px, color-mix(in srgb, var(--acc), transparent 60%) 4px, transparent 7px);
+  animation: fvAstralOrbit 14s linear infinite;
+}
+@keyframes fvAstralOrbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+[data-theme='astral'] .fv-sh-name {
+  letter-spacing: 0.04em;
+  font-weight: 400 !important;
+}
+[data-theme='astral'] .fv-sh-sub {
+  color: var(--acc2);
+}
+[data-theme='astral'] .fv-header-stat {
+  border-radius: 999px;
+  min-width: 74px;
+}
+
+/* abas: um único trilho orbital; a aba aberta é o planeta aceso */
+[data-theme='astral'] .fv-sheet-tabs {
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel), transparent 10%);
+  backdrop-filter: blur(10px);
+}
+[data-theme='astral'] .fv-sheet-tab {
+  border: 0;
+  background: transparent;
+  backdrop-filter: none;
+  padding: 8px 15px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+[data-theme='astral'] .fv-sheet-tab:hover {
+  color: var(--ink);
+  background: var(--lift);
+}
+[data-theme='astral'] .fv-sheet-tab.is-on {
+  color: var(--on-gold);
+  background: var(--gold);
+  box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--gold), transparent 20%);
+}
+
+/* vitais: corpos celestes (círculos com anel tracejado) */
+[data-theme='astral'] .fv-vitals {
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  justify-items: center;
+  gap: 10px 6px;
+}
+[data-theme='astral'] .fv-stat-chip {
+  width: min(100%, 96px);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--acc2), transparent 88%), transparent 60%), var(--sunk);
+  outline: 1px dashed color-mix(in srgb, var(--line-strong), transparent 30%);
+  outline-offset: 3px;
+}
+[data-theme='astral'] .fv-stat-chip-val {
+  font-size: 21px;
+  font-weight: 800;
+}
+[data-theme='astral'] .fv-stat-chip-label {
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+[data-theme='astral'] .fv-stat-chip-die {
+  top: auto;
+  bottom: 6px;
+  right: auto;
+}
+[data-theme='astral'] .fv-stat-chip.is-rollable:hover {
+  border-color: var(--acc);
+  outline-color: var(--acc);
+}
+
+/* atributos: cápsulas com a "lua" da cor do atributo */
+[data-theme='astral'] .fv-mabil {
+  position: relative;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c), transparent 60%);
+  background: color-mix(in srgb, var(--c), transparent 92%);
+  padding: 8px 2px 7px;
+}
+[data-theme='astral'] .fv-mabil::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 999px;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+}
+[data-theme='astral'] .fv-mabil-mod {
+  font-weight: 800;
+}
+
+/* vida: barra arredondada com o horizonte ao fundo */
+[data-theme='astral'] .fv-hp-bar {
+  clip-path: none;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+[data-theme='astral'] .fv-hp-notches {
+  background: none;
+}
+[data-theme='astral'] :is(.fv-hpq, .fv-turn-btn) {
+  border-radius: 999px !important;
+}
+
+/* ---------- criação: a trilha vira constelação ---------- */
+[data-theme='astral'] .fv-forge-rail ol::before {
+  width: 0;
+  border-left: 1px dashed color-mix(in srgb, var(--acc2), transparent 45%);
+  background: none;
+}
+[data-theme='astral'] .fv-forge-rail button {
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+[data-theme='astral'] .fv-rail-mark {
+  width: 24px;
+  height: 24px;
+  font-family: var(--font-body);
+  font-weight: 800;
+}
+[data-theme='astral'] .fv-forge-rail button.is-current .fv-rail-mark {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--on-acc);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc), transparent 75%), 0 0 16px var(--acc);
+}
+[data-theme='astral'] .fv-forge-rail button.is-current {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+}
+[data-theme='astral'] .fv-option {
+  border-radius: 22px;
+}
+[data-theme='astral'] .fv-option.is-selected {
+  border-color: var(--acc2);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--acc2), transparent 86%), var(--panel2));
+  box-shadow: 0 0 0 1px var(--acc2), 0 14px 30px -16px color-mix(in srgb, var(--acc2), transparent 30%);
+}
+[data-theme='astral'] .fv-option.is-selected::after {
+  color: var(--acc2);
+}
+[data-theme='astral'] .fv-step-head h2 {
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+[data-theme='astral'] .fv-hero-card {
+  border-radius: 30px;
+}
+
+/* celular: barra de abas em cápsula flutuante */
+[data-theme='astral'] .fv-mobile-nav {
+  border-radius: 999px;
+  margin: 0 10px 10px;
+}
+[data-theme='astral'] .fv-mobile-nav-btn {
+  border-radius: 999px;
+}
+
+[data-theme='astral'] .fv-modal {
+  border-radius: 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='astral'] .fv-sh-portrait::before,
+  [data-theme='astral'] .fv-sh-portrait::after {
+    animation: none;
+  }
+}
+
+/* as cantoneiras retas do cabeçalho não combinam com esta identidade */
+[data-theme='astral'] .fv-sheet-head > .fv-hide-mobile {
+  display: none;
+}

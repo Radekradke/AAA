@@ -57,8 +57,9 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
       <span className="fv-hide-mobile" aria-hidden>
         <OrnateCorners size={18} inset={10} />
       </span>
-      <div style={{ position: 'relative', width: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', height: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
+      <div className="fv-sh-portrait" style={{ position: 'relative', width: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', height: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
         <div
+          className="fv-sh-portrait-ring"
           style={{
             position: 'absolute',
             inset: 0,

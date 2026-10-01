@@ -1,11 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ThemeName } from '@/types/dnd';
+import type { ThemeMode, ThemeName } from '@/types/dnd';
 import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
-import { THEME_ORDER } from '@/data/themes';
+import { THEME_ORDER, nativeMode } from '@/data/themes';
 import type { PackId } from '@/data/contentPacks';
 import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
+
+/** Modo efetivo de um tema: o escolhido ou o de nascença. */
+export function themeModeOf(theme: ThemeName, modes: Partial<Record<ThemeName, ThemeMode>>): ThemeMode {
+  return modes[theme] ?? nativeMode(theme);
+}
 
 export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 
@@ -16,6 +21,10 @@ interface UiState {
   theme: ThemeName;
   toggleTheme: () => void;
   setTheme: (t: ThemeName) => void;
+  /** Claro/escuro escolhido em cada tema (sem escolha = o modo de nascença do tema). */
+  modes: Partial<Record<ThemeName, ThemeMode>>;
+  setThemeMode: (m: ThemeMode, t?: ThemeName) => void;
+  toggleThemeMode: () => void;
 
   /** Vantagem/desvantagem aplicada a testes de d20. */
   rollMode: RollMode;
@@ -136,6 +145,14 @@ export const useUiStore = create<UiState>()(
       setTheme(t) {
         set({ theme: t });
       },
+      modes: {},
+      setThemeMode(m, t) {
+        set((s) => ({ modes: { ...s.modes, [t ?? s.theme]: m } }));
+      },
+      toggleThemeMode() {
+        const s = get();
+        s.setThemeMode(themeModeOf(s.theme, s.modes) === 'dark' ? 'light' : 'dark');
+      },
 
       rollMode: 'normal',
       setRollMode(m) {
@@ -248,7 +265,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen }),
     },
   ),
 );

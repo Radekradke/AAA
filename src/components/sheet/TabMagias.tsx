@@ -141,8 +141,8 @@ export function TabMagias({ char, derived }: TabProps) {
             style={{ marginBottom: 6 }}
             right={
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-                CD <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{derived.spellDC}</b> · ataque{' '}
-                <b style={{ color: 'var(--acc)', fontFamily: "'Chakra Petch', monospace" }}>{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
+                CD <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{derived.spellDC}</b> · ataque{' '}
+                <b style={{ color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
                 {' '}· {ABILITY_SHORT[castAbility]}
               </span>
             }
@@ -216,7 +216,7 @@ export function TabMagias({ char, derived }: TabProps) {
                     );
                   })}
                 </div>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>{slot.max - slot.used} / {slot.max}</span>
+                <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>{slot.max - slot.used} / {slot.max}</span>
               </div>
             );
           })}
@@ -240,7 +240,7 @@ export function TabMagias({ char, derived }: TabProps) {
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: t.acc, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + hexA(t.acc, 0.5) }}>à vontade</span>
                 ) : (
                   <>
-                    <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
+                    <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
                     <button
                       onClick={() => is.usesLeft > 0 && store.useItemSpell(char.id, is.key)}
                       disabled={is.usesLeft === 0}
@@ -267,7 +267,7 @@ export function TabMagias({ char, derived }: TabProps) {
                   + {learnLabel}
                 </button>
                 {isWizard && (
-                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
+                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
                     📜 Copiar para o grimório
                   </button>
                 )}
@@ -286,7 +286,7 @@ export function TabMagias({ char, derived }: TabProps) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 7px' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
                 <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
-                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{spells.length}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{spells.length}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
                 {spells.map((sp) => {
@@ -364,7 +364,7 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
   return (
     <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, fontSize: 11.5, padding: '4px 10px', borderRadius: 999, border: '1px solid ' + hexA(color, 0.5), background: hexA(color, 0.08) }}>
       <span style={{ color: 'var(--muted)', textTransform: 'capitalize' }}>{label}</span>
-      <b style={{ fontFamily: "'Chakra Petch', monospace", color: over ? 'var(--danger)' : color }}>{have}</b>
+      <b style={{ fontFamily: 'var(--font-num)', color: over ? 'var(--danger)' : color }}>{have}</b>
       <span style={{ color: 'var(--muted)' }}>/ {target}</span>
     </span>
   );

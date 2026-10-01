@@ -1,0 +1,445 @@
+/* ============================================================
+   FORJA DOURADA — "oficina anã"
+   Ideia: tudo é chapa de metal pesada. Painéis rebitados com bisel,
+   rótulos em plaquinhas estampadas, abas e botões com cantos
+   chanfrados, vitais em forma de porca sextavada e a barra de vida
+   como um medidor de calor. Paleta: fuligem, couro e latão, brasa
+   laranja como cor viva e pátina verde (cobre oxidado) de contraponto.
+   Tipografia: Grenze (títulos) + Oswald (estampas e números) + Barlow.
+   ============================================================ */
+
+[data-theme='brasa'] {
+  --font-display: 'Grenze', 'Cinzel', serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-num: 'Oswald', 'Barlow', sans-serif;
+  --font-stamp: 'Oswald', 'Barlow', sans-serif;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --chamfer: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  --chamfer-sm: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  --hex: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  --rivet: radial-gradient(circle at 40% 35%, #f6d79a 0 1px, #a8782e 1.6px, #3a2614 2.6px, transparent 3.2px);
+  --plate: #1b130e;
+
+  --bg: #110d0b;
+  --bg2: #2b170c;
+  --panel: #241b15;
+  --panel2: #1a130f;
+  --well: #0e0a08;
+  --steel: #33251b;
+  --line: rgba(214, 170, 110, 0.2);
+  --line-strong: rgba(232, 190, 120, 0.42);
+  --acc: #ff7a2f;
+  --acc2: #5fb3a1;
+  --lift: rgba(255, 200, 140, 0.07);
+  --accSoft: rgba(255, 200, 140, 0.07);
+  --gold: #e0b356;
+  --goldB: #ffe0a0;
+  --on-gold: #2a1606;
+  --on-acc: #2a0f00;
+  --ink: #f7ede0;
+  --muted: #b9a189;
+  --danger: #ff4f3a;
+  --bloom: rgba(255, 110, 40, 0.2);
+  --particle: #ffa052;
+  --shadow-panel: 0 26px 50px -26px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 220, 160, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 14px 26px -16px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 220, 160, 0.1);
+  /* metal escovado */
+  --panel-texture: repeating-linear-gradient(90deg, rgba(255, 220, 170, 0.018) 0 1px, transparent 1px 3px);
+  --scene:
+    radial-gradient(70% 45% at 50% 115%, rgba(255, 100, 30, 0.38), transparent 70%),
+    radial-gradient(40% 40% at 0% 100%, rgba(95, 179, 161, 0.1), transparent 70%),
+    radial-gradient(60% 50% at 100% 0%, rgba(224, 179, 86, 0.1), transparent 70%);
+}
+
+/* paleta clara: oficina de dia — pedra clara, latão escuro */
+[data-theme='brasa'][data-mode='light'] {
+  --plate: #3a2a1c;
+  --bg: #ede4d6;
+  --bg2: #f7efe2;
+  --panel: #fbf6ee;
+  --panel2: #f2e9db;
+  --well: #e4d8c5;
+  --steel: #d9cab2;
+  --line: rgba(70, 45, 20, 0.18);
+  --line-strong: rgba(70, 45, 20, 0.38);
+  --acc: #b93b0a;
+  --acc2: #2a7567;
+  --lift: rgba(120, 70, 20, 0.06);
+  --accSoft: rgba(120, 70, 20, 0.06);
+  --gold: #8a5a12;
+  --goldB: #a8741f;
+  --on-gold: #fff7ea;
+  --on-acc: #ffffff;
+  --ink: #2a1d12;
+  --muted: #6a5641;
+  --danger: #b42318;
+  --bloom: rgba(194, 65, 12, 0.1);
+  --particle: #e39a4e;
+  --shadow-panel: 0 20px 40px -26px rgba(60, 35, 10, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -2px 0 rgba(70, 45, 20, 0.12);
+  --shadow-soft: 0 10px 22px -16px rgba(60, 35, 10, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --panel-texture: repeating-linear-gradient(90deg, rgba(70, 45, 20, 0.025) 0 1px, transparent 1px 3px);
+  --scene:
+    radial-gradient(70% 45% at 50% 115%, rgba(230, 120, 50, 0.22), transparent 70%),
+    radial-gradient(40% 40% at 0% 100%, rgba(42, 117, 103, 0.08), transparent 70%);
+}
+
+/* ---------- chapas rebitadas ---------- */
+[data-theme='brasa'] .fv-panel {
+  background:
+    var(--rivet) 9px 9px / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 9px) 9px / 8px 8px no-repeat,
+    var(--rivet) 9px calc(100% - 9px) / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 9px) calc(100% - 9px) / 8px 8px no-repeat,
+    var(--panel-texture),
+    linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 4%), var(--panel) 40%, var(--panel2));
+  border: 2px solid color-mix(in srgb, var(--gold), var(--panel) 62%);
+  border-radius: var(--radius-lg);
+}
+[data-theme='brasa'] .fv-panel::after {
+  /* calor da forja subindo por baixo da chapa */
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: -2px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--acc) 30%, #ffd08a 50%, var(--acc) 70%, transparent);
+  opacity: 0.55;
+}
+
+/* rótulo: plaquinha estampada */
+[data-theme='brasa'] .fv-label {
+  display: inline-block;
+  padding: 3px 9px 2px;
+  font-family: var(--font-stamp);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--goldB);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--plate), #fff 6%), var(--plate));
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 220, 160, 0.08);
+  clip-path: var(--chamfer-sm);
+}
+[data-theme='brasa'][data-mode='light'] .fv-label {
+  color: #ffe2ad;
+}
+
+/* ---------- botões: latão chanfrado ---------- */
+[data-theme='brasa'] .fv-btn-gold {
+  border-radius: 0;
+  clip-path: var(--chamfer);
+  font-family: var(--font-stamp);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, var(--goldB), var(--gold) 55%, color-mix(in srgb, var(--gold), #000 18%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+[data-theme='brasa'] .fv-btn-gold:hover:not(:disabled) {
+  transform: none;
+  background: linear-gradient(180deg, #ffe9b8, #ffb24a 50%, var(--acc));
+}
+[data-theme='brasa'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-topbar-pill, .fv-pill) {
+  border-radius: 0 !important;
+  clip-path: var(--chamfer-sm);
+  font-family: var(--font-stamp);
+  letter-spacing: 0.06em;
+}
+[data-theme='brasa'] .fv-btn-ghost {
+  text-transform: uppercase;
+  font-weight: 500;
+}
+[data-theme='brasa'] .fv-input {
+  border-radius: 2px;
+  border-width: 1px 1px 2px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+[data-theme='brasa'] .fv-input:focus {
+  border-color: var(--acc);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35), 0 0 0 2px color-mix(in srgb, var(--acc), transparent 60%);
+}
+
+/* marca: porca sextavada */
+[data-theme='brasa'] .fv-topbar-logo {
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hex);
+  width: 34px;
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: none;
+}
+[data-theme='brasa'] .fv-topbar-logo span {
+  transform: none;
+  color: var(--on-gold);
+  font-weight: 800;
+}
+
+/* ---------- menu principal: chapas pesadas com rebites ---------- */
+[data-theme='brasa'] .fv-menu-title {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: min(clamp(46px, 8.4vh, 86px), 13vw);
+}
+[data-theme='brasa'] .fv-menu-tag {
+  font-family: var(--font-stamp);
+  letter-spacing: 0.4em;
+  color: var(--acc);
+}
+[data-theme='brasa'] .fv-menu-item {
+  border-radius: 0;
+  clip-path: var(--chamfer);
+  border: 0;
+  background:
+    var(--rivet) 6px 50% / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 6px) 50% / 8px 8px no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 5%), var(--panel2));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+  padding-left: 18px;
+  padding-right: 22px;
+}
+[data-theme='brasa'] :is(.fv-menu-icon, .fv-menu-face) {
+  border-radius: 0;
+  clip-path: var(--hex);
+  border: 0;
+  background: var(--plate);
+}
+[data-theme='brasa'] .fv-menu-text b {
+  font-family: var(--font-stamp);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+[data-theme='brasa'] .fv-menu-item:hover,
+[data-theme='brasa'] .fv-menu-item:focus-visible {
+  transform: none;
+  background:
+    var(--rivet) 6px 50% / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 6px) 50% / 8px 8px no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--panel) 80%), var(--panel2));
+}
+[data-theme='brasa'] .fv-menu-item.is-primary {
+  background:
+    var(--rivet) 6px 50% / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 6px) 50% / 8px 8px no-repeat,
+    linear-gradient(180deg, var(--goldB), var(--gold) 55%, color-mix(in srgb, var(--gold), #000 18%));
+}
+[data-theme='brasa'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-face) {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* ---------- ficha ---------- */
+[data-theme='brasa'] .fv-sh-portrait-ring {
+  border-radius: 0 !important;
+  clip-path: var(--hex);
+  border: 0 !important;
+}
+[data-theme='brasa'] .fv-sh-portrait::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  clip-path: var(--hex);
+  background: linear-gradient(180deg, var(--goldB), var(--gold) 50%, color-mix(in srgb, var(--gold), #000 30%));
+}
+[data-theme='brasa'] .fv-sh-name {
+  font-weight: 800 !important;
+  letter-spacing: 0.01em;
+}
+[data-theme='brasa'] .fv-sh-sub {
+  font-family: var(--font-stamp);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12.5px;
+  color: var(--acc2);
+}
+[data-theme='brasa'] .fv-header-stat {
+  border-radius: 0;
+  clip-path: var(--hex);
+  border: 0;
+  min-width: 86px;
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--plate), transparent 10%);
+}
+[data-theme='brasa'] .fv-header-stat-val {
+  font-family: var(--font-num);
+  font-weight: 600;
+}
+
+/* abas: etiquetas de metal penduradas numa barra */
+[data-theme='brasa'] .fv-sheet-tabs {
+  gap: 5px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--plate), #fff 4%), var(--plate));
+  border-top: 2px solid color-mix(in srgb, var(--gold), transparent 55%);
+  border-bottom: 2px solid #000;
+}
+[data-theme='brasa'][data-mode='light'] .fv-sheet-tabs {
+  border-bottom-color: color-mix(in srgb, var(--plate), #000 30%);
+}
+[data-theme='brasa'] .fv-sheet-tab {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--chamfer-sm);
+  padding: 8px 14px;
+  font-family: var(--font-stamp);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d8c3a5;
+  background: linear-gradient(180deg, #4a3624, #2e2116);
+  backdrop-filter: none;
+}
+[data-theme='brasa'] .fv-sheet-tab:hover {
+  color: #ffe9c8;
+  background: linear-gradient(180deg, #5c432c, #3a2a1c);
+}
+[data-theme='brasa'] .fv-sheet-tab.is-on {
+  color: var(--on-gold);
+  background: linear-gradient(180deg, #ffe7b2, #e8b04c 55%, #b9781e);
+  box-shadow: none;
+}
+
+/* vitais: porcas sextavadas */
+[data-theme='brasa'] .fv-vitals {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 6px;
+}
+[data-theme='brasa'] .fv-stat-chip {
+  clip-path: var(--hex);
+  border: 0;
+  border-radius: 0;
+  padding: 14px 10px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.25) 53%, transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--steel), #fff 6%), var(--panel2));
+}
+[data-theme='brasa'] .fv-stat-chip-val {
+  font-weight: 600;
+  font-size: 20px;
+}
+[data-theme='brasa'] .fv-stat-chip-label {
+  font-family: var(--font-stamp);
+  font-weight: 500;
+}
+[data-theme='brasa'] .fv-stat-chip-die {
+  top: 50%;
+  right: 12%;
+  translate: 0 -50%;
+}
+[data-theme='brasa'] .fv-stat-chip.is-rollable:hover {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.25) 53%, transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--steel) 70%), var(--panel2));
+}
+
+/* atributos: lingotes chanfrados com a cor numa faixa */
+[data-theme='brasa'] .fv-mabil {
+  clip-path: var(--chamfer-sm);
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c), var(--steel) 70%) 0 5px, color-mix(in srgb, var(--steel), #fff 4%) 5px, var(--panel2));
+}
+[data-theme='brasa'] .fv-mabil-key {
+  font-family: var(--font-stamp);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-top: 3px;
+}
+[data-theme='brasa'] .fv-mabil-mod {
+  font-weight: 600;
+}
+
+/* vida: medidor de calor */
+[data-theme='brasa'] .fv-hp-bar {
+  clip-path: none;
+  border-radius: 0;
+  border: 2px solid var(--plate);
+  outline: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+  background: repeating-linear-gradient(90deg, #120b07 0 6px, #1a110b 6px 7px);
+}
+[data-theme='brasa'] .fv-hp-notches {
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 2px), rgba(0, 0, 0, 0.75) calc(10% - 2px) 10%);
+}
+
+/* ---------- criação ---------- */
+[data-theme='brasa'] .fv-rail-title {
+  font-family: var(--font-stamp);
+  color: var(--acc);
+}
+[data-theme='brasa'] .fv-forge-rail ol::before {
+  width: 3px;
+  left: 15px;
+  background: linear-gradient(180deg, var(--plate), color-mix(in srgb, var(--gold), var(--plate) 60%), var(--plate));
+}
+[data-theme='brasa'] .fv-forge-rail button {
+  border-radius: 0;
+  font-family: var(--font-stamp);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 13.5px;
+}
+[data-theme='brasa'] .fv-rail-mark {
+  border-radius: 0;
+  clip-path: var(--hex);
+  border: 0;
+  width: 30px;
+  background: var(--steel);
+}
+[data-theme='brasa'] .fv-forge-rail button.is-current {
+  color: var(--goldB);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc), transparent 80%), transparent);
+}
+[data-theme='brasa'] .fv-forge-rail button.is-current .fv-rail-mark {
+  background: linear-gradient(180deg, #ffe7b2, var(--acc));
+  box-shadow: none;
+}
+[data-theme='brasa'] .fv-option {
+  border-radius: 0;
+  clip-path: var(--chamfer);
+  border: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 4%), var(--panel2));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.1), inset 0 0 0 1px var(--line);
+}
+[data-theme='brasa'] .fv-option.is-selected {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--panel) 72%), var(--panel2));
+  box-shadow: inset 0 0 0 2px var(--gold), inset 0 -14px 24px -16px var(--acc);
+}
+[data-theme='brasa'] .fv-option-name {
+  font-family: var(--font-stamp);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13.5px;
+}
+[data-theme='brasa'] .fv-step-head h2 {
+  font-weight: 800;
+}
+[data-theme='brasa'] .fv-hero-card {
+  border-radius: 0;
+}
+
+[data-theme='brasa'] .fv-modal {
+  border-radius: 4px;
+  border-width: 2px;
+}
+
+/* as cantoneiras retas do cabeçalho não combinam com esta identidade */
+[data-theme='brasa'] .fv-sheet-head > .fv-hide-mobile {
+  display: none;
+}
+
+/* plaquinha do PV com a largura do texto */
+[data-theme='brasa'] .fv-hp-label {
+  justify-self: start;
+}
+
+/* o recorte (chanfro/hexágono) cortaria o anel de foco de fora: desenha por dentro */
+[data-theme='brasa'] :is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-topbar-pill, .fv-pill, .fv-menu-item, .fv-sheet-tab, .fv-stat-chip, .fv-mabil, .fv-option):focus-visible {
+  outline: 2px solid var(--goldB);
+  outline-offset: -4px;
+}

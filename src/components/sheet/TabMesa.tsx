@@ -90,7 +90,7 @@ export function TabMesa({ char, derived }: TabProps) {
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
+            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
               <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
               <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
@@ -98,10 +98,10 @@ export function TabMesa({ char, derived }: TabProps) {
             </div>
           </LoreTooltip>
           <div className="fv-hp-meter">
-            <div style={{ height: 18, borderRadius: 4, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative', clipPath: 'polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%)' }}>
+            <div className="fv-hp-bar" style={{ height: 18 }}>
               <HpTrail key={char.id} pct={pct} />
               <div style={{ position: 'relative', zIndex: 1, width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s cubic-bezier(.2,.8,.2,1)' }} />
-              <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)' }} />
+              <div aria-hidden className="fv-hp-notches" />
             </div>
             <div className="fv-hp-btns">
               <QuickBtn color={t.danger} strong onClick={() => store.applyDamage(char.id, 5)}>−5</QuickBtn>
@@ -133,7 +133,7 @@ export function TabMesa({ char, derived }: TabProps) {
         )}
 
         {/* chips de defesa com "ver cálculo" */}
-        <div data-tour="vitals" style={{ marginTop: 13, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(86px, 1fr))', gap: 8 }}>
+        <div data-tour="vitals" className="fv-vitals">
           <StatChip label="CA" value={String(derived.ac)} info={calcLore('Classe de Armadura', bd.ac)} />
           <StatChip label="Iniciativa" value={modStr(derived.initiative)} info={calcLore('Iniciativa', bd.initiative)} onRoll={() => check('Iniciativa', derived.initiative)} />
           <StatChip label="Desloc." value={`${derived.speed.toString().replace('.', ',')}m`} info={calcLore('Deslocamento', bd.speed, { unit: 'm' })} />
@@ -152,31 +152,18 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
 
         {/* atributos com modificador — sempre à mão na mesa */}
-        <div data-tour="abilities" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 6 }}>
+        <div data-tour="abilities" className="fv-abils">
           {derived.abilityList.map((a) => {
             const color = ABILITY_COLORS[a.key];
             return (
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <button
+                  className="fv-mabil"
                   onClick={() => check(`Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
-                  style={{
-                    cursor: 'pointer',
-                    width: '100%',
-                    padding: '7px 2px 6px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid ' + hexA(color, 0.3),
-                    borderBottom: '2px solid ' + hexA(color, 0.65),
-                    background: `linear-gradient(180deg, ${hexA(color, 0.09)}, var(--sunk))`,
-                    textAlign: 'center',
-                    transition: '.2s',
-                  }}
+                  style={{ '--c': color } as React.CSSProperties}
                 >
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em', color: hexA(color, 0.95) }}>
-                    {ABILITY_SHORT[a.key]}
-                  </div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: 'var(--ink)', lineHeight: 1.1 }}>
-                    {modStr(a.mod)}
-                  </div>
+                  <span className="fv-mabil-key">{ABILITY_SHORT[a.key]}</span>
+                  <span className="fv-mabil-mod">{modStr(a.mod)}</span>
                 </button>
               </LoreTooltip>
             );
@@ -219,7 +206,7 @@ export function TabMesa({ char, derived }: TabProps) {
               </button>
             );
           })}
-          <span style={{ flex: '1 1 110px', textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>
+          <span style={{ flex: '1 1 110px', textAlign: 'center', fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>
             Mov. <b style={{ color: 'var(--ink)' }}>{(derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{derived.speed.toString().replace('.', ',')} m
           </span>
           <button
@@ -280,7 +267,7 @@ export function TabMesa({ char, derived }: TabProps) {
                 }}
               >
                 <div style={{ fontSize: 10, letterSpacing: '.08em', color: a.saveProf ? t.gold : 'var(--muted)' }}>{ABILITY_SHORT[a.key]}</div>
-                <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{modStr(a.save)}</div>
+                <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{modStr(a.save)}</div>
               </button>
             ))}
           </div>
@@ -300,7 +287,7 @@ export function TabMesa({ char, derived }: TabProps) {
                 onClick={() => check(sk.label, sk.bonus)}
                 style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
               >
-                {sk.label} <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
+                {sk.label} <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
                 {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}> desv.</span>}
               </button>
             ))}
@@ -319,7 +306,7 @@ export function TabMesa({ char, derived }: TabProps) {
                       style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
                       {tool.label} <span style={{ fontSize: 9.5, color: 'var(--muted)' }}>{ABILITY_SHORT[chk.ability]}</span>{' '}
-                      <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: "'Chakra Petch', monospace" }}>{modStr(chk.total)}</b>
+                      <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: 'var(--font-num)' }}>{modStr(chk.total)}</b>
                     </button>
                   );
                 })}
@@ -338,11 +325,11 @@ export function TabMesa({ char, derived }: TabProps) {
               <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>
                 CD{' '}
                 <LoreTooltip info={calcLore('CD de Magia', bd.spellDC!)}>
-                  <b style={{ cursor: 'help', color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{derived.spellDC}</b>
+                  <b style={{ cursor: 'help', color: t.gold, fontFamily: 'var(--font-num)' }}>{derived.spellDC}</b>
                 </LoreTooltip>{' '}
                 · Ataque{' '}
                 <LoreTooltip info={calcLore('Ataque Mágico', bd.spellAttack!)}>
-                  <b style={{ cursor: 'help', color: t.acc, fontFamily: "'Chakra Petch', monospace" }}>{modStr(derived.spellAttack!)}</b>
+                  <b style={{ cursor: 'help', color: t.acc, fontFamily: 'var(--font-num)' }}>{modStr(derived.spellAttack!)}</b>
                 </LoreTooltip>
               </span>
             </div>
@@ -394,10 +381,10 @@ export function TabMesa({ char, derived }: TabProps) {
                 <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
                   <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>
                     {res.label}
-                    {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>{res.die}</span>}
+                    {res.die && <span style={{ marginLeft: 6, fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>{res.die}</span>}
                   </span>
                 </LoreTooltip>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
+                <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
                   {res.unlimited ? '∞' : `${left}/${res.max}`}
                 </span>
                 {!res.unlimited && (
@@ -482,8 +469,8 @@ function StatChip({ label, value, info, onRoll }: { label: string; value: string
         aria-label={onRoll ? `Rolar ${label} (${value})` : undefined}
       >
         {onRoll && <Icon name="d20" size={11} className="fv-stat-chip-die" />}
-        <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{value}</div>
-        <div style={{ fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 2 }}>{label}</div>
+        <div className="fv-stat-chip-val">{value}</div>
+        <div className="fv-stat-chip-label">{label}</div>
       </button>
     </LoreTooltip>
   );
@@ -491,22 +478,7 @@ function StatChip({ label, value, info, onRoll }: { label: string; value: string
 
 function QuickBtn({ children, color, strong, onClick }: { children: React.ReactNode; color: string; strong?: boolean; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        fontFamily: "'Chakra Petch', monospace",
-        fontWeight: 700,
-        fontSize: 12.5,
-        minHeight: 34,
-        padding: '6px 12px',
-        borderRadius: 'var(--radius-sm)',
-        border: '1px solid ' + (strong ? color : hexA(color, 0.45)),
-        background: strong ? hexA(color, 0.12) : 'transparent',
-        color,
-        transition: '.2s',
-      }}
-    >
+    <button className={'fv-hpq' + (strong ? ' is-strong' : '')} onClick={onClick} style={{ '--c': color } as React.CSSProperties}>
       {children}
     </button>
   );
@@ -556,7 +528,7 @@ const restBtn: CSSProperties = {
 function atkBtn(color: string): CSSProperties {
   return {
     cursor: 'pointer',
-    fontFamily: "'Chakra Petch', monospace",
+    fontFamily: 'var(--font-num)',
     fontWeight: 700,
     fontSize: 13.5,
     color,

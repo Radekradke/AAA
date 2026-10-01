@@ -4,217 +4,21 @@
 
 /* ============================================================
    FICHA VIVA AAA — sistema de temas
-   Cada clima é um LUGAR, com material, luz e tipografia próprios:
-   · Noite Arcana   — observatório: índigo profundo, prata lunar, poeira de estrelas
-   · Forja Dourada  — forja: couro escuro, latão polido, brasas subindo
-   · Bosque Élfico  — floresta sob o luar: esmeralda, jade e folha de ouro
-   · Corte Carmesim — salão gótico: veludo vinho, carmesim e ouro rosé
-   · Véu Astral     — crepúsculo: violeta, rosa e constelações douradas
+   Cada tema é uma IDENTIDADE VISUAL (layout, formas, tipografia) com
+   paleta clara e escura ([data-mode]). Véu Astral, Noite Arcana, Forja
+   Dourada, Bosque Élfico e Corte Carmesim vivem em src/styles/themes/;
+   Ouro Velho, Eclipse e Guilda Rubra seguem aqui.
    Superfícies são SÓLIDAS e mais claras que o fundo (hierarquia nítida);
    --acc é o que é vivo/interativo, --gold é metal (seleção e ornamento).
    Os valores de cor precisam bater com src/data/themes.ts.
    ============================================================ */
 
-:root,
-[data-theme='frio'] {
+/* medidas de página (valem para todos os temas) */
+:root {
   --page-x: clamp(14px, 3.6vw, 40px);
   --topbar-h: clamp(62px, 8vh, 84px);
-
-  --font-display: 'Cinzel', serif;
-  --radius-sm: 5px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  --bg: #060a19;
-  --bg2: #12204a;
-  --panel: #131c38;
-  --panel2: #0d1429;
-  --well: #0a1022;
-  --steel: #1b2650;
-  --line: rgba(150, 178, 255, 0.17);
-  --line-strong: rgba(176, 198, 255, 0.34);
-  --acc: #5cd6ff;
-  --acc2: #a68bff;
-  --lift: rgba(170, 200, 255, 0.07);
-  --accSoft: rgba(170, 200, 255, 0.07);
-  --gold: #d5e0ff;
-  --goldB: #ffffff;
-  --ink: #eef2ff;
-  --muted: #97a3c8;
-  --danger: #ff6b5e;
-  --bloom: rgba(92, 160, 255, 0.18);
-  --particle: #a9e6ff;
-
-  --shadow-panel: 0 26px 60px -22px rgba(1, 4, 20, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(200, 220, 255, 0.07);
-  --shadow-soft: 0 14px 30px -12px rgba(1, 4, 20, 0.75), inset 0 1px 0 rgba(200, 220, 255, 0.05);
-  /* material: poeira de estrelas em duas escalas */
-  --panel-texture:
-    radial-gradient(rgba(200, 222, 255, 0.07) 1px, transparent 1.4px) 0 0 / 19px 19px,
-    radial-gradient(rgba(170, 150, 255, 0.09) 1.2px, transparent 1.8px) 7px 11px / 61px 61px;
-  --scene:
-    radial-gradient(85% 60% at 50% -14%, rgba(72, 118, 255, 0.34), transparent 64%),
-    radial-gradient(50% 45% at 92% 108%, rgba(160, 112, 255, 0.24), transparent 64%),
-    radial-gradient(40% 38% at 4% 64%, rgba(40, 200, 255, 0.1), transparent 66%);
 }
 
-[data-theme='brasa'] {
-  --font-display: 'Grenze', 'Cinzel', serif;
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 8px;
-
-  --bg: #0d0806;
-  --bg2: #2a150b;
-  --panel: #221812;
-  --panel2: #170f0b;
-  --well: #120c09;
-  --steel: #2e1d12;
-  --line: rgba(232, 184, 112, 0.19);
-  --line-strong: rgba(244, 200, 130, 0.38);
-  --acc: #ff8a3d;
-  --acc2: #ffc45c;
-  --lift: rgba(255, 214, 160, 0.07);
-  --accSoft: rgba(255, 214, 160, 0.07);
-  --gold: #f2c466;
-  --goldB: #ffe6a6;
-  --ink: #fcf2e6;
-  --muted: #c2a78b;
-  --danger: #ff5436;
-  --bloom: rgba(255, 130, 50, 0.2);
-  --particle: #ffb060;
-
-  --shadow-panel: 0 26px 60px -22px rgba(10, 3, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 220, 160, 0.08);
-  --shadow-soft: 0 14px 30px -12px rgba(10, 3, 0, 0.75), inset 0 1px 0 rgba(255, 220, 160, 0.06);
-  /* material: couro curtido — grão quente + marcas de martelo */
-  --panel-texture:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .8  0 0 0 0 .55  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    radial-gradient(120% 60% at 50% 0%, rgba(255, 190, 110, 0.05), transparent 70%);
-  --scene:
-    radial-gradient(80% 55% at 50% 118%, rgba(255, 108, 28, 0.36), transparent 66%),
-    radial-gradient(70% 45% at 50% -14%, rgba(255, 196, 120, 0.12), transparent 62%),
-    radial-gradient(35% 32% at 94% 40%, rgba(255, 80, 30, 0.1), transparent 70%);
-}
-
-[data-theme='verdejante'] {
-  --font-display: 'Alegreya SC', 'Cinzel', serif;
-  --radius-sm: 7px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  --bg: #030f0c;
-  --bg2: #0a2e25;
-  --panel: #0f241e;
-  --panel2: #0a1a16;
-  --well: #081410;
-  --steel: #113329;
-  --line: rgba(140, 232, 194, 0.16);
-  --line-strong: rgba(160, 240, 204, 0.32);
-  --acc: #3ee0a4;
-  --acc2: #e9c46a;
-  --lift: rgba(170, 240, 210, 0.06);
-  --accSoft: rgba(170, 240, 210, 0.06);
-  --gold: #ebd592;
-  --goldB: #fbf1c8;
-  --ink: #ebf8f2;
-  --muted: #8fb5a6;
-  --danger: #ff6b52;
-  --bloom: rgba(60, 224, 164, 0.16);
-  --particle: #bdf5a0;
-
-  --shadow-panel: 0 26px 60px -22px rgba(0, 10, 6, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(200, 255, 225, 0.07);
-  --shadow-soft: 0 14px 30px -12px rgba(0, 10, 6, 0.75), inset 0 1px 0 rgba(200, 255, 225, 0.05);
-  /* material: veios de madeira clara sob o luar */
-  --panel-texture:
-    repeating-linear-gradient(97deg, rgba(200, 255, 225, 0.022) 0 1px, transparent 1px 7px, rgba(200, 255, 225, 0.014) 7px 8px, transparent 8px 23px),
-    radial-gradient(90% 55% at 20% 0%, rgba(233, 196, 106, 0.045), transparent 70%);
-  --scene:
-    radial-gradient(75% 55% at 24% -14%, rgba(150, 245, 205, 0.22), transparent 62%),
-    radial-gradient(60% 45% at 86% 112%, rgba(16, 170, 116, 0.28), transparent 66%),
-    radial-gradient(30% 28% at 72% 18%, rgba(233, 196, 106, 0.07), transparent 70%);
-}
-
-[data-theme='carmesim'] {
-  --font-display: 'Cormorant SC', 'Cinzel', serif;
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-
-  --bg: #0c0407;
-  --bg2: #2e0916;
-  --panel: #211017;
-  --panel2: #170a10;
-  --well: #12070b;
-  --steel: #301320;
-  --line: rgba(255, 156, 176, 0.16);
-  --line-strong: rgba(255, 176, 192, 0.32);
-  --acc: #ff4d6d;
-  --acc2: #e0a47a;
-  --lift: rgba(255, 190, 205, 0.06);
-  --accSoft: rgba(255, 190, 205, 0.06);
-  --gold: #ebb9a2;
-  --goldB: #ffe4d8;
-  --ink: #fceff2;
-  --muted: #bc98a1;
-  --danger: #ff8a3d;
-  --bloom: rgba(255, 60, 100, 0.18);
-  --particle: #ff8fa3;
-
-  --shadow-panel: 0 26px 60px -22px rgba(12, 0, 4, 0.92), 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 200, 215, 0.07);
-  --shadow-soft: 0 14px 30px -12px rgba(12, 0, 4, 0.78), inset 0 1px 0 rgba(255, 200, 215, 0.05);
-  /* material: veludo com treliça de damasco */
-  --panel-texture:
-    repeating-linear-gradient(45deg, rgba(255, 190, 205, 0.022) 0 1px, transparent 1px 14px),
-    repeating-linear-gradient(-45deg, rgba(255, 190, 205, 0.022) 0 1px, transparent 1px 14px),
-    radial-gradient(100% 60% at 50% 0%, rgba(224, 164, 122, 0.05), transparent 70%);
-  --scene:
-    radial-gradient(80% 55% at 50% -14%, rgba(210, 30, 72, 0.3), transparent 64%),
-    radial-gradient(60% 45% at 8% 112%, rgba(120, 16, 56, 0.34), transparent 66%),
-    radial-gradient(35% 30% at 92% 34%, rgba(224, 164, 122, 0.08), transparent 70%);
-}
-
-[data-theme='astral'] {
-  --font-display: 'Marcellus SC', 'Cinzel', serif;
-  --radius-sm: 8px;
-  --radius-md: 13px;
-  --radius-lg: 20px;
-
-  --bg: #090616;
-  --bg2: #241548;
-  --panel: #1a1336;
-  --panel2: #120d28;
-  --well: #0d0920;
-  --steel: #26194f;
-  --line: rgba(196, 166, 255, 0.18);
-  --line-strong: rgba(214, 190, 255, 0.34);
-  --acc: #c590ff;
-  --acc2: #ff9ed2;
-  --lift: rgba(210, 190, 255, 0.07);
-  --accSoft: rgba(210, 190, 255, 0.07);
-  --gold: #f5d07c;
-  --goldB: #fff1c4;
-  --ink: #f4f0ff;
-  --muted: #a99dcc;
-  --danger: #ff6a5c;
-  --bloom: rgba(180, 120, 255, 0.2);
-  --particle: #ffe7a8;
-
-  --shadow-panel: 0 26px 60px -22px rgba(6, 2, 20, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(230, 210, 255, 0.08);
-  --shadow-soft: 0 14px 30px -12px rgba(6, 2, 20, 0.75), inset 0 1px 0 rgba(230, 210, 255, 0.06);
-  /* material: nebulosa suave com constelações douradas */
-  --panel-texture:
-    radial-gradient(rgba(255, 231, 168, 0.1) 1px, transparent 1.5px) 0 0 / 47px 47px,
-    radial-gradient(rgba(210, 180, 255, 0.07) 1px, transparent 1.4px) 13px 21px / 23px 23px,
-    radial-gradient(80% 60% at 100% 0%, rgba(255, 158, 210, 0.05), transparent 70%);
-  --scene:
-    radial-gradient(90% 60% at 50% -14%, rgba(150, 90, 255, 0.34), transparent 64%),
-    radial-gradient(60% 50% at 94% 108%, rgba(255, 120, 200, 0.2), transparent 66%),
-    radial-gradient(45% 40% at 2% 80%, rgba(90, 120, 255, 0.14), transparent 68%);
-  /* Marcellus só tem peso 400: sem negrito falso nos títulos */
-  font-synthesis-weight: none;
-}
-
-/* Ouro Velho — menu de jogo (Baldur's Gate 3 / Elden Ring): carvão chapado,
-   ouro velho fosco, fios finos, cantos retos e nenhum brilho. */
 [data-theme='ouro'] {
   --font-display: 'EB Garamond', 'Cormorant SC', serif;
   --radius-sm: 1px;
@@ -254,7 +58,7 @@
    padrão é escuro e os blocos pretos invertem as variáveis (veja
    "Eclipse — acabamento" no fim do arquivo). */
 [data-theme='eclipse'] {
-  --font-display: 'Manrope', 'Inter', sans-serif;
+  --font-display: 'Manrope', var(--font-body);
   --font-editorial: 'Antonio', 'Manrope', sans-serif;
   --radius-sm: 12px;
   --radius-md: 18px;
@@ -295,7 +99,7 @@
 /* Guilda Rubra — painel de jogos: vinho, bordô e carvão com coral vivo,
    cantos bem arredondados e ilustrações que escapam dos cards. */
 [data-theme='rubra'] {
-  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-display: 'Outfit', var(--font-body);
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 26px;
@@ -331,6 +135,11 @@
 
 /* "poço": fundo afundado de campos, chips e botões, na cor do clima
    (antes era preto puro e virava buraco escuro em qualquer tema) */
+/* tipografia de corpo e de números: cada tema pode trocar */
+:root {
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-num: 'Chakra Petch', monospace;
+}
 [data-theme] {
   --sunk: color-mix(in srgb, var(--well) 64%, transparent);
   --sunk-deep: color-mix(in srgb, var(--well) 86%, transparent);
@@ -350,7 +159,7 @@ body,
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow: hidden;
@@ -748,7 +557,7 @@ button:active:not(:disabled) {
     border-radius: var(--radius-md);
     padding: 13px 15px;
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-size: 15px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
@@ -795,7 +604,7 @@ button:active:not(:disabled) {
   /* botão secundário (fantasma) — par do fv-btn-gold */
   .fv-btn-ghost {
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     color: var(--muted);
     border-radius: var(--radius-md);
@@ -810,7 +619,7 @@ button:active:not(:disabled) {
   /* botão destrutivo padronizado */
   .fv-btn-danger {
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     color: var(--danger);
     border-radius: var(--radius-md);
@@ -910,7 +719,7 @@ button:active:not(:disabled) {
   }
   .fv-lore-subtitle {
     margin-top: 4px;
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-num);
     font-size: 11.5px;
     color: var(--acc);
   }
@@ -932,7 +741,7 @@ button:active:not(:disabled) {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.05);
     color: var(--muted);
-    font-family: 'Chakra Petch', monospace;
+    font-family: var(--font-num);
     font-size: 10.5px;
     font-weight: 700;
     line-height: 1;
@@ -1049,8 +858,8 @@ button:active:not(:disabled) {
   min-height: var(--topbar-h);
   padding: clamp(10px, 2vw, 20px) var(--page-x);
   pointer-events: none;
-  /* véu escuro: o conteúdo que rola por baixo não briga com os botões */
-  background: linear-gradient(180deg, rgba(5, 7, 10, 0.92) 0%, rgba(5, 7, 10, 0.7) 62%, rgba(5, 7, 10, 0) 100%);
+  /* véu na cor do fundo do tema: o conteúdo que rola por baixo não briga com os botões */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg), transparent 6%) 0%, color-mix(in srgb, var(--bg), transparent 30%) 62%, transparent 100%);
 }
 .fv-topbar-logo {
   width: 30px;
@@ -1075,7 +884,7 @@ button:active:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 12.5px;
   letter-spacing: 0.04em;
@@ -1419,7 +1228,7 @@ button:active:not(:disabled) {
 }
 .fv-choice-picker-count {
   flex: none;
-  font: 700 12px 'Chakra Petch', monospace;
+  font: 700 12px var(--font-num);
   color: var(--acc);
 }
 .fv-choice-picker-count.is-done {
@@ -1479,7 +1288,7 @@ button:active:not(:disabled) {
 }
 .fv-choice-opt-tag {
   flex: none;
-  font: 600 10.5px 'Chakra Petch', monospace;
+  font: 600 10.5px var(--font-num);
   color: var(--muted);
 }
 .fv-choice-opt-desc {
@@ -1558,7 +1367,7 @@ button:active:not(:disabled) {
   place-items: center;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
-  font: 700 12px 'Chakra Petch', monospace;
+  font: 700 12px var(--font-num);
   color: var(--gold);
 }
 @media (max-width: 640px) {
@@ -1642,6 +1451,95 @@ button:active:not(:disabled) {
   cursor: help;
   transition: border-color 0.2s, background 0.2s;
 }
+.fv-stat-chip-val {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+}
+.fv-stat-chip-label {
+  margin-top: 2px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* barra de vida (ficha): cada tema dá a forma; o padrão é a lâmina de HUD */
+.fv-hp-bar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--sunk-deep);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+}
+.fv-hp-notches {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0, 0, 0, 0.5) calc(10% - 1px) 10%);
+}
+/* blocos da aba Mesa (cada tema pode dar outra forma) */
+.fv-vitals {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 8px;
+}
+.fv-abils {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+/* atributo: --c é a cor do atributo (FOR, DES…) */
+.fv-mabil {
+  cursor: pointer;
+  width: 100%;
+  padding: 7px 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--c), transparent 70%);
+  border-bottom: 2px solid color-mix(in srgb, var(--c), transparent 35%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c), transparent 91%), var(--sunk));
+  text-align: center;
+  transition: 0.2s;
+}
+.fv-mabil-key {
+  display: block;
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--c), var(--ink) 8%);
+}
+.fv-mabil-mod {
+  display: block;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+/* botões rápidos de PV: --c é a cor (dano, cura, temporário) */
+.fv-hpq {
+  cursor: pointer;
+  min-height: 34px;
+  padding: 6px 12px;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 12.5px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--c), transparent 55%);
+  background: transparent;
+  color: var(--c);
+  transition: 0.2s;
+}
+.fv-hpq.is-strong {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c), transparent 88%);
+}
 .fv-stat-chip.is-rollable {
   cursor: pointer;
 }
@@ -1687,7 +1585,7 @@ button:active:not(:disabled) {
   align-items: center;
   gap: 10px;
   max-width: 360px;
-  font: 600 11px 'Chakra Petch', monospace;
+  font: 600 11px var(--font-num);
   color: var(--muted);
 }
 .fv-sh-level-ctrl {
@@ -1780,7 +1678,7 @@ button:active:not(:disabled) {
   }
 }
 .fv-header-stat-val {
-  font-family: 'Chakra Petch', monospace;
+  font-family: var(--font-num);
   font-weight: 700;
   font-size: 22px;
   color: var(--ink);
@@ -2141,7 +2039,7 @@ button:active:not(:disabled) {
   font-weight: 600;
 }
 .fv-compare-chip {
-  font-family: 'Chakra Petch', monospace;
+  font-family: var(--font-num);
   font-size: 11.5px;
   padding: 3px 8px;
   border-radius: 999px;
@@ -2421,7 +2319,7 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--bg);
-  font: 700 11px 'Chakra Petch', monospace;
+  font: 700 11px var(--font-num);
 }
 .fv-forge-rail button.is-done {
   color: var(--ink);
@@ -2501,7 +2399,7 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: 999px;
   background: var(--acc);
   color: var(--on-acc, #06131c);
-  font: 800 11px 'Chakra Petch', monospace;
+  font: 800 11px var(--font-num);
 }
 .fv-foot-next {
   display: none;
@@ -2591,7 +2489,7 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--muted);
 }
 .fv-counter {
-  font: 700 12px 'Chakra Petch', monospace;
+  font: 700 12px var(--font-num);
   letter-spacing: 0;
   text-transform: none;
   color: var(--acc);
@@ -2806,7 +2704,7 @@ body.fv-dragging .fv-screen-scroll {
   transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 .fv-pill small {
-  font: 600 10.5px 'Chakra Petch', monospace;
+  font: 600 10.5px var(--font-num);
   opacity: 0.8;
 }
 .fv-pill:hover:not(:disabled):not(.is-static) {
@@ -2867,7 +2765,7 @@ body.fv-dragging .fv-screen-scroll {
   padding: 7px 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  font: 12.5px 'Chakra Petch', monospace;
+  font: 12.5px var(--font-num);
   color: var(--ink);
 }
 .fv-points b {
@@ -2908,7 +2806,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-abil-name b {
   margin-right: 6px;
-  font: 700 13px 'Chakra Petch', monospace;
+  font: 700 13px var(--font-num);
   letter-spacing: 0.06em;
   color: var(--abil-color);
 }
@@ -2938,7 +2836,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid var(--line);
   background: var(--sunk-deep);
   color: var(--ink);
-  font: 700 14px 'Chakra Petch', monospace;
+  font: 700 14px var(--font-num);
 }
 .fv-abil-ctrl select option,
 .fv-field select option {
@@ -2958,11 +2856,11 @@ body.fv-dragging .fv-screen-scroll {
 .fv-abil-base {
   min-width: 24px;
   text-align: center;
-  font: 700 16px 'Chakra Petch', monospace;
+  font: 700 16px var(--font-num);
 }
 .fv-abil-total {
   text-align: center;
-  font: 700 15px 'Chakra Petch', monospace;
+  font: 700 15px var(--font-num);
   color: var(--muted);
   line-height: 1.1;
 }
@@ -2973,7 +2871,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-abil-mod {
   text-align: right;
-  font: 800 24px 'Chakra Petch', monospace;
+  font: 800 24px var(--font-num);
   color: var(--ink);
 }
 
@@ -3022,7 +2920,7 @@ body.fv-dragging .fv-screen-scroll {
   font-weight: 600;
 }
 .fv-skill-sub {
-  font: 10.5px 'Chakra Petch', monospace;
+  font: 10.5px var(--font-num);
   color: var(--muted);
   letter-spacing: 0.04em;
 }
@@ -3074,7 +2972,7 @@ body.fv-dragging .fv-screen-scroll {
   background: var(--sunk);
 }
 .fv-kit-ac b {
-  font: 800 24px / 1 'Chakra Petch', monospace;
+  font: 800 24px / 1 var(--font-num);
   color: var(--gold);
 }
 .fv-kit-ac span {
@@ -3113,7 +3011,7 @@ body.fv-dragging .fv-screen-scroll {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  font: 12.5px 'Chakra Petch', monospace;
+  font: 12.5px var(--font-num);
   color: var(--muted);
 }
 .fv-kit-attacks b {
@@ -3196,7 +3094,7 @@ body.fv-dragging .fv-screen-scroll {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 11.5px 'Chakra Petch', monospace;
+  font: 11.5px var(--font-num);
   color: var(--muted);
 }
 
@@ -3369,12 +3267,12 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-hero-abils span {
   display: block;
-  font: 700 9px 'Chakra Petch', monospace;
+  font: 700 9px var(--font-num);
   letter-spacing: 0.06em;
   color: var(--abil-color);
 }
 .fv-hero-abils b {
-  font: 700 14px 'Chakra Petch', monospace;
+  font: 700 14px var(--font-num);
   color: var(--ink);
 }
 .fv-hero-vitals {
@@ -3390,7 +3288,7 @@ body.fv-dragging .fv-screen-scroll {
   background: var(--sunk);
 }
 .fv-hero-vitals b {
-  font: 700 16px 'Chakra Petch', monospace;
+  font: 700 16px var(--font-num);
   color: var(--gold);
 }
 .fv-hero-vitals span {
@@ -3795,7 +3693,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-init-btn-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; flex: 1; }
 .fv-init-btn-text b { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.04em; }
-.fv-init-btn-text small { font-family: 'Chakra Petch', monospace; font-size: 11px; color: var(--muted); }
+.fv-init-btn-text small { font-family: var(--font-num); font-size: 11px; color: var(--muted); }
 .fv-init-btn-last {
   flex: none;
   min-width: 38px;
@@ -3815,7 +3713,7 @@ body.fv-dragging .fv-screen-scroll {
 @media (prefers-reduced-motion: reduce) { .fv-init-btn { transition: none; } }
 
 /* ===== Companheiro de Patrulheiro ===== */
-.fv-companion-tag { font-size: 11px; color: var(--muted); font-family: 'Chakra Petch', monospace; }
+.fv-companion-tag { font-size: 11px; color: var(--muted); font-family: var(--font-num); }
 .fv-companion-head { display: flex; gap: 8px; margin-bottom: 12px; }
 .fv-companion-name { flex: 1 1 60%; min-width: 0; font-family: var(--font-display); font-size: 15px; }
 .fv-companion-kind { flex: 1 1 40%; min-width: 0; font-size: 12.5px; }
@@ -3825,11 +3723,11 @@ body.fv-dragging .fv-screen-scroll {
   min-height: 64px; padding: 8px 6px; border-radius: var(--radius-md);
   border: 1px solid var(--line); background: var(--lift);
 }
-.fv-companion-stat > b { font-family: 'Chakra Petch', monospace; font-size: 20px; color: var(--ink); line-height: 1; }
+.fv-companion-stat > b { font-family: var(--font-num); font-size: 20px; color: var(--ink); line-height: 1; }
 .fv-companion-stat > span { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .fv-companion-speed { font-size: 12px !important; text-align: center; line-height: 1.25 !important; }
 .fv-companion-hp-row { display: flex; align-items: center; gap: 10px; }
-.fv-companion-hp-row b { font-family: 'Chakra Petch', monospace; font-size: 20px; }
+.fv-companion-hp-row b { font-family: var(--font-num); font-size: 20px; }
 .fv-companion-hp-row small { font-size: 12px; color: var(--muted); }
 .fv-companion-hp-row button {
   width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: 700;
@@ -3844,14 +3742,14 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink);
 }
 .fv-companion-abil button span { font-size: 9px; letter-spacing: 0.1em; color: var(--muted); }
-.fv-companion-abil button b { font-family: 'Chakra Petch', monospace; font-size: 13px; }
+.fv-companion-abil button b { font-family: var(--font-num); font-size: 13px; }
 .fv-companion-abil button:hover { border-color: var(--acc); }
 .fv-companion-attacks { margin-top: 10px; }
 .fv-companion-attack { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .fv-companion-attack-name { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--ink); }
 .fv-companion-attack-note { font-size: 11px; color: var(--muted); }
 .fv-companion-hit, .fv-companion-dmg {
-  cursor: pointer; font-family: 'Chakra Petch', monospace; font-weight: 700; padding: 6px 11px; border-radius: 10px; background: transparent;
+  cursor: pointer; font-family: var(--font-num); font-weight: 700; padding: 6px 11px; border-radius: 10px; background: transparent;
 }
 .fv-companion-hit { color: var(--gold); border: 1px solid var(--line); font-size: 15px; }
 .fv-companion-dmg { color: var(--danger); border: 1px solid rgba(255, 80, 40, 0.35); font-size: 12.5px; }
@@ -3891,7 +3789,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-spell-free.is-on { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
 .fv-mesa-spells { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
 .fv-mesa-spell { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 6px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--sunk); }
-.fv-mesa-spell-lv { flex: none; width: 20px; text-align: center; font-family: 'Chakra Petch', monospace; font-size: 11px; font-weight: 700; color: var(--acc); }
+.fv-mesa-spell-lv { flex: none; width: 20px; text-align: center; font-family: var(--font-num); font-size: 11px; font-weight: 700; color: var(--acc); }
 .fv-mesa-spell-name { display: block; font-size: 12.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
 .fv-mesa-spell-more { font-size: 11px; color: var(--muted); padding: 2px 6px; }
 
@@ -3928,7 +3826,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-music-mood.is-on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold); }
 .fv-music-vol { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
 .fv-music-vol input { flex: 1; accent-color: var(--gold); }
-.fv-music-vol b { width: 36px; text-align: right; color: var(--ink); font-family: 'Chakra Petch', monospace; }
+.fv-music-vol b { width: 36px; text-align: right; color: var(--ink); font-family: var(--font-num); }
 .fv-music-credit { margin: 0; font-size: 10.5px; line-height: 1.45; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .fv-music-eq i { animation: none; height: 5px; } }
 @media (max-width: 640px) {
@@ -3993,7 +3891,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-cast-hit-row.is-miss { opacity: 0.6; }
 .fv-cast-hit-total { display: flex; align-items: baseline; gap: 6px; }
 .fv-cast-hit-total small { font-size: 10.5px; color: var(--muted); }
-.fv-cast-hit-total b { font-family: 'Chakra Petch', monospace; font-size: 18px; color: var(--ink); }
+.fv-cast-hit-total b { font-family: var(--font-num); font-size: 18px; color: var(--ink); }
 .fv-cast-hit-row.is-crit b { color: var(--gold); }
 .fv-cast-hit-total em { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--gold); }
 .fv-cast-hit-row.is-miss em { color: var(--danger); }
@@ -4035,7 +3933,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-picker-enchant > span { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
 .fv-picker-enchant small { font-size: 11px; color: var(--gold); }
 .fv-picker-added { position: sticky; top: 0; z-index: 2; margin-bottom: 8px; padding: 7px 12px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; color: #3FC56B; background: color-mix(in srgb, #3FC56B 12%, var(--panel)); border: 1px solid color-mix(in srgb, #3FC56B 40%, transparent); }
-.fv-picker-attune { margin-left: 7px; font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: 0.8; vertical-align: middle; }
+.fv-picker-attune { margin-left: 7px; font-family: var(--font-body); font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: 0.8; vertical-align: middle; }
 
 /* Aviso de conjuração (toda magia, inclusive truques sem rolagem) */
 .fv-castnote {
@@ -4094,7 +3992,7 @@ body.fv-dragging .fv-screen-scroll {
 /* Sono / Leque Cromático: calculadora de quem é afetado */
 .fv-castnote-pool { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--sunk); border: 1px solid var(--line); }
 .fv-castnote-pool-total { font-size: 12px; line-height: 1.45; color: var(--muted); }
-.fv-castnote-pool-total b { font-family: 'Chakra Petch', monospace; font-size: 18px; color: var(--acc); margin-right: 2px; }
+.fv-castnote-pool-total b { font-family: var(--font-num); font-size: 18px; color: var(--acc); margin-right: 2px; }
 .fv-castnote-pool label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
 .fv-castnote-pool .fv-input { padding: 7px 10px; font-size: 13.5px; }
 .fv-castnote-pool-res { font-size: 12.5px; color: var(--ink); }
@@ -4105,7 +4003,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-xp { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; }
 .fv-xp-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .fv-xp-top .fv-label { font-size: 11px; }
-.fv-xp-top b { font-family: 'Chakra Petch', monospace; font-size: 16px; color: var(--gold); }
+.fv-xp-top b { font-family: var(--font-num); font-size: 16px; color: var(--gold); }
 .fv-xp-top small { font-size: 11.5px; color: var(--muted); }
 .fv-xp-top em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #3FC56B; }
 .fv-xp-bar { height: 6px; border-radius: 999px; background: var(--sunk-deep); overflow: hidden; }
@@ -4152,7 +4050,7 @@ body.fv-dragging .fv-screen-scroll {
 @media (max-width: 560px) { .fv-hb-abil { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .fv-hb-step { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 2px; padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--lift); text-align: center; }
 .fv-hb-step > span { grid-column: 1 / -1; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
-.fv-hb-step b { font-family: 'Chakra Petch', monospace; font-size: 17px; color: var(--gold); min-width: 2ch; }
+.fv-hb-step b { font-family: var(--font-num); font-size: 17px; color: var(--gold); min-width: 2ch; }
 .fv-hb-step button { height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); cursor: pointer; font-size: 15px; }
 .fv-hb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
 .fv-hb-grid label, .fv-hb-inline { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
@@ -4241,7 +4139,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-origin-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .fv-origin-fields { display: flex; flex-wrap: wrap; gap: 8px; }
 .fv-origin-field { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); }
-.fv-origin-field b { font-family: 'Chakra Petch', monospace; color: var(--gold); }
+.fv-origin-field b { font-family: var(--font-num); color: var(--gold); }
 .fv-origin-field .fv-input { min-height: 34px; padding: 4px 28px 4px 10px; font-size: 12.5px; width: auto; }
 
 
@@ -4288,14 +4186,14 @@ body.fv-dragging .fv-screen-scroll {
 /* botão principal: escuro com moldura de ouro (não mais barra dourada cheia) */
 [data-theme='ouro'] .fv-btn-gold {
   color: var(--goldB);
-  background: #1d1a15;
+  background: var(--panel);
   border: 1px solid var(--gold);
   text-transform: uppercase;
   letter-spacing: 0.16em;
 }
 [data-theme='ouro'] .fv-btn-gold:hover {
   transform: none;
-  background: #26221b;
+  background: var(--steel);
   border-color: var(--goldB);
 }
 /* cartões de escolha: seleção é uma faixa de ouro que some para a direita */
@@ -4313,13 +4211,13 @@ body.fv-dragging .fv-screen-scroll {
 /* pílulas e chips selecionados: fundo chapado, sem tinta translúcida */
 [data-theme='ouro'] .fv-pill.is-on,
 [data-theme='ouro'] .fv-seg button.is-on {
-  background: #26221b;
+  background: var(--steel);
   color: var(--goldB);
   box-shadow: inset 0 0 0 1px var(--gold);
 }
 /* campos */
 [data-theme='ouro'] .fv-input {
-  background: #0d0c0a;
+  background: var(--well);
 }
 [data-theme='ouro'] .fv-input:focus {
   border-color: var(--gold);
@@ -4331,6 +4229,31 @@ body.fv-dragging .fv-screen-scroll {
 }
 
 /* ===== Escolher tema ===== */
+.fv-theme-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--sunk);
+}
+.fv-theme-mode > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fv-theme-mode b {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+.fv-theme-mode small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
 .fv-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
 .fv-theme-card { position: relative; display: flex; flex-direction: column; gap: 9px; padding: 9px; text-align: left; cursor: pointer; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--sunk); color: var(--ink); transition: border-color 0.2s, background 0.2s; }
 .fv-theme-card:hover { border-color: var(--line-strong); }
@@ -4852,9 +4775,6 @@ body.fv-dragging .fv-screen-scroll {
 /* ============================================================
    Guilda Rubra — acabamento de app de jogos (só vale neste tema)
    ============================================================ */
-[data-theme='rubra'] .fv-topbar {
-  background: linear-gradient(180deg, rgba(30, 13, 16, 0.94) 0%, rgba(30, 13, 16, 0.7) 62%, rgba(30, 13, 16, 0) 100%);
-}
 [data-theme='rubra'] .fv-topbar-logo {
   transform: none;
   border: 0;
@@ -4869,7 +4789,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 [data-theme='rubra'] .fv-panel {
   border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, #421d23, #2e1418);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--panel), #fff 3%), var(--panel2));
   border-color: var(--line);
 }
 [data-theme='rubra'] .fv-panel::after,
@@ -5303,7 +5223,7 @@ body.fv-dragging .fv-screen-scroll {
   right: 12px;
   padding: 4px 10px;
   border-radius: 999px;
-  font: 600 11.5px 'Chakra Petch', monospace;
+  font: 600 11.5px var(--font-num);
   color: #fff6f3;
   background: rgba(30, 10, 13, 0.72);
 }
@@ -5401,7 +5321,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid var(--line);
   background:
     radial-gradient(80% 50% at 50% 30%, rgba(242, 102, 90, 0.14), transparent 70%),
-    linear-gradient(170deg, #3c1a20, #261013);
+    linear-gradient(170deg, color-mix(in srgb, var(--panel), #fff 2%), var(--panel2));
 }
 .fv-guild-ring {
   position: relative;
@@ -5463,7 +5383,7 @@ body.fv-dragging .fv-screen-scroll {
   gap: 2px;
   padding: 10px 4px;
   border-radius: 18px;
-  background: rgba(20, 6, 9, 0.45);
+  background: var(--sunk);
 }
 .fv-guild-quick b {
   font: 700 20px var(--font-display);
@@ -5517,7 +5437,7 @@ body.fv-dragging .fv-screen-scroll {
   border-color: var(--acc);
 }
 .fv-guild-pips em {
-  font: 700 13px 'Chakra Petch', monospace;
+  font: 700 13px var(--font-num);
   font-style: normal;
   color: var(--acc);
 }
@@ -5676,7 +5596,7 @@ body.fv-dragging .fv-screen-scroll {
   background: var(--ecl-paper) !important;
 }
 [data-theme='rubra'] .fv-mobile-nav {
-  background: linear-gradient(180deg, rgba(44, 19, 23, 0.7), rgba(30, 13, 16, 0.97));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel2), transparent 30%), color-mix(in srgb, var(--bg), transparent 3%));
 }
 /* skin dos dados no seletor de tema */
 .fv-theme-text .fv-theme-die {
@@ -5692,7 +5612,7 @@ body.fv-dragging .fv-screen-scroll {
   display: grid;
   place-items: center;
   clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-  font: 700 8.5px 'Chakra Petch', monospace;
+  font: 700 8.5px var(--font-num);
   font-style: normal;
 }
 
@@ -5712,80 +5632,6 @@ body.fv-dragging .fv-screen-scroll {
   }
 }
 /* borda animada reaproveitável: o ::before vira só o contorno (máscara) */
-:is([data-theme='frio'], [data-theme='astral']) :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  padding: 1.5px;
-  border-radius: inherit;
-  pointer-events: none;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: fvSpin 4s linear infinite;
-}
-:is([data-theme='frio'], [data-theme='astral']) .fv-sheet-tab.is-on {
-  position: relative;
-}
-/* Noite Arcana: um cometa de luz percorre o anel arcano */
-[data-theme='frio'] :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
-  background: conic-gradient(from var(--fv-angle), transparent 0 70%, rgba(92, 214, 255, 0.2) 80%, #bff1ff 94%, #fff 97%, transparent 100%);
-}
-/* Véu Astral: aurora girando devagar */
-[data-theme='astral'] :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
-  background: conic-gradient(from var(--fv-angle), #c590ff, #ff9ed2, #f5d07c, #7fd8ff, #c590ff);
-  animation-duration: 7s;
-}
-[data-theme='astral'] .fv-step-head h2 {
-  background: linear-gradient(100deg, var(--ink) 20%, #ffd9f0 45%, #f5d07c 55%, var(--ink) 80%) 0 0 / 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: fvFoil 9s ease-in-out infinite;
-}
-
-/* Forja Dourada: metal derretido escorrendo pelo botão principal */
-@keyframes fvMolten {
-  to {
-    background-position: -200% 0, 0 0;
-  }
-}
-[data-theme='brasa'] .fv-btn-gold:hover:not(:disabled) {
-  background:
-    linear-gradient(105deg, transparent 30%, rgba(255, 240, 200, 0.55) 45%, rgba(255, 150, 60, 0.35) 52%, transparent 66%) 0 0 / 200% 100%,
-    linear-gradient(180deg, var(--goldB), var(--gold));
-  animation: fvMolten 1.4s linear infinite;
-}
-[data-theme='brasa'] .fv-option.is-selected {
-  box-shadow: 0 0 0 1px var(--gold), 0 10px 26px -10px rgba(255, 110, 30, 0.75), inset 0 -14px 24px -18px rgba(255, 120, 40, 0.8);
-}
-
-/* Bosque Élfico: luar atravessando as copas, respirando nos painéis */
-@keyframes fvDapple {
-  0%, 100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-[data-theme='verdejante'] .fv-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background:
-    radial-gradient(18% 26% at 18% 12%, rgba(200, 255, 225, 0.07), transparent 70%),
-    radial-gradient(14% 20% at 72% 6%, rgba(233, 196, 106, 0.06), transparent 70%),
-    radial-gradient(22% 30% at 92% 48%, rgba(200, 255, 225, 0.04), transparent 70%);
-  animation: fvDapple 9s ease-in-out infinite;
-}
-[data-theme='verdejante'] .fv-panel:nth-of-type(2n)::before {
-  animation-delay: -4s;
-}
-
-/* Corte Carmesim: veludo que brilha ao passar e títulos em folha de ouro rosé */
 @keyframes fvFoil {
   0%, 100% {
     background-position: 100% 0;
@@ -5793,27 +5639,6 @@ body.fv-dragging .fv-screen-scroll {
   50% {
     background-position: 0 0;
   }
-}
-[data-theme='carmesim'] .fv-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 190, 205, 0.07) 48%, rgba(235, 185, 162, 0.05) 54%, transparent 66%) 100% 0 / 250% 100% no-repeat;
-  transition: opacity 0.5s, background-position 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-[data-theme='carmesim'] .fv-panel:hover::before {
-  opacity: 1;
-  background-position: 0 0;
-}
-[data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title) {
-  background: linear-gradient(100deg, #fceff2 25%, #ffe4d8 40%, #ebb9a2 50%, #fceff2 65%) 0 0 / 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent !important;
-  animation: fvFoil 10s ease-in-out infinite;
 }
 
 /* Ouro Velho: barra de destaque dos menus de Elden Ring (luz no centro, fios nas bordas) */
@@ -5924,11 +5749,6 @@ body.fv-dragging .fv-screen-scroll {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :is([data-theme='frio'], [data-theme='astral']) :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before,
-  [data-theme='verdejante'] .fv-panel::before,
-  [data-theme='brasa'] .fv-btn-gold:hover:not(:disabled),
-  [data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title),
-  [data-theme='astral'] .fv-step-head h2,
   .fv-guild-active::before,
   .fv-roll-panel,
   .fv-roll-burst {
@@ -6248,7 +6068,7 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: 999px;
   background: transparent;
   color: var(--gold);
-  font: 600 12.5px 'Inter', sans-serif;
+  font: 600 12.5px var(--font-body);
   cursor: pointer;
 }
 .fv-menu-link:hover {
@@ -6271,7 +6091,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 [data-theme='ouro'] .fv-menu-item.is-primary {
   color: var(--goldB);
-  background: #1d1a15;
+  background: var(--panel);
   border-color: var(--gold);
   box-shadow: none;
 }
@@ -6421,7 +6241,7 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-set-range b {
   min-width: 40px;
-  font: 700 13px 'Chakra Petch', monospace;
+  font: 700 13px var(--font-num);
   color: var(--ink);
   text-align: right;
 }
@@ -6845,7 +6665,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
   background: color-mix(in srgb, var(--gold), transparent 88%);
   color: var(--gold);
-  font: 700 12.5px 'Inter', sans-serif;
+  font: 700 12.5px var(--font-body);
   cursor: pointer;
 }
 .fv-toast-close {

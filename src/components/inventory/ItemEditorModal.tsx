@@ -209,7 +209,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
               <span style={label}>Dados de dano</span>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input className="fv-input" value={dmgDice} onChange={(e) => setDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} />
-                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={dmgDie} onChange={(e) => setDmgDie(e.target.value)} style={{ flex: 1 }}>
                   {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
                 </select>
@@ -266,7 +266,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
               <span style={label}>Dano extra (dados)</span>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input className="fv-input" value={bonusDmgDice} onChange={(e) => setBonusDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} title="0 = sem dano extra" />
-                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={bonusDmgDie} onChange={(e) => setBonusDmgDie(e.target.value)} style={{ flex: 1 }} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
                   {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
                 </select>

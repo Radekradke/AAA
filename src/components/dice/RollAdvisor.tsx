@@ -82,7 +82,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
                     {main && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.14em', color: t.gold, marginBottom: 2 }}>MAIS PROVÁVEL</div>}
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13.5, color: 'var(--ink)' }}>{s.label}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>{s.why}</div>
-                    <div style={{ fontSize: 10.5, color: hexA(color, 0.95), marginTop: 3, fontFamily: "'Chakra Petch', monospace" }}>{s.math}</div>
+                    <div style={{ fontSize: 10.5, color: hexA(color, 0.95), marginTop: 3, fontFamily: 'var(--font-num)' }}>{s.math}</div>
                   </div>
                   <button
                     onClick={() => check(s.label, s.bonus)}
@@ -97,7 +97,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
                       border: '1px solid ' + hexA(color, 0.6),
                       background: 'var(--sunk)',
                       color,
-                      fontFamily: "'Chakra Petch', monospace",
+                      fontFamily: 'var(--font-num)',
                       fontWeight: 700,
                       fontSize: 17,
                       lineHeight: 1,

@@ -148,7 +148,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
               {expanded && (
                 <div style={{ padding: '0 12px 12px 52px', display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {sp.desc && <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)' }}>{sp.desc}</p>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '3px 12px', fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '3px 12px', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                     {sp.castingTime && <span>⏱ {sp.castingTime}</span>}
                     {sp.range && <span>◎ {sp.range}</span>}
                     {sp.duration && <span>⧗ {sp.duration}</span>}

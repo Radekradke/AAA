@@ -1,7 +1,7 @@
 import { Modal } from '@/components/ui/Modal';
-import { THEMES, THEME_ORDER } from '@/data/themes';
+import { THEME_ORDER, resolveTheme } from '@/data/themes';
 import { DICE_SKINS } from '@/data/diceSkins';
-import { useUiStore } from '@/store/uiStore';
+import { themeModeOf, useUiStore } from '@/store/uiStore';
 
 /** Escolher tema em janela (menu ⋯). A grade também aparece em Configurações. */
 export function ThemePickerModal({ onClose }: { onClose: () => void }) {
@@ -19,10 +19,28 @@ export function ThemePickerModal({ onClose }: { onClose: () => void }) {
 export function ThemeGrid() {
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
+  const modes = useUiStore((s) => s.modes);
+  const setThemeMode = useUiStore((s) => s.setThemeMode);
+  const mode = themeModeOf(theme, modes);
   return (
+    <>
+    {/* claro/escuro: troca só a paleta do tema atual — o layout continua o mesmo */}
+    <div className="fv-theme-mode">
+      <span>
+        <b>Paleta</b>
+        <small>Cada tema tem versão clara e escura; o layout não muda.</small>
+      </span>
+      <div className="fv-seg" role="radiogroup" aria-label="Paleta clara ou escura">
+        {(['dark', 'light'] as const).map((m) => (
+          <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => setThemeMode(m)}>
+            {m === 'dark' ? '☾ Escura' : '☀ Clara'}
+          </button>
+        ))}
+      </div>
+    </div>
     <div className="fv-themes" role="radiogroup" aria-label="Tema visual">
       {THEME_ORDER.map((id) => {
-        const th = THEMES[id];
+        const th = resolveTheme(id, themeModeOf(id, modes));
         const on = theme === id;
         const flat = th.motif === 'none';
         const die = DICE_SKINS[id];
@@ -82,5 +100,6 @@ export function ThemeGrid() {
         );
       })}
     </div>
+    </>
   );
 }

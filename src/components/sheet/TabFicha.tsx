@@ -75,11 +75,11 @@ export function TabFicha({ char, derived }: TabProps) {
                       <polygon points="32,10 50,41 14,41" fill="none" stroke={hexA(color, 0.5)} strokeWidth="1" />
                       <path d="M32 2 L32 10 M58 17 L50 41 M6 17 L14 41 M32 60 L50 41 M32 60 L14 41 M58 45 L50 41 M6 45 L14 41" stroke={hexA(color, 0.4)} strokeWidth="1" />
                     </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 24, color: 'var(--ink)', textShadow: `0 0 14px ${hexA(color, 0.7)}` }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 24, color: 'var(--ink)', textShadow: `0 0 14px ${hexA(color, 0.7)}` }}>
                       {modStr(a.mod)}
                     </div>
                   </div>
-                  <div style={{ marginTop: 3, fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>
+                  <div style={{ marginTop: 3, fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>
                     valor <b style={{ color: 'var(--ink)' }}>{a.total}</b>
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
@@ -88,7 +88,7 @@ export function TabFicha({ char, derived }: TabProps) {
                       style={{
                         marginTop: 7,
                         fontSize: 10,
-                        fontFamily: "'Chakra Petch', monospace",
+                        fontFamily: 'var(--font-num)',
                         letterSpacing: '.05em',
                         padding: '4px 0',
                         borderRadius: 4,
@@ -117,7 +117,7 @@ export function TabFicha({ char, derived }: TabProps) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
             <div className="fv-label">Perícias</div>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
-              <span style={{ cursor: 'help', fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+              <span style={{ cursor: 'help', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                 Percepção Passiva <b style={{ color: t.gold }}>{derived.passivePerception}</b>
               </span>
             </LoreTooltip>
@@ -143,9 +143,9 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 9.5, color: ABILITY_COLORS[sk.ability] }}>{ABILITY_SHORT[sk.ability]}</span>
+                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 9.5, color: ABILITY_COLORS[sk.ability] }}>{ABILITY_SHORT[sk.ability]}</span>
                   {sk.label}
-                  <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
+                  <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
                   {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}
                   {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
@@ -203,7 +203,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     value={tool.ability ?? chk.ability}
                     onChange={(e) => store.setToolAbility(char.id, tool.id, e.target.value as AbilityKey)}
                     aria-label={`Atributo de ${tool.label}`}
-                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: "'Chakra Petch', monospace" }}
+                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: 'var(--font-num)' }}
                   >
                     {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_SHORT[k]}</option>)}
                   </select>
@@ -217,7 +217,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   )}
                   <button
                     onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
-                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
@@ -306,7 +306,7 @@ export function TabFicha({ char, derived }: TabProps) {
             ] as const).map((pas) => (
               <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
                 <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)', gap: 6 }}>
-                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{pas.value}</b>
+                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{pas.value}</b>
                 </span>
               </LoreTooltip>
             ))}

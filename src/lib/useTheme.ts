@@ -1,9 +1,15 @@
-import { useUiStore } from '@/store/uiStore';
-import { THEMES } from '@/data/themes';
-import type { ThemeDef } from '@/types/dnd';
+import { useUiStore, themeModeOf } from '@/store/uiStore';
+import { resolveTheme } from '@/data/themes';
+import type { ThemeDef, ThemeMode } from '@/types/dnd';
 
-/** Retorna o objeto de tema ativo (cores cruas, úteis para estilos inline). */
+/** Tema ativo já com a paleta do modo (claro/escuro) — cores cruas para estilos inline. */
 export function useTheme(): ThemeDef {
   const theme = useUiStore((s) => s.theme);
-  return THEMES[theme];
+  const mode = useUiStore((s) => themeModeOf(s.theme, s.modes));
+  return resolveTheme(theme, mode);
+}
+
+/** Modo efetivo do tema ativo. */
+export function useThemeMode(): ThemeMode {
+  return useUiStore((s) => themeModeOf(s.theme, s.modes));
 }

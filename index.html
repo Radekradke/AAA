@@ -16,12 +16,16 @@
     />
     <title>Ficha Viva AAA</title>
     <script>
-      // aplica o tema salvo (ou o padrão, Véu Astral) antes do app carregar: sem piscar a cor errada
+      // aplica o tema e o modo (claro/escuro) salvos (ou o padrão, Véu Astral escuro) antes do app carregar: sem piscar a cor errada
       try {
-        var t = (JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {}).theme || 'astral';
+        var st = JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {};
+        var t = st.theme || 'astral';
+        var m = (st.modes || {})[t] || (t === 'eclipse' ? 'light' : 'dark');
         document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.setAttribute('data-mode', m);
       } catch (e) {
         document.documentElement.setAttribute('data-theme', 'astral');
+        document.documentElement.setAttribute('data-mode', 'dark');
       }
     </script>
   </head>

@@ -40,7 +40,7 @@ export function TabDescanso({ char, derived }: TabProps) {
             </button>
           </LoreTooltip>
         </div>
-        <div style={{ marginTop: 13, fontSize: 12, color: 'var(--acc)', fontFamily: "'Chakra Petch', monospace" }}>{restHint}</div>
+        <div style={{ marginTop: 13, fontSize: 12, color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{restHint}</div>
       </Panel>
 
       <Panel full>
@@ -54,7 +54,7 @@ export function TabDescanso({ char, derived }: TabProps) {
               <LoreTooltip key={c.id} info={conditionLore(c.id)}>
                 <button
                   onClick={() => store.toggleCondition(char.id, c.id)}
-                  style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, minHeight: 34, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'var(--sunk)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
+                  style={{ cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12.5, minHeight: 34, padding: '8px 15px', borderRadius: 999, border: '1px solid ' + (on ? t.danger : t.line), color: on ? '#fff' : t.muted, background: on ? hexA(t.danger, 0.22) : 'var(--sunk)', boxShadow: on ? '0 0 16px ' + hexA(t.danger, 0.35) : 'none', transition: '.2s' }}
                 >
                   {c.label}
                 </button>
