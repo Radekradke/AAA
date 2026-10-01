@@ -117,6 +117,8 @@ export interface Handout {
   recipients: string[] | null;
   shownAt: string | null;
   createdAt: string;
+  /** Criada de improviso nesta sessão; null = guardada na campanha. */
+  improvisedIn?: string | null;
 }
 
 export interface StagePing {

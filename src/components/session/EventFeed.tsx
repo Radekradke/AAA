@@ -22,6 +22,7 @@ function text(e: SessionEvent): string {
     case 'hero_condition': return `${p.name} ${p.on ? 'ficou' : 'não está mais'} ${String(p.condition ?? '').toLowerCase()}`;
     case 'attack':
       return `${p.by} atacou ${p.target}: ${p.hit ? (p.crit ? 'CRÍTICO!' : 'acertou') : 'errou'}${p.hit ? ` — ${p.damage} de dano${p.type ? ` ${p.type}` : ''}` : ''}${p.note ? ` (${p.note})` : ''}`;
+    case 'hero_item': return `${p.name} recebeu ${Number(p.quantity) > 1 ? `${p.quantity}× ` : ''}${p.item ?? 'um item'}`;
     case 'xp_award': return `+${p.amount} XP para ${((p.names as unknown as string[]) ?? []).join(', ')}${p.note ? ` — ${p.note}` : ''}`;
     default: return e.type.replace(/_/g, ' ');
   }

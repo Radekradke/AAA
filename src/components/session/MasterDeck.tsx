@@ -5,12 +5,8 @@ import type { NewCombatant } from '@/services/encounterService';
 import { useSessionStore } from '@/store/sessionStore';
 import type { Character } from '@/types/character';
 import type { SharedCharacterSheet } from '@/types/models';
-import { MONSTERS, MONSTER_BY_ID } from '@/data/bestiary';
+import { MONSTER_BY_ID } from '@/data/bestiary';
 import { encounterBudget } from '@/engine/monsters';
-import { BestiaryPicker } from './BestiaryPicker';
-import { NpcAvatar, useCampaignNpcs } from '@/components/campaign/NpcGallery';
-import { useCharacterStore } from '@/store/characterStore';
-import type { CampaignNpc } from '@/types/npc';
 
 export interface SharedHero {
   share: SharedCharacterSheet;
@@ -55,103 +51,10 @@ export function buildCreatures(f: { name: string; type: 'monster' | 'npc'; qty: 
 }
 
 /** Painel do mestre: encontro, heróis vinculados, criaturas e iniciativa dos inimigos. */
-export function MasterDeck({ heroes }: { heroes: SharedHero[] }) {
-  const s = useSessionStore();
-  const [encName, setEncName] = useState('');
-  const [bestiary, setBestiary] = useState(false);
-  const enc = s.encounter;
-
-  if (!enc) {
-    return (
-      <section className="fv-panel fv-live-card">
-        <div className="fv-label">Novo encontro</div>
-        <p className="fv-live-hint">Um encontro é um combate: junta heróis e criaturas numa ordem de iniciativa.</p>
-        <div className="fv-live-inline">
-          <input className="fv-input" placeholder="Emboscada na estrada (opcional)" value={encName} onChange={(e) => setEncName(e.target.value)} maxLength={60} />
-          <button type="button" className="fv-btn-gold" disabled={s.busy} onClick={() => void s.createEncounter(encName || undefined)}>
-            Preparar encontro
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  const inEncounter = new Set(s.combatants.map((c) => c.sheetId).filter(Boolean));
-  const missing = heroes.filter((h) => !inEncounter.has(h.share.sheetId));
-  const enemiesWithout = s.combatants.filter((c) => c.type !== 'player' && c.initiative === null).length;
-  const enemies = s.combatants.filter((c) => c.type !== 'player').length;
-
-  return (
-    <>
-      <section className="fv-panel fv-live-card">
-        <div className="fv-live-card-head">
-          <div className="fv-label">Heróis da mesa</div>
-          {missing.length > 1 && (
-            <button type="button" className="fv-live-link" disabled={s.busy} onClick={() => void s.addCombatants(missing.map(heroCombatant))}>
-              Adicionar todos
-            </button>
-          )}
-        </div>
-        {heroes.length === 0 && <p className="fv-live-hint">Nenhuma ficha vinculada. Os jogadores vinculam na sala da mesa.</p>}
-        <div className="fv-live-chips">
-          {heroes.map((h) => {
-            const added = inEncounter.has(h.share.sheetId);
-            return (
-              <button key={h.share.id} type="button" className={'fv-live-chip' + (added ? ' is-on' : '')} disabled={added || s.busy} onClick={() => void s.addCombatant(heroCombatant(h))}>
-                {added ? '✓ ' : '+ '}
-                {h.snapshot?.name ?? 'Ficha não visível'}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="fv-panel fv-live-card fv-bestiary-card">
-        <div className="fv-live-card-head">
-          <div className="fv-label">Bestiário</div>
-          <small className="fv-live-hint">{MONSTERS.length} criaturas do SRD</small>
-        </div>
-        <p className="fv-live-hint">Goblins, orcs, ogros, dragões… com CA, PV, ataques e ND prontos. Os ataques rolam na ficha do monstro.</p>
-        <button type="button" className="fv-btn-gold" onClick={() => setBestiary(true)}>Abrir bestiário</button>
-      </section>
-      {bestiary && (
-        <BestiaryPicker
-          busy={s.busy}
-          onClose={() => setBestiary(false)}
-          onAdd={(list) => {
-            void s.addCombatants(list);
-            setBestiary(false);
-          }}
-        />
-      )}
-
-      <NpcPicker />
-
-      <EncounterDifficulty heroes={heroes} />
-      <XpAward />
-
-      <CreatureForm />
-
-      <section className="fv-panel fv-live-card">
-        <div className="fv-label">Iniciativa dos inimigos</div>
-        <p className="fv-live-hint">Um d20 por grupo (iguais agem juntos) e um para cada criatura solta. Os jogadores rolam a própria.</p>
-        <div className="fv-live-inline">
-          <button type="button" className="fv-btn-gold" disabled={s.busy || enemiesWithout === 0} onClick={() => void s.rollEnemies(false)}>
-            Rolar {enemiesWithout > 0 ? `${enemiesWithout} pendente${enemiesWithout > 1 ? 's' : ''}` : 'inimigos'}
-          </button>
-          <button type="button" className="fv-btn-ghost" disabled={s.busy || enemies === 0} onClick={() => void s.rollEnemies(true)}>
-            Rolar todos de novo
-          </button>
-        </div>
-      </section>
-    </>
-  );
-}
-
 const DIFF_CLASS: Record<string, string> = { trivial: 'is-trivial', fácil: 'is-easy', médio: 'is-medium', difícil: 'is-hard', mortal: 'is-deadly' };
 
 /** Dificuldade do encontro (Guia do Mestre): heróis no encontro × monstros do bestiário. */
-function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
+export function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
   const s = useSessionStore();
   const levels = s.combatants
     .filter((c) => c.type === 'player')
@@ -183,48 +86,11 @@ function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
 }
 
 /** NPCs da campanha entram no encontro com os números secretos do mestre. */
-function NpcPicker() {
-  const s = useSessionStore();
-  const { npcs, secrets } = useCampaignNpcs(s.campaignId, true);
-  const characters = useCharacterStore((c) => c.characters);
-  if (!npcs.length) return null;
-  const inFight = new Set(s.combatants.map((c) => c.name));
-  const add = (n: CampaignNpc) => {
-    const st = secrets[n.id]?.stats ?? {};
-    const sheet = st.sheetId ? characters.find((c) => c.id === st.sheetId) : undefined;
-    const d = sheet ? deriveCharacter(sheet) : null;
-    const base = st.monsterRef ? MONSTER_BY_ID[st.monsterRef] : undefined;
-    const hp = d ? sheet!.hpCurrent ?? d.maxHp : st.hp ?? base?.hp ?? null;
-    void s.addCombatant({
-      type: 'npc',
-      name: n.name,
-      initiativeBonus: d?.initiative ?? st.initiativeBonus ?? 0,
-      hpCurrent: hp,
-      hpMax: d?.maxHp ?? st.hp ?? base?.hp ?? null,
-      armorClass: d?.ac ?? st.ac ?? base?.ac ?? null,
-      hidden: !n.revealed,
-      monsterRef: st.monsterRef ?? null,
-    });
-  };
-  return (
-    <section className="fv-panel fv-live-card">
-      <div className="fv-label">NPCs da campanha</div>
-      <div className="fv-live-chips">
-        {npcs.map((n) => (
-          <button key={n.id} type="button" className={'fv-live-chip fv-npc-chip' + (inFight.has(n.name) ? ' is-on' : '')} disabled={s.busy || inFight.has(n.name)} onClick={() => add(n)}>
-            <NpcAvatar npc={n} size={22} /> {inFight.has(n.name) ? '✓ ' : '+ '}{n.name}
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /**
  * Recompensa: XP dos monstros derrotados (bestiário, PV 0) dividido entre os
  * heróis do encontro. O valor vai para a ficha de cada jogador sozinho.
  */
-function XpAward() {
+export function XpAward() {
   const s = useSessionStore();
   const heroes = s.combatants.filter((c) => c.type === 'player' && c.sheetId);
   const defeated = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && (c.hpCurrent ?? 1) <= 0);
@@ -257,52 +123,6 @@ function XpAward() {
           Dar {value || 0} XP a cada herói
         </button>
       </div>
-    </section>
-  );
-}
-
-function CreatureForm() {
-  const s = useSessionStore();
-  const [f, setF] = useState({ name: '', type: 'monster' as 'monster' | 'npc', qty: 1, bonus: 0, hp: '', ac: '', hidden: false, together: true });
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((cur) => ({ ...cur, [k]: v }));
-  const num = (v: string) => (v.trim() === '' || !Number.isFinite(Number(v)) ? null : Math.max(0, Math.round(Number(v))));
-  const submit = () => {
-    if (!f.name.trim()) return;
-    void s.addCombatants(buildCreatures({ ...f, hp: num(f.hp), ac: num(f.ac) }));
-    setF((cur) => ({ ...cur, name: '', qty: 1 }));
-  };
-  return (
-    <section className="fv-panel fv-live-card">
-      <div className="fv-label">Criatura ou NPC</div>
-      <form
-        className="fv-live-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-      >
-        <input className="fv-input fv-live-f-name" placeholder="Nome (ex.: Goblin)" value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={50} required />
-        <div className="fv-live-seg" role="group" aria-label="Tipo">
-          {(['monster', 'npc'] as const).map((t) => (
-            <button key={t} type="button" className={f.type === t ? 'is-on' : ''} onClick={() => set('type', t)}>
-              {t === 'monster' ? 'Monstro' : 'NPC'}
-            </button>
-          ))}
-        </div>
-        <label>Qtd.<input className="fv-input" type="number" min={1} max={20} value={f.qty} onChange={(e) => set('qty', Number(e.target.value) || 1)} /></label>
-        <label>Inic.<input className="fv-input" type="number" min={-5} max={15} value={f.bonus} onChange={(e) => set('bonus', Number(e.target.value) || 0)} /></label>
-        <label>PV<input className="fv-input" inputMode="numeric" value={f.hp} onChange={(e) => set('hp', e.target.value)} /></label>
-        <label>CA<input className="fv-input" inputMode="numeric" value={f.ac} onChange={(e) => set('ac', e.target.value)} /></label>
-        <div className="fv-live-checks">
-          {f.qty > 1 && (
-            <label><input type="checkbox" checked={f.together} onChange={(e) => set('together', e.target.checked)} /> Agem juntos</label>
-          )}
-          <label><input type="checkbox" checked={f.hidden} onChange={(e) => set('hidden', e.target.checked)} /> Oculto dos jogadores</label>
-        </div>
-        <button type="submit" className="fv-btn-gold" disabled={s.busy || !f.name.trim()}>
-          Adicionar{f.qty > 1 ? ` ${f.qty}` : ''}
-        </button>
-      </form>
     </section>
   );
 }

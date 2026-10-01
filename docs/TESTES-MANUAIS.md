@@ -139,3 +139,16 @@ completo na interface.
    resumo e ✕ para remover. Descanso longo limpa todas.
 3. Ação / Bônus / Reação marcam-se com ✓ riscado; "Novo turno" restaura
    junto com o movimento.
+
+## 25. Console do mestre (precisa de `supabase/mestre_console.sql`)
+Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela anônima).
+1. Mestre abre a mesa → **Jogar**: aparecem Bastidores (esquerda), Palco (centro) e Inspetor (direita); sem sessão, Bastidores → Sessão mostra **Começar agora** e **Preparar para depois**.
+2. **Preparar para depois** com o nome "A traição de Roland": a sessão aparece em "Em preparação". No jogador, a mesa **não** mostra esse nome.
+3. Com a sessão preparada selecionada, marque ☆ em um NPC, uma cena e uma criatura: eles aparecem na **Bandeja da sessão**. Recarregue a página: a bandeja continua.
+4. **Começar** a sessão preparada: o jogador vê a sessão ao vivo; a bandeja do mestre continua igual.
+5. Barra de improviso → **+ NPC** (Alt+N), nome "Ferreiro Maluco": aparece em NPCs com a marca "improviso". Na sala da mesa ele fica em "Improvisados nas sessões"; **Guardar na campanha** tira a marca.
+6. **+ Criatura**: "Lobo", PV 11, Qtd 3, Oculta. Sem encontro aberto, abre um "Encontro improvisado". O jogador **não** vê os lobos ocultos.
+7. Toque num lobo na faixa de iniciativa → Inspetor → **−5**: aparece "5 de dano em Lobo… Desfazer"; Desfazer devolve o PV. Faça o mesmo com **Ocultar** e **Remover**.
+8. **+ Pista** com destinatário só para um jogador: chega só nele. **+ Item** para um herói: o item entra na mochila da ficha do jogador (uma vez só, mesmo recarregando).
+9. **+ Nota** "Varek vai trair na ponte": aparece em Notas. No jogador, o Diário/Notas da mesa **não** mostram essa nota (nem pela rede: a consulta não devolve).
+10. Celular (390 px): ☰ Bastidores e ◧ Inspetor abrem gavetas com **Fechar**; tocar em alguém na iniciativa abre o Inspetor; o mapa continua no centro.

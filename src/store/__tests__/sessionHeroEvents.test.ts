@@ -10,6 +10,8 @@ const chars = {
   heal: (id: string, n: number) => calls.push(`cura ${id} ${n}`),
   addXp: (id: string, n: number) => calls.push(`xp ${id} ${n}`),
   toggleCondition: (id: string, c: string) => { calls.push(`cond ${id} ${c}`); hero.combat.conditions.push(c); },
+  addInventoryItem: (id: string, it: { name: string; quantity: number; homebrew?: boolean; note?: string }) =>
+    calls.push(`item ${id} ${it.name} x${it.quantity}${it.homebrew ? ' (inventado)' : ''}${it.note ? ` — ${it.note}` : ''}`),
   markEventApplied: (_id: string, e: string) => { hero.appliedEvents.push(e); },
   resetTurn: vi.fn(),
 };
@@ -65,5 +67,17 @@ describe('ordens do mestre chegam na ficha do jogador', () => {
     ];
     await useSessionStore.getState().join('camp', { userId: 'p1', name: 'Ana', isMaster: false, characterId: 'sheet-kael', characterName: 'Kael' });
     expect(calls).toEqual([]);
+  });
+
+  it('item dado pelo mestre entra na mochila (do catálogo ou inventado) — uma vez só', async () => {
+    events = [
+      ev('i1', 'hero_item', 'gm', { sheetId: 'sheet-kael', heroName: 'Kael', itemId: 'w-longsword', item: 'Espada Longa', quantity: 1 }, '2026-01-01T00:00:01Z'),
+      ev('i2', 'hero_item', 'gm', { sheetId: 'sheet-kael', heroName: 'Kael', item: 'Chave de osso', quantity: 2, note: 'abre a cripta' }, '2026-01-01T00:00:02Z'),
+      ev('i3', 'hero_item', 'p2', { sheetId: 'sheet-kael', item: 'Item roubado', quantity: 1 }, '2026-01-01T00:00:03Z'),
+    ];
+    await useSessionStore.getState().join('camp', { userId: 'p1', name: 'Ana', isMaster: false, characterId: 'sheet-kael', characterName: 'Kael' });
+    expect(calls).toEqual(['item sheet-kael Espada Longa x1 — 1d8 (1d10) cortante · Versátil', 'item sheet-kael Chave de osso x2 (inventado) — abre a cripta']);
+    await useSessionStore.getState().refresh();
+    expect(calls.length).toBe(2);
   });
 });
