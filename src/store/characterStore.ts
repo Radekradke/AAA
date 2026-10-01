@@ -45,7 +45,8 @@ interface CharacterState {
   exportCharacter: (id: string) => string | null;
 
   // ---- gameplay (operam no personagem informado) ----
-  applyDamage: (id: string, amount: number) => void;
+  /** Dano (PHB 2014): PV temporários primeiro; a 0 PV, falha no teste contra a morte; dano maciço mata. */
+  applyDamage: (id: string, amount: number, opts?: { crit?: boolean }) => void;
   heal: (id: string, amount: number) => void;
   setTempHp: (id: string, amount: number) => void;
   addInventoryItem: (id: string, item: Item | InventoryItem) => void;
@@ -238,7 +239,10 @@ export const useCharacterStore = create<CharacterState>()(
         },
 
         // ---------------- gameplay ----------------
-        applyDamage(id, amount) {
+        applyDamage(id, amount, opts) {
+          const char = get().getCharacter(id);
+          if (!char || amount <= 0) return;
+          const maxHp = deriveCharacter(char).maxHp;
           mutate(id, (c) => {
             let rem = amount;
             if (c.combat.hpTemp > 0) {
@@ -246,7 +250,22 @@ export const useCharacterStore = create<CharacterState>()(
               c.combat.hpTemp -= absorbed;
               rem -= absorbed;
             }
-            c.hpCurrent = Math.max(0, c.hpCurrent - rem);
+            if (rem <= 0) return;
+            const ds = c.combat.deathSaves ?? { success: 0, fail: 0 };
+            if (c.hpCurrent === 0) {
+              // dano já a 0 PV: 1 falha (2 se crítico); dano ≥ PV máx. mata na hora
+              ds.fail = rem >= maxHp ? 3 : Math.min(3, ds.fail + (opts?.crit ? 2 : 1));
+            } else {
+              const overflow = rem - c.hpCurrent;
+              c.hpCurrent = Math.max(0, c.hpCurrent - rem);
+              if (c.hpCurrent === 0) {
+                // dano maciço: o que sobra depois de zerar ≥ PV máximo = morte instantânea
+                if (overflow >= maxHp) ds.fail = 3;
+                const conds = c.combat.conditions ?? [];
+                if (!conds.includes('Inconsciente')) c.combat.conditions = [...conds, 'Inconsciente'];
+              }
+            }
+            c.combat.deathSaves = ds;
             // cair a 0 PV rompe a concentração automaticamente (PHB)
             if (c.hpCurrent === 0) c.combat.concentration = false;
           });
@@ -256,8 +275,15 @@ export const useCharacterStore = create<CharacterState>()(
           if (!char) return;
           const max = deriveCharacter(char).maxHp;
           mutate(id, (c) => {
+            // morto (3 falhas) não volta com cura comum
+            if ((c.combat.deathSaves?.fail ?? 0) >= 3) return;
+            const wasDown = c.hpCurrent === 0;
             c.hpCurrent = Math.min(max, c.hpCurrent + amount);
-            if (c.hpCurrent > 0) c.combat.deathSaves = { success: 0, fail: 0 };
+            if (c.hpCurrent > 0) {
+              c.combat.deathSaves = { success: 0, fail: 0 };
+              // recuperar PV acorda quem estava inconsciente por estar a 0 PV
+              if (wasDown) c.combat.conditions = (c.combat.conditions ?? []).filter((x) => x !== 'Inconsciente');
+            }
           });
         },
         setTempHp(id, amount) {

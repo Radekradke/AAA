@@ -29,8 +29,8 @@ describe('multiclasse (PHB 2014)', () => {
 
   it('exige 13 nos atributos-chave para multiclassear', () => {
     const weak = hero('fighter', { str: 15, int: 10 });
-    expect(validateLevelUp(weak, { classId: 'wizard', hpValue: 4 }).join(' ')).toMatch(/INT 13/);
+    expect(validateLevelUp(weak, { classId: 'wizard', hpValue: 4, hpMethod: 'media' }).join(' ')).toMatch(/INT 13/);
     const ok = hero('fighter', { str: 15, int: 13 });
-    expect(validateLevelUp(ok, { classId: 'wizard', hpValue: 4 }).join(' ')).not.toMatch(/exige/);
+    expect(validateLevelUp(ok, { classId: 'wizard', hpValue: 4, hpMethod: 'media' }).join(' ')).not.toMatch(/exige/);
   });
 });
