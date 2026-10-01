@@ -15,7 +15,7 @@ describe('erros do palco', () => {
     const col = stageError({ message: 'column campaign_scenes.sort does not exist', code: '42703' });
     expect(col).not.toBeInstanceOf(PalcoSetupError);
     expect(col.message).toMatch(/42703/);
-    expect(stageError({ message: 'new row violates row-level security policy for table "campaign_stage"' }).message).toMatch(/só o mestre/);
+    expect(stageError({ message: 'new row violates row-level security policy for table "campaign_stage"' }).message).toMatch(/palco_regras\.sql/);
   });
 });
 
