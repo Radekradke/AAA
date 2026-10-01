@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { deriveCharacter } from '@/engine/dndRules';
 import type { NewCombatant } from '@/services/encounterService';
 import { useSessionStore } from '@/store/sessionStore';
@@ -246,8 +247,8 @@ function XpAward() {
           type="button"
           className="fv-btn-gold"
           disabled={s.busy || !value}
-          onClick={() => {
-            if (window.confirm(`Dar ${value} XP para cada herói do encontro (${heroes.map((h) => h.name).join(', ')})?`)) {
+          onClick={async () => {
+            if (await confirmAction({ title: `Dar ${value} XP a cada herói?`, message: `Recebem: ${heroes.map((h) => h.name).join(', ')}.`, confirmLabel: 'Dar XP' })) {
               void s.awardXp(value, s.encounter?.name);
               setAmount('');
             }

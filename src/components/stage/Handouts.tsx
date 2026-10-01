@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { Modal } from '@/components/ui/Modal';
 import { mediaService, useMediaUrl } from '@/services/mediaService';
 import { stageService } from '@/services/stageService';
@@ -132,8 +133,8 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
                 type="button"
                 className="fv-btn-ghost is-danger"
                 disabled={st.busy}
-                onClick={() => {
-                  if (!window.confirm(`Apagar "${h.title}"? Some também das pistas dos jogadores.`)) return;
+                onClick={async () => {
+                  if (!(await confirmAction({ title: `Apagar "${h.title}"?`, message: 'Some também das pistas dos jogadores.', confirmLabel: 'Apagar', danger: true }))) return;
                   void st.run(() => stageService.removeHandout(h.id)).then(() => mediaService.remove([h.imagePath]));
                 }}
               >

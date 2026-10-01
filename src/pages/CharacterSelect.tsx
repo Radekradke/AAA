@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
+import { toast } from '@/store/feedbackStore';
+import { deleteHeroWithUndo, duplicateHero } from '@/lib/heroActions';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +27,7 @@ export function CharacterSelect() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const characters = useCharacterStore((s) => s.characters);
-  const { setCurrent, deleteCharacter, duplicateCharacter, importCharacter } = useCharacterStore();
+  const { setCurrent, importCharacter } = useCharacterStore();
 
   const mine = useMemo(
     () =>
@@ -35,7 +37,6 @@ export function CharacterSelect() {
     [characters, user.id],
   );
 
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
   const open = (c: Character) => {
@@ -54,6 +55,7 @@ export function CharacterSelect() {
       else {
         setImportError(null);
         bump(1.2);
+        toast('Personagem importado.');
       }
     };
     reader.readAsText(file);
@@ -270,19 +272,9 @@ export function CharacterSelect() {
                     zIndex: 1,
                   }}
                 >
-                  <CardAction label="Duplicar" onClick={() => duplicateCharacter(c.id)} />
-                  <CardAction
-                    label={confirmId === c.id ? 'Confirmar?' : 'Excluir'}
-                    danger
-                    onClick={() => {
-                      if (confirmId === c.id) {
-                        deleteCharacter(c.id);
-                        setConfirmId(null);
-                      } else {
-                        setConfirmId(c.id);
-                      }
-                    }}
-                  />
+                  <CardAction label="Duplicar" onClick={() => duplicateHero(c.id)} />
+                  {/* exclui na hora; o aviso traz "Desfazer" */}
+                  <CardAction label="Excluir" danger onClick={() => deleteHeroWithUndo(c.id)} />
                 </div>
               </div>
             );

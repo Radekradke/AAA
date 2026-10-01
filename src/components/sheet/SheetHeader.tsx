@@ -35,6 +35,7 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
   return (
     <div
       className="fv-panel fv-sheet-head animate-breathe"
+      data-tour="sheet-head"
       style={{
         position: 'relative',
         display: 'flex',

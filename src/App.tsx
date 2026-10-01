@@ -21,14 +21,28 @@ const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) 
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
 
-/** Enquanto a tela baixa: fundo vazio (a cena de fundo continua atrás). */
+/** Enquanto a tela baixa: o sigilo pulsando (só aparece se demorar, sem piscar). */
+function PageLoading() {
+  return (
+    <div role="status" aria-label="Carregando" className="fv-page-loading">
+      <span className="fv-page-loading-sigil" aria-hidden>
+        F
+      </span>
+      <small>Carregando…</small>
+    </div>
+  );
+}
+
+/** Telas pesadas carregam sob demanda, com o aviso acima enquanto isso. */
 function Page({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<div role="status" aria-label="Carregando" style={{ position: 'fixed', inset: 0 }} />}>{children}</Suspense>;
+  return <Suspense fallback={<PageLoading />}>{children}</Suspense>;
 }
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { PwaStatus } from '@/components/PwaStatus';
 import { SessionDock } from '@/components/session/SessionDock';
 import { Onboarding } from '@/components/Onboarding';
+import { GuidedTour } from '@/components/tour/GuidedTour';
+import { FeedbackHost } from '@/components/feedback/FeedbackHost';
 
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -53,6 +67,10 @@ export function App() {
     <SessionDock />
     {/* tutorial de boas-vindas (1ª visita ou menu → Tutorial) */}
     <Onboarding />
+    {/* tour guiado com holofote (ficha e criação) */}
+    <GuidedTour />
+    {/* avisos rápidos e confirmações no visual do tema */}
+    <FeedbackHost />
     <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />

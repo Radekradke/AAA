@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { deleteHeroWithUndo, duplicateHero } from '@/lib/heroActions';
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Character } from '@/types/character';
@@ -60,10 +61,8 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, importError }:
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
   const currentId = useCharacterStore((s) => s.currentId);
-  const { duplicateCharacter, deleteCharacter } = useCharacterStore();
   const liveCampaign = useSessionStore((s) => (s.session?.status === 'active' ? s.campaignId : null));
   const [query, setQuery] = useState('');
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [tables, setTables] = useState<{ c: Campaign; role: 'Mestre' | 'Jogador' }[]>([]);
 
   const canCloud = cloudEnabled() && !user.guest;
@@ -136,20 +135,12 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, importError }:
                     </span>
                   </button>
                   <div className="fv-guild-card-acts">
-                    <button type="button" onClick={() => duplicateCharacter(c.id)}>
+                    <button type="button" onClick={() => duplicateHero(c.id)}>
                       Duplicar
                     </button>
-                    <button
-                      type="button"
-                      className="is-danger"
-                      onClick={() => {
-                        if (confirmId === c.id) {
-                          deleteCharacter(c.id);
-                          setConfirmId(null);
-                        } else setConfirmId(c.id);
-                      }}
-                    >
-                      {confirmId === c.id ? 'Confirmar?' : 'Excluir'}
+                    {/* exclui na hora; o aviso traz "Desfazer" */}
+                    <button type="button" className="is-danger" onClick={() => deleteHeroWithUndo(c.id)}>
+                      Excluir
                     </button>
                   </div>
                 </article>

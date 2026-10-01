@@ -9,6 +9,9 @@ import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
 
 export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 
+/** Tours guiados: a ficha e a criação de personagem. */
+export type TourId = 'sheet' | 'creator';
+
 interface UiState {
   theme: ThemeName;
   toggleTheme: () => void;
@@ -32,6 +35,16 @@ interface UiState {
   openTutorial: () => void;
   /** Fecha e marca como visto. */
   closeTutorial: () => void;
+
+  /** Tour guiado em andamento (holofote sobre a tela real). */
+  tour: TourId | null;
+  /** Tours já vistos neste aparelho (não abrem sozinhos de novo). */
+  toursSeen: Partial<Record<TourId, boolean>>;
+  startTour: (id: TourId) => void;
+  /** Encerra (concluído ou pulado) e marca como visto. */
+  endTour: () => void;
+  /** Esquece os tours vistos (voltam a abrir sozinhos). */
+  resetTours: () => void;
 
   /** Efeitos sonoros opcionais (sessão; ativados por gesto do usuário). */
   sound: boolean;
@@ -162,6 +175,19 @@ export const useUiStore = create<UiState>()(
         set({ tutorialOpen: false, onboarded: true });
       },
 
+      tour: null,
+      toursSeen: {},
+      startTour(id) {
+        set({ tour: id, tutorialOpen: false });
+      },
+      endTour() {
+        const id = get().tour;
+        set((s) => ({ tour: null, toursSeen: id ? { ...s.toursSeen, [id]: true } : s.toursSeen }));
+      },
+      resetTours() {
+        set({ toursSeen: {} });
+      },
+
       sound: false,
       toggleSound() {
         const next = !get().sound;
@@ -221,7 +247,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded }),
+      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen }),
     },
   ),
 );

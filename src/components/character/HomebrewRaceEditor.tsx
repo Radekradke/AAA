@@ -1,4 +1,5 @@
 import { useUiStore } from '@/store/uiStore';
+import { confirmAction } from '@/store/feedbackStore';
 import { useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { RACES } from '@/data/races';
@@ -83,8 +84,13 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
             <button
               type="button"
               className="fv-btn-ghost is-danger"
-              onClick={() => {
-                if (!window.confirm(inUse ? `Tirar "${race.label}" da sua biblioteca? As ${inUse} ficha(s) que usam continuam funcionando com a cópia delas.` : `Apagar "${race.label}"?`)) return;
+              onClick={async () => {
+                const ok = await confirmAction(
+                  inUse
+                    ? { title: `Tirar "${race.label}" da biblioteca?`, message: `As ${inUse} ficha(s) que usam continuam funcionando com a cópia delas.`, confirmLabel: 'Tirar', danger: true }
+                    : { title: `Apagar "${race.label}"?`, confirmLabel: 'Apagar', danger: true },
+                );
+                if (!ok) return;
                 store.removeRace(race.id);
                 onClose();
               }}
