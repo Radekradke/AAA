@@ -139,7 +139,13 @@ export interface Feat {
   /** Magias inatas concedidas, com recarga. */
   grantsSpells?: { spellId: string; recharge: 'atwill' | 'short' | 'long' }[];
   /** Usos por descanso que viram recurso na ficha (Desvanecer, Fúria Orc…). */
-  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long' };
+  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long'; max?: number };
+  /** Proficiência com ferramentas concedida ao pegar o talento (Chef, Envenenador). */
+  tools?: string[];
+  /** Exige o traço Conjuração ou Magia de Pacto de uma classe (não vale magia racial). */
+  prereqCasterFeature?: boolean;
+  /** Exige proficiência com ao menos uma arma marcial. */
+  prereqMartial?: boolean;
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */

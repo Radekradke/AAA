@@ -163,6 +163,15 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
     if (featId === 'wood-elf-magic') {
       for (const id of char.choices?.['feat.woodElfCantrip'] ?? []) grants.unshift({ spellId: id, recharge: 'atwill' });
     }
+    // magias escolhidas nos talentos do Tasha
+    const picked: Record<string, [string, 'atwill' | 'long'][]> = {
+      'artificer-initiate': [['feat.artificerCantrip', 'atwill'], ['feat.artificerSpell', 'long']],
+      'fey-touched': [['feat.feyTouchedSpell', 'long']],
+      'shadow-touched': [['feat.shadowTouchedSpell', 'long']],
+    };
+    for (const [key, recharge] of picked[featId] ?? []) {
+      for (const id of char.choices?.[key] ?? []) grants.push({ spellId: id, recharge });
+    }
     for (const g of grants) {
       const spell = getSpell(g.spellId);
       if (!spell || !feat) continue;

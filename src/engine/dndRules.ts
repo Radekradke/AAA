@@ -454,7 +454,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...raceSkillProfs(char)]);
   // perícias vindas de escolhas de classe: Colégio do Conhecimento (3) e Influência Enganadora
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
-    if (/\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));
+    if (/\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill|skillExpertSkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));
     if (k.endsWith('.invocation') && ids.includes('beguilingInfluence')) {
       skillProfs.add('deception');
       skillProfs.add('persuasion');

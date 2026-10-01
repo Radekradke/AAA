@@ -157,7 +157,8 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
       : 9;
     all = SPELLS.filter((sp) =>
       (f.circle === undefined ? sp.level <= maxCircle : sp.level === f.circle) &&
-      (!f.classes || (sp.classes ?? []).some((c) => f.classes!.includes(c))),
+      (!f.classes || (sp.classes ?? []).some((c) => f.classes!.includes(c))) &&
+      (!f.schools || f.schools.includes(sp.school)),
     )
       .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))
       .map((sp) => spellOption(sp.id)!);
@@ -168,7 +169,7 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   // perícias: só as que o personagem ainda não tem
   if (char && spec.catalog === 'skill') {
     const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...raceSkillProfs(char)]);
-    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)).flatMap(([, v]) => v));
+    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill|skillExpertSkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
   }
   // ferramentas: esconde as que o personagem já tem por outra fonte

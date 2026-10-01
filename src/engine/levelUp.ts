@@ -10,6 +10,7 @@ import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
 import { specsAt, validateChoicePicks } from './classChoices';
 import { proficienciesOf } from './proficiencies';
+import { WEAPON_BY_ID } from '@/data/weapons';
 import { casterOf } from './spellcasting';
 import type { ReplacePick } from './classChoices';
 
@@ -164,6 +165,14 @@ export function featPrereqIssue(char: Character, feat: Feat): string | null {
       return `${feat.label} exige ${opts.map((k) => `${ABILITY_SHORT[k]} ${feat.prereqAnyAbility![k]}+`).join(' ou ')}.`;
     }
   }
+  if (feat.prereqCasterFeature && !casterOf(char)) {
+    return `${feat.label} exige o traço Conjuração ou Magia de Pacto.`;
+  }
+  if (feat.prereqMartial) {
+    const p = proficienciesOf(char);
+    const martial = p.weaponTypes.has('martial') || [...p.weapons].some((id) => WEAPON_BY_ID[id]?.weapon?.type === 'martial');
+    if (!martial) return `${feat.label} exige proficiência com uma arma marcial.`;
+  }
   if (feat.prereqArmor && !proficienciesOf(char).armor.has(feat.prereqArmor)) {
     return `${feat.label} exige proficiência em armadura ${feat.prereqArmor}.`;
   }
@@ -189,6 +198,7 @@ export function expertiseSlots(char: Character): number {
     if (cl.classId === 'bard') slots += (cl.level >= 3 ? 2 : 0) + (cl.level >= 10 ? 2 : 0);
   }
   if (char.feats?.includes('prodigy')) slots += 1;
+  if (char.feats?.includes('skill-expert')) slots += 1;
   return slots;
 }
 

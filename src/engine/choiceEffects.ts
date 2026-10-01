@@ -6,6 +6,7 @@ const TOOL_SOURCES: Record<string, string> = {
   bardInstruments: 'Bardo',
   monkTool: 'Monge',
   dwarfTool: 'Anão',
+  artificerTool: 'Iniciado Artífice',
 };
 
 const SPELL_KEYS = /^(magicalSecrets|loreSecrets|tomeCantrips|natureCantrip|arcanum\d|spellMastery\d|signature)$/;
