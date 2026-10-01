@@ -5670,3 +5670,246 @@ body.fv-dragging .fv-screen-scroll {
   font: 700 8.5px 'Chakra Petch', monospace;
   font-style: normal;
 }
+
+/* ============================================================
+   Assinaturas: um efeito de detalhe por tema (técnicas comuns na web:
+   borda cônica girando com @property, brilho deslizante, texto "foil",
+   barra de destaque de menu de jogo). Tudo some com movimento reduzido.
+   ============================================================ */
+@property --fv-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes fvSpin {
+  to {
+    --fv-angle: 360deg;
+  }
+}
+/* borda animada reaproveitável: o ::before vira só o contorno (máscara) */
+:is([data-theme='frio'], [data-theme='astral']) :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1.5px;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fvSpin 4s linear infinite;
+}
+:is([data-theme='frio'], [data-theme='astral']) .fv-sheet-tab.is-on {
+  position: relative;
+}
+/* Noite Arcana: um cometa de luz percorre o anel arcano */
+[data-theme='frio'] :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
+  background: conic-gradient(from var(--fv-angle), transparent 0 70%, rgba(92, 214, 255, 0.2) 80%, #bff1ff 94%, #fff 97%, transparent 100%);
+}
+/* Véu Astral: aurora girando devagar */
+[data-theme='astral'] :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before {
+  background: conic-gradient(from var(--fv-angle), #c590ff, #ff9ed2, #f5d07c, #7fd8ff, #c590ff);
+  animation-duration: 7s;
+}
+[data-theme='astral'] .fv-step-head h2 {
+  background: linear-gradient(100deg, var(--ink) 20%, #ffd9f0 45%, #f5d07c 55%, var(--ink) 80%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fvFoil 9s ease-in-out infinite;
+}
+
+/* Forja Dourada: metal derretido escorrendo pelo botão principal */
+@keyframes fvMolten {
+  to {
+    background-position: -200% 0, 0 0;
+  }
+}
+[data-theme='brasa'] .fv-btn-gold:hover:not(:disabled) {
+  background:
+    linear-gradient(105deg, transparent 30%, rgba(255, 240, 200, 0.55) 45%, rgba(255, 150, 60, 0.35) 52%, transparent 66%) 0 0 / 200% 100%,
+    linear-gradient(180deg, var(--goldB), var(--gold));
+  animation: fvMolten 1.4s linear infinite;
+}
+[data-theme='brasa'] .fv-option.is-selected {
+  box-shadow: 0 0 0 1px var(--gold), 0 10px 26px -10px rgba(255, 110, 30, 0.75), inset 0 -14px 24px -18px rgba(255, 120, 40, 0.8);
+}
+
+/* Bosque Élfico: luar atravessando as copas, respirando nos painéis */
+@keyframes fvDapple {
+  0%, 100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+[data-theme='verdejante'] .fv-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(18% 26% at 18% 12%, rgba(200, 255, 225, 0.07), transparent 70%),
+    radial-gradient(14% 20% at 72% 6%, rgba(233, 196, 106, 0.06), transparent 70%),
+    radial-gradient(22% 30% at 92% 48%, rgba(200, 255, 225, 0.04), transparent 70%);
+  animation: fvDapple 9s ease-in-out infinite;
+}
+[data-theme='verdejante'] .fv-panel:nth-of-type(2n)::before {
+  animation-delay: -4s;
+}
+
+/* Corte Carmesim: veludo que brilha ao passar e títulos em folha de ouro rosé */
+@keyframes fvFoil {
+  0%, 100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0 0;
+  }
+}
+[data-theme='carmesim'] .fv-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 190, 205, 0.07) 48%, rgba(235, 185, 162, 0.05) 54%, transparent 66%) 100% 0 / 250% 100% no-repeat;
+  transition: opacity 0.5s, background-position 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-theme='carmesim'] .fv-panel:hover::before {
+  opacity: 1;
+  background-position: 0 0;
+}
+[data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title) {
+  background: linear-gradient(100deg, #fceff2 25%, #ffe4d8 40%, #ebb9a2 50%, #fceff2 65%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: fvFoil 10s ease-in-out infinite;
+}
+
+/* Ouro Velho: barra de destaque dos menus de Elden Ring (luz no centro, fios nas bordas) */
+[data-theme='ouro'] :is(.fv-topbar-menu-item, .fv-forge-rail button, .fv-sheet-tab, .fv-option):is(:hover, :focus-visible),
+[data-theme='ouro'] .fv-forge-rail button.is-current {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
+    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
+    radial-gradient(60% 120% at 50% 50%, rgba(212, 191, 138, 0.16), transparent 75%);
+  background-size: 100% 1px, 100% 1px, 100% 100%;
+  background-position: top, bottom, center;
+  background-repeat: no-repeat;
+}
+
+/* Eclipse: o botão principal se inverte como um eclipse passando */
+[data-theme='eclipse'] .fv-btn-gold:not(:disabled) {
+  background: linear-gradient(90deg, var(--ecl-paper) 50%, var(--gold) 50%) 100% 0 / 200% 100%;
+  transition: background-position 0.45s cubic-bezier(0.7, 0, 0.2, 1), color 0.45s;
+}
+[data-theme='eclipse'] .fv-btn-gold:not(:disabled):hover {
+  background-position: 0 0;
+  color: var(--ecl-black);
+  border-color: var(--ecl-black);
+}
+[data-theme='eclipse'] .fv-option:not(.is-selected):hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--ecl-black);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Guilda Rubra: reflexo varrendo o herói ativo e botões que "afundam" ao clicar */
+@keyframes fvSweep {
+  0%, 70% {
+    background-position: 160% 0;
+  }
+  100% {
+    background-position: -60% 0;
+  }
+}
+/* o card deixa o retrato vazar por cima, então o reflexo é um fundo que desliza (não corta nada) */
+.fv-guild-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat;
+  animation: fvSweep 7s ease-in-out infinite;
+}
+[data-theme='rubra'] :is(.fv-btn-gold, .fv-guild-open, .fv-guild-card-open):active {
+  transform: scale(0.97);
+}
+[data-theme='rubra'] .fv-guild-card:hover {
+  box-shadow: 0 18px 36px -18px rgba(242, 102, 90, 0.55);
+}
+
+/* ===== Resultado da rolagem: crítico explode em luz, falha crítica treme ===== */
+@keyframes fvBurst {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6) rotate(40deg);
+  }
+}
+@keyframes fvRing {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold), transparent 30%), 0 24px 70px rgba(0, 0, 0, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 26px transparent, 0 24px 70px rgba(0, 0, 0, 0.6);
+  }
+}
+@keyframes fvShake {
+  0%, 100% {
+    translate: 0 0;
+  }
+  15%, 55% {
+    translate: -7px 0;
+  }
+  35%, 75% {
+    translate: 7px 0;
+  }
+}
+.fv-roll-panel.is-crit {
+  animation: fvRing 0.9s ease-out 2;
+}
+.fv-roll-burst {
+  position: absolute;
+  inset: -90px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--gold), transparent 35%) 0 4deg, transparent 4deg 18deg);
+  -webkit-mask: radial-gradient(closest-side, #000 30%, transparent 100%);
+  mask: radial-gradient(closest-side, #000 30%, transparent 100%);
+  animation: fvBurst 1.1s ease-out forwards;
+}
+.fv-roll-panel.is-fail {
+  animation: fvShake 0.45s ease-in-out;
+  border-color: var(--danger) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is([data-theme='frio'], [data-theme='astral']) :is(.fv-option.is-selected, .fv-sheet-tab.is-on)::before,
+  [data-theme='verdejante'] .fv-panel::before,
+  [data-theme='brasa'] .fv-btn-gold:hover:not(:disabled),
+  [data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title),
+  [data-theme='astral'] .fv-step-head h2,
+  .fv-guild-active::before,
+  .fv-roll-panel,
+  .fv-roll-burst {
+    animation: none !important;
+  }
+  .fv-roll-burst {
+    display: none;
+  }
+}
