@@ -19,21 +19,21 @@ arquivo diz a classe e o sexo — qualquer um destes jeitos funciona:
 
 Dica: até ~8 segundos e ~200 KB por arquivo (mp3 mono 96–128 kbps).
 
-## O que já tem
+## O que já tem (completo: 12 classes × 2 vozes)
 
 | Classe | Masculina | Feminina |
 |---|---|---|
 | Bárbaro | ✔ | ✔ |
 | Bardo | ✔ | ✔ |
-| Clérigo | — | ✔ |
-| Druida | — | ✔ |
+| Clérigo | ✔ | ✔ |
+| Druida | ✔ | ✔ |
 | Guerreiro | ✔ | ✔ |
-| Monge | — | ✔ |
+| Monge | ✔ | ✔ |
 | Paladino | ✔ | ✔ |
-| Patrulheiro | ✔ | — |
+| Patrulheiro | ✔ | ✔ |
 | Ladino | ✔ | ✔ |
 | Feiticeiro | ✔ | ✔ |
-| Bruxo | — | ✔ |
+| Bruxo | ✔ | ✔ |
 | Mago | ✔ | ✔ |
 
-Sem fala gravada, a classe só não fala (aparece "sem fala gravada").
+Para trocar uma fala, substitua o arquivo com o mesmo nome. Sem arquivo, a classe só não fala (aparece "sem fala gravada").
