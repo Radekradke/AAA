@@ -94,7 +94,7 @@ export interface Proficiencies {
   armor: Set<ArmorKind>;
   weaponTypes: Set<WeaponType>;
   weapons: Set<string>;
-  /** Mestre em Armas / Pacto da Lâmina: armas escolhidas que o app não sabe quais são. */
+  /** Mestre em Armas / Pacto da Lâmina ainda sem escolha: não pune a ficha até escolher. */
   lenientWeapons: boolean;
   lenientMelee: boolean;
 }
@@ -113,8 +113,18 @@ export function proficienciesOf(char: Character): Proficiencies {
   const sub = getSubrace(char.raceId, char.subraceId);
   if (sub) add(RACE_PROFS[sub.id]);
   for (const f of char.feats ?? []) add(FEAT_PROFS[f]);
-  if ((char.feats ?? []).includes('weapon-master')) p.lenientWeapons = true;
-  if ((char.choices?.['warlock.pact'] ?? []).includes('blade')) p.lenientMelee = true;
+  // Mestre em Armas: as 4 armas escolhidas (sem escolha ainda, não pune a ficha)
+  if ((char.feats ?? []).includes('weapon-master')) {
+    const picks = char.choices?.['feat.weaponMasterWeapons'] ?? [];
+    picks.forEach((w) => p.weapons.add(w));
+    if (!picks.length) p.lenientWeapons = true;
+  }
+  // Pacto da Lâmina: proficiente com a forma escolhida da arma de pacto
+  if ((char.choices?.['warlock.pact'] ?? []).includes('blade')) {
+    const form = char.choices?.['warlock.pactWeapon'] ?? [];
+    form.forEach((w) => p.weapons.add(w));
+    if (!form.length) p.lenientMelee = true;
+  }
   return p;
 }
 
@@ -148,6 +158,6 @@ export function proficiencySummary(p: Proficiencies): { armor: string; weapons: 
   ].filter(Boolean).join(', ') || 'Nenhuma armadura';
   const names = WEAPONS.filter((w) => p.weapons.has(w.id) && !(w.weapon && p.weaponTypes.has(w.weapon.type))).map((w) => w.name);
   const types = p.weaponTypes.has('martial') ? 'Armas simples e marciais' : p.weaponTypes.has('simple') ? 'Armas simples' : '';
-  const weapons = [types, ...names].filter(Boolean).join(', ') + (p.lenientWeapons ? ' + as 4 do Mestre em Armas' : '') || 'Nenhuma arma';
+  const weapons = [types, ...names].filter(Boolean).join(', ') + (p.lenientWeapons ? ' + 4 do Mestre em Armas (escolha pendente)' : '') + (p.lenientMelee ? ' + arma do pacto (escolha pendente)' : '') || 'Nenhuma arma';
   return { armor, weapons };
 }

@@ -43,7 +43,6 @@ export const CLASSES: DndClass[] = [
     // PHB 2014: o Bardo escolhe QUALQUER três perícias
     skillChoices: ALL_SKILLS,
     skillPicks: 3,
-    tools: ['lute'],
     spellcasting: true,
     resources: [
       { id: 'inspiration', label: 'Inspiração de Bardo', desc: 'Concede 1d6 a um aliado', recharge: 'short', max: 3 },

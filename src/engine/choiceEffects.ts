@@ -1,6 +1,13 @@
 import type { Character } from '@/types/character';
 import { toolLabel } from '@/data/tools';
 
+const TOOL_SOURCES: Record<string, string> = {
+  artisanTool: 'Estudioso da Guerra',
+  bardInstruments: 'Bardo',
+  monkTool: 'Monge',
+  dwarfTool: 'Anão',
+};
+
 const SPELL_KEYS = /^(magicalSecrets|loreSecrets|tomeCantrips|natureCantrip|arcanum\d|spellMastery\d|signature)$/;
 
 /**
@@ -25,10 +32,12 @@ export function grantChoiceEffects(c: Character, picks: Record<string, string[]>
         }
       }
     }
-    if (key === 'artisanTool') {
+    // ferramentas escolhidas viram proficiência na ficha
+    const toolSource = TOOL_SOURCES[key];
+    if (toolSource) {
       c.toolProfs = c.toolProfs ?? [];
       for (const id of ids) {
-        if (!c.toolProfs.some((t) => t.id === id)) c.toolProfs.push({ id, label: toolLabel(id), source: 'Estudioso da Guerra' });
+        if (!c.toolProfs.some((t) => t.id === id)) c.toolProfs.push({ id, label: toolLabel(id), source: toolSource });
       }
     }
   }
