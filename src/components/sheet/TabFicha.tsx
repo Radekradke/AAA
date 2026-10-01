@@ -164,6 +164,11 @@ export function TabFicha({ char, derived }: TabProps) {
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
         <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
+          {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
+          <dl className="fv-profs">
+            <div><dt>Armaduras</dt><dd>{derived.weaponArmorProfs.armor}</dd></div>
+            <div><dt>Armas</dt><dd>{derived.weaponArmorProfs.weapons}</dd></div>
+          </dl>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
             <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>

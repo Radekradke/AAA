@@ -27,26 +27,37 @@ export function addAbilityBonuses(
   return out;
 }
 
+/** Bônus racial à escolha (Meio-Elfo): os atributos escolhidos, ou o padrão antigo. */
+export function raceChoiceBonus(raceId: string, choice?: AbilityKey[] | null): Partial<AbilityScores> {
+  const ch = getRace(raceId).abilityChoice;
+  if (!ch) return {};
+  const picked = (choice ?? []).filter((k) => !ch.exclude?.includes(k)).slice(0, ch.count);
+  const keys = picked.length === ch.count ? picked : ch.default;
+  return Object.fromEntries(keys.map((k) => [k, ch.amount]));
+}
+
 /**
- * Atributos totais = base + bônus de raça + bônus de sublinhagem.
+ * Atributos totais = base + bônus de raça + bônus de sublinhagem (+ escolha racial).
  */
 export function totalAbilities(
   base: AbilityScores,
   raceId: string,
   subraceId: string | null,
+  choice?: AbilityKey[] | null,
 ): AbilityScores {
   const race = getRace(raceId);
   const sub = getSubrace(raceId, subraceId);
-  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {});
+  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {}, raceChoiceBonus(raceId, choice));
 }
 
-/** Bônus racial total para um atributo específico (raça + sublinhagem). */
+/** Bônus racial total para um atributo específico (raça + sublinhagem + escolha). */
 export function racialBonusFor(
   ability: AbilityKey,
   raceId: string,
   subraceId: string | null,
+  choice?: AbilityKey[] | null,
 ): number {
   const race = getRace(raceId);
   const sub = getSubrace(raceId, subraceId);
-  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0);
+  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0) + (raceChoiceBonus(raceId, choice)[ability] ?? 0);
 }

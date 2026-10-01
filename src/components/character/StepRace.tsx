@@ -5,7 +5,9 @@ import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
-import type { Race } from '@/types/dnd';
+import type { AbilityKey, Race } from '@/types/dnd';
+import { ABILITY_KEYS } from '@/types/dnd';
+import { ABILITY_LABELS } from '@/data/skills';
 
 /** Capítulo I — Origem: a linhagem (e sublinhagem) do herói — do livro ou homebrew. */
 export function StepRace({ char, update }: StepProps) {
@@ -98,6 +100,33 @@ export function StepRace({ char, update }: StepProps) {
               <button type="button" className="fv-btn-ghost fv-hb-edit" onClick={() => setEditing(race)}>Editar raça</button>
             </>
           )}
+          {race.abilityChoice && (() => {
+            const ch = race.abilityChoice;
+            const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
+            const active = picked.length === ch.count ? picked : ch.default;
+            const toggle = (k: AbilityKey) =>
+              update((c) => {
+                const cur = (c.raceAbilityChoice ?? active).filter((x) => !ch.exclude?.includes(x));
+                c.raceAbilityChoice = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k].slice(-ch.count);
+              });
+            return (
+              <div className="fv-detail-sub">
+                <div className="fv-facts-title">+{ch.amount} em {ch.count} atributos à escolha</div>
+                <div className="fv-pills" role="group" aria-label="Atributos à escolha">
+                  {ABILITY_KEYS.filter((k) => !ch.exclude?.includes(k)).map((k) => {
+                    const on = picked.length ? picked.includes(k) : active.includes(k);
+                    return (
+                      <button key={k} type="button" aria-pressed={on} className={'fv-pill' + (on ? ' is-on' : '')} onClick={() => toggle(k)}>
+                        {ABILITY_LABELS[k]}
+                        <small>+{ch.amount}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                {picked.length > 0 && picked.length < ch.count && <small className="fv-langs-why">Escolha mais {ch.count - picked.length}.</small>}
+              </div>
+            );
+          })()}
           {subs.length > 0 && (
             <div className="fv-detail-sub">
               <div className="fv-facts-title">Sublinhagem</div>

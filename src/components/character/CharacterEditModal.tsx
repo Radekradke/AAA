@@ -116,7 +116,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 10 }}>
             {ABILITY_KEYS.map((k) => {
               const base = char.baseAbilities[k];
-              const racial = racialBonusFor(k, char.raceId, char.subraceId);
+              const racial = racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice);
               const total = base + racial;
               return (
                 <div key={k} style={{ textAlign: 'center', background: 'linear-gradient(170deg, var(--panel), var(--panel2))', border: '1px solid var(--line)', borderRadius: 13, padding: '12px 8px' }}>

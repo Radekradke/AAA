@@ -1,7 +1,8 @@
 import type { Character } from '@/types/character';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
-import { abilityModifier } from './modifiers';
+import { abilityModifier, proficiencyBonus } from './modifiers';
+import { dragonAncestry } from '@/data/races';
 import { effectiveAbilities } from './levelUp';
 import { getFeat } from '@/data/feats';
 
@@ -154,10 +155,30 @@ export function characterResources(char: Character): ResourceState[] {
   const m = mods(char);
   const levels = char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }];
   const out: ResourceState[] = [];
+  const add2 = (r: ResourceState) => out.push(r);
   for (const cl of levels) {
     // a subclasse registrada é a da classe principal
     const sub = cl.classId === char.classId ? char.subclassId ?? null : null;
     out.push(...classResources(cl.classId, Math.max(1, cl.level), m, sub, char.choices ?? {}));
+  }
+  // traços raciais com uso (PHB 2014)
+  if (char.raceId === 'dragonborn') {
+    const anc = dragonAncestry(char.subraceId);
+    const dice = char.level >= 16 ? 5 : char.level >= 11 ? 4 : char.level >= 6 ? 3 : 2;
+    const dc = 8 + m.con + proficiencyBonus(char.level);
+    add2({
+      id: 'breath',
+      label: 'Sopro Dracônico',
+      desc: anc
+        ? `Ação: ${dice}d6 de ${anc.type} numa ${anc.area} — salvaguarda de ${anc.save} CD ${dc} (metade se passar)`
+        : `Ação: ${dice}d6 numa área (escolha seu Ancestral Dracônico) — CD ${dc}, metade se passar`,
+      recharge: 'short',
+      max: 1,
+      die: `${dice}d6`,
+    });
+  }
+  if (char.raceId === 'half-orc') {
+    add2({ id: 'relentless', label: 'Resistência Implacável', desc: 'Ao cair a 0 PV sem morrer na hora, fica com 1 PV', recharge: 'long', max: 1 });
   }
   // usos de talentos (Desvanecer, Fúria Orc, Segunda Chance)
   for (const featId of char.feats ?? []) {

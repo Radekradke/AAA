@@ -54,6 +54,8 @@ export interface Race {
   skillProfs?: SkillKey[];
   /** Perícias extras à escolha do jogador (ex.: Meio-Elfo → 2). */
   extraSkillPicks?: number;
+  /** Bônus de atributo à escolha (Meio-Elfo: +1 em dois atributos que não CAR). */
+  abilityChoice?: { count: number; amount: number; exclude?: AbilityKey[]; default: AbilityKey[] };
   /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
   video?: string;
   /** Criada pelo jogador (homebrew) — o mestre vê o selo na ficha. */
