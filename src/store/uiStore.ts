@@ -123,7 +123,8 @@ function prefersReducedMotion(): boolean {
 export const useUiStore = create<UiState>()(
   persist(
     (set, get) => ({
-      theme: 'frio',
+      // padrão para quem chega: Véu Astral (crepúsculo); a escolha de cada um fica salva
+      theme: 'astral',
       toggleTheme() {
         // cicla pelos climas na ordem definida (frio → brasa → verdejante → …)
         set((s) => {

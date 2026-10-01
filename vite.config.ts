@@ -62,6 +62,21 @@ export default defineConfig({
       devOptions: { enabled: false },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // bibliotecas mudam pouco: em pacotes próprios, continuam no cache do
+        // navegador quando só o código do app muda (atualizações frequentes)
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) return 'vendor-motion';
+          if (/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run)\//.test(id)) return 'vendor-react';
+          return undefined;
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
