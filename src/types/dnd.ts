@@ -419,6 +419,8 @@ export interface Spell {
   conditions?: string[];
   /** Etiquetas de papel para filtro rápido. */
   tags?: SpellTag[];
+  /** Livro de origem (ausente = Livro do Jogador 2014). */
+  source?: SourceBook;
 }
 
 export interface RarityDef {

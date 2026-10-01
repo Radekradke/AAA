@@ -4,7 +4,7 @@ import { getFeat } from '@/data/feats';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
 import { getSubclass } from '@/data/subclasses';
 import { getClass } from '@/data/classes';
-import { SPELLS, SPELL_BY_ID } from '@/data/spells';
+import { SPELLS, SPELL_BY_ID, spellVisible } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
@@ -156,6 +156,7 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
       ? Math.max(0, ...Object.keys(spellSlotsForClass(spec.classId, spec.classLevel ?? 1)).map(Number))
       : 9;
     all = SPELLS.filter((sp) =>
+      spellVisible(sp) &&
       (f.circle === undefined ? sp.level <= maxCircle : sp.level === f.circle) &&
       (!f.classes || (sp.classes ?? []).some((c) => f.classes!.includes(c))) &&
       (!f.schools || f.schools.includes(sp.school)),

@@ -1,4 +1,4 @@
-import type { AbilityKey, CasterClass, Spell, SpellTag } from '@/types/dnd';
+import type { AbilityKey, CasterClass, SourceBook, Spell, SpellTag } from '@/types/dnd';
 
 /**
  * Restante do Livro do Jogador (PHB 2014) — completa `spells.ts`.
@@ -29,7 +29,7 @@ const CONC: Record<string, string> = {
   c1h: 'Concentração, até 1 hora', c2h: 'Concentração, até 2 horas', c6r: 'Concentração, até 6 rodadas', c8h: 'Concentração, até 8 horas', c24h: 'Concentração, até 24 horas',
 };
 
-interface Extra {
+export interface Extra {
   ritual?: boolean;
   save?: AbilityKey;
   attack?: 'melee' | 'ranged';
@@ -43,7 +43,19 @@ interface Extra {
   tags?: SpellTag[];
 }
 
-function S(
+export type SpellBuilder = (
+  id: string, level: number, name: string, school: string, cast: string, range: string,
+  components: string, duration: string, classes: string, desc: string, x?: Extra,
+) => Spell;
+
+/** Construtor compacto de magias com prefixo de id e livro de origem. */
+export function spellBuilder(prefix: string, source?: SourceBook): SpellBuilder {
+  return (...args) => ({ ...buildSpell(...args), id: `${prefix}-${args[0]}`, source });
+}
+
+const S: SpellBuilder = (...args) => buildSpell(...args);
+
+function buildSpell(
   id: string, level: number, name: string, school: string, cast: string, range: string,
   components: string, duration: string, classes: string, desc: string, x: Extra = {},
 ): Spell {
@@ -76,7 +88,7 @@ function S(
   };
 }
 
-const CANTRIP_SCALE = 'O dano aumenta em um dado nos níveis 5, 11 e 17.';
+export const CANTRIP_SCALE = 'O dano aumenta em um dado nos níveis 5, 11 e 17.';
 
 export const PHB_SPELLS: Spell[] = [
   // ======================= TRUQUES =======================

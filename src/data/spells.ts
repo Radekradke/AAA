@@ -1,5 +1,8 @@
 import type { CasterClass, Spell } from '@/types/dnd';
 import { PHB_SPELLS } from './spellsPhb';
+import { XGE_SPELLS } from './spellsXge';
+import { TCE_SPELLS } from './spellsTce';
+import { sourceEnabled } from './contentPacks';
 
 /**
  * Banco de magias — D&D 5e (PHB 2014), em português.
@@ -474,8 +477,17 @@ const BASE_SPELLS: Spell[] = [
   },
 ];
 
-/** Todas as magias do Livro do Jogador (base + restante do PHB). */
-export const SPELLS: Spell[] = [...BASE_SPELLS, ...PHB_SPELLS];
+/**
+ * Biblioteca completa: Livro do Jogador + Xanathar + Tasha. As de outros
+ * livros só aparecem nas listas de escolha com o pacote ligado
+ * (`spellVisible`), mas fichas que já as têm sempre as encontram.
+ */
+export const SPELLS: Spell[] = [...BASE_SPELLS, ...PHB_SPELLS, ...XGE_SPELLS, ...TCE_SPELLS];
+
+/** A magia aparece nas listas de escolha? (pacote do livro ligado) */
+export function spellVisible(spell: Spell): boolean {
+  return sourceEnabled(spell.source);
+}
 
 export const SPELL_BY_ID: Record<string, Spell> = Object.fromEntries(
   SPELLS.map((s) => [s.id, s]),
@@ -488,7 +500,7 @@ export function getSpell(id: string): Spell | undefined {
 /** Todas as magias que a classe pode aprender/preparar até o círculo dado. */
 export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
   return SPELLS.filter(
-    (spell) => (spell.classes ? spell.classes.includes(classId as CasterClass) : true) && spell.level <= Math.max(0, maxCircle),
+    (spell) => spellVisible(spell) && (spell.classes ? spell.classes.includes(classId as CasterClass) : true) && spell.level <= Math.max(0, maxCircle),
   ).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
 }
 

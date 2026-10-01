@@ -5,7 +5,7 @@ import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
 import { THEME_ORDER } from '@/data/themes';
 import type { PackId } from '@/data/contentPacks';
-import { SOURCE_PACK } from '@/data/contentPacks';
+import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
 
 export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 
@@ -222,3 +222,9 @@ export function useSourceOn(): (source: string | undefined) => boolean {
     return !pack || !!packs?.[pack];
   };
 }
+
+// mantém o registro dos pacotes em dia para o motor (listas de magias etc.)
+setEnabledPacks(useUiStore.getState().packs ?? {});
+useUiStore.subscribe((st, prev) => {
+  if (st.packs !== prev.packs) setEnabledPacks(st.packs ?? {});
+});

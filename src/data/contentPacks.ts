@@ -20,14 +20,14 @@ export const CONTENT_PACKS: ContentPack[] = [
     label: 'Guia de Xanathar para Todas as Coisas',
     short: 'Xanathar',
     year: 2017,
-    contents: ['15 talentos raciais'],
+    contents: ['94 magias', '15 talentos raciais'],
   },
   {
     id: 'tce',
     label: 'Caldeirão de Tasha para Tudo',
     short: 'Tasha',
     year: 2020,
-    contents: ['Origem personalizada (mover bônus raciais e trocar proficiências)', 'Linhagem Personalizada', '15 talentos'],
+    contents: ['Origem personalizada (mover bônus raciais e trocar proficiências)', 'Linhagem Personalizada', '15 talentos', '21 magias'],
   },
   {
     id: 'races',
@@ -38,9 +38,25 @@ export const CONTENT_PACKS: ContentPack[] = [
   },
 ];
 
+/** Selo curto do livro nas listas (magias, talentos). */
+export const SOURCE_SHORT: Record<string, string> = { 'PHB 2014': 'Livro do Jogador', XGE: 'Xanathar', TCE: 'Tasha' };
+
 /** Pacote de cada fonte de talento/magia/subclasse (PHB = sempre ligado). */
 export const SOURCE_PACK: Record<string, PackId | null> = {
   'PHB 2014': null,
   XGE: 'xge',
   TCE: 'tce',
 };
+
+/* Pacotes ligados agora — o uiStore mantém isto em dia; dados e motor só leem. */
+let enabled: Partial<Record<PackId, boolean>> = {};
+
+export function setEnabledPacks(packs: Partial<Record<PackId, boolean>>): void {
+  enabled = { ...packs };
+}
+
+/** Conteúdo desta fonte está visível? (PHB e fonte ausente = sempre) */
+export function sourceEnabled(source: string | undefined): boolean {
+  const pack = source ? SOURCE_PACK[source] : null;
+  return !pack || !!enabled[pack];
+}
