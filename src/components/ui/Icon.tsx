@@ -3,7 +3,7 @@ import { GAME_ICONS } from './gameIcons';
 
 type GameIconName = keyof typeof GAME_ICONS;
 
-export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image';
+export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout';
 
 interface IconProps {
   name: IconName;
@@ -34,6 +34,25 @@ const STROKE_PATHS: Record<Exclude<IconName, GameIconName>, React.ReactNode> = {
       <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
       <circle cx="9" cy="10" r="1.7" />
       <path d="m4.5 18 4.8-4.8 3.4 3.4 2.3-2.3 4.5 4.5" />
+    </>
+  ),
+  gear: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" />
+      <circle cx="12" cy="12" r="6.6" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M12 6.5C10 5 7.2 4.5 4 4.8v13.4c3.2-.3 6 .2 8 1.8 2-1.6 4.8-2.1 8-1.8V4.8c-3.2-.3-6 .2-8 1.7Z" />
+      <path d="M12 6.5V20" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M14 4.5H6.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H14" />
+      <path d="m16 8 4 4-4 4M20 12H10" />
     </>
   ),
 };

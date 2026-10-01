@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { consumeNext } from '@/lib/nextPath';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
@@ -50,7 +51,7 @@ export function Login() {
     void authService.currentUser().then((u) => {
       if (u) {
         setUser(u);
-        navigate('/personagens');
+        navigate(consumeNext());
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +81,7 @@ export function Login() {
         }
       }
       bump(1.3);
-      navigate('/personagens');
+      navigate(consumeNext());
     } finally {
       setBusy(false);
     }
@@ -89,7 +90,7 @@ export function Login() {
   const guest = () => {
     loginAsGuest();
     bump(1.2);
-    navigate('/personagens');
+    navigate(consumeNext());
   };
 
   const tabStyle = (active: boolean): React.CSSProperties => ({

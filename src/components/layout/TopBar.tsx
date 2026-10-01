@@ -1,4 +1,3 @@
-import { ContentPacksModal } from './ContentPacksModal';
 import { ThemePickerModal } from './ThemePickerModal';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,13 +34,8 @@ interface TopBarProps {
  */
 export function TopBar({ actions, menu = [] }: TopBarProps) {
   const theme = useUiStore((s) => s.theme);
-  const sound = useUiStore((s) => s.sound);
-  const toggleSound = useUiStore((s) => s.toggleSound);
-  const dice3d = useUiStore((s) => s.dice3d);
-  const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
-  const [packsOpen, setPacksOpen] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
   const installer = useInstallPrompt();
   const navigate = useNavigate();
@@ -63,11 +57,9 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
   const items: (TopBarMenuItem & { key: string })[] = [
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
+    { key: 'home', label: 'Menu principal', icon: 'spark', onClick: () => navigate('/') },
+    { key: 'config', label: 'Configurações', icon: 'gear', onClick: () => navigate('/config') },
     { key: 'theme', label: `Escolher tema · ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
-    { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
-    { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
-    { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
-    { key: 'packs', label: 'Pacotes de conteúdo', icon: 'quill', onClick: () => setPacksOpen(true) },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
       ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
@@ -76,14 +68,15 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
   return (
     <div className="fv-topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0, pointerEvents: 'auto' }}>
+      {/* a marca leva ao menu principal */}
+      <button type="button" className="fv-topbar-brand" onClick={() => navigate('/')} aria-label="Menu principal" title="Menu principal">
         <div className="fv-topbar-logo" aria-hidden>
           <span>F</span>
         </div>
         <span className="fv-hide-mobile" style={{ fontFamily: 'var(--font-display)', letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
           FICHA&nbsp;VIVA
         </span>
-      </div>
+      </button>
 
       <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
         <SyncBadge />
@@ -123,7 +116,6 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
         </div>
       </div>
 
-      {packsOpen && <ContentPacksModal onClose={() => setPacksOpen(false)} />}
       {themesOpen && <ThemePickerModal onClose={() => setThemesOpen(false)} />}
       {iosGuide && (
         <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>

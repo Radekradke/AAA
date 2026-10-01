@@ -18,7 +18,6 @@ import { GuildDashboard } from '@/components/character/GuildDashboard';
 export function CharacterSelect() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
-  const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
   const theme = useUiStore((s) => s.theme);
   const t = useTheme();
@@ -69,8 +68,8 @@ export function CharacterSelect() {
           <Button variant="accent" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>
             Mesas
           </Button>
-          <Button onClick={() => { logout(); navigate('/'); }} style={{ fontSize: 12.5 }}>
-            Sair
+          <Button onClick={() => navigate('/')} style={{ fontSize: 12.5 }}>
+            Menu
           </Button>
         </>
       }
