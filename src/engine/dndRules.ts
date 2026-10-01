@@ -14,6 +14,7 @@ import { containerOf } from './inventory';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown } from './effects';
 import { breakdown, mod } from './effects';
+import { languagePicks, languagesLeftText } from './originChoices';
 
 export interface DerivedAbility {
   key: AbilityKey;
@@ -578,13 +579,16 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const darkvision = darkRange
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
+  // "1 idioma à escolha" (raça/sub-raça) e os do antecedente viram escolhas reais
+  const langPicks = languagePicks(char);
   const languages = Array.from(
     new Set([
-      ...(race.languages ?? ['Comum']),
+      ...langPicks.fixed,
       ...(subBonus?.languages ?? []),
       ...(char.extraLanguages ?? []),
       ...Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage)$/.test(k)).flatMap(([, v]) => v),
       ...feats.flatMap((f) => f.languages ?? []),
+      ...(langPicks.left ? [languagesLeftText(langPicks.left)] : []),
     ]),
   );
   const resistances = [

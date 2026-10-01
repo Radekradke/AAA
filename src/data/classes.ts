@@ -1,4 +1,7 @@
-import type { DndClass } from '@/types/dnd';
+import type { DndClass, SkillKey } from '@/types/dnd';
+import { SKILLS } from './skills';
+
+const ALL_SKILLS: SkillKey[] = SKILLS.map((s) => s.key);
 
 /**
  * As 12 classes do D&D 5e, com estrutura genérica e expansível.
@@ -37,7 +40,8 @@ export const CLASSES: DndClass[] = [
     blurb:
       'Mestre da inspiração e da versatilidade. A magia do Bardo flui da arte e da audácia.',
     savingThrows: ['dex', 'cha'],
-    skillChoices: ['deception', 'history', 'insight', 'performance', 'persuasion', 'sleightOfHand'],
+    // PHB 2014: o Bardo escolhe QUALQUER três perícias
+    skillChoices: ALL_SKILLS,
     skillPicks: 3,
     tools: ['lute'],
     spellcasting: true,

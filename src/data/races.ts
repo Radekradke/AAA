@@ -141,7 +141,7 @@ export const SUBRACES: Record<string, Subrace[]> = {
     { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR' },
   ],
   elf: [
-    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT' },
+    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'] },
     {
       id: 'wood-elf',
       label: 'Elfo da Floresta',

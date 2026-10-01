@@ -1,3 +1,4 @@
+import { LANGUAGE_OPTIONS } from '@/data/classChoices';
 import { useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -270,6 +271,7 @@ export function TabFicha({ char, derived }: TabProps) {
             <input
               className="fv-input"
               placeholder="Novo idioma (Élfico, Anão…)"
+              list="fv-lang-options"
               value={langDraft}
               onChange={(e) => setLangDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { store.addLanguage(char.id, langDraft); setLangDraft(''); } }}
@@ -284,6 +286,10 @@ export function TabFicha({ char, derived }: TabProps) {
               Adicionar
             </button>
           </div>
+
+          <datalist id="fv-lang-options">
+            {LANGUAGE_OPTIONS.map((o) => <option key={o.id} value={o.label} />)}
+          </datalist>
 
           <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos Passivos</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

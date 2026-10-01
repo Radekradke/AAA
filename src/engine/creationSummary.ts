@@ -5,6 +5,7 @@ import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import { abilityModifier, totalAbilities } from './modifiers';
+import { languagePicks, skillBudget } from './originChoices';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -31,6 +32,7 @@ export const CREATION_STEPS = [
   { id: 'despertar', label: 'Despertar', title: 'Despertar', subtitle: 'Dê nome e alma ao herói.' },
 ] as const;
 
+export const STEP_BACKGROUND = 2;
 export const STEP_SKILLS = 4;
 export const STEP_GEAR = 5;
 export const STEP_IDENTITY = 6;
@@ -86,21 +88,19 @@ export function backgroundFacts(char: Character): Fact[] {
 export function creationPending(char: Character): PendingItem[] {
   const pending: PendingItem[] = [];
   const cls = getClass(char.classId);
-  const race = raceOf(char);
-  const bg = getBackground(char.backgroundId);
 
   if (!char.name.trim()) pending.push({ label: 'Dê um nome ao herói', step: STEP_IDENTITY });
 
-  const granted = new Set([...bg.skills, ...(race.skillProfs ?? [])]);
-  const classChosen = char.skillProfs.filter((k) => cls.skillChoices.includes(k) && !granted.has(k)).length;
-  const classLeft = cls.skillPicks - classChosen;
-  if (classLeft > 0) {
-    pending.push({ label: `Escolha ${classLeft} perícia${classLeft > 1 ? 's' : ''} de ${cls.label}`, step: STEP_SKILLS });
+  const budget = skillBudget(char);
+  if (budget.classLeft > 0) {
+    pending.push({ label: `Escolha ${budget.classLeft} perícia${budget.classLeft > 1 ? 's' : ''} de ${cls.label}`, step: STEP_SKILLS });
   }
-  const extraChosen = char.skillProfs.filter((k) => !cls.skillChoices.includes(k) && !granted.has(k)).length;
-  const extraLeft = (race.extraSkillPicks ?? 0) - extraChosen;
-  if (extraLeft > 0) {
-    pending.push({ label: `Escolha ${extraLeft} perícia${extraLeft > 1 ? 's' : ''} livre${extraLeft > 1 ? 's' : ''} (${race.label})`, step: STEP_SKILLS });
+  if (budget.freeLeft > 0) {
+    pending.push({ label: `Escolha ${budget.freeLeft} perícia${budget.freeLeft > 1 ? 's' : ''} livre${budget.freeLeft > 1 ? 's' : ''}`, step: STEP_SKILLS });
+  }
+  const langs = languagePicks(char);
+  if (langs.left > 0) {
+    pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
   }
 
   return pending;

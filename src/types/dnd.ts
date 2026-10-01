@@ -84,6 +84,8 @@ export interface Subrace {
   /** Substitui o alcance de visão no escuro da raça (ex.: Drow 36 m). */
   darkvision?: number;
   resistances?: string[];
+  /** Idiomas da sub-raça ("1 idioma à escolha" vira escolha na criação). */
+  languages?: string[];
   traits?: string[];
   /** Homebrew: descrição e traços com texto. */
   desc?: string;
