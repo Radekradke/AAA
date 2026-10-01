@@ -58,7 +58,8 @@ describe('talentos raciais do Xanathar (XGE)', () => {
   });
 
   it('Alta Magia Drow: detectar magia à vontade, levitação e dissipar magia 1×/descanso longo', () => {
-    const spells = itemGrantedSpells(hero('elf', 'drow', ['drow-high-magic']));
+    // só as do talento (a Magia Drow da raça vem à parte)
+    const spells = itemGrantedSpells(hero('elf', 'drow', ['drow-high-magic'])).filter((s) => s.itemUid.startsWith('feat:'));
     expect(spells.map((s) => [s.spell.id, s.recharge])).toEqual([
       ['sp-detectar', 'atwill'], ['phb-levitate', 'long'], ['sp-relampagosagrado', 'long'],
     ]);
