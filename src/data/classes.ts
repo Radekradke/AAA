@@ -84,6 +84,8 @@ export const CLASSES: DndClass[] = [
     savingThrows: ['int', 'wis'],
     skillChoices: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'],
     skillPicks: 2,
+    // PHB 2014: o Druida é proficiente com Kit de Herbalismo
+    tools: ['herbalism-kit'],
     spellcasting: true,
     resources: [
       { id: 'wildshape', label: 'Forma Selvagem', desc: 'Transforma-se em uma fera', recharge: 'short', max: 2 },

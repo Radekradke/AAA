@@ -66,3 +66,15 @@ describe('raças: escolhas do livro', () => {
     expect(characterResources({ ...c, level: 11 }).find((r) => r.id === 'breath')!.die).toBe('4d6');
   });
 });
+
+describe('exaustão e condições', () => {
+  it('exaustão 2 corta o deslocamento; 4 corta o PV máximo; agarrado zera', () => {
+    const c = make({ raceId: 'human' });
+    const base = deriveCharacter(c);
+    const ex = (n: number) => deriveCharacter({ ...c, combat: { ...c.combat, exhaustion: n } });
+    expect(ex(2).speed).toBe(base.speed / 2);
+    expect(ex(4).maxHp).toBe(base.maxHp - Math.ceil(base.maxHp / 2));
+    expect(ex(5).speed).toBe(0);
+    expect(deriveCharacter({ ...c, combat: { ...c.combat, conditions: ['Agarrado'] } }).speed).toBe(0);
+  });
+});

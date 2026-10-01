@@ -108,6 +108,10 @@ export interface Feat {
   prereq?: string;
   /** Valores mínimos de atributo exigidos (validados na evolução). */
   prereqAbility?: Partial<AbilityScores>;
+  /** Basta UM destes atributos no mínimo (Conjurador de Rituais: INT ou SAB 13). */
+  prereqAnyAbility?: Partial<AbilityScores>;
+  /** Exige proficiência com esse tipo de armadura. */
+  prereqArmor?: 'leve' | 'média' | 'pesada';
   /** Raças que podem escolher (talentos raciais de Xanathar). */
   prereqRaces?: string[];
   /** Exige capacidade de conjurar magias. */

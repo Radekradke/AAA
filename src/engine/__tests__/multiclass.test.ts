@@ -34,3 +34,22 @@ describe('multiclasse (PHB 2014)', () => {
     expect(validateLevelUp(ok, { classId: 'wizard', hpValue: 4, hpMethod: 'media' }).join(' ')).not.toMatch(/exige/);
   });
 });
+
+import { featPrereqIssue } from '../levelUp';
+import { getFeat } from '@/data/feats';
+
+describe('pré-requisitos de talentos', () => {
+  it('Conjurador de Rituais aceita SAB 13', () => {
+    expect(featPrereqIssue(hero('cleric', { wis: 14, int: 8 }), getFeat('ritual-caster')!)).toBeNull();
+    expect(featPrereqIssue(hero('fighter', { wis: 10, int: 10 }), getFeat('ritual-caster')!)).toMatch(/INT 13\+ ou SAB 13\+/);
+  });
+  it('talentos de armadura exigem a proficiência anterior', () => {
+    expect(featPrereqIssue(hero('wizard'), getFeat('heavily-armored')!)).toMatch(/armadura média/);
+    expect(featPrereqIssue(hero('cleric'), getFeat('heavily-armored')!)).toBeNull();
+  });
+  it('Tiefling conta como capaz de conjurar (Taumaturgia)', () => {
+    const t = { ...hero('fighter'), raceId: 'tiefling', subraceId: null };
+    expect(featPrereqIssue(t, getFeat('warcaster')!)).toBeNull();
+    expect(featPrereqIssue(hero('fighter'), getFeat('warcaster')!)).toMatch(/conjurar/);
+  });
+});

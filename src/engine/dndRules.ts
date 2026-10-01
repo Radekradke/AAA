@@ -33,6 +33,8 @@ export interface DerivedSkill {
   proficient: boolean;
   /** Expertise: bônus de proficiência em dobro (Ladino/Bardo). */
   expertise: boolean;
+  /** Motivo de desvantagem automática (armadura, exaustão, condição). */
+  disadvantage?: string;
 }
 
 export interface DerivedAttack {
@@ -274,10 +276,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     acParts.push(mod('ac', armor.baseAC, armorItem.name, 'item', { label: 'CA base da armadura' }));
     if (armor.magicBonus) acParts.push(mod('ac', Math.min(3, armor.magicBonus), armorItem.name, 'item', { label: `armadura mágica +${Math.min(3, armor.magicBonus)}` }));
     if (armor.addDex) {
-      const cap = typeof armor.maxDexBonus === 'number' ? Math.min(dexMod, armor.maxDexBonus) : dexMod;
+      // Mestre em Armadura Média: teto de DES +3 em armadura média
+      const dexCap = typeof armor.maxDexBonus === 'number' && armor.category === 'média' && feats.some((f) => f.id === 'medium-armor-master') ? 3 : armor.maxDexBonus;
+      const cap = typeof dexCap === 'number' ? Math.min(dexMod, dexCap) : dexMod;
       acParts.push(mod('ac', cap, 'Destreza', 'ability', { label: 'modificador de DES' }));
-      if (typeof armor.maxDexBonus === 'number' && dexMod > armor.maxDexBonus) {
-        acNote = `armadura ${armor.category} limita DES a +${armor.maxDexBonus}`;
+      if (typeof dexCap === 'number' && dexMod > dexCap) {
+        acNote = `armadura ${armor.category} limita DES a +${dexCap}`;
       }
     } else {
       acNote = 'armadura pesada não soma Destreza';
@@ -369,6 +373,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
   // Auxílio: +5 de PV máximo por círculo acima do 1º
   for (const e of spellEffects) if (e.maxHp) hpParts.push(mod('hp', e.maxHp, e.name, 'spell'));
+  // Exaustão 4+ (PHB 2014): PV máximo pela metade
+  const exhaustion = char.combat?.exhaustion ?? 0;
+  if (exhaustion >= 4) {
+    const before = breakdown(hpParts).total;
+    hpParts.push(mod('hp', -Math.ceil(before / 2), 'Exaustão', 'base', { label: `nível ${exhaustion}: PV máximo pela metade` }));
+  }
   const hpBd = breakdown(hpParts);
   const maxHp = Math.max(1, hpBd.total);
   hpBd.total = maxHp;
@@ -404,6 +414,16 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     speedBd.parts.push(mod('speed', speedBd.total, hasted.name, 'spell', { unit: 'm', label: 'deslocamento dobrado' }));
     speedBd.total *= 2;
   }
+  // Exaustão 2: metade do deslocamento; 5: zero. Condições que prendem: zero.
+  const stuck = (char.combat?.conditions ?? []).find((x) => ['Agarrado', 'Impedido', 'Restringido', 'Atordoado', 'Paralisado', 'Petrificado', 'Inconsciente'].includes(x));
+  if (stuck || exhaustion >= 5) {
+    speedBd.parts.push(mod('speed', -speedBd.total, stuck ?? 'Exaustão', 'base', { unit: 'm', label: stuck ? 'condição: deslocamento 0' : `exaustão ${exhaustion}: deslocamento 0` }));
+    speedBd.total = 0;
+  } else if (exhaustion >= 2) {
+    const half = speedBd.total / 2;
+    speedBd.parts.push(mod('speed', half - speedBd.total, 'Exaustão', 'base', { unit: 'm', label: `nível ${exhaustion}: metade do deslocamento` }));
+    speedBd.total = half;
+  }
 
   // ---- Iniciativa: DES + talentos ----
   // Meia proficiência em testes sem proficiência (não acumulam; vale o maior):
@@ -435,6 +455,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       skillProfs.add('persuasion');
     }
   }
+  // condições que dão desvantagem em testes de atributo (Envenenado, Amedrontado)
+  const checkCondition = (char.combat?.conditions ?? []).find((x) => x === 'Envenenado' || x === 'Amedrontado');
   const expertiseSet = new Set<SkillKey>(char.skillExpertise ?? []);
   // Bênçãos do Conhecimento: proficiência dobrada nas duas perícias escolhidas
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
@@ -445,7 +467,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const expertise = proficient && expertiseSet.has(sk.key);
     const half = proficient ? null : halfProfFor(sk.ability);
     const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : half?.value ?? 0);
-    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise };
+    const disadvantage =
+      exhaustion >= 1 ? 'exaustão'
+      : checkCondition ? checkCondition.toLowerCase()
+      : sk.key === 'stealth' && armor?.stealthDisadvantage && !(armor.category === 'média' && feats.some((f) => f.id === 'medium-armor-master')) ? 'armadura atrapalha a furtividade'
+      : armorUntrained.length && (sk.ability === 'str' || sk.ability === 'dex') ? 'armadura sem proficiência'
+      : undefined;
+    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise, disadvantage };
   });
   const perception = skills.find((s) => s.key === 'perception')!;
   const ppBd = breakdown([

@@ -147,6 +147,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   {sk.label}
                   <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
                   {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}
+                  {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
               </LoreTooltip>
             ))}

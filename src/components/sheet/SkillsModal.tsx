@@ -93,6 +93,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
                   </div>
                   <div style={{ marginTop: 3, fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: sk.expertise ? t.gold : strong ? hexA(t.gold, 0.8) : 'transparent' }}>
                     {sk.expertise ? 'Expertise ×2' : strong ? 'Proficiente' : '·'}
+                    {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}> · desv.</span>}
                   </div>
                 </button>
               </LoreTooltip>

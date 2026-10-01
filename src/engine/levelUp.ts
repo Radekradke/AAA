@@ -9,6 +9,8 @@ import { getFeat } from '@/data/feats';
 import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
 import { specsAt, validateChoicePicks } from './classChoices';
+import { proficienciesOf } from './proficiencies';
+import { casterOf } from './spellcasting';
 import type { ReplacePick } from './classChoices';
 
 export const MAX_LEVEL = 20;
@@ -155,7 +157,21 @@ export function featPrereqIssue(char: Character, feat: Feat): string | null {
       }
     }
   }
-  if (feat.prereqCaster && !getClass(char.classId).spellcasting) {
+  if (feat.prereqAnyAbility) {
+    const totals = effectiveAbilities(char);
+    const opts = ABILITY_KEYS.filter((k) => feat.prereqAnyAbility![k]);
+    if (!opts.some((k) => totals[k] >= feat.prereqAnyAbility![k]!)) {
+      return `${feat.label} exige ${opts.map((k) => `${ABILITY_SHORT[k]} ${feat.prereqAnyAbility![k]}+`).join(' ou ')}.`;
+    }
+  }
+  if (feat.prereqArmor && !proficienciesOf(char).armor.has(feat.prereqArmor)) {
+    return `${feat.label} exige proficiência em armadura ${feat.prereqArmor}.`;
+  }
+  // "capaz de conjurar ao menos uma magia": classe, subclasse (Cavaleiro/Trapaceiro),
+  // multiclasse ou magia racial/de talento (Tiefling, Drow, Alto Elfo, Iniciado em Magia…)
+  const innate = char.raceId === 'tiefling' || ['drow', 'high-elf', 'forest-gnome'].includes(char.subraceId ?? '')
+    || (char.feats ?? []).some((f) => ['magic-initiate', 'drow-high-magic', 'fey-teleportation', 'wood-elf-magic', 'ritual-caster'].includes(f));
+  if (feat.prereqCaster && !casterOf(char) && !innate) {
     return `${feat.label} exige capacidade de conjurar magias.`;
   }
   return null;
