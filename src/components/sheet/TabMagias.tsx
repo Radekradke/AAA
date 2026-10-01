@@ -6,7 +6,9 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
-import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
+import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
+import { useUiStore } from '@/store/uiStore';
+import { SOURCE_SHORT } from '@/data/contentPacks';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
@@ -38,6 +40,8 @@ export function TabMagias({ char, derived }: TabProps) {
   const listClass = caster?.listClass ?? char.classId;
   // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
   const st = useMemo(() => spellLearnState(char, castMod), [char, castMod]);
+  // pacotes de conteúdo ligados mudam as listas (Xanathar, Tasha)
+  const packs = useUiStore((s) => s.packs);
   const [freeMode, setFreeMode] = useState(false);
   const blockFor = (sp: Spell, mode: 'class' | 'copy') => (freeMode || !st ? null : learnBlock(char, st, sp, mode));
 
@@ -71,7 +75,7 @@ export function TabMagias({ char, derived }: TabProps) {
     const base = spellsForClass(listClass, 9);
     const extra = expandedSpellIds(char).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
     return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-  }, [listClass, char.subclassId]);
+  }, [listClass, char.subclassId, packs]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -298,6 +302,7 @@ export function TabMagias({ char, derived }: TabProps) {
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
                             {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
                             <Mini>{sp.school}</Mini>
+                            {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
                             {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
                             {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
@@ -341,7 +346,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {learn && (
         <SpellLibrary
           title={learn === 'all' ? 'Copiar para o grimório (50 po por círculo)' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
-          spells={learn === 'all' ? SPELLS.filter((s) => s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
+          spells={learn === 'all' ? SPELLS.filter((s) => spellVisible(s) && s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
           blockReason={(s) => blockFor(s, learn === 'all' ? 'copy' : 'class')}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}

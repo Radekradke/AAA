@@ -16,6 +16,12 @@ import type { SkillKey } from '@/types/dnd';
 
 /* ---------------- Perícias ---------------- */
 
+/** Perícias da raça, com as trocas da origem personalizada (Tasha). */
+export function raceSkillProfs(char: Character): SkillKey[] {
+  const swap = char.customOrigin?.skillSwap ?? {};
+  return (raceOf(char).skillProfs ?? []).map((k) => swap[k] ?? k);
+}
+
 export interface SkillBudget {
   bgSkills: Set<SkillKey>;
   raceSkills: Set<SkillKey>;
@@ -39,7 +45,7 @@ export function skillBudget(char: Character): SkillBudget {
   const race = raceOf(char);
   const bg = getBackground(char.backgroundId);
   const bgSkills = new Set<SkillKey>(bg.skills);
-  const raceSkills = new Set<SkillKey>(race.skillProfs ?? []);
+  const raceSkills = new Set<SkillKey>(raceSkillProfs(char));
   const overlap = [...raceSkills].filter((k) => bgSkills.has(k));
   const granted = new Set<SkillKey>([...bgSkills, ...raceSkills]);
   const list = new Set(cls.skillChoices);
@@ -96,7 +102,7 @@ export function languagePicks(char: Character): LanguagePicks {
     for (const l of list ?? []) {
       const m = l.trim().match(PICK);
       if (m) n += Number(m[1]);
-      else fixed.push(l);
+      else fixed.push(char.customOrigin?.langSwap?.[l] ?? l);
     }
     if (n) sources.push({ label, count: n });
   };

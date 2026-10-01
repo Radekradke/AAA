@@ -1,3 +1,4 @@
+import { toolLabel } from '@/data/tools';
 import { warlockSlots } from '@/engine/progression';
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
@@ -743,6 +744,11 @@ export const useCharacterStore = create<CharacterState>()(
             }
             if (plan.asi?.kind === 'feat') {
               c.feats.push(plan.asi.featId);
+              // talentos que dão proficiência com ferramenta (Chef, Envenenador)
+              const featDef = getFeat(plan.asi.featId);
+              for (const tid of featDef?.tools ?? []) {
+                if (!c.toolProfs.some((t) => t.id === tid)) c.toolProfs.push({ id: tid, label: toolLabel(tid), source: featDef!.label });
+              }
               if (plan.asi.ability) {
                 c.asiBonuses[plan.asi.ability] = (c.asiBonuses[plan.asi.ability] ?? 0) + 1;
               }

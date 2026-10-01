@@ -1,7 +1,7 @@
 import type { RarityDef, ThemeDef, ThemeName } from '@/types/dnd';
 
 /** Ordem de rotação dos climas no alternador da barra superior. */
-export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante', 'carmesim', 'astral'];
+export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante', 'carmesim', 'astral', 'ouro'];
 
 /**
  * Os climas: cada um é um lugar com material, luz e fonte próprios (veja o
@@ -118,6 +118,29 @@ export const THEMES: Record<ThemeName, ThemeDef> = {
     tagline: 'Crepúsculo e constelações',
     font: "'Marcellus SC', serif",
     motif: 'stars',
+  },
+  /** Menu de jogo (Baldur's Gate 3 / Elden Ring): chapado, cantos retos, sem brilho. */
+  ouro: {
+    bg: '#0B0A09',
+    bg2: '#14120F',
+    panel: '#161411',
+    panel2: '#110F0D',
+    steel: '#1E1B17',
+    line: 'rgba(201,178,124,0.16)',
+    acc: '#C9A962',
+    acc2: '#8D9AA5',
+    accSoft: 'rgba(214,196,150,0.06)',
+    gold: '#D4BF8A',
+    goldB: '#EFE3C2',
+    ink: '#E9E3D5',
+    muted: '#948C7C',
+    danger: '#C4553F',
+    bloom: 'rgba(0,0,0,0)',
+    particle: 'rgba(0,0,0,0)',
+    label: 'Ouro Velho',
+    tagline: 'Menu de jogo: chapado, nítido, sem brilho',
+    font: "'EB Garamond', serif",
+    motif: 'none',
   },
 };
 

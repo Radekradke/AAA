@@ -213,6 +213,42 @@
   font-synthesis-weight: none;
 }
 
+/* Ouro Velho — menu de jogo (Baldur's Gate 3 / Elden Ring): carvão chapado,
+   ouro velho fosco, fios finos, cantos retos e nenhum brilho. */
+[data-theme='ouro'] {
+  --font-display: 'EB Garamond', 'Cormorant SC', serif;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+
+  --bg: #0b0a09;
+  --bg2: #14120f;
+  --panel: #161411;
+  --panel2: #110f0d;
+  --well: #0d0c0a;
+  --steel: #1e1b17;
+  --line: rgba(201, 178, 124, 0.16);
+  --line-strong: rgba(214, 191, 138, 0.34);
+  --acc: #c9a962;
+  --acc2: #8d9aa5;
+  --lift: rgba(214, 196, 150, 0.05);
+  --accSoft: rgba(214, 196, 150, 0.06);
+  --gold: #d4bf8a;
+  --goldB: #efe3c2;
+  --ink: #e9e3d5;
+  --muted: #948c7c;
+  --danger: #c4553f;
+  --bloom: rgba(0, 0, 0, 0);
+  --particle: rgba(0, 0, 0, 0);
+
+  /* sombra só para separar planos — nada de halo */
+  --shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+  --shadow-soft: 0 10px 24px -18px rgba(0, 0, 0, 0.9);
+  --panel-texture: linear-gradient(transparent, transparent);
+  /* fundo chapado com uma vinheta quase imperceptível */
+  --scene: radial-gradient(120% 70% at 50% 0%, rgba(239, 227, 194, 0.035), transparent 60%);
+}
+
 /* "poço": fundo afundado de campos, chips e botões, na cor do clima
    (antes era preto puro e virava buraco escuro em qualquer tema) */
 [data-theme] {
@@ -4060,3 +4096,182 @@ body.fv-dragging .fv-screen-scroll {
 
 /* marcador de desvantagem automática nas perícias */
 .fv-disadv { font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--danger, #d0605e); text-transform: none; }
+
+/* ===== Pacotes de conteúdo ===== */
+.fv-packs-intro { margin: 0 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.fv-packs-intro b { color: var(--ink); }
+.fv-packs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fv-pack { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); transition: border-color 0.2s, background 0.2s; }
+.fv-pack.is-on { border-color: color-mix(in srgb, var(--gold), transparent 45%); background: color-mix(in srgb, var(--gold), transparent 92%); }
+.fv-pack-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-pack-text b { font-family: var(--font-display); font-size: 14px; color: var(--ink); }
+.fv-pack-text small { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.fv-switch { flex: none; position: relative; width: 44px; height: 26px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--sunk-deep); cursor: pointer; transition: background 0.2s; }
+.fv-switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
+.fv-switch[aria-checked='true'] { background: color-mix(in srgb, var(--gold), transparent 55%); }
+.fv-switch[aria-checked='true'] span { transform: translateX(18px); background: var(--gold); }
+.fv-switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-packs-note { margin: 12px 0 0; font-size: 11.5px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .fv-switch span, .fv-pack { transition: none; } }
+
+/* ===== Origem personalizada (Tasha) ===== */
+.fv-origin { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.fv-origin-toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.fv-origin-toggle input { margin-top: 3px; accent-color: var(--gold); width: 16px; height: 16px; }
+.fv-origin-toggle span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); }
+.fv-origin-toggle small { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc); }
+.fv-origin-toggle em { font-style: normal; font-size: 12px; color: var(--muted); }
+.fv-origin-body { display: grid; gap: 10px; margin-top: 10px; }
+.fv-origin-row { display: grid; gap: 6px; }
+.fv-origin-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.fv-origin-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+.fv-origin-field { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); }
+.fv-origin-field b { font-family: 'Chakra Petch', monospace; color: var(--gold); }
+.fv-origin-field .fv-input { min-height: 34px; padding: 4px 28px 4px 10px; font-size: 12.5px; width: auto; }
+
+
+/* ============================================================
+   Ouro Velho — acabamento de menu de jogo
+   (só vale neste tema; os outros climas não mudam)
+   ============================================================ */
+/* cantos retos em tudo que é caixa ou botão (pílulas inclusive) */
+[data-theme='ouro'] :is(button, input, select, textarea, .fv-panel, .fv-surface, .fv-panel-soft, .fv-option, .fv-chip, .fv-pill, .fv-seg, .fv-modal, .fv-topbar-menu, .fv-skill, .fv-pack, .fv-counter, .fv-hb-chip) {
+  border-radius: 2px !important;
+}
+/* sem brilho: nada de halos, sombras de texto ou desfoque de vidro */
+[data-theme='ouro'] * {
+  text-shadow: none !important;
+}
+[data-theme='ouro'] [style*='0px 0px'],
+[data-theme='ouro'] .fv-option.is-selected,
+[data-theme='ouro'] .fv-btn-gold,
+[data-theme='ouro'] .fv-btn-gold:hover {
+  box-shadow: none !important;
+}
+[data-theme='ouro'] .fv-topbar-icon,
+[data-theme='ouro'] .fv-topbar-pill {
+  backdrop-filter: none;
+}
+/* painéis: carvão chapado, fio interno escuro e filete de ouro no topo */
+[data-theme='ouro'] .fv-panel {
+  background: var(--panel);
+  border-color: var(--line);
+}
+[data-theme='ouro'] .fv-panel::after,
+[data-theme='ouro'] .fv-surface::after {
+  left: 0;
+  right: 0;
+  opacity: 0.55;
+}
+/* títulos: versalete espaçado, como nos menus do jogo */
+[data-theme='ouro'] :is(h1, h2, h3, h4, .fv-label, .fv-facts-title, .fv-step-title, .fv-modal-head h2) {
+  font-family: var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+/* botão principal: escuro com moldura de ouro (não mais barra dourada cheia) */
+[data-theme='ouro'] .fv-btn-gold {
+  color: var(--goldB);
+  background: #1d1a15;
+  border: 1px solid var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+[data-theme='ouro'] .fv-btn-gold:hover {
+  transform: none;
+  background: #26221b;
+  border-color: var(--goldB);
+}
+/* cartões de escolha: seleção é uma faixa de ouro que some para a direita */
+[data-theme='ouro'] .fv-option {
+  background: var(--panel2);
+}
+[data-theme='ouro'] .fv-option:hover {
+  border-color: var(--line-strong);
+  background: linear-gradient(90deg, rgba(212, 191, 138, 0.07), transparent 70%), var(--panel2);
+}
+[data-theme='ouro'] .fv-option.is-selected {
+  border-color: var(--gold);
+  background: linear-gradient(90deg, rgba(212, 191, 138, 0.16), transparent 75%), var(--panel2);
+}
+/* pílulas e chips selecionados: fundo chapado, sem tinta translúcida */
+[data-theme='ouro'] .fv-pill.is-on,
+[data-theme='ouro'] .fv-seg button.is-on {
+  background: #26221b;
+  color: var(--goldB);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+/* campos */
+[data-theme='ouro'] .fv-input {
+  background: #0d0c0a;
+}
+[data-theme='ouro'] .fv-input:focus {
+  border-color: var(--gold);
+  box-shadow: none;
+}
+/* foco: retângulo reto */
+[data-theme='ouro'] :focus-visible {
+  border-radius: 0;
+}
+
+/* ===== Escolher tema ===== */
+.fv-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.fv-theme-card { position: relative; display: flex; flex-direction: column; gap: 9px; padding: 9px; text-align: left; cursor: pointer; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--sunk); color: var(--ink); transition: border-color 0.2s, background 0.2s; }
+.fv-theme-card:hover { border-color: var(--line-strong); }
+.fv-theme-card.is-on { border-color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 92%); }
+.fv-theme-preview { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px; height: 118px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.06); }
+.fv-theme-preview-title { font-size: 15px; font-weight: 600; line-height: 1; }
+.fv-theme-preview-panel { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid; }
+.fv-theme-preview-panel > i { display: block; height: 6px; width: 85%; border-radius: 2px; }
+.fv-theme-preview-row { margin-top: auto; display: flex; gap: 6px; }
+.fv-theme-preview-row b { display: block; height: 14px; width: 54px; border: 1px solid; }
+.fv-theme-text { display: flex; flex-direction: column; gap: 2px; }
+.fv-theme-text b { font-size: 15px; color: var(--ink); }
+.fv-theme-text small { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.fv-theme-check { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #1a1206; background: var(--gold); border-radius: 50%; }
+/* atributos da ficha: placa escura chapada, cor do atributo só no fio de cima */
+[data-theme='ouro'] .fv-ability-row [style*='clip-path'] {
+  background: var(--panel2) !important;
+  border-color: var(--line) !important;
+  clip-path: none !important;
+}
+[data-theme='ouro'] .fv-ability-row svg {
+  filter: none !important;
+}
+
+/* ===== Retrato do herói: hover com leve inclinação e reflexo metálico ===== */
+.fv-hero-portrait {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.fv-hero-portrait:hover {
+  transition: transform 0.12s ease-out, box-shadow 0.35s ease;
+  box-shadow: 0 18px 42px -16px rgba(0, 0, 0, 0.8), 0 0 40px color-mix(in srgb, var(--race-color), transparent 72%);
+}
+.fv-hero-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  mix-blend-mode: screen;
+  /* metal escovado: uma faixa clara inclinada + ponto de luz no ponteiro */
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 40%), rgba(255, 255, 255, 0.16), transparent 42%),
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.07) 40%, rgba(235, 240, 250, 0.26) 47%, rgba(200, 212, 230, 0.12) 53%, transparent 64%);
+  background-size: 100% 100%, 240% 240%;
+  background-position: center, var(--mx, 50%) var(--my, 50%);
+}
+.fv-hero-portrait:hover .fv-hero-sheen {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-hero-portrait,
+  .fv-hero-portrait:hover {
+    transform: none;
+    transition: none;
+  }
+}

@@ -7,7 +7,7 @@ import { toolLabel } from '@/data/tools';
 import { abilityModifier, racialBonusFor, totalAbilities } from './modifiers';
 import { characterResources } from './classResources';
 import { ABILITY_KEYS } from '@/types/dnd';
-import { languagePicks, skillBudget } from './originChoices';
+import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -48,18 +48,19 @@ export interface Fact {
 export function raceFacts(char: Character): Fact[] {
   const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
-  const bonus = Object.fromEntries(ABILITY_KEYS.map((k) => [k, racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice)]));
+  const bonus = Object.fromEntries(ABILITY_KEYS.map((k) => [k, racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi)]));
   const bonusLine = ABILITY_KEYS.filter((k) => bonus[k]).map((k) => `+${bonus[k]} ${ABILITY_SHORT[k]}`).join(' · ');
-  const facts: Fact[] = [{ label: 'Atributos', value: race.abilityChoice ? bonusLine : [race.bonus, sub && Object.keys(sub.abilityBonus ?? {}).length ? sub.bonus : ''].filter(Boolean).join(' · ') }];
+  const facts: Fact[] = [{ label: 'Atributos', value: race.abilityChoice || char.customOrigin?.asi ? bonusLine : [race.bonus, sub && Object.keys(sub.abilityBonus ?? {}).length ? sub.bonus : ''].filter(Boolean).join(' · ') }];
   facts.push({ label: 'Deslocamento', value: `${String(race.speed + (sub?.speedBonus ?? 0)).replace('.', ',')} m` });
   const dark = sub?.darkvision ?? race.darkvision;
   if (dark) facts.push({ label: 'Visão no escuro', value: `${dark} m` });
   const res = [...(race.resistances ?? []), ...(sub?.resistances ?? [])];
   if (res.length) facts.push({ label: 'Resistência', value: res.join(', ') });
-  if (race.skillProfs?.length) facts.push({ label: 'Perícia', value: race.skillProfs.map((k) => SKILL_BY_KEY[k].label).join(', ') });
+  const rSkills = raceSkillProfs(char);
+  if (rSkills.length) facts.push({ label: 'Perícia', value: rSkills.map((k) => SKILL_BY_KEY[k].label).join(', ') });
   if (race.extraSkillPicks) facts.push({ label: 'Perícias livres', value: `${race.extraSkillPicks} à escolha` });
   if (sub?.hpPerLevel) facts.push({ label: 'Vida extra', value: `+${sub.hpPerLevel} PV por nível` });
-  const langs = [...(race.languages ?? []), ...(sub?.languages ?? [])];
+  const langs = [...(race.languages ?? []), ...(sub?.languages ?? [])].map((l) => char.customOrigin?.langSwap?.[l] ?? l);
   if (langs.length) facts.push({ label: 'Idiomas', value: langs.join(', ') });
   const traits = [...race.traits, ...(sub?.traits ?? [])];
   if (traits.length) facts.push({ label: 'Traços', value: traits.join(', ') });
@@ -68,7 +69,7 @@ export function raceFacts(char: Character): Fact[] {
 
 export function classFacts(char: Character): Fact[] {
   const cls = getClass(char.classId);
-  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice).con);
+  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi).con);
   const facts: Fact[] = [
     { label: 'Vida', value: `d${cls.hitDie} · ${cls.hitDie + conMod} PV no nível 1` },
     { label: 'Salvaguardas', value: cls.savingThrows.map((k) => ABILITY_SHORT[k]).join(' e ') },

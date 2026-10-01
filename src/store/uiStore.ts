@@ -4,6 +4,8 @@ import type { ThemeName } from '@/types/dnd';
 import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
 import { THEME_ORDER } from '@/data/themes';
+import type { PackId } from '@/data/contentPacks';
+import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
 
 export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 
@@ -19,6 +21,9 @@ interface UiState {
   /** Dados 3D com física no lugar do dado 2D do overlay. */
   dice3d: boolean;
   toggleDice3d: () => void;
+  /** Pacotes de conteúdo ligados (Xanathar, Tasha, raças extras). */
+  packs: Record<PackId, boolean>;
+  togglePack: (id: PackId) => void;
 
   /** Efeitos sonoros opcionais (sessão; ativados por gesto do usuário). */
   sound: boolean;
@@ -135,6 +140,11 @@ export const useUiStore = create<UiState>()(
         set((s) => ({ dice3d: !s.dice3d }));
       },
 
+      packs: { xge: false, tce: false, races: false },
+      togglePack(id) {
+        set((s) => ({ packs: { ...s.packs, [id]: !s.packs[id] } }));
+      },
+
       sound: false,
       toggleSound() {
         const next = !get().sound;
@@ -194,7 +204,27 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d }),
+      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs }),
     },
   ),
 );
+
+/** O pacote está ligado? (fora do React: lê o estado atual) */
+export function packOn(id: PackId | null | undefined): boolean {
+  return !id || !!useUiStore.getState().packs?.[id];
+}
+
+/** Hook: conteúdo dessa fonte ('PHB 2014', 'XGE', 'TCE') está visível? */
+export function useSourceOn(): (source: string | undefined) => boolean {
+  const packs = useUiStore((s) => s.packs);
+  return (source) => {
+    const pack = source ? SOURCE_PACK[source] : null;
+    return !pack || !!packs?.[pack];
+  };
+}
+
+// mantém o registro dos pacotes em dia para o motor (listas de magias etc.)
+setEnabledPacks(useUiStore.getState().packs ?? {});
+useUiStore.subscribe((st, prev) => {
+  if (st.packs !== prev.packs) setEnabledPacks(st.packs ?? {});
+});

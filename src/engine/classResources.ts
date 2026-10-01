@@ -183,7 +183,7 @@ export function characterResources(char: Character): ResourceState[] {
   // usos de talentos (Desvanecer, Fúria Orc, Segunda Chance)
   for (const featId of char.feats ?? []) {
     const u = getFeat(featId)?.uses;
-    if (u) out.push({ id: u.id, label: u.label, desc: u.desc, recharge: u.recharge, max: 1 });
+    if (u) out.push({ id: u.id, label: u.label, desc: u.desc, recharge: u.recharge, max: u.max ?? 1 });
   }
   return out;
 }

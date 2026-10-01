@@ -4,10 +4,11 @@ import { getFeat } from '@/data/feats';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
 import { getSubclass } from '@/data/subclasses';
 import { getClass } from '@/data/classes';
-import { SPELLS, SPELL_BY_ID } from '@/data/spells';
+import { SPELLS, SPELL_BY_ID, spellVisible } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
+import { raceSkillProfs } from './originChoices';
 
 /** Uma escolha com contexto: de qual classe/subclasse e nível ela vem. */
 export interface ResolvedSpec extends ChoiceSpec {
@@ -155,8 +156,10 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
       ? Math.max(0, ...Object.keys(spellSlotsForClass(spec.classId, spec.classLevel ?? 1)).map(Number))
       : 9;
     all = SPELLS.filter((sp) =>
+      spellVisible(sp) &&
       (f.circle === undefined ? sp.level <= maxCircle : sp.level === f.circle) &&
-      (!f.classes || (sp.classes ?? []).some((c) => f.classes!.includes(c))),
+      (!f.classes || (sp.classes ?? []).some((c) => f.classes!.includes(c))) &&
+      (!f.schools || f.schools.includes(sp.school)),
     )
       .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))
       .map((sp) => spellOption(sp.id)!);
@@ -166,8 +169,8 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   if (spec.only) all = all.filter((o) => spec.only!.includes(o.id));
   // perícias: só as que o personagem ainda não tem
   if (char && spec.catalog === 'skill') {
-    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...(raceOf(char).skillProfs ?? [])]);
-    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)).flatMap(([, v]) => v));
+    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...raceSkillProfs(char)]);
+    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill|skillExpertSkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
   }
   // ferramentas: esconde as que o personagem já tem por outra fonte

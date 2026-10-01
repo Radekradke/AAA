@@ -1,3 +1,4 @@
+import { SOURCE_SHORT } from '@/data/contentPacks';
 import { useMemo, useState } from 'react';
 import type { Spell, SpellTag } from '@/types/dnd';
 import { useTheme } from '@/lib/useTheme';
@@ -118,6 +119,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                     {reasonOf(sp) && <span className="fv-spell-block-reason">🔒 {reasonOf(sp)}</span>}
                     <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
                       <MiniChip>{sp.school}</MiniChip>
+                      {sp.source && <MiniChip color="var(--acc)">{SOURCE_SHORT[sp.source]}</MiniChip>}
                       {sp.damage && <MiniChip color="#FF6A3D">{sp.damage.dice} {sp.damage.type}</MiniChip>}
                       {sp.heal && <MiniChip color="#3FC56B">cura</MiniChip>}
                       {sp.save && <MiniChip color="#9BB0CC">save {ABILITY_SHORT[sp.save]}</MiniChip>}

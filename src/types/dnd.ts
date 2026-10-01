@@ -95,7 +95,7 @@ export interface Subrace {
 }
 
 /** Fonte oficial de um talento/antecedente. */
-export type SourceBook = 'PHB 2014' | 'XGE';
+export type SourceBook = 'PHB 2014' | 'XGE' | 'TCE';
 
 /** Talento (PHB 2014 / Xanathar) com efeitos mecânicos rastreáveis. */
 export interface Feat {
@@ -139,7 +139,13 @@ export interface Feat {
   /** Magias inatas concedidas, com recarga. */
   grantsSpells?: { spellId: string; recharge: 'atwill' | 'short' | 'long' }[];
   /** Usos por descanso que viram recurso na ficha (Desvanecer, Fúria Orc…). */
-  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long' };
+  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long'; max?: number };
+  /** Proficiência com ferramentas concedida ao pegar o talento (Chef, Envenenador). */
+  tools?: string[];
+  /** Exige o traço Conjuração ou Magia de Pacto de uma classe (não vale magia racial). */
+  prereqCasterFeature?: boolean;
+  /** Exige proficiência com ao menos uma arma marcial. */
+  prereqMartial?: boolean;
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
@@ -413,6 +419,8 @@ export interface Spell {
   conditions?: string[];
   /** Etiquetas de papel para filtro rápido. */
   tags?: SpellTag[];
+  /** Livro de origem (ausente = Livro do Jogador 2014). */
+  source?: SourceBook;
 }
 
 export interface RarityDef {
@@ -439,11 +447,11 @@ export interface ThemeDef {
   particle: string;
   label: string;
   /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas ou estrelas. */
-  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars';
+  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars' | 'none';
   /** Frase curta que descreve o clima no seletor. */
   tagline: string;
   /** Fonte de título do clima (a mesma de --font-display). */
   font: string;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro';

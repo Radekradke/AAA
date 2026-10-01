@@ -8,6 +8,7 @@ import { passiveLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
+import { useSourceOn } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { CLASSES, getClass } from '@/data/classes';
 import { getSubclass, subclassesFor } from '@/data/subclasses';
@@ -71,6 +72,7 @@ function XpBar({ char }: { char: TabProps['char'] }) {
 }
 
 export function TabEvoluir({ char, derived }: TabProps) {
+  const sourceOn = useSourceOn();
   const t = useTheme();
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
@@ -392,14 +394,14 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
               {asiMode === 'feat' && (
                 <div style={{ marginTop: 10 }}>
-                  {(['PHB 2014', 'XGE'] as const).map((source) => {
+                  {(['PHB 2014', 'XGE', 'TCE'] as const).filter((source) => sourceOn(source)).map((source) => {
                     const list = FEATS.filter((f) => f.source === source && !char.feats.includes(f.id));
                     if (list.length === 0) return null;
                     return (
                       <div key={source} style={{ marginBottom: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
                           <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
-                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : "XANATHAR'S GUIDE (RACIAIS)"}
+                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : source === 'XGE' ? 'GUIA DE XANATHAR (RACIAIS)' : 'CALDEIRÃO DE TASHA'}
                           </span>
                           <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
                         </div>

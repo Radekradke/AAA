@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
+import { CustomOriginPanel } from './CustomOriginPanel';
+import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
-import { SPELLS } from '@/data/spells';
+import { SPELLS, spellVisible } from '@/data/spells';
 
-const WIZARD_CANTRIPS = SPELLS.filter((sp) => sp.level === 0 && !!sp.classes?.includes('wizard')).sort((a, b) => a.name.localeCompare(b.name));
+const wizardCantrips = () => SPELLS.filter((sp) => spellVisible(sp) && sp.level === 0 && !!sp.classes?.includes('wizard')).sort((a, b) => a.name.localeCompare(b.name));
 import type { AbilityKey, Race } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { ABILITY_LABELS } from '@/data/skills';
@@ -17,12 +19,14 @@ export function StepRace({ char, update }: StepProps) {
   const race = raceOf(char);
   const subs = getSubraces(char.raceId);
   const homebrew = useHomebrewStore((s) => s.races);
+  const tasha = useUiStore((s) => s.packs?.tce);
   const [editing, setEditing] = useState<Race | 'new' | null>(null);
 
   const pickRace = (id: string) =>
     update((c) => {
       c.raceId = id;
       c.customRace = null;
+      c.customOrigin = null;
       const s = getSubraces(id);
       c.subraceId = s.length ? s[s.length - 1].id : null;
     });
@@ -31,6 +35,7 @@ export function StepRace({ char, update }: StepProps) {
     update((c) => {
       c.raceId = r.id;
       c.customRace = r;
+      c.customOrigin = null;
       c.subraceId = r.subraces?.length ? r.subraces[0].id : null;
     });
 
@@ -103,7 +108,7 @@ export function StepRace({ char, update }: StepProps) {
               <button type="button" className="fv-btn-ghost fv-hb-edit" onClick={() => setEditing(race)}>Editar raça</button>
             </>
           )}
-          {race.abilityChoice && (() => {
+          {race.abilityChoice && !char.customOrigin && (() => {
             const ch = race.abilityChoice;
             const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
             const active = picked.length === ch.count ? picked : ch.default;
@@ -140,7 +145,7 @@ export function StepRace({ char, update }: StepProps) {
                     type="button"
                     aria-pressed={char.subraceId === sub.id}
                     className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
-                    onClick={() => update((c) => { c.subraceId = sub.id; })}
+                    onClick={() => update((c) => { c.subraceId = sub.id; c.customOrigin = null; })}
                   >
                     {sub.label}
                     {sub.bonus && <small>{sub.bonus}</small>}
@@ -161,12 +166,13 @@ export function StepRace({ char, update }: StepProps) {
                   onChange={(e) => update((c) => { c.choices = { ...(c.choices ?? {}), 'race.highElfCantrip': e.target.value ? [e.target.value] : [] }; })}
                 >
                   <option value="">Escolha um truque…</option>
-                  {WIZARD_CANTRIPS.map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                  {wizardCantrips().map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </select>
                 <small className="fv-langs-why">Conjura com Inteligência, à vontade.</small>
               </div>
             );
           })()}
+          {tasha && <CustomOriginPanel char={char} update={update} />}
         </ChoiceDetail>
       </div>
 

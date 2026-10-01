@@ -39,7 +39,7 @@ export interface ChoiceSpec {
   /** Pode trocar uma opção antiga por outra ao ganhar novas (Manobras, Invocações). */
   canReplace?: boolean;
   /** Catálogo `spell`: de quais listas e de que círculo (exato ou até o maior espaço da classe). */
-  spell?: { classes?: string[]; circle?: number; upToSlots?: boolean };
+  spell?: { classes?: string[]; circle?: number; upToSlots?: boolean; schools?: string[] };
   /** Só aparece se outra escolha da mesma classe tiver esta opção (ex.: Pacto do Tomo). */
   requires?: { key: string; id: string };
   /** Opções que não contam no limite de magias conhecidas/truques (ex.: Livro das Sombras). */
@@ -278,6 +278,11 @@ export const INVOCATIONS: ChoiceOption[] = [
   { id: 'whispersOfGrave', label: 'Sussurros do Túmulo', tag: '9º', desc: 'Conjura falar com os mortos à vontade.', prereq: { level: 9 } },
   { id: 'witchSight', label: 'Visão da Bruxa', tag: '15º', desc: 'Vê a forma verdadeira de metamorfos e criaturas disfarçadas por ilusão ou transmutação a até 9 m.', prereq: { level: 15 } },
 ];
+
+/* ---------- Lista do artífice (Tasha) dentro da biblioteca do app ---------- */
+const byNames = (names: string[]) => Object.values(SPELL_BY_ID).filter((sp) => names.includes(sp.name)).map((sp) => sp.id);
+export const ARTIFICER_CANTRIPS = byNames(['Respingo Ácido', 'Globos de Luz', 'Raio de Fogo', 'Orientação', 'Luz', 'Mãos Mágicas', 'Consertar', 'Mensagem', 'Rajada de Veneno', 'Prestidigitação', 'Raio de Gelo', 'Resistência', 'Toque Chocante', 'Estabilizar Criatura', 'Chicote de Espinhos']);
+export const ARTIFICER_FIRST = byNames(['Alarme', 'Curar Ferimentos', 'Disfarçar-se', 'Recuo Acelerado', 'Fogo das Fadas', 'Vitalidade Falsa', 'Queda Suave', 'Área Escorregadia', 'Identificação', 'Saltar', 'Passos Longos', 'Purificar Alimentos e Bebidas', 'Santuário']);
 
 /* ---------- Idiomas (Domínio do Conhecimento) ---------- */
 export const LANGUAGE_OPTIONS: ChoiceOption[] = [
@@ -521,6 +526,30 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
  * e resolvidas em "Escolhas pendentes" depois de pegar o talento.
  */
 export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
+  // ---- Caldeirão de Tasha ----
+  'artificer-initiate': [
+    { key: 'artificerCantrip', catalog: 'spell', label: 'Iniciado Artífice (truque)', count: 1, spell: { circle: 0 }, only: ARTIFICER_CANTRIPS, bonusSpells: true, hint: 'Um truque da lista do artífice, conjurado com Inteligência.' },
+    { key: 'artificerSpell', catalog: 'spell', label: 'Iniciado Artífice (1º círculo)', count: 1, spell: { circle: 1 }, only: ARTIFICER_FIRST, bonusSpells: true, hint: 'Uma magia de 1º círculo do artífice: 1× por descanso longo sem espaço (ou com seus espaços).' },
+    { key: 'artificerTool', catalog: 'artisanTool', label: 'Iniciado Artífice (ferramenta)', count: 1, hint: 'Proficiência com um tipo de ferramenta de artesão.' },
+  ],
+  'eldritch-adept': [
+    { key: 'invocation', catalog: 'invocation', label: 'Adepto Místico (invocação)', count: 1, only: INVOCATIONS.filter((i) => !i.prereq).map((i) => i.id), hint: 'Uma invocação mística sem pré-requisito. Ao subir de nível, pode trocá-la por outra.' },
+  ],
+  'fey-touched': [
+    { key: 'feyTouchedSpell', catalog: 'spell', label: 'Tocado pelas Fadas (magia)', count: 1, spell: { circle: 1, schools: ['Adivinhação', 'Encantamento'] }, bonusSpells: true, hint: 'Uma magia de 1º círculo de adivinhação ou encantamento: 1× por descanso longo sem espaço.' },
+  ],
+  'fighting-initiate': [
+    { key: 'fightingStyle', catalog: 'fightingStyle', label: 'Iniciado em Combate (estilo)', count: 1, hint: 'Um Estilo de Luta do guerreiro que você ainda não tenha.' },
+  ],
+  'metamagic-adept': [
+    { key: 'metamagic', catalog: 'metamagic', label: 'Adepto Metamágico', count: 2, hint: 'Duas opções de Metamagia. Ganha 2 pontos de feitiçaria só para usá-las.' },
+  ],
+  'shadow-touched': [
+    { key: 'shadowTouchedSpell', catalog: 'spell', label: 'Tocado pelas Sombras (magia)', count: 1, spell: { circle: 1, schools: ['Ilusão', 'Necromancia'] }, bonusSpells: true, hint: 'Uma magia de 1º círculo de ilusão ou necromancia: 1× por descanso longo sem espaço.' },
+  ],
+  'skill-expert': [
+    { key: 'skillExpertSkill', catalog: 'skill', label: 'Especialista em Perícia', count: 1, hint: 'Proficiência numa perícia. Depois escolha uma perícia proficiente para a especialização (aba de Perícias).' },
+  ],
   'weapon-master': [
     { key: 'weaponMasterWeapons', catalog: 'weapon', label: 'Mestre em Armas (armas)', count: 4, hint: 'Proficiência com quatro armas simples ou marciais à sua escolha.' },
   ],
