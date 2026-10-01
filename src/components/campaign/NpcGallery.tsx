@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { confirmAction } from '@/store/feedbackStore';
+import { confirmAction, toast } from '@/store/feedbackStore';
 import { Link } from 'react-router-dom';
 import { Modal } from '@/components/ui/Modal';
 import { npcService, NPC_SETUP_MISSING } from '@/services/npcService';
@@ -59,6 +59,19 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
   const { npcs, secrets, error, reload } = useCampaignNpcs(campaignId, isMaster);
   const [editing, setEditing] = useState<CampaignNpc | 'new' | null>(null);
   const [viewing, setViewing] = useState<CampaignNpc | null>(null);
+  const kept = isMaster ? npcs.filter((n) => !n.improvisedIn) : npcs;
+  const improvised = isMaster ? npcs.filter((n) => n.improvisedIn) : [];
+  const card = (n: CampaignNpc) => (
+    <button key={n.id} type="button" className={'fv-npc-card' + (n.revealed ? '' : ' is-hidden')} onClick={() => (isMaster ? setEditing(n) : setViewing(n))}>
+      <NpcAvatar npc={n} size={72} />
+      <span className="fv-npc-card-text">
+        <b>{n.name}</b>
+        {n.role && <small>{n.role}</small>}
+        {isMaster && !n.revealed && <em>oculto dos jogadores</em>}
+        {isMaster && secrets[n.id]?.stats.monsterRef && <em>base: {MONSTER_BY_ID[secrets[n.id].stats.monsterRef!]?.name}</em>}
+      </span>
+    </button>
+  );
 
   return (
     <section className="fv-npcs">
@@ -80,19 +93,37 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
             : 'O mestre ainda não apresentou nenhum personagem.'}
         </p>
       )}
+      {/* improvisados ficam à parte (só para o mestre) até ele decidir guardar */}
       <div className="fv-npcs-grid">
-        {npcs.map((n) => (
-          <button key={n.id} type="button" className={'fv-npc-card' + (n.revealed ? '' : ' is-hidden')} onClick={() => (isMaster ? setEditing(n) : setViewing(n))}>
-            <NpcAvatar npc={n} size={72} />
-            <span className="fv-npc-card-text">
-              <b>{n.name}</b>
-              {n.role && <small>{n.role}</small>}
-              {isMaster && !n.revealed && <em>oculto dos jogadores</em>}
-              {isMaster && secrets[n.id]?.stats.monsterRef && <em>base: {MONSTER_BY_ID[secrets[n.id].stats.monsterRef!]?.name}</em>}
-            </span>
-          </button>
-        ))}
+        {kept.map(card)}
       </div>
+      {improvised.length > 0 && (
+        <>
+          <div className="fv-npcs-head fv-npcs-sub">
+            <div className="fv-label">Improvisados nas sessões · {improvised.length}</div>
+            <small className="fv-live-hint">Guarde os que viraram parte da história.</small>
+          </div>
+          <div className="fv-npcs-grid">
+            {improvised.map((n) => (
+              <div key={n.id} className="fv-npc-improv">
+                {card(n)}
+                <button
+                  type="button"
+                  className="fv-btn-ghost fv-npc-keep"
+                  onClick={() =>
+                    void npcService
+                      .keep(n.id)
+                      .then(reload)
+                      .catch((e) => toast((e as Error).message, { tone: 'danger' }))
+                  }
+                >
+                  Guardar na campanha
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {editing && (
         <NpcEditor

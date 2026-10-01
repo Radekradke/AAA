@@ -37,6 +37,7 @@ export function mapNpc(r: Record<string, unknown>): CampaignNpc {
     summary: String(r.summary ?? ''),
     portrait: (r.portrait as string) ?? null,
     revealed: r.revealed !== false,
+    improvisedIn: (r.improvised_in as string) ?? null,
     updatedAt: String(r.updated_at ?? ''),
   };
 }
@@ -70,6 +71,8 @@ export const npcService = {
       portrait: npc.portrait ?? null,
       revealed: npc.revealed ?? true,
       updated_at: new Date().toISOString(),
+      // só manda a marca de improviso quando foi pedida (banco sem a coluna continua salvando)
+      ...(npc.improvisedIn !== undefined ? { improvised_in: npc.improvisedIn } : {}),
     };
     const q = npc.id
       ? sb().from('campaign_npcs').update(row).eq('id', npc.id).select().single()
@@ -85,6 +88,13 @@ export const npcService = {
       if (e2) throw friendly(e2);
     }
     return saved;
+  },
+
+  /** "Guardar na campanha": o NPC improvisado vira conteúdo permanente. */
+  async keep(id: string): Promise<void> {
+    await sessionUserId();
+    const { error } = await sb().from('campaign_npcs').update({ improvised_in: null, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) throw friendly(error);
   },
 
   async remove(id: string): Promise<void> {

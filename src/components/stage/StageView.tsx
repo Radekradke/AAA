@@ -24,6 +24,8 @@ interface StageViewProps {
   encounter: Encounter | null;
   /** Mestre: abre a aba de cenas. */
   onOpenLibrary?: () => void;
+  /** Mestre: avisa o console qual peão foi tocado (abre o inspetor). */
+  onSelectToken?: (token: Token | null) => void;
 }
 
 const KIND_LABEL: Record<Scene['kind'], string> = { map: 'Mapa tático', image: 'Ambiente', cutscene: 'Cutscene' };
@@ -32,7 +34,7 @@ const KIND_LABEL: Record<Scene['kind'], string> = { map: 'Mapa tático', image: 
  * O PALCO: o que a mesa está vendo. Jogador vê a cena no ar; o mestre vê
  * a cena que escolher (pode preparar uma sem mostrar) e tem as ferramentas.
  */
-export function StageView({ isMaster, userId, heroes, npcs, combatants, encounter, onOpenLibrary }: StageViewProps) {
+export function StageView({ isMaster, userId, heroes, npcs, combatants, encounter, onOpenLibrary, onSelectToken }: StageViewProps) {
   const st = useStageStore();
   const live = liveScene(st);
   const scene = isMaster ? st.scenes.find((s) => s.id === st.viewSceneId) ?? live : live;
@@ -56,6 +58,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   // mestre: tocar num peão que não é o da vez escolhe o alvo do próximo ataque
   const select = (id: string | null) => {
     setSelected(id);
+    if (isMaster) onSelectToken?.(id ? st.tokens.find((k) => k.id === id) ?? null : null);
     if (!isMaster || !id) return;
     const t = st.tokens.find((k) => k.id === id);
     const c = t ? ctx.combFor(t) : undefined;

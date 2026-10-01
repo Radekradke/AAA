@@ -109,8 +109,12 @@ alter table public.combatants enable row level security;
 alter table public.session_events enable row level security;
 
 drop policy if exists "sessions_participant_read" on public.sessions;
+-- sessão em preparação ('planned') só o mestre vê (o nome pode ser spoiler)
 create policy "sessions_participant_read" on public.sessions for select
-  using (public.is_campaign_participant(campaign_id));
+  using (
+    public.is_campaign_master(campaign_id)
+    or (public.is_campaign_member(campaign_id) and status <> 'planned')
+  );
 
 drop policy if exists "encounters_participant_read" on public.encounters;
 create policy "encounters_participant_read" on public.encounters for select

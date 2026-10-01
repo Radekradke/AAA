@@ -114,6 +114,30 @@ Quando uma ação muda a memória, o React redesenha só o que precisa.
 Todas essas abas recebem `char` (a ficha) e `derived` (o resultado do
 `deriveCharacter`) e só **desenham** — o cálculo já veio pronto.
 
+### A mesa ao vivo (`/mesa/:id/jogar`)
+
+`pages/LiveSession.tsx` só faz o **bootstrap**: entra na campanha, liga a
+sessão e o palco (realtime), carrega heróis e NPCs uma vez. Depois escolhe a
+tela:
+
+- **Mestre** → `features/master/MasterWorkspace.tsx`, o console:
+  - `backstage/` — os Bastidores (Sessão, NPCs, Criaturas, Encontro, Cenas,
+    Pistas, Notas). Cada painel é um arquivo.
+  - `inspector/` — o Inspetor: mostra o que está selecionado (combatente,
+    herói, NPC, pista, cena, criatura do bestiário ou peão) e as ações dele.
+  - `initiative/InitiativeDock.tsx` — a faixa de iniciativa.
+  - `quick/` — a barra de improviso e os formulários rápidos.
+  - `masterStore.ts` — o que está selecionado, painel aberto, gaveta
+    (celular), bandeja e notas. `actions.ts` — ações com "Desfazer".
+  - `context.ts` — campanha, heróis e NPCs compartilhados (uma única
+    assinatura de NPCs para a tela toda).
+- **Jogador** → `features/live/PlayerWorkspace.tsx` (a mesa de sempre).
+
+A regra de ouro continua: o banco decide (turno, iniciativa, quem vê o quê).
+O console só chama as RPCs e mostra o resultado. Segredo do mestre (notas
+privadas, sessão preparada, bandeja, segredos de NPC) é protegido por RLS —
+nunca só escondido na tela.
+
 ---
 
 ## 7. A nuvem (`services/`) — opcional
@@ -123,6 +147,8 @@ Todas essas abas recebem `char` (a ficha) e `derived` (o resultado do
 - `characterSheetService.ts` — salvar/ler fichas na nuvem.
 - `campaignService.ts` — modo mestre: criar sala, convite por link, ver as
   fichas dos jogadores ao vivo.
+- `masterService.ts` — console do mestre: sessão preparada, bandeja da
+  sessão e notas privadas (SQL em `supabase/mestre_console.sql`).
 
 A segurança de "cada um só vê o que é seu" é feita pelo **banco** (regras de
 RLS no Supabase — ver `docs/SUPABASE.md`), não pelo app. Isso é o certo: mesmo

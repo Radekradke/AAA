@@ -9,6 +9,9 @@ import { useCharacterStore } from './characterStore';
 import { rollEnemyInitiatives } from '@/engine/encounter';
 import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent } from '@/types/session';
 import { useUiStore } from './uiStore';
+import { getItem } from '@/data/items';
+import { itemToInventory } from '@/engine/inventory';
+import type { InventoryItem } from '@/types/character';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -77,6 +80,8 @@ interface SessionState {
   sendHeroHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
   sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
   awardXp: (amount: number, note?: string) => Promise<void>;
+  /** Mestre entrega um item (catálogo ou inventado na hora) na mochila do herói. */
+  giveItem: (sheetId: string, heroName: string, item: { name: string; itemId?: string; quantity?: number; note?: string }) => Promise<void>;
 
   /** Alvo escolhido pelo mestre (local): quem recebe o próximo ataque. */
   targetId: string | null;
@@ -91,7 +96,7 @@ interface SessionState {
 }
 
 /** Eventos do mestre que mexem na ficha do jogador. */
-export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award'] as const;
+export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award', 'hero_item'] as const;
 const VIS_KEY = 'fv-roll-visibility';
 let seenEvents = new Set<string>();
 let seeded = false;
@@ -121,6 +126,28 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
     }
     const sheetId = String(p.sheetId ?? '');
     if (!pending(sheetId, e.id)) continue;
+    if (e.type === 'hero_item') {
+      // item entregue pelo mestre (improviso): entra na mochila do herói
+      const base = typeof p.itemId === 'string' ? getItem(p.itemId) : undefined;
+      const qty = Math.max(1, Math.min(999, Math.round(Number(p.quantity) || 1)));
+      const inst: InventoryItem = base
+        ? { ...itemToInventory(base, qty), note: String(p.note ?? '') || itemToInventory(base, qty).note }
+        : {
+            uid: `it-${e.id.slice(0, 8)}`,
+            name: String(p.item ?? 'Item').slice(0, 80),
+            category: 'Tesouro',
+            note: String(p.note ?? '').slice(0, 500),
+            rarity: 'comum',
+            weight: 0,
+            quantity: qty,
+            favorite: false,
+            attuned: false,
+            homebrew: true,
+          };
+      chars.addInventoryItem(sheetId, inst);
+      chars.markEventApplied(sheetId, e.id);
+      continue;
+    }
     if (e.type === 'hero_hp') {
       const n = Math.abs(Number(p.amount) || 0);
       if (p.kind === 'heal') chars.heal(sheetId, n);
@@ -292,6 +319,19 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (!heroes.length) throw new Error('Nenhum herói no encontro para receber XP.');
         await sessionService.log(session.id, campaignId, me.userId, 'xp_award', {
           amount: Math.round(amount), sheetIds: heroes.map((h) => h.sheetId), names: heroes.map((h) => h.name), note: note ?? null,
+        }, 'public');
+      }),
+
+    giveItem: (sheetId, heroName, item) =>
+      act(async () => {
+        const { session, campaignId, me } = get();
+        if (!session || !campaignId || !me) throw new Error('Abra a sessão para entregar itens.');
+        const name = item.name.trim();
+        if (!name) return;
+        // a ficha do dono aplica o evento (uma vez, mesmo com reload) — como dano e XP
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_item', {
+          sheetId, name: heroName, item: name.slice(0, 80), itemId: item.itemId ?? null,
+          quantity: Math.max(1, Math.round(item.quantity ?? 1)), note: (item.note ?? '').slice(0, 500),
         }, 'public');
       }),
 

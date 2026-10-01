@@ -7,6 +7,7 @@ import './styles/fonts';
 import './styles/globals.css';
 import './styles/session.css';
 import './styles/stage.css';
+import './styles/master.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

@@ -413,9 +413,12 @@ create policy "sheets_master_read_shared" on public.sheets for select using (
   )
 );
 
+-- notas com visibility = 'master' são o caderno privado do mestre (console do mestre)
+alter table public.campaign_notes add column if not exists visibility text not null default 'shared';
 drop policy if exists "notes_member_read" on public.campaign_notes;
 create policy "notes_member_read" on public.campaign_notes for select using (
-  public.is_campaign_master(campaign_id) or public.is_campaign_member(campaign_id)
+  public.is_campaign_master(campaign_id)
+  or (public.is_campaign_member(campaign_id) and visibility = 'shared')
 );
 drop policy if exists "notes_master_write" on public.campaign_notes;
 create policy "notes_master_write" on public.campaign_notes for all
@@ -523,3 +526,18 @@ O script cria:
 - Bucket privado `campaign-media` no Storage (máx. 10 MB por arquivo, só imagens). O mestre envia para a pasta da campanha; cada jogador só baixa imagens de cenas reveladas ou de handouts entregues a ele (`fv_media_readable`).
 
 As imagens são comprimidas no aparelho do mestre antes de subir (WebP; mapas até 3072 px) e ficam guardadas no aparelho de cada jogador depois do primeiro download, para poupar a franquia de tráfego do plano grátis.
+
+## 8. Console do mestre — preparação, notas privadas e improviso
+
+Rode `supabase/mestre_console.sql` (depois do `multiplayer_session.sql`; se o palco já existir, ele também marca as pistas). Numa aba nova do SQL Editor, cole **tudo** e clique em Run sem nada selecionado. Pode rodar de novo sem problema e não apaga dados.
+
+O script:
+
+- **Sessão preparada** — reaproveita `sessions.status = 'planned'`. RPCs `plan_session`, `start_planned_session` (recusa se já houver sessão ao vivo), `rename_session` e `discard_planned_session` (só apaga sessão que ainda não começou). A política `sessions_participant_read` passa a esconder sessões preparadas dos jogadores — o nome pode ser spoiler.
+- **`session_prep`** — a "bandeja da sessão" (atalhos de NPCs, cenas, pistas e criaturas que o mestre separou). Tabela própria, porque a linha da sessão é lida pelos jogadores; RLS `session_prep_master`: só o mestre lê e escreve. Não é roteiro: sem ordem, nada obrigatório.
+- **Notas privadas** — `campaign_notes` ganha `visibility` (`'shared'` padrão ou `'master'`), `session_id` e `updated_at`. A política `notes_member_read` só devolve ao jogador notas `'shared'`: a nota privada **não chega** ao aparelho dele (não é só escondida na tela).
+- **Improviso** — `campaign_npcs.improvised_in` e `campaign_handouts.improvised_in` marcam o que nasceu durante uma sessão. "Guardar na campanha" limpa a marca. Nada é apagado sozinho.
+
+Os scripts antigos (§5 e `multiplayer_session.sql`) foram atualizados com as mesmas políticas: rodá-los de novo **não reabre** notas privadas nem sessões preparadas. O teste `supabase/__tests__/mestre.sql.test.ts` (PGlite) cobre isso.
+
+Sem esse SQL, o console continua funcionando para a sessão ao vivo; bandeja, notas privadas e "preparar para depois" mostram um aviso pedindo para rodar o script.

@@ -48,6 +48,7 @@ A **ficha** inclui:
 - **Evolução de nível** (aba Evoluir): PV, talentos, aumentos de atributo e subclasses, com validação.
 - **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
 - **Nuvem opcional (Supabase)**: login, sincronização local ↔ nuvem com resolução de conflitos e **mesas de campanha** com convite. Sem Supabase configurado, tudo funciona localmente. Veja `docs/SUPABASE.md`.
+- **Console do mestre** (`/mesa/:id/jogar`, para o mestre): **Bastidores | Palco | Inspetor**, com a **faixa de iniciativa** e a **barra de improviso** sempre à mão. Bastidores reúne Sessão, NPCs, Criaturas (bestiário), Encontro, Cenas, Pistas e Notas privadas; o Inspetor mostra o que foi tocado (no palco, na iniciativa ou nos bastidores) com as ações daquilo. Improviso em segundos: **NPC, criatura, pista, item para um herói, encontro e nota** (Alt+N/C/P/I/E/O). Dá para **preparar a sessão antes** (bandeja de atalhos) ou só começar e reagir — nada é obrigatório. Dano em criatura, ocultar/revelar e remover têm **Desfazer**. No celular, Bastidores e Inspetor viram gavetas. *A FichaViva não tenta controlar a história: dá ao mestre ferramentas para reagir a ela.*
 - **Exportar/Importar** personagem em **JSON**.
 
 A engine de regras (`/src/engine`) é simples, tipada e expansível, com suporte a homebrew.
@@ -85,7 +86,10 @@ src/
     inventory/   AddItemPicker
     spells/      SpellPicker
     diary/       JournalCard
-  pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet
+  pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet, LiveSession
+  features/
+    master/      console do mestre: MasterWorkspace, backstage/, inspector/, initiative/, quick/, masterStore
+    live/        PlayerWorkspace (mesa do jogador) + LiveHeader
   data/          races, classes, backgrounds, skills, weapons, armors, items, spells, themes
   engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout,
                  levelUp, spellcasting, rollAdvisor ("O que eu rolo?") + __tests__

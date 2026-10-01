@@ -105,6 +105,7 @@ export function mapHandout(r: Record<string, unknown>): Handout {
     recipients: Array.isArray(r.recipients) ? (r.recipients as string[]) : null,
     shownAt: (r.shown_at as string) ?? null,
     createdAt: String(r.created_at ?? ''),
+    improvisedIn: (r.improvised_in as string) ?? null,
   };
 }
 
@@ -238,6 +239,9 @@ export const stageService = {
       body: h.body?.trim() || null,
       image_path: h.imagePath ?? null,
       ...(h.recipients !== undefined ? { recipients: h.recipients } : {}),
+      ...(h.improvisedIn !== undefined ? { improvised_in: h.improvisedIn } : {}),
+      // entrega já na criação (pista improvisada "mostrar agora")
+      ...(h.shownAt !== undefined ? { shown_at: h.shownAt } : {}),
     };
     const q = h.id
       ? sb().from('campaign_handouts').update(row).eq('id', h.id).select().single()
@@ -251,6 +255,13 @@ export const stageService = {
   async showHandout(id: string, recipients: string[] | null): Promise<void> {
     await sessionUserId();
     const { error } = await sb().from('campaign_handouts').update({ recipients, shown_at: new Date().toISOString() }).eq('id', id);
+    if (error) throw stageError(error);
+  },
+
+  /** "Guardar na campanha": a pista improvisada fica na gaveta permanente. */
+  async keepHandout(id: string): Promise<void> {
+    await sessionUserId();
+    const { error } = await sb().from('campaign_handouts').update({ improvised_in: null }).eq('id', id);
     if (error) throw stageError(error);
   },
 

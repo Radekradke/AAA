@@ -147,7 +147,8 @@ export const campaignNotes = {
   async list(campaignId: string): Promise<CampaignNote[]> {
     const { data, error } = await sb().from('campaign_notes').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((n: Record<string, unknown>) => ({
+    // a crônica é compartilhada: o caderno privado do mestre (visibility = 'master') fica de fora
+    return (data ?? []).filter((n: Record<string, unknown>) => n.visibility !== 'master').map((n: Record<string, unknown>) => ({
       id: String(n.id), campaignId: String(n.campaign_id), kind: n.kind as CampaignNote['kind'],
       title: String(n.title), body: String(n.body ?? ''), createdAt: Number(n.created_at),
     }));
