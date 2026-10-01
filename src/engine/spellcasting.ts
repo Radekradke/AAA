@@ -5,7 +5,7 @@ import { DOMAIN_SPELLS, LAND_SPELLS, OATH_SPELLS, PATRON_SPELLS } from '@/data/s
 import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
 import { getClass } from '@/data/classes';
-import { spellSlotsForClass, thirdCasterSlots } from './progression';
+import { multiclassSlots, spellSlotsForClass, thirdCasterSlots } from './progression';
 
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
@@ -180,21 +180,33 @@ export interface CasterInfo {
  * pela subclasse (lista de mago, Inteligência, um terço de conjurador).
  */
 export function casterOf(char: Character, castMod = 0): CasterInfo | null {
-  const cls = getClass(char.classId);
-  const level = char.classLevels?.find((c) => c.classId === char.classId)?.level ?? char.level;
-  if (cls.spellcasting) {
-    const slots = spellSlotsForClass(char.classId, level);
+  const levels = char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }];
+  const multi = levels.length > 1;
+  const thirdClass = char.subclassId && THIRD_CASTERS[char.subclassId]?.classId === char.classId ? char.classId : null;
+  // multiclasse: espaços pelo nível de conjurador somado (PHB 2014, cap. 6)
+  const multiSlots = () => multiclassSlots(levels, thirdClass);
+  // a classe que conjura: a principal; se ela não conjura, a primeira conjuradora da multiclasse
+  const castClass = getClass(char.classId).spellcasting
+    ? char.classId
+    : thirdClass && (levels.find((l) => l.classId === char.classId)?.level ?? 0) >= 3
+      ? null
+      : levels.find((l) => getClass(l.classId).spellcasting)?.classId ?? null;
+  if (castClass) {
+    const cls = getClass(castClass);
+    const level = levels.find((c) => c.classId === castClass)?.level ?? char.level;
+    const ownSub = castClass === char.classId ? char.subclassId : null;
     return {
-      listClass: char.classId,
+      listClass: castClass,
       ability: cls.spellAbility ?? cls.prim,
-      kind: casterKind(char.classId),
+      kind: casterKind(castClass),
       level,
       // truque extra do Círculo da Terra (2º); o luz do Domínio da Luz vem em grantedSpells
-      cantrips: cantripsKnown(char.classId, level) + (char.subclassId === 'land' && level >= 2 ? 1 : 0),
-      guide: spellsKnownOrPrepared(char.classId, level, castMod),
-      slots,
+      cantrips: cantripsKnown(castClass, level) + (ownSub === 'land' && level >= 2 ? 1 : 0),
+      guide: spellsKnownOrPrepared(castClass, level, castMod),
+      slots: multi ? multiSlots() : spellSlotsForClass(castClass, level),
     };
   }
+  const level = levels.find((c) => c.classId === char.classId)?.level ?? char.level;
   const third = char.subclassId ? THIRD_CASTERS[char.subclassId] : undefined;
   if (third && third.classId === char.classId && level >= 3) {
     return {
@@ -204,7 +216,7 @@ export function casterOf(char: Character, castMod = 0): CasterInfo | null {
       level,
       cantrips: third.cantrips(level),
       guide: { count: THIRD_KNOWN[level - 1] ?? 0, label: 'conhecidas' },
-      slots: thirdCasterSlots(level),
+      slots: multi ? multiSlots() : thirdCasterSlots(level),
       via: third.label,
       schools: { allowed: third.schools, free: THIRD_FREE_LEVELS.filter((l) => level >= l).length },
     };

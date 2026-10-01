@@ -1,3 +1,4 @@
+import { warlockSlots } from '@/engine/progression';
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
@@ -565,6 +566,14 @@ export const useCharacterStore = create<CharacterState>()(
               }
             }
             c.combat.itemSpellUses = uses;
+            // Magia de Pacto (Bruxo): os espaços do pacto voltam no descanso curto
+            const wl = (c.classLevels ?? []).find((l) => l.classId === 'warlock')?.level ?? (c.classId === 'warlock' ? c.level : 0);
+            if (wl) {
+              for (const [circle, n] of Object.entries(warlockSlots(wl))) {
+                const slot = c.combat.spellSlots?.[Number(circle)];
+                if (slot) slot.used = Math.max(0, slot.used - n);
+              }
+            }
             // a Fúria dura 1 minuto: não sobrevive a um descanso
             c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage');
           });

@@ -39,10 +39,37 @@ const FULL_CASTERS = new Set(['bard', 'cleric', 'druid', 'sorcerer', 'wizard']);
 const HALF_CASTERS = new Set(['paladin', 'ranger']);
 
 /** Magia de Pacto do Bruxo: nível do espaço e quantidade. */
-function warlockSlots(level: number): Record<number, number> {
+export function warlockSlots(level: number): Record<number, number> {
   const circle = level >= 9 ? 5 : level >= 7 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1;
   const count = level >= 17 ? 4 : level >= 11 ? 3 : level >= 2 ? 2 : 1;
   return { [circle]: count };
+}
+
+/**
+ * Multiclasse (PHB 2014, cap. 6): soma o "nível de conjurador" — níveis de
+ * conjuradores plenos, metade (arredondada para baixo) de paladino/patrulheiro
+ * e um terço de Cavaleiro/Trapaceiro Arcano — e usa a tabela do pleno.
+ * A Magia de Pacto do Bruxo é um conjunto à parte (somado aos espaços comuns).
+ * Com só UMA classe conjuradora, valem as tabelas da própria classe.
+ */
+export function multiclassSlots(levels: { classId: string; level: number }[], thirdCasterClass: string | null): Record<number, number> {
+  const casters = levels.filter((l) => FULL_CASTERS.has(l.classId) || HALF_CASTERS.has(l.classId) || l.classId === thirdCasterClass);
+  let out: Record<number, number> = {};
+  if (casters.length === 1) {
+    const c = casters[0];
+    out = c.classId === thirdCasterClass ? thirdCasterSlots(c.level) : spellSlotsForClass(c.classId, c.level);
+  } else if (casters.length > 1) {
+    const casterLevel = casters.reduce(
+      (n, c) => n + (FULL_CASTERS.has(c.classId) ? c.level : HALF_CASTERS.has(c.classId) ? Math.floor(c.level / 2) : Math.floor(c.level / 3)),
+      0,
+    );
+    (FULL_CASTER[Math.min(20, casterLevel) - 1] ?? []).forEach((count, i) => {
+      if (count > 0) out[i + 1] = count;
+    });
+  }
+  const wl = levels.find((l) => l.classId === 'warlock');
+  if (wl) for (const [circle, n] of Object.entries(warlockSlots(wl.level))) out[Number(circle)] = (out[Number(circle)] ?? 0) + n;
+  return out;
 }
 
 /** Espaços de magia máximos por círculo para a classe/nível. */

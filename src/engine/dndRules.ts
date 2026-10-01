@@ -257,9 +257,15 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     .filter((x): x is NonNullable<typeof x> => !!x)
     .map((x) => ({ ...x, total: x.base + abilities[x.ability].mod }));
   const unarmoredAlt = altSources.sort((a, b) => b.total - a.total)[0];
+  // Defesa sem Armadura vem da classe que a concede (na multiclasse, a primeira obtida; não acumula)
+  const unarmoredClass =
+    char.classId === 'barbarian' || char.classId === 'monk' ? char.classId
+    : levelIn('barbarian') ? 'barbarian'
+    : levelIn('monk') ? 'monk'
+    : null;
   const classUnarmored =
-    char.classId === 'barbarian' ? 10 + dexMod + conMod
-    : char.classId === 'monk' && !char.equipped.shield ? 10 + dexMod + abilities.wis.mod
+    unarmoredClass === 'barbarian' ? 10 + dexMod + conMod
+    : unarmoredClass === 'monk' && !char.equipped.shield ? 10 + dexMod + abilities.wis.mod
     : 10 + dexMod;
   const armor = armorItem ? resolveItemData(armorItem).armor : undefined;
   const acParts = [];
@@ -286,9 +292,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     acParts.push(mod('ac', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }));
     // Defesa sem Armadura (PHB 2014): Bárbaro soma CON; Monge soma SAB
     // (o Monge perde o traço se usar escudo; o Bárbaro pode usar escudo).
-    if (char.classId === 'barbarian') {
+    if (unarmoredClass === 'barbarian') {
       acParts.push(mod('ac', conMod, 'Constituição', 'ability', { label: 'Defesa sem Armadura' }));
-    } else if (char.classId === 'monk' && !char.equipped.shield) {
+    } else if (unarmoredClass === 'monk' && !char.equipped.shield) {
       acParts.push(mod('ac', abilities.wis.mod, 'Sabedoria', 'ability', { label: 'Defesa sem Armadura' }));
     }
   }

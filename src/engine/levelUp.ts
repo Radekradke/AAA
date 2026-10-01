@@ -1,4 +1,4 @@
-import type { AbilityScores, Feat } from '@/types/dnd';
+import type { AbilityKey, AbilityScores, Feat } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AsiChoice, Character, LevelUpRecord } from '@/types/character';
 import { DEFAULT_CAMPAIGN } from '@/types/character';
@@ -43,6 +43,22 @@ export function subclassLevelFor(classId: string): number {
   return SUBCLASS_LEVEL[classId] ?? 3;
 }
 
+/** Atributos mínimos para multiclasse: lista de alternativas, cada uma com os atributos exigidos. */
+const MULTICLASS_REQ: Record<string, AbilityKey[][]> = {
+  barbarian: [['str']],
+  bard: [['cha']],
+  cleric: [['wis']],
+  druid: [['wis']],
+  fighter: [['str'], ['dex']],
+  monk: [['dex', 'wis']],
+  paladin: [['str', 'cha']],
+  ranger: [['dex', 'wis']],
+  rogue: [['dex']],
+  sorcerer: [['cha']],
+  warlock: [['cha']],
+  wizard: [['int']],
+};
+
 /** Valida um plano de evolução contra as regras 2014 + configurações da campanha. */
 export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
   const errors: string[] = [];
@@ -53,6 +69,18 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
   if (char.level >= MAX_LEVEL) errors.push(`Nível máximo (${MAX_LEVEL}) já alcançado.`);
   if (plan.classId !== char.classId && !campaign.allowMulticlass) {
     errors.push('Multiclasse está desativada nas configurações da campanha.');
+  }
+  // pré-requisitos de multiclasse (PHB 2014, cap. 6): 13 no atributo-chave da
+  // classe nova E de todas as classes que o personagem já tem
+  if (classLevelOf(char, plan.classId) === 0 && plan.classId !== char.classId) {
+    const totals = effectiveAbilities(char);
+    const have = new Set([char.classId, ...(char.classLevels ?? []).map((c) => c.classId), plan.classId]);
+    for (const id of have) {
+      const req = MULTICLASS_REQ[id];
+      if (req && !req.some((group) => group.every((k) => totals[k] >= 13))) {
+        errors.push(`Multiclasse em ${cls.label} exige ${req.map((g) => g.map((k) => `${ABILITY_SHORT[k]} 13`).join(' e ')).join(' ou ')} para ${getClass(id).label} (PHB 2014).`);
+      }
+    }
   }
   if (plan.hpValue < 1 || plan.hpValue > cls.hitDie) {
     errors.push(`PV do nível deve estar entre 1 e ${cls.hitDie} (dado de vida d${cls.hitDie}).`);
