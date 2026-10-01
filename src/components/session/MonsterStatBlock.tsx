@@ -94,7 +94,7 @@ export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Mo
       setLast({ action: a.name, target, total: null, hit: true, crit: false, raw, applied, defense, type: a.type, pendingSave: { dc: a.save.dc, ability: ABILITY_SHORT[a.save.ability], half: !!a.save.half } });
       return;
     }
-    await session.changeHp(target, -applied);
+    await session.changeHp(target, -applied, { crit: res.crit });
     setLast({ action: a.name, target, total: natural?.total ?? null, hit: true, crit: res.crit, raw, applied, defense, type: a.type });
     void session.logStrike({ by: label, target: target.name, hit: true, crit: res.crit, damage: applied, type: a.type, note: DEFENSE_LABEL[defense] || undefined }, !!attacker?.hidden);
   };

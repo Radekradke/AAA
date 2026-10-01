@@ -34,6 +34,7 @@ export function StepClass({ char, update }: StepProps) {
     voices.play(id, char.gender);
     update((c) => {
       c.classId = id;
+      c.classLevels = [{ classId: id, level: c.level }];
       const newCls = getClass(id);
       c.savingThrowProfs = newCls.savingThrows;
       // realinha o array padrão e limpa as perícias para as opções da nova classe

@@ -8,6 +8,7 @@
  * +1 no 10º, +1 no 17º → 4 no total).
  */
 import { TOOLS } from './tools';
+import { WEAPONS } from './weapons';
 import { SKILLS } from './skills';
 import { SPELL_BY_ID } from './spells';
 import { LAND_SPELLS } from './subclassSpells';
@@ -67,6 +68,9 @@ export type CatalogId =
   | 'invocation'
   | 'language'
   | 'beast'
+  | 'instrument'
+  | 'monkTool'
+  | 'weapon'
   /** Magias da biblioteca, filtradas pelo `spell` da escolha. */
   | 'spell';
 
@@ -295,6 +299,27 @@ export const ARTISAN_TOOLS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === '
   desc: 'Ganha proficiência com essa ferramenta (entra na lista de ferramentas da ficha).',
 }));
 
+export const INSTRUMENTS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === 'instrumento').map((tl) => ({
+  id: tl.id,
+  label: tl.label,
+  desc: 'Instrumento musical.',
+}));
+
+/** Monge (PHB 2014): uma ferramenta de artesão OU um instrumento musical. */
+export const MONK_TOOLS: ChoiceOption[] = [
+  ...ARTISAN_TOOLS.map((o) => ({ ...o, tag: 'artesão' })),
+  ...INSTRUMENTS.map((o) => ({ ...o, tag: 'instrumento' })),
+];
+
+/** Armas do catálogo (Mestre em Armas, arma do Pacto da Lâmina). */
+export const WEAPON_OPTIONS: ChoiceOption[] = WEAPONS.filter((w) => w.weapon && !/-plus\d$/.test(w.id)).map((w) => ({
+  id: w.id,
+  label: w.name,
+  tag: w.weapon!.type === 'martial' ? 'marcial' : 'simples',
+  desc: `${w.weapon!.damageDice}d${w.weapon!.damageDie} ${w.weapon!.damageType} · ${w.weapon!.range === 'ranged' ? 'à distância' : 'corpo a corpo'}${w.weapon!.properties.length ? ' · ' + w.weapon!.properties.join(', ') : ''}`,
+}));
+export const MELEE_WEAPON_IDS = WEAPONS.filter((w) => w.weapon?.range === 'melee' && !/-plus\d$/.test(w.id)).map((w) => w.id);
+
 export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   metamagic: METAMAGIC,
   dragonAncestor: DRAGON_ANCESTOR,
@@ -317,6 +342,9 @@ export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   invocation: INVOCATIONS,
   language: LANGUAGE_OPTIONS,
   beast: BEAST_OPTIONS,
+  instrument: INSTRUMENTS,
+  monkTool: MONK_TOOLS,
+  weapon: WEAPON_OPTIONS,
   spell: [],
 };
 
@@ -368,9 +396,14 @@ export const CLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
     14: [{ key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito adicional', count: 1, hint: ENEMY_HINT }],
   },
   bard: {
+    // PHB 2014: três instrumentos musicais à escolha
+    1: [{ key: 'bardInstruments', catalog: 'instrument', label: 'Instrumentos musicais', count: 3, hint: 'Proficiência com três instrumentos musicais à sua escolha.' }],
     10: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
     14: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
     18: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
+  },
+  monk: {
+    1: [{ key: 'monkTool', catalog: 'monkTool', label: 'Ferramenta ou instrumento', count: 1, hint: 'Proficiência com uma ferramenta de artesão ou um instrumento musical.' }],
   },
   warlock: {
     2: [invocationGain(2)],
@@ -385,6 +418,15 @@ export const CLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
         requires: { key: 'pact', id: 'tome' },
         bonusSpells: true,
         hint: 'Três truques de QUALQUER lista de classe. Contam como magias de bruxo e não entram no limite de truques.',
+      },
+      {
+        key: 'pactWeapon',
+        catalog: 'weapon',
+        label: 'Arma do Pacto',
+        count: 1,
+        only: MELEE_WEAPON_IDS,
+        requires: { key: 'pact', id: 'blade' },
+        hint: 'A forma da sua arma de pacto (corpo a corpo). Você é proficiente com ela, e ela conta como mágica.',
       },
       invocationSwap,
     ],
@@ -479,6 +521,9 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
  * e resolvidas em "Escolhas pendentes" depois de pegar o talento.
  */
 export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
+  'weapon-master': [
+    { key: 'weaponMasterWeapons', catalog: 'weapon', label: 'Mestre em Armas (armas)', count: 4, hint: 'Proficiência com quatro armas simples ou marciais à sua escolha.' },
+  ],
   'wood-elf-magic': [
     { key: 'woodElfCantrip', catalog: 'spell', label: 'Magia do Elfo da Floresta (truque)', count: 1, spell: { classes: ['druid'], circle: 0 }, bonusSpells: true, hint: 'Um truque de druida, conjurado com Sabedoria. Não conta no limite de truques da sua classe.' },
   ],
@@ -488,5 +533,19 @@ export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
   prodigy: [
     { key: 'prodigySkill', catalog: 'skill', label: 'Prodígio (perícia)', count: 1, hint: 'Proficiência numa perícia à sua escolha.' },
     { key: 'prodigyLanguage', catalog: 'language', label: 'Prodígio (idioma)', count: 1, hint: 'Fluência num idioma à sua escolha.' },
+  ],
+};
+
+/** Escolhas raciais (PHB 2014): guardadas em `choices['race.<chave>']`. */
+export const RACE_CHOICES: Record<string, ChoiceSpec[]> = {
+  dwarf: [
+    {
+      key: 'dwarfTool',
+      catalog: 'artisanTool',
+      label: 'Proficiência com Ferramentas (Anão)',
+      count: 1,
+      only: ['smiths-tools', 'brewers-supplies', 'masons-tools'],
+      hint: 'Ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.',
+    },
   ],
 };

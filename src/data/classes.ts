@@ -1,4 +1,7 @@
-import type { DndClass } from '@/types/dnd';
+import type { DndClass, SkillKey } from '@/types/dnd';
+import { SKILLS } from './skills';
+
+const ALL_SKILLS: SkillKey[] = SKILLS.map((s) => s.key);
 
 /**
  * As 12 classes do D&D 5e, com estrutura genérica e expansível.
@@ -37,9 +40,9 @@ export const CLASSES: DndClass[] = [
     blurb:
       'Mestre da inspiração e da versatilidade. A magia do Bardo flui da arte e da audácia.',
     savingThrows: ['dex', 'cha'],
-    skillChoices: ['deception', 'history', 'insight', 'performance', 'persuasion', 'sleightOfHand'],
+    // PHB 2014: o Bardo escolhe QUALQUER três perícias
+    skillChoices: ALL_SKILLS,
     skillPicks: 3,
-    tools: ['lute'],
     spellcasting: true,
     resources: [
       { id: 'inspiration', label: 'Inspiração de Bardo', desc: 'Concede 1d6 a um aliado', recharge: 'short', max: 3 },
@@ -80,6 +83,8 @@ export const CLASSES: DndClass[] = [
     savingThrows: ['int', 'wis'],
     skillChoices: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'],
     skillPicks: 2,
+    // PHB 2014: o Druida é proficiente com Kit de Herbalismo
+    tools: ['herbalism-kit'],
     spellcasting: true,
     resources: [
       { id: 'wildshape', label: 'Forma Selvagem', desc: 'Transforma-se em uma fera', recharge: 'short', max: 2 },

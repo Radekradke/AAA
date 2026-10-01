@@ -1,5 +1,5 @@
 import type { Character } from '@/types/character';
-import { CATALOGS, CLASS_CHOICES, FEAT_CHOICES, SUBCLASS_CHOICES } from '@/data/classChoices';
+import { CATALOGS, CLASS_CHOICES, FEAT_CHOICES, RACE_CHOICES, SUBCLASS_CHOICES } from '@/data/classChoices';
 import { getFeat } from '@/data/feats';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
 import { getSubclass } from '@/data/subclasses';
@@ -86,6 +86,10 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
     const sub = cl.classId === char.classId ? char.subclassId : null;
     for (let lv = 1; lv <= cl.level; lv++) out.push(...specsAt(cl.classId, lv, sub, char.choices ?? {}).filter((s) => s.count > 0));
   }
+  // escolhas da raça (Anão: ferramenta)
+  for (const spec of RACE_CHOICES[char.raceId] ?? []) {
+    out.push({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: raceOf(char).label });
+  }
   // escolhas dos talentos que o personagem tem
   for (const featId of char.feats ?? []) {
     for (const spec of FEAT_CHOICES[featId] ?? []) {
@@ -166,6 +170,12 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
     const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
   }
+  // ferramentas: esconde as que o personagem já tem por outra fonte
+  if (char && (spec.catalog === 'instrument' || spec.catalog === 'monkTool' || spec.catalog === 'artisanTool')) {
+    const mine = new Set(spec.classId && spec.key ? char.choices?.[storeKeyFor(spec.classId, spec.key)] ?? [] : []);
+    const has = new Set((char.toolProfs ?? []).map((t) => t.id));
+    all = all.filter((o) => !has.has(o.id) || mine.has(o.id));
+  }
   // idiomas: só os que o personagem ainda não fala
   if (char && spec.catalog === 'language') {
     const speaks = new Set([...(raceOf(char).languages ?? []), ...(char.extraLanguages ?? [])]);
@@ -197,7 +207,7 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
 /** Rótulo de uma opção escolhida (para listas e linha do tempo). */
 export function optionLabel(storeKey: string, id: string): string {
   const key = storeKey.split('.').slice(1).join('.');
-  for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l }))]) {
+  for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l }))]) {
     for (const list of Object.values(specs)) {
       const spec = list.find((s) => s.key === key);
       if (spec) return findOption(spec, id)?.label ?? id;
@@ -272,7 +282,7 @@ export function choiceSummary(char: Character): { storeKey: string; label: strin
     if (!ids.length) continue;
     const key = storeKey.split('.').slice(1).join('.');
     let spec: ChoiceSpec | undefined;
-    for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l }))]) {
+    for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l }))]) {
       for (const list of Object.values(specs)) {
         spec = spec ?? list.find((s) => s.key === key);
       }

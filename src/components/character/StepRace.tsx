@@ -5,7 +5,12 @@ import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
-import type { Race } from '@/types/dnd';
+import { SPELLS } from '@/data/spells';
+
+const WIZARD_CANTRIPS = SPELLS.filter((sp) => sp.level === 0 && !!sp.classes?.includes('wizard')).sort((a, b) => a.name.localeCompare(b.name));
+import type { AbilityKey, Race } from '@/types/dnd';
+import { ABILITY_KEYS } from '@/types/dnd';
+import { ABILITY_LABELS } from '@/data/skills';
 
 /** Capítulo I — Origem: a linhagem (e sublinhagem) do herói — do livro ou homebrew. */
 export function StepRace({ char, update }: StepProps) {
@@ -98,9 +103,36 @@ export function StepRace({ char, update }: StepProps) {
               <button type="button" className="fv-btn-ghost fv-hb-edit" onClick={() => setEditing(race)}>Editar raça</button>
             </>
           )}
+          {race.abilityChoice && (() => {
+            const ch = race.abilityChoice;
+            const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
+            const active = picked.length === ch.count ? picked : ch.default;
+            const toggle = (k: AbilityKey) =>
+              update((c) => {
+                const cur = (c.raceAbilityChoice ?? active).filter((x) => !ch.exclude?.includes(x));
+                c.raceAbilityChoice = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k].slice(-ch.count);
+              });
+            return (
+              <div className="fv-detail-sub">
+                <div className="fv-facts-title">+{ch.amount} em {ch.count} atributos à escolha</div>
+                <div className="fv-pills" role="group" aria-label="Atributos à escolha">
+                  {ABILITY_KEYS.filter((k) => !ch.exclude?.includes(k)).map((k) => {
+                    const on = picked.length ? picked.includes(k) : active.includes(k);
+                    return (
+                      <button key={k} type="button" aria-pressed={on} className={'fv-pill' + (on ? ' is-on' : '')} onClick={() => toggle(k)}>
+                        {ABILITY_LABELS[k]}
+                        <small>+{ch.amount}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                {picked.length > 0 && picked.length < ch.count && <small className="fv-langs-why">Escolha mais {ch.count - picked.length}.</small>}
+              </div>
+            );
+          })()}
           {subs.length > 0 && (
             <div className="fv-detail-sub">
-              <div className="fv-facts-title">Sublinhagem</div>
+              <div className="fv-facts-title">{race.id === 'dragonborn' ? 'Ancestral dracônico (cor do dragão)' : 'Sublinhagem'}</div>
               <div className="fv-pills" role="group" aria-label="Sublinhagem">
                 {subs.map((sub) => (
                   <button
@@ -117,6 +149,24 @@ export function StepRace({ char, update }: StepProps) {
               </div>
             </div>
           )}
+          {char.subraceId === 'high-elf' && (() => {
+            const picked = char.choices?.['race.highElfCantrip']?.[0] ?? '';
+            return (
+              <div className="fv-detail-sub">
+                <div className="fv-facts-title">Truque de mago (Alto Elfo)</div>
+                <select
+                  className="fv-input"
+                  value={picked}
+                  aria-label="Truque do Alto Elfo"
+                  onChange={(e) => update((c) => { c.choices = { ...(c.choices ?? {}), 'race.highElfCantrip': e.target.value ? [e.target.value] : [] }; })}
+                >
+                  <option value="">Escolha um truque…</option>
+                  {WIZARD_CANTRIPS.map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                </select>
+                <small className="fv-langs-why">Conjura com Inteligência, à vontade.</small>
+              </div>
+            );
+          })()}
         </ChoiceDetail>
       </div>
 

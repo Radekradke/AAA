@@ -54,6 +54,8 @@ export interface Race {
   skillProfs?: SkillKey[];
   /** Perícias extras à escolha do jogador (ex.: Meio-Elfo → 2). */
   extraSkillPicks?: number;
+  /** Bônus de atributo à escolha (Meio-Elfo: +1 em dois atributos que não CAR). */
+  abilityChoice?: { count: number; amount: number; exclude?: AbilityKey[]; default: AbilityKey[] };
   /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
   video?: string;
   /** Criada pelo jogador (homebrew) — o mestre vê o selo na ficha. */
@@ -84,6 +86,8 @@ export interface Subrace {
   /** Substitui o alcance de visão no escuro da raça (ex.: Drow 36 m). */
   darkvision?: number;
   resistances?: string[];
+  /** Idiomas da sub-raça ("1 idioma à escolha" vira escolha na criação). */
+  languages?: string[];
   traits?: string[];
   /** Homebrew: descrição e traços com texto. */
   desc?: string;
@@ -104,6 +108,10 @@ export interface Feat {
   prereq?: string;
   /** Valores mínimos de atributo exigidos (validados na evolução). */
   prereqAbility?: Partial<AbilityScores>;
+  /** Basta UM destes atributos no mínimo (Conjurador de Rituais: INT ou SAB 13). */
+  prereqAnyAbility?: Partial<AbilityScores>;
+  /** Exige proficiência com esse tipo de armadura. */
+  prereqArmor?: 'leve' | 'média' | 'pesada';
   /** Raças que podem escolher (talentos raciais de Xanathar). */
   prereqRaces?: string[];
   /** Exige capacidade de conjurar magias. */

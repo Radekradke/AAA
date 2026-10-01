@@ -357,9 +357,9 @@ const BASE_SPELLS: Spell[] = [
   },
   {
     id: 'sp-palavracoragem', level: 3, name: 'Palavra Curativa em Massa', school: 'Evocação',
-    castingTime: '1 ação', range: '18 m', components: 'V', duration: 'Instantânea',
+    castingTime: '1 ação bônus', range: '18 m', components: 'V', duration: 'Instantânea',
     classes: ['cleric'], heal: '1d4 + mod.', area: 'até 6 criaturas',
-    desc: 'Cura até seis criaturas à distância ao mesmo tempo, com uma única ação.',
+    desc: 'Cura até seis criaturas à distância ao mesmo tempo, como ação bônus.',
     higher: 'A cura aumenta em +1d4 por círculo acima do 3º.', tags: ['cura'],
   },
   {

@@ -1,3 +1,4 @@
+import { LANGUAGE_OPTIONS } from '@/data/classChoices';
 import { useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -146,6 +147,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   {sk.label}
                   <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
                   {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}
+                  {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
               </LoreTooltip>
             ))}
@@ -163,6 +165,11 @@ export function TabFicha({ char, derived }: TabProps) {
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
         <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
+          {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
+          <dl className="fv-profs">
+            <div><dt>Armaduras</dt><dd>{derived.weaponArmorProfs.armor}</dd></div>
+            <div><dt>Armas</dt><dd>{derived.weaponArmorProfs.weapons}</dd></div>
+          </dl>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
             <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>
@@ -270,6 +277,7 @@ export function TabFicha({ char, derived }: TabProps) {
             <input
               className="fv-input"
               placeholder="Novo idioma (Élfico, Anão…)"
+              list="fv-lang-options"
               value={langDraft}
               onChange={(e) => setLangDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { store.addLanguage(char.id, langDraft); setLangDraft(''); } }}
@@ -284,6 +292,10 @@ export function TabFicha({ char, derived }: TabProps) {
               Adicionar
             </button>
           </div>
+
+          <datalist id="fv-lang-options">
+            {LANGUAGE_OPTIONS.map((o) => <option key={o.id} value={o.label} />)}
+          </datalist>
 
           <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos Passivos</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

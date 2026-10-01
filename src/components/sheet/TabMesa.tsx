@@ -294,6 +294,7 @@ export function TabMesa({ char, derived }: TabProps) {
                 style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
               >
                 {sk.label} <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
+                {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}> desv.</span>}
               </button>
             ))}
             {proficientSkills.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Sem proficiências ainda.</span>}

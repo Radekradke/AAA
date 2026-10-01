@@ -1,7 +1,7 @@
 import type { AbilityKey, MagicEffects, SkillKey } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, InventoryItem } from '@/types/character';
-import { abilityModifier, proficiencyBonus, totalAbilities } from './modifiers';
+import { abilityModifier, proficiencyBonus, raceChoiceBonus, totalAbilities } from './modifiers';
 import { getClass } from '@/data/classes';
 import { getSubrace, raceOf } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
@@ -14,6 +14,8 @@ import { containerOf } from './inventory';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown } from './effects';
 import { breakdown, mod } from './effects';
+import { languagePicks, languagesLeftText } from './originChoices';
+import { isArmorProficient, isWeaponProficient, proficienciesOf, proficiencySummary } from './proficiencies';
 
 export interface DerivedAbility {
   key: AbilityKey;
@@ -31,6 +33,8 @@ export interface DerivedSkill {
   proficient: boolean;
   /** Expertise: bônus de proficiência em dobro (Ladino/Bardo). */
   expertise: boolean;
+  /** Motivo de desvantagem automática (armadura, exaustão, condição). */
+  disadvantage?: string;
 }
 
 export interface DerivedAttack {
@@ -97,6 +101,8 @@ export interface DerivedCharacter {
   /** Sentidos/idiomas/resistências herdados com origem. */
   darkvision: { range: number; source: string } | null;
   languages: string[];
+  /** Proficiências com armaduras e armas (classe, multiclasse, subclasse, raça, talentos). */
+  weaponArmorProfs: { armor: string; weapons: string };
   resistances: { value: string; source: string }[];
   /** Proficiências concedidas pela subclasse (exibição). */
   grantedProficiencies: string[];
@@ -186,8 +192,10 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const primalChampion = levelIn('barbarian') >= 20;
 
   const magicItems = activeMagicItems(char);
+  const profs = proficienciesOf(char);
   // ---- Atributos: base + raça + sub-raça + ASI/talentos (teto 20) ----
-  const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId);
+  const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice);
+  const raceChoice = raceChoiceBonus(char.raceId, char.raceAbilityChoice);
   const abilityBreakdowns = {} as Record<AbilityKey, Breakdown>;
   const abilities = {} as Record<AbilityKey, DerivedAbility>;
   const abilityList: DerivedAbility[] = ABILITY_KEYS.map((key) => {
@@ -206,6 +214,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
         mod(key, char.baseAbilities[key], 'Valores de criação', 'base'),
         mod(key, race.abilityBonus[key] ?? 0, race.label, 'race'),
         subrace ? mod(key, subrace.abilityBonus?.[key] ?? 0, subrace.label, 'subrace') : null,
+        race.abilityChoice ? mod(key, raceChoice[key] ?? 0, race.label, 'race', { label: 'atributo à escolha' }) : null,
         asi ? mod(key, asi, 'Aumentos de nível', 'asi') : null,
         primal ? mod(key, primal, 'Campeão Primal', 'class', { label: 'Bárbaro 20º (teto 24)' }) : null,
         setBy ? mod(key, total - natural, setBy.name, 'item', { label: `atributo passa a ${total}` }) : null,
@@ -250,9 +259,15 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     .filter((x): x is NonNullable<typeof x> => !!x)
     .map((x) => ({ ...x, total: x.base + abilities[x.ability].mod }));
   const unarmoredAlt = altSources.sort((a, b) => b.total - a.total)[0];
+  // Defesa sem Armadura vem da classe que a concede (na multiclasse, a primeira obtida; não acumula)
+  const unarmoredClass =
+    char.classId === 'barbarian' || char.classId === 'monk' ? char.classId
+    : levelIn('barbarian') ? 'barbarian'
+    : levelIn('monk') ? 'monk'
+    : null;
   const classUnarmored =
-    char.classId === 'barbarian' ? 10 + dexMod + conMod
-    : char.classId === 'monk' && !char.equipped.shield ? 10 + dexMod + abilities.wis.mod
+    unarmoredClass === 'barbarian' ? 10 + dexMod + conMod
+    : unarmoredClass === 'monk' && !char.equipped.shield ? 10 + dexMod + abilities.wis.mod
     : 10 + dexMod;
   const armor = armorItem ? resolveItemData(armorItem).armor : undefined;
   const acParts = [];
@@ -261,10 +276,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     acParts.push(mod('ac', armor.baseAC, armorItem.name, 'item', { label: 'CA base da armadura' }));
     if (armor.magicBonus) acParts.push(mod('ac', Math.min(3, armor.magicBonus), armorItem.name, 'item', { label: `armadura mágica +${Math.min(3, armor.magicBonus)}` }));
     if (armor.addDex) {
-      const cap = typeof armor.maxDexBonus === 'number' ? Math.min(dexMod, armor.maxDexBonus) : dexMod;
+      // Mestre em Armadura Média: teto de DES +3 em armadura média
+      const dexCap = typeof armor.maxDexBonus === 'number' && armor.category === 'média' && feats.some((f) => f.id === 'medium-armor-master') ? 3 : armor.maxDexBonus;
+      const cap = typeof dexCap === 'number' ? Math.min(dexMod, dexCap) : dexMod;
       acParts.push(mod('ac', cap, 'Destreza', 'ability', { label: 'modificador de DES' }));
-      if (typeof armor.maxDexBonus === 'number' && dexMod > armor.maxDexBonus) {
-        acNote = `armadura ${armor.category} limita DES a +${armor.maxDexBonus}`;
+      if (typeof dexCap === 'number' && dexMod > dexCap) {
+        acNote = `armadura ${armor.category} limita DES a +${dexCap}`;
       }
     } else {
       acNote = 'armadura pesada não soma Destreza';
@@ -279,13 +296,22 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     acParts.push(mod('ac', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }));
     // Defesa sem Armadura (PHB 2014): Bárbaro soma CON; Monge soma SAB
     // (o Monge perde o traço se usar escudo; o Bárbaro pode usar escudo).
-    if (char.classId === 'barbarian') {
+    if (unarmoredClass === 'barbarian') {
       acParts.push(mod('ac', conMod, 'Constituição', 'ability', { label: 'Defesa sem Armadura' }));
-    } else if (char.classId === 'monk' && !char.equipped.shield) {
+    } else if (unarmoredClass === 'monk' && !char.equipped.shield) {
       acParts.push(mod('ac', abilities.wis.mod, 'Sabedoria', 'ability', { label: 'Defesa sem Armadura' }));
     }
   }
   const shieldItem = findEquipped(char, char.equipped.shield);
+  // sem proficiência: a CA vale, mas há desvantagem em FOR/DES e não conjura (PHB 2014, cap. 5)
+  const armorUntrained = [
+    armor && !isArmorProficient(profs, armor.category) ? `armadura ${armor.category}` : '',
+    shieldItem && !isArmorProficient(profs, 'escudo') ? 'escudo' : '',
+  ].filter(Boolean);
+  if (armorUntrained.length) {
+    const warn = `sem proficiência (${armorUntrained.join(' e ')}): desvantagem em testes, salvaguardas e ataques de FOR e DES, e não conjura magias`;
+    acNote = acNote ? `${acNote} · ${warn}` : warn;
+  }
   if (shieldItem) {
     const bonus = resolveItemData(shieldItem).acBonus ?? 0;
     if (bonus) acParts.push(mod('ac', bonus, shieldItem.name, 'item', { label: 'escudo' }));
@@ -347,6 +373,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
   // Auxílio: +5 de PV máximo por círculo acima do 1º
   for (const e of spellEffects) if (e.maxHp) hpParts.push(mod('hp', e.maxHp, e.name, 'spell'));
+  // Exaustão 4+ (PHB 2014): PV máximo pela metade
+  const exhaustion = char.combat?.exhaustion ?? 0;
+  if (exhaustion >= 4) {
+    const before = breakdown(hpParts).total;
+    hpParts.push(mod('hp', -Math.ceil(before / 2), 'Exaustão', 'base', { label: `nível ${exhaustion}: PV máximo pela metade` }));
+  }
   const hpBd = breakdown(hpParts);
   const maxHp = Math.max(1, hpBd.total);
   hpBd.total = maxHp;
@@ -371,12 +403,26 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       : null,
     ...magicItems.map((m) => (m.magic.speed ? mod('speed', m.magic.speed, m.name, 'item', { unit: 'm' }) : null)),
     ...spellEffects.map((e) => (e.speed ? mod('speed', e.speed, e.name, 'spell', { unit: 'm' }) : null)),
+    // armadura pesada sem a Força exigida: −3 m (anões não perdem deslocamento)
+    armor?.strReq && abilities.str.total < armor.strReq && char.raceId !== 'dwarf'
+      ? mod('speed', -3, armorItem!.name, 'item', { unit: 'm', label: `exige FOR ${armor.strReq}` })
+      : null,
   ]);
   // Acelerar: deslocamento dobrado (depois de todos os bônus)
   const hasted = spellEffects.find((e) => e.speedDouble);
   if (hasted) {
     speedBd.parts.push(mod('speed', speedBd.total, hasted.name, 'spell', { unit: 'm', label: 'deslocamento dobrado' }));
     speedBd.total *= 2;
+  }
+  // Exaustão 2: metade do deslocamento; 5: zero. Condições que prendem: zero.
+  const stuck = (char.combat?.conditions ?? []).find((x) => ['Agarrado', 'Impedido', 'Restringido', 'Atordoado', 'Paralisado', 'Petrificado', 'Inconsciente'].includes(x));
+  if (stuck || exhaustion >= 5) {
+    speedBd.parts.push(mod('speed', -speedBd.total, stuck ?? 'Exaustão', 'base', { unit: 'm', label: stuck ? 'condição: deslocamento 0' : `exaustão ${exhaustion}: deslocamento 0` }));
+    speedBd.total = 0;
+  } else if (exhaustion >= 2) {
+    const half = speedBd.total / 2;
+    speedBd.parts.push(mod('speed', half - speedBd.total, 'Exaustão', 'base', { unit: 'm', label: `nível ${exhaustion}: metade do deslocamento` }));
+    speedBd.total = half;
   }
 
   // ---- Iniciativa: DES + talentos ----
@@ -409,6 +455,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       skillProfs.add('persuasion');
     }
   }
+  // condições que dão desvantagem em testes de atributo (Envenenado, Amedrontado)
+  const checkCondition = (char.combat?.conditions ?? []).find((x) => x === 'Envenenado' || x === 'Amedrontado');
   const expertiseSet = new Set<SkillKey>(char.skillExpertise ?? []);
   // Bênçãos do Conhecimento: proficiência dobrada nas duas perícias escolhidas
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
@@ -419,7 +467,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const expertise = proficient && expertiseSet.has(sk.key);
     const half = proficient ? null : halfProfFor(sk.ability);
     const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : half?.value ?? 0);
-    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise };
+    const disadvantage =
+      exhaustion >= 1 ? 'exaustão'
+      : checkCondition ? checkCondition.toLowerCase()
+      : sk.key === 'stealth' && armor?.stealthDisadvantage && !(armor.category === 'média' && feats.some((f) => f.id === 'medium-armor-master')) ? 'armadura atrapalha a furtividade'
+      : armorUntrained.length && (sk.ability === 'str' || sk.ability === 'dex') ? 'armadura sem proficiência'
+      : undefined;
+    return { key: sk.key, label: sk.label, ability: sk.ability, bonus, proficient, expertise, disadvantage };
   });
   const perception = skills.find((s) => s.key === 'perception')!;
   const ppBd = breakdown([
@@ -464,9 +518,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       .filter((x, i, arr) => x && arr.findIndex((y) => y?.uid === x.uid) === i && resolveItemData(x).weapon);
     const dueling =
       styles.has('dueling') && w.range === 'melee' && !w.properties.includes('Duas mãos') && heldWeapons.length === 1;
+    // só soma proficiência se o personagem for treinado na arma (Artes Marciais conta como treino)
+    const weaponProf = monkWeapon || isWeaponProficient(profs, it, w.type, w.range);
     const hitBd = breakdown([
       mod('attack', abilMod, ABILITY_LABELS[abilKey], 'ability'),
-      mod('attack', prof, 'Bônus de proficiência', 'proficiency'),
+      weaponProf ? mod('attack', prof, 'Bônus de proficiência', 'proficiency') : null,
       magic ? mod('attack', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
       styles.has('archery') && w.range === 'ranged' ? mod('attack', 2, 'Estilo de Luta: Arquearia', 'class') : null,
     ]);
@@ -484,7 +540,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     attacks.push({
       uid: it.uid,
       name: it.name,
-      note: `${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
+      note: `${weaponProf ? '' : 'sem proficiência · '}${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
       attackBonus: hitBd.total,
       damageDice: w.damageDice,
       // Artes Marciais: usa o dado do monge se for maior que o da arma
@@ -578,13 +634,16 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const darkvision = darkRange
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
+  // "1 idioma à escolha" (raça/sub-raça) e os do antecedente viram escolhas reais
+  const langPicks = languagePicks(char);
   const languages = Array.from(
     new Set([
-      ...(race.languages ?? ['Comum']),
+      ...langPicks.fixed,
       ...(subBonus?.languages ?? []),
       ...(char.extraLanguages ?? []),
       ...Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage)$/.test(k)).flatMap(([, v]) => v),
       ...feats.flatMap((f) => f.languages ?? []),
+      ...(langPicks.left ? [languagesLeftText(langPicks.left)] : []),
     ]),
   );
   const resistances = [
@@ -635,6 +694,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     languages,
     resistances,
     grantedProficiencies,
+    weaponArmorProfs: proficiencySummary(profs),
     critMin,
     subclassLabel: subclass?.label ?? null,
   };

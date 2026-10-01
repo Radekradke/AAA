@@ -170,6 +170,8 @@ export function finalizeCharacter(draft: Character): Character {
   };
   for (const id of cls.tools ?? []) addTool(id, cls.label);
   for (const id of bg.tools ?? []) addTool(id, bg.label);
+  // Gnomo das Rochas (Engenhoqueiro): Ferramentas de Funileiro
+  if (draft.subraceId === 'rock-gnome') addTool('tinkers-tools', 'Gnomo das Rochas');
 
   // espaços de magia e recursos conforme classe/nível
   const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};

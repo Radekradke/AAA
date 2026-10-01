@@ -45,7 +45,7 @@ export function TabMagias({ char, derived }: TabProps) {
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
-  const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses]);
+  const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
 
   // magias "do personagem": preparadas (todas as classes) + grimório do mago (nível ≥1)
   const prepared = char.preparedSpells;

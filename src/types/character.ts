@@ -207,6 +207,8 @@ export interface Character {
   // identidade
   raceId: string;
   subraceId: string | null;
+  /** Atributos escolhidos no bônus racial à escolha (Meio-Elfo). */
+  raceAbilityChoice?: AbilityKey[];
   /** Raça homebrew usada por esta ficha (cópia embutida: funciona offline e na tela do mestre). */
   customRace?: import('./dnd').Race | null;
   classId: string;

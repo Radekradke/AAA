@@ -74,7 +74,7 @@ interface SessionState {
 
   // mestre → ficha do jogador (o jogador aplica na própria ficha)
   /** delta < 0: dano; > 0: cura. */
-  sendHeroHp: (c: Combatant, delta: number) => Promise<void>;
+  sendHeroHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
   sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
   awardXp: (amount: number, note?: string) => Promise<void>;
 
@@ -85,7 +85,7 @@ interface SessionState {
    * Muda o PV de um combatente: delta < 0 é dano, > 0 é cura. Herói recebe
    * na ficha do jogador (evento); monstro/NPC direto no encontro.
    */
-  changeHp: (c: Combatant, delta: number) => Promise<void>;
+  changeHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
   /** Registra o ataque na crônica da sessão (quem, em quem, acertou, dano). */
   logStrike: (p: { by: string; target: string; hit: boolean; crit: boolean; damage: number; type?: string; note?: string }, secret: boolean) => Promise<void>;
 }
@@ -124,7 +124,7 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
     if (e.type === 'hero_hp') {
       const n = Math.abs(Number(p.amount) || 0);
       if (p.kind === 'heal') chars.heal(sheetId, n);
-      else chars.applyDamage(sheetId, n);
+      else chars.applyDamage(sheetId, n, { crit: p.crit === true });
     } else if (e.type === 'hero_condition') {
       const cur = useCharacterStore.getState().characters.find((c) => c.id === sheetId)?.combat.conditions ?? [];
       const cond = String(p.condition ?? '');
@@ -239,9 +239,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
 
     setTarget: (id) => set({ targetId: id }),
 
-    async changeHp(c, delta) {
+    async changeHp(c, delta, opts) {
       if (!delta) return;
-      if (c.type === 'player' && c.sheetId) return get().sendHeroHp(c, delta);
+      if (c.type === 'player' && c.sheetId) return get().sendHeroHp(c, delta, opts);
       const cur = c.hpCurrent ?? c.hpMax ?? 0;
       const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, cur + delta) : cur + delta);
       await get().updateCombatant(c.id, { hp_current: next });
@@ -263,7 +263,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       set({ rollVisibility: v });
     },
 
-    sendHeroHp: (c, delta) =>
+    sendHeroHp: (c, delta, opts) =>
       act(async () => {
         const { session, campaignId, me } = get();
         if (!session || !campaignId || !me || !c.sheetId || !delta) return;
@@ -272,7 +272,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
           const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, c.hpCurrent + delta) : c.hpCurrent + delta);
           await encounterService.update(c.id, { hp_current: next });
         }
-        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal' }, 'public');
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal', crit: !!opts?.crit }, 'public');
       }),
 
     sendHeroCondition: (c, condition, on) =>
