@@ -29,7 +29,11 @@ export class PalcoSetupError extends Error {
 
 export function stageError(e: { message: string; code?: string }): Error {
   if (missing(e.message)) return new PalcoSetupError(e.message);
-  if (/row-level security|violates row/i.test(e.message)) return new Error('O banco recusou: só o mestre desta mesa mexe no palco. Se você é o mestre, saia e entre de novo (sessão expirada).');
+  if (/row-level security|violates row/i.test(e.message)) {
+    return new Error(
+      `O banco recusou a gravação no palco. Se você é o mestre desta mesa, faltam as regras de permissão: no Supabase, rode supabase/palco_regras.sql (SQL Editor → aba nova → Run). Detalhe: ${e.message}`,
+    );
+  }
   if (/mestre ou o dono/i.test(e.message)) return new Error('Esse peão não é seu — só o mestre ou o dono move.');
   if (/JWT|not authenticated|permission denied/i.test(e.message)) return new Error(`O banco recusou o acesso (${e.message}). Saia e entre de novo; se continuar, rode supabase/palco.sql outra vez.`);
   return new Error(`Palco: ${e.message}${e.code ? ` (${e.code})` : ''}`);
@@ -198,9 +202,26 @@ export const stageService = {
     if (error) throw stageError(error);
   },
 
-  async moveToken(id: string, x: number, y: number): Promise<void> {
-    const { error } = await sb().rpc('move_token', { p_token: id, p_x: x, p_y: y });
-    if (error) throw stageError(error);
+  /** Mestre grava direto (as regras deixam); jogador passa pela RPC, que só move o próprio peão. */
+  async moveToken(id: string, x: number, y: number, asMaster = false): Promise<void> {
+    if (asMaster) {
+      const { data, error } = await sb()
+        .from('scene_tokens')
+        .update({ x, y, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select('id');
+      if (error) throw stageError(error);
+      if (!data?.length) throw new Error('O banco não deixou mover o peão. Rode supabase/palco_regras.sql no Supabase (regras do palco).');
+      return;
+    }
+    const { data, error } = await sb().rpc('move_token', { p_token: id, p_x: x, p_y: y });
+    if (error) {
+      if (/Could not find the function|move_token/i.test(error.message)) {
+        throw new Error('Falta a função que move os peões no banco. No Supabase: SQL Editor → aba nova → cole supabase/palco_mover.sql → Run.');
+      }
+      throw stageError(error);
+    }
+    if (Array.isArray(data) && !data.length) throw new Error('Esse peão não é seu — só o mestre ou o dono move.');
   },
 
   async handouts(campaignId: string): Promise<Handout[]> {

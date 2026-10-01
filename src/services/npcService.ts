@@ -21,7 +21,7 @@ const missingTable = (m: string) => /Could not find the table '?public\.campaign
 function friendly(e: { message: string; code?: string }): Error {
   if (missingTable(e.message)) return new Error(NPC_SETUP_MISSING);
   if (/row-level security|violates row/i.test(e.message)) {
-    return new Error('O banco recusou: só o mestre desta mesa edita NPCs. Se você é o mestre, sua sessão pode ter expirado — saia e entre de novo.');
+    return new Error(`O banco recusou a gravação do NPC. Se você é o mestre desta mesa, faltam as regras de permissão: no Supabase, rode supabase/palco_regras.sql (SQL Editor → aba nova → Run). Detalhe: ${e.message}`);
   }
   if (/check constraint.*portrait|value too long/i.test(e.message)) return new Error('Retrato grande demais — tente outra imagem.');
   if (/check constraint.*name/i.test(e.message)) return new Error('O nome precisa ter de 1 a 80 letras.');
