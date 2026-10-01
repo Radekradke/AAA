@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 /** Telas "de hub", onde a barra inferior aparece no celular. */
-const MOBILE_HUBS = ['/', '/personagens', '/mesas', '/retratos'];
+const MOBILE_HUBS = ['/', '/personagens', '/mesas', '/retratos', '/config'];
 
 /**
  * Navegação do tema Guilda Rubra: barra lateral compacta no PC (ícone com
@@ -35,6 +35,7 @@ export function GuildNav() {
     ...(hasCurrent ? [{ label: 'Ficha', icon: 'quill' as IconName, to: `/ficha/${currentId}`, match: (p: string) => p.startsWith('/ficha/') }] : []),
     { label: 'Mesas', icon: 'banner', to: '/mesas', match: (p) => p === '/mesas' || p.startsWith('/mesa/') },
     { label: 'Retratos', icon: 'image', to: '/retratos', match: (p) => p === '/retratos' },
+    { label: 'Ajustes', icon: 'gear', to: '/config', match: (p) => p === '/config' },
   ];
   const onHub = MOBILE_HUBS.includes(pathname);
 

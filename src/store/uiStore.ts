@@ -25,6 +25,14 @@ interface UiState {
   packs: Record<PackId, boolean>;
   togglePack: (id: PackId) => void;
 
+  /** Já viu o tutorial de boas-vindas (não abre sozinho de novo). */
+  onboarded: boolean;
+  /** Tutorial aberto agora (abre sozinho na 1ª visita ou pelo menu). */
+  tutorialOpen: boolean;
+  openTutorial: () => void;
+  /** Fecha e marca como visto. */
+  closeTutorial: () => void;
+
   /** Efeitos sonoros opcionais (sessão; ativados por gesto do usuário). */
   sound: boolean;
   toggleSound: () => void;
@@ -145,6 +153,15 @@ export const useUiStore = create<UiState>()(
         set((s) => ({ packs: { ...s.packs, [id]: !s.packs[id] } }));
       },
 
+      onboarded: false,
+      tutorialOpen: false,
+      openTutorial() {
+        set({ tutorialOpen: true });
+      },
+      closeTutorial() {
+        set({ tutorialOpen: false, onboarded: true });
+      },
+
       sound: false,
       toggleSound() {
         const next = !get().sound;
@@ -204,7 +221,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs }),
+      partialize: (s) => ({ theme: s.theme, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded }),
     },
   ),
 );
