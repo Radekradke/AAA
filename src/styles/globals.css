@@ -4060,3 +4060,35 @@ body.fv-dragging .fv-screen-scroll {
 
 /* marcador de desvantagem automática nas perícias */
 .fv-disadv { font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--danger, #d0605e); text-transform: none; }
+
+/* ===== Pacotes de conteúdo ===== */
+.fv-packs-intro { margin: 0 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.fv-packs-intro b { color: var(--ink); }
+.fv-packs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fv-pack { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); transition: border-color 0.2s, background 0.2s; }
+.fv-pack.is-on { border-color: color-mix(in srgb, var(--gold), transparent 45%); background: color-mix(in srgb, var(--gold), transparent 92%); }
+.fv-pack-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-pack-text b { font-family: var(--font-display); font-size: 14px; color: var(--ink); }
+.fv-pack-text small { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.fv-switch { flex: none; position: relative; width: 44px; height: 26px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--sunk-deep); cursor: pointer; transition: background 0.2s; }
+.fv-switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
+.fv-switch[aria-checked='true'] { background: color-mix(in srgb, var(--gold), transparent 55%); }
+.fv-switch[aria-checked='true'] span { transform: translateX(18px); background: var(--gold); }
+.fv-switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-packs-note { margin: 12px 0 0; font-size: 11.5px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .fv-switch span, .fv-pack { transition: none; } }
+
+/* ===== Origem personalizada (Tasha) ===== */
+.fv-origin { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.fv-origin-toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.fv-origin-toggle input { margin-top: 3px; accent-color: var(--gold); width: 16px; height: 16px; }
+.fv-origin-toggle span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); }
+.fv-origin-toggle small { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc); }
+.fv-origin-toggle em { font-style: normal; font-size: 12px; color: var(--muted); }
+.fv-origin-body { display: grid; gap: 10px; margin-top: 10px; }
+.fv-origin-row { display: grid; gap: 6px; }
+.fv-origin-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.fv-origin-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+.fv-origin-field { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); }
+.fv-origin-field b { font-family: 'Chakra Petch', monospace; color: var(--gold); }
+.fv-origin-field .fv-input { min-height: 34px; padding: 4px 28px 4px 10px; font-size: 12.5px; width: auto; }

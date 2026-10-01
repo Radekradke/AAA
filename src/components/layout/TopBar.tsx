@@ -1,3 +1,4 @@
+import { ContentPacksModal } from './ContentPacksModal';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -40,6 +41,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
+  const [packsOpen, setPacksOpen] = useState(false);
   const installer = useInstallPrompt();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -63,6 +65,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
     { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
     { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
     { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
+    { key: 'packs', label: 'Pacotes de conteúdo', icon: 'quill', onClick: () => setPacksOpen(true) },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
       ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
@@ -151,6 +154,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
         </div>
       </div>
 
+      {packsOpen && <ContentPacksModal onClose={() => setPacksOpen(false)} />}
       {iosGuide && (
         <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>
           <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>

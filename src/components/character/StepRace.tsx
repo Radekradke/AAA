@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
+import { CustomOriginPanel } from './CustomOriginPanel';
+import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
@@ -17,12 +19,14 @@ export function StepRace({ char, update }: StepProps) {
   const race = raceOf(char);
   const subs = getSubraces(char.raceId);
   const homebrew = useHomebrewStore((s) => s.races);
+  const tasha = useUiStore((s) => s.packs?.tce);
   const [editing, setEditing] = useState<Race | 'new' | null>(null);
 
   const pickRace = (id: string) =>
     update((c) => {
       c.raceId = id;
       c.customRace = null;
+      c.customOrigin = null;
       const s = getSubraces(id);
       c.subraceId = s.length ? s[s.length - 1].id : null;
     });
@@ -31,6 +35,7 @@ export function StepRace({ char, update }: StepProps) {
     update((c) => {
       c.raceId = r.id;
       c.customRace = r;
+      c.customOrigin = null;
       c.subraceId = r.subraces?.length ? r.subraces[0].id : null;
     });
 
@@ -103,7 +108,7 @@ export function StepRace({ char, update }: StepProps) {
               <button type="button" className="fv-btn-ghost fv-hb-edit" onClick={() => setEditing(race)}>Editar raça</button>
             </>
           )}
-          {race.abilityChoice && (() => {
+          {race.abilityChoice && !char.customOrigin && (() => {
             const ch = race.abilityChoice;
             const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
             const active = picked.length === ch.count ? picked : ch.default;
@@ -140,7 +145,7 @@ export function StepRace({ char, update }: StepProps) {
                     type="button"
                     aria-pressed={char.subraceId === sub.id}
                     className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
-                    onClick={() => update((c) => { c.subraceId = sub.id; })}
+                    onClick={() => update((c) => { c.subraceId = sub.id; c.customOrigin = null; })}
                   >
                     {sub.label}
                     {sub.bonus && <small>{sub.bonus}</small>}
@@ -167,6 +172,7 @@ export function StepRace({ char, update }: StepProps) {
               </div>
             );
           })()}
+          {tasha && <CustomOriginPanel char={char} update={update} />}
         </ChoiceDetail>
       </div>
 

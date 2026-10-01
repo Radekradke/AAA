@@ -1,3 +1,4 @@
+import { useUiStore } from '@/store/uiStore';
 import { useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { RACES } from '@/data/races';
@@ -25,6 +26,7 @@ const fmt = (n: number) => String(n).replace('.', ',');
  */
 export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | null; onClose: () => void; onSaved: (r: Race) => void }) {
   const store = useHomebrewStore();
+  const packs = useUiStore((st) => st.packs);
   const author = useAuthStore((s) => (s.user && !s.user.guest ? s.user.name : undefined));
   const inUse = useCharacterStore((s) => (race ? s.characters.filter((c) => c.raceId === race.id).length : 0));
   const [r, setR] = useState<Race>(() => (race ? { ...race, traitDetails: race.traitDetails ?? race.traits.map((t) => ({ name: t, desc: '' })) } : blankRace()));
@@ -100,7 +102,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
           <div className="fv-hb-templates" role="group" aria-label="Começar de">
             <span>Começar de</span>
             <button type="button" onClick={() => fromTemplate('blank')}>Do zero</button>
-            <button type="button" onClick={() => fromTemplate('tasha')} title="Tasha's Cauldron of Everything — compatível com 2014">Linhagem Personalizada</button>
+            {packs.tce && <button type="button" onClick={() => fromTemplate('tasha')} title="Caldeirão de Tasha — compatível com 2014">Linhagem Personalizada</button>}
             <select className="fv-input" defaultValue="" onChange={(e) => e.target.value && fromTemplate(e.target.value)} aria-label="Copiar uma raça do livro">
               <option value="">Copiar raça do livro…</option>
               {RACES.map((x) => <option key={x.id} value={x.id} style={{ color: '#111' }}>{x.label}</option>)}
@@ -108,7 +110,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
           </div>
         )}
 
-        {!race && (
+        {!race && packs.races && (
           <div className="fv-hb-templates is-presets" role="group" aria-label="Raças prontas">
             <span>Prontas</span>
             {RACE_PRESETS.map((p) => (

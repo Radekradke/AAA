@@ -83,7 +83,7 @@ export function StepAbilities({ char, update }: StepProps) {
       <div className="fv-abil-list">
         {ABILITY_KEYS.map((key) => {
           const baseVal = base[key];
-          const racial = racialBonusFor(key, char.raceId, char.subraceId, char.raceAbilityChoice);
+          const racial = racialBonusFor(key, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
           const total = baseVal + racial;
           const isRec = recommended.includes(key);
           const isBg = bg.suggestedAbilities.includes(key);

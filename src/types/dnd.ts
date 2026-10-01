@@ -95,7 +95,7 @@ export interface Subrace {
 }
 
 /** Fonte oficial de um talento/antecedente. */
-export type SourceBook = 'PHB 2014' | 'XGE';
+export type SourceBook = 'PHB 2014' | 'XGE' | 'TCE';
 
 /** Talento (PHB 2014 / Xanathar) com efeitos mecânicos rastreáveis. */
 export interface Feat {

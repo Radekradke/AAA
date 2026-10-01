@@ -199,7 +199,7 @@ export function expertiseUsed(char: Character): number {
 
 /** Atributos efetivos (base + raça + ASI/talentos), sem itens. */
 export function effectiveAbilities(char: Character): AbilityScores {
-  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice);
+  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
   for (const k of ABILITY_KEYS) {
     totals[k] = Math.min(ABILITY_CAP, totals[k] + (char.asiBonuses?.[k] ?? 0));
   }

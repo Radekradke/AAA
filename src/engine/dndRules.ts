@@ -14,7 +14,7 @@ import { containerOf } from './inventory';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown } from './effects';
 import { breakdown, mod } from './effects';
-import { languagePicks, languagesLeftText } from './originChoices';
+import { languagePicks, languagesLeftText, raceSkillProfs } from './originChoices';
 import { isArmorProficient, isWeaponProficient, proficienciesOf, proficiencySummary } from './proficiencies';
 
 export interface DerivedAbility {
@@ -194,8 +194,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const magicItems = activeMagicItems(char);
   const profs = proficienciesOf(char);
   // ---- Atributos: base + raça + sub-raça + ASI/talentos (teto 20) ----
-  const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice);
+  const raceTotals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
   const raceChoice = raceChoiceBonus(char.raceId, char.raceAbilityChoice);
+  const customAsi = char.customOrigin?.asi ?? null;
   const abilityBreakdowns = {} as Record<AbilityKey, Breakdown>;
   const abilities = {} as Record<AbilityKey, DerivedAbility>;
   const abilityList: DerivedAbility[] = ABILITY_KEYS.map((key) => {
@@ -212,9 +213,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const bd = breakdown(
       [
         mod(key, char.baseAbilities[key], 'Valores de criação', 'base'),
-        mod(key, race.abilityBonus[key] ?? 0, race.label, 'race'),
-        subrace ? mod(key, subrace.abilityBonus?.[key] ?? 0, subrace.label, 'subrace') : null,
-        race.abilityChoice ? mod(key, raceChoice[key] ?? 0, race.label, 'race', { label: 'atributo à escolha' }) : null,
+        ...(customAsi
+          ? [mod(key, customAsi[key] ?? 0, race.label, 'race', { label: 'origem personalizada (Tasha)' })]
+          : [
+              mod(key, race.abilityBonus[key] ?? 0, race.label, 'race'),
+              subrace ? mod(key, subrace.abilityBonus?.[key] ?? 0, subrace.label, 'subrace') : null,
+              race.abilityChoice ? mod(key, raceChoice[key] ?? 0, race.label, 'race', { label: 'atributo à escolha' }) : null,
+            ]),
         asi ? mod(key, asi, 'Aumentos de nível', 'asi') : null,
         primal ? mod(key, primal, 'Campeão Primal', 'class', { label: 'Bárbaro 20º (teto 24)' }) : null,
         setBy ? mod(key, total - natural, setBy.name, 'item', { label: `atributo passa a ${total}` }) : null,
@@ -446,7 +451,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   ]);
 
   // ---- Perícias (proficiências: escolhas + antecedente + raça; expertise dobra) ----
-  const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...(race.skillProfs ?? [])]);
+  const skillProfs = new Set<SkillKey>([...char.skillProfs, ...bg.skills, ...raceSkillProfs(char)]);
   // perícias vindas de escolhas de classe: Colégio do Conhecimento (3) e Influência Enganadora
   for (const [k, ids] of Object.entries(char.choices ?? {})) {
     if (/\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)) ids.forEach((id) => skillProfs.add(id as SkillKey));

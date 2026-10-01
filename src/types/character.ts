@@ -209,6 +209,18 @@ export interface Character {
   subraceId: string | null;
   /** Atributos escolhidos no bônus racial à escolha (Meio-Elfo). */
   raceAbilityChoice?: AbilityKey[];
+  /**
+   * Origem personalizada (Caldeirão de Tasha): bônus raciais redistribuídos e
+   * perícias/idiomas da raça trocados. Ausente = regras normais da raça.
+   */
+  customOrigin?: {
+    /** Bônus de atributo da raça, já redistribuídos (substituem os da raça). */
+    asi?: Partial<Record<AbilityKey, number>>;
+    /** Perícia da raça → perícia escolhida no lugar. */
+    skillSwap?: Record<string, import('./dnd').SkillKey>;
+    /** Idioma da raça → idioma escolhido no lugar. */
+    langSwap?: Record<string, string>;
+  } | null;
   /** Raça homebrew usada por esta ficha (cópia embutida: funciona offline e na tela do mestre). */
   customRace?: import('./dnd').Race | null;
   classId: string;

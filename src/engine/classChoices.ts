@@ -8,6 +8,7 @@ import { SPELLS, SPELL_BY_ID } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
+import { raceSkillProfs } from './originChoices';
 
 /** Uma escolha com contexto: de qual classe/subclasse e nível ela vem. */
 export interface ResolvedSpec extends ChoiceSpec {
@@ -166,7 +167,7 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   if (spec.only) all = all.filter((o) => spec.only!.includes(o.id));
   // perícias: só as que o personagem ainda não tem
   if (char && spec.catalog === 'skill') {
-    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...(raceOf(char).skillProfs ?? [])]);
+    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...raceSkillProfs(char)]);
     const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
   }
