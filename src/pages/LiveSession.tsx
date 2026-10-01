@@ -240,7 +240,7 @@ export function LiveSession() {
           const turnCard = isMaster && active?.monsterRef && MONSTER_BY_ID[active.monsterRef] && (
             <section className="fv-panel fv-live-card fv-live-turncard">
               <div className="fv-label">Vez de {active.name}</div>
-              <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} />
+              <MonsterStatBlock m={MONSTER_BY_ID[active.monsterRef]} who={active.name} attacker={active} targets={s.combatants} />
             </section>
           );
 
@@ -268,7 +268,7 @@ export function LiveSession() {
                     <aside className="fv-live-side">
                       <PlayerCard heroes={heroes} />
                       <HandoutInbox />
-                      <EventFeed events={s.events} />
+                      <EventFeed events={s.events} targets={isMaster ? s.combatants : undefined} onApply={isMaster ? (c, n) => void s.changeHp(c, -n) : undefined} />
                     </aside>
                   </div>
                 )}
@@ -298,7 +298,7 @@ export function LiveSession() {
                   <aside className="fv-live-side">
                     {turnCard}
                     {board ?? startCard}
-                    {s.session && <EventFeed events={s.events} />}
+                    {s.session && <EventFeed events={s.events} targets={isMaster ? s.combatants : undefined} onApply={isMaster ? (c, n) => void s.changeHp(c, -n) : undefined} />}
                   </aside>
                 </div>
               )}
@@ -312,7 +312,7 @@ export function LiveSession() {
                       <aside className="fv-live-side">
                         {turnCard}
                         <MasterDeck heroes={heroes} />
-                        <EventFeed events={s.events} />
+                        <EventFeed events={s.events} targets={isMaster ? s.combatants : undefined} onApply={isMaster ? (c, n) => void s.changeHp(c, -n) : undefined} />
                         <section className="fv-live-session-ctl">
                           {s.session.status === 'active' ? (
                             <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setSessionStatus('paused')}>Pausar sessão</button>

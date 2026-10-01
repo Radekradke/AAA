@@ -26,6 +26,8 @@ interface StageMapProps {
   /** Condições do combatente ligado ao peão (todos veem). */
   conditionsFor?: (t: Token) => string[];
   activeIds: Set<string>;
+  /** Alvo escolhido pelo mestre (mira no peão). */
+  targetIds?: Set<string>;
   drags: Record<string, { x: number; y: number }>;
   pings: StagePing[];
   marks: MapMark[];
@@ -402,6 +404,7 @@ export function StageMap(p: StageMapProps) {
               `is-${t.kind}`,
               t.hidden ? 'is-hidden' : '',
               p.activeIds.has(t.id) ? 'is-active' : '',
+              p.targetIds?.has(t.id) ? 'is-target' : '',
               p.selectedId === t.id ? 'is-selected' : '',
               drag?.id === t.id ? 'is-grabbed' : p.drags[t.id] ? 'is-remote' : '',
               p.canMove(t) && tool === 'move' ? 'is-movable' : '',

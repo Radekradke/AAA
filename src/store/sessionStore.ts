@@ -77,6 +77,17 @@ interface SessionState {
   sendHeroHp: (c: Combatant, delta: number) => Promise<void>;
   sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
   awardXp: (amount: number, note?: string) => Promise<void>;
+
+  /** Alvo escolhido pelo mestre (local): quem recebe o próximo ataque. */
+  targetId: string | null;
+  setTarget: (id: string | null) => void;
+  /**
+   * Muda o PV de um combatente: delta < 0 é dano, > 0 é cura. Herói recebe
+   * na ficha do jogador (evento); monstro/NPC direto no encontro.
+   */
+  changeHp: (c: Combatant, delta: number) => Promise<void>;
+  /** Registra o ataque na crônica da sessão (quem, em quem, acertou, dano). */
+  logStrike: (p: { by: string; target: string; hit: boolean; crit: boolean; damage: number; type?: string; note?: string }, secret: boolean) => Promise<void>;
 }
 
 /** Eventos do mestre que mexem na ficha do jogador. */
@@ -224,6 +235,24 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     myTurnKey: null,
     rollVisibility: 'public',
     lastTableRoll: null,
+    targetId: null,
+
+    setTarget: (id) => set({ targetId: id }),
+
+    async changeHp(c, delta) {
+      if (!delta) return;
+      if (c.type === 'player' && c.sheetId) return get().sendHeroHp(c, delta);
+      const cur = c.hpCurrent ?? c.hpMax ?? 0;
+      const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, cur + delta) : cur + delta);
+      await get().updateCombatant(c.id, { hp_current: next });
+    },
+
+    async logStrike(p, secret) {
+      const { session, campaignId, me } = get();
+      if (!session || !campaignId || !me) return;
+      await sessionService.log(session.id, campaignId, me.userId, 'attack', p, secret ? 'master' : 'public').catch(() => undefined);
+      await get().refresh();
+    },
 
     setRollVisibility(v) {
       try {

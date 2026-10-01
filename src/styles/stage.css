@@ -825,3 +825,15 @@
   .fv-map-fogbar { left: 10px; top: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .fv-map-laser polyline.is-fading { animation-duration: 0.01s; } }
+.fv-token.is-target::after {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  border-radius: 50%;
+  border: max(2px, 0.08em) dashed #ff5a5f;
+  animation: fv-target-spin 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes fv-target-spin { to { transform: rotate(360deg); } }
+.fv-stage-turn b.is-target { color: #ff7a80; }
+@media (prefers-reduced-motion: reduce) { .fv-token.is-target::after { animation: none; } }

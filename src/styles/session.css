@@ -1078,3 +1078,50 @@
   margin: 8px 0 4px; padding: 10px 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.5;
   border: 1px solid color-mix(in srgb, var(--danger), transparent 55%); background: color-mix(in srgb, var(--danger), transparent 88%); color: var(--ink);
 }
+
+/* ---------- ataque com alvo (mestre) ---------- */
+.fv-strike-targets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.fv-strike-targets > span { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.fv-strike-targets em { font-size: 12px; color: var(--muted); }
+.fv-strike-chip {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  min-height: 36px; padding: 4px 10px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-size: 12.5px; font-weight: 600;
+}
+.fv-strike-chip small { font-size: 10.5px; font-weight: 500; color: var(--muted); font-family: 'Chakra Petch', monospace; }
+.fv-strike-chip.is-hero { border-color: color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-strike-chip.is-on { border-color: #ff5a5f; background: color-mix(in srgb, #ff5a5f, transparent 85%); box-shadow: 0 0 0 1px #ff5a5f inset; }
+.fv-strike-chip.is-down { opacity: 0.5; text-decoration: line-through; }
+.fv-strike-chip:focus-visible { outline: 2px solid var(--acc); }
+.fv-strike-result {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 12px; padding: 10px 12px;
+  border-radius: var(--radius-md); border: 1px solid var(--line-strong); background: var(--lift); font-size: 13px; color: var(--ink);
+  animation: fv-strike-in 0.25s ease-out;
+}
+.fv-strike-result b { font-family: var(--font-display); font-size: 15px; }
+.fv-strike-result.is-hit { border-color: color-mix(in srgb, #ff5a5f, transparent 40%); background: color-mix(in srgb, #ff5a5f, transparent 90%); }
+.fv-strike-result.is-crit { border-color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 86%); }
+.fv-strike-result.is-crit b { color: var(--gold); }
+.fv-strike-result.is-miss { opacity: 0.85; }
+.fv-strike-actions { display: inline-flex; gap: 6px; margin-left: auto; }
+.fv-strike-actions button {
+  min-height: 30px; padding: 0 10px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-size: 12px; font-weight: 600;
+}
+.fv-strike-actions button:hover { border-color: var(--gold); }
+@keyframes fv-strike-in { from { transform: translateY(-4px); opacity: 0; } }
+.fv-mstat-btns .is-strike { background: #c62f3a; border-color: #c62f3a; color: #fff; font-weight: 700; }
+.fv-mstat-btns .is-strike:disabled { opacity: 0.4; cursor: default; }
+.fv-feed-apply {
+  margin-left: auto; min-height: 24px; padding: 0 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid color-mix(in srgb, #ff5a5f, transparent 50%); background: transparent; color: #ff8a8f; font-size: 11px; font-weight: 700;
+}
+.fv-feed-done { margin-left: auto; font-size: 11px; color: var(--muted); font-style: normal; }
+.fv-feed-targets { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0 2px 44px; }
+.fv-feed-targets button {
+  min-height: 28px; padding: 0 9px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-size: 11.5px;
+}
+.fv-feed-targets button:hover { border-color: #ff5a5f; }
+@media (prefers-reduced-motion: reduce) { .fv-strike-result { animation: none; } }
+.fv-live-feed li { flex-wrap: wrap; }
