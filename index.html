@@ -15,6 +15,15 @@
       content="Ficha Viva AAA — crie, desperte e jogue suas fichas de D&D 5e com uma experiência cinematográfica de jogo AAA."
     />
     <title>Ficha Viva AAA</title>
+    <script>
+      // aplica o tema salvo (ou o padrão, Véu Astral) antes do app carregar: sem piscar a cor errada
+      try {
+        var t = (JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {}).theme || 'astral';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'astral');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

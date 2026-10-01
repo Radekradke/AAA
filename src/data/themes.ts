@@ -1,7 +1,7 @@
 import type { RarityDef, ThemeDef, ThemeName } from '@/types/dnd';
 
 /** Ordem de rotação dos climas no alternador da barra superior. */
-export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante', 'carmesim', 'astral', 'ouro', 'eclipse', 'rubra'];
+export const THEME_ORDER: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra'];
 
 /**
  * Os climas: cada um é um lugar com material, luz e fonte próprios (veja o
