@@ -2,7 +2,7 @@ import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import { heroSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { PortraitPicker } from '@/components/character/PortraitPicker';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
@@ -18,7 +18,7 @@ interface SheetHeaderProps {
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
 export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const setLevel = useCharacterStore((s) => s.setLevel);
   const updateCharacter = useCharacterStore((s) => s.updateCharacter);
 

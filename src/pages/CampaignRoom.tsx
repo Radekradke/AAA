@@ -11,7 +11,7 @@ import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
 import type { MasterPermission } from '@/types/models';
 import { syncNow } from '@/services/offlineSyncService';
 import { deriveCharacter } from '@/engine/dndRules';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
@@ -275,7 +275,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
         {mine && <span style={{ flex: 'none', fontSize: 9, letterSpacing: '.1em', color: t.acc }}>SUA</span>}
       </div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--acc)' }}>
-        {getRace(snapshot.raceId).label} · {getClass(snapshot.classId).label} · Nível {snapshot.level}
+        {raceOf(snapshot).label}{raceOf(snapshot).homebrew ? ' (homebrew)' : ''} · {getClass(snapshot.classId).label} · Nível {snapshot.level}
       </div>
       {/* PV */}
       <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 8 }}>

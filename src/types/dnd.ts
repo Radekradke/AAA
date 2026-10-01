@@ -56,6 +56,15 @@ export interface Race {
   extraSkillPicks?: number;
   /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
   video?: string;
+  /** Criada pelo jogador (homebrew) — o mestre vê o selo na ficha. */
+  homebrew?: boolean;
+  /** Tamanho (homebrew; as oficiais seguem o livro). */
+  size?: 'Pequeno' | 'Médio';
+  /** Traços com descrição (homebrew). */
+  traitDetails?: { name: string; desc: string }[];
+  /** Quem criou (nome) e quando mudou — para o mestre e para sincronizar. */
+  author?: string;
+  updatedAt?: number;
 }
 
 export interface Subrace {

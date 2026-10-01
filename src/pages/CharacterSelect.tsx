@@ -10,7 +10,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { deriveCharacter } from '@/engine/dndRules';
 import type { Character } from '@/types/character';
 
@@ -151,7 +151,7 @@ export function CharacterSelect() {
 
           {mine.map((c) => {
             const cls = getClass(c.classId);
-            const race = getRace(c.raceId);
+            const race = raceOf(c);
             const d = deriveCharacter(c);
             return (
               <div

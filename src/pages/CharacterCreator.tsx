@@ -21,7 +21,7 @@ import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 
 export function CharacterCreator() {
@@ -85,7 +85,7 @@ export function CharacterCreator() {
   const pending = creationPending(char);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
-  const creatorVideo = getClass(char.classId).video ?? getRace(char.raceId).video ?? null;
+  const creatorVideo = getClass(char.classId).video ?? raceOf(char).video ?? null;
   const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
   const creatorDarken = creatorVideo ? 0.5 : 1;
 
