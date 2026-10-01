@@ -3,7 +3,8 @@
  * app instalado e sem depender de rede. Só o subconjunto latino — cobre o
  * português (ã, ç, é…). Uma fonte de título por clima:
  * Cinzel (Noite Arcana) · Grenze (Forja Dourada) · Alegreya SC (Bosque Élfico) ·
- * Cormorant SC (Corte Carmesim) · Marcellus SC (Véu Astral) · EB Garamond (Ouro Velho).
+ * Cormorant SC (Corte Carmesim) · Marcellus SC (Véu Astral) · EB Garamond (Ouro Velho) ·
+ * Manrope + Antonio (Eclipse) · Outfit (Guilda Rubra).
  */
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
@@ -30,3 +31,13 @@ import '@fontsource/marcellus-sc/latin-400.css';
 import '@fontsource/eb-garamond/latin-500.css';
 import '@fontsource/eb-garamond/latin-600.css';
 import '@fontsource/eb-garamond/latin-700.css';
+import '@fontsource/manrope/latin-500.css';
+import '@fontsource/manrope/latin-600.css';
+import '@fontsource/manrope/latin-700.css';
+import '@fontsource/manrope/latin-800.css';
+import '@fontsource/antonio/latin-300.css';
+import '@fontsource/antonio/latin-500.css';
+import '@fontsource/outfit/latin-400.css';
+import '@fontsource/outfit/latin-500.css';
+import '@fontsource/outfit/latin-600.css';
+import '@fontsource/outfit/latin-700.css';

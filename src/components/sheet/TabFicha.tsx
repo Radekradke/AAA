@@ -93,7 +93,7 @@ export function TabFicha({ char, derived }: TabProps) {
                         padding: '4px 0',
                         borderRadius: 4,
                         cursor: 'pointer',
-                        color: a.saveProf ? '#140d04' : 'var(--muted)',
+                        color: a.saveProf ? 'var(--on-gold, #140d04)' : 'var(--muted)',
                         background: a.saveProf ? t.gold : 'rgba(255,255,255,.05)',
                         border: '1px solid ' + (a.saveProf ? t.gold : t.line),
                       }}

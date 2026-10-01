@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from './AppShell';
 import { TopBar } from './TopBar';
+import { GuildNav } from './GuildNav';
+import { useUiStore } from '@/store/uiStore';
 import type { TopBarMenuItem } from './TopBar';
 
 interface ScreenProps {
@@ -21,9 +23,12 @@ interface ScreenProps {
  * cinematográfica. Base de todas as páginas.
  */
 export function Screen({ children, actions, menu, video, videoOpacity, darken, scroll }: ScreenProps) {
+  const theme = useUiStore((s) => s.theme);
   return (
     <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
       <TopBar actions={actions} menu={menu} />
+      {/* Guilda Rubra: navegação de app de jogos (lateral no PC, inferior no celular) */}
+      {theme === 'rubra' && <GuildNav />}
       <motion.div
         initial={{ opacity: 0, scale: 1.035, y: 10, filter: 'blur(6px)' }}
         animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}

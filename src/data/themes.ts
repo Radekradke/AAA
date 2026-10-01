@@ -1,7 +1,7 @@
 import type { RarityDef, ThemeDef, ThemeName } from '@/types/dnd';
 
 /** Ordem de rotação dos climas no alternador da barra superior. */
-export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante', 'carmesim', 'astral', 'ouro'];
+export const THEME_ORDER: ThemeName[] = ['frio', 'brasa', 'verdejante', 'carmesim', 'astral', 'ouro', 'eclipse', 'rubra'];
 
 /**
  * Os climas: cada um é um lugar com material, luz e fonte próprios (veja o
@@ -140,6 +140,56 @@ export const THEMES: Record<ThemeName, ThemeDef> = {
     label: 'Ouro Velho',
     tagline: 'Menu de jogo: chapado, nítido, sem brilho',
     font: "'EB Garamond', serif",
+    motif: 'none',
+  },
+  /**
+   * Editorial monocromático: página em branco quebrado, blocos pretos com
+   * recortes, cápsulas e fios finos. As ilustrações são a única cor forte.
+   */
+  eclipse: {
+    bg: '#E7E5E0',
+    bg2: '#F1EFEA',
+    panel: '#F7F6F2',
+    panel2: '#EEECE7',
+    steel: '#DAD8D2',
+    line: 'rgba(17,17,17,0.14)',
+    acc: '#111111',
+    acc2: '#5E5E5E',
+    accSoft: 'rgba(17,17,17,0.05)',
+    gold: '#111111',
+    goldB: '#2B2B2B',
+    ink: '#121212',
+    muted: '#6A6862',
+    danger: '#B4382B',
+    bloom: 'rgba(0,0,0,0)',
+    particle: 'rgba(0,0,0,0)',
+    label: 'Eclipse',
+    tagline: 'Editorial em preto e branco quebrado',
+    font: "'Manrope', sans-serif",
+    motif: 'none',
+    light: true,
+  },
+  /** Painel de jogos: vinho, bordô e carvão com coral vivo. */
+  rubra: {
+    bg: '#1E0D10',
+    bg2: '#3A161B',
+    panel: '#3B1A1F',
+    panel2: '#2C1317',
+    steel: '#4A2228',
+    line: 'rgba(255,190,180,0.12)',
+    acc: '#F2665A',
+    acc2: '#F6E3A8',
+    accSoft: 'rgba(255,200,190,0.06)',
+    gold: '#F2665A',
+    goldB: '#FF8A7A',
+    ink: '#FBEFEC',
+    muted: '#C4999A',
+    danger: '#FF7B5C',
+    bloom: 'rgba(242,102,90,0.16)',
+    particle: 'rgba(0,0,0,0)',
+    label: 'Guilda Rubra',
+    tagline: 'Painel de jogos: vinho, carvão e coral',
+    font: "'Outfit', sans-serif",
     motif: 'none',
   },
 };
