@@ -22,6 +22,13 @@ import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
 import { raceOf } from '@/data/races';
+
+/**
+ * Vídeos animados de fundo por raça/classe (Draconato, Bruxo) — em espera
+ * para uma atualização futura. Os arquivos e o mapeamento (`video` em
+ * races.ts/classes.ts) continuam no projeto: para religar, troque para true.
+ */
+const CREATOR_VIDEOS = false;
 import { getClass } from '@/data/classes';
 
 export function CharacterCreator() {
@@ -85,7 +92,7 @@ export function CharacterCreator() {
   const pending = creationPending(char);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
-  const creatorVideo = getClass(char.classId).video ?? raceOf(char).video ?? null;
+  const creatorVideo = CREATOR_VIDEOS ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
   const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
   const creatorDarken = creatorVideo ? 0.5 : 1;
 
