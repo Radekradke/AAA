@@ -25,7 +25,7 @@ function sb() {
 }
 
 function mediaError(e: { message: string }): Error {
-  if (/bucket not found/i.test(e.message)) return new Error(`${PALCO_SETUP_MISSING} (falta o espaço de imagens "campaign-media")`);
+  if (/bucket not found/i.test(e.message)) return new Error('Falta o espaço de imagens "campaign-media" no Storage. No Supabase: SQL Editor → aba nova → cole supabase/palco_storage.sql → Run (ou crie o bucket em Storage → New bucket, privado).');
   if (/row-level security|unauthorized|403/i.test(e.message)) return new Error('O Storage recusou a imagem: só o mestre da mesa envia arquivos.');
   if (/payload too large|exceeded|size/i.test(e.message)) return new Error('Imagem grande demais (máx. 10 MB depois de comprimida).');
   return new Error(`Não deu para enviar a imagem: ${e.message}`);

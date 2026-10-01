@@ -205,16 +205,16 @@ do $fn$ begin
 
   execute $p$drop policy if exists "fv_media_read" on storage.objects$p$;
   execute $p$create policy "fv_media_read" on storage.objects for select to authenticated
-    using (bucket_id = 'campaign-media' and public.fv_media_readable(name))$p$;
+    using (bucket_id = 'campaign-media' and (exists (select 1 from public.campaigns c where c.id::text = split_part(objects.name, '/', 1) and c.master_id = auth.uid()) or exists (select 1 from public.campaign_scenes s where s.image_path = objects.name or s.beats @> jsonb_build_array(jsonb_build_object('path', objects.name))) or exists (select 1 from public.scene_tokens t where t.image_path = objects.name) or exists (select 1 from public.campaign_handouts h where h.image_path = objects.name and h.shown_at is not null)))$p$;
   execute $p$drop policy if exists "fv_media_insert" on storage.objects$p$;
   execute $p$create policy "fv_media_insert" on storage.objects for insert to authenticated
-    with check (bucket_id = 'campaign-media' and public.fv_media_master(name))$p$;
+    with check (bucket_id = 'campaign-media' and exists (select 1 from public.campaigns c where c.id::text = split_part(objects.name, '/', 1) and c.master_id = auth.uid()))$p$;
   execute $p$drop policy if exists "fv_media_update" on storage.objects$p$;
   execute $p$create policy "fv_media_update" on storage.objects for update to authenticated
-    using (bucket_id = 'campaign-media' and public.fv_media_master(name))$p$;
+    using (bucket_id = 'campaign-media' and exists (select 1 from public.campaigns c where c.id::text = split_part(objects.name, '/', 1) and c.master_id = auth.uid()))$p$;
   execute $p$drop policy if exists "fv_media_delete" on storage.objects$p$;
   execute $p$create policy "fv_media_delete" on storage.objects for delete to authenticated
-    using (bucket_id = 'campaign-media' and public.fv_media_master(name))$p$;
+    using (bucket_id = 'campaign-media' and exists (select 1 from public.campaigns c where c.id::text = split_part(objects.name, '/', 1) and c.master_id = auth.uid()))$p$;
 exception
   when undefined_table or invalid_schema_name then
     raise notice 'Storage indisponível neste projeto — mapas e imagens não vão subir.';

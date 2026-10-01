@@ -682,3 +682,146 @@
 .fv-stage-diag { margin: 8px 0; font-size: 12px; color: var(--muted); word-break: break-word; }
 .fv-stage-diag code { color: var(--ink); font-family: 'Chakra Petch', monospace; }
 .fv-stage-empty > .fv-btn-ghost { min-height: 38px; padding: 0 14px; margin-top: 6px; }
+
+/* ---------- ferramentas do mapa (inspiração: Foundry / Owlbear / Dungeon Revealer) ---------- */
+.fv-map-toolbox {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: rgba(8, 10, 18, 0.82);
+  backdrop-filter: blur(6px);
+}
+.fv-map-toolbox button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+}
+.fv-map-toolbox button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.fv-map-toolbox button.is-on { background: var(--gold); color: #14100a; }
+.fv-map-toolbox button.is-clear { color: var(--stage-over); }
+.fv-map-toolbox button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+.fv-map-view.is-tool { cursor: crosshair; }
+.fv-map-view.is-tool .fv-token { cursor: crosshair; }
+
+.fv-map-marks, .fv-map-laser { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.fv-mark { --mk: var(--gold); }
+.fv-mark circle, .fv-mark polygon, .fv-mark rect:not(.fv-mark-label rect) {
+  fill: color-mix(in srgb, var(--mk), transparent 78%);
+  stroke: var(--mk);
+}
+.fv-mark line { stroke: var(--mk); stroke-linecap: round; }
+.fv-mark.is-measure line { filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9)); }
+.fv-mark.is-measure circle { fill: var(--mk); stroke: rgba(0, 0, 0, 0.6); }
+.fv-mark-label rect { fill: rgba(8, 10, 18, 0.88); stroke: var(--mk); stroke-width: 1.5; }
+.fv-mark-label text { fill: #fff; font-family: 'Chakra Petch', monospace; font-weight: 700; }
+.fv-map-laser polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  opacity: 0.95;
+}
+.fv-map-laser polyline.is-fading { animation: fv-laser-fade 1.4s ease-in forwards; }
+@keyframes fv-laser-fade { to { opacity: 0; } }
+
+.fv-token.is-caught .fv-token-disc { box-shadow: 0 0 0 max(3px, 0.1em) #ff6b6b, 0 0 18px 4px rgba(255, 90, 95, 0.55); }
+.fv-token-conds {
+  position: absolute;
+  right: -6%;
+  top: -6%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  pointer-events: none;
+}
+.fv-token-conds i {
+  display: grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 0 0.25em;
+  border-radius: 0.7em;
+  background: #7a2bd6;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: #fff;
+  font-size: 0.42em;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* névoa de guerra */
+.fv-map-fog { position: absolute; inset: 0; pointer-events: none; }
+.fv-map-fog-fill { fill: #06070b; }
+.fv-map-fog.is-master .fv-map-fog-fill { fill: rgba(6, 7, 11, 0.55); }
+.fv-map-fogsel { position: absolute; pointer-events: none; border: 3px dashed; border-radius: 4px; }
+.fv-map-fogsel.is-reveal { border-color: #7dff9b; background: rgba(125, 255, 155, 0.15); }
+.fv-map-fogsel.is-cover { border-color: #ff7a90; background: rgba(255, 122, 144, 0.18); }
+.fv-map-fogbar {
+  position: absolute;
+  left: 58px;
+  top: 10px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(8, 10, 18, 0.86);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+.fv-map-fogbar button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.fv-map-fogbar button:hover { border-color: var(--gold); }
+
+/* vez de quem + seguir turno */
+.fv-stage-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 55%);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+  font-size: 13px;
+  color: var(--ink);
+}
+.fv-stage-turn b { color: var(--gold); }
+.fv-stage-turn button { min-height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-size: 12px; cursor: pointer; }
+.fv-stage-turn label { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; cursor: pointer; }
+
+.fv-tokenbar-hp { display: inline-flex; align-items: center; gap: 6px; }
+.fv-tokenbar-hp span { font-family: 'Chakra Petch', monospace; font-weight: 700; font-size: 12.5px; color: var(--ink); }
+.fv-tokenbar-hp input { width: 58px; min-height: 34px; padding: 4px 8px; font-size: 13px; text-align: center; }
+@media (max-width: 640px) {
+  .fv-map-toolbox { flex-direction: row; flex-wrap: wrap; max-width: calc(100% - 70px); }
+  .fv-map-toolbox button { width: 34px; height: 34px; }
+  .fv-map-fogbar { left: 10px; top: 56px; }
+}
+@media (prefers-reduced-motion: reduce) { .fv-map-laser polyline.is-fading { animation-duration: 0.01s; } }

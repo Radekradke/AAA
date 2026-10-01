@@ -52,6 +52,16 @@ export function mapScene(r: Record<string, unknown>): Scene {
       show: g.show !== false,
       ...(g.cols ? { cols: num(g.cols) } : {}),
       ...(g.rows ? { rows: num(g.rows) } : {}),
+      ...(g.fog && typeof g.fog === 'object'
+        ? {
+            fog: {
+              on: !!g.fog.on,
+              reveal: (Array.isArray(g.fog.reveal) ? g.fog.reveal : [])
+                .map((r) => ({ x: num(r?.x), y: num(r?.y), w: Math.max(1, num(r?.w, 1)), h: Math.max(1, num(r?.h, 1)) }))
+                .slice(0, 400),
+            },
+          }
+        : {}),
     },
     beats: Array.isArray(r.beats) ? (r.beats as CutsceneBeat[]).map((b) => ({ path: b?.path ?? null, text: String(b?.text ?? '') })) : [],
     revealed: !!r.revealed,

@@ -4,7 +4,7 @@ import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
 import type { NewToken, TokenPatch } from '@/services/stageService';
 import { PalcoSetupError } from '@/services/stageService';
-import type { Handout, Scene, StagePing, StageState, Token } from '@/types/stage';
+import type { FogConfig, Handout, LaserTrail, MapMark, Scene, StagePing, StageState, Token } from '@/types/stage';
 
 /**
  * Espelho do PALCO da mesa (cena no ar, peões, handouts). Como a sessão: a
@@ -28,6 +28,12 @@ interface StageStore {
   /** Posições provisórias enquanto alguém arrasta. */
   drags: Record<string, { x: number; y: number }>;
   pings: StagePing[];
+  /** Réguas e moldes de área de quem está na mesa (efêmeros). */
+  marks: Record<string, MapMark>;
+  /** Rastro da caneta-laser de cada um (some sozinho). */
+  lasers: Record<string, LaserTrail>;
+  /** Pedido para centralizar o mapa (mestre puxou a visão / seguir turno). */
+  focus: { x: number; y: number; z?: number; n: number } | null;
   /** Cutscene que o jogador minimizou (volta ao mudar de quadro). */
   hiddenCutscene: string | null;
   missing: boolean;
@@ -56,6 +62,16 @@ interface StageStore {
   moveToken: (id: string, x: number, y: number) => Promise<void>;
   dragPreview: (id: string, x: number, y: number) => void;
   ping: (x: number, y: number) => void;
+  myColor: () => string;
+  /** Mostra/atualiza (e manda para a mesa) uma régua ou molde; null apaga. */
+  putMark: (mark: MapMark) => void;
+  dropMark: (id: string) => void;
+  clearMarks: (all?: boolean) => void;
+  laser: (points: { x: number; y: number }[]) => void;
+  /** Mestre: todo mundo olha para este ponto (em casas). */
+  pullView: (x: number, y: number, z?: number) => void;
+  focusOn: (x: number, y: number) => void;
+  saveFog: (scene: Scene, fog: FogConfig) => Promise<void>;
 
   showHandout: (id: string, recipients: string[] | null) => Promise<void>;
   dismissIncoming: () => void;
@@ -101,6 +117,12 @@ export const useStageStore = create<StageStore>()((set, get) => {
     setTimeout(() => set((s) => ({ pings: s.pings.filter((x) => x.id !== p.id) })), 2600);
   };
 
+  const addLaser = (t: LaserTrail) => {
+    set((s) => ({ lasers: { ...s.lasers, [t.by]: t } }));
+    setTimeout(() => set((s) => (s.lasers[t.by]?.at === t.at ? { lasers: Object.fromEntries(Object.entries(s.lasers).filter(([k]) => k !== t.by)) } : {})), 1400);
+  };
+  const send = (event: string, payload: Record<string, unknown>) => void channel?.send({ type: 'broadcast', event, payload });
+
   const subscribe = (campaignId: string) => {
     const client = getSupabase();
     if (!client) return;
@@ -129,6 +151,22 @@ export const useStageStore = create<StageStore>()((set, get) => {
         if (p.end) schedule();
       })
       .on('broadcast', { event: 'ping' }, ({ payload }) => addPing(payload as StagePing))
+      .on('broadcast', { event: 'mark' }, ({ payload }) => {
+        const p = payload as { mark?: MapMark; drop?: string; clearBy?: string; clearAll?: boolean };
+        set((s) => {
+          const marks = { ...s.marks };
+          if (p.mark) marks[p.mark.id] = p.mark;
+          if (p.drop) delete marks[p.drop];
+          if (p.clearAll) return { marks: {} };
+          if (p.clearBy) for (const k of Object.keys(marks)) if (marks[k].by === p.clearBy) delete marks[k];
+          return { marks };
+        });
+      })
+      .on('broadcast', { event: 'laser' }, ({ payload }) => addLaser(payload as LaserTrail))
+      .on('broadcast', { event: 'focus' }, ({ payload }) => {
+        const p = payload as { x: number; y: number; z?: number };
+        set((s) => ({ focus: { ...p, n: (s.focus?.n ?? 0) + 1 } }));
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') schedule();
       });
@@ -147,6 +185,9 @@ export const useStageStore = create<StageStore>()((set, get) => {
     incoming: null,
     drags: {},
     pings: [],
+    marks: {},
+    lasers: {},
+    focus: null,
     hiddenCutscene: null,
     missing: false,
     missingDetail: null,
@@ -170,7 +211,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       if (channel && client) void client.removeChannel(channel);
       channel = null;
       if (timer) clearTimeout(timer);
-      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], missing: false, error: null });
+      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null });
     },
 
     async refresh() {
@@ -297,6 +338,47 @@ export const useStageStore = create<StageStore>()((set, get) => {
       const p: StagePing = { id: `${userId}-${Date.now()}`, x, y, color: colorFor(userId ?? who), who };
       addPing(p);
       void channel?.send({ type: 'broadcast', event: 'ping', payload: p });
+    },
+
+    myColor: () => colorFor(get().userId ?? get().who),
+
+    putMark(mark) {
+      set((s) => ({ marks: { ...s.marks, [mark.id]: mark } }));
+      send('mark', { mark });
+    },
+    dropMark(id) {
+      set((s) => {
+        const marks = { ...s.marks };
+        delete marks[id];
+        return { marks };
+      });
+      send('mark', { drop: id });
+    },
+    clearMarks(all) {
+      const me = get().userId ?? '';
+      if (all) {
+        set({ marks: {} });
+        send('mark', { clearAll: true });
+      } else {
+        set((s) => ({ marks: Object.fromEntries(Object.entries(s.marks).filter(([, m]) => m.by !== me)) }));
+        send('mark', { clearBy: me });
+      }
+    },
+    laser(points) {
+      const t: LaserTrail = { by: get().userId ?? 'eu', color: get().myColor(), points: points.slice(-80), at: Date.now() };
+      addLaser(t);
+      send('laser', t as unknown as Record<string, unknown>);
+    },
+    pullView(x, y, z) {
+      send('focus', { x, y, z });
+    },
+    focusOn(x, y) {
+      set((s) => ({ focus: { x, y, n: (s.focus?.n ?? 0) + 1 } }));
+    },
+    async saveFog(scene, fog) {
+      // otimista: a névoa muda na hora para o mestre
+      set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog } } : x)) }));
+      await get().run(() => stageService.saveScene(scene.campaignId, { id: scene.id, grid: { ...scene.grid, fog } }));
     },
 
     showHandout: (id, recipients) => get().run(() => stageService.showHandout(id, recipients)).then(() => undefined),
