@@ -31,9 +31,9 @@ Dica: até ~8 segundos e ~200 KB por arquivo (mp3 mono 96–128 kbps).
 | Monge | — | ✔ |
 | Paladino | — | — |
 | Patrulheiro | ✔ | — |
-| Ladino | — | — |
-| Feiticeiro | — | — |
-| Bruxo | — | — |
+| Ladino | ✔ | ✔ |
+| Feiticeiro | ✔ | ✔ |
+| Bruxo | — | ✔ |
 | Mago | — | — |
 
 Sem fala gravada, a classe só não fala (aparece "sem fala gravada").
