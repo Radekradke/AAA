@@ -48,6 +48,19 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
     }
   });
   const activeIds = ctx.activeIds(st.tokens);
+  const session = useSessionStore();
+  const targetIds = useMemo(
+    () => new Set(st.tokens.filter((t) => session.targetId && ctx.combFor(t)?.id === session.targetId).map((t) => t.id)),
+    [st.tokens, session.targetId, combatants], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  // mestre: tocar num peão que não é o da vez escolhe o alvo do próximo ataque
+  const select = (id: string | null) => {
+    setSelected(id);
+    if (!isMaster || !id) return;
+    const t = st.tokens.find((k) => k.id === id);
+    const c = t ? ctx.combFor(t) : undefined;
+    if (c && !activeIds.has(id)) session.setTarget(c.id);
+  };
   const activeToken = st.tokens.find((t) => activeIds.has(t.id)) ?? null;
 
   // seguir o turno: o mapa vai até o peão da vez quando o turno muda
@@ -154,7 +167,10 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
           {isMaster && sel && <TokenBar token={sel} combatant={ctx.combFor(sel) ?? null} onClose={() => setSelected(null)} />}
           {activeToken && (
             <div className="fv-stage-turn">
-              <span>Vez de <b>{activeToken.label}</b></span>
+              <span>Vez de <b>{activeToken.label}</b>{isMaster && session.targetId && (() => {
+                const tg = combatants.find((c) => c.id === session.targetId);
+                return tg ? <> → alvo <b className="is-target">{tg.name}</b></> : null;
+              })()}</span>
               <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
               <label>
                 <input
@@ -184,13 +200,14 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             hpFor={isMaster ? ctx.hpFor : undefined}
             conditionsFor={ctx.conditionsFor}
             activeIds={activeIds}
+            targetIds={isMaster ? targetIds : undefined}
             drags={st.drags}
             pings={st.pings}
             marks={Object.values(st.marks)}
             lasers={Object.values(st.lasers)}
             focus={st.focus}
             selectedId={selected}
-            onSelect={setSelected}
+            onSelect={select}
             onMove={(id, x, y) => void st.moveToken(id, x, y)}
             onDrag={st.dragPreview}
             onPing={st.ping}
