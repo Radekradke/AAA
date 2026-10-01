@@ -41,6 +41,8 @@ interface CharacterState {
   updateCharacter: (id: string, recipe: Recipe) => void;
   finalizeDraft: (id: string) => void;
   deleteCharacter: (id: string) => void;
+  /** Devolve uma ficha recém-excluída (botão Desfazer do aviso). */
+  restoreCharacter: (char: Character) => void;
   duplicateCharacter: (id: string) => void;
   importCharacter: (json: string, ownerId: string) => { ok: boolean; error?: string };
   exportCharacter: (id: string) => string | null;
@@ -197,6 +199,12 @@ export const useCharacterStore = create<CharacterState>()(
             currentId: s.currentId === id ? null : s.currentId,
             // fila para a exclusão remota quando houver nuvem/conexão
             pendingDeletes: s.pendingDeletes.includes(id) ? s.pendingDeletes : [...s.pendingDeletes, id],
+          }));
+        },
+        restoreCharacter(char) {
+          set((s) => ({
+            characters: s.characters.some((c) => c.id === char.id) ? s.characters : [...s.characters, char],
+            pendingDeletes: s.pendingDeletes.filter((x) => x !== char.id),
           }));
         },
         duplicateCharacter(id) {

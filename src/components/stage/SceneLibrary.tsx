@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { Modal } from '@/components/ui/Modal';
 import { mediaService, useMediaUrl } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
@@ -137,7 +138,7 @@ function SceneEditor({ campaignId, scene, kind, onClose }: { campaignId: string;
   };
 
   const remove = async () => {
-    if (!scene || !window.confirm(`Apagar a cena "${scene.name}"? Peões e imagens dela vão junto.`)) return;
+    if (!scene || !(await confirmAction({ title: `Apagar a cena "${scene.name}"?`, message: 'Peões e imagens dela vão junto.', confirmLabel: 'Apagar', danger: true }))) return;
     await st.removeScene(scene);
     void mediaService.remove([scene.imagePath, ...scene.beats.map((b) => b.path)]);
     onClose();

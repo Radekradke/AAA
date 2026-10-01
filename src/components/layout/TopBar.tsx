@@ -87,6 +87,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label="Mais opções"
+            data-tour="more"
             aria-haspopup="menu"
             aria-expanded={open}
             className="fv-topbar-icon"

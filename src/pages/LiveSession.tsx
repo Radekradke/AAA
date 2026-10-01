@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
@@ -323,7 +324,7 @@ export function LiveSession() {
                             type="button"
                             className="fv-btn-ghost is-danger"
                             disabled={s.busy}
-                            onClick={() => window.confirm('Encerrar a sessão para todos? O encontro aberto também termina.') && void s.setSessionStatus('finished')}
+                            onClick={async () => (await confirmAction({ title: 'Encerrar a sessão para todos?', message: 'O encontro aberto também termina.', confirmLabel: 'Encerrar', danger: true })) && void s.setSessionStatus('finished')}
                           >
                             Encerrar sessão
                           </button>
@@ -370,13 +371,13 @@ function TurnBar() {
             Próximo<span className="fv-live-wide"> turno</span> ▶
           </button>
           <button type="button" className="fv-btn-ghost" disabled={s.busy} onClick={() => void s.setEncounterStatus('paused')}>Pausar</button>
-          <button type="button" className="fv-btn-ghost is-danger" disabled={s.busy} onClick={() => window.confirm('Encerrar este encontro?') && void s.setEncounterStatus('finished')}>Encerrar</button>
+          <button type="button" className="fv-btn-ghost is-danger" disabled={s.busy} onClick={async () => (await confirmAction({ title: 'Encerrar este encontro?', confirmLabel: 'Encerrar', danger: true })) && void s.setEncounterStatus('finished')}>Encerrar</button>
         </>
       )}
       {enc.status === 'paused' && (
         <>
           <button type="button" className="fv-btn-gold fv-live-big" disabled={s.busy} onClick={() => void s.setEncounterStatus('active')}>Retomar combate</button>
-          <button type="button" className="fv-btn-ghost is-danger" disabled={s.busy} onClick={() => window.confirm('Encerrar este encontro?') && void s.setEncounterStatus('finished')}>Encerrar</button>
+          <button type="button" className="fv-btn-ghost is-danger" disabled={s.busy} onClick={async () => (await confirmAction({ title: 'Encerrar este encontro?', confirmLabel: 'Encerrar', danger: true })) && void s.setEncounterStatus('finished')}>Encerrar</button>
         </>
       )}
     </div>

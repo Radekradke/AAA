@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { useUiStore, historyFor } from '@/store/uiStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -55,9 +56,9 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
     setTimeout(() => setSaved(false), 2200);
   };
 
-  const clear = () => {
+  const clear = async () => {
     if (rolls.length === 0) return;
-    if (window.confirm('Limpar o histórico de rolagens desta ficha?')) clearHistory(char?.id);
+    if (await confirmAction({ title: 'Limpar o histórico desta ficha?', message: 'As rolagens registradas somem deste aparelho.', confirmLabel: 'Limpar', danger: true })) clearHistory(char?.id);
   };
 
   return (

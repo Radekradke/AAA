@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from '@/store/feedbackStore';
 import { itemGrantedSpells } from '@/engine/spellcasting';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
@@ -55,6 +56,19 @@ export function CharacterSheet() {
     return () => setActiveChar(null);
   }, [id, setActiveChar]);
 
+  // 1ª ficha aberta neste aparelho: o tour guiado mostra onde fica cada coisa
+  const startTour = useUiStore((s) => s.startTour);
+  const sheetTourSeen = useUiStore((s) => !!s.toursSeen.sheet);
+  const hasChar = !!char;
+  useEffect(() => {
+    if (!hasChar || sheetTourSeen) return;
+    const t = setTimeout(() => {
+      const ui = useUiStore.getState();
+      if (!ui.tour && !ui.tutorialOpen) startTour('sheet');
+    }, 1300);
+    return () => clearTimeout(t);
+  }, [hasChar, sheetTourSeen, startTour]);
+
   if (!char || !derived) {
     return (
       <Screen actions={<Button onClick={() => navigate('/personagens')}>Voltar</Button>}>
@@ -86,6 +100,7 @@ export function CharacterSheet() {
     a.download = `${char.name.replace(/\s+/g, '-').toLowerCase()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast('Ficha exportada como arquivo JSON.');
   };
 
   const renderTab = () => {
@@ -116,6 +131,14 @@ export function CharacterSheet() {
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
         { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+        {
+          label: 'Tour pela ficha',
+          icon: 'spark',
+          onClick: () => {
+            setTab('mesa');
+            setTimeout(() => startTour('sheet'), 250);
+          },
+        },
       ]}
     >
       <div

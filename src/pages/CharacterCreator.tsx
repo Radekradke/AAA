@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Screen } from '@/components/layout/Screen';
@@ -41,6 +42,17 @@ export function CharacterCreator() {
   const currentId = useCharacterStore((s) => s.currentId);
 
   const [step, setStep] = useState(0);
+  // 1ª criação neste aparelho: tour guiado pelas partes da tela
+  const startTour = useUiStore((s) => s.startTour);
+  const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator);
+  useEffect(() => {
+    if (creatorTourSeen) return;
+    const t = setTimeout(() => {
+      const ui = useUiStore.getState();
+      if (!ui.tour && !ui.tutorialOpen) startTour('creator');
+    }, 1300);
+    return () => clearTimeout(t);
+  }, [creatorTourSeen, startTour]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const startedRef = useRef(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -123,8 +135,9 @@ export function CharacterCreator() {
     navigate('/personagens');
   };
 
-  const discard = () => {
-    if (!window.confirm(`Descartar ${char.name.trim() || 'este herói'}? Tudo o que foi escolhido até aqui será perdido.`)) return;
+  const discard = async () => {
+    const ok = await confirmAction({ title: `Descartar ${char.name.trim() || 'este herói'}?`, message: 'Tudo o que foi escolhido até aqui será perdido.', confirmLabel: 'Descartar', danger: true });
+    if (!ok) return;
     deleteCharacter(char.id);
     navigate('/personagens');
   };
@@ -152,7 +165,10 @@ export function CharacterCreator() {
         </Button>
       }
       // destrutivo fica no menu, longe do polegar
-      menu={[{ label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true }]}
+      menu={[
+        { label: 'Tour da criação', icon: 'spark', onClick: () => startTour('creator') },
+        { label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true },
+      ]}
     >
       <RaceAura raceId={char.raceId} />
       <div className="fv-forge">

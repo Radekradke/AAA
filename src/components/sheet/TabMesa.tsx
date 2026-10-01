@@ -79,7 +79,7 @@ export function TabMesa({ char, derived }: TabProps) {
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
         {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
-        <div className="fv-hp">
+        <div className="fv-hp" data-tour="hp">
           {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
           <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
@@ -129,7 +129,7 @@ export function TabMesa({ char, derived }: TabProps) {
         )}
 
         {/* chips de defesa com "ver cálculo" */}
-        <div style={{ marginTop: 13, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(86px, 1fr))', gap: 8 }}>
+        <div data-tour="vitals" style={{ marginTop: 13, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(86px, 1fr))', gap: 8 }}>
           <StatChip label="CA" value={String(derived.ac)} info={calcLore('Classe de Armadura', bd.ac)} />
           <StatChip label="Iniciativa" value={modStr(derived.initiative)} info={calcLore('Iniciativa', bd.initiative)} onRoll={() => check('Iniciativa', derived.initiative)} />
           <StatChip label="Desloc." value={`${derived.speed.toString().replace('.', ',')}m`} info={calcLore('Deslocamento', bd.speed, { unit: 'm' })} />
@@ -148,7 +148,7 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
 
         {/* atributos com modificador — sempre à mão na mesa */}
-        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 6 }}>
+        <div data-tour="abilities" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 6 }}>
           {derived.abilityList.map((a) => {
             const color = ABILITY_COLORS[a.key];
             return (
@@ -180,7 +180,7 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
 
         {/* economia de turno: ação, bônus, reação e movimento */}
-        <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div data-tour="turn" style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <InitiativeButton char={char} derived={derived} compact />
           {([
             { k: 'action' as const, label: 'Ação' },
@@ -228,7 +228,7 @@ export function TabMesa({ char, derived }: TabProps) {
       <div className="fv-masonry">
         <CompanionPanel char={char} />
         {/* "O que eu rolo?" — descreve a intenção, a ficha sugere o teste */}
-        <Panel>
+        <Panel className="fv-tour-advisor">
           <RollAdvisor char={char} derived={derived} />
         </Panel>
 

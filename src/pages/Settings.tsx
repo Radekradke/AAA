@@ -58,6 +58,8 @@ export function Settings() {
   const dice3d = useUiStore((s) => s.dice3d);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
+  const resetTours = useUiStore((s) => s.resetTours);
+  const toursSeenCount = useUiStore((s) => Object.values(s.toursSeen).filter(Boolean).length);
   const clearHistory = useUiStore((s) => s.clearHistory);
   const historyCount = useUiStore((s) => s.history.length);
   const user = useAuthStore((s) => s.user);
@@ -160,6 +162,16 @@ export function Settings() {
           <Row title="Tutorial" hint="Rever o passo a passo do básico.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={openTutorial}>
               Abrir
+            </button>
+          </Row>
+          <Row title="Tours guiados" hint="Mostrar de novo, na próxima vez que abrir, o tour da ficha e o da criação (com holofote sobre a tela).">
+            <button
+              type="button"
+              className="fv-btn-ghost fv-set-btn"
+              disabled={!toursSeenCount}
+              onClick={resetTours}
+            >
+              {toursSeenCount ? 'Rever' : 'Ativados'}
             </button>
           </Row>
           {(installer.canPrompt || installer.needsIOSGuide) && (

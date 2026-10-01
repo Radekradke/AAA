@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { Link } from 'react-router-dom';
 import { Modal } from '@/components/ui/Modal';
 import { npcService, NPC_SETUP_MISSING } from '@/services/npcService';
@@ -196,7 +197,7 @@ function NpcEditor({ campaignId, npc, secret, masterSheets, onClose, onSaved }: 
               className="fv-btn-ghost is-danger"
               disabled={busy}
               onClick={async () => {
-                if (!window.confirm(`Apagar ${npc.name}? Menções no diário dos jogadores viram texto comum.`)) return;
+                if (!(await confirmAction({ title: `Apagar ${npc.name}?`, message: 'Menções no diário dos jogadores viram texto comum.', confirmLabel: 'Apagar', danger: true }))) return;
                 try {
                   await npcService.remove(npc.id);
                   onSaved();

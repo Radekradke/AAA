@@ -16,7 +16,7 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
   const tabs = SHEET_TABS.filter((tab) => !tab.caster || isCaster);
 
   return (
-    <div className="fv-sheet-tabs fv-no-scrollbar">
+    <div className="fv-sheet-tabs fv-no-scrollbar" data-tour="tabs">
       {tabs.map((tab) => {
         const isActive = active === tab.id;
         return (
