@@ -23,13 +23,13 @@ Dica: até ~8 segundos e ~200 KB por arquivo (mp3 mono 96–128 kbps).
 
 | Classe | Masculina | Feminina |
 |---|---|---|
-| Bárbaro | — | — |
+| Bárbaro | ✔ | ✔ |
 | Bardo | — | ✔ |
 | Clérigo | — | ✔ |
 | Druida | — | ✔ |
-| Guerreiro | — | — |
+| Guerreiro | ✔ | ✔ |
 | Monge | — | ✔ |
-| Paladino | — | — |
+| Paladino | — | ✔ |
 | Patrulheiro | ✔ | — |
 | Ladino | ✔ | ✔ |
 | Feiticeiro | ✔ | ✔ |
