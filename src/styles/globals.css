@@ -4019,3 +4019,13 @@ body.fv-dragging .fv-screen-scroll {
 .fv-hb-warn li::before { content: '⚠ '; color: #ffc857; }
 .fv-hb-warn li.is-info::before { content: 'ⓘ '; color: var(--acc); }
 .fv-hb-note { font-size: 12px; color: var(--muted); }
+.fv-hb-templates.is-presets button.is-on { border-color: var(--gold); color: var(--gold); }
+.fv-hb-templates small { font-size: 10.5px; color: var(--muted); font-weight: 500; }
+.fv-hb-source { margin: 0; font-size: 12px; color: var(--muted); }
+.fv-hb-source b { color: var(--ink); }
+.fv-detail .fv-hb-source { margin-top: 8px; }
+.fv-hb-sub { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px; border-radius: var(--radius-lg); border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--lift), transparent 30%); }
+.fv-hb-sub > .fv-hb-name { margin-right: 34px; }
+.fv-hb-abil.is-mini .fv-hb-step { padding: 4px; }
+.fv-hb-abil.is-mini .fv-hb-step b { font-size: 14px; }
+.fv-hb-abil.is-mini .fv-hb-step button { height: 24px; }

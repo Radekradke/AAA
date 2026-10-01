@@ -333,7 +333,7 @@ export function TabFicha({ char, derived }: TabProps) {
 function RaceTraits({ char }: { char: TabProps['char'] }) {
   const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
-  const details = race.traitDetails ?? [];
+  const details = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
   const names = [...race.traits, ...(sub?.traits ?? [])];
   if (!names.length && !details.length) return null;
   return (

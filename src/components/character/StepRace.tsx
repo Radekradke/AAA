@@ -26,7 +26,7 @@ export function StepRace({ char, update }: StepProps) {
     update((c) => {
       c.raceId = r.id;
       c.customRace = r;
-      c.subraceId = null;
+      c.subraceId = r.subraces?.length ? r.subraces[0].id : null;
     });
 
   return (
@@ -83,13 +83,18 @@ export function StepRace({ char, update }: StepProps) {
         >
           {race.homebrew && (
             <>
-              {!!race.traitDetails?.length && (
-                <div className="fv-hb-traits">
-                  {race.traitDetails.map((t) => (
-                    <p key={t.name}><b>{t.name}.</b> {t.desc || <em>sem descrição</em>}</p>
-                  ))}
-                </div>
-              )}
+              {race.source && <div className="fv-hb-source">Base oficial: {race.source}</div>}
+              {(() => {
+                const sub = subs.find((x) => x.id === char.subraceId);
+                const list = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
+                return list.length > 0 && (
+                  <div className="fv-hb-traits">
+                    {list.map((t) => (
+                      <p key={t.name}><b>{t.name}.</b> {t.desc || <em>sem descrição</em>}</p>
+                    ))}
+                  </div>
+                );
+              })()}
               <button type="button" className="fv-btn-ghost fv-hb-edit" onClick={() => setEditing(race)}>Editar raça</button>
             </>
           )}

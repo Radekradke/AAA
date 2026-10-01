@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { RACES } from '@/data/races';
+import { RACE_PRESETS } from '@/data/racePresets';
 import { SKILLS } from '@/data/skills';
 import { ABILITY_SHORT } from '@/data/skills';
-import { blankRace, bonusText, customLineage, finalizeRace, validateRace } from '@/engine/homebrew';
+import { blankRace, blankSubrace, bonusText, customLineage, finalizeRace, validateRace } from '@/engine/homebrew';
 import { useHomebrewStore } from '@/store/homebrewStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useAuthStore } from '@/store/authStore';
-import type { AbilityKey, Race, SkillKey } from '@/types/dnd';
+import type { AbilityKey, Race, SkillKey, Subrace } from '@/types/dnd';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const DAMAGE = ['ácido', 'concussão', 'cortante', 'elétrico', 'energia', 'fogo', 'frio', 'necrótico', 'perfurante', 'psíquico', 'radiante', 'trovejante', 'veneno'];
@@ -35,6 +36,16 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
   const set = (patch: Partial<Race>) => setR((c) => ({ ...c, ...patch }));
   const setBonus = (k: AbilityKey, v: number) => set({ abilityBonus: { ...r.abilityBonus, [k]: v || undefined } });
   const toggle = <T,>(list: T[] | undefined, v: T) => (list ?? []).includes(v) ? (list ?? []).filter((x) => x !== v) : [...(list ?? []), v];
+
+  const fromPreset = (p: Race) =>
+    setR({
+      ...blankRace(),
+      ...p,
+      id: '',
+      homebrew: true,
+      traitDetails: (p.traitDetails ?? []).map((t) => ({ ...t })),
+      subraces: (p.subraces ?? []).map((sb) => ({ ...sb, id: '', traitDetails: (sb.traitDetails ?? []).map((t) => ({ ...t })) })),
+    });
 
   const fromTemplate = (t: string) => {
     if (t === 'blank') return setR(blankRace());
@@ -96,6 +107,19 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
             </select>
           </div>
         )}
+
+        {!race && (
+          <div className="fv-hb-templates is-presets" role="group" aria-label="Raças prontas">
+            <span>Prontas</span>
+            {RACE_PRESETS.map((p) => (
+              <button key={p.id} type="button" className={r.label === p.label ? 'is-on' : ''} onClick={() => fromPreset(p)} title={`${p.source} — ${p.desc}`}>
+                {p.label}
+                {!!p.subraces?.length && <small> · {p.subraces.length} sub-raças</small>}
+              </button>
+            ))}
+          </div>
+        )}
+        {r.source && <p className="fv-hb-source">Base oficial: <b>{r.source}</b> — textos resumidos pelo Ficha Viva.</p>}
 
         <section className="fv-hb-sec">
           <h4>Identidade</h4>
@@ -205,6 +229,21 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
           )}
         </section>
 
+        <section className="fv-hb-sec">
+          <h4>Sub-raças <small>opcional — o jogador escolhe uma (ex.: Protetor, Flagelo, Caído)</small></h4>
+          {(r.subraces ?? []).map((sb, i) => (
+            <SubraceEditor
+              key={i}
+              sub={sb}
+              onChange={(next) => set({ subraces: (r.subraces ?? []).map((x, j) => (j === i ? next : x)) })}
+              onRemove={() => set({ subraces: (r.subraces ?? []).filter((_, j) => j !== i) })}
+            />
+          ))}
+          {(r.subraces?.length ?? 0) < 6 && (
+            <button type="button" className="fv-btn-ghost" onClick={() => set({ subraces: [...(r.subraces ?? []), blankSubrace()] })}>+ Sub-raça</button>
+          )}
+        </section>
+
         {warnings.length > 0 && (
           <ul className="fv-hb-warn" aria-label="Comparação com o Livro do Jogador">
             {warnings.map((w) => <li key={w.text} className={`is-${w.level}`}>{w.text}</li>)}
@@ -212,5 +251,69 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
         )}
       </div>
     </Modal>
+  );
+}
+
+/** Uma sub-raça: nome, bônus extra, ajustes e traços próprios. */
+function SubraceEditor({ sub, onChange, onRemove }: { sub: Subrace; onChange: (s: Subrace) => void; onRemove: () => void }) {
+  const set = (patch: Partial<Subrace>) => onChange({ ...sub, ...patch });
+  const bonus = sub.abilityBonus ?? {};
+  const setBonus = (k: AbilityKey, v: number) => set({ abilityBonus: { ...bonus, [k]: v || undefined } });
+  const traits = sub.traitDetails ?? [];
+  return (
+    <div className="fv-hb-sub">
+      <button type="button" className="fv-hb-x" onClick={onRemove} aria-label="Apagar sub-raça">×</button>
+      <input className="fv-input fv-hb-name" placeholder="Nome da sub-raça (ex.: Aasimar Protetor)" value={sub.label} maxLength={40} onChange={(e) => set({ label: e.target.value })} />
+      <div className="fv-hb-abil is-mini">
+        {KEYS.map((k) => (
+          <div key={k} className="fv-hb-step">
+            <span>{ABILITY_SHORT[k]}</span>
+            <button type="button" onClick={() => setBonus(k, Math.max(-2, (bonus[k] ?? 0) - 1))} aria-label={`Menos ${ABILITY_SHORT[k]} na sub-raça`}>−</button>
+            <b>{(bonus[k] ?? 0) > 0 ? '+' : ''}{bonus[k] ?? 0}</b>
+            <button type="button" onClick={() => setBonus(k, Math.min(3, (bonus[k] ?? 0) + 1))} aria-label={`Mais ${ABILITY_SHORT[k]} na sub-raça`}>+</button>
+          </div>
+        ))}
+      </div>
+      <div className="fv-hb-grid">
+        <label>Deslocamento extra
+          <span className="fv-live-seg">
+            {[0, 1.5, 3].map((v) => (
+              <button key={v} type="button" className={(sub.speedBonus ?? 0) === v ? 'is-on' : ''} onClick={() => set({ speedBonus: v || undefined })}>{v ? `+${fmt(v)} m` : '—'}</button>
+            ))}
+          </span>
+        </label>
+        <label>Visão no escuro
+          <span className="fv-live-seg">
+            {[0, 18, 36].map((v) => (
+              <button key={v} type="button" className={(sub.darkvision ?? 0) === v ? 'is-on' : ''} onClick={() => set({ darkvision: v || undefined })}>{v ? `${v} m` : 'da raça'}</button>
+            ))}
+          </span>
+        </label>
+        <label>Vida extra
+          <span className="fv-live-seg">
+            {[0, 1].map((v) => (
+              <button key={v} type="button" className={(sub.hpPerLevel ?? 0) === v ? 'is-on' : ''} onClick={() => set({ hpPerLevel: v || undefined })}>{v ? '+1 PV/nível' : '—'}</button>
+            ))}
+          </span>
+        </label>
+      </div>
+      <div className="fv-hb-chips">
+        {DAMAGE.map((d) => (
+          <button key={d} type="button" className={'fv-hb-chip' + ((sub.resistances ?? []).includes(d) ? ' is-on' : '')} aria-pressed={(sub.resistances ?? []).includes(d)} onClick={() => set({ resistances: (sub.resistances ?? []).includes(d) ? (sub.resistances ?? []).filter((x) => x !== d) : [...(sub.resistances ?? []), d] })}>
+            {d}
+          </button>
+        ))}
+      </div>
+      {traits.map((t, i) => (
+        <div key={i} className="fv-hb-trait">
+          <input className="fv-input" placeholder="Traço da sub-raça" value={t.name} maxLength={60} onChange={(e) => set({ traitDetails: traits.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} />
+          <textarea className="fv-input" rows={2} placeholder="O que ele faz…" value={t.desc} maxLength={800} onChange={(e) => set({ traitDetails: traits.map((x, j) => (j === i ? { ...x, desc: e.target.value } : x)) })} />
+          <button type="button" className="fv-hb-x" onClick={() => set({ traitDetails: traits.filter((_, j) => j !== i) })} aria-label="Apagar traço">×</button>
+        </div>
+      ))}
+      {traits.length < 5 && (
+        <button type="button" className="fv-btn-ghost" onClick={() => set({ traitDetails: [...traits, { name: '', desc: '' }] })}>+ Traço da sub-raça</button>
+      )}
+    </div>
   );
 }

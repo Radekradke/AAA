@@ -193,7 +193,7 @@ export function raceOf(char: { raceId: string; customRace?: Race | null }): Race
 }
 
 export function getSubraces(raceId: string): Subrace[] {
-  return SUBRACES[raceId] ?? [];
+  return SUBRACES[raceId] ?? HOMEBREW.get(raceId)?.subraces ?? [];
 }
 
 export function getSubrace(raceId: string, subId: string | null): Subrace | undefined {
