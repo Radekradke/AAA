@@ -1,5 +1,6 @@
 import { Modal } from '@/components/ui/Modal';
 import { THEMES, THEME_ORDER } from '@/data/themes';
+import { DICE_SKINS } from '@/data/diceSkins';
 import { useUiStore } from '@/store/uiStore';
 
 /**
@@ -16,6 +17,7 @@ export function ThemePickerModal({ onClose }: { onClose: () => void }) {
           const th = THEMES[id];
           const on = theme === id;
           const flat = th.motif === 'none';
+          const die = DICE_SKINS[id];
           return (
             <button
               key={id}
@@ -57,6 +59,15 @@ export function ThemePickerModal({ onClose }: { onClose: () => void }) {
               <span className="fv-theme-text">
                 <b style={{ fontFamily: th.font }}>{th.label}</b>
                 <small>{th.tagline}</small>
+                <small className="fv-theme-die">
+                  {/* a skin do dado deste tema */}
+                  {die.body.map((c, i) => (
+                    <i key={c} aria-hidden style={{ background: `radial-gradient(circle at 34% 26%, rgba(255,255,255,.45), transparent 50%), ${c}`, color: die.ink[i] }}>
+                      20
+                    </i>
+                  ))}
+                  Dados: {die.label}
+                </small>
               </span>
               {on && <span className="fv-theme-check" aria-hidden>✓</span>}
             </button>

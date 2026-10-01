@@ -5,6 +5,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import { modStr } from '@/engine/dice';
 import { canRoll3d, clear3d, roll3d } from '@/lib/dice3d';
+import { DICE_SKINS } from '@/data/diceSkins';
 
 const TUMBLE_MS = 620;
 
@@ -78,6 +79,8 @@ export function RollOverlay() {
   // ao desmontar (sair da ficha), recolhe os dados da mesa
   useEffect(() => () => clear3d(), []);
 
+  // dado 2D com a mesma skin do 3D (corpo, números e contorno do tema)
+  const skin = DICE_SKINS[themeName];
   const color = roll ? (roll.crit ? t.gold : roll.fail ? t.danger : roll.damage ? t.danger : t.acc) : t.acc;
   const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : 'rolagem') : '';
   const detail = roll ? `${roll.expr} [${roll.rolls.join(', ')}]${roll.modifier ? ' ' + modStr(roll.modifier) : ''}` : '';
@@ -130,25 +133,33 @@ export function RollOverlay() {
 
             {/* dado 2D tombando (com os dados 3D, eles já estão na mesa) */}
             {!staged3d && (
-            <div style={{ perspective: 600, height: 92, display: 'grid', placeItems: 'center', margin: '6px 0 2px' }}>
+            <div style={{ perspective: 600, height: 92, display: 'grid', placeItems: 'center', margin: '6px 0 2px', filter: `drop-shadow(0 6px 10px rgba(0,0,0,.45)) drop-shadow(0 0 10px ${color}66)` }}>
               <div
                 key={`${roll.id}-${phase}`}
+                className="fv-die2d"
                 style={{
-                  width: 72,
-                  height: 72,
+                  width: 76,
+                  height: 76,
                   display: 'grid',
                   placeItems: 'center',
                   transformStyle: 'preserve-3d',
-                  borderRadius: 16,
-                  border: `2px solid ${color}`,
-                  background: `linear-gradient(150deg, ${t.panel}, ${t.panel2})`,
-                  boxShadow: `0 0 26px ${t.bloom}, inset 0 0 18px ${color}33`,
+                  // faceta de luz + corpo do tema; o contorno é uma segunda camada recortada
+                  background: `radial-gradient(circle at 34% 24%, rgba(255,255,255,.38), transparent 46%), linear-gradient(155deg, ${skin.body[0]}, color-mix(in srgb, ${skin.body[0]}, #000 38%))`,
                   clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)',
                   animation: phase === 'tumble' ? `dieTumble ${TUMBLE_MS}ms cubic-bezier(.3,.7,.3,1)` : undefined,
                   transition: 'transform .25s',
                 }}
               >
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 30, color: 'var(--ink)', textShadow: `0 0 14px ${color}` }}>
+                <span
+                  style={{
+                    fontFamily: "'Chakra Petch', monospace",
+                    fontWeight: 700,
+                    fontSize: 30,
+                    color: skin.ink[0],
+                    WebkitTextStroke: skin.outline[0] !== 'none' ? `1px ${skin.outline[0]}` : undefined,
+                    paintOrder: 'stroke fill',
+                  }}
+                >
                   {phase === 'tumble' ? face : naturalFace}
                 </span>
               </div>

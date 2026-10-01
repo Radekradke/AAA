@@ -1893,6 +1893,16 @@ button:active:not(:disabled) {
 .fv-dice3d.is-visible {
   opacity: 1;
 }
+/* "mesa" sob os dados: um véu suave que separa os números do fundo do tema */
+.fv-dice3d::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(58% 52% at 50% 52%, var(--dice-scrim, rgba(0, 0, 0, 0.34)), transparent 76%);
+}
+[data-theme='eclipse'] .fv-dice3d::before {
+  --dice-scrim: rgba(17, 17, 17, 0.12);
+}
 .fv-dice3d canvas {
   display: block;
   width: 100% !important;
@@ -5642,4 +5652,21 @@ body.fv-dragging .fv-screen-scroll {
 }
 [data-theme='rubra'] .fv-mobile-nav {
   background: linear-gradient(180deg, rgba(44, 19, 23, 0.7), rgba(30, 13, 16, 0.97));
+}
+/* skin dos dados no seletor de tema */
+.fv-theme-text .fv-theme-die {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11.5px;
+}
+.fv-theme-die i {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  font: 700 8.5px 'Chakra Petch', monospace;
+  font-style: normal;
 }

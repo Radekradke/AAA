@@ -2,7 +2,7 @@ import type DiceBox from '@3d-dice/dice-box-threejs';
 import type { DiceBoxColorset } from '@3d-dice/dice-box-threejs';
 import type { RollResult } from '@/engine/dice';
 import type { ThemeName } from '@/types/dnd';
-import { THEMES } from '@/data/themes';
+import { DICE_SKINS } from '@/data/diceSkins';
 
 /**
  * Dados 3D com física (three.js + cannon-es, via @3d-dice/dice-box-threejs).
@@ -27,12 +27,11 @@ let loading: Promise<DiceBox | null> | null = null;
 let failed = false;
 let currentTheme: ThemeName | null = null;
 
-/** Cores dos dados por atmosfera: corpo escuro translúcido, números dourados. */
-const BODY: Record<ThemeName, string> = { frio: '#1A2F6B', brasa: '#5B2413', verdejante: '#0F4A38', carmesim: '#5A1025', astral: '#3B2275', ouro: '#1C1915', eclipse: '#161616', rubra: '#6B2229' };
-
+/** Skin do tema (veja data/diceSkins.ts): uma cor vira string, várias viram sorteio por dado. */
 function colorset(theme: ThemeName): DiceBoxColorset {
-  const t = THEMES[theme];
-  return { name: `fv-${theme}`, foreground: t.gold, background: BODY[theme], outline: '#05070A', texture: 'none', material: 'glass' };
+  const s = DICE_SKINS[theme];
+  const one = (v: string[]) => (v.length > 1 ? v : v[0]);
+  return { name: `fv-${theme}-v2`, foreground: one(s.ink), background: one(s.body), outline: one(s.outline), texture: s.texture, material: s.material };
 }
 
 /** WebGL disponível? (celulares muito antigos / navegadores travados). */
@@ -67,11 +66,13 @@ export function loadDice3d(theme: ThemeName): Promise<DiceBox | null> {
       ensureContainer();
       const { default: Box } = await import('@3d-dice/dice-box-threejs');
       const b = new Box(`#${CONTAINER_ID}`, {
+        assetPath: `${import.meta.env.BASE_URL}dice/`, // texturas em public/dice
         sounds: false, // o app já tem sfx próprio
         shadows: true,
         theme_surface: 'default',
         theme_customColorset: colorset(theme),
         light_intensity: 0.9,
+        baseScale: 132, // dados maiores: números legíveis no celular
         strength: 1.3,
       });
       await b.initialize();
