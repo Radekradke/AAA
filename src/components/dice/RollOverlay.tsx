@@ -108,7 +108,8 @@ export function RollOverlay() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
             transition={{ duration: 0.3, ease: [0.2, 0.9, 0.3, 1.2] }}
-            className="fv-panel"
+            // crítico: explosão de luz; falha crítica: tremor (veja "Assinaturas" no CSS)
+            className={'fv-panel fv-roll-panel' + (phase === 'result' && roll.crit ? ' is-crit' : '') + (phase === 'result' && roll.fail ? ' is-fail' : '')}
             style={{
               position: 'relative',
               pointerEvents: 'auto',
@@ -122,6 +123,7 @@ export function RollOverlay() {
               maxWidth: 'min(430px, calc(100vw - 28px))',
             }}
           >
+            {phase === 'result' && roll.crit && <span className="fv-roll-burst" aria-hidden />}
             <button
               onClick={clearRoll}
               aria-label="Fechar resultado"
