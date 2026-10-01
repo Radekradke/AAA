@@ -1,4 +1,5 @@
 import { ContentPacksModal } from './ContentPacksModal';
+import { ThemePickerModal } from './ThemePickerModal';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -9,7 +10,7 @@ import { SyncBadge } from '@/components/ui/SyncBadge';
 import { MusicControl } from './MusicControl';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
-import { THEMES, THEME_ORDER } from '@/data/themes';
+import { THEMES } from '@/data/themes';
 
 export interface TopBarMenuItem {
   label: string;
@@ -34,7 +35,6 @@ interface TopBarProps {
  */
 export function TopBar({ actions, menu = [] }: TopBarProps) {
   const theme = useUiStore((s) => s.theme);
-  const setTheme = useUiStore((s) => s.setTheme);
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
   const dice3d = useUiStore((s) => s.dice3d);
@@ -42,6 +42,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
   const [packsOpen, setPacksOpen] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(false);
   const installer = useInstallPrompt();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -62,6 +63,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
   const items: (TopBarMenuItem & { key: string })[] = [
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
+    { key: 'theme', label: `Escolher tema · ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
     { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
     { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
     { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
@@ -101,39 +103,6 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
           </button>
           {open && (
             <div role="menu" className="fv-topbar-menu fv-panel">
-              {/* atmosfera: os climas lado a lado, escolha direta */}
-              <div className="fv-topbar-themes" role="group" aria-label="Atmosfera">
-                <span>Atmosfera</span>
-                <div>
-                  {THEME_ORDER.map((id) => {
-                    const th = THEMES[id];
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={theme === id}
-                        className={'fv-topbar-theme' + (theme === id ? ' is-on' : '')}
-                        onClick={() => setTheme(id)}
-                        title={th.label}
-                      >
-                        <i
-                          aria-hidden
-                          style={{
-                            background: `radial-gradient(circle at 70% 72%, ${th.acc} 0 16%, transparent 18%), radial-gradient(circle at 30% 30%, ${th.gold} 0 9%, transparent 11%), radial-gradient(120% 90% at 50% 0%, ${th.bg2}, ${th.bg})`,
-                            borderColor: theme === id ? th.gold : undefined,
-                            boxShadow: `0 0 12px ${th.bloom}`,
-                          }}
-                        />
-                        <span className="fv-topbar-theme-text">
-                          <b style={{ fontFamily: th.font }}>{th.label}</b>
-                          <small>{th.tagline}</small>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
               {items.map((it) => (
                 <button
                   key={it.key}
@@ -155,6 +124,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
       </div>
 
       {packsOpen && <ContentPacksModal onClose={() => setPacksOpen(false)} />}
+      {themesOpen && <ThemePickerModal onClose={() => setThemesOpen(false)} />}
       {iosGuide && (
         <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>
           <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>

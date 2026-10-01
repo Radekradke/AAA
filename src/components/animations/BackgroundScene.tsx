@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ParticleField } from './ParticleField';
 import { RuneDrift } from './RuneDrift';
+import { useTheme } from '@/lib/useTheme';
 
 interface BackgroundSceneProps {
   /** Vídeo de fundo opcional (luz volumétrica/cena). */
@@ -15,6 +16,7 @@ interface BackgroundSceneProps {
  * (bloom superior, brilho arcano inferior, vinheta) + partículas.
  */
 export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }: BackgroundSceneProps) {
+  const motif = useTheme().motif;
   const topDark = Math.min(1, 0.4 * darken);
   const botDark = Math.min(1, 0.66 * darken);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -62,8 +64,13 @@ export function BackgroundScene({ video = null, videoOpacity = 0.5, darken = 1 }
       />
       {/* luz própria do clima: céu, calor da forja, luar, salão carmesim, nebulosa */}
       <div style={{ position: 'absolute', inset: 0, background: 'var(--scene)' }} />
-      <RuneDrift count={9} />
-      <ParticleField />
+      {/* temas chapados (Ouro Velho) não têm partículas nem runas */}
+      {motif !== 'none' && (
+        <>
+          <RuneDrift count={9} />
+          <ParticleField />
+        </>
+      )}
       {/* vinheta */}
       <div
         style={{

@@ -447,11 +447,11 @@ export interface ThemeDef {
   particle: string;
   label: string;
   /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas ou estrelas. */
-  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars';
+  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars' | 'none';
   /** Frase curta que descreve o clima no seletor. */
   tagline: string;
   /** Fonte de título do clima (a mesma de --font-display). */
   font: string;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro';
