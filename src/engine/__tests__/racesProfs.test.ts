@@ -78,3 +78,17 @@ describe('exaustão e condições', () => {
     expect(deriveCharacter({ ...c, combat: { ...c.combat, conditions: ['Agarrado'] } }).speed).toBe(0);
   });
 });
+
+import { itemGrantedSpells } from '../spellcasting';
+
+describe('magias raciais', () => {
+  it('Tiefling: Taumaturgia no 1º, Repreensão no 3º, Escuridão no 5º', () => {
+    const t = make({ classId: 'fighter', raceId: 'tiefling' });
+    expect(itemGrantedSpells(t).map((s) => s.spell.id)).toEqual(['phb-thaumaturgy']);
+    expect(itemGrantedSpells({ ...t, level: 5 }).map((s) => s.spell.id)).toEqual(['phb-thaumaturgy', 'sp-repreensao', 'phb-darkness']);
+  });
+  it('Alto Elfo usa o truque escolhido', () => {
+    const e = make({ raceId: 'elf', subraceId: 'high-elf', choices: { 'race.highElfCantrip': ['sp-firebolt'] } });
+    expect(itemGrantedSpells(e).map((s) => s.spell.id)).toContain('sp-firebolt');
+  });
+});

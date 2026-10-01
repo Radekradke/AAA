@@ -110,6 +110,9 @@ export function creationPending(char: Character): PendingItem[] {
   if (ch && picked > 0 && picked < ch.count) {
     pending.push({ label: `Escolha mais ${ch.count - picked} atributo${ch.count - picked > 1 ? 's' : ''} da raça`, step: 0 });
   }
+  if (char.subraceId === 'high-elf' && !(char.choices?.['race.highElfCantrip'] ?? []).length) {
+    pending.push({ label: 'Escolha o truque do Alto Elfo', step: 0 });
+  }
   const langs = languagePicks(char);
   if (langs.left > 0) {
     pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
