@@ -3,6 +3,8 @@ import type { CSSProperties, PointerEvent as RPointerEvent, ReactNode } from 're
 import { useMediaUrl } from '@/services/mediaService';
 import { boardSize, cellDistance, conePoints, fitView, fmtMeters, isRevealed, markLength, metersBetween, pointInMark, rectBetween, snapCell, zoomAt } from '@/engine/grid';
 import { CELL_METERS } from '@/types/stage';
+import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
+import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token } from '@/types/stage';
 
 export interface TokenFace {
@@ -46,6 +48,8 @@ interface StageMapProps {
   onFogAll?: (mode: 'reveal' | 'cover' | 'off') => void;
   /** Mestre: todos passam a olhar para este ponto. */
   onPullView?: (x: number, y: number, z: number) => void;
+  /** Mestre: algo arrastado dos bastidores/iniciativa foi solto nesta casa. */
+  onDropItem?: (item: StageDrop, cell: { x: number; y: number }) => void;
 }
 
 type View = { x: number; y: number; z: number };
@@ -83,6 +87,7 @@ export function StageMap(p: StageMapProps) {
   const [tool, setTool] = useState<MapTool>('move');
   const [drag, setDrag] = useState<DragState | null>(null);
   const [act, setAct] = useState<Act | null>(null);
+  const [dropCell, setDropCell] = useState<{ x: number; y: number } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const pinch = useRef<{ d: number; view: View; cx: number; cy: number } | null>(null);
@@ -357,6 +362,29 @@ export function StageMap(p: StageMapProps) {
         onPointerUp={onUp}
         onPointerCancel={onUp}
         onDoubleClick={onDouble}
+        onDragOver={(e) => {
+          if (!p.onDropItem || !hasStageDrop(e)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+          const pt = local(e);
+          const c = toCell(pt.x, pt.y);
+          const cell = { x: Math.floor(c.x), y: Math.floor(c.y) };
+          setDropCell((d) => (d && d.x === cell.x && d.y === cell.y ? d : cell));
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropCell(null);
+        }}
+        onDrop={(e) => {
+          if (!p.onDropItem) return;
+          const item = readStageDrop(e);
+          setDropCell(null);
+          document.body.classList.remove('fv-dragging-token');
+          if (!item) return;
+          e.preventDefault();
+          const pt = local(e);
+          const c = toCell(pt.x, pt.y);
+          p.onDropItem(item, { x: Math.floor(c.x), y: Math.floor(c.y) });
+        }}
         role="application"
         aria-label={`Mapa tático: ${scene.name}. Ferramenta: ${tools.find((x) => x.t === tool)?.label}.`}
       >
@@ -472,6 +500,8 @@ export function StageMap(p: StageMapProps) {
             ))}
           </svg>
 
+          {dropCell && <span className="fv-map-dropcell" style={{ left: cellPx(dropCell.x, 'x'), top: cellPx(dropCell.y, 'y'), width: g.size, height: g.size }} aria-hidden />}
+
           {p.pings.map((pg) => (
             <span
               key={pg.id}
@@ -544,7 +574,7 @@ export function StageMap(p: StageMapProps) {
         <div className="fv-map-hint">
           {tool === 'move'
             ? p.isMaster
-              ? 'Duplo clique aponta · Shift + duplo clique traz a visão de todos'
+              ? 'Arraste NPCs e criaturas da lateral para cá · duplo clique aponta'
               : 'Arraste o seu peão · duplo clique (ou segure o dedo) aponta um lugar'
             : tool === 'laser'
               ? 'Risque o caminho — some sozinho'

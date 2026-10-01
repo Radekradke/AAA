@@ -4472,8 +4472,20 @@ body.fv-dragging .fv-screen-scroll {
   border-color: var(--ecl-black);
   box-shadow: none;
 }
+/* acento do Eclipse: ocre/latão — a única cor quente no preto e branco */
+[data-theme='eclipse'] {
+  --opt-accent: #a8722a;
+}
+[data-theme='eclipse'][data-mode='dark'],
+[data-theme='eclipse'] .fv-option.is-selected {
+  --opt-accent: #e0aa5c;
+}
 [data-theme='eclipse'] .fv-option-icon {
   filter: none;
+  padding: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--opt-color), transparent 86%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--opt-color), transparent 70%);
 }
 [data-theme='eclipse'] :is(.fv-pill.is-on, .fv-seg button.is-on) {
   background: var(--ecl-black);
@@ -4584,10 +4596,9 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   box-shadow: inset 0 1px 0 var(--line);
 }
-/* recorte: o "Avançar" atravessa a borda de baixo do papel */
+/* o "Avançar" fica no rodapé, alinhado com o "Voltar" (antes atravessava a borda) */
 [data-theme='eclipse'] .fv-foot-cta {
-  translate: 0 calc(50% + 10px);
-  box-shadow: 0 0 0 8px var(--bg) !important;
+  box-shadow: none !important;
 }
 [data-theme='eclipse'] .fv-foot-hero {
   background: var(--panel2);
@@ -4726,7 +4737,7 @@ body.fv-dragging .fv-screen-scroll {
 [data-theme='eclipse'] .fv-detail {
   border-radius: 24px;
   border-color: var(--line);
-  background: #fbfaf7;
+  background: color-mix(in srgb, var(--panel), var(--ecl-paper) 40%);
   box-shadow: none;
 }
 [data-theme='eclipse'] .fv-detail-icon {
@@ -5761,7 +5772,7 @@ body.fv-dragging .fv-screen-scroll {
 
 /* Eclipse em telas baixas: o título editorial encolhe e a cápsula do capítulo
    divide a linha com ele, para a etapa caber sem barra de rolagem */
-@media (max-height: 860px) {
+@media (min-width: 1180px) and (max-height: 860px) {
   [data-theme='eclipse'] .fv-forge-main {
     padding: 14px clamp(14px, 1.8vw, 22px) 8px;
   }
@@ -6118,7 +6129,7 @@ body.fv-dragging .fv-screen-scroll {
   box-shadow: none;
 }
 [data-theme='eclipse'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
-  color: #bdbbb5;
+  color: color-mix(in srgb, var(--ecl-paper), transparent 28%);
 }
 [data-theme='eclipse'] .fv-menu-item.is-primary .fv-menu-icon {
   background: rgba(255, 255, 255, 0.08);
@@ -6591,7 +6602,7 @@ body.fv-dragging .fv-screen-scroll {
   border-radius: var(--radius-md);
 }
 [data-theme='eclipse'] .fv-tour-hole {
-  box-shadow: 0 0 0 9999px rgba(20, 20, 20, 0.55), 0 0 0 2px #111;
+  box-shadow: 0 0 0 9999px rgba(20, 20, 20, 0.55), 0 0 0 2px var(--ecl-black);
 }
 [data-theme='ouro'] .fv-tour-hole,
 [data-theme='ouro'] .fv-tour-tip {

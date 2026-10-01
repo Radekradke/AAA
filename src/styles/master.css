@@ -86,9 +86,28 @@
   scrollbar-width: thin;
 }
 .fv-mw-stage > .fv-stage { margin: 0; }
-/* o mapa ocupa a altura que sobra (cabeçalho do palco + bandeja de peões cabem embaixo) */
-.fv-mw-stage .fv-map-view { height: clamp(300px, calc(100dvh - var(--topbar-h) - 300px), 960px); }
-.fv-mw.has-dock .fv-mw-stage .fv-map-view { height: clamp(280px, calc(100dvh - var(--topbar-h) - 360px), 900px); }
+/* o mapa ocupa toda a altura que sobra no palco (a bandeja de peões fica embaixo, rolando se faltar espaço) */
+.fv-mw-stage {
+  display: flex;
+  flex-direction: column;
+}
+.fv-mw-stage > .fv-stage {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.fv-mw-stage .fv-map {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+.fv-mw-stage .fv-map-view {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 300px;
+}
+.fv-mw-stage .fv-tray > .fv-live-hint { display: none; }
 .fv-mw-stage .fv-stage-image { height: clamp(280px, calc(100dvh - var(--topbar-h) - 300px), 900px); }
 
 .fv-mw-bottom {
@@ -853,3 +872,40 @@
 /* no console, os avisos (com "Desfazer") sobem para não cobrir a barra de improviso */
 body:has(.fv-mw) .fv-toasts { bottom: calc(132px + env(safe-area-inset-bottom)); }
 body:has(.fv-mw.has-dock) .fv-toasts { bottom: calc(190px + env(safe-area-inset-bottom)); }
+
+/* ---------- telas baixas (notebook, zoom do navegador): o mapa ganha o espaço ---------- */
+@media (max-height: 780px) {
+  .fv-mw {
+    gap: 6px;
+    padding-top: calc(var(--topbar-h) - 8px);
+    padding-bottom: 6px;
+  }
+  .fv-mw-head { padding: 0 4px; }
+  .fv-mw-title .fv-label { display: none; }
+  .fv-mw-title b { font-size: 15px; }
+  .fv-mw-bottom { gap: 5px; }
+  .fv-initdock { padding: 4px 6px; gap: 6px; }
+  .fv-initdock-round { width: 50px; }
+  .fv-initdock-round b { font-size: 18px; }
+  .fv-initdock-chip { min-height: 32px; padding: 2px 9px 2px 4px; }
+  .fv-initdock-init { width: 24px; height: 24px; font-size: 12.5px; }
+  .fv-initdock-main, .fv-initdock-btn { min-height: 32px; }
+  .fv-quickbar-btns { padding: 2px; }
+  .fv-quickbar-btns button, .fv-quickbar-drawer { min-height: 30px; font-size: 12.5px; }
+  .fv-mw-stage > .fv-stage { padding: 8px; }
+  .fv-mw-stage .fv-stage-head { margin-bottom: 6px; }
+  .fv-mw-stage .fv-stage-turn { padding: 4px 10px; margin-bottom: 6px; font-size: 12.5px; }
+  .fv-mw-stage .fv-stage-turn button { min-height: 28px; }
+  .fv-mw-stage .fv-map,
+  .fv-mw-stage .fv-map-view { min-height: 230px; }
+  .fv-backstage-tabs button { padding: 6px 2px 5px; font-size: 10px; }
+  /* aviso no alto, para não cobrir o mapa */
+  body:has(.fv-mw) .fv-toasts,
+  body:has(.fv-mw.has-dock) .fv-toasts {
+    top: calc(var(--topbar-h) + 4px);
+    bottom: auto;
+  }
+}
+@media (max-height: 780px) {
+  .fv-mw-stage .fv-map-hint { display: none; }
+}

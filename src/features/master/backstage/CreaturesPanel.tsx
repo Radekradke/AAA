@@ -1,3 +1,4 @@
+import { stageDragProps } from '@/lib/stageDrop';
 import { useMemo, useState } from 'react';
 import { MONSTERS } from '@/data/bestiary';
 import { monsterCombatants } from '@/components/session/BestiaryPicker';
@@ -53,7 +54,7 @@ export function CreaturesPanel() {
       <ul className="fv-bs-list">
         {list.map((m) => (
           <li key={m.id}>
-            <button type="button" className="fv-bs-item" onClick={() => select({ kind: 'monster', ref: m.id })}>
+            <button type="button" className="fv-bs-item" onClick={() => select({ kind: 'monster', ref: m.id })} {...stageDragProps({ kind: 'monster', ref: m.id, qty }, qty > 1 ? `${qty}× ${m.name}` : m.name)}>
               <b>{m.name}</b>
               <small>
                 ND {m.cr} · CA {m.ac} · {m.hp} PV · {m.type}

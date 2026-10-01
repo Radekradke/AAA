@@ -26,8 +26,8 @@ export function StepBackground({ char, update }: StepProps) {
       else if (langs.left > 0) c.extraLanguages = [...cur, lang];
     });
 
-  // tema claro: o "metal" é preto e sumiria no cartão selecionado (preto)
-  const bgColor = t.light ? t.muted : t.gold;
+  // cor dos ícones: o acento do tema (o Eclipse define um ocre próprio; os outros usam o metal)
+  const bgColor = 'var(--opt-accent, ' + t.gold + ')';
 
   return (
     <div className="fv-step">

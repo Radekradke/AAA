@@ -1,3 +1,4 @@
+import { stageDragProps } from '@/lib/stageDrop';
 import { useEffect, useRef } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { confirmAction } from '@/store/feedbackStore';
@@ -48,7 +49,8 @@ export function InitiativeDock() {
                   .join(' ')}
                 onClick={() => select({ kind: 'combatant', id: c.id })}
                 aria-current={active ? 'step' : undefined}
-                title={`${c.name}${c.hidden ? ' (oculto)' : ''}`}
+                {...stageDragProps({ kind: 'combatant', id: c.id }, c.name)}
+                title={`${c.name}${c.hidden ? ' (oculto)' : ''} — arraste para o mapa`}
               >
                 <span className="fv-initdock-init">{c.initiative ?? '?'}</span>
                 <span className="fv-initdock-name">{c.name}</span>
