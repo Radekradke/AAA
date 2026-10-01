@@ -249,6 +249,86 @@
   --scene: radial-gradient(120% 70% at 50% 0%, rgba(239, 227, 194, 0.035), transparent 60%);
 }
 
+/* Eclipse — editorial monocromático: página em branco quebrado, blocos
+   pretos recortados, cápsulas e fios finos. Único tema CLARO: o texto
+   padrão é escuro e os blocos pretos invertem as variáveis (veja
+   "Eclipse — acabamento" no fim do arquivo). */
+[data-theme='eclipse'] {
+  --font-display: 'Manrope', 'Inter', sans-serif;
+  --font-editorial: 'Antonio', 'Manrope', sans-serif;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+
+  --bg: #e7e5e0;
+  --bg2: #f1efea;
+  --panel: #f7f6f2;
+  --panel2: #eeece7;
+  --well: #e2e0da;
+  --steel: #dad8d2;
+  --line: rgba(17, 17, 17, 0.14);
+  --line-strong: rgba(17, 17, 17, 0.42);
+  --acc: #111111;
+  --acc2: #5e5e5e;
+  --lift: rgba(17, 17, 17, 0.04);
+  --accSoft: rgba(17, 17, 17, 0.05);
+  --gold: #111111;
+  --goldB: #2b2b2b;
+  --ink: #121212;
+  --muted: #6a6862;
+  --danger: #b4382b;
+  --ok: #2f7d4f;
+  --bloom: rgba(0, 0, 0, 0);
+  --particle: rgba(0, 0, 0, 0);
+  --on-gold: #f7f6f2;
+
+  --shadow-panel: 0 22px 40px -28px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 12px 24px -20px rgba(0, 0, 0, 0.4);
+  --panel-texture: linear-gradient(transparent, transparent);
+  /* papel liso com uma luz difusa, como na referência */
+  --scene:
+    radial-gradient(70% 50% at 82% 4%, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(60% 45% at 10% 100%, rgba(0, 0, 0, 0.06), transparent 70%);
+  color-scheme: light;
+}
+
+/* Guilda Rubra — painel de jogos: vinho, bordô e carvão com coral vivo,
+   cantos bem arredondados e ilustrações que escapam dos cards. */
+[data-theme='rubra'] {
+  --font-display: 'Outfit', 'Inter', sans-serif;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+
+  --bg: #1e0d10;
+  --bg2: #3a161b;
+  --panel: #3b1a1f;
+  --panel2: #2c1317;
+  --well: #24100f;
+  --steel: #4a2228;
+  --line: rgba(255, 190, 180, 0.12);
+  --line-strong: rgba(255, 196, 186, 0.28);
+  --acc: #f2665a;
+  --acc2: #f6e3a8;
+  --lift: rgba(255, 200, 190, 0.05);
+  --accSoft: rgba(255, 200, 190, 0.06);
+  --gold: #f2665a;
+  --goldB: #ff8a7a;
+  --ink: #fbefec;
+  --muted: #c4999a;
+  --danger: #ff7b5c;
+  --bloom: rgba(242, 102, 90, 0.16);
+  --particle: rgba(0, 0, 0, 0);
+  --on-gold: #2a0e10;
+
+  --shadow-panel: 0 26px 50px -26px rgba(10, 0, 2, 0.85);
+  --shadow-soft: 0 14px 30px -18px rgba(10, 0, 2, 0.75);
+  --panel-texture: linear-gradient(transparent, transparent);
+  --scene:
+    radial-gradient(70% 55% at 30% -10%, rgba(242, 102, 90, 0.16), transparent 64%),
+    radial-gradient(60% 50% at 100% 110%, rgba(120, 30, 50, 0.4), transparent 66%);
+}
+
 /* "poço": fundo afundado de campos, chips e botões, na cor do clima
    (antes era preto puro e virava buraco escuro em qualquer tema) */
 [data-theme] {
@@ -697,7 +777,7 @@ button:active:not(:disabled) {
     font-family: var(--font-display);
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: #1a1206;
+    color: var(--on-gold, #1a1206);
     border-radius: var(--radius-md);
     border: 1px solid var(--goldB);
     background: linear-gradient(180deg, var(--goldB), var(--gold));
@@ -2346,7 +2426,7 @@ body.fv-dragging .fv-screen-scroll {
   background: color-mix(in srgb, var(--gold), transparent 92%);
 }
 .fv-forge-rail button.is-current .fv-rail-mark {
-  color: #140d04;
+  color: var(--on-gold, #140d04);
   border-color: var(--gold);
   background: var(--gold);
   box-shadow: 0 0 14px color-mix(in srgb, var(--gold), transparent 40%);
@@ -2410,7 +2490,7 @@ body.fv-dragging .fv-screen-scroll {
   place-items: center;
   border-radius: 999px;
   background: var(--acc);
-  color: #06131c;
+  color: var(--on-acc, #06131c);
   font: 800 11px 'Chakra Petch', monospace;
 }
 .fv-foot-next {
@@ -2595,7 +2675,7 @@ body.fv-dragging .fv-screen-scroll {
   place-items: center;
   border-radius: 999px;
   background: var(--gold);
-  color: #140d04;
+  color: var(--on-gold, #140d04);
   font-size: 11px;
   font-weight: 800;
 }
@@ -2919,7 +2999,7 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid var(--line);
   font-size: 12px;
   font-weight: 800;
-  color: #140d04;
+  color: var(--on-gold, #140d04);
 }
 .fv-skill-text {
   display: flex;
@@ -3798,7 +3878,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-music-now { display: flex; align-items: center; gap: 10px; }
 .fv-music-play {
   flex: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 14px; font-weight: 700;
-  color: #1a1206; border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
+  color: var(--on-gold, #1a1206); border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
 }
 .fv-music-next { flex: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
 .fv-music-next:hover { border-color: var(--gold); color: var(--gold); }
@@ -3952,7 +4032,7 @@ body.fv-dragging .fv-screen-scroll {
   cursor: pointer; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--sunk); color: var(--muted);
 }
-.fv-castnote-actions button.is-primary { color: #1a1206; border-color: var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold)); }
+.fv-castnote-actions button.is-primary { color: var(--on-gold, #1a1206); border-color: var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold)); }
 .fv-castnote-close { flex: none; cursor: pointer; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 4px; }
 @media (prefers-reduced-motion: reduce) { .fv-castnote-sigil i { animation: none; } }
 @media (max-width: 760px) { .fv-castnote { right: 12px; bottom: calc(86px + env(safe-area-inset-bottom)); } }
@@ -4070,7 +4150,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .fv-voice-play {
   display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
-  font-size: 12.5px; font-weight: 700; color: #1a1206; border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
+  font-size: 12.5px; font-weight: 700; color: var(--on-gold, #1a1206); border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
 }
 .fv-voice-play.is-on { color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 85%); }
 .fv-voice-play:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -4229,7 +4309,7 @@ body.fv-dragging .fv-screen-scroll {
 .fv-theme-text { display: flex; flex-direction: column; gap: 2px; }
 .fv-theme-text b { font-size: 15px; color: var(--ink); }
 .fv-theme-text small { font-size: 12px; line-height: 1.4; color: var(--muted); }
-.fv-theme-check { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #1a1206; background: var(--gold); border-radius: 50%; }
+.fv-theme-check { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--on-gold, #1a1206); background: var(--gold); border-radius: 50%; }
 /* atributos da ficha: placa escura chapada, cor do atributo só no fio de cima */
 [data-theme='ouro'] .fv-ability-row [style*='clip-path'] {
   background: var(--panel2) !important;
@@ -4274,4 +4354,1292 @@ body.fv-dragging .fv-screen-scroll {
     transform: none;
     transition: none;
   }
+}
+
+/* ===== Abas da ficha (cores pelas variáveis; cada tema pode repintar) ===== */
+.fv-sheet-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: clamp(16px, 2.2vw, 22px) 0 clamp(14px, 1.6vw, 18px);
+}
+.fv-sheet-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  transition: 0.25s;
+}
+.fv-sheet-tab.is-on {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--gold), transparent 70%);
+}
+[data-theme='ouro'] .fv-sheet-tab.is-on {
+  box-shadow: none;
+}
+/* número da etapa: só os temas editoriais mostram */
+.fv-step-num {
+  display: none;
+}
+
+/* ============================================================
+   Eclipse — acabamento editorial (só vale neste tema)
+   Página clara; blocos pretos invertem as variáveis, então tudo o que
+   usa var(--ink), var(--panel)… dentro deles se pinta sozinho.
+   "Recorte": elementos que atravessam a borda de um bloco ganham um anel
+   da cor da página (box-shadow), como as cápsulas da referência.
+   ============================================================ */
+[data-theme='eclipse'] {
+  --ecl-black: #111111;
+  --ecl-paper: #f3f2ee;
+}
+[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+  --ink: #f3f2ee;
+  --muted: #a3a19b;
+  --panel: #1b1b1b;
+  --panel2: #131313;
+  --well: #0b0b0b;
+  --steel: #262626;
+  --line: rgba(255, 255, 255, 0.14);
+  --line-strong: rgba(255, 255, 255, 0.42);
+  --acc: #f3f2ee;
+  --acc2: #bdbbb5;
+  --gold: #f3f2ee;
+  --goldB: #ffffff;
+  --on-gold: #111111;
+  --on-acc: #111111;
+  --accSoft: rgba(255, 255, 255, 0.07);
+  --lift: rgba(255, 255, 255, 0.05);
+  --sunk: rgba(255, 255, 255, 0.06);
+  --sunk-deep: rgba(0, 0, 0, 0.45);
+  --bg: #111111;
+  color: var(--ink);
+}
+[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-hero-card) {
+  background: var(--ecl-black) !important;
+  border: 0 !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 30px 50px -36px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* sem brilho nem ornamentos: o contraste faz o trabalho */
+[data-theme='eclipse'] * {
+  text-shadow: none !important;
+}
+[data-theme='eclipse'] .fv-panel::after,
+[data-theme='eclipse'] .fv-surface::after {
+  display: none;
+}
+[data-theme='eclipse'] .fv-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* títulos de seção: caixa-alta bem espaçada, como "C O L L A B O R A T I O N" */
+[data-theme='eclipse'] :is(.fv-label, .fv-section-title, .fv-rail-title) {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* barra do topo: papel, marca num círculo preto, botões em cápsula */
+[data-theme='eclipse'] .fv-topbar {
+  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg), transparent 12%) 64%, transparent 100%);
+}
+[data-theme='eclipse'] .fv-topbar-logo {
+  transform: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ecl-black);
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-topbar-logo span {
+  transform: none;
+  color: var(--ecl-paper);
+  font-weight: 800;
+}
+[data-theme='eclipse'] :is(.fv-topbar-icon, .fv-topbar-pill) {
+  backdrop-filter: none;
+  background: var(--panel);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* botão principal: cápsula preta; secundário: cápsula de papel */
+[data-theme='eclipse'] .fv-btn-gold {
+  color: var(--on-gold);
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  box-shadow: none;
+  letter-spacing: 0.06em;
+}
+[data-theme='eclipse'] .fv-btn-gold:hover {
+  background: var(--goldB);
+  box-shadow: none;
+}
+[data-theme='eclipse'] :is(.fv-btn-ghost, .fv-foot-back) {
+  border-radius: 999px;
+}
+[data-theme='eclipse'] :is(input.fv-input, select.fv-input) {
+  border-radius: 999px;
+}
+
+/* cartões de escolha: papel com fio fino; selecionado vira bloco preto */
+[data-theme='eclipse'] .fv-option {
+  border-radius: 20px;
+  background: var(--panel);
+}
+[data-theme='eclipse'] .fv-option:hover {
+  border-color: var(--line-strong);
+}
+[data-theme='eclipse'] .fv-option.is-selected {
+  background: var(--ecl-black);
+  border-color: var(--ecl-black);
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-option-icon {
+  filter: none;
+}
+[data-theme='eclipse'] :is(.fv-pill.is-on, .fv-seg button.is-on) {
+  background: var(--ecl-black);
+  color: var(--ecl-paper);
+  border-color: var(--ecl-black);
+  box-shadow: none;
+}
+
+/* ----- criação: trilha numerada (bloco preto) + papel + herói (bloco preto) ----- */
+[data-theme='eclipse'] .fv-forge-rail {
+  align-self: start;
+  padding: 22px 14px 16px;
+}
+[data-theme='eclipse'] .fv-rail-title {
+  margin: 0 0 16px 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+[data-theme='eclipse'] .fv-forge-rail ol::before {
+  display: none;
+}
+[data-theme='eclipse'] .fv-forge-rail ol {
+  gap: 6px;
+}
+[data-theme='eclipse'] .fv-forge-rail button {
+  padding: 5px 14px 5px 5px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+[data-theme='eclipse'] .fv-forge-rail button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+}
+[data-theme='eclipse'] .fv-rail-mark {
+  width: 30px;
+  height: 30px;
+  border-color: var(--line-strong);
+  background: transparent;
+  font: 800 11px var(--font-display);
+}
+[data-theme='eclipse'] .fv-forge-rail button.is-done .fv-rail-mark {
+  color: var(--ink);
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.12);
+}
+[data-theme='eclipse'] .fv-forge-rail button.is-current {
+  color: var(--ecl-black);
+  background: var(--ecl-paper);
+}
+[data-theme='eclipse'] .fv-forge-rail button.is-current .fv-rail-mark {
+  color: var(--ecl-paper);
+  background: var(--ecl-black);
+  border-color: var(--ecl-black);
+  box-shadow: none;
+}
+/* progresso no celular: bolinhas numeradas em vez de tracinhos */
+[data-theme='eclipse'] .fv-forge-progress {
+  counter-reset: ecl-step;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+[data-theme='eclipse'] .fv-forge-progress button {
+  counter-increment: ecl-step;
+  flex: 1;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--muted);
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-forge-progress button::before {
+  content: counter(ecl-step, decimal-leading-zero);
+  font: 800 10.5px var(--font-display);
+  letter-spacing: 0.04em;
+}
+[data-theme='eclipse'] .fv-forge-progress button.is-done {
+  background: var(--steel);
+  border-color: transparent;
+  color: var(--ink);
+}
+[data-theme='eclipse'] .fv-forge-progress button.is-current {
+  background: var(--ecl-black);
+  border-color: var(--ecl-black);
+  color: var(--ecl-paper);
+  box-shadow: none;
+}
+
+/* o papel: etapa + rodapé formam um só painel claro */
+[data-theme='eclipse'] .fv-forge {
+  row-gap: 0;
+  padding-bottom: calc(34px + env(safe-area-inset-bottom));
+}
+[data-theme='eclipse'] .fv-forge-main {
+  padding: 20px clamp(14px, 2vw, 26px) 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+[data-theme='eclipse'] .fv-forge-foot {
+  padding: 12px clamp(14px, 2vw, 26px) 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+/* recorte: o "Avançar" atravessa a borda de baixo do papel */
+[data-theme='eclipse'] .fv-foot-cta {
+  translate: 0 calc(50% + 10px);
+  box-shadow: 0 0 0 8px var(--bg) !important;
+}
+[data-theme='eclipse'] .fv-foot-hero {
+  background: var(--panel2);
+}
+
+/* título da etapa: editorial, com o número numa cápsula */
+[data-theme='eclipse'] .fv-step-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px 4px 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font: 700 10px var(--font-display);
+  letter-spacing: 0.28em;
+  color: var(--ink);
+  opacity: 1;
+}
+[data-theme='eclipse'] .fv-step-num {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--ecl-black);
+  color: var(--ecl-paper);
+  font: 800 11px var(--font-display);
+  letter-spacing: 0.02em;
+}
+[data-theme='eclipse'] .fv-step-head h2 {
+  margin: 12px 0 10px;
+  font: 500 clamp(40px, 4.6vw, 64px) / 0.9 var(--font-editorial);
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+}
+
+/* bloco do herói: retrato colorido sobre o preto */
+[data-theme='eclipse'] .fv-forge-hero {
+  padding: 10px;
+}
+[data-theme='eclipse'] .fv-hero-portrait {
+  border: 0;
+  border-radius: 20px;
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-hero-portrait:hover {
+  box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.9);
+}
+[data-theme='eclipse'] .fv-hero-name {
+  font: 500 26px / 0.95 var(--font-editorial);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+[data-theme='eclipse'] .fv-hero-name.is-empty {
+  font-style: normal;
+}
+[data-theme='eclipse'] .fv-hero-line {
+  color: var(--ink);
+}
+[data-theme='eclipse'] :is(.fv-hero-abils > div, .fv-hero-vitals > div) {
+  border-radius: 14px;
+  border-color: var(--line);
+  background: var(--sunk);
+}
+[data-theme='eclipse'] .fv-hero-abils span {
+  color: var(--muted);
+}
+[data-theme='eclipse'] .fv-hero-vitals b {
+  color: var(--ink);
+}
+[data-theme='eclipse'] .fv-hero-sigil {
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: none;
+}
+
+/* ----- ficha ----- */
+[data-theme='eclipse'] .fv-sheet-head-art {
+  opacity: 0.62;
+}
+[data-theme='eclipse'] .fv-sheet-head .fv-hide-mobile {
+  display: none;
+}
+[data-theme='eclipse'] .fv-sh-name {
+  font-family: var(--font-editorial) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.92 !important;
+  font-size: clamp(28px, 3.4vw, 44px) !important;
+}
+[data-theme='eclipse'] .fv-header-stat {
+  border-radius: 18px;
+  backdrop-filter: none;
+  background: rgba(17, 17, 17, 0.72);
+}
+/* abas: barra preta em cápsula; a aba aberta é uma cápsula de papel */
+[data-theme='eclipse'] .fv-sheet-tabs {
+  gap: 4px;
+  padding: 6px;
+  border-radius: 30px;
+  background: var(--ecl-black);
+}
+[data-theme='eclipse'] .fv-sheet-tab {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+}
+[data-theme='eclipse'] .fv-sheet-tab:hover {
+  color: var(--ink);
+}
+[data-theme='eclipse'] .fv-sheet-tab.is-on {
+  color: var(--ecl-black);
+  background: var(--ecl-paper);
+  border-color: var(--ecl-paper);
+  box-shadow: none;
+}
+/* atributos: placas de papel; a cor do atributo fica só na sigla e no dado */
+[data-theme='eclipse'] .fv-ability-row [style*='clip-path'] {
+  background: var(--panel) !important;
+  border-color: var(--line) !important;
+  border-top-color: var(--line-strong) !important;
+  clip-path: none !important;
+  border-radius: 20px;
+}
+[data-theme='eclipse'] .fv-ability-row svg {
+  filter: none !important;
+}
+
+/* ----- heróis: blocos pretos com a arte; abrir é um botão que atravessa a borda ----- */
+[data-theme='eclipse'] .fv-hero-card-art {
+  opacity: 0.75;
+}
+
+/* detalhe da escolha: cartão de papel; o ícone colorido num círculo preto */
+[data-theme='eclipse'] .fv-detail {
+  border-radius: 24px;
+  border-color: var(--line);
+  background: #fbfaf7;
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-detail-icon {
+  border: 0;
+  border-radius: 999px;
+  background: var(--ecl-black);
+  box-shadow: none;
+}
+[data-theme='eclipse'] .fv-detail-eyebrow {
+  color: var(--muted);
+  letter-spacing: 0.24em;
+}
+[data-theme='eclipse'] .fv-detail h3 {
+  font-family: var(--font-editorial);
+  font-weight: 500;
+  font-size: 34px;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+/* títulos de página: editoriais, grandes e altos */
+[data-theme='eclipse'] :is(.fv-home-title, .fv-page-title) {
+  font-family: var(--font-editorial) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.005em !important;
+  line-height: 0.88 !important;
+}
+[data-theme='eclipse'] .fv-home-title {
+  font-size: clamp(64px, 12vw, 148px) !important;
+  margin-bottom: 16px;
+}
+[data-theme='eclipse'] .fv-page-title {
+  font-size: clamp(48px, 7vw, 92px) !important;
+  margin: 10px 0 14px !important;
+}
+[data-theme='eclipse'] .fv-home-cta {
+  border-radius: 999px !important;
+  background: var(--ecl-black) !important;
+  border-color: var(--ecl-black) !important;
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ecl-black), transparent 92%) !important;
+  animation: none !important;
+}
+
+/* ============================================================
+   Guilda Rubra — acabamento de app de jogos (só vale neste tema)
+   ============================================================ */
+[data-theme='rubra'] .fv-topbar {
+  background: linear-gradient(180deg, rgba(30, 13, 16, 0.94) 0%, rgba(30, 13, 16, 0.7) 62%, rgba(30, 13, 16, 0) 100%);
+}
+[data-theme='rubra'] .fv-topbar-logo {
+  transform: none;
+  border: 0;
+  border-radius: 11px;
+  background: var(--acc);
+  box-shadow: 0 6px 18px -6px var(--acc);
+}
+[data-theme='rubra'] .fv-topbar-logo span {
+  transform: none;
+  color: var(--on-gold);
+  font-weight: 700;
+}
+[data-theme='rubra'] .fv-panel {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, #421d23, #2e1418);
+  border-color: var(--line);
+}
+[data-theme='rubra'] .fv-panel::after,
+[data-theme='rubra'] .fv-surface::after {
+  display: none;
+}
+[data-theme='rubra'] .fv-sheet-head .fv-hide-mobile {
+  display: none;
+}
+[data-theme='rubra'] .fv-btn-gold {
+  border-radius: 999px;
+  color: var(--on-gold);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: 0 10px 26px -12px var(--acc);
+}
+[data-theme='rubra'] :is(.fv-btn-ghost, .fv-foot-back) {
+  border-radius: 999px;
+}
+[data-theme='rubra'] .fv-option {
+  border-radius: 20px;
+}
+[data-theme='rubra'] .fv-option.is-selected {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--acc), transparent 80%), var(--panel2));
+  box-shadow: 0 0 0 1px var(--acc), 0 14px 30px -18px var(--acc);
+}
+[data-theme='rubra'] .fv-detail {
+  border-radius: 24px;
+}
+[data-theme='rubra'] .fv-hero-portrait {
+  border-radius: 24px;
+}
+[data-theme='rubra'] .fv-forge-rail button.is-current {
+  border-radius: 999px;
+}
+[data-theme='rubra'] .fv-ability-row [style*='clip-path'] {
+  clip-path: none !important;
+  border-radius: 18px;
+}
+
+/* ----- navegação: barra lateral (PC) / barra inferior (celular, só nos hubs) ----- */
+.fv-guild-nav {
+  display: none;
+}
+.fv-guild-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+}
+.fv-guild-nav ul button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 62px;
+  padding: 9px 0 7px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 10.5px / 1 var(--font-display);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.fv-guild-nav ul button:hover {
+  color: var(--ink);
+  background: var(--lift);
+}
+.fv-guild-nav ul button.is-on {
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc), transparent 86%);
+}
+.fv-guild-nav ul button:focus-visible,
+.fv-guild-new:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+.fv-guild-brand {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--acc);
+  color: var(--on-gold);
+  font: 700 18px var(--font-display);
+  box-shadow: 0 8px 20px -8px var(--acc);
+}
+.fv-guild-new {
+  flex: none;
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1.5px dashed color-mix(in srgb, var(--acc), transparent 40%);
+  background: transparent;
+  color: var(--acc);
+  cursor: pointer;
+}
+.fv-guild-new span {
+  font: 600 22px / 0.8 var(--font-display);
+}
+.fv-guild-new small {
+  font: 600 9.5px var(--font-display);
+}
+.fv-guild-new.is-on,
+.fv-guild-new:hover {
+  background: color-mix(in srgb, var(--acc), transparent 86%);
+}
+@media (min-width: 1024px) {
+  [data-theme='rubra'] .fv-guild-nav {
+    position: absolute;
+    z-index: 45;
+    top: 14px;
+    bottom: 14px;
+    left: 14px;
+    width: 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 0 14px;
+    border-radius: 26px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel2), transparent 4%);
+    box-shadow: var(--shadow-panel);
+  }
+  [data-theme='rubra'] .fv-guild-nav ul {
+    flex: 1;
+    flex-direction: column;
+  }
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-screen-scroll {
+    left: 104px !important;
+  }
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar {
+    left: 92px;
+  }
+  /* a marca já está na barra lateral */
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar > div:first-child {
+    visibility: hidden;
+  }
+  [data-theme='rubra'] .fv-tableroll {
+    left: 108px;
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub {
+    position: absolute;
+    z-index: 45;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel2), transparent 3%);
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
+  }
+  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-brand {
+    display: none;
+  }
+  [data-theme='rubra'] .fv-guild-nav.is-hub ul {
+    flex: 1;
+    justify-content: space-around;
+  }
+  [data-theme='rubra'] .fv-guild-nav.is-hub ul button {
+    width: 56px;
+  }
+  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-new {
+    width: 46px;
+    height: 46px;
+  }
+  div[data-theme='rubra']:has(> .fv-guild-nav.is-hub) .fv-screen-scroll {
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ----- painel de heróis ----- */
+.fv-guild {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: calc(var(--topbar-h) + 4px) clamp(14px, 2.4vw, 28px) 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  grid-template-areas: 'head' 'main' 'stats' 'tables';
+}
+.fv-guild-head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fv-guild-head h1 {
+  margin: 0;
+  font: 500 clamp(22px, 2.6vw, 28px) / 1.1 var(--font-display);
+  color: var(--acc);
+}
+.fv-guild-head h1 b {
+  font-weight: 700;
+  color: var(--ink);
+}
+.fv-guild-search {
+  flex: 0 1 340px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+}
+.fv-guild-search:focus-within {
+  border-color: var(--acc);
+}
+.fv-guild-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 500 14px var(--font-display);
+}
+.fv-guild-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.fv-guild-sec {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.fv-guild-sec h2 {
+  margin: 0;
+  font: 600 20px var(--font-display);
+  color: var(--ink);
+}
+.fv-guild-sec span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* herói ativo: card coral com o retrato escapando pela borda de cima */
+.fv-guild-active {
+  position: relative;
+  margin-top: 26px;
+  min-height: 236px;
+  display: flex;
+  border-radius: 28px;
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 210, 190, 0.18), transparent 60%),
+    linear-gradient(115deg, #ee6a5b 0%, #c4434a 46%, #6b2229 100%);
+  box-shadow: 0 24px 50px -26px rgba(238, 106, 91, 0.7);
+}
+.fv-guild-active-text {
+  position: relative;
+  z-index: 2;
+  max-width: 56%;
+  padding: 24px clamp(18px, 2.4vw, 30px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  color: #fff6f3;
+}
+.fv-guild-active h2 {
+  margin: 4px 0 0;
+  font: 700 clamp(28px, 3.4vw, 40px) / 1.02 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.fv-guild-active p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 240, 236, 0.86);
+}
+.fv-guild-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fv-guild-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: 600 12px var(--font-display);
+  color: #fff6f3;
+  background: rgba(40, 10, 14, 0.35);
+}
+.fv-guild-tag.is-cream {
+  color: #4a1f14;
+  background: var(--acc2);
+}
+.fv-guild-open {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 8px 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff6f3;
+  color: #5a1d22;
+  font: 700 14px var(--font-display);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.fv-guild-open span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #5a1d22;
+  color: #fff6f3;
+  font-size: 16px;
+}
+.fv-guild-open:hover {
+  transform: translateY(-1px);
+}
+.fv-guild-open:focus-visible {
+  outline: 2px solid #fff6f3;
+  outline-offset: 3px;
+}
+.fv-guild-active-art {
+  position: absolute;
+  z-index: 1;
+  right: clamp(10px, 2vw, 26px);
+  bottom: 0;
+  top: -30px;
+  width: min(44%, 340px);
+  border-radius: 24px 24px 28px 28px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* some embaixo e na esquerda, para a arte "sair" do card sem moldura dura */
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%), linear-gradient(90deg, transparent 0%, #000 24%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, #000 72%, transparent 100%), linear-gradient(90deg, transparent 0%, #000 24%);
+  mask-composite: intersect;
+}
+.fv-guild-active.is-empty {
+  margin-top: 0;
+}
+.fv-guild-active.is-empty .fv-guild-active-text {
+  max-width: 100%;
+}
+
+/* coleção: retratos grandes; o ativo se inclina um pouco, como na referência */
+.fv-guild-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr));
+  gap: 16px;
+}
+.fv-guild-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s;
+}
+.fv-guild-card:hover {
+  transform: translateY(-3px);
+}
+.fv-guild-card.is-active {
+  transform: rotate(-2deg);
+  border-color: color-mix(in srgb, var(--acc), transparent 40%);
+  box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.9);
+}
+.fv-guild-card-open {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-guild-card-open:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: -4px;
+  border-radius: 22px;
+}
+.fv-guild-card-art {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-guild-card-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgba(30, 10, 13, 0.95) 92%);
+}
+.fv-guild-card:hover .fv-guild-card-art {
+  transform: scale(1.04);
+}
+.fv-guild-card-hp {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 600 11.5px 'Chakra Petch', monospace;
+  color: #fff6f3;
+  background: rgba(30, 10, 13, 0.72);
+}
+.fv-guild-card-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fv-guild-card-text b {
+  font: 700 17px / 1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.fv-guild-card-text small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-guild-card-acts {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 12px;
+  background: rgba(30, 10, 13, 0.95);
+}
+.fv-guild-card-acts button {
+  flex: 1;
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 600 11.5px var(--font-display);
+  cursor: pointer;
+}
+.fv-guild-card-acts button:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.fv-guild-card-acts button.is-danger {
+  color: var(--danger);
+}
+.fv-guild-card.is-new {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed color-mix(in srgb, var(--acc), transparent 45%);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.fv-guild-card.is-new small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-guild-plus {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--acc);
+  color: var(--on-gold);
+  font: 600 26px / 1 var(--font-display);
+}
+.fv-guild-empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-guild-import {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fv-guild-import .fv-btn-ghost {
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font: 600 13px var(--font-display);
+}
+.fv-guild-import [role='alert'] {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* recursos do herói ativo */
+.fv-guild-stats {
+  grid-area: stats;
+  align-self: start;
+  padding: 20px;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(80% 50% at 50% 30%, rgba(242, 102, 90, 0.14), transparent 70%),
+    linear-gradient(170deg, #3c1a20, #261013);
+}
+.fv-guild-ring {
+  position: relative;
+  width: 190px;
+  aspect-ratio: 1;
+  margin: 4px auto 16px;
+}
+.fv-guild-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.fv-guild-ring circle {
+  fill: none;
+  stroke-width: 10;
+}
+.fv-guild-ring-track {
+  stroke: rgba(255, 220, 210, 0.08);
+}
+.fv-guild-ring-bar {
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-guild-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.fv-guild-ring-text small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-guild-ring-text b {
+  font: 700 38px / 1.05 var(--font-display);
+  color: var(--ink);
+}
+.fv-guild-ring-text b i {
+  font-style: normal;
+  font-size: 18px;
+  color: var(--muted);
+}
+.fv-guild-ring-text span {
+  font: 600 12px var(--font-display);
+}
+.fv-guild-quick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.fv-guild-quick div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 18px;
+  background: rgba(20, 6, 9, 0.45);
+}
+.fv-guild-quick b {
+  font: 700 20px var(--font-display);
+  color: var(--ink);
+}
+.fv-guild-quick span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-guild-uses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fv-guild-uses li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.fv-guild-uses div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fv-guild-uses b {
+  font: 600 13.5px var(--font-display);
+  color: var(--ink);
+}
+.fv-guild-uses small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-guild-pips {
+  flex: none;
+  display: flex;
+  gap: 4px;
+}
+.fv-guild-pips i {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--acc), transparent 40%);
+}
+.fv-guild-pips i.is-on {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+.fv-guild-pips em {
+  font: 700 13px 'Chakra Petch', monospace;
+  font-style: normal;
+  color: var(--acc);
+}
+
+/* mesas: coluna de avatares (só quando o jogador tem mesas na nuvem) */
+.fv-guild-tables {
+  grid-area: tables;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  overflow-x: auto;
+}
+.fv-guild-tables ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+}
+.fv-guild-me,
+.fv-guild-tables ul button {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font: 700 14px var(--font-display);
+}
+.fv-guild-me {
+  color: var(--on-gold);
+  background: var(--acc2);
+}
+.fv-guild-tables ul button {
+  border: 2px solid transparent;
+  color: #fff6f3;
+  background: hsl(var(--table-hue) 48% 38%);
+  cursor: pointer;
+}
+.fv-guild-tables ul button:hover,
+.fv-guild-tables ul button:focus-visible {
+  border-color: var(--acc);
+  outline: 0;
+}
+.fv-guild-tables em {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font: 700 8.5px var(--font-display);
+  font-style: normal;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--danger);
+}
+.fv-guild-tables-all {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+@media (min-width: 900px) {
+  .fv-guild {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-areas: 'head head' 'main stats' 'tables tables';
+  }
+}
+@media (min-width: 1200px) {
+  .fv-guild.has-tables {
+    grid-template-columns: minmax(0, 1fr) 320px 76px;
+    grid-template-areas: 'head head head' 'main stats tables';
+  }
+  .fv-guild.has-tables .fv-guild-tables {
+    align-self: start;
+    flex-direction: column;
+    padding: 12px 0;
+    overflow: visible;
+  }
+  .fv-guild.has-tables .fv-guild-tables ul {
+    flex-direction: column;
+  }
+}
+@media (max-width: 640px) {
+  .fv-guild-active {
+    min-height: 210px;
+  }
+  .fv-guild-active-text {
+    max-width: 58%;
+    padding: 18px;
+  }
+  .fv-guild-active h2 {
+    font-size: 26px;
+  }
+  .fv-guild-active p {
+    font-size: 12.5px;
+  }
+  .fv-guild-active-art {
+    width: 48%;
+    right: 0;
+    top: -22px;
+  }
+  .fv-guild-cards {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 6px 2px 10px;
+    margin: 0 -2px;
+  }
+  .fv-guild-card {
+    flex: 0 0 168px;
+    scroll-snap-align: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-guild-card,
+  .fv-guild-card-art,
+  .fv-guild-open {
+    transition: none;
+  }
+  .fv-guild-card.is-active {
+    transform: none;
+  }
+}
+
+/* barra de abas da ficha no celular */
+[data-theme='eclipse'] .fv-mobile-nav {
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 6px;
+  border: 0;
+  border-radius: 26px;
+  background: var(--ecl-black);
+  backdrop-filter: none;
+}
+[data-theme='eclipse'] .fv-mobile-nav-btn {
+  border-radius: 20px;
+  color: #a3a19b !important;
+  background: transparent !important;
+}
+[data-theme='eclipse'] .fv-mobile-nav-btn[aria-current='page'] {
+  color: var(--ecl-black) !important;
+  background: var(--ecl-paper) !important;
+}
+[data-theme='rubra'] .fv-mobile-nav {
+  background: linear-gradient(180deg, rgba(44, 19, 23, 0.7), rgba(30, 13, 16, 0.97));
 }

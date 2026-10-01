@@ -30,7 +30,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
 
   const variants: Record<Variant, React.CSSProperties> = {
     gold: {
-      color: '#1a1206',
+      color: 'var(--on-gold, #1a1206)',
       padding: '14px 30px',
       fontSize: 15,
       border: '1px solid var(--goldB)',

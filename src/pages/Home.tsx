@@ -50,6 +50,7 @@ export function Home() {
         </RuneRing>
 
         <div
+          className="fv-home-title"
           style={{
             fontFamily: 'var(--font-display)',
             fontWeight: 800,
@@ -81,7 +82,7 @@ export function Home() {
 
         <button
           onClick={start}
-          className="animate-glowPulse"
+          className="animate-glowPulse fv-home-cta"
           style={{
             marginTop: 'clamp(26px,5vh,46px)',
             cursor: 'pointer',
@@ -89,7 +90,7 @@ export function Home() {
             fontWeight: 700,
             letterSpacing: '.12em',
             fontSize: 'clamp(15px,1.7vw,17px)',
-            color: '#1a1206',
+            color: 'var(--on-gold, #1a1206)',
             padding: '16px 42px',
             borderRadius: 13,
             border: '1px solid var(--goldB)',

@@ -18,7 +18,7 @@ export function StepHeader({ step, subtitle }: { step: number; subtitle?: string
   const s = CREATION_STEPS[step];
   return (
     <header className="fv-step-head">
-      <div className="fv-step-eyebrow">Capítulo {ROMAN[step]}</div>
+      <div className="fv-step-eyebrow"><span className="fv-step-num" aria-hidden>{String(step + 1).padStart(2, '0')}</span>Capítulo {ROMAN[step]}</div>
       <h2>{s.title}</h2>
       <p>{subtitle ?? s.subtitle}</p>
     </header>

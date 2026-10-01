@@ -37,6 +37,8 @@ export function AppShell({ children, video = null, videoOpacity, darken }: AppSh
     overflow: 'hidden',
     background: `radial-gradient(120% 95% at 50% -12%, ${t.bg2} 0%, ${t.bg} 58%)`,
     color: t.ink,
+    // tema claro (Eclipse): campos, rolagem e controles nativos claros
+    colorScheme: t.light ? 'light' : 'dark',
     fontFamily: "'Inter', system-ui, sans-serif",
   };
 

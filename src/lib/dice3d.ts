@@ -28,7 +28,7 @@ let failed = false;
 let currentTheme: ThemeName | null = null;
 
 /** Cores dos dados por atmosfera: corpo escuro translúcido, números dourados. */
-const BODY: Record<ThemeName, string> = { frio: '#1A2F6B', brasa: '#5B2413', verdejante: '#0F4A38', carmesim: '#5A1025', astral: '#3B2275', ouro: '#1C1915' };
+const BODY: Record<ThemeName, string> = { frio: '#1A2F6B', brasa: '#5B2413', verdejante: '#0F4A38', carmesim: '#5A1025', astral: '#3B2275', ouro: '#1C1915', eclipse: '#161616', rubra: '#6B2229' };
 
 function colorset(theme: ThemeName): DiceBoxColorset {
   const t = THEMES[theme];

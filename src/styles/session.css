@@ -124,7 +124,7 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--live-ok), transparent 55%);
 }
 .fv-live-online li.is-master .fv-live-avatar {
-  color: #1a1206;
+  color: var(--on-gold, #1a1206);
   background: linear-gradient(180deg, var(--goldB), var(--gold));
   border-color: var(--gold);
 }

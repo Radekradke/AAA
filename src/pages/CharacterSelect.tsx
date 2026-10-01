@@ -13,12 +13,14 @@ import { getClass } from '@/data/classes';
 import { raceOf } from '@/data/races';
 import { deriveCharacter } from '@/engine/dndRules';
 import type { Character } from '@/types/character';
+import { GuildDashboard } from '@/components/character/GuildDashboard';
 
 export function CharacterSelect() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
   const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
+  const theme = useUiStore((s) => s.theme);
   const t = useTheme();
   const tilt = useTilt();
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -73,6 +75,15 @@ export function CharacterSelect() {
         </>
       }
     >
+      {theme === 'rubra' ? (
+        <GuildDashboard
+          heroes={mine}
+          onOpen={open}
+          onNew={() => { bump(1); navigate('/criar'); }}
+          onImport={() => fileRef.current?.click()}
+          importError={importError}
+        />
+      ) : (
       <div
         style={{
           maxWidth: 1080,
@@ -83,6 +94,7 @@ export function CharacterSelect() {
         <div style={{ marginBottom: 'clamp(20px,3vh,32px)' }}>
           <div className="fv-label">Bem-vindo, {user.name}</div>
           <h1
+            className="fv-page-title"
             style={{
               margin: '6px 0 4px',
               fontFamily: 'var(--font-display)',
@@ -156,6 +168,7 @@ export function CharacterSelect() {
             return (
               <div
                 key={c.id}
+                className="fv-hero-card"
                 onMouseMove={tilt.onMouseMove}
                 onMouseLeave={tilt.onMouseLeave}
                 style={{
@@ -286,10 +299,11 @@ export function CharacterSelect() {
 
         <div style={{ marginTop: 28, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
-          <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
           {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
         </div>
       </div>
+      )}
+      <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
     </Screen>
   );
 }

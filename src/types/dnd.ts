@@ -452,6 +452,8 @@ export interface ThemeDef {
   tagline: string;
   /** Fonte de título do clima (a mesma de --font-display). */
   font: string;
+  /** Tema claro (fundo branco quebrado): muda o texto padrão e a barra do navegador. */
+  light?: boolean;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro' | 'eclipse' | 'rubra';
