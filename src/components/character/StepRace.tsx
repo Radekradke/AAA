@@ -130,6 +130,25 @@ export function StepRace({ char, update }: StepProps) {
               </div>
             );
           })()}
+          {subs.length > 0 && (
+            <div className="fv-detail-sub">
+              <div className="fv-facts-title">{race.id === 'dragonborn' ? 'Ancestral dracônico (cor do dragão)' : 'Sublinhagem'}</div>
+              <div className="fv-pills" role="group" aria-label="Sublinhagem">
+                {subs.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    aria-pressed={char.subraceId === sub.id}
+                    className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
+                    onClick={() => update((c) => { c.subraceId = sub.id; })}
+                  >
+                    {sub.label}
+                    {sub.bonus && <small>{sub.bonus}</small>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {char.subraceId === 'high-elf' && (() => {
             const picked = char.choices?.['race.highElfCantrip']?.[0] ?? '';
             return (
@@ -148,25 +167,6 @@ export function StepRace({ char, update }: StepProps) {
               </div>
             );
           })()}
-          {subs.length > 0 && (
-            <div className="fv-detail-sub">
-              <div className="fv-facts-title">Sublinhagem</div>
-              <div className="fv-pills" role="group" aria-label="Sublinhagem">
-                {subs.map((sub) => (
-                  <button
-                    key={sub.id}
-                    type="button"
-                    aria-pressed={char.subraceId === sub.id}
-                    className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
-                    onClick={() => update((c) => { c.subraceId = sub.id; })}
-                  >
-                    {sub.label}
-                    {sub.bonus && <small>{sub.bonus}</small>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </ChoiceDetail>
       </div>
 

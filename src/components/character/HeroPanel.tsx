@@ -48,7 +48,7 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
         <div className="fv-hero-caption">
           <div className={'fv-hero-name' + (named ? '' : ' is-empty')}>{named || 'Herói sem nome'}</div>
           <div className="fv-hero-line">
-            {sub ? sub.label : race.label} · {cls.label}
+            {sub && race.id !== 'dragonborn' ? sub.label : race.label} · {cls.label}
           </div>
           <div className="fv-hero-bg">{bg.label}</div>
         </div>

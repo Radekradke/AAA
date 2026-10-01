@@ -50,7 +50,7 @@ export function raceFacts(char: Character): Fact[] {
   const sub = getSubrace(char.raceId, char.subraceId);
   const bonus = Object.fromEntries(ABILITY_KEYS.map((k) => [k, racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice)]));
   const bonusLine = ABILITY_KEYS.filter((k) => bonus[k]).map((k) => `+${bonus[k]} ${ABILITY_SHORT[k]}`).join(' · ');
-  const facts: Fact[] = [{ label: 'Atributos', value: race.abilityChoice ? bonusLine : [race.bonus, sub?.bonus].filter(Boolean).join(' · ') }];
+  const facts: Fact[] = [{ label: 'Atributos', value: race.abilityChoice ? bonusLine : [race.bonus, sub && Object.keys(sub.abilityBonus ?? {}).length ? sub.bonus : ''].filter(Boolean).join(' · ') }];
   facts.push({ label: 'Deslocamento', value: `${String(race.speed + (sub?.speedBonus ?? 0)).replace('.', ',')} m` });
   const dark = sub?.darkvision ?? race.darkvision;
   if (dark) facts.push({ label: 'Visão no escuro', value: `${dark} m` });
