@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StageMap } from './StageMap';
 import type { TokenFace } from './StageMap';
 import { mediaService, useMediaUrl, useMediaUrls } from '@/services/mediaService';
@@ -7,6 +7,8 @@ import { useCharacterStore } from '@/store/characterStore';
 import { deriveCharacter } from '@/engine/dndRules';
 import { heroAvatar, heroFace } from '@/lib/summary';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { coverArea, revealArea } from '@/engine/grid';
+import { useSessionStore } from '@/store/sessionStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc } from '@/types/npc';
 import type { Combatant, Encounter } from '@/types/session';
@@ -37,6 +39,44 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   const isLive = !!scene && scene.id === live?.id;
   const [selected, setSelected] = useState<string | null>(null);
   const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens: st.tokens });
+  const canMove = (t: Token) => isMaster || (t.ownerId === userId && !t.hidden);
+  const [follow, setFollow] = useState(() => {
+    try {
+      return localStorage.getItem('fv-follow-turn') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const activeIds = ctx.activeIds(st.tokens);
+  const activeToken = st.tokens.find((t) => activeIds.has(t.id)) ?? null;
+
+  // seguir o turno: o mapa vai até o peão da vez quando o turno muda
+  useEffect(() => {
+    if (follow && activeToken) st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2);
+  }, [follow, activeToken?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // atalhos no peão selecionado: setas andam 1 casa; mestre: H esconde, Delete tira
+  const sel = selected ? st.tokens.find((t) => t.id === selected) ?? null : null;
+  useEffect(() => {
+    if (!sel) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+      const d: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+      if (d[e.key] && canMove(sel)) {
+        e.preventDefault();
+        void st.moveToken(sel.id, Math.round(sel.x) + d[e.key][0], Math.round(sel.y) + d[e.key][1]);
+      } else if (isMaster && e.key.toLowerCase() === 'h') {
+        void st.updateToken(sel.id, { hidden: !sel.hidden });
+      } else if (isMaster && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault();
+        void st.removeToken(sel.id);
+        setSelected(null);
+      } else if (e.key === 'Escape') setSelected(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sel, isMaster]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (st.missing) {
     return (
@@ -111,23 +151,56 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
 
       {scene?.kind === 'map' && (
         <>
-          {isMaster && selected && <TokenBar token={st.tokens.find((t) => t.id === selected) ?? null} onClose={() => setSelected(null)} />}
+          {isMaster && sel && <TokenBar token={sel} combatant={ctx.combFor(sel) ?? null} onClose={() => setSelected(null)} />}
+          {activeToken && (
+            <div className="fv-stage-turn">
+              <span>Vez de <b>{activeToken.label}</b></span>
+              <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={follow}
+                  onChange={(e) => {
+                    setFollow(e.target.checked);
+                    try {
+                      localStorage.setItem('fv-follow-turn', e.target.checked ? '1' : '0');
+                    } catch {
+                      /* ignora */
+                    }
+                  }}
+                />{' '}
+                Seguir o turno
+              </label>
+            </div>
+          )}
           <StageMap
             scene={scene}
             tokens={st.tokens}
             isMaster={isMaster}
-            canMove={(t) => isMaster || (t.ownerId === userId && !t.hidden)}
+            me={{ id: userId, who: st.who || (isMaster ? 'Mestre' : 'Jogador'), color: st.myColor() }}
+            canMove={canMove}
             faceFor={ctx.faceFor}
             speedFor={ctx.speedFor}
             hpFor={isMaster ? ctx.hpFor : undefined}
-            activeIds={ctx.activeIds(st.tokens)}
+            conditionsFor={ctx.conditionsFor}
+            activeIds={activeIds}
             drags={st.drags}
             pings={st.pings}
-            selectedId={isMaster ? selected : null}
-            onSelect={isMaster ? setSelected : undefined}
+            marks={Object.values(st.marks)}
+            lasers={Object.values(st.lasers)}
+            focus={st.focus}
+            selectedId={selected}
+            onSelect={setSelected}
             onMove={(id, x, y) => void st.moveToken(id, x, y)}
             onDrag={st.dragPreview}
             onPing={st.ping}
+            onMark={st.putMark}
+            onDropMark={st.dropMark}
+            onClearMarks={st.clearMarks}
+            onLaser={st.laser}
+            onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
+            onFogAll={isMaster ? (mode) => void st.saveFog(scene, mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) : undefined}
+            onPullView={isMaster && isLive ? st.pullView : undefined}
           />
           {isMaster && <TokenTray scene={scene} tokens={st.tokens} heroes={heroes} npcs={npcs} combatants={combatants} />}
         </>
@@ -170,10 +243,24 @@ function CutsceneThumb({ scene, beat }: { scene: Scene; beat: number }) {
 }
 
 /** Mestre: peão selecionado — tamanho, esconder, tirar do mapa. */
-function TokenBar({ token, onClose }: { token: Token | null; onClose: () => void }) {
+function TokenBar({ token, combatant, onClose }: { token: Token | null; combatant: Combatant | null; onClose: () => void }) {
   const st = useStageStore();
+  const session = useSessionStore();
   const [busy, setBusy] = useState(false);
+  const [amount, setAmount] = useState('');
   if (!token) return null;
+  // PV direto do peão (como o Token HUD do Foundry): herói recebe na ficha, monstro no encontro
+  const hit = (sign: 1 | -1) => {
+    const n = Math.abs(parseInt(amount, 10));
+    if (!combatant || !n) return;
+    if (combatant.type === 'player' && combatant.sheetId) void session.sendHeroHp(combatant, sign * n);
+    else {
+      const max = combatant.hpMax ?? Infinity;
+      const cur = combatant.hpCurrent ?? combatant.hpMax ?? 0;
+      void session.updateCombatant(combatant.id, { hp_current: Math.max(0, Math.min(max, cur + sign * n)) });
+    }
+    setAmount('');
+  };
   const sizes = [0.5, 1, 2, 3, 4];
   // mesmo monstro (ou mesmo nome sem o "#2"): o retrato vale para todos
   const key = artKey(token.monsterRef, token.label);
@@ -194,6 +281,14 @@ function TokenBar({ token, onClose }: { token: Token | null; onClose: () => void
   return (
     <div className="fv-tokenbar" role="toolbar" aria-label={`Peão ${token.label}`}>
       <b>{token.label || 'Peão'}</b>
+      {combatant && (
+        <form className="fv-tokenbar-hp" onSubmit={(e) => { e.preventDefault(); hit(-1); }}>
+          <span>PV {combatant.hpCurrent ?? '—'}{combatant.hpMax ? `/${combatant.hpMax}` : ''}</span>
+          <input className="fv-input" inputMode="numeric" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, '').slice(0, 4))} aria-label="Quantidade" />
+          <button type="submit" className="fv-btn-ghost is-danger" disabled={!amount}>Dano</button>
+          <button type="button" className="fv-btn-ghost" disabled={!amount} onClick={() => hit(1)}>Cura</button>
+        </form>
+      )}
       <span className="fv-live-seg" role="group" aria-label="Tamanho">
         {sizes.map((n) => (
           <button key={n} type="button" className={token.size === n ? 'is-on' : ''} onClick={() => void st.updateToken(token.id, { size: n })} title={SIZE_NAME[n]}>
@@ -384,6 +479,11 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
   const combFor = (t: Token) => combatants.find((c) => c.id === t.combatantId) ?? (t.sheetId ? combatants.find((c) => c.sheetId === t.sheetId) : undefined);
 
   return {
+    combFor,
+    conditionsFor: (t: Token): string[] => {
+      const c = combFor(t);
+      return c && (!c.hidden || isMaster) ? c.conditions : [];
+    },
     faceFor: (t: Token): TokenFace | null => {
       // retrato enviado pelo mestre vence tudo
       if (t.imagePath && art[t.imagePath]) return { url: art[t.imagePath], style: { backgroundSize: 'cover', backgroundPosition: '50% 22%' } };

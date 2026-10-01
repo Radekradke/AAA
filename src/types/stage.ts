@@ -17,6 +17,44 @@ export interface GridConfig {
   /** Mapa sem imagem: tamanho do tabuleiro em casas. */
   cols?: number;
   rows?: number;
+  /** Névoa de guerra: com ela ligada, jogadores só veem as áreas reveladas. */
+  fog?: FogConfig;
+}
+
+/** Retângulo em casas. */
+export interface CellRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface FogConfig {
+  on: boolean;
+  reveal: CellRect[];
+}
+
+/** Ferramentas do mapa (inspiradas em Foundry VTT / Owlbear Rodeo / Dungeon Revealer). */
+export type MapTool = 'move' | 'measure' | 'circle' | 'cone' | 'line' | 'square' | 'laser' | 'reveal' | 'cover';
+export type MarkKind = 'measure' | 'circle' | 'cone' | 'line' | 'square';
+
+/** Régua ou molde de área desenhado por alguém da mesa (efêmero, por broadcast). */
+export interface MapMark {
+  id: string;
+  by: string;
+  who: string;
+  color: string;
+  kind: MarkKind;
+  /** Em casas (fracionárias). */
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+}
+
+export interface LaserTrail {
+  by: string;
+  color: string;
+  points: { x: number; y: number }[];
+  at: number;
 }
 
 export interface CutsceneBeat {

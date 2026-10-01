@@ -18,3 +18,11 @@ describe('erros do palco', () => {
     expect(stageError({ message: 'new row violates row-level security policy for table "campaign_stage"' }).message).toMatch(/só o mestre/);
   });
 });
+
+import { mapScene } from '../stageService';
+describe('cena lida do banco', () => {
+  it('mantém a névoa da grade', () => {
+    const s = mapScene({ id: 's', campaign_id: 'c', kind: 'map', name: 'x', grid: { size: 70, fog: { on: true, reveal: [{ x: 1, y: 2, w: 3, h: 4 }] } } });
+    expect(s.grid.fog).toEqual({ on: true, reveal: [{ x: 1, y: 2, w: 3, h: 4 }] });
+  });
+});
