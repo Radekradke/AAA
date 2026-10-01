@@ -202,9 +202,26 @@ export const stageService = {
     if (error) throw stageError(error);
   },
 
-  async moveToken(id: string, x: number, y: number): Promise<void> {
-    const { error } = await sb().rpc('move_token', { p_token: id, p_x: x, p_y: y });
-    if (error) throw stageError(error);
+  /** Mestre grava direto (as regras deixam); jogador passa pela RPC, que só move o próprio peão. */
+  async moveToken(id: string, x: number, y: number, asMaster = false): Promise<void> {
+    if (asMaster) {
+      const { data, error } = await sb()
+        .from('scene_tokens')
+        .update({ x, y, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select('id');
+      if (error) throw stageError(error);
+      if (!data?.length) throw new Error('O banco não deixou mover o peão. Rode supabase/palco_regras.sql no Supabase (regras do palco).');
+      return;
+    }
+    const { data, error } = await sb().rpc('move_token', { p_token: id, p_x: x, p_y: y });
+    if (error) {
+      if (/Could not find the function|move_token/i.test(error.message)) {
+        throw new Error('Falta a função que move os peões no banco. No Supabase: SQL Editor → aba nova → cole supabase/palco_mover.sql → Run.');
+      }
+      throw stageError(error);
+    }
+    if (Array.isArray(data) && !data.length) throw new Error('Esse peão não é seu — só o mestre ou o dono move.');
   },
 
   async handouts(campaignId: string): Promise<Handout[]> {

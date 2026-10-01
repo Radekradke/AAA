@@ -129,22 +129,18 @@ create policy "handouts_master" on public.campaign_handouts for all
 
 grant select, insert, update, delete on public.campaign_scenes, public.campaign_stage, public.scene_tokens, public.campaign_handouts to authenticated;
 
--- jogador move SÓ o próprio peão (e só a posição); o mestre move qualquer um
-create or replace function public.move_token(p_token uuid, p_x real, p_y real)
-returns public.scene_tokens language plpgsql security definer set search_path = public as $fn$
-declare t public.scene_tokens;
-begin
-  select * into t from scene_tokens where id = p_token for update;
-  if not found then raise exception 'Peão não encontrado.'; end if;
-  if not public.is_campaign_master(t.campaign_id)
-     and (t.owner_id is distinct from auth.uid() or t.hidden) then
-    raise exception 'Só o mestre ou o dono move este peão.';
-  end if;
-  update scene_tokens
+-- jogador move SÓ o próprio peão (e só a posição); o mestre move qualquer um.
+-- Função SQL de um comando só, com o corpo entre aspas simples: o editor do
+-- Supabase não consegue cortá-la no meio. Sem permissão → não volta linha.
+drop function if exists public.move_token(uuid, real, real);
+create function public.move_token(p_token uuid, p_x real, p_y real)
+returns setof public.scene_tokens language sql security definer set search_path = public as '
+  update public.scene_tokens
      set x = greatest(-2, least(400, p_x)), y = greatest(-2, least(400, p_y)), updated_at = now()
-   where id = p_token returning * into t;
-  return t;
-end $fn$;
+   where id = p_token
+     and (public.is_campaign_master(campaign_id) or (owner_id = auth.uid() and not hidden))
+  returning *
+';
 grant execute on function public.move_token(uuid, real, real) to authenticated;
 
 -- peão escondido/revelado: o jogador não recebe o UPDATE de uma linha que

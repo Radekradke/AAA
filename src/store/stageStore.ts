@@ -316,7 +316,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       const t = get().tokens.find((k) => k.id === id);
       if (t && !t.hidden) void channel?.send({ type: 'broadcast', event: 'drag', payload: { id, x, y, end: true } });
       try {
-        await stageService.moveToken(id, x, y);
+        await stageService.moveToken(id, x, y, get().isMaster);
       } catch (e) {
         set({ error: (e as Error).message });
         await get().refresh();
