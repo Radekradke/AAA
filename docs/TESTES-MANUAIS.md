@@ -152,3 +152,6 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 8. **+ Pista** com destinatário só para um jogador: chega só nele. **+ Item** para um herói: o item entra na mochila da ficha do jogador (uma vez só, mesmo recarregando).
 9. **+ Nota** "Varek vai trair na ponte": aparece em Notas. No jogador, o Diário/Notas da mesa **não** mostram essa nota (nem pela rede: a consulta não devolve).
 10. Celular (390 px): ☰ Bastidores e ◧ Inspetor abrem gavetas com **Fechar**; tocar em alguém na iniciativa abre o Inspetor; o mapa continua no centro.
+11. **Arrastar para o mapa (mouse):** com um mapa aberto no palco, arraste um NPC (Bastidores → NPCs), uma criatura (Criaturas), um combatente (Encontro ou a faixa de iniciativa) ou um chip de "Pôr no mapa" para uma casa: o peão nasce ali (se já estava no mapa, só muda de casa). A criatura também entra no encontro — sem encontro aberto, abre um "Encontro improvisado".
+12. **Mapa em branco:** Cenas → "Mapa em branco" → Pequeno/Médio/Grande → "Criar e ver" (ou "Criar e pôr no ar"): abre um tabuleiro neutro só com a grade.
+13. **Tela baixa** (notebook ou zoom do navegador, ~550 px de altura): as ferramentas do mapa quebram em duas colunas e o zoom fica numa linha, sem sair da área do mapa.

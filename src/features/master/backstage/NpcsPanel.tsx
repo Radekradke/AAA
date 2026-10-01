@@ -1,3 +1,4 @@
+import { stageDragProps } from '@/lib/stageDrop';
 import { Icon } from '@/components/ui/Icon';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -51,7 +52,7 @@ export function NpcsPanel() {
       <ul className="fv-bs-list">
         {list.map((n) => (
           <li key={n.id} className={selection?.kind === 'npc' && selection.id === n.id ? 'is-on' : ''}>
-            <button type="button" className="fv-bs-item has-avatar" onClick={() => select({ kind: 'npc', id: n.id })}>
+            <button type="button" className="fv-bs-item has-avatar" onClick={() => select({ kind: 'npc', id: n.id })} {...stageDragProps({ kind: 'npc', id: n.id }, n.name)}>
               <NpcAvatar npc={n} size={30} />
               <span>
                 <b>{n.name}</b>

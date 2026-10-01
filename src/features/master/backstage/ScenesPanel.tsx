@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { liveScene, useStageStore } from '@/store/stageStore';
 import { SceneLibrary } from '@/components/stage/SceneLibrary';
+import { BlankMapButton } from '@/components/stage/BlankMap';
 import { useMasterStore } from '../masterStore';
 import { useMaster } from '../context';
 import { TrayStar } from './SessionPanel';
@@ -28,7 +29,8 @@ export function ScenesPanel() {
       <button type="button" className="fv-btn-gold fv-bs-btn" onClick={() => setLibrary(true)}>
         Biblioteca de cenas (criar, imagens, cutscenes)
       </button>
-      {!scenes.length && <p className="fv-bs-hint">Nenhuma cena ainda. Crie mapas, ambientes e cutscenes na biblioteca.</p>}
+      <BlankMapButton compact onDone={() => useMasterStore.getState().setDrawer(null)} />
+      {!scenes.length && <p className="fv-bs-hint">Nenhuma cena ainda. Crie mapas, ambientes e cutscenes na biblioteca — ou comece num mapa em branco.</p>}
       <ul className="fv-bs-list">
         {scenes.map((sc) => {
           const isLive = live?.id === sc.id;

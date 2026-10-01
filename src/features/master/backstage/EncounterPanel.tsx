@@ -1,3 +1,4 @@
+import { stageDragProps } from '@/lib/stageDrop';
 import { useState } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { EncounterDifficulty, XpAward, heroCombatant } from '@/components/session/MasterDeck';
@@ -86,7 +87,7 @@ export function EncounterPanel() {
         <ul className="fv-bs-list">
           {order.map((c) => (
             <li key={c.id}>
-              <button type="button" className="fv-bs-item" onClick={() => select({ kind: 'combatant', id: c.id })}>
+              <button type="button" className="fv-bs-item" onClick={() => select({ kind: 'combatant', id: c.id })} {...stageDragProps({ kind: 'combatant', id: c.id }, c.name)}>
                 <b>
                   {c.name}
                   {c.hidden && <em className="fv-bs-tag is-muted">oculto</em>}

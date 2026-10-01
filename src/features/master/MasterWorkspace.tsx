@@ -7,6 +7,9 @@ import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc, NpcSecret } from '@/types/npc';
 import type { Campaign } from '@/types/models';
 import { CONN, OnlineList } from '@/features/live/LiveHeader';
+import { MONSTER_BY_ID } from '@/data/bestiary';
+import { monsterCombatants } from '@/components/session/BestiaryPicker';
+import { addToEncounter } from './actions';
 import { MasterContext } from './context';
 import type { MasterCtx } from './context';
 import { useMasterStore } from './masterStore';
@@ -53,6 +56,15 @@ export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloa
     // sem abrir gaveta no celular: só troca o que o inspetor mostra
     if (c && c.type !== 'player' && (!sel || sel.kind === 'combatant')) useMasterStore.setState({ selection: { kind: 'combatant', id: c.id } });
   }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // criatura do bestiário solta no mapa: entra no encontro (abre um, se preciso) e vira peão ali
+  const dropMonster = async (ref: string, qty: number) => {
+    const m = MONSTER_BY_ID[ref];
+    if (!m) return [];
+    const before = new Set(useSessionStore.getState().combatants.map((c) => c.id));
+    await addToEncounter(monsterCombatants(m, qty, { hpMode: 'average', hidden: false, together: true }));
+    return useSessionStore.getState().combatants.filter((c) => !before.has(c.id));
+  };
 
   const ctx: MasterCtx = useMemo(() => ({ campaign, userId, heroes, npcs, secrets, reloadNpcs }), [campaign, userId, heroes, npcs, secrets, reloadNpcs]);
   const error = loadError ?? s.error ?? m.error ?? stageError;
@@ -106,6 +118,7 @@ export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloa
               m.setDrawer('backstage');
             }}
             // mexer no mapa não abre gaveta: o inspetor só acompanha (abre pelo botão ◧)
+            onDropMonster={dropMonster}
             onSelectToken={(t) => t && useMasterStore.setState({ selection: { kind: 'token', id: t.id } })}
           />
         </main>
