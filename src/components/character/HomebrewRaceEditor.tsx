@@ -289,10 +289,10 @@ function SubraceEditor({ sub, onChange, onRemove }: { sub: Subrace; onChange: (s
             ))}
           </span>
         </label>
-        <label>Vida extra
+        <label>PV extra por nível
           <span className="fv-live-seg">
             {[0, 1].map((v) => (
-              <button key={v} type="button" className={(sub.hpPerLevel ?? 0) === v ? 'is-on' : ''} onClick={() => set({ hpPerLevel: v || undefined })}>{v ? '+1 PV/nível' : '—'}</button>
+              <button key={v} type="button" className={(sub.hpPerLevel ?? 0) === v ? 'is-on' : ''} onClick={() => set({ hpPerLevel: v || undefined })}>{v ? '+1' : '—'}</button>
             ))}
           </span>
         </label>

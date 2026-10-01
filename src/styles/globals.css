@@ -4025,7 +4025,24 @@ body.fv-dragging .fv-screen-scroll {
 .fv-hb-source b { color: var(--ink); }
 .fv-detail .fv-hb-source { margin-top: 8px; }
 .fv-hb-sub { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px; border-radius: var(--radius-lg); border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--lift), transparent 30%); }
-.fv-hb-sub > .fv-hb-name { margin-right: 34px; }
+.fv-hb-sub > .fv-hb-name { flex: none; margin-right: 34px; font-size: 15px; }
 .fv-hb-abil.is-mini .fv-hb-step { padding: 4px; }
 .fv-hb-abil.is-mini .fv-hb-step b { font-size: 14px; }
 .fv-hb-abil.is-mini .fv-hb-step button { height: 24px; }
+
+/* ===== Falas dos heróis (passo da classe) ===== */
+.fv-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.fv-voice-play {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font-size: 12.5px; font-weight: 700; color: #1a1206; border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
+}
+.fv-voice-play.is-on { color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 85%); }
+.fv-voice-play:disabled { opacity: 0.45; cursor: not-allowed; }
+.fv-voice-mute { min-height: 36px; padding: 0 10px; border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; text-decoration: underline dotted; }
+.fv-voice-mute[aria-pressed='true'] { color: var(--gold); }
+.fv-voice-none { font-size: 12px; color: var(--muted); font-style: italic; }
+.fv-voice-eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 10px; }
+.fv-voice-eq i { width: 2px; background: currentColor; border-radius: 1px; animation: fvEq 0.9s ease-in-out infinite; }
+.fv-voice-eq i:nth-child(2) { animation-delay: -0.3s; }
+.fv-voice-eq i:nth-child(3) { animation-delay: -0.6s; }
+@media (prefers-reduced-motion: reduce) { .fv-voice-eq i { animation: none; height: 6px; } }
