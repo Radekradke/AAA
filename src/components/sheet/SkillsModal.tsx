@@ -45,13 +45,13 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
         <div key={g.key} style={{ marginBottom: 13 }}>
           {/* cabeçalho do grupo: atributo + modificador */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
               {ABILITY_SHORT[g.key]}
             </span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
               {ABILITY_LABELS[g.key]}
             </span>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>
               {modStr(derived.abilities[g.key].mod)}
             </span>
             <span aria-hidden style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${hexA(ABILITY_COLORS[g.key], 0.4)}, transparent)` }} />
@@ -81,10 +81,10 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, width: '100%', textAlign: 'left' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10, fontWeight: 700, color }}>
+                    <span style={{ fontFamily: 'var(--font-num)', fontSize: 10, fontWeight: 700, color }}>
                       {ABILITY_SHORT[sk.ability]}
                     </span>
-                    <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: sk.expertise ? t.gold : strong ? 'var(--ink)' : 'var(--muted)' }}>
+                    <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 17, color: sk.expertise ? t.gold : strong ? 'var(--ink)' : 'var(--muted)' }}>
                       {modStr(sk.bonus)}
                     </span>
                   </div>
@@ -134,7 +134,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
       <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 11.5, color: 'var(--muted)' }}>
         <span>Toque numa perícia para rolar 1d20 + bônus.</span>
         {canMark && (
-          <span style={{ fontFamily: "'Chakra Petch', monospace", color: used >= slots ? t.gold : 'var(--acc)' }}>
+          <span style={{ fontFamily: 'var(--font-num)', color: used >= slots ? t.gold : 'var(--acc)' }}>
             Expertise: {used}/{slots} vagas (★ nas proficientes)
           </span>
         )}

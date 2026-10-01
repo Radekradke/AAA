@@ -109,7 +109,7 @@ label:focus-within > small {
   position: absolute;
   left: 0;
   bottom: 0;
-  font-family: 'Chakra Petch', monospace;
+  font-family: var(--font-num);
   font-size: max(15px, 0.42em);
   font-weight: 700;
   white-space: nowrap;

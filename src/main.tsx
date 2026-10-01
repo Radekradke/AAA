@@ -5,6 +5,7 @@ import { App } from './App';
 import './store/homebrewStore';
 import './styles/fonts';
 import './styles/globals.css';
+import './styles/themes/index.css';
 import './styles/session.css';
 import './styles/stage.css';
 import './styles/master.css';

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
+import { useThemeMode } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
@@ -34,6 +35,8 @@ interface TopBarProps {
  */
 export function TopBar({ actions, menu = [] }: TopBarProps) {
   const theme = useUiStore((s) => s.theme);
+  const mode = useThemeMode();
+  const toggleThemeMode = useUiStore((s) => s.toggleThemeMode);
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
@@ -60,6 +63,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
     { key: 'home', label: 'Menu principal', icon: 'spark', onClick: () => navigate('/') },
     { key: 'config', label: 'Configurações', icon: 'gear', onClick: () => navigate('/config') },
     { key: 'theme', label: `Escolher tema · ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
+    { key: 'mode', label: mode === 'dark' ? 'Paleta clara' : 'Paleta escura', icon: 'spark', onClick: toggleThemeMode },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
       ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]

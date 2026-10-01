@@ -41,7 +41,7 @@ export function JournalCard({ entry, onChange, onDelete, npcs = [] }: JournalCar
           value={entry.date}
           onChange={(e) => onChange({ date: e.target.value })}
           aria-label="Data"
-          style={{ width: 90, textAlign: 'right', background: 'transparent', border: 'none', outline: 'none', fontSize: 10.5, color: 'var(--acc)', fontFamily: "'Chakra Petch', monospace" }}
+          style={{ width: 90, textAlign: 'right', background: 'transparent', border: 'none', outline: 'none', fontSize: 10.5, color: 'var(--acc)', fontFamily: 'var(--font-num)' }}
         />
       </div>
 
@@ -83,10 +83,10 @@ export function JournalCard({ entry, onChange, onDelete, npcs = [] }: JournalCar
       )}
 
       <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: t.acc, fontSize: 12, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+        <button onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: t.acc, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
           {open ? 'Recolher detalhes ▲' : 'Detalhes (NPCs, locais, missões…) ▼'}
         </button>
-        <button onClick={onDelete} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--danger)', fontSize: 12, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+        <button onClick={onDelete} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--danger)', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
           Excluir
         </button>
       </div>

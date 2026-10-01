@@ -1,0 +1,476 @@
+/* ============================================================
+   CORTE CARMESIM — "teatro barroco / tarô"
+   Ideia: uma noite de gala. Molduras duplas em ouro rosé, títulos de
+   seção centrados com ornamento, abas como fitas marcadoras que
+   pendem de uma vara, vitais como cartas de tarô com o topo em arco e
+   o menu principal como uma mão de cartas. Paleta: vinho, carmesim e
+   ouro rosé, com jade como contraponto frio. Tipografia: Cormorant SC
+   (títulos) + Crimson Pro (texto e números de livro antigo).
+   ============================================================ */
+
+[data-theme='carmesim'] {
+  --font-display: 'Cormorant SC', 'Cinzel', serif;
+  --font-body: 'Crimson Pro', Georgia, serif;
+  --font-num: 'Cormorant SC', 'Crimson Pro', serif;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --arch: 999px 999px 8px 8px;
+  --frame: color-mix(in srgb, var(--gold), transparent 45%);
+
+  --bg: #12060b;
+  --bg2: #3a0b1c;
+  --panel: #24101a;
+  --panel2: #1a0a12;
+  --well: #10050a;
+  --steel: #3a1626;
+  --line: rgba(240, 170, 170, 0.16);
+  --line-strong: rgba(232, 190, 160, 0.36);
+  --acc: #ff3d5e;
+  --acc2: #4fb6a8;
+  --lift: rgba(255, 190, 205, 0.06);
+  --accSoft: rgba(255, 190, 205, 0.06);
+  --gold: #e9b48f;
+  --goldB: #ffe0c9;
+  --on-gold: #3a0d18;
+  --on-acc: #ffffff;
+  --ink: #fbefea;
+  --muted: #c29aa3;
+  --danger: #ff8a3d;
+  --bloom: rgba(255, 61, 94, 0.18);
+  --particle: #ff9aae;
+  --shadow-panel: 0 30px 60px -30px rgba(10, 0, 4, 0.95);
+  --shadow-soft: 0 16px 30px -18px rgba(10, 0, 4, 0.85);
+  /* damasco discreto */
+  --panel-texture:
+    radial-gradient(circle at 50% 50%, rgba(233, 180, 143, 0.05) 0 2px, transparent 2.5px) 0 0 / 22px 22px,
+    radial-gradient(circle at 50% 50%, rgba(255, 61, 94, 0.04) 0 5px, transparent 5.5px) 11px 11px / 22px 22px;
+  --scene:
+    radial-gradient(50% 60% at 50% -10%, rgba(255, 61, 94, 0.24), transparent 70%),
+    radial-gradient(30% 50% at 0% 50%, rgba(120, 10, 40, 0.4), transparent 70%),
+    radial-gradient(30% 50% at 100% 50%, rgba(120, 10, 40, 0.4), transparent 70%),
+    radial-gradient(30% 25% at 50% 105%, rgba(79, 182, 168, 0.08), transparent 70%);
+}
+
+/* paleta clara: marfim e vinho */
+[data-theme='carmesim'][data-mode='light'] {
+  --bg: #f3e9e2;
+  --bg2: #fbf4ee;
+  --panel: #fffbf7;
+  --panel2: #f7eee8;
+  --well: #ede0d8;
+  --steel: #e3d1c7;
+  --line: rgba(90, 20, 40, 0.16);
+  --line-strong: rgba(90, 20, 40, 0.34);
+  --acc: #b0123a;
+  --acc2: #1b7268;
+  --lift: rgba(140, 20, 50, 0.05);
+  --accSoft: rgba(140, 20, 50, 0.05);
+  --gold: #8c3b2e;
+  --goldB: #a8513f;
+  --on-gold: #fff4ee;
+  --on-acc: #ffffff;
+  --ink: #2b0f18;
+  --muted: #76515c;
+  --danger: #b4382b;
+  --bloom: rgba(176, 18, 58, 0.08);
+  --particle: #e58aa0;
+  --shadow-panel: 0 24px 50px -30px rgba(90, 20, 40, 0.35);
+  --shadow-soft: 0 12px 26px -18px rgba(90, 20, 40, 0.3);
+  --panel-texture: radial-gradient(circle at 50% 50%, rgba(140, 59, 46, 0.06) 0 2px, transparent 2.5px) 0 0 / 22px 22px;
+  --scene:
+    radial-gradient(50% 60% at 50% -10%, rgba(176, 18, 58, 0.1), transparent 70%),
+    radial-gradient(30% 25% at 50% 105%, rgba(27, 114, 104, 0.08), transparent 70%);
+}
+
+/* ---------- painéis: moldura dupla ---------- */
+[data-theme='carmesim'] .fv-panel {
+  background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--frame);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 4px var(--panel2), inset 0 0 0 5px color-mix(in srgb, var(--gold), transparent 78%), var(--shadow-panel);
+}
+[data-theme='carmesim'] .fv-panel::after {
+  /* fecho no topo da moldura */
+  content: '❖';
+  left: 50%;
+  right: auto;
+  top: -9px;
+  width: 22px;
+  height: 16px;
+  margin-left: -11px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--gold);
+  background: var(--panel);
+}
+
+/* rótulos: centrados entre filetes */
+[data-theme='carmesim'] .fv-label {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+[data-theme='carmesim'] .fv-panel > .fv-label:first-child,
+[data-theme='carmesim'] .fv-panel > div:first-child > .fv-label:only-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+[data-theme='carmesim'] .fv-panel > .fv-label:first-child::before,
+[data-theme='carmesim'] .fv-panel > .fv-label:first-child::after,
+[data-theme='carmesim'] .fv-panel > div:first-child > .fv-label:only-child::before,
+[data-theme='carmesim'] .fv-panel > div:first-child > .fv-label:only-child::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--frame));
+}
+[data-theme='carmesim'] .fv-panel > .fv-label:first-child::after,
+[data-theme='carmesim'] .fv-panel > div:first-child > .fv-label:only-child::after {
+  background: linear-gradient(90deg, var(--frame), transparent);
+}
+[data-theme='carmesim'] .fv-panel > div:first-child:has(> .fv-label:only-child) {
+  flex: 1;
+}
+
+/* títulos em folha de ouro rosé */
+[data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title, .fv-menu-title) {
+  background: linear-gradient(100deg, var(--ink) 25%, var(--goldB) 40%, var(--gold) 50%, var(--ink) 65%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: fvFoil 10s ease-in-out infinite;
+}
+
+/* ---------- botões: placa dourada com fio interno ---------- */
+[data-theme='carmesim'] .fv-btn-gold {
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--goldB), transparent 30%), inset 0 0 0 3px color-mix(in srgb, var(--on-gold), transparent 75%), 0 10px 24px -12px var(--bloom);
+}
+[data-theme='carmesim'] .fv-btn-ghost {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+}
+[data-theme='carmesim'] .fv-input {
+  font-family: var(--font-body);
+  font-size: 16px;
+  border-radius: var(--radius-sm);
+}
+[data-theme='carmesim'] .fv-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 0 4px color-mix(in srgb, var(--acc), transparent 85%);
+}
+
+/* marca: brasão em arco */
+[data-theme='carmesim'] .fv-topbar-logo {
+  transform: none;
+  border-radius: var(--arch);
+  height: 34px;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px color-mix(in srgb, var(--gold), transparent 60%);
+}
+[data-theme='carmesim'] .fv-topbar-logo span {
+  transform: translateY(2px);
+}
+
+/* ---------- menu principal: uma mão de cartas ---------- */
+[data-theme='carmesim'] .fv-menu-nav {
+  width: min(640px, 100%);
+}
+[data-theme='carmesim'] .fv-menu-nav ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+[data-theme='carmesim'] .fv-menu-nav li {
+  flex: 0 0 calc((100% - 24px) / 3);
+}
+[data-theme='carmesim'] .fv-menu-item {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  gap: 8px;
+  height: 100%;
+  min-height: 150px;
+  padding: 22px 12px 14px;
+  text-align: center;
+  border-radius: 50% 50% 10px 10px / 64px 64px 10px 10px;
+  border: 1px solid var(--frame);
+  background: var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
+  box-shadow: inset 0 0 0 4px var(--panel2), inset 0 0 0 5px color-mix(in srgb, var(--gold), transparent 80%);
+}
+[data-theme='carmesim'] .fv-menu-text {
+  align-items: center;
+}
+[data-theme='carmesim'] .fv-menu-text b {
+  font-size: 18px;
+}
+[data-theme='carmesim'] .fv-menu-text small {
+  white-space: normal;
+  font-size: 13px;
+  line-height: 1.25;
+}
+[data-theme='carmesim'] .fv-menu-arrow {
+  display: none;
+}
+[data-theme='carmesim'] :is(.fv-menu-icon, .fv-menu-face) {
+  border-radius: 999px;
+  border-color: var(--frame);
+}
+[data-theme='carmesim'] .fv-menu-item:hover,
+[data-theme='carmesim'] .fv-menu-item:focus-visible {
+  transform: translateY(-4px) rotate(-0.6deg);
+  border-color: var(--gold);
+  background: var(--panel-texture), linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--panel) 82%), var(--panel2));
+}
+[data-theme='carmesim'] .fv-menu-nav li:nth-child(3n) .fv-menu-item:hover {
+  transform: translateY(-4px) rotate(0.6deg);
+}
+/* a primeira carta (Continuar) ocupa a linha toda: é a carta virada */
+[data-theme='carmesim'] .fv-menu-nav li:first-child {
+  flex-basis: 100%;
+}
+[data-theme='carmesim'] .fv-menu-nav li:first-child .fv-menu-item {
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  justify-items: start;
+  min-height: 0;
+  padding: 12px 20px 12px 12px;
+  text-align: left;
+  border-radius: 999px;
+}
+[data-theme='carmesim'] .fv-menu-nav li:first-child .fv-menu-text {
+  align-items: flex-start;
+}
+[data-theme='carmesim'] .fv-menu-nav li:first-child .fv-menu-arrow {
+  display: block;
+}
+[data-theme='carmesim'] .fv-menu-item.is-primary {
+  border-color: var(--goldB);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--goldB), transparent 30%), 0 18px 40px -20px var(--bloom);
+}
+@media (max-width: 560px) {
+  [data-theme='carmesim'] .fv-menu-nav li {
+    flex-basis: calc((100% - 12px) / 2);
+  }
+  [data-theme='carmesim'] .fv-menu-item {
+    min-height: 0;
+    gap: 4px;
+    padding: 14px 8px 10px;
+    border-radius: 50% 50% 8px 8px / 40px 40px 8px 8px;
+  }
+  [data-theme='carmesim'] .fv-menu-text b {
+    font-size: 16px;
+  }
+  [data-theme='carmesim'] .fv-menu-text small {
+    font-size: 12px;
+  }
+}
+
+/* ---------- ficha ---------- */
+[data-theme='carmesim'] .fv-sh-portrait-ring {
+  border-radius: var(--arch) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px var(--panel), 0 0 0 4px var(--frame) !important;
+}
+[data-theme='carmesim'] .fv-sh-name {
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+}
+[data-theme='carmesim'] .fv-sh-sub {
+  font-style: italic;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  color: var(--goldB);
+}
+[data-theme='carmesim'] .fv-header-stat {
+  border-radius: var(--arch);
+  padding: 14px 12px 10px;
+  border-color: var(--frame);
+}
+
+/* abas: fitas marcadoras penduradas numa vara dourada */
+[data-theme='carmesim'] .fv-sheet-tabs {
+  position: relative;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+[data-theme='carmesim'] .fv-sheet-tabs::before {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold) 12%, var(--goldB) 50%, var(--gold) 88%, transparent);
+}
+[data-theme='carmesim'] .fv-sheet-tab {
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 18px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--steel), #fff 3%), var(--panel2));
+  backdrop-filter: none;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: padding 0.25s, background 0.25s, color 0.25s;
+}
+[data-theme='carmesim'] .fv-sheet-tab:hover {
+  color: var(--ink);
+  padding-bottom: 22px;
+}
+[data-theme='carmesim'] .fv-sheet-tab.is-on {
+  color: #fff;
+  padding-bottom: 26px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--acc), #fff 10%), color-mix(in srgb, var(--acc), #000 30%));
+  border: 0;
+  box-shadow: none;
+}
+[data-theme='carmesim'] .fv-sheet-tab.is-on svg {
+  color: var(--goldB);
+}
+
+/* vitais: cartas de tarô com topo em arco */
+[data-theme='carmesim'] .fv-vitals {
+  gap: 8px;
+}
+[data-theme='carmesim'] .fv-stat-chip {
+  border-radius: var(--arch);
+  padding: 18px 6px 10px;
+  border: 1px solid var(--frame);
+  background: var(--panel-texture), linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--panel) 88%), var(--sunk));
+  box-shadow: inset 0 0 0 3px var(--panel2), inset 0 0 0 4px color-mix(in srgb, var(--gold), transparent 82%);
+}
+[data-theme='carmesim'] .fv-stat-chip-val {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+}
+[data-theme='carmesim'] .fv-stat-chip-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+}
+[data-theme='carmesim'] .fv-stat-chip-die {
+  top: 8px;
+  right: 50%;
+  translate: 50% 0;
+}
+[data-theme='carmesim'] .fv-stat-chip.is-rollable:hover {
+  border-color: var(--gold);
+}
+
+/* atributos: medalhões */
+[data-theme='carmesim'] .fv-mabil {
+  border-radius: 999px 999px 6px 6px;
+  border: 1px solid color-mix(in srgb, var(--c), transparent 55%);
+  border-bottom: 3px double color-mix(in srgb, var(--c), transparent 25%);
+  background: var(--sunk);
+}
+[data-theme='carmesim'] .fv-mabil-key {
+  font-family: var(--font-display);
+  font-size: 11px;
+}
+[data-theme='carmesim'] .fv-mabil-mod {
+  font-size: 20px;
+}
+
+/* vida: barra emoldurada */
+[data-theme='carmesim'] .fv-hp-bar {
+  clip-path: none;
+  border-radius: 999px;
+  border: 1px solid var(--frame);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px color-mix(in srgb, var(--gold), transparent 80%);
+}
+[data-theme='carmesim'] .fv-hp-notches {
+  background: none;
+}
+[data-theme='carmesim'] :is(.fv-hpq, .fv-turn-btn) {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+/* ---------- criação ---------- */
+[data-theme='carmesim'] .fv-rail-title {
+  color: var(--gold);
+  letter-spacing: 0.24em;
+}
+[data-theme='carmesim'] .fv-forge-rail ol::before {
+  background: linear-gradient(180deg, transparent, var(--frame), transparent);
+}
+[data-theme='carmesim'] .fv-forge-rail button {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 999px 4px 4px 999px;
+}
+[data-theme='carmesim'] .fv-rail-mark {
+  border-radius: var(--arch);
+  height: 28px;
+  font-family: var(--font-display);
+}
+[data-theme='carmesim'] .fv-forge-rail button.is-current {
+  color: #fff;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc), transparent 60%), transparent);
+}
+[data-theme='carmesim'] .fv-forge-rail button.is-current .fv-rail-mark {
+  background: var(--acc);
+  border-color: var(--goldB);
+  color: #fff;
+}
+[data-theme='carmesim'] .fv-option {
+  border-radius: 40px 40px 8px 8px / 26px 26px 8px 8px;
+  border-color: var(--frame);
+  padding-top: 16px;
+}
+[data-theme='carmesim'] .fv-option.is-selected {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--acc), var(--panel) 75%), var(--panel2));
+  box-shadow: inset 0 0 0 3px var(--panel2), inset 0 0 0 4px var(--gold), 0 14px 30px -16px var(--bloom);
+}
+[data-theme='carmesim'] .fv-option.is-selected::after {
+  content: '❦';
+}
+[data-theme='carmesim'] .fv-option-name {
+  font-size: 15px;
+}
+[data-theme='carmesim'] .fv-option-line {
+  font-size: 12.5px;
+  font-style: italic;
+}
+[data-theme='carmesim'] .fv-hero-card {
+  border-radius: 120px 120px 12px 12px / 60px 60px 12px 12px;
+}
+[data-theme='carmesim'] .fv-modal {
+  border-color: var(--frame);
+  box-shadow: inset 0 0 0 4px var(--panel), inset 0 0 0 5px color-mix(in srgb, var(--gold), transparent 78%), 0 40px 80px -30px rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='carmesim'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title, .fv-menu-title) {
+    animation: none;
+  }
+}
+
+/* fita recortada: foco desenhado por dentro */
+[data-theme='carmesim'] .fv-sheet-tab:focus-visible {
+  outline: 2px solid var(--goldB);
+  outline-offset: -5px;
+}

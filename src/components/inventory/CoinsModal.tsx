@@ -30,7 +30,7 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
       footer={
         <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>Total aproximado</span>
-          <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 18, color: t.gold }}>
+          <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 18, color: t.gold }}>
             {coinTotalGp(char).toString().replace('.', ',')} po
           </span>
         </div>
@@ -47,7 +47,7 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
             </span>
             <div style={{ flex: '1 1 90px', minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{c.label}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+              <div style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                 {c.rate >= 1 ? `${c.rate} po` : `${Math.round(c.rate * 100)}/100 po`}
               </div>
             </div>
@@ -61,7 +61,7 @@ export function CoinsModal({ char, onClose }: { char: Character; onClose: () => 
                 onChange={(e) => store.setCoin(char.id, c.k, parseInt(e.target.value) || 0)}
                 inputMode="numeric"
                 aria-label={`Quantidade de ${c.label}`}
-                style={{ width: 60, minHeight: 38, padding: '6px 6px', textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
+                style={{ width: 60, minHeight: 38, padding: '6px 6px', textAlign: 'center', fontFamily: 'var(--font-num)', fontWeight: 700 }}
               />
               <button onClick={() => store.adjustCoin(char.id, c.k, 1)} style={coinBtn('var(--acc)')}>+1</button>
               <button onClick={() => store.adjustCoin(char.id, c.k, 10)} style={coinBtn('var(--acc)')}>+10</button>
@@ -89,6 +89,6 @@ function coinBtn(color: string): React.CSSProperties {
     color,
     fontWeight: 700,
     fontSize: 12,
-    fontFamily: "'Chakra Petch', monospace",
+    fontFamily: 'var(--font-num)',
   };
 }

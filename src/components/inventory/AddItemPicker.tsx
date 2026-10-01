@@ -140,11 +140,11 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
                     {item.name}
                     {item.attunement && <span className="fv-picker-attune" title="Exige sintonia (máx. 3)">sintonia</span>}
                   </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.note}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.note}</div>
                 </div>
                 <span style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
                   <span style={{ fontSize: 10.5, color: rc.color }}>{rc.label}</span>
-                  <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{priceLabel(item.value)}</span>
+                  <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{priceLabel(item.value)}</span>
                 </span>
                 <span style={{ flex: 'none', color: 'var(--gold)', fontSize: 18, fontWeight: 700 }}>+</span>
               </button>

@@ -236,7 +236,7 @@ export function Login() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: 'var(--font-body)',
                 fontWeight: 600,
                 fontSize: 14,
                 color: 'var(--ink)',
@@ -264,7 +264,7 @@ export function Login() {
             style={{
               width: '100%',
               cursor: 'pointer',
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: 'var(--font-body)',
               fontWeight: 600,
               fontSize: 14,
               color: 'var(--ink)',

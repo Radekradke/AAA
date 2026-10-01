@@ -457,3 +457,6 @@ export interface ThemeDef {
 }
 
 export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro' | 'eclipse' | 'rubra';
+
+/** Paleta clara ou escura dentro do mesmo tema (o layout não muda). */
+export type ThemeMode = 'dark' | 'light';

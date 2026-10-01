@@ -1,0 +1,449 @@
+/* ============================================================
+   NOITE ARCANA — "observatório"
+   Ideia: os instrumentos de um astrônomo-mago. Precisão em vez de
+   brilho: cantos retos, fios de 1px, marcas de registro nos cantos dos
+   painéis, seções numeradas (01, 02…), leituras em fonte mono e uma
+   régua no lugar da barra de vida. Paleta: azul-noite e prata, ciano
+   para o que é vivo e âmbar de mostrador para leituras e alertas.
+   Tipografia: Cinzel (nomes) + IBM Plex Sans (texto) + IBM Plex Mono.
+   ============================================================ */
+
+[data-theme='frio'] {
+  --font-display: 'Cinzel', serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-num: 'IBM Plex Mono', ui-monospace, monospace;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --reg: color-mix(in srgb, var(--gold), transparent 30%);
+
+  --bg: #070b16;
+  --bg2: #0f1a33;
+  --panel: #0d1426;
+  --panel2: #0a1020;
+  --well: #060a16;
+  --steel: #16213d;
+  --line: rgba(160, 190, 230, 0.16);
+  --line-strong: rgba(190, 210, 240, 0.34);
+  --acc: #4fd1ff;
+  --acc2: #ffb547;
+  --lift: rgba(160, 200, 255, 0.06);
+  --accSoft: rgba(160, 200, 255, 0.06);
+  --gold: #c9d6ea;
+  --goldB: #f2f6fc;
+  --on-gold: #0a1020;
+  --on-acc: #04121c;
+  --ink: #e8eef8;
+  --muted: #8794ae;
+  --danger: #ff6b5e;
+  --bloom: rgba(79, 209, 255, 0.12);
+  --particle: #9fe6ff;
+  --shadow-panel: 0 24px 50px -30px rgba(0, 0, 0, 0.9);
+  --shadow-soft: 0 12px 26px -16px rgba(0, 0, 0, 0.8);
+  /* papel de carta celeste: grade fina */
+  --panel-texture:
+    linear-gradient(rgba(160, 190, 230, 0.045) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(160, 190, 230, 0.045) 1px, transparent 1px) 0 0 / 24px 24px;
+  --scene:
+    radial-gradient(80% 60% at 50% -20%, rgba(60, 110, 200, 0.28), transparent 65%),
+    radial-gradient(40% 35% at 96% 100%, rgba(255, 181, 71, 0.08), transparent 70%);
+}
+
+/* paleta clara: papel vegetal de planta técnica */
+[data-theme='frio'][data-mode='light'] {
+  --bg: #e9eef4;
+  --bg2: #f6f8fb;
+  --panel: #fbfcfe;
+  --panel2: #f1f4f8;
+  --well: #e2e8f0;
+  --steel: #d5dde8;
+  --line: rgba(20, 40, 80, 0.16);
+  --line-strong: rgba(20, 40, 80, 0.34);
+  --acc: #0070a8;
+  --acc2: #a86200;
+  --lift: rgba(20, 60, 120, 0.05);
+  --accSoft: rgba(20, 60, 120, 0.05);
+  --gold: #1d3557;
+  --goldB: #2d4b75;
+  --on-gold: #ffffff;
+  --on-acc: #ffffff;
+  --ink: #0f1b2d;
+  --muted: #56677f;
+  --danger: #c0392b;
+  --bloom: rgba(0, 112, 168, 0.08);
+  --particle: #7fa7d1;
+  --shadow-panel: 0 18px 40px -30px rgba(15, 30, 60, 0.4);
+  --shadow-soft: 0 8px 20px -16px rgba(15, 30, 60, 0.35);
+  --panel-texture:
+    linear-gradient(rgba(20, 60, 120, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(20, 60, 120, 0.05) 1px, transparent 1px) 0 0 / 24px 24px;
+  --scene: radial-gradient(80% 60% at 50% -20%, rgba(0, 112, 168, 0.1), transparent 65%);
+}
+
+/* ---------- superfícies: placas de instrumento com marcas de registro ---------- */
+[data-theme='frio'] .fv-panel {
+  background: var(--panel-texture), var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+[data-theme='frio'] .fv-panel::after {
+  /* as quatro marcas de canto (como numa prova de impressão) */
+  inset: -1px;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: auto;
+  background:
+    linear-gradient(var(--reg), var(--reg)) 0 0 / 12px 1px,
+    linear-gradient(var(--reg), var(--reg)) 0 0 / 1px 12px,
+    linear-gradient(var(--reg), var(--reg)) 100% 0 / 12px 1px,
+    linear-gradient(var(--reg), var(--reg)) 100% 0 / 1px 12px,
+    linear-gradient(var(--reg), var(--reg)) 0 100% / 12px 1px,
+    linear-gradient(var(--reg), var(--reg)) 0 100% / 1px 12px,
+    linear-gradient(var(--reg), var(--reg)) 100% 100% / 12px 1px,
+    linear-gradient(var(--reg), var(--reg)) 100% 100% / 1px 12px;
+  background-repeat: no-repeat;
+}
+[data-theme='frio'] * {
+  text-shadow: none !important;
+}
+
+/* seções numeradas: 01 / RÓTULO, em mono */
+[data-theme='frio'] .fv-masonry,
+[data-theme='frio'] .animate-riseIn {
+  counter-reset: fvsec;
+}
+[data-theme='frio'] :is(.fv-masonry, .animate-riseIn) > .fv-panel {
+  counter-increment: fvsec;
+}
+[data-theme='frio'] .fv-label {
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+[data-theme='frio'] :is(.fv-masonry, .animate-riseIn) > .fv-panel .fv-label:first-child::before,
+[data-theme='frio'] :is(.fv-masonry, .animate-riseIn) > .fv-panel > div:first-child > .fv-label:first-child::before {
+  content: counter(fvsec, decimal-leading-zero) ' / ';
+  color: var(--acc2);
+}
+
+/* ---------- botões: retos, mono, o principal é prata ---------- */
+[data-theme='frio'] .fv-btn-gold {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--goldB);
+  background: var(--gold);
+  color: var(--on-gold);
+  box-shadow: none;
+  font-family: var(--font-num);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+[data-theme='frio'] .fv-btn-gold:hover:not(:disabled) {
+  background: var(--goldB);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc), transparent 70%);
+  transform: none;
+}
+[data-theme='frio'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, .fv-input, .fv-topbar-pill, .fv-topbar-icon, .fv-seg, .fv-option, .fv-menu-item, .fv-menu-icon, .fv-menu-face, .fv-hero-card, .fv-modal, .fv-stat-chip, .fv-mabil, .fv-hpq, .fv-turn-btn) {
+  border-radius: var(--radius-sm) !important;
+}
+[data-theme='frio'] .fv-btn-ghost {
+  font-family: var(--font-num);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+[data-theme='frio'] .fv-input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 1px var(--acc);
+}
+
+/* marca: retículo de luneta */
+[data-theme='frio'] .fv-topbar-logo {
+  transform: none;
+  border-radius: 999px;
+  border-color: var(--gold);
+  box-shadow: none;
+  background:
+    linear-gradient(var(--line-strong), var(--line-strong)) 50% 0 / 1px 7px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) 50% 100% / 1px 7px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) 0 50% / 7px 1px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) 100% 50% / 7px 1px no-repeat;
+}
+[data-theme='frio'] .fv-topbar-logo span {
+  transform: none;
+}
+
+/* ---------- menu principal: painel de instrumentos (lista com índice) ---------- */
+[data-theme='frio'] .fv-menu-title {
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+[data-theme='frio'] .fv-menu-tag {
+  font-family: var(--font-num);
+  letter-spacing: 0.3em;
+  color: var(--acc2);
+}
+[data-theme='frio'] .fv-menu-nav ul {
+  counter-reset: fvmenu;
+  gap: 0;
+  border-top: 1px solid var(--line-strong);
+}
+[data-theme='frio'] .fv-menu-nav li {
+  counter-increment: fvmenu;
+}
+[data-theme='frio'] .fv-menu-item {
+  grid-template-columns: 26px 36px minmax(0, 1fr) auto;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  backdrop-filter: none;
+  padding: 11px 8px;
+}
+[data-theme='frio'] .fv-menu-item::before {
+  content: counter(fvmenu, decimal-leading-zero);
+  font: 500 11px var(--font-num);
+  color: var(--muted);
+}
+[data-theme='frio'] :is(.fv-menu-icon, .fv-menu-face) {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+}
+[data-theme='frio'] .fv-menu-text b {
+  font: 600 15px / 1.2 var(--font-body);
+  letter-spacing: 0.02em;
+}
+[data-theme='frio'] .fv-menu-arrow::before {
+  content: '→';
+}
+[data-theme='frio'] .fv-menu-arrow {
+  font-size: 0;
+}
+[data-theme='frio'] .fv-menu-arrow::before {
+  font-size: 18px;
+}
+[data-theme='frio'] .fv-menu-item:hover,
+[data-theme='frio'] .fv-menu-item:focus-visible {
+  transform: none;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc), transparent 90%), transparent 75%);
+}
+[data-theme='frio'] .fv-menu-item:hover::before {
+  color: var(--acc);
+}
+[data-theme='frio'] .fv-menu-item.is-primary {
+  color: var(--ink);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc2), transparent 86%), transparent 80%);
+  box-shadow: inset 2px 0 0 var(--acc2);
+}
+[data-theme='frio'] .fv-menu-item.is-primary :is(.fv-menu-text small, .fv-menu-arrow, .fv-menu-icon) {
+  color: var(--acc2);
+}
+[data-theme='frio'] .fv-menu-item.is-primary .fv-menu-text small {
+  color: var(--muted);
+}
+
+/* ---------- ficha ---------- */
+[data-theme='frio'] .fv-sh-portrait-ring {
+  border-radius: 2px !important;
+}
+[data-theme='frio'] .fv-sh-portrait::after {
+  /* retículo sobre o retrato */
+  content: '';
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--acc), var(--acc)) 50% 0 / 1px 6px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 50% 100% / 1px 6px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 0 50% / 6px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) 100% 50% / 6px 1px no-repeat;
+}
+[data-theme='frio'] .fv-sh-name {
+  letter-spacing: 0.05em;
+  font-weight: 600 !important;
+}
+[data-theme='frio'] .fv-sh-sub {
+  font-family: var(--font-num);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--acc);
+}
+[data-theme='frio'] .fv-header-stat {
+  border-radius: 2px;
+  text-align: left;
+  border-left: 2px solid var(--acc2);
+  backdrop-filter: none;
+}
+[data-theme='frio'] .fv-header-stat-val {
+  font-weight: 500;
+}
+
+/* abas: régua com marcação; a aberta ganha o traço ciano */
+[data-theme='frio'] .fv-sheet-tabs {
+  gap: 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+[data-theme='frio'] .fv-sheet-tab {
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  padding: 10px 14px 11px;
+  font-family: var(--font-num);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+[data-theme='frio'] .fv-sheet-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 1px;
+  height: 6px;
+  background: var(--line-strong);
+}
+[data-theme='frio'] .fv-sheet-tab:hover {
+  color: var(--ink);
+}
+[data-theme='frio'] .fv-sheet-tab.is-on {
+  color: var(--acc);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--acc), transparent 90%), transparent);
+  border: 0;
+  box-shadow: inset 0 -2px 0 var(--acc);
+}
+
+/* vitais: mostradores (rótulo em cima à esquerda, leitura grande, traço âmbar) */
+[data-theme='frio'] .fv-stat-chip {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-left: 2px solid color-mix(in srgb, var(--acc2), transparent 30%);
+}
+[data-theme='frio'] .fv-stat-chip-label {
+  margin: 0 0 3px;
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+}
+[data-theme='frio'] .fv-stat-chip-val {
+  font-weight: 500;
+  font-size: 20px;
+}
+[data-theme='frio'] .fv-stat-chip.is-rollable:hover {
+  border-left-color: var(--acc);
+}
+
+/* atributos: células de tabela com fio de cor em cima */
+[data-theme='frio'] .fv-abils {
+  gap: 0;
+  border: 1px solid var(--line);
+}
+[data-theme='frio'] .fv-mabil {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-top: 2px solid var(--c);
+  background: transparent;
+}
+[data-theme='frio'] .fv-mabil:last-child,
+[data-theme='frio'] .fv-abils > :last-child .fv-mabil {
+  border-right: 0;
+}
+[data-theme='frio'] .fv-mabil:hover {
+  background: var(--lift);
+}
+[data-theme='frio'] .fv-mabil-mod {
+  font-weight: 500;
+}
+
+/* vida: régua graduada fina */
+[data-theme='frio'] .fv-hp-bar {
+  clip-path: none;
+  border-radius: 0;
+  height: 12px !important;
+  box-shadow: none;
+}
+[data-theme='frio'] .fv-hp-notches {
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, transparent 1px 10%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 2%);
+}
+[data-theme='frio'] .fv-hpq {
+  font-weight: 500;
+}
+
+/* ---------- criação: escala numerada ---------- */
+[data-theme='frio'] .fv-rail-title {
+  font-family: var(--font-num);
+  font-weight: 500;
+  color: var(--acc2);
+}
+[data-theme='frio'] .fv-forge-rail ol::before {
+  left: 13px;
+  background: repeating-linear-gradient(180deg, var(--line-strong) 0 1px, transparent 1px 8px);
+  width: 6px;
+  margin-left: -2px;
+}
+[data-theme='frio'] .fv-forge-rail button {
+  border-radius: 0;
+  font-family: var(--font-num);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+[data-theme='frio'] .fv-rail-mark {
+  border-radius: 2px;
+  width: 22px;
+  height: 22px;
+}
+[data-theme='frio'] .fv-forge-rail button.is-current {
+  color: var(--acc);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acc), transparent 88%), transparent);
+}
+[data-theme='frio'] .fv-forge-rail button.is-current .fv-rail-mark {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--on-acc);
+  box-shadow: none;
+}
+[data-theme='frio'] .fv-step-head h2 {
+  letter-spacing: 0.12em;
+}
+[data-theme='frio'] .fv-option {
+  background: var(--panel);
+}
+[data-theme='frio'] .fv-option.is-selected {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc), var(--panel) 90%);
+  box-shadow: inset 0 0 0 1px var(--acc);
+}
+[data-theme='frio'] .fv-option.is-selected::after {
+  content: '◉';
+  color: var(--acc);
+}
+[data-theme='frio'] .fv-option-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+[data-theme='frio'] .fv-mobile-nav-btn.is-on,
+[data-theme='frio'] .fv-mobile-nav-btn[aria-current='page'] {
+  box-shadow: inset 0 2px 0 var(--acc);
+}
+
+@media (max-width: 640px) {
+  [data-theme='frio'] .fv-sh-name {
+    letter-spacing: 0.02em;
+  }
+}

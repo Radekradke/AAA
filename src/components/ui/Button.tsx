@@ -18,7 +18,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
     justifyContent: 'center',
     gap: 8,
     maxWidth: '100%',
-    fontFamily: variant === 'gold' ? 'var(--font-display)' : "'Inter', sans-serif",
+    fontFamily: variant === 'gold' ? 'var(--font-display)' : 'var(--font-body)',
     fontWeight: variant === 'gold' ? 700 : 600,
     letterSpacing: variant === 'gold' ? '0.08em' : '0.02em',
     lineHeight: 1.05,

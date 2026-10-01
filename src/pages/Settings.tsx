@@ -89,8 +89,8 @@ export function Settings() {
         <section id="cfg-aparencia" className="fv-panel fv-set-card" aria-labelledby="cfg-aparencia-t">
           <h2 id="cfg-aparencia-t">Aparência</h2>
           <p className="fv-set-lead">
-            Tema atual: <b>{THEMES[theme].label}</b> — {THEMES[theme].tagline.toLowerCase()}. Cada tema muda cores, fontes,
-            formas e o dado.
+            Tema atual: <b>{THEMES[theme].label}</b> — {THEMES[theme].tagline.toLowerCase()}. Cada tema é uma identidade
+            própria (layout, formas, fontes e o dado), com paleta clara e escura.
           </p>
           <ThemeGrid />
         </section>

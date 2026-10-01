@@ -66,7 +66,9 @@ Cada arquivo é uma parte do livro:
 - `classFeatures.ts` — o que cada classe ganha por nível (1→20).
 - `spells.ts` — o banco de magias (dano, área, save, condições…).
 - `feats.ts`, `weapons.ts`, `armors.ts`, `items.ts`, `tools.ts` — o resto.
-- `themes.ts` — os climas visuais (frio, brasa, verdejante).
+- `themes.ts` — os temas: cada um é uma identidade (nome, fonte, motivo do
+  fundo) com duas paletas — `THEMES` (a de nascença) e `THEME_ALT` (a outra).
+  `resolveTheme(tema, modo)` devolve o tema pronto no modo claro ou escuro.
 
 ---
 
@@ -91,7 +93,7 @@ Usamos **Zustand** (uma caixinha de memória global). As principais:
 - `characterStore` — a lista de personagens e **todas as ações** (dar dano,
   curar, equipar, subir de nível, preparar magia…).
 - `authStore` — quem está logado.
-- `uiStore` — tema atual, som, histórico de rolagens, o dado em destaque.
+- `uiStore` — tema atual, modo claro/escuro de cada tema (`modes`), som, histórico de rolagens, o dado em destaque.
 - `saveStatusStore` — o status "Salvando/Salvo/Sincronizando".
 
 Quando uma ação muda a memória, o React redesenha só o que precisa.
@@ -177,7 +179,7 @@ que alguém burle o app, o banco não deixa acessar dados dos outros.
 | Adicionar uma magia | `data/spells.ts` |
 | Adicionar/arrumar uma característica de classe | `data/classFeatures.ts` |
 | Mudar um cálculo (CA, PV, ataque…) | `engine/dndRules.ts` |
-| Criar um tema novo | `data/themes.ts` + `styles/globals.css` |
+| Criar um tema novo | `data/themes.ts` (as duas paletas) + um arquivo em `styles/themes/` (identidade + `[data-mode='light']`); o teste `themeSync` confere se as cores batem |
 | Mudar uma tela da ficha | `components/sheet/Tab*.tsx` |
 | Ajustar login/nuvem | `services/` + `docs/SUPABASE.md` |
 | Trocar os links de doação | `lib/support.ts` |

@@ -108,7 +108,7 @@ export function Diagnostics() {
                 <span style={{ width: 10, height: 10, borderRadius: 999, flex: 'none', background: c.ok === null ? 'var(--muted)' : c.ok ? '#3FC56B' : 'var(--danger)', boxShadow: c.ok ? '0 0 8px #3FC56B' : c.ok === false ? '0 0 8px var(--danger)' : 'none' }} />
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{c.label}</span>
               </div>
-              <div style={{ marginTop: 5, marginLeft: 19, fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'pre-wrap', fontFamily: "'Chakra Petch', monospace" }}>{c.detail}</div>
+              <div style={{ marginTop: 5, marginLeft: 19, fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-num)' }}>{c.detail}</div>
             </div>
           ))}
         </div>

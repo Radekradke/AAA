@@ -40,7 +40,7 @@ export function DiceRoller({ char }: { char?: Character }) {
               <button
                 key={sd}
                 onClick={() => setSides(sd)}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, padding: '12px 0', borderRadius: 11, border: '1px solid ' + (active ? t.gold : t.line), color: active ? t.gold : t.ink, background: active ? hexA(t.gold, 0.12) : 'var(--sunk)', boxShadow: active ? '0 0 16px ' + hexA(t.gold, 0.3) : 'none', transition: '.2s' }}
+                style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, padding: '12px 0', borderRadius: 11, border: '1px solid ' + (active ? t.gold : t.line), color: active ? t.gold : t.ink, background: active ? hexA(t.gold, 0.12) : 'var(--sunk)', boxShadow: active ? '0 0 16px ' + hexA(t.gold, 0.3) : 'none', transition: '.2s' }}
               >
                 d{sd}
               </button>
@@ -88,7 +88,7 @@ function Stepper({ label, value, onMinus, onPlus, wide }: { label: string; value
       <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 7 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
         <button onClick={onMinus} style={btn(false)}>−</button>
-        <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: wide ? 40 : 28, textAlign: 'center' }}>{value}</span>
+        <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: wide ? 40 : 28, textAlign: 'center' }}>{value}</span>
         <button onClick={onPlus} style={btn(true)}>+</button>
       </div>
     </div>

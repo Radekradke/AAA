@@ -162,7 +162,7 @@ export function RollOverlay() {
               >
                 <span
                   style={{
-                    fontFamily: "'Chakra Petch', monospace",
+                    fontFamily: 'var(--font-num)',
                     fontWeight: 700,
                     fontSize: 30,
                     color: skin.ink[0],
@@ -180,10 +180,10 @@ export function RollOverlay() {
             <AnimatePresence mode="wait">
               {phase === 'result' && (
                 <motion.div key="res" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 64, lineHeight: 1, color, textShadow: '0 0 30px var(--bloom)' }}>
+                  <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 64, lineHeight: 1, color, textShadow: '0 0 30px var(--bloom)' }}>
                     {roll.total}
                   </div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 13.5, color: 'var(--ink)' }}>{detail}</div>
+                  <div style={{ fontFamily: 'var(--font-num)', fontSize: 13.5, color: 'var(--ink)' }}>{detail}</div>
                   <div style={{ marginTop: 6, fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
                 </motion.div>
               )}

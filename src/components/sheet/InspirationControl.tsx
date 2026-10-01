@@ -85,7 +85,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
 /** Losangos dos pontos (até 5 à vista; acima disso, "×N"). */
 function Pips({ points, lit }: { points: number; lit: boolean }) {
   if (points <= 0) return null;
-  if (points > 5) return <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, fontWeight: 800 }}>×{points}</span>;
+  if (points > 5) return <span style={{ fontFamily: 'var(--font-num)', fontSize: 11, fontWeight: 800 }}>×{points}</span>;
   return (
     <span aria-hidden style={{ display: 'inline-flex', gap: 3 }}>
       {Array.from({ length: points }, (_, i) => (
@@ -112,7 +112,7 @@ function StepBtn({ children, label, onClick, disabled, accent }: { children: Rea
         border: '1px solid ' + (accent && !disabled ? 'var(--gold)' : 'var(--line)'),
         background: accent && !disabled ? 'rgba(255,224,138,.12)' : 'var(--sunk)',
         color: disabled ? 'rgba(139,153,176,.4)' : accent ? 'var(--gold)' : 'var(--muted)',
-        fontFamily: "'Chakra Petch', monospace",
+        fontFamily: 'var(--font-num)',
         fontWeight: 800,
         fontSize: 17,
         lineHeight: 1,

@@ -1,0 +1,8 @@
+/* Identidades visuais (layout, formas, tipografia) com paleta clara e escura.
+   Vem depois de globals.css para reescrever os componentes base. */
+@import './astral.css';
+@import './noite.css';
+@import './forja.css';
+@import './bosque.css';
+@import './corte.css';
+@import './modes.css';

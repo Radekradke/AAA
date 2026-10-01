@@ -49,6 +49,7 @@ A **ficha** inclui:
 - **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
 - **Nuvem opcional (Supabase)**: login, sincronização local ↔ nuvem com resolução de conflitos e **mesas de campanha** com convite. Sem Supabase configurado, tudo funciona localmente. Veja `docs/SUPABASE.md`.
 - **Console do mestre** (`/mesa/:id/jogar`, para o mestre): **Bastidores | Palco | Inspetor**, com a **faixa de iniciativa** e a **barra de improviso** sempre à mão. Bastidores reúne Sessão, NPCs, Criaturas (bestiário), Encontro, Cenas, Pistas e Notas privadas; o Inspetor mostra o que foi tocado (no palco, na iniciativa ou nos bastidores) com as ações daquilo. Improviso em segundos: **NPC, criatura, pista, item para um herói, encontro e nota** (Alt+N/C/P/I/E/O). Dá para **preparar a sessão antes** (bandeja de atalhos) ou só começar e reagir — nada é obrigatório. Dano em criatura, ocultar/revelar e remover têm **Desfazer**. No celular, Bastidores e Inspetor viram gavetas. *A FichaViva não tenta controlar a história: dá ao mestre ferramentas para reagir a ela.*
+- **8 temas, cada um uma identidade visual** — não só cor: layout, formas, tipografia e o dado mudam. Véu Astral (planetário: órbitas e cápsulas), Noite Arcana (observatório: instrumentos, régua e leituras em mono), Forja Dourada (oficina anã: chapas rebitadas e porcas sextavadas), Bosque Élfico (clareira: folhas, seixos e menu em galhos), Corte Carmesim (teatro barroco: fitas marcadoras e cartas de tarô), Ouro Velho, Eclipse e Guilda Rubra. **Todos têm paleta clara e escura** (Configurações → Aparência ou menu ⋯): o layout continua o mesmo e só as cores mudam; a escolha fica salva por tema.
 - **Exportar/Importar** personagem em **JSON**.
 
 A engine de regras (`/src/engine`) é simples, tipada e expansível, com suporte a homebrew.
@@ -97,7 +98,7 @@ src/
   store/         characterStore (IndexedDB), authStore, uiStore (Zustand + persist)
   types/         character.ts, dnd.ts
   lib/           color, useTheme, useTilt, summary
-  styles/        globals.css (temas, keyframes, utilitários)
+  styles/        globals.css (base, keyframes, utilitários) · themes/ (uma identidade por arquivo + modos claro/escuro)
 public/assets/   heroi.png, heroi-fem.png, bg.mp4
 ```
 

@@ -76,7 +76,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           </div>
           <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
             <button onClick={() => setLevel(char.id, char.level - 1)} style={stepBtn(false)}>−</button>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: 30, textAlign: 'center' }}>{char.level}</span>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: 30, textAlign: 'center' }}>{char.level}</span>
             <button onClick={() => setLevel(char.id, char.level + 1)} style={stepBtn(true)}>+</button>
           </div>
         </div>
@@ -121,8 +121,8 @@ export function CharacterEditModal({ char, onClose }: Props) {
               return (
                 <div key={k} style={{ textAlign: 'center', background: 'linear-gradient(170deg, var(--panel), var(--panel2))', border: '1px solid var(--line)', borderRadius: 13, padding: '12px 8px' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.12em', color: 'var(--muted)' }} title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
+                  <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
+                  <div style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
                   <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6 }}>
                     <button onClick={() => setAbility(k, base - 1)} style={stepBtn(false)}>−</button>
                     <button onClick={() => setAbility(k, base + 1)} style={stepBtn(true)}>+</button>

@@ -184,7 +184,7 @@ export function TabInventario({ char, derived }: TabProps) {
             <span style={{ color: loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' }}>{loadStatus}</span>
           </div>
         </LoreTooltip>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: "'Chakra Petch', monospace" }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-num)' }}>
           <span style={{ fontWeight: 700, fontSize: 22, color: loadColor }}>{carried.toFixed(1).replace('.', ',')}</span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
         </div>
@@ -216,12 +216,12 @@ export function TabInventario({ char, derived }: TabProps) {
           {COIN_DEFS.map((c) => (
             <span key={c.k} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
               <span aria-hidden style={{ width: 9, height: 9, borderRadius: 999, background: c.color, boxShadow: `0 0 7px ${hexA(c.color, 0.5)}` }} />
-              <b style={{ fontFamily: "'Chakra Petch', monospace" }}>{char.coins[c.k]}</b>&nbsp;{c.code}
+              <b style={{ fontFamily: 'var(--font-num)' }}>{char.coins[c.k]}</b>&nbsp;{c.code}
             </span>
           ))}
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-          Total aproximado <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{coinTotalGp(char).toString().replace('.', ',')} po</b>
+          Total aproximado <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{coinTotalGp(char).toString().replace('.', ',')} po</b>
         </div>
       </Panel>
 
@@ -336,7 +336,7 @@ export function TabInventario({ char, derived }: TabProps) {
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
                 {g.label}
               </span>
-              <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
+              <span style={{ fontFamily: 'var(--font-num)', fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
               <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
@@ -475,7 +475,7 @@ function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, on
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 'var(--radius-lg)' }}>
           <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} style={{ filter: lit ? `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` : undefined, transition: 'color .25s' }} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+          <div style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
             <div>{count} {count === 1 ? 'item' : 'itens'}</div>
             <div>{kg.toFixed(1).replace('.', ',')} kg</div>
           </div>
@@ -595,7 +595,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             <Icon name={it.favorite ? 'starFill' : 'star'} size={15} />
           </button>
         </div>
-        <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {[it.note, it.weight ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
@@ -648,7 +648,7 @@ function ItemBtn({ children, onClick, active, danger }: { children: React.ReactN
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       style={{
         cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: 'var(--font-body)',
         fontWeight: 600,
         fontSize: 11.5,
         minHeight: 32,
