@@ -1,5 +1,5 @@
 import type { Character } from '@/types/character';
-import { getRace, getSubrace } from '@/data/races';
+import { getSubrace, raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
@@ -42,7 +42,7 @@ export interface Fact {
 }
 
 export function raceFacts(char: Character): Fact[] {
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
   const facts: Fact[] = [{ label: 'Atributos', value: [race.bonus, sub?.bonus].filter(Boolean).join(' · ') }];
   facts.push({ label: 'Deslocamento', value: `${String(race.speed + (sub?.speedBonus ?? 0)).replace('.', ',')} m` });
@@ -86,7 +86,7 @@ export function backgroundFacts(char: Character): Fact[] {
 export function creationPending(char: Character): PendingItem[] {
   const pending: PendingItem[] = [];
   const cls = getClass(char.classId);
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const bg = getBackground(char.backgroundId);
 
   if (!char.name.trim()) pending.push({ label: 'Dê um nome ao herói', step: STEP_IDENTITY });

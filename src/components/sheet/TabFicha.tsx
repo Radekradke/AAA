@@ -17,6 +17,7 @@ import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
 import { ClassFeaturesPanel } from './ClassFeaturesPanel';
+import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
 
 /**
@@ -316,6 +317,7 @@ export function TabFicha({ char, derived }: TabProps) {
               </div>
             </>
           )}
+          <RaceTraits char={char} />
         </Panel>
       </div>
 
@@ -324,5 +326,34 @@ export function TabFicha({ char, derived }: TabProps) {
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>
+  );
+}
+
+/** Traços da linhagem (homebrew com descrição; selo para o mestre conferir). */
+function RaceTraits({ char }: { char: TabProps['char'] }) {
+  const race = raceOf(char);
+  const sub = getSubrace(char.raceId, char.subraceId);
+  const details = race.traitDetails ?? [];
+  const names = [...race.traits, ...(sub?.traits ?? [])];
+  if (!names.length && !details.length) return null;
+  return (
+    <>
+      <div className="fv-label" style={{ margin: '15px 0 9px' }}>
+        Traços de {race.label}
+        {race.homebrew && <span className="fv-hb-badge is-small" title={race.author ? `Raça homebrew criada por ${race.author}` : 'Raça homebrew'}>homebrew</span>}
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {names.map((n) => {
+          const d = details.find((t) => t.name === n)?.desc;
+          return d ? (
+            <LoreTooltip key={n} info={passiveLore(n, race.label, d, [race.homebrew ? 'Homebrew' : 'Traço racial'])}>
+              <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>{n}</span>
+            </LoreTooltip>
+          ) : (
+            <span key={n} className="fv-chip" style={{ color: 'var(--ink)' }}>{n}</span>
+          );
+        })}
+      </div>
+    </>
   );
 }

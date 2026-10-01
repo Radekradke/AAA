@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import type { Character } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
 import { creationPending } from '@/engine/creationSummary';
-import { getRace, getSubrace } from '@/data/races';
+import { getSubrace, raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
@@ -31,7 +31,7 @@ interface HeroPanelProps {
 export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: HeroPanelProps) {
   const derived = useMemo(() => deriveCharacter(char), [char]);
   const pending = useMemo(() => creationPending(char), [char]);
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);

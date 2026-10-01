@@ -166,8 +166,30 @@ export const RACE_BY_ID: Record<string, Race> = Object.fromEntries(
   RACES.map((r) => [r.id, r]),
 );
 
+/** Raças homebrew conhecidas neste aparelho (das fichas e da biblioteca do jogador). */
+const HOMEBREW = new Map<string, Race>();
+
+export function registerRace(race: Race | null | undefined): void {
+  if (!race?.id || RACE_BY_ID[race.id]) return;
+  const cur = HOMEBREW.get(race.id);
+  if (!cur || (race.updatedAt ?? 0) >= (cur.updatedAt ?? 0)) HOMEBREW.set(race.id, race);
+}
+
+export function unregisterRace(id: string): void {
+  HOMEBREW.delete(id);
+}
+
 export function getRace(id: string): Race {
-  return RACE_BY_ID[id] ?? RACES[0];
+  return RACE_BY_ID[id] ?? HOMEBREW.get(id) ?? RACES[0];
+}
+
+/** Raça da ficha: a homebrew embutida vence (e fica registrada para o resto do app). */
+export function raceOf(char: { raceId: string; customRace?: Race | null }): Race {
+  if (char.customRace && char.customRace.id === char.raceId) {
+    registerRace(char.customRace);
+    return char.customRace;
+  }
+  return getRace(char.raceId);
 }
 
 export function getSubraces(raceId: string): Subrace[] {

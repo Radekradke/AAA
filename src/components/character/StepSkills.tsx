@@ -2,7 +2,7 @@ import type { StepProps } from './stepTypes';
 import { StepHeader, SectionTitle } from './creatorUi';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { SKILLS, SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import type { SkillKey } from '@/types/dnd';
@@ -18,7 +18,7 @@ import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
 export function StepSkills({ char, update }: StepProps) {
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
 
   const bgSkills = new Set(bg.skills);
   const raceSkills = new Set(race.skillProfs ?? []);

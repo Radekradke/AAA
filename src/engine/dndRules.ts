@@ -3,7 +3,7 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, InventoryItem } from '@/types/character';
 import { abilityModifier, proficiencyBonus, totalAbilities } from './modifiers';
 import { getClass } from '@/data/classes';
-import { getRace, getSubrace } from '@/data/races';
+import { getSubrace, raceOf } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
 import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
@@ -154,7 +154,7 @@ function weaponMagicBonus(w: { magicBonus?: number; properties: string[] }): num
 /** Calcula todos os valores derivados de um personagem — D&D 5e 2014, com origem rastreável. */
 export function deriveCharacter(char: Character): DerivedCharacter {
   const cls = getClass(char.classId);
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const subrace = getSubrace(char.raceId, char.subraceId);
   const bg = getBackground(char.backgroundId);
   const subclass = getSubclass(char.subclassId ?? undefined);

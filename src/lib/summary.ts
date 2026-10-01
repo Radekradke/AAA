@@ -1,5 +1,5 @@
 import type { Character } from '@/types/character';
-import { getRace, getSubrace } from '@/data/races';
+import { getSubrace, raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { artKeyFromFileName } from './heroArtName';
@@ -7,9 +7,9 @@ import facesJson from '@/assets/herois/rostos.json';
 
 /** "Anão da Montanha · Guerreiro" */
 export function raceLine(char: Character): string {
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
-  return race.label + (sub ? ` · ${sub.label}` : '');
+  return race.label + (race.homebrew ? ' (homebrew)' : '') + (sub ? ` · ${sub.label}` : '');
 }
 
 export function classLine(char: Character): string {
@@ -25,7 +25,7 @@ export function heroSubtitle(char: Character): string {
 
 export function shortSubtitle(char: Character): string {
   const cls = getClass(char.classId);
-  const race = getRace(char.raceId);
+  const race = raceOf(char);
   return `${race.label} · ${cls.label} ${char.level}`;
 }
 

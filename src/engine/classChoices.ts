@@ -7,7 +7,7 @@ import { getClass } from '@/data/classes';
 import { SPELLS, SPELL_BY_ID } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
-import { getRace } from '@/data/races';
+import { raceOf } from '@/data/races';
 
 /** Uma escolha com contexto: de qual classe/subclasse e nível ela vem. */
 export interface ResolvedSpec extends ChoiceSpec {
@@ -162,13 +162,13 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   if (spec.only) all = all.filter((o) => spec.only!.includes(o.id));
   // perícias: só as que o personagem ainda não tem
   if (char && spec.catalog === 'skill') {
-    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...(getRace(char.raceId).skillProfs ?? [])]);
+    const has = new Set<string>([...char.skillProfs, ...getBackground(char.backgroundId).skills, ...(raceOf(char).skillProfs ?? [])]);
     const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(loreSkills|knowledgeSkills|natureSkill|squatSkill|prodigySkill)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !has.has(o.id) || own.has(o.id));
   }
   // idiomas: só os que o personagem ainda não fala
   if (char && spec.catalog === 'language') {
-    const speaks = new Set([...(getRace(char.raceId).languages ?? []), ...(char.extraLanguages ?? [])]);
+    const speaks = new Set([...(raceOf(char).languages ?? []), ...(char.extraLanguages ?? [])]);
     const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !speaks.has(o.id) || own.has(o.id));
   }
