@@ -2,9 +2,10 @@
 declare module '@3d-dice/dice-box-threejs' {
   export interface DiceBoxColorset {
     name: string;
-    foreground: string;
-    background: string;
-    outline: string;
+    /** Várias cores = cada dado sorteia uma (mesmo índice nas três listas). */
+    foreground: string | string[];
+    background: string | string[];
+    outline: string | string[];
     texture?: string;
     material?: 'none' | 'metal' | 'wood' | 'glass' | 'plastic';
   }
