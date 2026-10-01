@@ -65,7 +65,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
 
   return (
     <button
-      className={className}
+      className={`fv-btn is-${variant} ${className}`.trim()}
       style={{ ...base, ...variants[variant], opacity: rest.disabled ? 0.55 : undefined }}
       {...rest}
     >

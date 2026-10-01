@@ -1,3 +1,4 @@
+import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { MONSTER_BY_ID } from '@/data/bestiary';
@@ -26,16 +27,21 @@ export function HpControl({ c }: { c: Combatant }) {
     void hpWithUndo(c, /^[+-]/.test(t) ? n : n - base);
     setV('');
   };
+  const fx = useValueDelta(c.hpCurrent, c.id);
   const pct = c.hpMax ? Math.max(0, Math.min(100, ((c.hpCurrent ?? 0) / c.hpMax) * 100)) : 0;
   return (
     <div className="fv-ins-hp">
       <div className="fv-ins-hp-top">
-        <b>{c.hpCurrent ?? '?'}</b>
+        <b key={fx.pulse?.id} className={'fv-hp-num' + (fx.pulse ? ` is-${fx.pulse.kind}` : '')}>
+          <HpPops pops={fx.pops} />
+          {c.hpCurrent ?? '?'}
+        </b>
         <span>/ {c.hpMax ?? '?'} PV</span>
         {c.type === 'player' && <small>vai para a ficha</small>}
       </div>
       {c.hpMax !== null && (
         <div className="fv-ins-hp-bar" aria-hidden>
+          <HpTrail key={c.id} pct={pct} />
           <i style={{ width: `${pct}%` }} className={pct <= 25 ? 'is-low' : pct <= 50 ? 'is-mid' : ''} />
         </div>
       )}

@@ -30,7 +30,8 @@ export function InitiativeDock() {
     <div className="fv-initdock" role="region" aria-label="Iniciativa">
       <div className="fv-initdock-round" aria-label={`Rodada ${enc.round}`}>
         <small>{enc.status === 'preparing' ? 'Preparando' : 'Rodada'}</small>
-        <b>{enc.status === 'preparing' ? '—' : enc.round}</b>
+        {/* nova rodada: o número vira com um estalo */}
+        <b key={enc.round}>{enc.status === 'preparing' ? '—' : enc.round}</b>
       </div>
       <ol className="fv-initdock-order" ref={rowRef}>
         {order.length === 0 && <li className="fv-initdock-empty">Ponha heróis e criaturas no encontro.</li>}
