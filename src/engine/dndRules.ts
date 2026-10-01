@@ -337,7 +337,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
   hpParts.push(mod('hp', conMod * char.level, `Constituição ×${char.level} níveis`, 'ability'));
   if (subrace?.hpPerLevel) {
-    hpParts.push(mod('hp', subrace.hpPerLevel * char.level, subrace.label, 'subrace', { label: 'Tenacidade Anã' }));
+    hpParts.push(mod('hp', subrace.hpPerLevel * char.level, subrace.label, 'subrace', { label: subrace.traits?.[0] ?? 'Vida extra' }));
   }
   for (const f of feats) {
     if (f.hpPerLevel) hpParts.push(mod('hp', f.hpPerLevel * char.level, f.label, 'feat'));

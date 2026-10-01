@@ -62,6 +62,10 @@ export interface Race {
   size?: 'Pequeno' | 'Médio';
   /** Traços com descrição (homebrew). */
   traitDetails?: { name: string; desc: string }[];
+  /** Sub-raças da homebrew (as oficiais ficam em SUBRACES). */
+  subraces?: Subrace[];
+  /** Livro de origem quando é uma pré-montada oficial (ex.: "Volo's Guide to Monsters"). */
+  source?: string;
   /** Quem criou (nome) e quando mudou — para o mestre e para sincronizar. */
   author?: string;
   updatedAt?: number;
@@ -81,6 +85,9 @@ export interface Subrace {
   darkvision?: number;
   resistances?: string[];
   traits?: string[];
+  /** Homebrew: descrição e traços com texto. */
+  desc?: string;
+  traitDetails?: { name: string; desc: string }[];
 }
 
 /** Fonte oficial de um talento/antecedente. */

@@ -1,5 +1,5 @@
 import { ABILITY_SHORT } from '@/data/skills';
-import type { AbilityKey, Race } from '@/types/dnd';
+import type { AbilityKey, Race, Subrace } from '@/types/dnd';
 
 /**
  * Raças homebrew: o jogador cria; o app confere contra o "padrão" do Livro do
@@ -22,8 +22,15 @@ export interface HomebrewWarning {
 export function validateRace(r: Race): HomebrewWarning[] {
   const out: HomebrewWarning[] = [];
   if (!r.label.trim()) out.push({ level: 'warn', text: 'Dê um nome à raça.' });
-  const total = KEYS.reduce((a, k) => a + (r.abilityBonus[k] ?? 0), 0);
-  const max = Math.max(0, ...KEYS.map((k) => r.abilityBonus[k] ?? 0));
+  if (r.source) {
+    out.push({ level: 'info', text: `Raça oficial (${r.source}) com os números do livro — o mestre só confere se mudou algo.` });
+    return out;
+  }
+  // com sub-raça, vale o pior caso (raça + a sub-raça que mais soma)
+  const subs = r.subraces?.length ? r.subraces : [{ abilityBonus: {} } as Subrace];
+  const sum = (b: Race['abilityBonus'] | undefined, k: AbilityKey) => (r.abilityBonus[k] ?? 0) + (b?.[k] ?? 0);
+  const total = Math.max(...subs.map((sb) => KEYS.reduce((a, k) => a + sum(sb.abilityBonus, k), 0)));
+  const max = Math.max(0, ...subs.flatMap((sb) => KEYS.map((k) => sum(sb.abilityBonus, k))));
   if (total > 3) out.push({ level: 'warn', text: `Bônus somam +${total} — no livro o padrão é +3 (o Humano, +6 espalhado em +1).` });
   if (max > 2) out.push({ level: 'warn', text: `+${max} num atributo só passa do padrão (+2).` });
   if (r.speed > 10.5) out.push({ level: 'warn', text: `Deslocamento ${String(r.speed).replace('.', ',')} m é mais rápido que qualquer raça do livro (máx. 10,5 m).` });
@@ -98,11 +105,13 @@ export function customLineage(author?: string): Race {
 
 /** Prepara a raça para salvar: campos derivados (bônus, monograma, traços) e carimbo. */
 export function finalizeRace(r: Race, author?: string): Race {
-  const traitDetails = (r.traitDetails ?? []).filter((t) => t.name.trim()).map((t) => ({ name: t.name.trim().slice(0, 60), desc: t.desc.trim().slice(0, 800) }));
-  const abilityBonus = Object.fromEntries(KEYS.filter((k) => r.abilityBonus[k]).map((k) => [k, Math.max(-2, Math.min(3, Math.round(r.abilityBonus[k]!)))]));
+  const traitDetails = cleanTraits(r.traitDetails);
+  const abilityBonus = cleanBonus(r.abilityBonus);
+  const id = r.id || homebrewId(r.label);
   return {
     ...r,
-    id: r.id || homebrewId(r.label),
+    id,
+    subraces: (r.subraces ?? []).filter((sb) => sb.label.trim()).map((sb, i) => finalizeSubrace(sb, id, i)),
     label: r.label.trim().slice(0, 40),
     desc: r.desc.trim().slice(0, 600),
     mono: monogram(r.label),
@@ -119,4 +128,40 @@ export function finalizeRace(r: Race, author?: string): Race {
     author: r.author ?? author,
     updatedAt: Date.now(),
   };
+}
+
+function cleanTraits(list: { name: string; desc: string }[] | undefined) {
+  return (list ?? []).filter((t) => t.name.trim()).map((t) => ({ name: t.name.trim().slice(0, 60), desc: t.desc.trim().slice(0, 800) }));
+}
+
+function cleanBonus(b: Race['abilityBonus'] | undefined): Race['abilityBonus'] {
+  return Object.fromEntries(KEYS.filter((k) => b?.[k]).map((k) => [k, Math.max(-2, Math.min(3, Math.round(b![k]!)))]));
+}
+
+/** Sub-raça pronta para salvar (id estável dentro da raça). */
+export function finalizeSubrace(sb: Subrace, raceId: string, index = 0): Subrace {
+  const traitDetails = cleanTraits(sb.traitDetails);
+  const abilityBonus = cleanBonus(sb.abilityBonus);
+  const extra = [
+    Object.keys(abilityBonus).length ? bonusText(abilityBonus) : '',
+    sb.speedBonus ? `+${String(sb.speedBonus).replace('.', ',')} m` : '',
+  ].filter(Boolean).join(' · ');
+  return {
+    ...sb,
+    id: sb.id && sb.id.startsWith(raceId) ? sb.id : `${raceId}-s${index}-${Math.random().toString(36).slice(2, 6)}`,
+    label: sb.label.trim().slice(0, 40),
+    desc: sb.desc?.trim().slice(0, 400) || undefined,
+    abilityBonus,
+    bonus: extra || undefined,
+    traitDetails,
+    traits: traitDetails.map((t) => t.name),
+    resistances: sb.resistances?.length ? [...new Set(sb.resistances)] : undefined,
+    darkvision: sb.darkvision || undefined,
+    speedBonus: sb.speedBonus || undefined,
+  };
+}
+
+/** Sub-raça em branco para o formulário. */
+export function blankSubrace(): Subrace {
+  return { id: '', label: '', abilityBonus: {}, traitDetails: [] };
 }
