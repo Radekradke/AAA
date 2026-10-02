@@ -43,13 +43,34 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   const installer = useInstallPrompt();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    // teclado: o foco entra no 1º item; setas/Home/End andam; Esc fecha e devolve o foco; Tab sai
+    const itemsOf = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])].filter((n) => n.getClientRects().length > 0);
+    itemsOf()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        moreRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab') return setOpen(false);
+      const list = itemsOf();
+      const i = list.indexOf(document.activeElement as HTMLElement);
+      const go = (n: number) => {
+        e.preventDefault();
+        list[(n + list.length) % list.length]?.focus();
+      };
+      if (e.key === 'ArrowDown') go(i + 1);
+      else if (e.key === 'ArrowUp') go(i - 1);
+      else if (e.key === 'Home') go(0);
+      else if (e.key === 'End') go(list.length - 1);
+    };
     window.addEventListener('pointerdown', onDown);
     window.addEventListener('keydown', onKey);
     return () => {
@@ -89,6 +110,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
         <div ref={menuRef} style={{ position: 'relative' }}>
           <button
+            ref={moreRef}
             onClick={() => setOpen((o) => !o)}
             aria-label="Mais opções"
             data-tour="more"
@@ -100,15 +122,17 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
             <Icon name="more" size={18} />
           </button>
           {open && (
-            <div role="menu" className="fv-topbar-menu fv-panel">
+            <div role="menu" aria-label="Mais opções" className="fv-topbar-menu fv-panel">
               {items.map((it) => (
                 <button
                   key={it.key}
                   role="menuitem"
+                  tabIndex={-1}
                   className={'fv-topbar-menu-item' + (it.mobileOnly ? ' fv-mobile-only' : '')}
                   style={{ color: it.danger ? 'var(--danger)' : undefined }}
                   onClick={() => {
                     setOpen(false);
+                    moreRef.current?.focus(); // o item some com o menu: quem abrir um modal devolve o foco aqui
                     it.onClick();
                   }}
                 >

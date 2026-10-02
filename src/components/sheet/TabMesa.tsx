@@ -416,6 +416,7 @@ export function TabMesa({ char, derived }: TabProps) {
           <select
             className="fv-input"
             value={condPick}
+            aria-label="Adicionar condição"
             onChange={(e) => {
               const v = e.target.value;
               if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);

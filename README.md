@@ -73,6 +73,8 @@ npm run e2e        # ponta a ponta no navegador (Playwright): criação, ficha, 
 **Testes de ponta a ponta** (`e2e/`): o app sobe em modo dev apontando para um
 Supabase de mentira (`e2e/fixtures/supabase.ts`, banco em memória + Realtime),
 então nada sai da máquina. Qualquer erro de JavaScript na página reprova o teste.
+Inclui acessibilidade: axe-core (WCAG 2.1 AA) em todas as telas e abas, e
+teclado (pular para o conteúdo, menu com setas, foco preso nos modais).
 Na primeira vez: `npx playwright install chromium`.
 
 **CI** (`.github/workflows/ci.yml`): a cada push e PR roda tipos, `npm test`,
