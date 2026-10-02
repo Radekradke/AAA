@@ -18,8 +18,9 @@ export function SyncBadge() {
   const [open, setOpen] = useState(false);
 
   const view = (() => {
+    // conflito vem antes do "Salvando…" (passageiro): o selo não pode deixar de ser clicável
+    if (cloud === 'conflict' || conflicts.length) return { dot: t.danger, text: `Conflito (${conflicts.length})`, click: true };
     if (local === 'saving') return { dot: t.acc, text: 'Salvando…', pulse: true };
-    if (cloud === 'conflict') return { dot: t.danger, text: `Conflito (${conflicts.length})`, click: true };
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
     if (cloud === 'syncing') return { dot: t.acc, text: 'Sincronizando…', pulse: true };

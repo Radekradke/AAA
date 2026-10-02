@@ -76,6 +76,25 @@ export interface SessionEvent {
   createdAt: string;
 }
 
+/** Um ataque na crônica: quem, em quem, com o quê, a rolagem contra a CA e o efeito no PV. */
+export interface StrikeLog {
+  by: string;
+  target: string;
+  hit: boolean;
+  crit: boolean;
+  damage: number;
+  type?: string;
+  note?: string;
+  /** Golpe/ação usada (ex.: "Cimitarra"). */
+  action?: string;
+  /** Total da rolagem de ataque e a CA do alvo. */
+  roll?: number;
+  ac?: number;
+  round?: number;
+  hpBefore?: number;
+  hpAfter?: number;
+}
+
 /** Quem está conectado agora (Supabase Presence). */
 export interface PresencePlayer {
   userId: string;
