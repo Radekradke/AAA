@@ -285,7 +285,7 @@ export function Login() {
           </p>
           {cloud && (
             <p style={{ margin: '8px 0 0', textAlign: 'center' }}>
-              <button type="button" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
+              <button type="button" className="fv-textlink" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
                 Problemas com o login? Abrir diagnóstico →
               </button>
             </p>

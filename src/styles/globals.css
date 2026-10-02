@@ -1440,6 +1440,28 @@ button:active:not(:disabled) {
     grid-column: 1 / -1;
   }
 }
+/* celulares estreitos (≤ 374 px): a inspiração desce para baixo do PV em vez
+   de passar por cima do número; o "+5 Temp" ganha a linha inteira */
+@media (max-width: 374px) {
+  .fv-hp {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'label'
+      'num'
+      'insp'
+      'meter';
+  }
+  .fv-hp-insp {
+    justify-self: stretch;
+    min-width: 0;
+  }
+  .fv-hp-btns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .fv-hp-btns > button:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+}
 .fv-stat-chip {
   position: relative;
   width: 100%;
@@ -6270,8 +6292,15 @@ body.fv-dragging .fv-screen-scroll {
   .fv-set-row {
     flex-wrap: wrap;
   }
+  /* o controle desce para a linha de baixo e nunca passa da largura do cartão */
+  .fv-set-row-ctl {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
   .fv-set-row .fv-seg {
     flex-wrap: wrap;
+    border-radius: 18px;
   }
 }
 

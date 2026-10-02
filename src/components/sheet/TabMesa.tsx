@@ -274,6 +274,8 @@ export function TabMesa({ char, derived }: TabProps) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, margin: '13px 0 8px' }}>
             <div className="fv-label">Perícias Treinadas</div>
             <button
+              type="button"
+              className="fv-textlink"
               onClick={() => setSkillsOpen(true)}
               style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}
             >
