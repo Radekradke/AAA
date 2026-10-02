@@ -18,6 +18,7 @@ import { modStr } from '@/engine/dice';
 import type { Campaign, SharedCharacterSheet } from '@/types/models';
 import type { Character } from '@/types/character';
 import { useTheme } from '@/lib/useTheme';
+import { useInk } from '@/lib/contrast';
 import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
@@ -258,6 +259,7 @@ export function CampaignRoom() {
 /** Card vivo da ficha compartilhada (leitura, estilo aba Mesa). */
 function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boolean }) {
   const t = useTheme();
+  const ink = useInk();
   if (!snapshot) {
     return (
       <div className="fv-surface" style={{ padding: 14, fontSize: 12.5, color: 'var(--muted)' }}>
@@ -281,7 +283,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
       </div>
       {/* PV */}
       <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 17, color: hpColor }}>
+        <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 17, color: ink(hpColor) }}>
           {snapshot.hpCurrent}<span style={{ fontSize: '.65em', color: 'var(--muted)' }}>/{d.maxHp}</span>
         </span>
         <div style={{ flex: 1, height: 8, borderRadius: 3, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
@@ -293,7 +295,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
       <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
         {d.abilityList.map((a) => (
           <div key={a.key} style={{ textAlign: 'center', padding: '3px 0', borderRadius: 4, background: hexA(ABILITY_COLORS[a.key], 0.09) }}>
-            <div style={{ fontSize: 7.5, fontFamily: 'var(--font-num)', color: ABILITY_COLORS[a.key] }}>{ABILITY_SHORT[a.key]}</div>
+            <div style={{ fontSize: 7.5, fontFamily: 'var(--font-num)', color: ink(ABILITY_COLORS[a.key]) }}>{ABILITY_SHORT[a.key]}</div>
             <div style={{ fontSize: 11.5, fontFamily: 'var(--font-num)', fontWeight: 700, color: 'var(--ink)' }}>{modStr(a.mod)}</div>
           </div>
         ))}

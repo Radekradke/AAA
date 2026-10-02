@@ -11,6 +11,7 @@ import { modStr } from '@/engine/dice';
 import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
+import { useInk } from '@/lib/contrast';
 
 interface SkillsModalProps {
   char: Character;
@@ -26,6 +27,7 @@ interface SkillsModalProps {
  */
 export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
   const t = useTheme();
+  const ink = useInk();
   const { check } = useDiceRoller();
   const store = useCharacterStore();
 
@@ -45,13 +47,13 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
         <div key={g.key} style={{ marginBottom: 13 }}>
           {/* cabeçalho do grupo: atributo + modificador */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
-            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, color: ABILITY_COLORS[g.key] }}>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, color: ink(ABILITY_COLORS[g.key]) }}>
               {ABILITY_SHORT[g.key]}
             </span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '.05em' }}>
               {ABILITY_LABELS[g.key]}
             </span>
-            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, color: ABILITY_COLORS[g.key] }}>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, color: ink(ABILITY_COLORS[g.key]) }}>
               {modStr(derived.abilities[g.key].mod)}
             </span>
             <span aria-hidden style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${hexA(ABILITY_COLORS[g.key], 0.4)}, transparent)` }} />

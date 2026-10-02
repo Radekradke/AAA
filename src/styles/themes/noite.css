@@ -59,8 +59,8 @@
   --steel: #d5dde8;
   --line: rgba(20, 40, 80, 0.16);
   --line-strong: rgba(20, 40, 80, 0.34);
-  --acc: #0070a8;
-  --acc2: #a86200;
+  --acc: #026496;
+  --acc2: #895008;
   --lift: rgba(20, 60, 120, 0.05);
   --accSoft: rgba(20, 60, 120, 0.05);
   --gold: #1d3557;
@@ -68,8 +68,8 @@
   --on-gold: #ffffff;
   --on-acc: #ffffff;
   --ink: #0f1b2d;
-  --muted: #56677f;
-  --danger: #c0392b;
+  --muted: #4F6078;
+  --danger: #B32A1E;
   --bloom: rgba(0, 112, 168, 0.08);
   --particle: #7fa7d1;
   --shadow-panel: 0 18px 40px -30px rgba(15, 30, 60, 0.4);

@@ -29,6 +29,7 @@ import type { InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { itemLore } from '@/lib/lore';
+import { useInk } from '@/lib/contrast';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
 const GROUP_DEFS: { id: string; label: string; icon: IconName; match: (it: InventoryItem) => boolean }[] = [
@@ -82,6 +83,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export function TabInventario({ char, derived }: TabProps) {
+  const ink = useInk();
   const t = useTheme();
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
@@ -181,11 +183,11 @@ export function TabInventario({ char, derived }: TabProps) {
         >
           <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span>Carga</span>
-            <span style={{ color: loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' }}>{loadStatus}</span>
+            <span className="fv-tone" style={{ '--c': loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' } as React.CSSProperties}>{loadStatus}</span>
           </div>
         </LoreTooltip>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-num)' }}>
-          <span style={{ fontWeight: 700, fontSize: 22, color: loadColor }}>{carried.toFixed(1).replace('.', ',')}</span>
+          <span style={{ fontWeight: 700, fontSize: 22, color: ink(loadColor, 3.2) }}>{carried.toFixed(1).replace('.', ',')}</span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
         </div>
         <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
@@ -228,7 +230,7 @@ export function TabInventario({ char, derived }: TabProps) {
       {/* Sintonia */}
       <Panel>
         <div className="fv-label" style={{ marginBottom: 13 }}>
-          Sintonia <span style={{ color: 'var(--gold)' }}>· {attunedCount(char)} de {MAX_ATTUNEMENT}</span>
+          Sintonia <span className="fv-label-count">· {attunedCount(char)} de {MAX_ATTUNEMENT}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {attuneItems.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum item que exija sintonia na mochila.</div>}
@@ -540,6 +542,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onDrink?: () => void;
 }) {
   const t = useTheme();
+  const ink = useInk();
   const rc = RARITY[it.rarity] ?? RARITY.comum;
   const big = it.rarity !== 'comum';
   const icon = CATEGORY_ICON[it.category] ?? 'satchel';
@@ -574,7 +577,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               <span style={{ flex: 'none', padding: '1px 6px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.1em' }}>HOMEBREW</span>
             )}
           </span>
-          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: rc.color }}>
+          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: ink(rc.color) }}>
             <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
             {rc.label}
             <button ref={handle.ref} {...handle.props} type="button" aria-label={`Arrastar ${it.name}`} title="Arrastar para outro recipiente" className="fv-drag-handle">
@@ -584,7 +587,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? rc.color : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
+          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
             {it.name}
           </div>
           <button
@@ -611,7 +614,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               {preview.deltas.map((d) => {
                 const c = d.better === true ? '#3FC56B' : d.better === false ? t.danger : t.acc;
                 return (
-                  <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: c }}>
+                  <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: ink(c) }}>
                     <b>{d.label}</b> {d.from} → {d.to}{d.better === true ? ' ▲' : d.better === false ? ' ▼' : ''}
                   </span>
                 );

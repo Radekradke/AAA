@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
+import { useInk } from '@/lib/contrast';
 
 interface SpellLibraryProps {
   title: string;
@@ -172,8 +173,9 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
 }
 
 function MiniChip({ children, color }: { children: React.ReactNode; color?: string }) {
+  const ink = useInk();
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ?? 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ? ink(color) : 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

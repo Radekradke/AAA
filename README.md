@@ -121,6 +121,17 @@ public/assets/   heroi.png, heroi-fem.png, bg.mp4
 - **Supabase:** o HTML ganha `preconnect` para o servidor quando `VITE_SUPABASE_URL`
   existe no build.
 
+## ♿ Contraste (AA nos 8 temas, claro e escuro)
+
+- As paletas (CSS + `src/data/themes.ts`) passam no AA com folga; o teste
+  `themeSync` garante que os dois lados batem.
+- **Cor fixa em texto** (atributos, PV, cura, raridade): use `useInk()` de
+  `src/lib/contrast.ts` — `ink(cor)` mantém o tom e só ajusta a luz para o painel do
+  tema. Bordas e fundos continuam com a cor original.
+- **Cor vinda de variável CSS** (`--c`): use a classe `.fv-tone`; o CSS escurece no
+  claro, clareia no escuro e trata as plaquinhas escuras da Forja.
+- Correções pontuais medidas ficam em `src/styles/contrast.css` (com o porquê).
+
 ---
 
 ## 🧠 Engine D&D 5e (resumo)

@@ -19,6 +19,7 @@ import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
+import { useInk } from '@/lib/contrast';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -371,8 +372,9 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
 }
 
 function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
+  const ink = useInk();
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ?? 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

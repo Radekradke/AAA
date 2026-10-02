@@ -26,7 +26,7 @@
   --steel: #3a1626;
   --line: rgba(240, 170, 170, 0.16);
   --line-strong: rgba(232, 190, 160, 0.36);
-  --acc: #ff3d5e;
+  --acc: #FE5F71;
   --acc2: #4fb6a8;
   --lift: rgba(255, 190, 205, 0.06);
   --accSoft: rgba(255, 190, 205, 0.06);
@@ -63,7 +63,7 @@
   --line: rgba(90, 20, 40, 0.16);
   --line-strong: rgba(90, 20, 40, 0.34);
   --acc: #b0123a;
-  --acc2: #1b7268;
+  --acc2: #08685E;
   --lift: rgba(140, 20, 50, 0.05);
   --accSoft: rgba(140, 20, 50, 0.05);
   --gold: #8c3b2e;
@@ -72,7 +72,7 @@
   --on-acc: #ffffff;
   --ink: #2b0f18;
   --muted: #76515c;
-  --danger: #b4382b;
+  --danger: #AB2F23;
   --bloom: rgba(176, 18, 58, 0.08);
   --particle: #e58aa0;
   --shadow-panel: 0 24px 50px -30px rgba(90, 20, 40, 0.35);

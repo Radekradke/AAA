@@ -8,6 +8,7 @@ import './styles/fonts';
 import './styles/globals.css';
 import './styles/themes/index.css';
 import './styles/polish.css';
+import './styles/contrast.css';
 // animações básicas vêm junto (entradas com opacity:0 não podem esperar a rede
 // para aparecer); arrastar/layout (domMax) só nos toasts, carregado à parte.
 // strict: nenhum `motion` completo escondido no bundle.

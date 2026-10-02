@@ -62,6 +62,8 @@ export interface Race {
   homebrew?: boolean;
   /** Tamanho (homebrew; as oficiais seguem o livro). */
   size?: 'Pequeno' | 'Médio';
+  /** Ícone escolhido (homebrew): chave de um ícone de raça do livro ('race-elf') ou extra ('orc-head'). */
+  icon?: string;
   /** Traços com descrição (homebrew). */
   traitDetails?: { name: string; desc: string }[];
   /** Sub-raças da homebrew (as oficiais ficam em SUBRACES). */

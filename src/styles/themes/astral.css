@@ -37,7 +37,7 @@
   --on-acc: #2a1206;
   --ink: #f5f1ff;
   --muted: #a89ccb;
-  --danger: #ff5e7a;
+  --danger: #FE6E84;
   --bloom: rgba(255, 140, 120, 0.18);
   --particle: #ffe3a8;
   --shadow-panel: 0 30px 60px -30px rgba(4, 2, 18, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -61,17 +61,17 @@
   --steel: #dcd3f3;
   --line: rgba(60, 30, 120, 0.14);
   --line-strong: rgba(60, 30, 120, 0.3);
-  --acc: #d4552f;
-  --acc2: #0f8277;
+  --acc: #AA3204;
+  --acc2: #0E6860;
   --lift: rgba(110, 70, 210, 0.06);
   --accSoft: rgba(110, 70, 210, 0.06);
-  --gold: #6b3fd1;
+  --gold: #6A3DCF;
   --goldB: #8a63e8;
   --on-gold: #ffffff;
   --on-acc: #ffffff;
   --ink: #1e1537;
-  --muted: #675e84;
-  --danger: #c8304e;
+  --muted: #60577D;
+  --danger: #B5173E;
   --bloom: rgba(140, 90, 240, 0.12);
   --particle: #b89bff;
   --horizon: linear-gradient(90deg, #e86a43, #d6478c 45%, #12968a);
@@ -124,8 +124,9 @@
   box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--acc), transparent 20%), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   letter-spacing: 0.06em;
 }
+/* claro: o pôr do sol fica mais fundo para o texto branco ler (AA) */
 [data-theme='astral'][data-mode='light'] .fv-btn-gold {
-  background: linear-gradient(100deg, #ef7b52, var(--acc) 45%, #c43a7c);
+  background: linear-gradient(100deg, #b5481f, var(--acc) 45%, #a8306a);
 }
 [data-theme='astral'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, input.fv-input, select.fv-input, .fv-topbar-pill, .fv-seg) {
   border-radius: 999px;
@@ -172,7 +173,7 @@
   background: linear-gradient(100deg, #ffb48f, var(--acc) 45%, #ff7eb6);
 }
 [data-theme='astral'][data-mode='light'] .fv-menu-item.is-primary {
-  background: linear-gradient(100deg, #ef7b52, var(--acc) 45%, #c43a7c);
+  background: linear-gradient(100deg, #b5481f, var(--acc) 45%, #a8306a);
 }
 [data-theme='astral'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
   color: var(--on-acc);
