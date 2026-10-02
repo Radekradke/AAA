@@ -55,11 +55,31 @@ test.describe('ficha', () => {
     await expect(page.locator('.fv-print')).toBeVisible();
   });
 
-  test('sem conta, compartilhar explica o caminho alternativo', async ({ page }) => {
+  test('corrente no retrato: compartilhar por link ou em PDF', async ({ page }) => {
     await page.goto(`/ficha/${ID}`);
-    await page.getByRole('button', { name: 'Mais opções' }).click();
-    await page.getByRole('menuitem', { name: 'Compartilhar por link' }).click();
-    await expect(page.getByRole('dialog')).toContainText('precisa de uma conta');
+    await page.getByRole('button', { name: 'Compartilhar a ficha (link ou PDF)' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Compartilhar a ficha' });
+    await expect(dialog.getByRole('button', { name: /Por link/ })).toBeVisible();
+
+    // sem conta: o link explica o caminho alternativo
+    await dialog.getByRole('button', { name: /Por link/ }).click();
+    const link = page.getByRole('dialog', { name: 'Compartilhar por link' });
+    await expect(link).toContainText('precisa de uma conta');
+    await link.getByRole('button', { name: '‹ Voltar' }).click();
+
+    // PDF: abre a ficha pronta para imprimir
+    await page.getByRole('dialog', { name: 'Compartilhar a ficha' }).getByRole('button', { name: /Em PDF/ }).click();
+    await expect(page).toHaveURL(new RegExp(`/ficha/${ID}/imprimir$`));
+    await expect(page.locator('.fv-ills h1')).toHaveText(NAME);
+  });
+
+  test('trocar a arte fica em Editar (não mais no retrato)', async ({ page }) => {
+    await page.goto(`/ficha/${ID}`);
+    await expect(page.locator('.fv-sheet-head').getByRole('button', { name: /arte do personagem/ })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Editar', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Editar herói' });
+    await expect(dialog).toContainText('Arte do personagem');
+    await expect(dialog.getByRole('button', { name: /Sua arte/ })).toBeVisible();
   });
 
   test('cabe na tela do celular sem rolagem lateral @celular', async ({ page }) => {

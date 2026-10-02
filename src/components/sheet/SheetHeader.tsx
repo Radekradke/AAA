@@ -1,7 +1,7 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import { heroSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
-import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { Icon } from '@/components/ui/Icon';
 import { raceOf } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
@@ -14,13 +14,14 @@ interface SheetHeaderProps {
   derived: DerivedCharacter;
   /** Só identidade (sem os blocos de defesa) — usado na Mesa, que já os mostra. */
   compact?: boolean;
+  /** Abre "compartilhar a ficha" (link ou PDF) — o botão de corrente junto do retrato. */
+  onShare?: () => void;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProps) {
   const race = raceOf(char);
   const setLevel = useCharacterStore((s) => s.setLevel);
-  const updateCharacter = useCharacterStore((s) => s.updateCharacter);
 
   // valores derivados com cálculo rastreável (tooltip mostra cada origem)
   const bd = derived.breakdowns;
@@ -78,7 +79,12 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
             }}
           />
         </div>
-        <PortraitPicker variant="badge" portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
+        {/* trocar a arte fica em "Editar"; aqui, compartilhar a ficha */}
+        {onShare && (
+          <button type="button" className="fv-sh-share" onClick={onShare} aria-label="Compartilhar a ficha (link ou PDF)" title="Compartilhar a ficha">
+            <Icon name="link" size={15} />
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>

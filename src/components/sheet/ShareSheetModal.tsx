@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Icon } from '@/components/ui/Icon';
 import { Modal } from '@/components/ui/Modal';
 import { confirmAction, toast } from '@/store/feedbackStore';
 import { useAuthStore } from '@/store/authStore';
@@ -9,9 +11,10 @@ import type { SheetShare } from '@/services/shareService';
 import type { Character } from '@/types/character';
 
 /**
- * Compartilhar a ficha por link: quem recebe vê a ficha (só leitura, sem
- * conta, a última versão na nuvem). Dá para ter mais de um link e revogar
- * cada um — o link revogado para de mostrar na hora.
+ * Compartilhar a ficha (botão de corrente no cabeçalho): primeiro a escolha —
+ * por link ou em PDF. Link: quem recebe vê a ficha ilustrada (só leitura, sem
+ * conta, a última versão na nuvem); dá para ter mais de um e revogar cada um.
+ * PDF: abre a ficha pronta para imprimir / salvar em PDF.
  */
 export function ShareSheetModal({ char, onClose }: { char: Character; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
@@ -20,11 +23,13 @@ export function ShareSheetModal({ char, onClose }: { char: Character; onClose: (
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [mode, setMode] = useState<'choose' | 'link'>('choose');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!canCloud) return;
+    if (!canCloud || mode !== 'link') return;
     shareService.list(char.id).then(setLinks).catch((e: Error) => setError(e.message));
-  }, [canCloud, char.id]);
+  }, [canCloud, char.id, mode]);
 
   const create = async () => {
     if (!user) return;
@@ -64,14 +69,46 @@ export function ShareSheetModal({ char, onClose }: { char: Character; onClose: (
     }
   };
 
+  if (mode === 'choose') {
+    return (
+      <Modal title="Compartilhar a ficha" icon="quill" onClose={onClose} maxWidth={520}>
+        <p className="fv-share-lead">Como você quer mandar <b>{char.name || 'esta ficha'}</b>?</p>
+        <div className="fv-share-choices">
+          <button type="button" className="fv-share-choice" onClick={() => setMode('link')}>
+            <span className="fv-share-choice-ico" aria-hidden><Icon name="link" size={22} /></span>
+            <span>
+              <b>Por link</b>
+              <small>Quem abrir vê a ficha ilustrada, só leitura, sem precisar de conta. Dá para revogar.</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="fv-share-choice"
+            onClick={() => {
+              onClose();
+              navigate(`/ficha/${char.id}/imprimir`);
+            }}
+          >
+            <span className="fv-share-choice-ico" aria-hidden><Icon name="book" size={22} /></span>
+            <span>
+              <b>Em PDF</b>
+              <small>A ficha pronta para imprimir no visual do tema, com a arte em destaque — salve em PDF ou imprima para a mesa.</small>
+            </span>
+          </button>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
-    <Modal title="Compartilhar a ficha" icon="quill" onClose={onClose} maxWidth={560}>
+    <Modal title="Compartilhar por link" icon="quill" onClose={onClose} maxWidth={560}>
       <div className="fv-share">
+        <button type="button" className="fv-textlink fv-share-back" onClick={() => setMode('choose')}>‹ Voltar</button>
         <p className="fv-share-lead">
-          Gera um link para ver <b>{char.name || 'esta ficha'}</b> no formato de papel — só leitura, sem precisar de conta. Mostra a última versão sincronizada com a nuvem.
+          Gera um link para ver <b>{char.name || 'esta ficha'}</b> como ficha ilustrada — só leitura, sem precisar de conta. Mostra a última versão sincronizada com a nuvem.
         </p>
         {!canCloud ? (
-          <p className="fv-share-note">Compartilhar por link precisa de uma conta na nuvem. Para mandar a ficha sem conta, use <b>Imprimir / PDF</b> ou <b>Exportar ficha (JSON)</b> no menu.</p>
+          <p className="fv-share-note">Compartilhar por link precisa de uma conta na nuvem. Para mandar a ficha sem conta, volte e escolha <b>Em PDF</b>.</p>
         ) : (
           <>
             <button type="button" className="fv-btn-gold fv-share-new" disabled={busy} onClick={() => void create()}>

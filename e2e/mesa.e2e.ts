@@ -68,8 +68,8 @@ test.describe('ficha compartilhada por link', () => {
     await signIn(page, 'player');
     const db = await installSupabase(page, 'player');
     await page.goto('/ficha/k');
-    await page.getByRole('button', { name: 'Mais opções' }).click();
-    await page.getByRole('menuitem', { name: 'Compartilhar por link' }).click();
+    await page.getByRole('button', { name: 'Compartilhar a ficha (link ou PDF)' }).click();
+    await page.getByRole('button', { name: /Por link/ }).click();
     await page.getByRole('button', { name: 'Criar link e copiar' }).click();
     await expect(page.locator('.fv-share-list li')).toHaveCount(1);
     expect(db.writes).toContain('POST sheet_shares');
