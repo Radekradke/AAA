@@ -47,6 +47,7 @@ import { FeedbackHost } from '@/components/feedback/FeedbackHost';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUiStore } from '@/store/uiStore';
 import { cloudEnabled } from '@/services/supabaseClient';
+import { watchCharacters } from '@/services/sheetHistory';
 
 // peças globais que quase nunca aparecem: baixam na primeira vez que precisam
 const SessionDock = lazy(() => import('@/components/session/SessionDock').then((m) => ({ default: m.SessionDock })));
@@ -95,6 +96,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 export function App() {
   const location = useLocation();
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
+  useEffect(() => watchCharacters(useCharacterStore.subscribe), []); // histórico da ficha (versões no aparelho)
   useHeroArtPreload(location.pathname);
   const user = useAuthStore((s) => s.user);
   const showTutorial = useOnceTrue(useUiStore((s) => s.tutorialOpen));

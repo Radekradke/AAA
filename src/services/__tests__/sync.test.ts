@@ -27,3 +27,26 @@ describe('sincronização offline-first: decisão por ficha', () => {
     expect(decideSyncAction({ updatedAt: 500, lastSyncedAt: 400 }, 400)).toBe('push');
   });
 });
+
+describe('sincronização por versão (syncBase)', () => {
+  it('outro aparelho editou ANTES mas subiu DEPOIS → pull (antes passava batido)', () => {
+    // este aparelho sincronizou às 10:05 vendo a versão 100; o outro editou às 10:02 (102) e subiu às 10:20
+    expect(decideSyncAction({ updatedAt: 100, lastSyncedAt: 1005, syncBase: 100 }, 102)).toBe('pull');
+  });
+
+  it('relógio do outro aparelho atrasado não esconde a mudança', () => {
+    expect(decideSyncAction({ updatedAt: 500, syncBase: 500 }, 300)).toBe('pull');
+  });
+
+  it('edição local com relógio atrasado ainda conta como mudança', () => {
+    expect(decideSyncAction({ updatedAt: 90, syncBase: 100 }, 100)).toBe('push');
+  });
+
+  it('os dois mudaram desde a base → conflito', () => {
+    expect(decideSyncAction({ updatedAt: 150, syncBase: 100 }, 120)).toBe('conflict');
+  });
+
+  it('nada mudou desde a base → noop', () => {
+    expect(decideSyncAction({ updatedAt: 100, syncBase: 100, lastSyncedAt: 1 }, 100)).toBe('noop');
+  });
+});

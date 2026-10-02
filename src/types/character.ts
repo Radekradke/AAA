@@ -290,6 +290,12 @@ export interface Character {
   updatedAt: number;
   /** Última sincronização com a nuvem (ms); ausente = nunca sincronizada. */
   lastSyncedAt?: number;
+  /**
+   * Versão da nuvem (`updated_at`) que este aparelho viu por último — a base
+   * comum dos dois lados. Mudou na nuvem = `updated_at` diferente dela; mudou
+   * aqui = `updatedAt` diferente dela. Não depende do relógio dos aparelhos.
+   */
+  syncBase?: number;
   /** Estado de sincronização ('synced' | 'pending' | 'conflict' | 'offline'). */
   syncStatus?: import('./models').SyncStatus;
   /** Personagem ainda em criação (rascunho). */

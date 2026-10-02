@@ -67,7 +67,7 @@ function seed(who: Who): Record<string, Row[]> {
     session_prep: [],
     app_schema_steps: ['base', 'multiplayer', 'npcs_bestiario', 'palco', 'mestre_console', 'recursos_extras'].map((step) => ({ step })),
     invite_links: [{ id: 'inv1', campaign_id: C, token: 'abcdefghijklm', created_by: M, expires_at: null, max_uses: null, uses: 0, code: INVITE_CODE }],
-    sheets: [{ id: 'k', user_id: P, snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' } }],
+    sheets: [{ id: 'k', user_id: P, snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: 1000 }],
     shared_sheets: [{ id: 'sh1', campaign_id: C, sheet_id: 'k', owner_id: P, permissions: {}, shared_at: 1 }],
     sheet_shares: [],
     client_errors: [],

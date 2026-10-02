@@ -42,6 +42,8 @@ export interface SyncConflict {
   name: string;
   localUpdatedAt: number;
   remoteUpdatedAt: number;
+  /** A versão da nuvem, para mostrar a diferença antes de escolher. */
+  remote?: import('./character').Character;
 }
 
 /* ============================================================
