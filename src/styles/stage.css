@@ -935,3 +935,65 @@ body.fv-dragging-token .fv-map-view::after {
 @media (prefers-reduced-motion: reduce) {
   .fv-map-dropcell { animation: none; }
 }
+
+/* ---------- mapa em tela cheia ----------
+   O palco cobre a janela; o mapa estica no que sobra. Fica abaixo de janelas
+   (70), avisos e rolagens, para que continuem aparecendo por cima. */
+.fv-stage.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  margin: 0;
+  border-radius: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: var(--bg);
+}
+.fv-stage.is-full > .fv-stage-head { margin-bottom: 0; }
+.fv-stage.is-full > .fv-stage-turn,
+.fv-stage.is-full > .fv-tokenbar { margin: 0; }
+body.fv-map-full .fv-stage.is-full .fv-map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+body.fv-map-full .fv-stage.is-full .fv-map-view {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  border-radius: var(--radius-md);
+}
+/* bandeja de peões: uma linha que rola de lado, para não comer o mapa */
+.fv-stage.is-full .fv-tray { margin-top: 0; flex: none; }
+.fv-stage.is-full .fv-tray > .fv-label,
+.fv-stage.is-full .fv-tray > .fv-live-hint { display: none; }
+.fv-stage.is-full .fv-tray-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.fv-stage.is-full .fv-tray-row > * { flex: none; }
+.fv-stage.is-full .fv-tray-row .fv-input { flex: 0 0 200px; }
+/* a página por baixo não rola nem aparece (topo, navegação, dock da sessão) */
+body.fv-map-full { overflow: hidden; }
+/* a tela fica num contexto de empilhamento (z 10) abaixo do topo (40) e das
+   barras de navegação: no modo cheio ela sobe — ainda abaixo de avisos,
+   rolagens e janelas globais */
+body.fv-map-full .fv-screen-scroll { overflow: hidden !important; transform: none !important; z-index: 60 !important; }
+.fv-stage-turn .fv-stage-next {
+  border-color: var(--goldB);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  color: var(--on-gold, #1a1206);
+  font-weight: 700;
+}
+.fv-stage-turn .fv-stage-next:disabled { opacity: 0.6; cursor: wait; }
+/* tela baixa (celular deitado): só o essencial em volta do mapa */
+@media (max-height: 520px) {
+  .fv-stage.is-full { gap: 4px; padding-top: max(4px, env(safe-area-inset-top)); padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .fv-stage.is-full .fv-stage-title small,
+  .fv-stage.is-full .fv-stage-turn label { display: none; }
+  .fv-stage.is-full .fv-stage-head .fv-input { min-height: 32px; padding-block: 2px; }
+  .fv-stage.is-full .fv-tray { display: none; }
+}
+/* seletor de cena: o nome não passa por baixo da setinha */
+.fv-stage-actions select.fv-input { padding-right: 30px; text-overflow: ellipsis; max-width: 100%; }

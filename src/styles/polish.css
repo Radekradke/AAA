@@ -216,3 +216,15 @@ label:focus-within > small {
   .fv-initdock-round b,
   .fv-live-medal b { animation: none; }
 }
+
+/* links de texto (Ver todas, Atualizar, diagnóstico): parecem texto, mas a
+   área de toque tem ~32 px de altura — o dedo não precisa mirar na letra */
+.fv-textlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 4px;
+  margin-block: -6px;
+  border-radius: 6px;
+}
+.fv-textlink:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }

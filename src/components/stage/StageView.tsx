@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StageMap } from './StageMap';
 import { BlankMapButton } from './BlankMap';
 import type { TokenFace } from './StageMap';
@@ -49,6 +49,12 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   const scene = isMaster ? st.scenes.find((s) => s.id === st.viewSceneId) ?? live : live;
   const isLive = !!scene && scene.id === live?.id;
   const [selected, setSelected] = useState<string | null>(null);
+  const [fullOn, toggleFull] = useMapFullscreen();
+  const full = fullOn && scene?.kind === 'map';
+  // a cena trocou para algo que não é mapa: sai da tela cheia (destrava a página)
+  useEffect(() => {
+    if (fullOn && scene?.kind !== 'map') toggleFull();
+  }, [scene?.kind]); // eslint-disable-line react-hooks/exhaustive-deps
   const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens: st.tokens });
   const canMove = (t: Token) => isMaster || (t.ownerId === userId && !t.hidden);
   const [follow, setFollow] = useState(() => {
@@ -147,7 +153,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   }
 
   return (
-    <section className={'fv-panel fv-stage' + (scene ? ` is-${scene.kind}` : ' fv-stage-empty')}>
+    <section className={'fv-panel fv-stage' + (scene ? ` is-${scene.kind}` : ' fv-stage-empty') + (full ? ' is-full' : '')}>
       <header className="fv-stage-head">
         <div className="fv-stage-title">
           {scene ? (
@@ -213,6 +219,12 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
                 return tg ? <> → alvo <b className="is-target">{tg.name}</b></> : null;
               })()}</span>
               <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
+              {/* em tela cheia a iniciativa fica escondida: o mestre passa a vez daqui */}
+              {full && isMaster && encounter?.status === 'active' && (
+                <button type="button" className="fv-stage-next" disabled={session.busy} onClick={() => void session.nextTurn()}>
+                  Próximo ▶
+                </button>
+              )}
               <label>
                 <input
                   type="checkbox"
@@ -260,6 +272,8 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onFogAll={isMaster ? (mode) => void st.saveFog(scene, mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) : undefined}
             onPullView={isMaster && isLive ? st.pullView : undefined}
             onDropItem={isMaster ? (item, cell) => void dropOnMap(item, cell) : undefined}
+            full={full}
+            onToggleFull={toggleFull}
           />
           {isMaster && <TokenTray scene={scene} tokens={st.tokens} heroes={heroes} npcs={npcs} combatants={combatants} />}
         </>
@@ -596,4 +610,53 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
       return new Set(tokens.filter((t) => combFor(t)?.id === id).map((t) => t.id));
     },
   };
+}
+
+/**
+ * Mapa em tela cheia: o palco cobre a janela (CSS) e, onde o navegador deixa,
+ * a página entra em tela cheia de verdade (some a barra do navegador). É o
+ * documento inteiro que vai para tela cheia — não só o palco — para que
+ * avisos, rolagens e janelas (que abrem no <body>) continuem aparecendo.
+ */
+function useMapFullscreen(): [boolean, () => void] {
+  const [full, setFull] = useState(false);
+  const fullRef = useRef(full);
+  fullRef.current = full;
+
+  // saiu pelo navegador (Esc, gesto, F11): o palco volta junto
+  useEffect(() => {
+    const onChange = () => {
+      if (!document.fullscreenElement) setFull(false);
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  // trava a rolagem da página por baixo e sinaliza o modo para o resto da tela
+  useEffect(() => {
+    if (!full) return;
+    document.body.classList.add('fv-map-full');
+    return () => document.body.classList.remove('fv-map-full');
+  }, [full]);
+
+  // saiu da mesa com o mapa em tela cheia: devolve a janela ao normal
+  useEffect(
+    () => () => {
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    },
+    [],
+  );
+
+  const toggle = useCallback(() => {
+    const next = !fullRef.current;
+    setFull(next);
+    if (next) {
+      // iPhone e alguns navegadores não têm a API: fica só a tela cheia do app
+      void document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => undefined);
+    } else if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+    }
+  }, []);
+
+  return [full, toggle];
 }

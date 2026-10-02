@@ -183,7 +183,7 @@ export function CampaignRoom() {
         {/* fichas da mesa */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
           <div className="fv-label">Heróis da mesa · {shares.length}</div>
-          <button onClick={load} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 12, fontWeight: 600 }}>↺ Atualizar</button>
+          <button type="button" className="fv-textlink" onClick={load} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 12, fontWeight: 600 }}>↺ Atualizar</button>
         </div>
         {shares.length === 0 && (
           <EmptyState icon="crest" title="Nenhuma ficha vinculada ainda" hint={isMaster ? 'Envie o link de convite — quando os jogadores vincularem as fichas, elas aparecem aqui ao vivo.' : 'Vincule sua ficha acima para o mestre acompanhar.'} />
