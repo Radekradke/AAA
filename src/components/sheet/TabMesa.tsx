@@ -79,24 +79,24 @@ export function TabMesa({ char, derived }: TabProps) {
   };
 
   return (
-    <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(12px,1.4vw,16px)' }}>
+    <div className="animate-riseIn fv-mesa">
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
         {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
         <div className="fv-hp" data-tour="hp">
           {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
-          <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--acc)' }}> · {derived.subclassLabel}</span> : null}</div>
+          <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span className="fv-mesa-sub"> · {derived.subclassLabel}</span> : null}</div>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
           <div className="fv-hp-insp">
             <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: ink(hpColor, 3.2), whiteSpace: 'nowrap' }}>
+            <div key={hpFx.pulse?.id} className={'fv-hp-num fv-mesa-hpnum' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
               <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
-              <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
-              {char.combat.hpTemp > 0 && <span style={{ fontSize: '.42em', color: t.acc }}> +{char.combat.hpTemp}</span>}
+              <span className="fv-mesa-hpmax"> / {hpMax}</span>
+              {char.combat.hpTemp > 0 && <span className="fv-mesa-hptemp"> +{char.combat.hpTemp}</span>}
             </div>
           </LoreTooltip>
           <div className="fv-hp-meter">
@@ -111,7 +111,7 @@ export function TabMesa({ char, derived }: TabProps) {
               <QuickBtn color="#3FC56B" onClick={() => store.heal(char.id, 1)}>+1</QuickBtn>
               <QuickBtn color="#3FC56B" strong onClick={() => store.heal(char.id, 5)}>+5</QuickBtn>
               <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>
-                +5 <small style={{ fontSize: '.78em', opacity: 0.85 }}>Temp</small>
+                +5 <small className="fv-mesa-small">Temp</small>
               </QuickBtn>
               {char.combat.hpTemp > 0 && (
                 <QuickBtn color={t.muted} onClick={() => store.setTempHp(char.id, 0)}>Zerar Temp</QuickBtn>
@@ -122,13 +122,13 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* morrendo: testes contra a morte em destaque */}
         {dying && (
-          <div style={{ marginTop: 13, padding: '12px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.5), background: hexA(t.danger, 0.1), display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: t.danger }}>
+          <div className="fv-mesa-dying">
+            <div className="fv-mesa-dying-title">
               CAINDO — Testes contra a Morte
             </div>
             <DeathPips label="Sucessos" color="#3FC56B" value={char.combat.deathSaves.success} onSet={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathPips label="Falhas" color={t.danger} value={char.combat.deathSaves.fail} onSet={(n) => store.setDeathSave(char.id, 'fail', n)} />
-            <button onClick={rollDeathSave} className="fv-btn-gold" style={{ padding: '9px 16px', fontSize: 13, marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <button onClick={rollDeathSave} className="fv-btn-gold fv-mesa-deathroll">
               <Icon name="d20" size={15} /> Rolar teste
             </button>
           </div>
@@ -173,7 +173,7 @@ export function TabMesa({ char, derived }: TabProps) {
         </div>
 
         {/* economia de turno: ação, bônus, reação e movimento */}
-        <div data-tour="turn" style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div data-tour="turn" className="fv-mesa-turn">
           <InitiativeButton char={char} derived={derived} compact />
           {([
             { k: 'action' as const, label: 'Ação' },
@@ -208,12 +208,13 @@ export function TabMesa({ char, derived }: TabProps) {
               </button>
             );
           })}
-          <span style={{ flex: '1 1 110px', textAlign: 'center', fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>
-            Mov. <b style={{ color: 'var(--ink)' }}>{(derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{derived.speed.toString().replace('.', ',')} m
+          <span className="fv-mesa-move">
+            Mov. <b>{(derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{derived.speed.toString().replace('.', ',')} m
           </span>
           <button
+            type="button"
+            className="fv-mesa-newturn"
             onClick={() => store.resetTurn(char.id)}
-            style={{ cursor: 'pointer', minHeight: 36, padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)', background: 'transparent', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}
           >
             ↺ Novo turno
           </button>
@@ -231,20 +232,18 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* Ataques */}
         <Panel>
           {((char.combat.spellEffects?.length ?? 0) > 0 || (char.combat.marks?.length ?? 0) > 0) && (
-            <div style={{ marginBottom: 12 }}>
-              <div className="fv-label" style={{ marginBottom: 7 }}>Efeitos ativos</div>
+            <div className="fv-mesa-effects">
+              <div className="fv-label fv-mesa-label-tight">Efeitos ativos</div>
               <ActiveEffects char={char} />
             </div>
           )}
-          <div className="fv-label" style={{ marginBottom: 8 }}>Ataques</div>
+          <div className="fv-label fv-mesa-label">Ataques</div>
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
           )}
           {derived.attacks.map((atk) => (
-            <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{atk.name}</div>
-              </div>
+            <div key={atk.uid} className="fv-mesa-atk">
+              <div className="fv-mesa-atk-name">{atk.name}</div>
               <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}
@@ -252,8 +251,8 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* Salvaguardas + perícias-chave */}
         <Panel>
-          <div className="fv-label" style={{ marginBottom: 8 }}>Salvaguardas</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          <div className="fv-label fv-mesa-label">Salvaguardas</div>
+          <div className="fv-mesa-saves">
             {derived.abilityList.map((a) => (
               <button
                 key={a.key}
@@ -273,18 +272,13 @@ export function TabMesa({ char, derived }: TabProps) {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, margin: '13px 0 8px' }}>
+          <div className="fv-mesa-row">
             <div className="fv-label">Perícias Treinadas</div>
-            <button
-              type="button"
-              className="fv-textlink"
-              onClick={() => setSkillsOpen(true)}
-              style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}
-            >
+            <button type="button" className="fv-textlink fv-mesa-more" onClick={() => setSkillsOpen(true)}>
               Ver todas →
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="fv-mesa-chips">
             {proficientSkills.map((sk) => (
               <button
                 key={sk.key}
@@ -295,12 +289,12 @@ export function TabMesa({ char, derived }: TabProps) {
                 {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}> desv.</span>}
               </button>
             ))}
-            {proficientSkills.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Sem proficiências ainda.</span>}
+            {proficientSkills.length === 0 && <span className="fv-mesa-empty">Sem proficiências ainda.</span>}
           </div>
           {(char.toolProfs ?? []).length > 0 && (
             <>
-              <div className="fv-label" style={{ margin: '13px 0 8px' }}>Ferramentas</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="fv-label fv-mesa-label-gap">Ferramentas</div>
+              <div className="fv-mesa-chips">
                 {(char.toolProfs ?? []).map((tool) => {
                   const chk = calculateToolCheck(char, tool);
                   return (
@@ -309,7 +303,7 @@ export function TabMesa({ char, derived }: TabProps) {
                       onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
                       style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
-                      {tool.label} <span style={{ fontSize: 9.5, color: 'var(--muted)' }}>{ABILITY_SHORT[chk.ability]}</span>{' '}
+                      {tool.label} <span className="fv-mesa-chip-ab">{ABILITY_SHORT[chk.ability]}</span>{' '}
                       <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: 'var(--font-num)' }}>{modStr(chk.total)}</b>
                     </button>
                   );
@@ -324,25 +318,25 @@ export function TabMesa({ char, derived }: TabProps) {
         {/* Magia (se conjurador) */}
         {derived.isCaster && (
           <Panel>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+            <div className="fv-mesa-row fv-mesa-row-top">
               <div className="fv-label">Magia</div>
-              <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+              <span className="fv-mesa-castinfo">
                 CD{' '}
                 <LoreTooltip info={calcLore('CD de Magia', bd.spellDC!)}>
-                  <b style={{ cursor: 'help', color: t.gold, fontFamily: 'var(--font-num)' }}>{derived.spellDC}</b>
+                  <b className="fv-mesa-num is-gold">{derived.spellDC}</b>
                 </LoreTooltip>{' '}
                 · Ataque{' '}
                 <LoreTooltip info={calcLore('Ataque Mágico', bd.spellAttack!)}>
-                  <b style={{ cursor: 'help', color: t.acc, fontFamily: 'var(--font-num)' }}>{modStr(derived.spellAttack!)}</b>
+                  <b className="fv-mesa-num is-acc">{modStr(derived.spellAttack!)}</b>
                 </LoreTooltip>
               </span>
             </div>
             {slotLevels.map((lv) => {
               const slot = slotView[lv];
               return (
-                <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0' }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, color: 'var(--ink)', minWidth: 72 }}>{lv}º círculo</span>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div key={lv} className="fv-mesa-slotrow">
+                  <span className="fv-mesa-slotlv">{lv}º círculo</span>
+                  <div className="fv-mesa-chips">
                     {Array.from({ length: slot.max }, (_, i) => {
                       const filled = i >= slot.used;
                       return (
@@ -376,16 +370,16 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* Recursos + descansos */}
         <Panel>
-          <div className="fv-label" style={{ marginBottom: 8 }}>Recursos &amp; Descanso</div>
-          {resources.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--muted)', padding: '4px 0 6px' }}>Nenhum recurso de classe neste nível.</div>}
+          <div className="fv-label fv-mesa-label">Recursos &amp; Descanso</div>
+          {resources.length === 0 && <div className="fv-mesa-empty fv-mesa-empty-pad">Nenhum recurso de classe neste nível.</div>}
           {resources.map((res) => {
             const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
             return (
-              <div key={res.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
+              <div key={res.id} className="fv-mesa-res">
                 <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso'])}>
-                  <span style={{ cursor: 'help', flex: 1, fontFamily: 'var(--font-display)', fontSize: 13.5, color: 'var(--ink)' }}>
+                  <span className="fv-mesa-res-name">
                     {res.label}
-                    {res.die && <span style={{ marginLeft: 6, fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>{res.die}</span>}
+                    {res.die && <span className="fv-mesa-res-die">{res.die}</span>}
                   </span>
                 </LoreTooltip>
                 <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
@@ -400,7 +394,7 @@ export function TabMesa({ char, derived }: TabProps) {
               </div>
             );
           })}
-          <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+          <div className="fv-mesa-rests">
             <button onClick={() => store.shortRest(char.id)} style={{ ...restBtn, borderColor: t.acc, color: t.acc }}>
               <Icon name="moon" size={14} /> Descanso Curto
             </button>
@@ -412,9 +406,8 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* Condições: seleção compacta + só as ativas à vista */}
         <Panel>
-          <div className="fv-label" style={{ marginBottom: 8 }}>Condições</div>
+          <div className="fv-label fv-mesa-label">Condições</div>
           <select
-            className="fv-input"
             value={condPick}
             aria-label="Adicionar condição"
             onChange={(e) => {
@@ -422,28 +415,29 @@ export function TabMesa({ char, derived }: TabProps) {
               if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
               setCondPick('');
             }}
-            style={{ minHeight: 42, padding: '9px 34px 9px 12px', fontSize: 13.5 }}
+            className="fv-input fv-mesa-select"
           >
             <option value="" style={{ color: '#111' }}>Selecionar condição…</option>
             {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
               <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label} — {c.short}</option>
             ))}
           </select>
-          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div className="fv-mesa-conds">
             {char.combat.conditions.map((c) => {
               const def = getCondition(c);
               return (
                 <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.5), background: hexA(t.danger, 0.1), boxShadow: '0 0 12px ' + hexA(t.danger, 0.18) }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 999, flex: 'none', background: t.danger, boxShadow: '0 0 8px ' + t.danger }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{def?.label ?? c}</div>
-                      {def && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{def.short}</div>}
+                  <div className="fv-mesa-cond">
+                    <span className="fv-mesa-cond-dot" />
+                    <div className="fv-mesa-cond-body">
+                      <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
+                      {def && <div className="fv-mesa-cond-short">{def.short}</div>}
                     </div>
                     <button
+                      type="button"
+                      className="fv-mesa-cond-x"
                       onClick={() => store.toggleCondition(char.id, c)}
                       aria-label={`Remover ${c}`}
-                      style={{ cursor: 'pointer', flex: 'none', width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 7, border: '1px solid ' + hexA(t.danger, 0.5), background: 'var(--sunk)', color: t.danger, fontSize: 13 }}
                     >
                       ✕
                     </button>
@@ -452,7 +446,7 @@ export function TabMesa({ char, derived }: TabProps) {
               );
             })}
             {char.combat.conditions.length === 0 && (
-              <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Nenhuma condição ativa — como deve ser.</div>
+              <div className="fv-mesa-empty">Nenhuma condição ativa — como deve ser.</div>
             )}
           </div>
         </Panel>
