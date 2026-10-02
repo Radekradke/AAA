@@ -187,8 +187,20 @@
   @page { size: A4 portrait; margin: 10mm; }
   html, body { background: #fff !important; }
   body * { visibility: hidden; }
-  .fv-print, .fv-print * { visibility: visible; }
+  .fv-print, .fv-print *, .fv-ills, .fv-ills * { visibility: visible; }
+  .fv-ills { position: absolute; left: 0; top: 0; width: 100%; }
   .fv-print { position: absolute; left: 0; top: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; }
   .fv-printpage { background: #fff; padding: 0; }
   .fv-printpage-bar { display: none; }
 }
+
+/* opções da ficha (estilo, tema, cores, lápis) */
+.fv-printpage-seg { display: inline-flex; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 10px; overflow: hidden; }
+.fv-printpage-bar .fv-printpage-seg button { border: 0; border-radius: 0; min-height: 38px; }
+.fv-printpage-bar .fv-printpage-seg button[aria-pressed='true'] { background: #f2f0eb; color: #141414; }
+.fv-printpage-opts { font-size: 13px; gap: 10px 14px; }
+.fv-printpage-opts label { display: inline-flex; align-items: center; gap: 8px; }
+.fv-printpage-opts select { min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.35); background: #2a2a2f; color: #fff; font: 600 13px var(--font-body, sans-serif); }
+.fv-printpage-check input { width: 18px; height: 18px; accent-color: #f2f0eb; }
+.fv-printpage-hint { flex-basis: 100%; margin: 0 !important; font-size: 12px !important; color: #cfcac0 !important; }
+@media print { .fv-printpage-opts { display: none; } }

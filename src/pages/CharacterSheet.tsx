@@ -136,7 +136,7 @@ export function CharacterSheet() {
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
         { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
-        { label: 'Imprimir / salvar PDF', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
+        { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
         { label: 'Compartilhar por link', icon: 'banner', onClick: () => setSharing(true) },
         { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
