@@ -67,7 +67,17 @@ npm run build      # build de produção em /dist
 npm run preview    # serve o build localmente
 npm run typecheck  # checagem de tipos sem emitir
 npm test           # testes automatizados (engine de regras, sync, "O que eu rolo?")
+npm run e2e        # ponta a ponta no navegador (Playwright): criação, ficha, PDF, mesa, código, tela cheia, link
 ```
+
+**Testes de ponta a ponta** (`e2e/`): o app sobe em modo dev apontando para um
+Supabase de mentira (`e2e/fixtures/supabase.ts`, banco em memória + Realtime),
+então nada sai da máquina. Qualquer erro de JavaScript na página reprova o teste.
+Na primeira vez: `npx playwright install chromium`.
+
+**CI** (`.github/workflows/ci.yml`): a cada push e PR roda tipos, `npm test`,
+build e os testes de ponta a ponta; quando falha, guarda o relatório com captura
+de tela e o rastro de cada passo.
 
 Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 
