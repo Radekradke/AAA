@@ -7,7 +7,7 @@ import { getSupabase } from '@/services/supabaseClient';
 import type { LiveChannel } from '@/services/realtimeService';
 import { useCharacterStore } from './characterStore';
 import { rollEnemyInitiatives } from '@/engine/encounter';
-import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent } from '@/types/session';
+import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent, StrikeLog } from '@/types/session';
 import { useUiStore } from './uiStore';
 import { getItem } from '@/data/items';
 import { itemToInventory } from '@/engine/inventory';
@@ -91,8 +91,8 @@ interface SessionState {
    * na ficha do jogador (evento); monstro/NPC direto no encontro.
    */
   changeHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
-  /** Registra o ataque na crônica da sessão (quem, em quem, acertou, dano). */
-  logStrike: (p: { by: string; target: string; hit: boolean; crit: boolean; damage: number; type?: string; note?: string }, secret: boolean) => Promise<void>;
+  /** Registra o ataque na crônica da sessão (quem, em quem, golpe, rolagem vs CA, dano, PV). A rodada entra sozinha. */
+  logStrike: (p: StrikeLog, secret: boolean) => Promise<void>;
 }
 
 /** Eventos do mestre que mexem na ficha do jogador. */
@@ -277,7 +277,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     async logStrike(p, secret) {
       const { session, campaignId, me } = get();
       if (!session || !campaignId || !me) return;
-      await sessionService.log(session.id, campaignId, me.userId, 'attack', p, secret ? 'master' : 'public').catch(() => undefined);
+      const round = get().encounter?.status === 'active' ? get().encounter?.round : undefined;
+      const payload = { ...p, round: p.round ?? round };
+      await sessionService.log(session.id, campaignId, me.userId, 'attack', payload, secret ? 'master' : 'public').catch(() => undefined);
       await get().refresh();
     },
 
