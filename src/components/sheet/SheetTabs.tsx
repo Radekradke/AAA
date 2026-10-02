@@ -16,11 +16,12 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
   const tabs = SHEET_TABS.filter((tab) => !tab.caster || isCaster);
 
   return (
-    <div className="fv-sheet-tabs fv-no-scrollbar" data-tour="tabs">
+    <nav className="fv-sheet-tabs fv-no-scrollbar" data-tour="tabs" aria-label="Abas da ficha">
       {tabs.map((tab) => {
         const isActive = active === tab.id;
         return (
           <button
+            type="button"
             key={tab.id}
             onClick={() => onSelect(tab.id)}
             aria-current={isActive ? 'page' : undefined}
@@ -31,6 +32,6 @@ export function SheetTabs({ active, onSelect, isCaster }: SheetTabsProps) {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, LazyMotion, m } from 'framer-motion';
 import { useFeedback } from '@/store/feedbackStore';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 
 // arrastar para dispensar e reordenar (layout) precisam do domMax: pedaço à
 // parte, pedido quando o navegador folga (não disputa banda com a 1ª tela)
@@ -21,15 +22,12 @@ export function FeedbackHost() {
   const resume = useFeedback((s) => s.resume);
   const confirm = useFeedback((s) => s.confirm);
   const okRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
+  // foco preso na confirmação, Esc = cancelar, foco volta para quem pediu
+  useDialogFocus(dialogRef, !!confirm, () => confirm?.resolve(false));
   useEffect(() => {
-    if (!confirm) return;
-    okRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') confirm.resolve(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    if (confirm) okRef.current?.focus();
   }, [confirm]);
 
   return createPortal(
@@ -83,6 +81,8 @@ export function FeedbackHost() {
         {confirm && (
           <m.div className="fv-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => confirm.resolve(false)}>
             <m.div
+              ref={dialogRef}
+              tabIndex={-1}
               role="alertdialog"
               aria-modal="true"
               aria-labelledby="fv-confirm-title"

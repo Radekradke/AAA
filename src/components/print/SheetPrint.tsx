@@ -85,7 +85,7 @@ export function SheetPrint({ char }: { char: Character }) {
             <ul className="fv-print-checks">
               {KEYS.map((k) => (
                 <li key={k}>
-                  <i className={d.abilities[k].saveProf ? 'is-on' : ''} aria-label={d.abilities[k].saveProf ? 'proficiente' : 'não proficiente'} />
+                  <i role="img" className={d.abilities[k].saveProf ? 'is-on' : ''} aria-label={d.abilities[k].saveProf ? 'proficiente' : 'não proficiente'} />
                   <b>{modStr(d.abilities[k].save)}</b> {ABILITY_LABELS[k]}
                 </li>
               ))}
@@ -96,7 +96,7 @@ export function SheetPrint({ char }: { char: Character }) {
             <ul className="fv-print-checks">
               {d.skills.map((s) => (
                 <li key={s.key}>
-                  <i className={s.expertise ? 'is-exp' : s.proficient ? 'is-on' : ''} aria-label={s.expertise ? 'especialista' : s.proficient ? 'proficiente' : 'não proficiente'} />
+                  <i role="img" className={s.expertise ? 'is-exp' : s.proficient ? 'is-on' : ''} aria-label={s.expertise ? 'especialista' : s.proficient ? 'proficiente' : 'não proficiente'} />
                   <b>{modStr(s.bonus)}</b> {s.label} <small>({ABILITY_SHORT[s.ability]})</small>
                 </li>
               ))}
@@ -245,7 +245,7 @@ export function SheetPrint({ char }: { char: Character }) {
                   <ul>
                     {list.map((s) => (
                       <li key={s.id}>
-                        {lv > 0 && <i className={prepared.has(s.id) ? 'is-on' : ''} aria-label={prepared.has(s.id) ? 'preparada' : 'conhecida'} />}
+                        {lv > 0 && <i role="img" className={prepared.has(s.id) ? 'is-on' : ''} aria-label={prepared.has(s.id) ? 'preparada' : 'conhecida'} />}
                         {s.name}
                         <small> · {[s.castingTime, s.range, s.duration].filter(Boolean).join(' · ')}</small>
                       </li>

@@ -26,6 +26,10 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
   const theme = useUiStore((s) => s.theme);
   return (
     <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
+      {/* teclado/leitor de tela: pula a barra do topo direto para o conteúdo */}
+      <a className="fv-skip" href="#fv-conteudo" onClick={(e) => { e.preventDefault(); document.getElementById('fv-conteudo')?.focus(); }}>
+        Pular para o conteúdo
+      </a>
       <TopBar actions={actions} menu={menu} />
       {/* Guilda Rubra: navegação de app de jogos (lateral no PC, inferior no celular) */}
       {theme === 'rubra' && <GuildNav />}
@@ -37,6 +41,8 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
         exit={{ opacity: 0, scale: 0.99 }}
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
         className="fv-screen-scroll"
+        id="fv-conteudo"
+        tabIndex={-1}
         style={{
           position: 'absolute',
           inset: 0,

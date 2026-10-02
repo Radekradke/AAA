@@ -96,6 +96,11 @@ export function RollOverlay() {
   // portal em document.body: `fixed` dentro de ancestrais animados
   // (transform/filter) desloca o overlay — fora da árvore, centraliza sempre
   return createPortal(
+    <>
+    {/* leitor de tela: anuncia o resultado (o painel é visual e animado) */}
+    <div className="fv-sr-only" role="status" aria-live="polite" aria-atomic="true">
+      {roll && phase === 'result' ? `${roll.label}: ${roll.total}. ${detail}. ${flavor}` : ''}
+    </div>
     <AnimatePresence>
       {roll && phase !== 'physics' && (
         <div
@@ -191,7 +196,8 @@ export function RollOverlay() {
           </m.div>
         </div>
       )}
-    </AnimatePresence>,
+    </AnimatePresence>
+    </>,
     document.body,
   );
 }

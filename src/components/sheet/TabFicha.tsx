@@ -235,6 +235,7 @@ export function TabFicha({ char, derived }: TabProps) {
                 className="fv-input"
                 value={toolPick}
                 onChange={(e) => setToolPick(e.target.value)}
+                aria-label="Adicionar proficiência com ferramenta"
                 style={{ flex: 1, minHeight: 40, padding: '8px 34px 8px 12px', fontSize: 13 }}
               >
                 <option value="" style={{ color: '#111' }}>Adicionar ferramenta…</option>
