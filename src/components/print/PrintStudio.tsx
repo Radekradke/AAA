@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { loadThemeCss } from '@/lib/themeCss';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { THEMES, THEME_ORDER } from '@/data/themes';
@@ -41,6 +42,10 @@ export function PrintStudio({ char, lead }: { char: Character; lead?: ReactNode 
       return next;
     });
   const theme = prefs.theme ?? appTheme;
+  // a ficha ilustrada pode usar outro tema que não o da tela: garante o CSS dele
+  useEffect(() => {
+    void loadThemeCss(theme);
+  }, [theme]);
   const opts: IllustratedOptions = { theme, mode: prefs.mode, blank: prefs.blank };
 
   return (

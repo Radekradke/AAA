@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { loadAllThemesCss } from '@/lib/themeCss';
 import { THEME_ORDER, resolveTheme } from '@/data/themes';
 import { DICE_SKINS } from '@/data/diceSkins';
 import { themeModeOf, useUiStore } from '@/store/uiStore';
@@ -22,6 +24,10 @@ export function ThemeGrid() {
   const modes = useUiStore((s) => s.modes);
   const setThemeMode = useUiStore((s) => s.setThemeMode);
   const mode = themeModeOf(theme, modes);
+  // o CSS de cada tema vem sob demanda: com a grade aberta, baixa todos para a troca ser instantânea
+  useEffect(() => {
+    void loadAllThemesCss();
+  }, []);
   return (
     <>
     {/* claro/escuro: troca só a paleta do tema atual — o layout continua o mesmo */}

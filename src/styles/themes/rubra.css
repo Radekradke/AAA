@@ -1,0 +1,220 @@
+/* ============================================================
+   GUILDA RUBRA — regras só deste tema (carregadas sob demanda).
+   Vieram de globals.css e themes/modes.css, na mesma ordem.
+   ============================================================ */
+
+[data-theme='rubra'] {
+  --font-display: 'Outfit', var(--font-body);
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+
+  --bg: #1e0d10;
+  --bg2: #3a161b;
+  --panel: #3b1a1f;
+  --panel2: #2c1317;
+  --well: #24100f;
+  --steel: #4a2228;
+  --line: rgba(255, 190, 180, 0.12);
+  --line-strong: rgba(255, 196, 186, 0.28);
+  --acc: #FE8578;
+  --acc2: #f6e3a8;
+  --lift: rgba(255, 200, 190, 0.05);
+  --accSoft: rgba(255, 200, 190, 0.06);
+  --gold: #FE8578;
+  --goldB: #ff8a7a;
+  --ink: #fbefec;
+  --muted: #c4999a;
+  --danger: #ff7b5c;
+  --bloom: rgba(242, 102, 90, 0.16);
+  --particle: rgba(0, 0, 0, 0);
+  --on-gold: #2a0e10;
+
+  --shadow-panel: 0 26px 50px -26px rgba(10, 0, 2, 0.85);
+  --shadow-soft: 0 14px 30px -18px rgba(10, 0, 2, 0.75);
+  --panel-texture: linear-gradient(transparent, transparent);
+  --scene:
+    radial-gradient(70% 55% at 30% -10%, rgba(242, 102, 90, 0.16), transparent 64%),
+    radial-gradient(60% 50% at 100% 110%, rgba(120, 30, 50, 0.4), transparent 66%);
+}
+[data-theme='rubra'] .fv-topbar-logo {
+  transform: none;
+  border: 0;
+  border-radius: 11px;
+  background: var(--acc);
+  box-shadow: 0 6px 18px -6px var(--acc);
+}
+[data-theme='rubra'] .fv-topbar-logo span {
+  transform: none;
+  color: var(--on-gold);
+  font-weight: 700;
+}
+[data-theme='rubra'] .fv-panel {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--panel), #fff 3%), var(--panel2));
+  border-color: var(--line);
+}
+[data-theme='rubra'] .fv-panel::after,
+[data-theme='rubra'] .fv-surface::after {
+  display: none;
+}
+[data-theme='rubra'] .fv-sheet-head .fv-hide-mobile {
+  display: none;
+}
+[data-theme='rubra'] .fv-btn-gold {
+  border-radius: 999px;
+  color: var(--on-gold);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: 0 10px 26px -12px var(--acc);
+}
+[data-theme='rubra'] :is(.fv-btn-ghost, .fv-foot-back) {
+  border-radius: 999px;
+}
+[data-theme='rubra'] .fv-option {
+  border-radius: 20px;
+}
+[data-theme='rubra'] .fv-option.is-selected {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--acc), transparent 80%), var(--panel2));
+  box-shadow: 0 0 0 1px var(--acc), 0 14px 30px -18px var(--acc);
+}
+[data-theme='rubra'] .fv-detail {
+  border-radius: 24px;
+}
+[data-theme='rubra'] .fv-hero-portrait {
+  border-radius: 24px;
+}
+[data-theme='rubra'] .fv-forge-rail button.is-current {
+  border-radius: 999px;
+}
+[data-theme='rubra'] .fv-ability-row [style*='clip-path'] {
+  clip-path: none !important;
+  border-radius: 18px;
+}
+@media (min-width: 1024px) {
+  [data-theme='rubra'] .fv-guild-nav {
+    position: absolute;
+    z-index: 45;
+    top: 14px;
+    bottom: 14px;
+    left: 14px;
+    width: 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 0 14px;
+    border-radius: 26px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel2), transparent 4%);
+    box-shadow: var(--shadow-panel);
+  }
+}
+@media (min-width: 1024px) {
+  [data-theme='rubra'] .fv-guild-nav ul {
+    flex: 1;
+    flex-direction: column;
+  }
+}
+@media (min-width: 1024px) {
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-screen-scroll {
+    left: 104px !important;
+  }
+}
+@media (min-width: 1024px) {
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar {
+    left: 92px;
+  }
+}
+@media (min-width: 1024px) {
+  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar-brand {
+    visibility: hidden;
+  }
+}
+@media (min-width: 1024px) {
+  [data-theme='rubra'] .fv-tableroll {
+    left: 108px;
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub {
+    position: absolute;
+    z-index: 45;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel2), transparent 3%);
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-brand {
+    display: none;
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub ul {
+    flex: 1;
+    justify-content: space-around;
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub ul button {
+    width: 56px;
+  }
+}
+@media (max-width: 1023.98px) {
+  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-new {
+    width: 46px;
+    height: 46px;
+  }
+}
+@media (max-width: 1023.98px) {
+  div[data-theme='rubra']:has(> .fv-guild-nav.is-hub) .fv-screen-scroll {
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+}
+[data-theme='rubra'] .fv-mobile-nav {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel2), transparent 30%), color-mix(in srgb, var(--bg), transparent 3%));
+}
+[data-theme='rubra'] :is(.fv-btn-gold, .fv-guild-open, .fv-guild-card-open):active {
+  transform: scale(0.97);
+}
+[data-theme='rubra'] .fv-guild-card:hover {
+  box-shadow: 0 18px 36px -18px rgba(242, 102, 90, 0.55);
+}
+[data-theme='rubra'] .fv-menu-item {
+  border-radius: 22px;
+}
+[data-theme='rubra'][data-mode='light'] {
+  --bg: #f6e9e6;
+  --bg2: #fbf1ee;
+  --panel: #ffffff;
+  --panel2: #f8edea;
+  --well: #f0dfdb;
+  --steel: #ebd6d2;
+  --line: rgba(80, 20, 25, 0.12);
+  --line-strong: rgba(80, 20, 25, 0.28);
+  --acc: #B3241C;
+  --acc2: #7D5605;
+  --lift: rgba(200, 60, 50, 0.05);
+  --accSoft: rgba(200, 60, 50, 0.05);
+  --gold: #B3241C;
+  --goldB: #e0544a;
+  --ink: #2a1215;
+  --muted: #785454;
+  --danger: #AE2C21;
+  --bloom: rgba(201, 59, 47, 0.1);
+  --particle: rgba(0, 0, 0, 0);
+  --on-gold: #ffffff;
+  --shadow-panel: 0 22px 44px -28px rgba(90, 20, 25, 0.35);
+  --shadow-soft: 0 12px 26px -18px rgba(90, 20, 25, 0.3);
+  --scene:
+    radial-gradient(70% 55% at 30% -10%, rgba(242, 102, 90, 0.14), transparent 64%),
+    radial-gradient(60% 50% at 100% 110%, rgba(220, 140, 150, 0.25), transparent 66%);
+}

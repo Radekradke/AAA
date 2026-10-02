@@ -8,9 +8,7 @@ import { installGlobalErrorHandlers } from './lib/errorReporter';
 import './store/homebrewStore';
 import './styles/fonts';
 import './styles/globals.css';
-import './styles/themes/index.css';
-import './styles/polish.css';
-import './styles/contrast.css';
+import { loadFixesCss, loadThemeCss, savedTheme } from './lib/themeCss';
 // animações básicas vêm junto (entradas com opacity:0 não podem esperar a rede
 // para aparecer); arrastar/layout (domMax) só nos toasts, carregado à parte.
 // strict: nenhum `motion` completo escondido no bundle.
@@ -18,15 +16,21 @@ import './styles/contrast.css';
 // erros fora do React (eventos, promessas) e código antigo após atualização
 installGlobalErrorHandlers();
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <LazyMotion features={domAnimation} strict>
-      <BrowserRouter>
-        {/* última rede: se até a casca do app quebrar, ainda aparece a tela de erro */}
-        <ErrorBoundary scope="app">
-          <App />
-        </ErrorBoundary>
-      </BrowserRouter>
-    </LazyMotion>
-  </StrictMode>,
-);
+function render() {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <LazyMotion features={domAnimation} strict>
+        <BrowserRouter>
+          {/* última rede: se até a casca do app quebrar, ainda aparece a tela de erro */}
+          <ErrorBoundary scope="app">
+            <App />
+          </ErrorBoundary>
+        </BrowserRouter>
+      </LazyMotion>
+    </StrictMode>,
+  );
+}
+
+// o CSS do tema salvo (e os ajustes que vêm depois dele) chega antes da 1ª
+// pintura — sem piscar o tema errado; os outros temas só se forem usados
+void Promise.all([loadFixesCss(), loadThemeCss(savedTheme())]).then(render);

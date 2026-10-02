@@ -5,6 +5,7 @@ import { useTheme, useThemeMode } from '@/lib/useTheme';
 import { BackgroundScene } from '@/components/animations/BackgroundScene';
 import { RollOverlay } from '@/components/dice/RollOverlay';
 import { CastNotice } from '@/components/spells/CastNotice';
+import { loadThemeCss } from '@/lib/themeCss';
 
 interface AppShellProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ export function AppShell({ children, video = null, videoOpacity, darken }: AppSh
 
   // sincroniza os atributos no <html> (para fundo/scrollbar globais)
   useEffect(() => {
+    void loadThemeCss(theme); // já vem carregado na partida; aqui cobre a troca de tema
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-mode', mode);
   }, [theme, mode]);

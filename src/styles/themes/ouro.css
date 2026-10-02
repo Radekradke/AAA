@@ -1,0 +1,183 @@
+/* ============================================================
+   OURO VELHO — regras só deste tema (carregadas sob demanda).
+   Vieram de globals.css e themes/modes.css, na mesma ordem.
+   ============================================================ */
+
+[data-theme='ouro'] {
+  --font-display: 'EB Garamond', 'Cormorant SC', serif;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+
+  --bg: #0b0a09;
+  --bg2: #14120f;
+  --panel: #161411;
+  --panel2: #110f0d;
+  --well: #0d0c0a;
+  --steel: #1e1b17;
+  --line: rgba(201, 178, 124, 0.16);
+  --line-strong: rgba(214, 191, 138, 0.34);
+  --acc: #c9a962;
+  --acc2: #8d9aa5;
+  --lift: rgba(214, 196, 150, 0.05);
+  --accSoft: rgba(214, 196, 150, 0.06);
+  --gold: #d4bf8a;
+  --goldB: #efe3c2;
+  --ink: #e9e3d5;
+  --muted: #948c7c;
+  --danger: #DF6D57;
+  --bloom: rgba(0, 0, 0, 0);
+  --particle: rgba(0, 0, 0, 0);
+
+  /* sombra só para separar planos — nada de halo */
+  --shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+  --shadow-soft: 0 10px 24px -18px rgba(0, 0, 0, 0.9);
+  --panel-texture: linear-gradient(transparent, transparent);
+  /* fundo chapado com uma vinheta quase imperceptível */
+  --scene: radial-gradient(120% 70% at 50% 0%, rgba(239, 227, 194, 0.035), transparent 60%);
+}
+[data-theme='ouro'] :is(button, input, select, textarea, .fv-panel, .fv-surface, .fv-panel-soft, .fv-option, .fv-chip, .fv-pill, .fv-seg, .fv-modal, .fv-topbar-menu, .fv-skill, .fv-pack, .fv-counter, .fv-hb-chip) {
+  border-radius: 2px !important;
+}
+[data-theme='ouro'] * {
+  text-shadow: none !important;
+}
+[data-theme='ouro'] [style*='0px 0px'],
+[data-theme='ouro'] .fv-option.is-selected,
+[data-theme='ouro'] .fv-btn-gold,
+[data-theme='ouro'] .fv-btn-gold:hover {
+  box-shadow: none !important;
+}
+[data-theme='ouro'] .fv-topbar-icon,
+[data-theme='ouro'] .fv-topbar-pill {
+  backdrop-filter: none;
+}
+[data-theme='ouro'] .fv-panel {
+  background: var(--panel);
+  border-color: var(--line);
+}
+[data-theme='ouro'] .fv-panel::after,
+[data-theme='ouro'] .fv-surface::after {
+  left: 0;
+  right: 0;
+  opacity: 0.55;
+}
+[data-theme='ouro'] :is(h1, h2, h3, h4, .fv-label, .fv-facts-title, .fv-step-title, .fv-modal-head h2) {
+  font-family: var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+[data-theme='ouro'] .fv-btn-gold {
+  color: var(--goldB);
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+[data-theme='ouro'] .fv-btn-gold:hover {
+  transform: none;
+  background: var(--steel);
+  border-color: var(--goldB);
+}
+[data-theme='ouro'] .fv-option {
+  background: var(--panel2);
+}
+[data-theme='ouro'] .fv-option:hover {
+  border-color: var(--line-strong);
+  background: linear-gradient(90deg, rgba(212, 191, 138, 0.07), transparent 70%), var(--panel2);
+}
+[data-theme='ouro'] .fv-option.is-selected {
+  border-color: var(--gold);
+  background: linear-gradient(90deg, rgba(212, 191, 138, 0.16), transparent 75%), var(--panel2);
+}
+[data-theme='ouro'] .fv-pill.is-on,
+[data-theme='ouro'] .fv-seg button.is-on {
+  background: var(--steel);
+  color: var(--goldB);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+[data-theme='ouro'] .fv-input {
+  background: var(--well);
+}
+[data-theme='ouro'] .fv-input:focus {
+  border-color: var(--gold);
+  box-shadow: none;
+}
+[data-theme='ouro'] :focus-visible {
+  border-radius: 0;
+}
+[data-theme='ouro'] .fv-ability-row [style*='clip-path'] {
+  background: var(--panel2) !important;
+  border-color: var(--line) !important;
+  clip-path: none !important;
+}
+[data-theme='ouro'] .fv-ability-row svg {
+  filter: none !important;
+}
+[data-theme='ouro'] .fv-sheet-tab.is-on {
+  box-shadow: none;
+}
+[data-theme='ouro'] :is(.fv-topbar-menu-item, .fv-forge-rail button, .fv-sheet-tab, .fv-option):is(:hover, :focus-visible),
+[data-theme='ouro'] .fv-forge-rail button.is-current {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
+    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
+    radial-gradient(60% 120% at 50% 50%, rgba(212, 191, 138, 0.16), transparent 75%);
+  background-size: 100% 1px, 100% 1px, 100% 100%;
+  background-position: top, bottom, center;
+  background-repeat: no-repeat;
+}
+[data-theme='ouro'] .fv-menu-item {
+  border-radius: 2px;
+  backdrop-filter: none;
+}
+[data-theme='ouro'] .fv-menu-item.is-primary {
+  color: var(--goldB);
+  background: var(--panel);
+  border-color: var(--gold);
+  box-shadow: none;
+}
+[data-theme='ouro'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
+  color: var(--gold);
+}
+[data-theme='ouro'] .fv-menu-title {
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+[data-theme='ouro'] .fv-onb,
+[data-theme='ouro'] .fv-onb-tips li {
+  border-radius: 2px;
+}
+[data-theme='ouro'] .fv-tour-hole,
+[data-theme='ouro'] .fv-tour-tip {
+  border-radius: 2px;
+}
+[data-theme='ouro'] :is(.fv-toast, .fv-confirm, .fv-confirm-btn, .fv-toast-action) {
+  border-radius: 2px;
+}
+[data-theme='ouro'][data-mode='light'] {
+  --bg: #ece6d8;
+  --bg2: #f2ede1;
+  --panel: #f7f3ea;
+  --panel2: #efe9dc;
+  --well: #e4dccb;
+  --steel: #d8cfbb;
+  --line: rgba(60, 48, 25, 0.18);
+  --line-strong: rgba(60, 48, 25, 0.36);
+  --acc: #735511;
+  --acc2: #4e5b66;
+  --lift: rgba(90, 70, 30, 0.05);
+  --accSoft: rgba(90, 70, 30, 0.06);
+  --gold: #6e5520;
+  --goldB: #8b6d2c;
+  --on-gold: #fbf6ea;
+  --ink: #221c12;
+  --muted: #615849;
+  --danger: #A03723;
+  --bloom: rgba(0, 0, 0, 0);
+  --particle: rgba(0, 0, 0, 0);
+  --shadow-panel: 0 14px 30px -22px rgba(60, 45, 20, 0.45), inset 0 0 0 1px rgba(60, 48, 25, 0.08);
+  --shadow-soft: 0 8px 20px -16px rgba(60, 45, 20, 0.4);
+  --scene: radial-gradient(120% 70% at 50% 0%, rgba(255, 255, 255, 0.5), transparent 60%);
+}
