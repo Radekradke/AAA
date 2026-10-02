@@ -13,10 +13,13 @@ export interface SheetShare {
 
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
+/** Maior múltiplo do alfabeto que cabe num byte: acima disso o byte é descartado (sem viés). */
+const LIMIT = 256 - (256 % ALPHA.length);
+
 /** 24 caracteres aleatórios (~140 bits): impossível de adivinhar. */
 export function newShareToken(): string {
   let out = '';
-  while (out.length < 24) for (const b of crypto.getRandomValues(new Uint8Array(32))) if (b < 232 && out.length < 24) out += ALPHA[b % 58];
+  while (out.length < 24) for (const b of crypto.getRandomValues(new Uint8Array(32))) if (b < LIMIT && out.length < 24) out += ALPHA[b % ALPHA.length];
   return out;
 }
 

@@ -1,0 +1,42 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Testes de ponta a ponta (npm run e2e). O app sobe em modo dev apontando
+ * para um Supabase de mentira (e2e/fixtures/supabase.ts): nada sai da
+ * máquina e os testes não dependem de banco real.
+ */
+const PORT = 5199;
+
+export default defineConfig({
+  testDir: 'e2e',
+  testMatch: '**/*.e2e.ts',
+  timeout: 45_000,
+  expect: { timeout: 10_000 },
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 2 : undefined,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    locale: 'pt-BR',
+    contextOptions: { reducedMotion: 'reduce' },
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    serviceWorkers: 'block',
+  },
+  projects: [
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 900 } } },
+    { name: 'celular', use: { ...devices['Pixel 7'] }, grep: /@celular/ },
+  ],
+  webServer: {
+    command: `npx vite --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+    env: {
+      VITE_SUPABASE_URL: 'http://mock.supa.test',
+      VITE_SUPABASE_ANON_KEY: 'chave-de-teste',
+    },
+  },
+});
