@@ -40,11 +40,31 @@ export const characterSheetService = {
     return (data ?? []) as SheetRow[];
   },
 
-  async pushSheet(char: Character, userId: string): Promise<void> {
+  /**
+   * Sobe a ficha. Com `base` (a versão da nuvem que este aparelho conhece),
+   * a gravação é condicional: só escreve se a nuvem ainda estiver nela —
+   * se outro aparelho subiu antes, devolve false (conflito) em vez de
+   * sobrescrever. `base` null = a ficha ainda não existe na nuvem.
+   * Sem `base` (escolha explícita do usuário): grava por cima.
+   */
+  async pushSheet(char: Character, userId: string, base?: number | null): Promise<boolean> {
     const sb = getSupabase();
-    if (!sb) return;
-    const { error } = await sb.from('sheets').upsert(toRow(char, userId), { onConflict: 'id' });
+    if (!sb) return true;
+    const row = toRow(char, userId);
+    if (base === undefined) {
+      const { error } = await sb.from('sheets').upsert(row, { onConflict: 'id' });
+      if (error) throw new Error(error.message);
+      return true;
+    }
+    if (base === null) {
+      const { error } = await sb.from('sheets').insert(row);
+      if (error?.code === '23505') return false; // outro aparelho criou primeiro
+      if (error) throw new Error(error.message);
+      return true;
+    }
+    const { data, error } = await sb.from('sheets').update(row).eq('id', char.id).eq('updated_at', base).select('id');
     if (error) throw new Error(error.message);
+    return (data ?? []).length > 0;
   },
 
   async deleteSheet(sheetId: string): Promise<void> {

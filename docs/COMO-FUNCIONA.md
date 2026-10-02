@@ -82,6 +82,20 @@ Cada arquivo é uma parte do livro:
 - Se você **fizer login na nuvem** (Supabase), o app também **sincroniza**:
   compara a versão local com a da nuvem e decide empurrar, puxar ou avisar de
   conflito (`services/offlineSyncService.ts`).
+  - A comparação é por **versão**, não por horário: cada ficha lembra qual
+    versão da nuvem viu por último (`syncBase`). Assim, um aparelho que editou
+    antes mas só subiu depois não passa batido, e relógio errado não atrapalha.
+  - O envio é **condicional**: só grava se a nuvem ainda estiver na versão que
+    o app leu. Se outro aparelho subiu no meio, nada é sobrescrito e uma nova
+    rodada decide.
+  - Edições feitas **durante** o envio não se perdem (o resultado é aplicado
+    sobre o estado atual).
+  - No conflito, o app mostra as duas versões e o que muda; a escolhida fica e
+    a outra vai para o **histórico da ficha**.
+- **Histórico da ficha** (`services/sheetHistory.ts`, menu da ficha →
+  "Histórico e versões"): versões guardadas no aparelho no começo de cada
+  sessão de edição, antes de subir de nível, num conflito e antes de restaurar.
+  Mostra o que muda (`lib/sheetDiff.ts`) e restaura com um toque.
 
 Sem login, tudo continua funcionando — só não sincroniza entre aparelhos.
 

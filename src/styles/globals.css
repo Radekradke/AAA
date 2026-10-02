@@ -6904,3 +6904,41 @@ body.fv-dragging .fv-screen-scroll {
 .fv-share-list small { font-size: 11.5px; color: var(--muted); }
 .fv-share-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
 .fv-share-acts > * { min-height: 34px; padding: 0 12px; font-size: 12.5px; display: inline-flex; align-items: center; text-decoration: none; }
+
+/* ===== Histórico da ficha (linha do tempo) ===== */
+.fv-hist { display: flex; flex-direction: column; gap: 12px; }
+.fv-hist-lead { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.fv-hist-lead b { color: var(--ink); }
+.fv-hist-now { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); }
+.fv-hist-now p { margin: 3px 0 0; font: 600 13px var(--font-num); color: var(--ink); }
+.fv-hist-now .fv-btn-ghost { min-height: 38px; padding: 0 14px; font-size: 12.5px; }
+.fv-hist-tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-hist-empty { margin: 0; font-size: 13px; color: var(--muted); }
+.fv-hist-list { list-style: none; margin: 0; padding: 0 0 0 14px; display: flex; flex-direction: column; gap: 10px; border-left: 2px solid var(--line); }
+.fv-hist-list > li { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--panel); }
+.fv-hist-list > li::before { content: ''; position: absolute; left: -21px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 2px solid var(--muted); }
+.fv-hist-list > li.is-levelup::before { border-color: var(--gold); background: var(--gold); }
+.fv-hist-list > li.is-conflict::before { border-color: var(--danger); }
+.fv-hist-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.fv-hist-head time { font: 700 13.5px var(--font-display); color: var(--ink); }
+.fv-hist-sum { margin: 0; font: 12.5px var(--font-num); color: var(--ink); }
+.fv-hist-label { margin: 0; font-size: 12px; color: var(--muted); }
+.fv-hist-diff { margin: 2px 0 0; padding-left: 16px; font-size: 12.5px; color: var(--ink); }
+.fv-hist-diff li { margin: 1px 0; }
+.fv-hist-same { margin: 0; font-size: 12px; font-style: italic; color: var(--muted); }
+.fv-hist-restore { align-self: flex-start; min-height: 36px; padding: 0 14px; font-size: 12.5px; margin-top: 2px; }
+
+/* ===== Conflito de sincronização ===== */
+.fv-conflict-lead { margin: 0 0 12px; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.fv-conflict-lead b { color: var(--ink); }
+.fv-conflict-list { display: flex; flex-direction: column; gap: 10px; }
+.fv-conflict { padding: 12px; border-radius: var(--radius-md); border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); background: var(--sunk); }
+.fv-conflict h3 { margin: 0 0 8px; font: 700 15px var(--font-display); color: var(--ink); }
+.fv-conflict-sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.fv-conflict-side { display: flex; flex-direction: column; gap: 3px; padding: 10px; border-radius: var(--radius-sm, 8px); border: 1px solid var(--line); background: var(--panel); }
+.fv-conflict-side time { font: 600 12px var(--font-num); color: var(--muted); }
+.fv-conflict-side p { margin: 2px 0 6px; font: 12.5px var(--font-num); color: var(--ink); }
+.fv-conflict-side button { margin-top: auto; min-height: 40px; font-size: 13px; }
+.fv-conflict-k { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-conflict-diff { margin-top: 8px; }
+.fv-conflict-diff ul { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--ink); }
