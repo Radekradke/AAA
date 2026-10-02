@@ -9,6 +9,7 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import type { Campaign } from '@/types/models';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import { JoinByCode } from '@/components/campaign/JoinByCode';
 import '@/styles/session.css';
 
 /** Mesas/Campanhas: o mestre cria a sala; jogadores entram por convite. */
@@ -52,8 +53,11 @@ export function Campaigns() {
           Mesas de Campanha
         </h1>
         <p style={{ margin: '0 0 20px', fontSize: 13.5, color: 'var(--muted)' }}>
-          O mestre cria a sala e envia o link; jogadores vinculam suas fichas e o mestre acompanha tudo.
+          O mestre cria a sala e passa o código (ou o link); jogadores vinculam suas fichas e o mestre acompanha tudo.
         </p>
+
+        {/* jogador: entra pelo código que o mestre ditou (quem não tem conta é levado a entrar) */}
+        {cloudEnabled() && <JoinByCode />}
 
         {!canCloud && (
           <EmptyState

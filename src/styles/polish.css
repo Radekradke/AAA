@@ -228,3 +228,99 @@ label:focus-within > small {
   border-radius: 6px;
 }
 .fv-textlink:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+
+/* ----- airbag de tela (Error Boundary): erro no visual do tema, nunca tela branca ----- */
+.fv-crash {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: var(--bg, #0b0b10);
+  color: var(--ink, #f3f2ee);
+  overflow-y: auto;
+}
+.fv-crash-card {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(22px, 4vw, 34px);
+  text-align: center;
+  border-radius: var(--radius-lg, 18px);
+  border: 1px solid var(--line-strong, rgba(255, 255, 255, 0.2));
+  background: var(--panel, #15151c);
+}
+.fv-crash-sigil {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 24px;
+  color: var(--gold, #e0b356);
+  border: 1px solid color-mix(in srgb, var(--gold, #e0b356), transparent 50%);
+}
+.fv-crash h1 {
+  margin: 0;
+  font: 700 clamp(20px, 3vw, 24px) / 1.2 var(--font-display, serif);
+}
+.fv-crash p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted, #b7b3c4);
+}
+.fv-crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.fv-crash-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 13.5px;
+}
+.fv-crash-details {
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--muted, #b7b3c4);
+}
+.fv-crash-details summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.fv-crash-details pre {
+  margin: 6px 0;
+  padding: 10px;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 8px;
+  background: var(--well, rgba(0, 0, 0, 0.3));
+  color: var(--ink, #f3f2ee);
+  font: 12px/1.45 var(--font-mono, monospace);
+}
+
+/* ----- Diagnóstico: erros recentes ----- */
+.fv-diag-errors { margin-top: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.fv-diag-errors-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.fv-diag-errors-head h2 { margin: 0; }
+.fv-diag-errors-acts { display: flex; gap: 6px; }
+.fv-diag-errors-acts button { min-height: 34px; padding: 0 12px; font-size: 12.5px; }
+.fv-diag-empty { margin: 0; font-size: 12.5px; color: var(--muted); }
+.fv-diag-errlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fv-diag-errlist li { padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); }
+.fv-diag-errmeta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--muted); }
+.fv-diag-errmeta b { color: var(--danger); }
+.fv-diag-errmsg { margin-top: 3px; font: 12px/1.45 var(--font-num); color: var(--ink); overflow-wrap: anywhere; }

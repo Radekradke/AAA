@@ -3,6 +3,7 @@ import { getSupabase } from './supabaseClient';
 import type { Campaign, CampaignMember, InviteLink, MasterPermission, SharedCharacterSheet, SheetRow } from '@/types/models';
 import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
 import type { Character } from '@/types/character';
+import { newInviteCode } from '@/lib/inviteCode';
 
 /**
  * Modo Mestre / Sala (nuvem): campanhas, convites por link e fichas
@@ -74,16 +75,46 @@ export const campaignService = {
     return data ? mapCampaign(data) : null;
   },
 
-  /** Convite reutilizável da campanha (cria um se ainda não existir). */
+  /** Convite reutilizável da campanha (cria um se ainda não existir) — já com código curto. */
   async ensureInvite(campaign: Campaign, userId: string): Promise<InviteLink> {
     const client = sb();
     const { data: existing } = await client.from('invite_links').select('*').eq('campaign_id', campaign.id).limit(1);
-    if (existing?.length) return mapInvite(existing[0]);
-    const uid = await sessionUserId(userId);
-    const row = { campaign_id: campaign.id, token: token(), created_by: uid, expires_at: null, max_uses: null, uses: 0 };
-    const { data, error } = await client.from('invite_links').insert(row).select().single();
-    if (error) throw dbError(error);
-    return mapInvite(data);
+    let inv: InviteLink;
+    if (existing?.length) inv = mapInvite(existing[0]);
+    else {
+      const uid = await sessionUserId(userId);
+      const row = { campaign_id: campaign.id, token: token(), created_by: uid, expires_at: null, max_uses: null, uses: 0 };
+      const { data, error } = await client.from('invite_links').insert(row).select().single();
+      if (error) throw dbError(error);
+      inv = mapInvite(data);
+    }
+    return inv.code ? inv : this.newCode(inv);
+  },
+
+  /**
+   * Dá (ou troca) o código curto do convite. O antigo para de valer.
+   * Banco sem recursos_extras.sql (sem a coluna): devolve o convite sem código.
+   */
+  async newCode(inv: InviteLink): Promise<InviteLink> {
+    for (let i = 0; i < 4; i++) {
+      const code = newInviteCode();
+      const { data, error } = await sb().from('invite_links').update({ code }).eq('id', inv.id).select().maybeSingle();
+      if (!error) return data ? mapInvite(data) : { ...inv, code };
+      if (/duplicate|unique/i.test(error.message)) continue; // colisão (raríssima): tenta outro
+      return inv; // coluna ainda não existe: segue só com o link
+    }
+    return inv;
+  },
+
+  /** Entra pelo código curto (XXXX-XXXX), mesma validação do link. */
+  async joinByCode(code: string): Promise<string> {
+    await sessionUserId();
+    const { data, error } = await sb().rpc('join_campaign_code', { p_code: code });
+    if (error) {
+      if (/function .*join_campaign_code|does not exist|schema cache/i.test(error.message)) throw new Error('O mestre ainda precisa atualizar o banco (supabase/recursos_extras.sql) para aceitar código. Peça o link de convite.');
+      throw dbError(error);
+    }
+    return data as string;
   },
 
   /** Entra numa campanha pelo token do convite (RPC segura no banco). */
@@ -184,5 +215,5 @@ function mapCampaign(r: Record<string, unknown>): Campaign {
   return { id: String(r.id), masterId: String(r.master_id), name: String(r.name), description: r.description ? String(r.description) : undefined, createdAt: Number(r.created_at), updatedAt: Number(r.updated_at) };
 }
 function mapInvite(r: Record<string, unknown>): InviteLink {
-  return { id: String(r.id), campaignId: String(r.campaign_id), token: String(r.token), createdBy: String(r.created_by), expiresAt: r.expires_at ? Number(r.expires_at) : null, maxUses: r.max_uses ? Number(r.max_uses) : null, uses: Number(r.uses ?? 0) };
+  return { id: String(r.id), campaignId: String(r.campaign_id), token: String(r.token), createdBy: String(r.created_by), expiresAt: r.expires_at ? Number(r.expires_at) : null, maxUses: r.max_uses ? Number(r.max_uses) : null, uses: Number(r.uses ?? 0), code: r.code ? String(r.code) : null };
 }

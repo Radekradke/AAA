@@ -457,6 +457,16 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   alter publication supabase_realtime add table public.campaign_notes;
 exception when duplicate_object then null; end $$;
+-- ---------------------------------------------------------------------
+-- versão do banco: registra que este script rodou (o app avisa o mestre
+-- do que falta). Idempotente.
+-- ---------------------------------------------------------------------
+create table if not exists public.app_schema_steps (step text primary key, applied_at timestamptz not null default now());
+alter table public.app_schema_steps enable row level security;
+drop policy if exists "schema_steps_read" on public.app_schema_steps;
+create policy "schema_steps_read" on public.app_schema_steps for select to authenticated using (true);
+grant select on public.app_schema_steps to authenticated;
+insert into public.app_schema_steps (step) values ('base') on conflict (step) do update set applied_at = now();
 ```
 
 ## 6. Mesa ao vivo — sessão, encontro e iniciativa (multiplayer)
@@ -541,3 +551,14 @@ O script:
 Os scripts antigos (§5 e `multiplayer_session.sql`) foram atualizados com as mesmas políticas: rodá-los de novo **não reabre** notas privadas nem sessões preparadas. O teste `supabase/__tests__/mestre.sql.test.ts` (PGlite) cobre isso.
 
 Sem esse SQL, o console continua funcionando para a sessão ao vivo; bandeja, notas privadas e "preparar para depois" mostram um aviso pedindo para rodar o script.
+
+## 9. Recursos extras — convite por código, ficha compartilhada e registro de erros
+
+Rode `supabase/recursos_extras.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema.
+
+- **Versão do banco** (`app_schema_steps`): cada script registra que rodou. Na sala, o mestre vê um aviso dizendo exatamente qual arquivo falta. Quem já rodou os scripts antigos não precisa rodá-los de novo: este script reconhece o que já existe.
+- **Convite por código**: `invite_links.code` (8 caracteres sem 0/O/1/I/L, mostrado como `XXXX-XXXX`) + a função `join_campaign_code`. O jogador entra em **Mesas → Entrar com código** ou apontando a câmera para o QR. O mestre pode gerar um código novo (o antigo para de valer).
+- **Ficha compartilhada** (`sheet_shares` + `shared_sheet`): link `/f/<token>` só de leitura, sem conta; o dono revoga quando quiser.
+- **Registro de erros** (`client_errors`): erros do app de quem está logado. Ninguém lê pelo app; veja no painel do Supabase → Table Editor → `client_errors`.
+
+`npm test` roda `supabase/__tests__/extras.sql.test.ts` num Postgres em memória (PGlite) com todas as permissões.

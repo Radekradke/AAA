@@ -79,6 +79,8 @@ export interface InviteLink {
   expiresAt: number | null;
   maxUses: number | null;
   uses: number;
+  /** Código curto (XXXX-XXXX) — nulo se o banco ainda não tem recursos_extras.sql. */
+  code: string | null;
 }
 
 /** Permissões que o jogador concede ao mestre sobre a própria ficha. */

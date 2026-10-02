@@ -42,6 +42,7 @@ function Page({ children }: { children: ReactNode }) {
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { PwaStatus } from '@/components/PwaStatus';
 import { FeedbackHost } from '@/components/feedback/FeedbackHost';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUiStore } from '@/store/uiStore';
 import { cloudEnabled } from '@/services/supabaseClient';
 
@@ -102,19 +103,28 @@ export function App() {
   return (
     <>
     {/* app instalável: avisos de offline pronto / nova versão */}
-    <PwaStatus />
-    <Suspense fallback={null}>
-      {/* mesa ao vivo: pílula global + "SEU TURNO" em qualquer tela */}
-      {canLive && <SessionDock />}
-      {/* tutorial de boas-vindas (1ª visita ou menu → Tutorial) */}
-      {showTutorial && <Onboarding />}
-      {/* tour guiado com holofote (ficha e criação) */}
-      {showTour && <GuidedTour />}
-    </Suspense>
+    <ErrorBoundary scope="pwa" silent>
+      <PwaStatus />
+    </ErrorBoundary>
+    {/* peças globais: se uma quebrar, some em silêncio (o erro vai pro registro) e a tela continua */}
+    <ErrorBoundary scope="globais" silent>
+      <Suspense fallback={null}>
+        {/* mesa ao vivo: pílula global + "SEU TURNO" em qualquer tela */}
+        {canLive && <SessionDock />}
+        {/* tutorial de boas-vindas (1ª visita ou menu → Tutorial) */}
+        {showTutorial && <Onboarding />}
+        {/* tour guiado com holofote (ficha e criação) */}
+        {showTour && <GuidedTour />}
+      </Suspense>
+    </ErrorBoundary>
     {/* avisos rápidos e confirmações no visual do tema */}
-    <FeedbackHost />
+    <ErrorBoundary scope="avisos" silent>
+      <FeedbackHost />
+    </ErrorBoundary>
     <AnimatePresence>
-      <Routes location={location} key={location.pathname}>
+      {/* airbag por tela: um erro numa página mostra a tela de erro, não o app em branco; navegar limpa */}
+      <ErrorBoundary key={location.pathname} scope={location.pathname}>
+      <Routes location={location}>
         <Route path="/" element={<Home />} />
         <Route path="/entrar" element={<Page><Login /></Page>} />
         <Route path="/auth/callback" element={<Page><AuthCallback /></Page>} />
@@ -174,6 +184,7 @@ export function App() {
         <Route path="/sala/:token" element={<Page><JoinCampaign /></Page>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorBoundary>
     </AnimatePresence>
     </>
   );
