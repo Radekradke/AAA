@@ -12,16 +12,18 @@ import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Modal } from '@/components/ui/Modal';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { heroAvatar, heroFace } from '@/lib/summary';
 
 interface Props {
   char: Character;
   onClose: () => void;
 }
 
-/** Edição da ficha após criada: identidade, nível, atributos e perícias. */
+/** Edição da ficha após criada: arte, identidade, nível, atributos e perícias. */
 export function CharacterEditModal({ char, onClose }: Props) {
   const t = useTheme();
-  const { editCharacter, setLevel } = useCharacterStore();
+  const { editCharacter, setLevel, updateCharacter } = useCharacterStore();
   const derived = deriveCharacter(char);
 
   const setAbility = (k: AbilityKey, v: number) =>
@@ -50,6 +52,16 @@ export function CharacterEditModal({ char, onClose }: Props) {
         </button>
       }
     >
+        {/* arte do personagem (antes ficava no retrato do cabeçalho) */}
+        <div className="fv-edit-art">
+          <div className="fv-edit-art-face" style={{ backgroundImage: `url("${heroAvatar(char)}")`, ...heroFace(char) }} aria-hidden />
+          <div className="fv-edit-art-body">
+            <span style={label}>Arte do personagem</span>
+            <p>{char.portrait ? 'Usando a sua arte. Troque ou volte à arte padrão da classe.' : 'Usando a arte padrão da classe. Envie a sua (PNG, JPG ou WebP) — fundo branco liso é recortado.'}</p>
+            <PortraitPicker portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
+          </div>
+        </div>
+
         {/* identidade */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           <label>

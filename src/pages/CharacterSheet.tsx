@@ -137,7 +137,6 @@ export function CharacterSheet() {
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
         { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
         { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
-        { label: 'Compartilhar por link', icon: 'banner', onClick: () => setSharing(true) },
         { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
         {
@@ -158,7 +157,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} onShare={() => setSharing(true)} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />
