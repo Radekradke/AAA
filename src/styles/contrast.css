@@ -207,3 +207,6 @@ html .fv-bandeja-chip.is-gone > button:first-child {
 [data-theme='rubra'] :is(.fv-item-equipped, .fv-live-seg button.is-on) {
   color: color-mix(in oklab, var(--acc) 80%, var(--ink));
 }
+
+/* condição ativa na aba Mesa: o nome era branco fixo (ilegível no claro) */
+html[data-mode='light'] .fv-mesa-cond-name { color: var(--ink); }
