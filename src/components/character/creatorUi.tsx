@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { CREATION_STEPS } from '@/engine/creationSummary';
 import { GAME_ICONS } from '@/components/ui/gameIcons';
+import { GlyphIcon } from './RaceIcon';
 import type { Fact } from '@/engine/creationSummary';
 
 /**
@@ -46,7 +46,8 @@ export function OptionGrid({ label, children, compact }: { label: string; childr
 
 /** Placa de opção: ícone, nome e uma linha que diz para que serve. */
 export function OptionTile({ icon, label, line, color, selected, onSelect }: {
-  icon: IconName;
+  /** Ícone do app ou de raça (inclui os extras das raças homebrew). */
+  icon: IconName | string;
   label: string;
   line: string;
   color: string;
@@ -61,7 +62,7 @@ export function OptionTile({ icon, label, line, color, selected, onSelect }: {
       className={'fv-option' + (selected ? ' is-selected' : '')}
       style={{ ['--opt-color' as string]: color } as CSSProperties}
     >
-      <Icon name={icon} size={30} className="fv-option-icon" />
+      <GlyphIcon name={icon} size={30} className="fv-option-icon" />
       <span className="fv-option-name">{label}</span>
       <span className="fv-option-line">{line}</span>
     </button>
@@ -70,7 +71,7 @@ export function OptionTile({ icon, label, line, color, selected, onSelect }: {
 
 /** Painel da escolha atual: identidade da opção + o que ela concede. */
 export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, children }: {
-  icon: IconName;
+  icon: IconName | string;
   color: string;
   eyebrow: string;
   title: string;
@@ -83,7 +84,7 @@ export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, ch
     <section className="fv-detail" style={{ ['--opt-color' as string]: color } as CSSProperties} aria-live="polite">
       <div className="fv-detail-head">
         <div className="fv-detail-icon">
-          <Icon name={icon} size={40} />
+          <GlyphIcon name={icon} size={40} />
         </div>
         <div style={{ minWidth: 0 }}>
           <div className="fv-detail-eyebrow">{eyebrow}</div>

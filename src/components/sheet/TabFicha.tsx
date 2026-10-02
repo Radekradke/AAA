@@ -20,6 +20,7 @@ import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '
 import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
+import { useInk } from '@/lib/contrast';
 
 /**
  * Aba Ficha — identidade de HUD: os 6 atributos na mesma linha (desktop)
@@ -29,6 +30,7 @@ import { SkillsModal } from './SkillsModal';
  */
 export function TabFicha({ char, derived }: TabProps) {
   const t = useTheme();
+  const ink = useInk();
   const tilt = useTilt();
   const { check } = useDiceRoller();
   const store = useCharacterStore();
@@ -65,7 +67,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: ink(color) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
                   {/* modificador dentro de um d20 na cor do atributo */}
@@ -143,7 +145,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 9.5, color: ABILITY_COLORS[sk.ability] }}>{ABILITY_SHORT[sk.ability]}</span>
+                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 9.5, color: ink(ABILITY_COLORS[sk.ability]) }}>{ABILITY_SHORT[sk.ability]}</span>
                   {sk.label}
                   <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
                   {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}

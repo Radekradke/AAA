@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
+import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { CustomOriginPanel } from './CustomOriginPanel';
 import { useUiStore } from '@/store/uiStore';
@@ -66,7 +67,7 @@ export function StepRace({ char, update }: StepProps) {
             {homebrew.map((r) => (
               <OptionTile
                 key={r.id}
-                icon={themedIcon('race', r.id, 'crest')}
+                icon={raceIconKey(r)}
                 label={r.label}
                 line={r.bonus}
                 color={r.jewel}
@@ -151,7 +152,7 @@ export function StepRace({ char, update }: StepProps) {
         </div>
 
         <ChoiceDetail
-          icon={themedIcon('race', race.id, 'crest')}
+          icon={raceIconKey(race)}
           color={race.jewel}
           eyebrow={race.homebrew ? 'Linhagem · homebrew' : 'Linhagem'}
           title={race.label}

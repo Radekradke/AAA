@@ -29,6 +29,7 @@ import { inspirationCount } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
+import { useInk } from '@/lib/contrast';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -37,6 +38,7 @@ import { RollAdvisor } from '@/components/dice/RollAdvisor';
  */
 export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
+  const ink = useInk();
   const store = useCharacterStore();
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check } = useDiceRoller();
@@ -90,7 +92,7 @@ export function TabMesa({ char, derived }: TabProps) {
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: hpColor, whiteSpace: 'nowrap' }}>
+            <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ cursor: 'help', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(40px,7vw,56px)', lineHeight: 1, color: ink(hpColor, 3.2), whiteSpace: 'nowrap' }}>
               <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
               <span style={{ fontSize: '.42em', color: 'var(--muted)' }}> / {hpMax}</span>
@@ -487,9 +489,10 @@ function QuickBtn({ children, color, strong, onClick }: { children: React.ReactN
 }
 
 function DeathPips({ label, color, value, onSet }: { label: string; color: string; value: number; onSet: (n: number) => void }) {
+  const ink = useInk();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 11, color }}>{label}</span>
+      <span style={{ fontSize: 11, color: ink(color) }}>{label}</span>
       {[1, 2, 3].map((n) => (
         <span
           key={n}

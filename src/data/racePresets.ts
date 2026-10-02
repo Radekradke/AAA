@@ -11,6 +11,7 @@ const VOLO = "Volo's Guide to Monsters";
 export const RACE_PRESETS: Race[] = [
   {
     id: 'preset-aasimar',
+    icon: 'angel-wings',
     label: 'Aasimar',
     mono: 'AA',
     jewel: '#C9A227',
@@ -64,6 +65,7 @@ export const RACE_PRESETS: Race[] = [
   },
   {
     id: 'preset-tabaxi',
+    icon: 'feline',
     label: 'Tabaxi',
     mono: 'TB',
     jewel: '#B5651D',
@@ -85,6 +87,7 @@ export const RACE_PRESETS: Race[] = [
   },
   {
     id: 'preset-golias',
+    icon: 'giant',
     label: 'Golias',
     mono: 'GO',
     jewel: '#6B7A8F',
@@ -106,6 +109,7 @@ export const RACE_PRESETS: Race[] = [
   },
   {
     id: 'preset-kenku',
+    icon: 'crow-dive',
     label: 'Kenku',
     mono: 'KE',
     jewel: '#3B3B58',
@@ -126,6 +130,7 @@ export const RACE_PRESETS: Race[] = [
   },
   {
     id: 'preset-lagarto',
+    icon: 'lizardman',
     label: 'Povo Lagarto',
     mono: 'PL',
     jewel: '#2E9D6E',
@@ -149,6 +154,7 @@ export const RACE_PRESETS: Race[] = [
   },
   {
     id: 'preset-forjado',
+    icon: 'robot-golem',
     label: 'Forjado Bélico',
     mono: 'FB',
     jewel: '#8A6A4F',

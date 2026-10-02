@@ -8,6 +8,7 @@ import { SKILLS } from '@/data/skills';
 import { ABILITY_SHORT } from '@/data/skills';
 import { blankRace, blankSubrace, bonusText, customLineage, finalizeRace, validateRace } from '@/engine/homebrew';
 import { useHomebrewStore } from '@/store/homebrewStore';
+import { RaceIconPicker } from './RaceIcon';
 import { useCharacterStore } from '@/store/characterStore';
 import { useAuthStore } from '@/store/authStore';
 import type { AbilityKey, Race, SkillKey, Subrace } from '@/types/dnd';
@@ -61,6 +62,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
         ...base,
         id: '',
         label: `${base.label} (variante)`,
+        icon: `race-${base.id}`,
         homebrew: true,
         traitDetails: base.traits.map((name) => ({ name, desc: '' })),
         size: base.id === 'halfling' || base.id === 'gnome' ? 'Pequeno' : 'Médio',
@@ -140,6 +142,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
               ))}
             </div>
           </div>
+          <RaceIconPicker value={r.icon} color={r.jewel} onChange={(icon) => set({ icon })} />
           <textarea className="fv-input" rows={2} placeholder="Como é esse povo, de onde vem, o que o move…" value={r.desc} maxLength={600} onChange={(e) => set({ desc: e.target.value })} />
         </section>
 

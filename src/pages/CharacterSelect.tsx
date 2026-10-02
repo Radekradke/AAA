@@ -246,15 +246,16 @@ export function CharacterSelect() {
                           textAlign: 'center',
                           padding: '9px 4px',
                           borderRadius: 11,
-                          background: 'rgba(6,8,12,.62)',
+                          background: 'rgba(6,8,12,.8)',
                           backdropFilter: 'blur(4px)',
                           border: '1px solid var(--line)',
                         }}
                       >
-                        <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
+                        {/* placa escura sobre a arte em qualquer modo: texto sempre claro */}
+                        <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 16, color: '#f4f1ea' }}>
                           {stat.v}
                         </div>
-                        <div style={{ fontSize: 9, letterSpacing: '.1em', color: 'var(--muted)', marginTop: 2 }}>
+                        <div style={{ fontSize: 9, letterSpacing: '.1em', color: '#ddd6c9', marginTop: 2 }}>
                           {stat.k}
                         </div>
                       </div>
@@ -312,7 +313,8 @@ function CardAction({ label, onClick, danger }: { label: string; onClick: () => 
         borderRadius: 999,
         border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : 'var(--line)'),
         color: danger ? 'var(--danger)' : 'var(--muted)',
-        background: 'var(--sunk)',
+        // fundo sólido: o card fica sobre a arte do herói (translúcido apagava o texto)
+        background: 'var(--panel)',
         transition: '.2s',
       }}
     >

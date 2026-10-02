@@ -15,6 +15,7 @@ import { characterResources } from '@/engine/classResources';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
+import { useInk } from '@/lib/contrast';
 
 /** Efeito acumulado de cada nível de exaustão (PHB 2014). */
 const EXHAUSTION_EFFECT: Record<number, string> = {
@@ -29,6 +30,7 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
+  const ink = useInk();
   const { rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
   const [amt, setAmt] = useState('');
@@ -74,7 +76,7 @@ export function TabCombate({ char, derived }: TabProps) {
           <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
             <div className="fv-label" style={{ cursor: 'help' }}>Pontos de Vida</div>
           </LoreTooltip>
-          <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: hpColor }}>
+          <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: ink(hpColor, 3.2) }}>
             <HpPops pops={hpFx.pops} />
             {char.hpCurrent}
             <span style={{ fontSize: '.5em', color: 'var(--muted)' }}> / {hpMax}</span>
@@ -95,8 +97,8 @@ export function TabCombate({ char, derived }: TabProps) {
           />
           {/* entalhes de HUD a cada 10% */}
           <div aria-hidden className="fv-hp-notches" />
-          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em', color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.7)' }}>
-            {pct}%
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em' }}>
+            <span className="fv-hp-bar-label">{pct}%</span>
           </div>
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -130,7 +132,7 @@ export function TabCombate({ char, derived }: TabProps) {
             style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: 'var(--font-num)', fontWeight: 700 }}
           />
           <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>
-          <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt)}>Curar</button>
+          <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt, ink('#3FC56B'))}>Curar</button>
         </div>
 
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
@@ -372,6 +374,7 @@ export function TabCombate({ char, derived }: TabProps) {
 }
 
 function HpBtn({ label, color, strong, onClick }: { label: string; color: string; strong?: boolean; onClick: () => void }) {
+  const ink = useInk();
   return (
     <button
       onClick={onClick}
@@ -380,7 +383,7 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
         fontFamily: 'var(--font-num)',
         fontWeight: 700,
         fontSize: 14,
-        color,
+        color: ink(color),
         minHeight: 40,
         padding: strong ? '9px 16px' : '9px 14px',
         borderRadius: 'var(--radius-md)',
@@ -394,13 +397,14 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
   );
 }
 
-function amtBtn(color: string, enabled: boolean): React.CSSProperties {
+/** `text`: a mesma cor já ajustada para leitura (useInk) — borda/fundo usam a original. */
+function amtBtn(color: string, enabled: boolean, text: string = color): React.CSSProperties {
   return {
     cursor: enabled ? 'pointer' : 'not-allowed',
     fontFamily: 'var(--font-body)',
     fontWeight: 700,
     fontSize: 12.5,
-    color,
+    color: text,
     minHeight: 40,
     padding: '9px 14px',
     borderRadius: 'var(--radius-md)',
@@ -427,9 +431,10 @@ function moveBtn(accent: boolean): React.CSSProperties {
 }
 
 function DeathRow({ label, color, value, onClick }: { label: string; color: string; value: number; onClick: (n: number) => void }) {
+  const ink = useInk();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-      <span style={{ fontSize: 11, color }}>{label}</span>
+      <span style={{ fontSize: 11, color: ink(color) }}>{label}</span>
       {[1, 2, 3].map((n) => (
         <span
           key={n}

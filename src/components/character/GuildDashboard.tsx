@@ -15,6 +15,7 @@ import { syncSpellSlots } from '@/engine/spellcasting';
 import { getClass } from '@/data/classes';
 import { heroAvatar, heroPortraitPosition, heroSubtitle } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
+import { useInk } from '@/lib/contrast';
 
 interface GuildDashboardProps {
   heroes: Character[];
@@ -231,6 +232,7 @@ function EmptyHero({ onNew }: { onNew: () => void }) {
 
 /** Recursos reais do herói ativo: vida em anel + usos que se gastam na mesa. */
 function HeroResources({ char }: { char: Character }) {
+  const ink = useInk();
   const d = deriveCharacter(char);
   const max = Math.max(1, d.maxHp);
   const hp = Math.max(0, char.hpCurrent);
@@ -269,7 +271,7 @@ function HeroResources({ char }: { char: Character }) {
             {char.hpCurrent}
             <i>/{d.maxHp}</i>
           </b>
-          <span style={{ color: state.color }}>
+          <span style={{ color: ink(state.color) }}>
             {state.label}
             {temp > 0 && ` · +${temp} temp.`}
           </span>
