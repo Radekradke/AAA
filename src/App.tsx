@@ -1,16 +1,18 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { useCharactersHydrated } from '@/store/characterStore';
+import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
+import { heroAvatar } from '@/lib/summary';
 import { Home } from '@/pages/Home';
-import { Login } from '@/pages/Login';
-import { AuthCallback } from '@/pages/AuthCallback';
-import { CharacterSelect } from '@/pages/CharacterSelect';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 // telas pesadas carregam só quando abertas (o pacote inicial fica bem menor);
 // o app instalado guarda todas no cache, então continuam funcionando offline
+// fora da tela inicial: cada tela baixa só quando alguém vai até ela
+const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login })));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback').then((m) => ({ default: m.AuthCallback })));
+const CharacterSelect = lazy(() => import('@/pages/CharacterSelect').then((m) => ({ default: m.CharacterSelect })));
 const CharacterCreator = lazy(() => import('@/pages/CharacterCreator').then((m) => ({ default: m.CharacterCreator })));
 const CharacterSheet = lazy(() => import('@/pages/CharacterSheet').then((m) => ({ default: m.CharacterSheet })));
 const Campaigns = lazy(() => import('@/pages/Campaigns').then((m) => ({ default: m.Campaigns })));
@@ -39,10 +41,42 @@ function Page({ children }: { children: ReactNode }) {
 }
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { PwaStatus } from '@/components/PwaStatus';
-import { SessionDock } from '@/components/session/SessionDock';
-import { Onboarding } from '@/components/Onboarding';
-import { GuidedTour } from '@/components/tour/GuidedTour';
 import { FeedbackHost } from '@/components/feedback/FeedbackHost';
+import { useUiStore } from '@/store/uiStore';
+import { cloudEnabled } from '@/services/supabaseClient';
+
+// peças globais que quase nunca aparecem: baixam na primeira vez que precisam
+const SessionDock = lazy(() => import('@/components/session/SessionDock').then((m) => ({ default: m.SessionDock })));
+const Onboarding = lazy(() => import('@/components/Onboarding').then((m) => ({ default: m.Onboarding })));
+const GuidedTour = lazy(() => import('@/components/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })));
+
+/** Fica true para sempre depois da 1ª vez (o componente continua montado e anima a saída). */
+function useOnceTrue(flag: boolean): boolean {
+  const [seen, setSeen] = useState(flag);
+  useEffect(() => {
+    if (flag) setSeen(true);
+  }, [flag]);
+  return seen || flag;
+}
+
+/**
+ * Ficha: a arte do herói é o maior elemento da tela (LCP), mas só seria
+ * descoberta depois que o código da página baixa e desenha. Aqui ela começa a
+ * baixar junto com esse código.
+ */
+function useHeroArtPreload(pathname: string) {
+  const id = /^\/ficha\/([^/]+)/.exec(pathname)?.[1];
+  const url = useCharacterStore((s) => {
+    const c = id ? s.characters.find((x) => x.id === id) : undefined;
+    return c ? heroAvatar(c) : null;
+  });
+  useEffect(() => {
+    if (!url) return;
+    const img = new Image();
+    img.fetchPriority = 'high';
+    img.src = url;
+  }, [url]);
+}
 
 /** Protege rotas que exigem usuário autenticado (ou convidado). */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -58,24 +92,32 @@ function RequireAuth({ children }: { children: ReactNode }) {
 export function App() {
   const location = useLocation();
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
+  useHeroArtPreload(location.pathname);
+  const user = useAuthStore((s) => s.user);
+  const showTutorial = useOnceTrue(useUiStore((s) => s.tutorialOpen));
+  const showTour = useOnceTrue(useUiStore((s) => !!s.tour));
+  // a mesa ao vivo só existe com conta na nuvem (convidado nunca baixa esse código)
+  const canLive = !!user && !user.guest && cloudEnabled();
 
   return (
     <>
     {/* app instalável: avisos de offline pronto / nova versão */}
     <PwaStatus />
-    {/* mesa ao vivo: pílula global + "SEU TURNO" em qualquer tela */}
-    <SessionDock />
-    {/* tutorial de boas-vindas (1ª visita ou menu → Tutorial) */}
-    <Onboarding />
-    {/* tour guiado com holofote (ficha e criação) */}
-    <GuidedTour />
+    <Suspense fallback={null}>
+      {/* mesa ao vivo: pílula global + "SEU TURNO" em qualquer tela */}
+      {canLive && <SessionDock />}
+      {/* tutorial de boas-vindas (1ª visita ou menu → Tutorial) */}
+      {showTutorial && <Onboarding />}
+      {/* tour guiado com holofote (ficha e criação) */}
+      {showTour && <GuidedTour />}
+    </Suspense>
     {/* avisos rápidos e confirmações no visual do tema */}
     <FeedbackHost />
     <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
-        <Route path="/entrar" element={<Login />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/entrar" element={<Page><Login /></Page>} />
+        <Route path="/auth/callback" element={<Page><AuthCallback /></Page>} />
         <Route path="/diagnostico" element={<Page><Diagnostics /></Page>} />
         <Route path="/retratos" element={<Page><PortraitWorkshop /></Page>} />
         <Route path="/config" element={<Page><Settings /></Page>} />
@@ -83,7 +125,7 @@ export function App() {
           path="/personagens"
           element={
             <RequireAuth>
-              <CharacterSelect />
+              <Page><CharacterSelect /></Page>
             </RequireAuth>
           }
         />

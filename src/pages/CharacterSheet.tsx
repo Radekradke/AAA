@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { toast } from '@/store/feedbackStore';
 import { itemGrantedSpells } from '@/engine/spellcasting';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,7 +14,6 @@ import { TabCombate } from '@/components/sheet/TabCombate';
 import { TabInventario } from '@/components/sheet/TabInventario';
 import { TabMagias } from '@/components/sheet/TabMagias';
 import { TabDescanso } from '@/components/sheet/TabDescanso';
-import { TabDiario } from '@/components/sheet/TabDiario';
 import { DiceRoller } from '@/components/dice/DiceRoller';
 import { TabMesa } from '@/components/sheet/TabMesa';
 import { TabEvoluir } from '@/components/sheet/TabEvoluir';
@@ -22,6 +21,9 @@ import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
 import { useUiStore } from '@/store/uiStore';
 import { loadDice3d } from '@/lib/dice3d';
+
+// diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
+const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -111,7 +113,7 @@ export function CharacterSheet() {
       case 'inventario': return <TabInventario char={char} derived={derived} />;
       case 'magias': return <TabMagias char={char} derived={derived} />;
       case 'descanso': return <TabDescanso char={char} derived={derived} />;
-      case 'diario': return <TabDiario char={char} derived={derived} />;
+      case 'diario': return <Suspense fallback={null}><TabDiario char={char} derived={derived} /></Suspense>;
       case 'dados': return <DiceRoller char={char} />;
       default: return <TabFicha char={char} derived={derived} />;
     }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction } from '@/store/feedbackStore';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
@@ -208,7 +208,7 @@ export function CharacterCreator() {
 
         <main ref={bodyRef} className="fv-forge-main">
           <AnimatePresence mode="wait">
-            <motion.div
+            <m.div
               key={step}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -216,7 +216,7 @@ export function CharacterCreator() {
               transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {renderStep()}
-            </motion.div>
+            </m.div>
           </AnimatePresence>
         </main>
 

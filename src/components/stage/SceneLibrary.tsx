@@ -6,6 +6,7 @@ import { liveScene, useStageStore } from '@/store/stageStore';
 import { gridFromColumns } from '@/engine/grid';
 import { DEFAULT_GRID } from '@/types/stage';
 import type { CutsceneBeat, GridConfig, Scene, SceneKind } from '@/types/stage';
+import '@/styles/stage.css';
 
 const KINDS: { kind: SceneKind; title: string; hint: string }[] = [
   { kind: 'map', title: 'Mapa tático', hint: 'Grade de 1,5 m, peões e régua de movimento' },

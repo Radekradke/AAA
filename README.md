@@ -104,6 +104,25 @@ public/assets/   heroi.png, heroi-fem.png, bg.mp4
 
 ---
 
+## ⚡ Desempenho (o que manter ao mexer)
+
+- **Só a primeira tela vai no pacote inicial.** Páginas, mesa ao vivo, tutorial,
+  tour e a aba Diário são `lazy()`. Estilos de mesa/palco/console
+  (`session.css`, `stage.css`, `master.css`) são importados pelos componentes que os
+  usam, então viajam junto com o pedaço deles. Não importe esses estilos no `main.tsx`.
+- **Animação:** use `m` (não `motion`) do framer-motion; o app roda dentro de
+  `<LazyMotion features={domAnimation} strict>`. Arrastar/layout (`domMax`) existe
+  só nos toasts e é carregado quando o navegador folga.
+- **Cache:** arquivos com hash ficam em `/static` (cache imutável de 1 ano no
+  `vercel.json`); `sw.js`/`index.html` sempre revalidam. O service worker guarda de
+  antemão só a casca do app; fontes e artes entram no cache na primeira vez que aparecem.
+- **Ficha:** a arte do herói (maior elemento da tela) é pedida junto com o código da
+  página (`useHeroArtPreload` no `App.tsx`).
+- **Supabase:** o HTML ganha `preconnect` para o servidor quando `VITE_SUPABASE_URL`
+  existe no build.
+
+---
+
 ## 🧠 Engine D&D 5e (resumo)
 
 - Modificador de atributo: `floor((valor − 10) / 2)`

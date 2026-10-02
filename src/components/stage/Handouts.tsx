@@ -6,6 +6,7 @@ import { stageService } from '@/services/stageService';
 import { useStageStore } from '@/store/stageStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { Handout } from '@/types/stage';
+import '@/styles/stage.css';
 
 /** Jogadores da mesa (dono → nomes dos heróis) para escolher quem recebe. */
 function usePlayers(heroes: SharedHero[]) {

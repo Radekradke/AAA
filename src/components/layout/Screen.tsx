@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { AppShell } from './AppShell';
 import { TopBar } from './TopBar';
 import { GuildNav } from './GuildNav';
@@ -29,10 +29,12 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
       <TopBar actions={actions} menu={menu} />
       {/* Guilda Rubra: navegação de app de jogos (lateral no PC, inferior no celular) */}
       {theme === 'rubra' && <GuildNav />}
-      <motion.div
-        initial={{ opacity: 0, scale: 1.035, y: 10, filter: 'blur(6px)' }}
-        animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-        exit={{ opacity: 0, scale: 0.99, filter: 'blur(4px)' }}
+      {/* só opacidade + transform (GPU): blur na tela inteira custava quadros no
+          celular e o filter residual virava bloco de contenção para position:fixed */}
+      <m.div
+        initial={{ opacity: 0, scale: 1.035, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.99 }}
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
         className="fv-screen-scroll"
         style={{
@@ -44,7 +46,7 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
         }}
       >
         {children}
-      </motion.div>
+      </m.div>
     </AppShell>
   );
 }

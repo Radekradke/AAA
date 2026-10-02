@@ -6,6 +6,7 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { campaignService } from '@/services/campaignService';
 import { TurnBanner } from './TurnBanner';
 import { TableRollToast } from './TableRollToast';
+import '@/styles/session.css';
 
 /**
  * Presença global da mesa ao vivo: enquanto estou numa sessão, uma pílula

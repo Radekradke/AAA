@@ -10,6 +10,8 @@ import { abilityMod } from '@/engine/monsters';
 import type { CampaignNpc, NpcSecret, NpcStats } from '@/types/npc';
 import type { Character } from '@/types/character';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import '@/styles/session.css';
+import '@/styles/master.css';
 
 /** Inicial bonita quando o NPC ainda não tem retrato. */
 export function NpcAvatar({ npc, size = 44 }: { npc: Pick<CampaignNpc, 'name' | 'portrait'>; size?: number }) {

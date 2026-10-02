@@ -5,6 +5,7 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 import type { CampaignNpc } from '@/types/npc';
 import { NpcAvatar } from '@/components/campaign/NpcGallery';
+import '@/styles/session.css';
 
 /** NPCs revelados das mesas em que a ficha está (com cópia offline). */
 export function useSheetNpcs(sheetId: string): CampaignNpc[] {

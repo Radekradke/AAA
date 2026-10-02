@@ -9,6 +9,7 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import type { Campaign } from '@/types/models';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
+import '@/styles/session.css';
 
 /** Mesas/Campanhas: o mestre cria a sala; jogadores entram por convite. */
 export function Campaigns() {
