@@ -21,6 +21,8 @@ const JoinCampaign = lazy(() => import('@/pages/JoinCampaign').then((m) => ({ de
 const LiveSession = lazy(() => import('@/pages/LiveSession').then((m) => ({ default: m.LiveSession })));
 const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) => ({ default: m.PortraitWorkshop })));
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
+const PrintSheet = lazy(() => import('@/pages/PrintSheet').then((m) => ({ default: m.PrintSheet })));
+const SharedSheet = lazy(() => import('@/pages/SharedSheet').then((m) => ({ default: m.SharedSheet })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
 
 /** Enquanto a tela baixa: o sigilo pulsando (só aparece se demorar, sem piscar). */
@@ -156,6 +158,14 @@ export function App() {
           }
         />
         <Route
+          path="/ficha/:id/imprimir"
+          element={
+            <RequireAuth>
+              <Page><PrintSheet /></Page>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/mesas"
           element={
             <RequireAuth>
@@ -182,6 +192,8 @@ export function App() {
         />
         {/* convite: acessível sem login (a página guia para entrar) */}
         <Route path="/sala/:token" element={<Page><JoinCampaign /></Page>} />
+        {/* ficha compartilhada por link: pública, só leitura */}
+        <Route path="/f/:token" element={<Page><SharedSheet /></Page>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </ErrorBoundary>

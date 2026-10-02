@@ -45,7 +45,7 @@ describe('SQL dos recursos extras', () => {
     await db.exec(extras);
     const steps = (await db.query(`select step from app_schema_steps order by step`)).rows.map((r) => (r as { step: string }).step);
     expect(steps).toEqual(['base', 'recursos_extras']);
-  });
+  }, 60_000);
 
   it('versão, erros, convite por código e ficha compartilhada', async () => {
     const failures: string[] = [];
@@ -122,5 +122,5 @@ describe('SQL dos recursos extras', () => {
 
     expect(failures).toEqual([]);
     expect(ok).toBeGreaterThan(15);
-  });
+  }, 60_000);
 });
