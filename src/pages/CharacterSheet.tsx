@@ -23,6 +23,7 @@ import { useUiStore } from '@/store/uiStore';
 import { loadDice3d } from '@/lib/dice3d';
 
 // diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
+const ShareSheetModal = lazy(() => import('@/components/sheet/ShareSheetModal').then((m) => ({ default: m.ShareSheetModal })));
 const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
@@ -34,6 +35,7 @@ export function CharacterSheet() {
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
   const [tab, setTab] = useState('mesa');
   const [editing, setEditing] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
 
@@ -132,6 +134,8 @@ export function CharacterSheet() {
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
         { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
+        { label: 'Imprimir / salvar PDF', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
+        { label: 'Compartilhar por link', icon: 'banner', onClick: () => setSharing(true) },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
         {
           label: 'Tour pela ficha',
@@ -164,6 +168,11 @@ export function CharacterSheet() {
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
+      {sharing && (
+        <Suspense fallback={null}>
+          <ShareSheetModal char={char} onClose={() => setSharing(false)} />
+        </Suspense>
+      )}
     </Screen>
   );
 }
