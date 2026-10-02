@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { campaignService } from '@/services/campaignService';
 import { authService } from '@/services/authService';
 import { cloudEnabled } from '@/services/supabaseClient';
+import '@/styles/session.css';
 
 /** Entrada na sala pelo link de convite: /sala/:token → vira membro e abre a mesa. */
 export function JoinCampaign() {

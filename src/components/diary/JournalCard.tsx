@@ -3,6 +3,7 @@ import type { JournalEntry } from '@/types/character';
 import type { CampaignNpc } from '@/types/npc';
 import { useTheme } from '@/lib/useTheme';
 import { MentionField, NpcMentionChip, mentionedNpcs } from './NpcMentions';
+import '@/styles/session.css';
 
 interface JournalCardProps {
   entry: JournalEntry;

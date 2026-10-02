@@ -17,6 +17,7 @@ import type { NewToken } from '@/services/stageService';
 import { stageDragProps } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { Scene, Token } from '@/types/stage';
+import '@/styles/stage.css';
 
 interface StageViewProps {
   isMaster: boolean;

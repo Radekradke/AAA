@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Icon } from '@/components/ui/Icon';
 
@@ -35,7 +35,7 @@ export function PwaStatus() {
   return createPortal(
     <AnimatePresence>
       {show && (
-        <motion.div
+        <m.div
           role="status"
           aria-live="polite"
           initial={{ opacity: 0, y: 16 }}
@@ -67,7 +67,7 @@ export function PwaStatus() {
           >
             ✕
           </button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>,
     document.body,

@@ -13,6 +13,9 @@ import { useStageStore } from '@/store/stageStore';
 import { MasterWorkspace } from '@/features/master/MasterWorkspace';
 import { PlayerWorkspace } from '@/features/live/PlayerWorkspace';
 import type { Campaign } from '@/types/models';
+import '@/styles/session.css';
+import '@/styles/stage.css';
+import '@/styles/master.css';
 
 /**
  * Mesa ao vivo (/mesa/:id/jogar): só o BOOTSTRAP — entra na campanha, liga

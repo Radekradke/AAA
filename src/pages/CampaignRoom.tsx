@@ -22,6 +22,8 @@ import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 import { NpcGallery } from '@/components/campaign/NpcGallery';
+import '@/styles/session.css';
+import '@/styles/stage.css';
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das

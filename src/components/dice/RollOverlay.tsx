@@ -1,7 +1,7 @@
 import { haptic } from '@/lib/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import { modStr } from '@/engine/dice';
@@ -110,7 +110,7 @@ export function RollOverlay() {
             pointerEvents: 'none',
           }}
         >
-          <motion.div
+          <m.div
             key={roll.id}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -179,16 +179,16 @@ export function RollOverlay() {
             {/* total + detalhes (revelados após o tombo) */}
             <AnimatePresence mode="wait">
               {phase === 'result' && (
-                <motion.div key="res" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                <m.div key="res" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                   <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 64, lineHeight: 1, color, textShadow: '0 0 30px var(--bloom)' }}>
                     {roll.total}
                   </div>
                   <div style={{ fontFamily: 'var(--font-num)', fontSize: 13.5, color: 'var(--ink)' }}>{detail}</div>
                   <div style={{ marginTop: 6, fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', color }}>{flavor}</div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>,

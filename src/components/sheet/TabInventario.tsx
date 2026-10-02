@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { HoloBadge } from '@/components/ui/holo-badge';
 import type { TabProps } from './tabProps';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
@@ -317,7 +317,7 @@ export function TabInventario({ char, derived }: TabProps) {
         </div>
 
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={open}
             id="fv-container-panel"
             initial={{ opacity: 0, y: -10, scale: 0.985 }}
@@ -367,7 +367,7 @@ export function TabInventario({ char, derived }: TabProps) {
             </div>
           </div>
         ))}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
 
         {/* o item "na mão" enquanto arrasta */}

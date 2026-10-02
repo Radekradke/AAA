@@ -3,6 +3,23 @@ import { useUiStore } from '@/store/uiStore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 
+/** Brilho redondo pré-desenhado: 1 gradiente por cor em vez de 1 por partícula a cada quadro. */
+const SPRITE = 64;
+function glowSprite(color: string): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = c.height = SPRITE;
+  const g = c.getContext('2d');
+  if (g) {
+    const half = SPRITE / 2;
+    const grad = g.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, hexA(color, 1));
+    grad.addColorStop(1, hexA(color, 0));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, SPRITE, SPRITE);
+  }
+  return c;
+}
+
 interface Particle {
   x: number;
   y: number;
@@ -53,6 +70,10 @@ export function ParticleField() {
     const st = state.current;
     st.touch = 'ontouchstart' in window;
     st.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // sem animação para quem prefere menos movimento: nem liga o laço
+    if (st.reduced) return;
+    let sprite: HTMLCanvasElement | null = null;
+    let spriteColor = '';
 
     const size = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -69,7 +90,6 @@ export function ParticleField() {
       st.raf = requestAnimationFrame(tick);
       const { w, h } = st;
       ctx.clearRect(0, 0, w, h);
-      if (st.reduced) return; // sem animação para quem prefere menos movimento
 
       const inten = st.intensity;
       const base = st.touch ? 0.16 : 0.32;
@@ -89,6 +109,10 @@ export function ParticleField() {
       }
 
       const col = colorRef.current;
+      if (!sprite || spriteColor !== col) {
+        sprite = glowSprite(col);
+        spriteColor = col;
+      }
       for (let i = st.parts.length - 1; i >= 0; i--) {
         const p = st.parts[i];
         p.life++;
@@ -103,14 +127,10 @@ export function ParticleField() {
         const fade = ra < 0.16 ? ra / 0.16 : 1 - ra;
         const alpha = Math.max(0, Math.min(0.75, fade * 0.7 * (0.45 + inten * 0.55)));
         const rad = p.r * 5;
-        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
-        g.addColorStop(0, hexA(col, alpha));
-        g.addColorStop(1, hexA(col, 0));
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, rad, 0, 6.2832);
-        ctx.fill();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(sprite, p.x - rad, p.y - rad, rad * 2, rad * 2);
       }
+      ctx.globalAlpha = 1;
       st.intensity = inten * 0.96;
     };
     st.raf = requestAnimationFrame(tick);

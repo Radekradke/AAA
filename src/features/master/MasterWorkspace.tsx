@@ -17,6 +17,7 @@ import { BackstageRail } from './backstage/BackstageRail';
 import { ContextInspector } from './inspector/ContextInspector';
 import { InitiativeDock } from './initiative/InitiativeDock';
 import { MasterQuickBar } from './quick/MasterQuickBar';
+import '@/styles/master.css';
 
 interface Props {
   campaign: Campaign;

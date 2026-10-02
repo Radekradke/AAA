@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, m } from 'framer-motion';
 import { useFeedback } from '@/store/feedbackStore';
+
+// arrastar para dispensar e reordenar (layout) precisam do domMax: pedaço à
+// parte, pedido quando o navegador folga (não disputa banda com a 1ª tela)
+const whenIdle = () =>
+  new Promise<void>((done) => ('requestIdleCallback' in window ? requestIdleCallback(() => done(), { timeout: 3000 }) : setTimeout(done, 1500)));
+const loadMax = () => whenIdle().then(() => import('@/lib/motionFeatures')).then((r) => r.default);
 
 /**
  * Avisos (toasts) e confirmações no visual do tema. Montado uma vez no App.
@@ -27,11 +33,11 @@ export function FeedbackHost() {
   }, [confirm]);
 
   return createPortal(
-    <>
+    <LazyMotion features={loadMax}>
       <div className="fv-toasts" aria-live="polite" aria-atomic="false">
         <AnimatePresence initial={false}>
           {toasts.map((t) => (
-            <motion.div
+            <m.div
               key={t.id}
               layout
               className={`fv-toast is-${t.tone}` + (t.action ? ' has-action' : '')}
@@ -68,15 +74,15 @@ export function FeedbackHost() {
               </button>
               {/* quanto tempo resta para desfazer */}
               {t.action && <i className="fv-toast-time" style={{ animationDuration: `${t.ms}ms` }} aria-hidden />}
-            </motion.div>
+            </m.div>
           ))}
         </AnimatePresence>
       </div>
 
       <AnimatePresence>
         {confirm && (
-          <motion.div className="fv-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => confirm.resolve(false)}>
-            <motion.div
+          <m.div className="fv-confirm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => confirm.resolve(false)}>
+            <m.div
               role="alertdialog"
               aria-modal="true"
               aria-labelledby="fv-confirm-title"
@@ -103,11 +109,11 @@ export function FeedbackHost() {
                   {confirm.confirmLabel ?? 'Confirmar'}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </>,
+    </LazyMotion>,
     document.body,
   );
 }

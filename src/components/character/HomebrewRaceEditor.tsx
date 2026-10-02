@@ -11,6 +11,7 @@ import { useHomebrewStore } from '@/store/homebrewStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useAuthStore } from '@/store/authStore';
 import type { AbilityKey, Race, SkillKey, Subrace } from '@/types/dnd';
+import '@/styles/session.css';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const DAMAGE = ['ácido', 'concussão', 'cortante', 'elétrico', 'energia', 'fogo', 'frio', 'necrótico', 'perfurante', 'psíquico', 'radiante', 'trovejante', 'veneno'];

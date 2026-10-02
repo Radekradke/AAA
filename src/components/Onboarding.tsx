@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
@@ -146,14 +146,14 @@ export function Onboarding() {
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           className="fv-onb-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={close}
         >
-          <motion.div
+          <m.div
             role="dialog"
             aria-modal="true"
             aria-labelledby="fv-onb-title"
@@ -171,7 +171,7 @@ export function Onboarding() {
                 <i>/{String(STEPS.length).padStart(2, '0')}</i>
               </span>
               <AnimatePresence mode="wait">
-                <motion.span
+                <m.span
                   key={i}
                   className="fv-onb-sigil"
                   initial={{ opacity: 0, rotate: -30 * dir, scale: 0.8 }}
@@ -180,7 +180,7 @@ export function Onboarding() {
                   transition={{ duration: 0.32 }}
                 >
                   <Icon name={step.icon} size={64} />
-                </motion.span>
+                </m.span>
               </AnimatePresence>
             </div>
 
@@ -189,7 +189,7 @@ export function Onboarding() {
                 {last ? 'Fechar' : 'Pular tutorial'}
               </button>
               <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                   key={i}
                   initial={{ opacity: 0, x: 18 * dir }}
                   animate={{ opacity: 1, x: 0 }}
@@ -204,7 +204,7 @@ export function Onboarding() {
                       <li key={k}>{tip}</li>
                     ))}
                   </ul>
-                </motion.div>
+                </m.div>
               </AnimatePresence>
 
               <div className="fv-onb-foot">
@@ -239,8 +239,8 @@ export function Onboarding() {
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>,
     document.body,
