@@ -19,119 +19,13 @@
   --topbar-h: clamp(62px, 8vh, 84px);
 }
 
-[data-theme='ouro'] {
-  --font-display: 'EB Garamond', 'Cormorant SC', serif;
-  --radius-sm: 1px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-
-  --bg: #0b0a09;
-  --bg2: #14120f;
-  --panel: #161411;
-  --panel2: #110f0d;
-  --well: #0d0c0a;
-  --steel: #1e1b17;
-  --line: rgba(201, 178, 124, 0.16);
-  --line-strong: rgba(214, 191, 138, 0.34);
-  --acc: #c9a962;
-  --acc2: #8d9aa5;
-  --lift: rgba(214, 196, 150, 0.05);
-  --accSoft: rgba(214, 196, 150, 0.06);
-  --gold: #d4bf8a;
-  --goldB: #efe3c2;
-  --ink: #e9e3d5;
-  --muted: #948c7c;
-  --danger: #DF6D57;
-  --bloom: rgba(0, 0, 0, 0);
-  --particle: rgba(0, 0, 0, 0);
-
-  /* sombra só para separar planos — nada de halo */
-  --shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(0, 0, 0, 0.55);
-  --shadow-soft: 0 10px 24px -18px rgba(0, 0, 0, 0.9);
-  --panel-texture: linear-gradient(transparent, transparent);
-  /* fundo chapado com uma vinheta quase imperceptível */
-  --scene: radial-gradient(120% 70% at 50% 0%, rgba(239, 227, 194, 0.035), transparent 60%);
-}
-
 /* Eclipse — editorial monocromático: página em branco quebrado, blocos
    pretos recortados, cápsulas e fios finos. Único tema CLARO: o texto
    padrão é escuro e os blocos pretos invertem as variáveis (veja
    "Eclipse — acabamento" no fim do arquivo). */
-[data-theme='eclipse'] {
-  --font-display: 'Manrope', var(--font-body);
-  --font-editorial: 'Antonio', 'Manrope', sans-serif;
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
-
-  --bg: #e7e5e0;
-  --bg2: #f1efea;
-  --panel: #f7f6f2;
-  --panel2: #eeece7;
-  --well: #e2e0da;
-  --steel: #dad8d2;
-  --line: rgba(17, 17, 17, 0.14);
-  --line-strong: rgba(17, 17, 17, 0.42);
-  --acc: #111111;
-  --acc2: #585858;
-  --lift: rgba(17, 17, 17, 0.04);
-  --accSoft: rgba(17, 17, 17, 0.05);
-  --gold: #111111;
-  --goldB: #2b2b2b;
-  --ink: #121212;
-  --muted: #5C5A54;
-  --danger: #A62A1E;
-  --ok: #2f7d4f;
-  --bloom: rgba(0, 0, 0, 0);
-  --particle: rgba(0, 0, 0, 0);
-  --on-gold: #f7f6f2;
-
-  --shadow-panel: 0 22px 40px -28px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 12px 24px -20px rgba(0, 0, 0, 0.4);
-  --panel-texture: linear-gradient(transparent, transparent);
-  /* papel liso com uma luz difusa, como na referência */
-  --scene:
-    radial-gradient(70% 50% at 82% 4%, rgba(255, 255, 255, 0.7), transparent 70%),
-    radial-gradient(60% 45% at 10% 100%, rgba(0, 0, 0, 0.06), transparent 70%);
-  color-scheme: light;
-}
 
 /* Guilda Rubra — painel de jogos: vinho, bordô e carvão com coral vivo,
    cantos bem arredondados e ilustrações que escapam dos cards. */
-[data-theme='rubra'] {
-  --font-display: 'Outfit', var(--font-body);
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 26px;
-
-  --bg: #1e0d10;
-  --bg2: #3a161b;
-  --panel: #3b1a1f;
-  --panel2: #2c1317;
-  --well: #24100f;
-  --steel: #4a2228;
-  --line: rgba(255, 190, 180, 0.12);
-  --line-strong: rgba(255, 196, 186, 0.28);
-  --acc: #FE8578;
-  --acc2: #f6e3a8;
-  --lift: rgba(255, 200, 190, 0.05);
-  --accSoft: rgba(255, 200, 190, 0.06);
-  --gold: #FE8578;
-  --goldB: #ff8a7a;
-  --ink: #fbefec;
-  --muted: #c4999a;
-  --danger: #ff7b5c;
-  --bloom: rgba(242, 102, 90, 0.16);
-  --particle: rgba(0, 0, 0, 0);
-  --on-gold: #2a0e10;
-
-  --shadow-panel: 0 26px 50px -26px rgba(10, 0, 2, 0.85);
-  --shadow-soft: 0 14px 30px -18px rgba(10, 0, 2, 0.75);
-  --panel-texture: linear-gradient(transparent, transparent);
-  --scene:
-    radial-gradient(70% 55% at 30% -10%, rgba(242, 102, 90, 0.16), transparent 64%),
-    radial-gradient(60% 50% at 100% 110%, rgba(120, 30, 50, 0.4), transparent 66%);
-}
 
 /* "poço": fundo afundado de campos, chips e botões, na cor do clima
    (antes era preto puro e virava buraco escuro em qualquer tema) */
@@ -1819,9 +1713,6 @@ button:active:not(:disabled) {
   position: absolute;
   inset: 0;
   background: radial-gradient(58% 52% at 50% 52%, var(--dice-scrim, rgba(0, 0, 0, 0.34)), transparent 76%);
-}
-[data-theme='eclipse'] .fv-dice3d::before {
-  --dice-scrim: rgba(17, 17, 17, 0.12);
 }
 .fv-dice3d canvas {
   display: block;
@@ -4170,85 +4061,14 @@ body.fv-dragging .fv-screen-scroll {
    (só vale neste tema; os outros climas não mudam)
    ============================================================ */
 /* cantos retos em tudo que é caixa ou botão (pílulas inclusive) */
-[data-theme='ouro'] :is(button, input, select, textarea, .fv-panel, .fv-surface, .fv-panel-soft, .fv-option, .fv-chip, .fv-pill, .fv-seg, .fv-modal, .fv-topbar-menu, .fv-skill, .fv-pack, .fv-counter, .fv-hb-chip) {
-  border-radius: 2px !important;
-}
 /* sem brilho: nada de halos, sombras de texto ou desfoque de vidro */
-[data-theme='ouro'] * {
-  text-shadow: none !important;
-}
-[data-theme='ouro'] [style*='0px 0px'],
-[data-theme='ouro'] .fv-option.is-selected,
-[data-theme='ouro'] .fv-btn-gold,
-[data-theme='ouro'] .fv-btn-gold:hover {
-  box-shadow: none !important;
-}
-[data-theme='ouro'] .fv-topbar-icon,
-[data-theme='ouro'] .fv-topbar-pill {
-  backdrop-filter: none;
-}
 /* painéis: carvão chapado, fio interno escuro e filete de ouro no topo */
-[data-theme='ouro'] .fv-panel {
-  background: var(--panel);
-  border-color: var(--line);
-}
-[data-theme='ouro'] .fv-panel::after,
-[data-theme='ouro'] .fv-surface::after {
-  left: 0;
-  right: 0;
-  opacity: 0.55;
-}
 /* títulos: versalete espaçado, como nos menus do jogo */
-[data-theme='ouro'] :is(h1, h2, h3, h4, .fv-label, .fv-facts-title, .fv-step-title, .fv-modal-head h2) {
-  font-family: var(--font-display);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-}
 /* botão principal: escuro com moldura de ouro (não mais barra dourada cheia) */
-[data-theme='ouro'] .fv-btn-gold {
-  color: var(--goldB);
-  background: var(--panel);
-  border: 1px solid var(--gold);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-[data-theme='ouro'] .fv-btn-gold:hover {
-  transform: none;
-  background: var(--steel);
-  border-color: var(--goldB);
-}
 /* cartões de escolha: seleção é uma faixa de ouro que some para a direita */
-[data-theme='ouro'] .fv-option {
-  background: var(--panel2);
-}
-[data-theme='ouro'] .fv-option:hover {
-  border-color: var(--line-strong);
-  background: linear-gradient(90deg, rgba(212, 191, 138, 0.07), transparent 70%), var(--panel2);
-}
-[data-theme='ouro'] .fv-option.is-selected {
-  border-color: var(--gold);
-  background: linear-gradient(90deg, rgba(212, 191, 138, 0.16), transparent 75%), var(--panel2);
-}
 /* pílulas e chips selecionados: fundo chapado, sem tinta translúcida */
-[data-theme='ouro'] .fv-pill.is-on,
-[data-theme='ouro'] .fv-seg button.is-on {
-  background: var(--steel);
-  color: var(--goldB);
-  box-shadow: inset 0 0 0 1px var(--gold);
-}
 /* campos */
-[data-theme='ouro'] .fv-input {
-  background: var(--well);
-}
-[data-theme='ouro'] .fv-input:focus {
-  border-color: var(--gold);
-  box-shadow: none;
-}
 /* foco: retângulo reto */
-[data-theme='ouro'] :focus-visible {
-  border-radius: 0;
-}
 
 /* ===== Escolher tema ===== */
 .fv-theme-mode {
@@ -4291,14 +4111,6 @@ body.fv-dragging .fv-screen-scroll {
 .fv-theme-text small { font-size: 12px; line-height: 1.4; color: var(--muted); }
 .fv-theme-check { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--on-gold, #1a1206); background: var(--gold); border-radius: 50%; }
 /* atributos da ficha: placa escura chapada, cor do atributo só no fio de cima */
-[data-theme='ouro'] .fv-ability-row [style*='clip-path'] {
-  background: var(--panel2) !important;
-  border-color: var(--line) !important;
-  clip-path: none !important;
-}
-[data-theme='ouro'] .fv-ability-row svg {
-  filter: none !important;
-}
 
 /* ===== Retrato do herói: hover com leve inclinação e reflexo metálico ===== */
 .fv-hero-portrait {
@@ -4367,9 +4179,6 @@ body.fv-dragging .fv-screen-scroll {
   background: color-mix(in srgb, var(--gold), transparent 88%);
   box-shadow: 0 0 22px color-mix(in srgb, var(--gold), transparent 70%);
 }
-[data-theme='ouro'] .fv-sheet-tab.is-on {
-  box-shadow: none;
-}
 /* número da etapa: só os temas editoriais mostram */
 .fv-step-num {
   display: none;
@@ -4382,485 +4191,41 @@ body.fv-dragging .fv-screen-scroll {
    "Recorte": elementos que atravessam a borda de um bloco ganham um anel
    da cor da página (box-shadow), como as cápsulas da referência.
    ============================================================ */
-[data-theme='eclipse'] {
-  --ecl-black: #111111;
-  --ecl-paper: #f3f2ee;
-}
-[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
-  --ink: #f3f2ee;
-  --muted: #a3a19b;
-  --panel: #1b1b1b;
-  --panel2: #131313;
-  --well: #0b0b0b;
-  --steel: #262626;
-  --line: rgba(255, 255, 255, 0.14);
-  --line-strong: rgba(255, 255, 255, 0.42);
-  --acc: #f3f2ee;
-  --acc2: #bdbbb5;
-  --gold: #f3f2ee;
-  --goldB: #ffffff;
-  --on-gold: #111111;
-  --on-acc: #111111;
-  --accSoft: rgba(255, 255, 255, 0.07);
-  --lift: rgba(255, 255, 255, 0.05);
-  --sunk: rgba(255, 255, 255, 0.06);
-  --sunk-deep: rgba(0, 0, 0, 0.45);
-  --bg: #111111;
-  color: var(--ink);
-}
-[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-hero-card) {
-  background: var(--ecl-black) !important;
-  border: 0 !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: 0 30px 50px -36px rgba(0, 0, 0, 0.7) !important;
-}
 
 /* sem brilho nem ornamentos: o contraste faz o trabalho */
-[data-theme='eclipse'] * {
-  text-shadow: none !important;
-}
-[data-theme='eclipse'] .fv-panel::after,
-[data-theme='eclipse'] .fv-surface::after {
-  display: none;
-}
-[data-theme='eclipse'] .fv-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-}
 
 /* títulos de seção: caixa-alta bem espaçada, como "C O L L A B O R A T I O N" */
-[data-theme='eclipse'] :is(.fv-label, .fv-section-title, .fv-rail-title) {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-}
 
 /* barra do topo: papel, marca num círculo preto, botões em cápsula */
-[data-theme='eclipse'] .fv-topbar {
-  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg), transparent 12%) 64%, transparent 100%);
-}
-[data-theme='eclipse'] .fv-topbar-logo {
-  transform: none;
-  border: 0;
-  border-radius: 999px;
-  background: var(--ecl-black);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-topbar-logo span {
-  transform: none;
-  color: var(--ecl-paper);
-  font-weight: 800;
-}
-[data-theme='eclipse'] :is(.fv-topbar-icon, .fv-topbar-pill) {
-  backdrop-filter: none;
-  background: var(--panel);
-  border-color: var(--line-strong);
-  color: var(--ink);
-}
 
 /* botão principal: cápsula preta; secundário: cápsula de papel */
-[data-theme='eclipse'] .fv-btn-gold {
-  color: var(--on-gold);
-  background: var(--gold);
-  border: 1px solid var(--gold);
-  border-radius: 999px;
-  box-shadow: none;
-  letter-spacing: 0.06em;
-}
-[data-theme='eclipse'] .fv-btn-gold:hover {
-  background: var(--goldB);
-  box-shadow: none;
-}
-[data-theme='eclipse'] :is(.fv-btn-ghost, .fv-foot-back) {
-  border-radius: 999px;
-}
-[data-theme='eclipse'] :is(input.fv-input, select.fv-input) {
-  border-radius: 999px;
-}
 
 /* cartões de escolha: papel com fio fino; selecionado vira bloco preto */
-[data-theme='eclipse'] .fv-option {
-  border-radius: 20px;
-  background: var(--panel);
-}
-[data-theme='eclipse'] .fv-option:hover {
-  border-color: var(--line-strong);
-}
-[data-theme='eclipse'] .fv-option.is-selected {
-  background: var(--ecl-black);
-  border-color: var(--ecl-black);
-  box-shadow: none;
-}
 /* acento do Eclipse: ocre/latão — a única cor quente no preto e branco */
-[data-theme='eclipse'] {
-  --opt-accent: #a8722a;
-}
-[data-theme='eclipse'][data-mode='dark'],
-[data-theme='eclipse'] .fv-option.is-selected {
-  --opt-accent: #e0aa5c;
-}
-[data-theme='eclipse'] .fv-option-icon {
-  filter: none;
-  padding: 5px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--opt-color), transparent 86%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--opt-color), transparent 70%);
-}
-[data-theme='eclipse'] :is(.fv-pill.is-on, .fv-seg button.is-on) {
-  background: var(--ecl-black);
-  color: var(--ecl-paper);
-  border-color: var(--ecl-black);
-  box-shadow: none;
-}
 
 /* ----- criação: trilha numerada (bloco preto) + papel + herói (bloco preto) ----- */
-[data-theme='eclipse'] .fv-forge-rail {
-  align-self: start;
-  padding: 22px 14px 16px;
-}
-[data-theme='eclipse'] .fv-rail-title {
-  margin: 0 0 16px 8px;
-  font-size: 10px;
-  color: var(--muted);
-}
-[data-theme='eclipse'] .fv-forge-rail ol::before {
-  display: none;
-}
-[data-theme='eclipse'] .fv-forge-rail ol {
-  gap: 6px;
-}
-[data-theme='eclipse'] .fv-forge-rail button {
-  padding: 5px 14px 5px 5px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  color: var(--muted);
-}
-[data-theme='eclipse'] .fv-forge-rail button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--ink);
-}
-[data-theme='eclipse'] .fv-rail-mark {
-  width: 30px;
-  height: 30px;
-  border-color: var(--line-strong);
-  background: transparent;
-  font: 800 11px var(--font-display);
-}
-[data-theme='eclipse'] .fv-forge-rail button.is-done .fv-rail-mark {
-  color: var(--ink);
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.12);
-}
-[data-theme='eclipse'] .fv-forge-rail button.is-current {
-  color: var(--ecl-black);
-  background: var(--ecl-paper);
-}
-[data-theme='eclipse'] .fv-forge-rail button.is-current .fv-rail-mark {
-  color: var(--ecl-paper);
-  background: var(--ecl-black);
-  border-color: var(--ecl-black);
-  box-shadow: none;
-}
 /* progresso no celular: bolinhas numeradas em vez de tracinhos */
-[data-theme='eclipse'] .fv-forge-progress {
-  counter-reset: ecl-step;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-[data-theme='eclipse'] .fv-forge-progress button {
-  counter-increment: ecl-step;
-  flex: 1;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line-strong);
-  background: var(--panel);
-  color: var(--muted);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-forge-progress button::before {
-  content: counter(ecl-step, decimal-leading-zero);
-  font: 800 10.5px var(--font-display);
-  letter-spacing: 0.04em;
-}
-[data-theme='eclipse'] .fv-forge-progress button.is-done {
-  background: var(--steel);
-  border-color: transparent;
-  color: var(--ink);
-}
-[data-theme='eclipse'] .fv-forge-progress button.is-current {
-  background: var(--ecl-black);
-  border-color: var(--ecl-black);
-  color: var(--ecl-paper);
-  box-shadow: none;
-}
 
 /* o papel: etapa + rodapé formam um só painel claro */
-[data-theme='eclipse'] .fv-forge {
-  row-gap: 0;
-  padding-bottom: calc(34px + env(safe-area-inset-bottom));
-}
-[data-theme='eclipse'] .fv-forge-main {
-  padding: 20px clamp(14px, 2vw, 26px) 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-[data-theme='eclipse'] .fv-forge-foot {
-  padding: 12px clamp(14px, 2vw, 26px) 10px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-top: 0;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  box-shadow: inset 0 1px 0 var(--line);
-}
 /* o "Avançar" fica no rodapé, alinhado com o "Voltar" (antes atravessava a borda) */
-[data-theme='eclipse'] .fv-foot-cta {
-  box-shadow: none !important;
-}
-[data-theme='eclipse'] .fv-foot-hero {
-  background: var(--panel2);
-}
 
 /* título da etapa: editorial, com o número numa cápsula */
-[data-theme='eclipse'] .fv-step-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 16px 4px 4px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  font: 700 10px var(--font-display);
-  letter-spacing: 0.28em;
-  color: var(--ink);
-  opacity: 1;
-}
-[data-theme='eclipse'] .fv-step-num {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--ecl-black);
-  color: var(--ecl-paper);
-  font: 800 11px var(--font-display);
-  letter-spacing: 0.02em;
-}
-[data-theme='eclipse'] .fv-step-head h2 {
-  margin: 12px 0 10px;
-  font: 500 clamp(40px, 4.6vw, 64px) / 0.9 var(--font-editorial);
-  text-transform: uppercase;
-  letter-spacing: 0.005em;
-}
 
 /* bloco do herói: retrato colorido sobre o preto */
-[data-theme='eclipse'] .fv-forge-hero {
-  padding: 10px;
-}
-[data-theme='eclipse'] .fv-hero-portrait {
-  border: 0;
-  border-radius: 20px;
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-hero-portrait:hover {
-  box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.9);
-}
-[data-theme='eclipse'] .fv-hero-name {
-  font: 500 26px / 0.95 var(--font-editorial);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-}
-[data-theme='eclipse'] .fv-hero-name.is-empty {
-  font-style: normal;
-}
-[data-theme='eclipse'] .fv-hero-line {
-  color: var(--ink);
-}
-[data-theme='eclipse'] :is(.fv-hero-abils > div, .fv-hero-vitals > div) {
-  border-radius: 14px;
-  border-color: var(--line);
-  background: var(--sunk);
-}
-[data-theme='eclipse'] .fv-hero-abils span {
-  color: var(--muted);
-}
-[data-theme='eclipse'] .fv-hero-vitals b {
-  color: var(--ink);
-}
-[data-theme='eclipse'] .fv-hero-sigil {
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.7);
-  box-shadow: none;
-}
 
 /* ----- ficha ----- */
-[data-theme='eclipse'] .fv-sheet-head-art {
-  opacity: 0.62;
-}
-[data-theme='eclipse'] .fv-sheet-head .fv-hide-mobile {
-  display: none;
-}
-[data-theme='eclipse'] .fv-sh-name {
-  font-family: var(--font-editorial) !important;
-  font-weight: 500 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-  line-height: 0.92 !important;
-  font-size: clamp(28px, 3.4vw, 44px) !important;
-}
-[data-theme='eclipse'] .fv-header-stat {
-  border-radius: 18px;
-  backdrop-filter: none;
-  background: rgba(17, 17, 17, 0.72);
-}
 /* abas: barra preta em cápsula; a aba aberta é uma cápsula de papel */
-[data-theme='eclipse'] .fv-sheet-tabs {
-  gap: 4px;
-  padding: 6px;
-  border-radius: 30px;
-  background: var(--ecl-black);
-}
-[data-theme='eclipse'] .fv-sheet-tab {
-  border-color: transparent;
-  background: transparent;
-  backdrop-filter: none;
-}
-[data-theme='eclipse'] .fv-sheet-tab:hover {
-  color: var(--ink);
-}
-[data-theme='eclipse'] .fv-sheet-tab.is-on {
-  color: var(--ecl-black);
-  background: var(--ecl-paper);
-  border-color: var(--ecl-paper);
-  box-shadow: none;
-}
 /* atributos: placas de papel; a cor do atributo fica só na sigla e no dado */
-[data-theme='eclipse'] .fv-ability-row [style*='clip-path'] {
-  background: var(--panel) !important;
-  border-color: var(--line) !important;
-  border-top-color: var(--line-strong) !important;
-  clip-path: none !important;
-  border-radius: 20px;
-}
-[data-theme='eclipse'] .fv-ability-row svg {
-  filter: none !important;
-}
 
 /* ----- heróis: blocos pretos com a arte; abrir é um botão que atravessa a borda ----- */
-[data-theme='eclipse'] .fv-hero-card-art {
-  opacity: 0.75;
-}
 
 /* detalhe da escolha: cartão de papel; o ícone colorido num círculo preto */
-[data-theme='eclipse'] .fv-detail {
-  border-radius: 24px;
-  border-color: var(--line);
-  background: color-mix(in srgb, var(--panel), var(--ecl-paper) 40%);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-detail-icon {
-  border: 0;
-  border-radius: 999px;
-  background: var(--ecl-black);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-detail-eyebrow {
-  color: var(--muted);
-  letter-spacing: 0.24em;
-}
-[data-theme='eclipse'] .fv-detail h3 {
-  font-family: var(--font-editorial);
-  font-weight: 500;
-  font-size: 34px;
-  line-height: 0.95;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-}
 
 /* títulos de página: editoriais, grandes e altos */
-[data-theme='eclipse'] :is(.fv-home-title, .fv-page-title) {
-  font-family: var(--font-editorial) !important;
-  font-weight: 500 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.005em !important;
-  line-height: 0.88 !important;
-}
-[data-theme='eclipse'] .fv-home-title {
-  font-size: min(clamp(64px, 12vh, 148px), 22vw) !important;
-  margin-bottom: 16px;
-}
-[data-theme='eclipse'] .fv-page-title {
-  font-size: clamp(48px, 7vw, 92px) !important;
-  margin: 10px 0 14px !important;
-}
-[data-theme='eclipse'] .fv-home-cta {
-  border-radius: 999px !important;
-  background: var(--ecl-black) !important;
-  border-color: var(--ecl-black) !important;
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ecl-black), transparent 92%) !important;
-  animation: none !important;
-}
 
 /* ============================================================
    Guilda Rubra — acabamento de app de jogos (só vale neste tema)
    ============================================================ */
-[data-theme='rubra'] .fv-topbar-logo {
-  transform: none;
-  border: 0;
-  border-radius: 11px;
-  background: var(--acc);
-  box-shadow: 0 6px 18px -6px var(--acc);
-}
-[data-theme='rubra'] .fv-topbar-logo span {
-  transform: none;
-  color: var(--on-gold);
-  font-weight: 700;
-}
-[data-theme='rubra'] .fv-panel {
-  border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--panel), #fff 3%), var(--panel2));
-  border-color: var(--line);
-}
-[data-theme='rubra'] .fv-panel::after,
-[data-theme='rubra'] .fv-surface::after {
-  display: none;
-}
-[data-theme='rubra'] .fv-sheet-head .fv-hide-mobile {
-  display: none;
-}
-[data-theme='rubra'] .fv-btn-gold {
-  border-radius: 999px;
-  color: var(--on-gold);
-  background: linear-gradient(180deg, var(--goldB), var(--gold));
-  box-shadow: 0 10px 26px -12px var(--acc);
-}
-[data-theme='rubra'] :is(.fv-btn-ghost, .fv-foot-back) {
-  border-radius: 999px;
-}
-[data-theme='rubra'] .fv-option {
-  border-radius: 20px;
-}
-[data-theme='rubra'] .fv-option.is-selected {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--acc), transparent 80%), var(--panel2));
-  box-shadow: 0 0 0 1px var(--acc), 0 14px 30px -18px var(--acc);
-}
-[data-theme='rubra'] .fv-detail {
-  border-radius: 24px;
-}
-[data-theme='rubra'] .fv-hero-portrait {
-  border-radius: 24px;
-}
-[data-theme='rubra'] .fv-forge-rail button.is-current {
-  border-radius: 999px;
-}
-[data-theme='rubra'] .fv-ability-row [style*='clip-path'] {
-  clip-path: none !important;
-  border-radius: 18px;
-}
 
 /* ----- navegação: barra lateral (PC) / barra inferior (celular, só nos hubs) ----- */
 .fv-guild-nav {
@@ -4938,74 +4303,7 @@ body.fv-dragging .fv-screen-scroll {
   background: color-mix(in srgb, var(--acc), transparent 86%);
 }
 @media (min-width: 1024px) {
-  [data-theme='rubra'] .fv-guild-nav {
-    position: absolute;
-    z-index: 45;
-    top: 14px;
-    bottom: 14px;
-    left: 14px;
-    width: 78px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    padding: 16px 0 14px;
-    border-radius: 26px;
-    border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--panel2), transparent 4%);
-    box-shadow: var(--shadow-panel);
-  }
-  [data-theme='rubra'] .fv-guild-nav ul {
-    flex: 1;
-    flex-direction: column;
-  }
-  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-screen-scroll {
-    left: 104px !important;
-  }
-  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar {
-    left: 92px;
-  }
   /* a marca já está na barra lateral */
-  div[data-theme='rubra']:has(> .fv-guild-nav) .fv-topbar-brand {
-    visibility: hidden;
-  }
-  [data-theme='rubra'] .fv-tableroll {
-    left: 108px;
-  }
-}
-@media (max-width: 1023.98px) {
-  [data-theme='rubra'] .fv-guild-nav.is-hub {
-    position: absolute;
-    z-index: 45;
-    left: 10px;
-    right: 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-    border-radius: 24px;
-    border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--panel2), transparent 3%);
-    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
-  }
-  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-brand {
-    display: none;
-  }
-  [data-theme='rubra'] .fv-guild-nav.is-hub ul {
-    flex: 1;
-    justify-content: space-around;
-  }
-  [data-theme='rubra'] .fv-guild-nav.is-hub ul button {
-    width: 56px;
-  }
-  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-new {
-    width: 46px;
-    height: 46px;
-  }
-  div[data-theme='rubra']:has(> .fv-guild-nav.is-hub) .fv-screen-scroll {
-    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
-  }
 }
 
 /* ----- painel de heróis ----- */
@@ -5609,28 +4907,6 @@ body.fv-dragging .fv-screen-scroll {
 }
 
 /* barra de abas da ficha no celular */
-[data-theme='eclipse'] .fv-mobile-nav {
-  left: 10px;
-  right: 10px;
-  bottom: calc(10px + env(safe-area-inset-bottom));
-  padding: 6px;
-  border: 0;
-  border-radius: 26px;
-  background: var(--ecl-black);
-  backdrop-filter: none;
-}
-[data-theme='eclipse'] .fv-mobile-nav-btn {
-  border-radius: 20px;
-  color: #a3a19b !important;
-  background: transparent !important;
-}
-[data-theme='eclipse'] .fv-mobile-nav-btn[aria-current='page'] {
-  color: var(--ecl-black) !important;
-  background: var(--ecl-paper) !important;
-}
-[data-theme='rubra'] .fv-mobile-nav {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--panel2), transparent 30%), color-mix(in srgb, var(--bg), transparent 3%));
-}
 /* skin dos dados no seletor de tema */
 .fv-theme-text .fv-theme-die {
   display: flex;
@@ -5675,32 +4951,8 @@ body.fv-dragging .fv-screen-scroll {
 }
 
 /* Ouro Velho: barra de destaque dos menus de Elden Ring (luz no centro, fios nas bordas) */
-[data-theme='ouro'] :is(.fv-topbar-menu-item, .fv-forge-rail button, .fv-sheet-tab, .fv-option):is(:hover, :focus-visible),
-[data-theme='ouro'] .fv-forge-rail button.is-current {
-  background-image:
-    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
-    linear-gradient(90deg, transparent, rgba(239, 227, 194, 0.75), transparent),
-    radial-gradient(60% 120% at 50% 50%, rgba(212, 191, 138, 0.16), transparent 75%);
-  background-size: 100% 1px, 100% 1px, 100% 100%;
-  background-position: top, bottom, center;
-  background-repeat: no-repeat;
-}
 
 /* Eclipse: o botão principal se inverte como um eclipse passando */
-[data-theme='eclipse'] .fv-btn-gold:not(:disabled) {
-  background: linear-gradient(90deg, var(--ecl-paper) 50%, var(--gold) 50%) 100% 0 / 200% 100%;
-  transition: background-position 0.45s cubic-bezier(0.7, 0, 0.2, 1), color 0.45s;
-}
-[data-theme='eclipse'] .fv-btn-gold:not(:disabled):hover {
-  background-position: 0 0;
-  color: var(--ecl-black);
-  border-color: var(--ecl-black);
-}
-[data-theme='eclipse'] .fv-option:not(.is-selected):hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--ecl-black);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
 
 /* Guilda Rubra: reflexo varrendo o herói ativo e botões que "afundam" ao clicar */
 @keyframes fvSweep {
@@ -5721,12 +4973,6 @@ body.fv-dragging .fv-screen-scroll {
   pointer-events: none;
   background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat;
   animation: fvSweep 7s ease-in-out infinite;
-}
-[data-theme='rubra'] :is(.fv-btn-gold, .fv-guild-open, .fv-guild-card-open):active {
-  transform: scale(0.97);
-}
-[data-theme='rubra'] .fv-guild-card:hover {
-  box-shadow: 0 18px 36px -18px rgba(242, 102, 90, 0.55);
 }
 
 /* ===== Resultado da rolagem: crítico explode em luz, falha crítica treme ===== */
@@ -5794,77 +5040,10 @@ body.fv-dragging .fv-screen-scroll {
 
 /* Eclipse em telas baixas: o título editorial encolhe e a cápsula do capítulo
    divide a linha com ele, para a etapa caber sem barra de rolagem */
-@media (min-width: 1180px) and (max-height: 860px) {
-  [data-theme='eclipse'] .fv-forge-main {
-    padding: 14px clamp(14px, 1.8vw, 22px) 8px;
-  }
-  [data-theme='eclipse'] .fv-step-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 14px;
-    row-gap: 2px;
-    margin-bottom: 12px;
-  }
-  [data-theme='eclipse'] .fv-step-head h2 {
-    margin: 0;
-    font-size: clamp(34px, 3.4vw, 44px);
-  }
-  [data-theme='eclipse'] .fv-step-eyebrow {
-    padding-block: 3px;
-  }
-  [data-theme='eclipse'] .fv-step-num {
-    width: 26px;
-    height: 26px;
-  }
-  [data-theme='eclipse'] .fv-forge-foot {
-    padding-block: 8px;
-  }
-  [data-theme='eclipse'] .fv-forge {
-    padding-bottom: calc(30px + env(safe-area-inset-bottom));
-  }  [data-theme='eclipse'] .fv-detail h3 {
-    font-size: 28px;
-  }
-  [data-theme='eclipse'] .fv-detail {
-    padding: 12px 14px;
-  }
-  [data-theme='eclipse'] .fv-voice {
-    gap: 6px;
-    margin-top: 10px;
-  }
-  [data-theme='eclipse'] .fv-voice .fv-seg button {
-    padding-inline: 11px;
-  }  /* o cartão de detalhe ganha largura para a voz caber numa linha */
-  [data-theme='eclipse'] .fv-choice {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: 12px;
-  }
+@media (min-width: 1180px) and (max-height: 860px) {  /* o cartão de detalhe ganha largura para a voz caber numa linha */
 }
 
 /* Eclipse em notebooks baixos: a trilha já numera os capítulos */
-@media (min-width: 1180px) and (max-height: 720px) {
-  [data-theme='eclipse'] .fv-step-head h2 {
-    font-size: 34px;
-  }
-  [data-theme='eclipse'] .fv-forge {
-    padding-bottom: calc(24px + env(safe-area-inset-bottom));
-  }
-  [data-theme='eclipse'] .fv-step-eyebrow {
-    display: none;
-  }
-  [data-theme='eclipse'] .fv-forge-main {
-    padding-top: 10px;
-  }
-  [data-theme='eclipse'] .fv-step-head {
-    margin-bottom: 8px;
-  }
-  [data-theme='eclipse'] .fv-forge-foot {
-    padding-block: 6px;
-  }
-  [data-theme='eclipse'] .fv-detail-desc {
-    margin-block: 6px;
-  }
-}
 
 /* escolhas extras (sublinhagem, idiomas) sob a grade de opções */
 .fv-choice-extras > .fv-detail-sub:first-child {
@@ -6118,50 +5297,6 @@ body.fv-dragging .fv-screen-scroll {
   }
 }
 /* temas com assinatura própria no menu */
-[data-theme='ouro'] .fv-menu-item {
-  border-radius: 2px;
-  backdrop-filter: none;
-}
-[data-theme='ouro'] .fv-menu-item.is-primary {
-  color: var(--goldB);
-  background: var(--panel);
-  border-color: var(--gold);
-  box-shadow: none;
-}
-[data-theme='ouro'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
-  color: var(--gold);
-}
-[data-theme='ouro'] .fv-menu-title {
-  letter-spacing: 0.2em;
-  font-weight: 600;
-}
-[data-theme='eclipse'] .fv-menu-item {
-  border-radius: 999px;
-  backdrop-filter: none;
-  background: var(--panel);
-}
-[data-theme='eclipse'] .fv-menu-icon,
-[data-theme='eclipse'] .fv-menu-face {
-  border-radius: 999px;
-}
-[data-theme='eclipse'] .fv-menu-item.is-primary {
-  color: var(--ecl-paper);
-  background: var(--ecl-black);
-  border-color: var(--ecl-black);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-menu-item.is-primary :is(.fv-menu-icon, .fv-menu-text small, .fv-menu-arrow) {
-  color: color-mix(in srgb, var(--ecl-paper), transparent 28%);
-}
-[data-theme='eclipse'] .fv-menu-item.is-primary .fv-menu-icon {
-  background: rgba(255, 255, 255, 0.08);
-}
-[data-theme='eclipse'] .fv-menu-sigil {
-  color: var(--ink);
-}
-[data-theme='rubra'] .fv-menu-item {
-  border-radius: 22px;
-}
 @media (max-height: 700px) {
   .fv-menu {
     justify-content: flex-start;
@@ -6515,16 +5650,6 @@ body.fv-dragging .fv-screen-scroll {
     animation: none;
   }
 }
-[data-theme='eclipse'] .fv-onb-art {
-  background: var(--ecl-black);
-  --gold: #f3f2ee;
-  --ink: #f3f2ee;
-  --muted: #a3a19b;
-}
-[data-theme='ouro'] .fv-onb,
-[data-theme='ouro'] .fv-onb-tips li {
-  border-radius: 2px;
-}
 
 /* ============================================================
    Tour guiado: holofote sobre o elemento real + balão
@@ -6629,13 +5754,6 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-tour-btn.fv-btn-ghost {
   border-radius: var(--radius-md);
-}
-[data-theme='eclipse'] .fv-tour-hole {
-  box-shadow: 0 0 0 9999px rgba(20, 20, 20, 0.55), 0 0 0 2px var(--ecl-black);
-}
-[data-theme='ouro'] .fv-tour-hole,
-[data-theme='ouro'] .fv-tour-tip {
-  border-radius: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .fv-tour-hole,
@@ -6813,9 +5931,6 @@ body.fv-dragging .fv-screen-scroll {
     box-shadow: 0 0 26px var(--bloom), inset 0 0 14px color-mix(in srgb, var(--gold), transparent 75%);
     scale: 1.06;
   }
-}
-[data-theme='ouro'] :is(.fv-toast, .fv-confirm, .fv-confirm-btn, .fv-toast-action) {
-  border-radius: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .fv-page-loading-sigil {
