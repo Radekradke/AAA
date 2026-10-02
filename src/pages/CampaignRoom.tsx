@@ -15,7 +15,7 @@ import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
-import type { Campaign, SharedCharacterSheet } from '@/types/models';
+import type { Campaign, InviteLink, SharedCharacterSheet } from '@/types/models';
 import type { Character } from '@/types/character';
 import { useTheme } from '@/lib/useTheme';
 import { useInk } from '@/lib/contrast';
@@ -25,6 +25,8 @@ import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 import { NpcGallery } from '@/components/campaign/NpcGallery';
 import '@/styles/session.css';
 import '@/styles/stage.css';
+import { InviteCard } from '@/components/campaign/InviteCard';
+import { SchemaNotice } from '@/components/campaign/SchemaNotice';
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -39,9 +41,8 @@ export function CampaignRoom() {
   const t = useTheme();
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [invite, setInvite] = useState<string | null>(null);
+  const [invite, setInvite] = useState<InviteLink | null>(null);
   const [shares, setShares] = useState<{ share: SharedCharacterSheet; snapshot: Character | null }[]>([]);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState<CampaignNote[]>([]);
   const [noteKind, setNoteKind] = useState<CampaignNote['kind']>('nota');
@@ -71,22 +72,12 @@ export function CampaignRoom() {
     return subscribeRoom(id, load);
   }, [id, load]);
 
-  // mestre: garante um convite reutilizável
+  // mestre: garante um convite reutilizável (com código curto e QR)
   useEffect(() => {
     if (campaign && user && isMaster) {
-      campaignService.ensureInvite(campaign, user.id)
-        .then((inv) => setInvite(`${window.location.origin}/sala/${inv.token}`))
-        .catch(() => undefined);
+      campaignService.ensureInvite(campaign, user.id).then(setInvite).catch(() => undefined);
     }
   }, [campaign, user, isMaster]);
-
-  const copy = () => {
-    if (!invite) return;
-    void navigator.clipboard.writeText(invite).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
-  };
 
   const share = async (sheetId: string) => {
     if (!id || !user) return;
@@ -114,17 +105,12 @@ export function CampaignRoom() {
         {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
         {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
 
-        {/* convite (mestre) */}
-        {isMaster && invite && (
-          <div className="fv-panel" style={{ padding: 14, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-              <div className="fv-label" style={{ fontSize: 10.5, marginBottom: 4 }}>Link de convite — envie aos jogadores</div>
-              <div style={{ fontFamily: 'var(--font-num)', fontSize: 12.5, color: 'var(--acc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{invite}</div>
-            </div>
-            <button onClick={copy} className="fv-btn-gold" style={{ minHeight: 40, padding: '0 18px', fontSize: 13 }}>
-              {copied ? <><i className="fv-tick" aria-hidden>✓</i> Copiado!</> : 'Copiar link'}
-            </button>
-          </div>
+        {/* banco desatualizado: o mestre vê qual script falta */}
+        {isMaster && <SchemaNotice />}
+
+        {/* convite (mestre): código, link e QR */}
+        {isMaster && invite && campaign && (
+          <InviteCard invite={invite} campaignName={campaign.name} onNewCode={async () => setInvite(await campaignService.newCode(invite))} />
         )}
 
         {/* jogador: vincular a própria ficha */}

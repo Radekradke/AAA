@@ -227,3 +227,14 @@ do $fn$ begin alter publication supabase_realtime add table public.campaign_hand
 
 -- a API do Supabase (PostgREST) passa a enxergar as tabelas novas na hora
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------
+-- versão do banco: registra que este script rodou (o app avisa o mestre
+-- do que falta). Idempotente.
+-- ---------------------------------------------------------------------
+create table if not exists public.app_schema_steps (step text primary key, applied_at timestamptz not null default now());
+alter table public.app_schema_steps enable row level security;
+drop policy if exists "schema_steps_read" on public.app_schema_steps;
+create policy "schema_steps_read" on public.app_schema_steps for select to authenticated using (true);
+grant select on public.app_schema_steps to authenticated;
+insert into public.app_schema_steps (step) values ('palco') on conflict (step) do update set applied_at = now();

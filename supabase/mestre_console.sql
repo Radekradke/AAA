@@ -130,3 +130,14 @@ alter table if exists public.campaign_handouts add column if not exists improvis
 do $fn$ begin alter publication supabase_realtime add table public.session_prep; exception when duplicate_object or undefined_object then null; end $fn$;
 
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------
+-- versão do banco: registra que este script rodou (o app avisa o mestre
+-- do que falta). Idempotente.
+-- ---------------------------------------------------------------------
+create table if not exists public.app_schema_steps (step text primary key, applied_at timestamptz not null default now());
+alter table public.app_schema_steps enable row level security;
+drop policy if exists "schema_steps_read" on public.app_schema_steps;
+create policy "schema_steps_read" on public.app_schema_steps for select to authenticated using (true);
+grant select on public.app_schema_steps to authenticated;
+insert into public.app_schema_steps (step) values ('mestre_console') on conflict (step) do update set applied_at = now();

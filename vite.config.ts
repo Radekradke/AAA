@@ -28,8 +28,12 @@ function preconnectSupabase(): Plugin {
   };
 }
 
+/** Versão do build para os relatórios de erro: commit na Vercel/CI, senão a data. */
+const APP_VERSION = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || '').slice(0, 7) || new Date().toISOString().slice(0, 10);
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(APP_VERSION) },
   plugins: [
     react(),
     preconnectSupabase(),
