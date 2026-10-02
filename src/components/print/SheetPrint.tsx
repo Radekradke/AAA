@@ -1,46 +1,20 @@
-import { useMemo } from 'react';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
-import { deriveCharacter } from '@/engine/dndRules';
 import { modStr } from '@/engine/dice';
-import { featuresGained } from '@/engine/levelUp';
-import { spellSlotsFor } from '@/engine/spellcasting';
-import { getClass } from '@/data/classes';
-import { getSubclass } from '@/data/subclasses';
-import { getBackground } from '@/data/backgrounds';
-import { getSubrace, raceOf } from '@/data/races';
 import { getFeat } from '@/data/feats';
-import { getSpell } from '@/data/spells';
 import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
+import { COINS, fmtM, usePrintData } from './printData';
 import '@/styles/print.css';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-const COINS: [keyof Character['coins'], string][] = [['pp', 'PL'], ['gp', 'PO'], ['ep', 'PE'], ['sp', 'PP'], ['cp', 'PC']];
-const fmtM = (m: number) => `${String(m).replace('.', ',')} m`;
 
 /**
  * Ficha no formato clássico de papel (A4): preto no branco, legível impressa
  * e em PDF. É a mesma visão do link compartilhado (só leitura).
  */
 export function SheetPrint({ char }: { char: Character }) {
-  const d = useMemo(() => deriveCharacter(char), [char]);
-  const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
-  const bg = getBackground(char.backgroundId);
-  const classes = (char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }]).map((cl) => ({ ...cl, cls: getClass(cl.classId) }));
-  const subclass = getSubclass(char.subclassId ?? undefined);
-  const slots = spellSlotsFor(char);
-  const spells = useMemo(() => {
-    const ids = [...new Set([...(char.knownSpells ?? []), ...(char.preparedSpells ?? [])])];
-    const list = ids.map((id) => getSpell(id)).filter((s): s is NonNullable<typeof s> => !!s);
-    const byLevel = new Map<number, typeof list>();
-    for (const s of list.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))) byLevel.set(s.level, [...(byLevel.get(s.level) ?? []), s]);
-    return byLevel;
-  }, [char.knownSpells, char.preparedSpells]);
-  const prepared = new Set(char.preparedSpells ?? []);
-  const equippedIds = new Set(Object.values(char.equipped ?? {}).filter(Boolean) as string[]);
-  const traits = race.traitDetails?.length ? race.traitDetails.map((t) => t.name) : race.traits;
+  const { d, race, sub, bg, slots, spells, prepared, equippedIds, traits, features, classLine } = usePrintData(char);
 
   return (
     <article className="fv-print" aria-label={`Ficha de ${char.name || 'personagem'}`}>
@@ -51,7 +25,7 @@ export function SheetPrint({ char }: { char: Character }) {
           <span>Nome do personagem</span>
         </div>
         <dl className="fv-print-ident">
-          <div><dt>Classe e nível</dt><dd>{classes.map((c) => `${c.cls.label} ${c.level}`).join(' / ')}{subclass ? ` (${subclass.label})` : ''}</dd></div>
+          <div><dt>Classe e nível</dt><dd>{classLine}</dd></div>
           <div><dt>Antecedente</dt><dd>{bg.label}</dd></div>
           <div><dt>Raça</dt><dd>{race.label}{sub ? ` · ${sub.label}` : ''}</dd></div>
           <div><dt>Tendência</dt><dd>{char.alignment || '—'}</dd></div>
@@ -182,18 +156,14 @@ export function SheetPrint({ char }: { char: Character }) {
           </div>
           <div className="fv-print-box">
             <h2>Características de classe</h2>
-            {classes.map((c) => {
-              const subId = c.classId === char.classId ? char.subclassId : null;
-              const rows = Array.from({ length: c.level }, (_, i) => i + 1).map((lv) => ({ lv, f: featuresGained(c.classId, lv, subId ?? null) })).filter((r) => r.f.length);
-              return (
-                <div key={c.classId} className="fv-print-feats">
-                  {classes.length > 1 && <h3>{c.cls.label}</h3>}
-                  {rows.map((r) => (
-                    <p key={r.lv}><b>{r.lv}º</b> {r.f.join(', ')}</p>
-                  ))}
-                </div>
-              );
-            })}
+            {features.map((c) => (
+              <div key={c.classId} className="fv-print-feats">
+                {features.length > 1 && <h3>{c.label}</h3>}
+                {c.rows.map((r) => (
+                  <p key={r.lv}><b>{r.lv}º</b> {r.f.join(', ')}</p>
+                ))}
+              </div>
+            ))}
           </div>
           {char.feats?.length > 0 && (
             <div className="fv-print-box">

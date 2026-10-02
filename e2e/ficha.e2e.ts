@@ -19,20 +19,40 @@ test.describe('ficha', () => {
     }
   });
 
-  test('versão para imprimir / PDF', async ({ page }) => {
+  test('ficha ilustrada no tema, e a clássica para imprimir', async ({ page }) => {
     await page.goto(`/ficha/${ID}`);
     await page.getByRole('button', { name: 'Mais opções' }).click();
-    await page.getByRole('menuitem', { name: 'Imprimir / salvar PDF' }).click();
+    await page.getByRole('menuitem', { name: 'Ficha ilustrada / imprimir' }).click();
     await expect(page).toHaveURL(new RegExp(`/ficha/${ID}/imprimir$`));
+
+    // ilustrada (padrão): arte do herói em destaque, no tema escolhido
+    const ills = page.locator('.fv-ills');
+    await expect(ills.getByRole('heading', { level: 1 })).toHaveText(NAME);
+    await expect(ills.getByRole('img', { name: `Retrato de ${NAME}` })).toBeVisible();
+    await expect(ills).toHaveAttribute('data-theme', 'astral');
+    await page.getByLabel('Tema').selectOption('ouro');
+    await expect(ills).toHaveAttribute('data-theme', 'ouro');
+    await expect(ills).toHaveAttribute('data-mode', 'light');
+    // em branco para lápis (padrão) x valores atuais
+    await expect(ills.locator('.fv-ills-hp .fv-ills-write')).toHaveText('');
+    await page.getByLabel('PV, usos e moedas em branco (para lápis)').uncheck();
+    await expect(ills.locator('.fv-ills-hp .fv-ills-write')).toHaveText(String(WIZARD.hpCurrent));
+
+    // na impressão só as folhas aparecem
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('.fv-printpage-bar').first()).toBeHidden();
+    await expect(ills).toBeVisible();
+    await page.emulateMedia({ media: 'screen' });
+
+    // clássica: preto no branco
+    await page.getByRole('button', { name: 'Clássica' }).click();
     const papel = page.locator('.fv-print');
     await expect(papel.getByRole('heading', { level: 1 })).toHaveText(NAME);
     await expect(papel).toContainText('Testes de resistência');
-    await expect(papel).toContainText('Magias');
 
-    // na impressão só o papel aparece
-    await page.emulateMedia({ media: 'print' });
-    await expect(page.locator('.fv-printpage-bar').first()).toBeHidden();
-    await expect(papel).toBeVisible();
+    // a escolha fica lembrada
+    await page.reload();
+    await expect(page.locator('.fv-print')).toBeVisible();
   });
 
   test('sem conta, compartilhar explica o caminho alternativo', async ({ page }) => {

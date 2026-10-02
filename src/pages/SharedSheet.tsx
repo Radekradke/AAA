@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { SheetPrint } from '@/components/print/SheetPrint';
+import { PrintStudio } from '@/components/print/PrintStudio';
 import { shareService } from '@/services/shareService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import type { Character } from '@/types/character';
@@ -57,14 +57,9 @@ export function SharedSheet() {
   }
 
   return (
-    <main className="fv-printpage">
-      <div className="fv-printpage-bar">
-        <p>
-          Ficha compartilhada por link · só leitura · atualizada em {new Date(state.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
-        </p>
-        <button type="button" className="is-primary" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
-      </div>
-      <SheetPrint char={state.char} />
-    </main>
+    <PrintStudio
+      char={state.char}
+      lead={<p>Ficha compartilhada · só leitura · atualizada em {new Date(state.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</p>}
+    />
   );
 }

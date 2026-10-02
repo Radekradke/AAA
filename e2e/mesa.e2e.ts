@@ -53,7 +53,7 @@ test.describe('ficha compartilhada por link', () => {
   test('abre sem conta, só leitura', async ({ page }) => {
     await installSupabase(page, 'player');
     await page.goto(`/f/${SHARE_TOKEN}`);
-    await expect(page.locator('.fv-print h1')).toHaveText('Kael Venturo');
+    await expect(page.locator('.fv-ills h1')).toHaveText('Kael Venturo');
     await expect(page.getByText('só leitura')).toBeVisible();
   });
 

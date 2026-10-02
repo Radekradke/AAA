@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCharacterStore } from '@/store/characterStore';
-import { SheetPrint } from '@/components/print/SheetPrint';
+import { PrintStudio } from '@/components/print/PrintStudio';
 
-/** /ficha/:id/imprimir — a ficha em papel, com "Imprimir / Salvar PDF". */
+/** /ficha/:id/imprimir — a ficha para ver e imprimir (ilustrada no tema ou clássica). */
 export function PrintSheet() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -30,14 +30,5 @@ export function PrintSheet() {
     );
   }
 
-  return (
-    <main className="fv-printpage">
-      <div className="fv-printpage-bar">
-        <button type="button" onClick={() => navigate(`/ficha/${char.id}`)}>← Voltar à ficha</button>
-        <p>Para PDF: em "Imprimir", escolha <b>Salvar como PDF</b>.</p>
-        <button type="button" className="is-primary" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
-      </div>
-      <SheetPrint char={char} />
-    </main>
-  );
+  return <PrintStudio char={char} lead={<button type="button" onClick={() => navigate(`/ficha/${char.id}`)}>← Voltar à ficha</button>} />;
 }
