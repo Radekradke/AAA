@@ -44,6 +44,11 @@ interface UiState {
   openTutorial: () => void;
   /** Fecha e marca como visto. */
   closeTutorial: () => void;
+  /** Desliga o tutorial e os tours automáticos (continuam pelo menu). */
+  tipsOff: boolean;
+  setTipsOff: (off: boolean) => void;
+  /** Junta o que a conta já viu em outro aparelho (nunca "desvê" nada). */
+  mergeOnboarding: (p: { done?: boolean; tours?: Partial<Record<TourId, boolean>>; off?: boolean }) => void;
 
   /** Tour guiado em andamento (holofote sobre a tela real). */
   tour: TourId | null;
@@ -192,6 +197,17 @@ export const useUiStore = create<UiState>()(
       closeTutorial() {
         set({ tutorialOpen: false, onboarded: true });
       },
+      tipsOff: false,
+      setTipsOff(off) {
+        set(off ? { tipsOff: true, tour: null } : { tipsOff: false });
+      },
+      mergeOnboarding(p) {
+        set((s) => ({
+          onboarded: s.onboarded || !!p.done,
+          toursSeen: { ...s.toursSeen, ...Object.fromEntries(Object.entries(p.tours ?? {}).filter(([, v]) => v)) },
+          tipsOff: typeof p.off === 'boolean' ? p.off : s.tipsOff,
+        }));
+      },
 
       tour: null,
       toursSeen: {},
@@ -265,7 +281,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff }),
     },
   ),
 );

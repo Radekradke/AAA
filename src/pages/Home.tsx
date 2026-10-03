@@ -9,6 +9,7 @@ import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
+import { mayAutoShow } from '@/services/onboardingSync';
 import { SupportModal } from '@/components/SupportModal';
 import { hasSupport } from '@/lib/support';
 import { rememberNext } from '@/lib/nextPath';
@@ -37,7 +38,7 @@ export function Home() {
   const bump = useUiStore((s) => s.bump);
   // próximas telas prováveis: lista de heróis e a ficha (baixadas com o aparelho ocioso)
   useEffect(() => prefetchOnIdle('heroes', 'sheet'), []);
-  const onboarded = useUiStore((s) => s.onboarded);
+  const onboarded = useUiStore((s) => s.onboarded || s.tipsOff);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const characters = useCharacterStore((s) => s.characters);
   const currentId = useCharacterStore((s) => s.currentId);
@@ -71,11 +72,18 @@ export function Home() {
     };
   }, [user]);
 
-  // primeira visita: o tutorial abre sozinho (depois só pelo menu)
+  // primeira visita: o tutorial abre sozinho (depois só pelo menu). Com conta,
+  // "primeira vez" é da conta: confere o que ela já viu em outro aparelho.
   useEffect(() => {
     if (onboarded) return;
-    const t = setTimeout(openTutorial, 700);
-    return () => clearTimeout(t);
+    let alive = true;
+    const t = setTimeout(() => {
+      void mayAutoShow((ui) => ui.onboarded).then((ok) => alive && ok && openTutorial());
+    }, 700);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
   }, [onboarded, openTutorial]);
 
   /** Telas que pedem conta (ou convidado) passam pela tela de entrar e voltam. */

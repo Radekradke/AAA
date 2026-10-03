@@ -36,6 +36,8 @@ export interface MockDb {
   /** Escritas recebidas, ex.: "POST sheet_shares". */
   writes: string[];
   me: string;
+  /** user_metadata da conta (o app guarda ali, p.ex., o tutorial já visto). */
+  meta: Record<string, unknown>;
 }
 
 function seed(who: Who): Record<string, Row[]> {
@@ -102,7 +104,15 @@ async function handle(route: Route, db: MockDb) {
   const url = new URL(req.url());
   const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
-  if (url.pathname.startsWith('/auth/v1/user')) return json({ id: db.me, aud: 'authenticated', email: 'teste@exemplo.com', app_metadata: {}, user_metadata: {} });
+  if (url.pathname.startsWith('/auth/v1/user')) {
+    // updateUser({ data }) → PUT com os metadados novos
+    if (req.method() === 'PUT') {
+      const body = req.postData() ? JSON.parse(req.postData()!) : {};
+      Object.assign(db.meta, body.data ?? {});
+      db.writes.push('PUT auth.user');
+    }
+    return json({ id: db.me, aud: 'authenticated', email: 'teste@exemplo.com', app_metadata: {}, user_metadata: db.meta });
+  }
   if (url.pathname.startsWith('/auth/v1/')) return json({});
   if (url.pathname.includes('/storage/v1/object')) return route.fulfill({ status: 200, contentType: 'image/png', body: IMAGE });
 
@@ -153,7 +163,7 @@ async function handle(route: Route, db: MockDb) {
 
 /** Liga o mock na página. Chame antes do primeiro goto. */
 export async function installSupabase(page: Page, who: Who): Promise<MockDb> {
-  const db: MockDb = { tables: seed(who), writes: [], me: who === 'master' ? M : P };
+  const db: MockDb = { tables: seed(who), writes: [], me: who === 'master' ? M : P, meta: {} };
   await page.route(`${MOCK_URL}/**`, (route) => handle(route, db));
   await page.routeWebSocket(/mock\.supa\.test/, (ws) => {
     ws.onMessage((raw) => {
@@ -185,20 +195,20 @@ export async function installSupabase(page: Page, who: Who): Promise<MockDb> {
  * carregar. `characters` entra no armazenamento antigo (localStorage), que
  * o app migra sozinho para o IndexedDB na primeira leitura.
  */
-export async function signIn(page: Page, who: Who | 'guest', opts: { characters?: Row[] } = {}) {
+export async function signIn(page: Page, who: Who | 'guest', opts: { characters?: Row[]; ui?: Row } = {}) {
   const me = who === 'master' ? M : who === 'player' ? P : 'guest';
   await page.addInitScript(
-    ([me, guest, chars]) => {
+    ([me, guest, chars, ui]) => {
       if (sessionStorage.getItem('fv-e2e-seeded')) return; // só no primeiro carregamento
       sessionStorage.setItem('fv-e2e-seeded', '1');
       localStorage.setItem('fv-auth', JSON.stringify({ state: { user: { id: me, name: guest ? 'Convidado' : 'André', email: guest ? null : 'teste@exemplo.com', guest }, accounts: [] }, version: 0 }));
-      localStorage.setItem('fv-ui', JSON.stringify({ state: { theme: 'astral', onboarded: true, dice3d: false, toursSeen: { sheet: true, creator: true } }, version: 0 }));
+      localStorage.setItem('fv-ui', JSON.stringify({ state: { theme: 'astral', onboarded: true, dice3d: false, toursSeen: { sheet: true, creator: true }, ...ui }, version: 0 }));
       if (chars) localStorage.setItem('fv-characters', JSON.stringify({ state: { characters: chars, currentId: null, pendingDeletes: [] }, version: 3 }));
       if (!guest) {
         const exp = Math.floor(Date.now() / 1000) + 36000;
         localStorage.setItem('sb-mock-auth-token', JSON.stringify({ access_token: 'x.y.z', refresh_token: 'r', token_type: 'bearer', expires_in: 36000, expires_at: exp, user: { id: me, aud: 'authenticated', email: 'teste@exemplo.com', app_metadata: {}, user_metadata: {} } }));
       }
     },
-    [me, who === 'guest', opts.characters ?? null] as const,
+    [me, who === 'guest', opts.characters ?? null, opts.ui ?? {}] as const,
   );
 }

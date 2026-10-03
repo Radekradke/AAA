@@ -5541,9 +5541,16 @@ body.fv-dragging .fv-screen-scroll {
   padding: 26px clamp(18px, 3vw, 32px) 20px;
   overflow-y: auto;
 }
+/* topo do tutorial: "Não mostrar mais" à esquerda, "Pular" à direita */
+.fv-onb-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: -10px -12px 4px -10px;
+}
 .fv-onb-skip {
-  align-self: flex-end;
-  margin: -10px -12px 4px 0;
+  min-height: 32px;
   padding: 6px 10px;
   border: 0;
   border-radius: 999px;
@@ -5554,6 +5561,11 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-onb-skip:hover {
   color: var(--ink);
+}
+.fv-onb-off {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--muted), transparent 50%);
 }
 .fv-onb-kicker {
   font: 700 11px var(--font-display);
