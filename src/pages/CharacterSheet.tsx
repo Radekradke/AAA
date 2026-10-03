@@ -26,6 +26,7 @@ import { loadDice3d } from '@/lib/dice3d';
 // diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
 const SheetHistoryModal = lazy(() => import('@/components/sheet/SheetHistoryModal').then((m) => ({ default: m.SheetHistoryModal })));
 const ShareSheetModal = lazy(() => import('@/components/sheet/ShareSheetModal').then((m) => ({ default: m.ShareSheetModal })));
+const TabRetrato = lazy(() => import('@/components/sheet/TabRetrato').then((m) => ({ default: m.TabRetrato })));
 const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
@@ -127,6 +128,7 @@ export function CharacterSheet() {
       case 'inventario': return <TabInventario char={char} derived={derived} />;
       case 'magias': return <TabMagias char={char} derived={derived} />;
       case 'descanso': return <TabDescanso char={char} derived={derived} />;
+      case 'retrato': return <Suspense fallback={null}><TabRetrato char={char} derived={derived} /></Suspense>;
       case 'diario': return <Suspense fallback={null}><TabDiario char={char} derived={derived} /></Suspense>;
       case 'dados': return <DiceRoller char={char} />;
       default: return <TabFicha char={char} derived={derived} />;
@@ -167,7 +169,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} onShare={() => setSharing(true)} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />

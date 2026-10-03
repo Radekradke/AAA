@@ -17,6 +17,7 @@ export const SHEET_TABS: SheetTabDef[] = [
   { id: 'combate', label: 'Combate', icon: 'swords' },
   { id: 'inventario', label: 'Inventário', short: 'Itens', icon: 'satchel' },
   { id: 'magias', label: 'Magias', icon: 'spark', caster: true },
+  { id: 'retrato', label: 'Retrato', icon: 'image' },
   { id: 'evoluir', label: 'Evoluir', icon: 'levelup' },
   { id: 'descanso', label: 'Descanso', icon: 'moon' },
   { id: 'diario', label: 'Diário', icon: 'quill' },
