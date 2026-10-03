@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from '@/store/feedbackStore';
 import { deleteHeroWithUndo, duplicateHero } from '@/lib/heroActions';
 import { useNavigate } from 'react-router-dom';
+import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
@@ -13,7 +14,7 @@ import { hexA } from '@/lib/color';
 import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { raceOf } from '@/data/races';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import type { Character } from '@/types/character';
 import { GuildDashboard } from '@/components/character/GuildDashboard';
 
@@ -22,12 +23,15 @@ export function CharacterSelect() {
   const user = useAuthStore((s) => s.user)!;
   const bump = useUiStore((s) => s.bump);
   const theme = useUiStore((s) => s.theme);
+  // tocar num herói abre a ficha na hora: o pedaço dela já vem com o aparelho ocioso
+  useEffect(() => prefetchOnIdle('sheet', 'creator'), []);
   const t = useTheme();
   const tilt = useTilt();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const characters = useCharacterStore((s) => s.characters);
-  const { setCurrent, importCharacter } = useCharacterStore();
+  const setCurrent = useCharacterStore((s) => s.setCurrent);
+  const importCharacter = useCharacterStore((s) => s.importCharacter);
 
   const mine = useMemo(
     () =>
@@ -165,7 +169,7 @@ export function CharacterSelect() {
           {mine.map((c) => {
             const cls = getClass(c.classId);
             const race = raceOf(c);
-            const d = deriveCharacter(c);
+            const d = derivedOf(c);
             return (
               <div
                 key={c.id}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { confirmAction } from '@/store/feedbackStore';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import type { NewCombatant } from '@/services/encounterService';
 import { useSessionStore } from '@/store/sessionStore';
 import type { Character } from '@/types/character';
@@ -17,7 +17,7 @@ export interface SharedHero {
 export function heroCombatant(h: SharedHero): NewCombatant {
   const snap = h.snapshot;
   if (!snap) return { type: 'player', name: 'Herói', sheetId: h.share.sheetId };
-  const d = deriveCharacter(snap);
+  const d = derivedOf(snap);
   return {
     type: 'player',
     name: snap.name || 'Herói',

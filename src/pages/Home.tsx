@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
 import { Icon } from '@/components/ui/Icon';
@@ -31,6 +32,8 @@ export function Home() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
+  // próximas telas prováveis: lista de heróis e a ficha (baixadas com o aparelho ocioso)
+  useEffect(() => prefetchOnIdle('heroes', 'sheet'), []);
   const onboarded = useUiStore((s) => s.onboarded);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const characters = useCharacterStore((s) => s.characters);
