@@ -155,3 +155,13 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 11. **Arrastar para o mapa (mouse):** com um mapa aberto no palco, arraste um NPC (Bastidores → NPCs), uma criatura (Criaturas), um combatente (Encontro ou a faixa de iniciativa) ou um chip de "Pôr no mapa" para uma casa: o peão nasce ali (se já estava no mapa, só muda de casa). A criatura também entra no encontro — sem encontro aberto, abre um "Encontro improvisado".
 12. **Mapa em branco:** Cenas → "Mapa em branco" → Pequeno/Médio/Grande → "Criar e ver" (ou "Criar e pôr no ar"): abre um tabuleiro neutro só com a grade.
 13. **Tela baixa** (notebook ou zoom do navegador, ~550 px de altura): as ferramentas do mapa quebram em duas colunas e o zoom fica numa linha, sem sair da área do mapa.
+
+## 26. Agenda da campanha (precisa de `supabase/agenda.sql`)
+Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela anônima).
+1. Mestre abre a sala da mesa → card **Próxima sessão** → **Marcar próxima sessão**. O formulário sugere o próximo sábado às 19h; troque o dia, preencha título e lugar → **Marcar sessão**.
+2. No jogador (sem recarregar), o card mostra a data, "em N dias", título e lugar. Toque em **Vou**: o botão acende e "Seu nome · Seu herói" aparece na lista; no mestre, a lista atualiza sozinha.
+3. Troque para **Talvez**: a resposta muda (não duplica).
+4. Tela inicial do jogador: aparece o item "Próxima sessão em N dias" com o nome da mesa e "você vai"/"talvez"/"confirme"; tocar leva à sala.
+5. **Adicionar ao calendário** baixa um `.ics` que abre no calendário do celular com lembrete 2 h antes; **Google Agenda** abre o evento já preenchido.
+6. Mestre → **+ Marcar outra**: a sugestão é uma semana depois da última, na mesma hora. A segunda aparece em "mais adiante".
+7. Mestre → **Cancelar sessão** → confirmar: o jogador vê a próxima da lista (ou "O mestre ainda não marcou"); a cancelada fica riscada com "Cancelada" e o mestre pode **Reativar** ou **Apagar**.

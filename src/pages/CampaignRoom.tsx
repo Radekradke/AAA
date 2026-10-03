@@ -27,6 +27,7 @@ import '@/styles/session.css';
 import '@/styles/stage.css';
 import { InviteCard } from '@/components/campaign/InviteCard';
 import { SchemaNotice } from '@/components/campaign/SchemaNotice';
+import { AgendaCard } from '@/components/campaign/AgendaCard';
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -104,6 +105,18 @@ export function CampaignRoom() {
 
         {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
         {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
+
+        {/* agenda: a próxima sessão marcada e quem vai */}
+        {campaign && user && !user.guest && (
+          <AgendaCard
+            campaignId={campaign.id}
+            campaignName={campaign.name}
+            isMaster={isMaster}
+            userId={user.id}
+            userName={user.name}
+            heroName={mySheets.find((c) => sharedIds.has(c.id))?.name}
+          />
+        )}
 
         {/* banco desatualizado: o mestre vê qual script falta */}
         {isMaster && <SchemaNotice />}

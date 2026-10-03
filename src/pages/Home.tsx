@@ -13,6 +13,9 @@ import { SupportModal } from '@/components/SupportModal';
 import { hasSupport } from '@/lib/support';
 import { rememberNext } from '@/lib/nextPath';
 import { heroAvatar, heroFace, shortSubtitle } from '@/lib/summary';
+import type { UpcomingForMe } from '@/services/agendaService';
+import { cloudEnabled } from '@/services/supabaseClient';
+import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
 
 interface MenuItem {
   key: string;
@@ -41,6 +44,7 @@ export function Home() {
   const setCurrent = useCharacterStore((s) => s.setCurrent);
   const hydrated = useCharactersHydrated();
   const [support, setSupport] = useState(false);
+  const [nextSession, setNextSession] = useState<UpcomingForMe | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
 
   // o herói para "Continuar": o aberto por último (ou o mais recente)
@@ -49,6 +53,23 @@ export function Home() {
     const mine = characters.filter((c) => c.ownerId === user.id && !c.draft);
     return mine.find((c) => c.id === currentId) ?? [...mine].sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null;
   }, [characters, currentId, user, hydrated]);
+
+  // a próxima sessão marcada em qualquer mesa minha (sem o agenda.sql: nada aparece)
+  useEffect(() => {
+    if (!user || user.guest || !cloudEnabled()) {
+      setNextSession(null);
+      return;
+    }
+    let alive = true;
+    // sob demanda: a agenda não pesa a abertura do app
+    import('@/services/agendaService')
+      .then((m) => m.agendaService.upcomingForMe(user.id))
+      .then((list) => alive && setNextSession(list[0] ?? null))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   // primeira visita: o tutorial abre sozinho (depois só pelo menu)
   useEffect(() => {
@@ -122,6 +143,7 @@ export function Home() {
                 </button>
               </li>
             )}
+            {nextSession && <NextSessionItem s={nextSession} onOpen={() => go(`/mesa/${nextSession.event.campaignId}`)} />}
             {items.map((it, i) => (
               <li key={it.key}>
                 <button type="button" className={'fv-menu-item' + (!lastHero && i === 0 ? ' is-primary' : '')} onClick={it.run}>
@@ -174,5 +196,37 @@ export function Home() {
 
       {support && <SupportModal onClose={() => setSupport(false)} />}
     </Screen>
+  );
+}
+
+/** Item do menu com a próxima sessão marcada: dia em destaque, mesa e se você já confirmou. */
+function NextSessionItem({ s, onOpen }: { s: UpcomingForMe; onOpen: () => void }) {
+  const d = new Date(s.event.startsAt);
+  const live = isHappening(s.event);
+  return (
+    <li>
+      <button type="button" className="fv-menu-item" onClick={onOpen}>
+        <span className="fv-menu-icon fv-menu-when" aria-hidden>
+          <b>{d.getDate()}</b>
+          <small>{new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(d).replace('.', '')}</small>
+        </span>
+        <span className="fv-menu-text">
+          <b>{live ? 'Sessão acontecendo agora' : `Próxima sessão ${relativeLabel(s.event.startsAt)}`}</b>
+          <small>
+            {s.campaignName} · {timeLabel(s.event.startsAt)} ·{' '}
+            {s.mine === 'yes' ? (
+              <span className="fv-menu-rsvp is-yes">você vai</span>
+            ) : s.mine ? (
+              <span className="fv-menu-rsvp">{s.mine === 'maybe' ? 'talvez' : 'não vai'}</span>
+            ) : (
+              <span className="fv-menu-rsvp is-ask">confirme</span>
+            )}
+          </small>
+        </span>
+        <span className="fv-menu-arrow" aria-hidden>
+          ›
+        </span>
+      </button>
+    </li>
   );
 }

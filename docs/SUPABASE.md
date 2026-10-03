@@ -562,3 +562,16 @@ Rode `supabase/recursos_extras.sql` (depois do SQL base da seção 5). Pode roda
 - **Registro de erros** (`client_errors`): erros do app de quem está logado. Ninguém lê pelo app; veja no painel do Supabase → Table Editor → `client_errors`.
 
 `npm test` roda `supabase/__tests__/extras.sql.test.ts` num Postgres em memória (PGlite) com todas as permissões.
+
+## 10. Agenda da campanha — próxima sessão e presença
+
+Rode `supabase/agenda.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+- **`campaign_events`** — os encontros marcados: dia e hora (`starts_at`), duração, título, lugar, recado e `canceled`. RLS: todos da mesa (mestre e jogadores) leem; só o mestre marca, edita, cancela e apaga.
+- **`campaign_rsvps`** — uma resposta por pessoa por encontro (`yes` / `maybe` / `no`), com o nome de quem respondeu e o herói vinculado (o app não tem tabela de perfis). Cada um grava só a própria resposta, só em encontro da própria mesa e que não foi cancelado. Apagar o encontro leva as respostas junto.
+- É separado de `sessions` de propósito: a sessão **preparada** do console do mestre pode ter nome de spoiler e o jogador não a vê; a agenda é pública para a mesa.
+- As duas tabelas entram na publication `supabase_realtime`: a data e as confirmações aparecem sem recarregar.
+
+No app: a sala da mesa mostra a próxima sessão (com **Vou / Talvez / Não vou**, quem já respondeu, **Adicionar ao calendário** em `.ics` e **Google Agenda**); o mestre marca a sessão — o formulário já sugere uma semana depois da última, na mesma hora. A tela inicial mostra a próxima sessão de qualquer mesa sua e se você já confirmou. Sem esse SQL, nada disso aparece (o mestre vê o aviso de script faltando).
+
+`npm test` roda `supabase/__tests__/agenda.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.
