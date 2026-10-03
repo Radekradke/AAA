@@ -22,6 +22,8 @@ interface GuildDashboardProps {
   onOpen: (c: Character) => void;
   onNew: () => void;
   onImport: () => void;
+  /** Colar a ficha gerada pelo ChatGPT (ou JSON exportado). */
+  onPaste?: () => void;
   importError: string | null;
 }
 
@@ -58,7 +60,7 @@ function initials(name: string): string {
  * recursos reais do herói ativo e — quando há mesas na nuvem — uma coluna
  * com as mesas do jogador.
  */
-export function GuildDashboard({ heroes, onOpen, onNew, onImport, importError }: GuildDashboardProps) {
+export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, importError }: GuildDashboardProps) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
   const currentId = useCharacterStore((s) => s.currentId);
@@ -153,6 +155,11 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, importError }:
             <button type="button" className="fv-btn-ghost" onClick={onImport}>
               Importar personagem (JSON)
             </button>
+            {onPaste && (
+              <button type="button" className="fv-btn-ghost" onClick={onPaste}>
+                Colar ficha (ChatGPT)
+              </button>
+            )}
             {importError && <span role="alert">{importError}</span>}
           </div>
         </section>

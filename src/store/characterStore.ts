@@ -121,9 +121,9 @@ export const useCharacterStore = create<CharacterState>()(
             } as Character;
             const migrated = ensureCharacterV2(merged);
             set((s) => ({ characters: [...s.characters, migrated], currentId: migrated.id }));
-            return { ok: true };
+            return { ok: true, id: migrated.id };
           } catch {
-            return { ok: false, error: 'Não foi possível ler o arquivo JSON.' };
+            return { ok: false, error: 'Não consegui ler: confira se é o JSON da ficha (o texto entre { e }).' };
           }
         },
         exportCharacter(id) {
