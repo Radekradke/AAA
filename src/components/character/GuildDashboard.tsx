@@ -9,7 +9,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { campaignService } from '@/services/campaignService';
 import { cloudEnabled } from '@/services/supabaseClient';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import { characterResources } from '@/engine/classResources';
 import { syncSpellSlots } from '@/engine/spellcasting';
 import { getClass } from '@/data/classes';
@@ -118,7 +118,7 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, importError }:
               <small>Criação em 7 capítulos</small>
             </button>
             {shown.map((c) => {
-              const d = deriveCharacter(c);
+              const d = derivedOf(c);
               const cls = getClass(c.classId);
               const on = c.id === active?.id;
               return (
@@ -233,7 +233,7 @@ function EmptyHero({ onNew }: { onNew: () => void }) {
 /** Recursos reais do herói ativo: vida em anel + usos que se gastam na mesa. */
 function HeroResources({ char }: { char: Character }) {
   const ink = useInk();
-  const d = deriveCharacter(char);
+  const d = derivedOf(char);
   const max = Math.max(1, d.maxHp);
   const hp = Math.max(0, char.hpCurrent);
   const pct = Math.round((hp / max) * 100);

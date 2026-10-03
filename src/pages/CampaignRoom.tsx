@@ -10,7 +10,7 @@ import type { CampaignNote } from '@/services/campaignService';
 import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
 import type { MasterPermission } from '@/types/models';
 import { syncNow } from '@/services/offlineSyncService';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
@@ -253,7 +253,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
       </div>
     );
   }
-  const d = deriveCharacter(snapshot);
+  const d = derivedOf(snapshot);
   const pct = Math.max(0, Math.min(100, Math.round((snapshot.hpCurrent / Math.max(1, d.maxHp)) * 100)));
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
   return (
