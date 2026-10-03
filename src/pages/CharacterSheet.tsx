@@ -20,6 +20,7 @@ import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
 import { useUiStore } from '@/store/uiStore';
+import { mayAutoShow } from '@/services/onboardingSync';
 import { loadDice3d } from '@/lib/dice3d';
 
 // diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
@@ -64,15 +65,18 @@ export function CharacterSheet() {
 
   // 1ª ficha aberta neste aparelho: o tour guiado mostra onde fica cada coisa
   const startTour = useUiStore((s) => s.startTour);
-  const sheetTourSeen = useUiStore((s) => !!s.toursSeen.sheet);
+  const sheetTourSeen = useUiStore((s) => !!s.toursSeen.sheet || s.tipsOff);
   const hasChar = !!char;
   useEffect(() => {
     if (!hasChar || sheetTourSeen) return;
+    let alive = true;
     const t = setTimeout(() => {
-      const ui = useUiStore.getState();
-      if (!ui.tour && !ui.tutorialOpen) startTour('sheet');
+      void mayAutoShow((ui) => !!ui.toursSeen.sheet).then((ok) => alive && ok && startTour('sheet'));
     }, 1300);
-    return () => clearTimeout(t);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
   }, [hasChar, sheetTourSeen, startTour]);
 
   if (!char || !derived) {

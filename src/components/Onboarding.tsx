@@ -8,6 +8,7 @@ import type { IconName } from '@/components/ui/Icon';
 import { useUiStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { rememberNext } from '@/lib/nextPath';
+import { toast } from '@/store/feedbackStore';
 
 interface Step {
   icon: IconName;
@@ -103,6 +104,7 @@ const STEPS: Step[] = [
 export function Onboarding() {
   const open = useUiStore((s) => s.tutorialOpen);
   const close = useUiStore((s) => s.closeTutorial);
+  const setTipsOff = useUiStore((s) => s.setTipsOff);
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const [i, setI] = useState(0);
@@ -185,9 +187,22 @@ export function Onboarding() {
             </div>
 
             <div className="fv-onb-body">
-              <button type="button" className="fv-onb-skip" onClick={close}>
-                {last ? 'Fechar' : 'Pular tutorial'}
-              </button>
+              <div className="fv-onb-top">
+                <button
+                  type="button"
+                  className="fv-onb-skip fv-onb-off"
+                  onClick={() => {
+                    setTipsOff(true);
+                    close();
+                    toast('Tutorial e tours desligados. Religue em Configurações → App e conta.', { tone: 'info' });
+                  }}
+                >
+                  Não mostrar mais
+                </button>
+                <button type="button" className="fv-onb-skip" onClick={close}>
+                  {last ? 'Fechar' : 'Pular tutorial'}
+                </button>
+              </div>
               <AnimatePresence mode="wait">
                 <m.div
                   key={i}

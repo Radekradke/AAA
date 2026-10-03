@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
+import { mayAutoShow } from '@/services/onboardingSync';
 import type { Character } from '@/types/character';
 import { StepRace } from '@/components/character/StepRace';
 import { StepClass } from '@/components/character/StepClass';
@@ -44,14 +45,17 @@ export function CharacterCreator() {
   const [step, setStep] = useState(0);
   // 1ª criação neste aparelho: tour guiado pelas partes da tela
   const startTour = useUiStore((s) => s.startTour);
-  const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator);
+  const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator || s.tipsOff);
   useEffect(() => {
     if (creatorTourSeen) return;
+    let alive = true;
     const t = setTimeout(() => {
-      const ui = useUiStore.getState();
-      if (!ui.tour && !ui.tutorialOpen) startTour('creator');
+      void mayAutoShow((ui) => !!ui.toursSeen.creator).then((ok) => alive && ok && startTour('creator'));
     }, 1300);
-    return () => clearTimeout(t);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
   }, [creatorTourSeen, startTour]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const startedRef = useRef(false);

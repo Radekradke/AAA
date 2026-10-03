@@ -59,6 +59,8 @@ export function Settings() {
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
+  const tipsOff = useUiStore((s) => s.tipsOff);
+  const setTipsOff = useUiStore((s) => s.setTipsOff);
   const toursSeenCount = useUiStore((s) => Object.values(s.toursSeen).filter(Boolean).length);
   const clearHistory = useUiStore((s) => s.clearHistory);
   const historyCount = useUiStore((s) => s.history.length);
@@ -159,6 +161,16 @@ export function Settings() {
 
         <section id="cfg-app" className="fv-panel fv-set-card" aria-labelledby="cfg-app-t">
           <h2 id="cfg-app-t">App e conta</h2>
+          <Row
+            title="Tutorial e tours automáticos"
+            hint={
+              (tipsOff ? 'Desligados: não abrem sozinhos.' : 'Abrem sozinhos só na primeira vez.') +
+              (user && !user.guest ? ' Vale para a sua conta em qualquer aparelho.' : ' Vale para este aparelho.') +
+              ' Pelo menu continuam disponíveis.'
+            }
+          >
+            <Switch on={!tipsOff} label="Tutorial e tours automáticos" onToggle={() => setTipsOff(!tipsOff)} />
+          </Row>
           <Row title="Tutorial" hint="Rever o passo a passo do básico.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={openTutorial}>
               Abrir
