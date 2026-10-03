@@ -6270,3 +6270,34 @@ select.fv-input.fv-mesa-select { min-height: 42px; padding: 9px 34px 9px 12px; f
     display: none;
   }
 }
+
+/* modal com formulário: clique fora não fecha — o ✕ pisca para mostrar onde fechar */
+.fv-modal-close.is-nudge {
+  animation: fv-modal-nudge 0.6s ease;
+}
+@keyframes fv-modal-nudge {
+  0%, 100% { transform: none; }
+  20% { transform: scale(1.18); border-color: var(--danger); color: var(--danger); }
+  40% { transform: translateX(-3px) scale(1.12); }
+  60% { transform: translateX(3px) scale(1.12); }
+  80% { transform: none; border-color: var(--danger); color: var(--danger); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-modal-close.is-nudge { animation: none; border-color: var(--danger); color: var(--danger); }
+}
+
+/* Eclipse: o destaque é tinta escura — a corrente de compartilhar fica em negativo para não sumir no fundo */
+[data-theme='eclipse'] .fv-sh-share,
+[data-theme='eclipse'] .fv-sh-share:hover {
+  background: #f3f2ee;
+  color: #111;
+  border-color: rgba(17, 17, 17, 0.55);
+}
+/* no escuro o cabeçalho vira ilha clara: a corrente fica preta (cores fixas — o
+   tema troca --ecl-black/--ecl-paper de lugar no escuro) */
+[data-theme='eclipse'][data-mode='dark'] .fv-sh-share,
+[data-theme='eclipse'][data-mode='dark'] .fv-sh-share:hover {
+  background: #111;
+  color: #f3f2ee;
+  border-color: rgba(243, 242, 238, 0.6);
+}
