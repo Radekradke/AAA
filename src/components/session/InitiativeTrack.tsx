@@ -4,6 +4,8 @@ import type { InitiativeRow } from '@/engine/encounter';
 import type { Combatant, Encounter } from '@/types/session';
 import { useSessionStore } from '@/store/sessionStore';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { useMonsterLook } from '@/services/bestiaryService';
+import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 import { CONDITIONS } from '@/data/conditions';
 import { MonsterStatBlock } from './MonsterStatBlock';
 
@@ -48,6 +50,7 @@ function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boole
     <li className={cls} aria-current={row.active ? 'step' : undefined}>
       <div className="fv-live-row-main">
         <span className="fv-live-init" title="Iniciativa">{row.initiative ?? '—'}</span>
+        {lead.monsterRef && <TrackFace monsterRef={lead.monsterRef} />}
         <div className="fv-live-name">
           <b>{row.label}</b>
           <small>
@@ -154,4 +157,10 @@ function MemberEditor({ c }: { c: Combatant }) {
       </span>
     </div>
   );
+}
+
+/** Rosto da criatura na faixa de iniciativa (foto da mesa, arte oficial ou emblema). */
+function TrackFace({ monsterRef }: { monsterRef: string }) {
+  const look = useMonsterLook(monsterRef);
+  return look ? <MonsterPortrait look={look} size={30} round className="fv-live-face" /> : null;
 }

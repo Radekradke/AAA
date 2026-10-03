@@ -22,6 +22,8 @@ import { MONSTERS } from '@/data/bestiary';
 import { getClass } from '@/data/classes';
 import { SHEET_TABS } from '@/components/sheet/sheetTabDefs';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
+import { monsterLook } from '@/lib/monsterArt';
 import type { Item, Spell } from '@/types/dnd';
 import '@/styles/search.css';
 
@@ -278,7 +280,12 @@ function Detail({ e, onBack }: { e: Entry; onBack: () => void }) {
           <p>{r.v.desc}</p>
         </>
       )}
-      {r.t === 'monster' && <MonsterStatBlock m={r.v} compact />}
+      {r.t === 'monster' && (
+        <div className="fv-search-monster">
+          <MonsterPortrait look={monsterLook(r.v)} size={120} />
+          <MonsterStatBlock m={r.v} compact />
+        </div>
+      )}
     </div>
   );
 }

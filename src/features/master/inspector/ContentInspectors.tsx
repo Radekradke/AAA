@@ -3,6 +3,9 @@ import { NpcAvatar } from '@/components/campaign/NpcGallery';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
 import { monsterCombatants } from '@/components/session/BestiaryPicker';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { useMonsterLook } from '@/services/bestiaryService';
+import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
+import { MonsterDetailModal } from '@/components/bestiary/BestiaryGallery';
 import { npcService } from '@/services/npcService';
 import { stageService } from '@/services/stageService';
 import { useMediaUrl } from '@/services/mediaService';
@@ -188,15 +191,25 @@ export function MonsterInspector({ monsterRef }: { monsterRef: string }) {
   const busy = useSessionStore((s) => s.busy);
   const [qty, setQty] = useState(1);
   const [hidden, setHidden] = useState(false);
+  const look = useMonsterLook(monsterRef);
+  const campaignId = useSessionStore((s) => s.campaignId);
+  const [detail, setDetail] = useState(false);
   const m = MONSTER_BY_ID[monsterRef];
-  if (!m) return <p className="fv-bs-hint">Criatura desconhecida.</p>;
+  if (!m || !look) return <p className="fv-bs-hint">Criatura desconhecida.</p>;
   return (
     <div className="fv-ins">
-      <header className="fv-ins-head">
-        <small>Bestiário · ND {m.cr}</small>
-        <h3>{m.name}</h3>
-        <TrayStar kind="monsters" id={m.id} label={m.name} />
+      <header className="fv-ins-head fv-ins-head-face">
+        <button type="button" className="fv-ins-face" onClick={() => setDetail(true)} title="Ver e personalizar">
+          <MonsterPortrait look={look} size={64} />
+        </button>
+        <div>
+          <small>Bestiário · ND {m.cr}</small>
+          <h3>{look.name}</h3>
+          <button type="button" className="fv-ins-link" onClick={() => setDetail(true)}>Personalizar foto e nome</button>
+        </div>
+        <TrayStar kind="monsters" id={m.id} label={look.name} />
       </header>
+      {detail && <MonsterDetailModal m={m} campaignId={campaignId} onClose={() => setDetail(false)} />}
       <div className="fv-ins-acts">
         <label className="fv-bs-qty">
           ×
@@ -209,7 +222,7 @@ export function MonsterInspector({ monsterRef }: { monsterRef: string }) {
           Pôr no encontro
         </button>
       </div>
-      <MonsterStatBlock m={m} who={m.name} />
+      <MonsterStatBlock m={m} who={look.name} />
     </div>
   );
 }

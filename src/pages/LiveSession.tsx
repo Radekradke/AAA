@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import { useAuthStore } from '@/store/authStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { useCampaignBestiary } from '@/services/bestiaryService';
 import { campaignService } from '@/services/campaignService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { music } from '@/lib/music';
@@ -36,6 +37,8 @@ export function LiveSession() {
   const isMaster = !!campaign && !!user && campaign.masterId === user.id;
   // uma única assinatura de NPCs para a tela inteira (o console repassa por contexto)
   const { npcs, secrets, reload: reloadNpcs } = useCampaignNpcs(campaign?.id, isMaster);
+  // fotos e nomes das criaturas desta mesa (iniciativa, mapa, painel)
+  useCampaignBestiary(campaign?.id, isMaster);
 
   // nome no ping do jogador acompanha o herói escolhido
   const myHeroName = s.me?.characterName ?? null;

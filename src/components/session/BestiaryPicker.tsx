@@ -5,6 +5,7 @@ import type { Monster } from '@/data/bestiary';
 import { abilityMod, monsterHp } from '@/engine/monsters';
 import type { NewCombatant } from '@/services/encounterService';
 import { MonsterStatBlock } from './MonsterStatBlock';
+import { useBestiaryStore } from '@/services/bestiaryService';
 
 const CR_BANDS: { id: string; label: string; min: number; max: number }[] = [
   { id: 'all', label: 'Todos', min: 0, max: 99 },
@@ -21,12 +22,14 @@ function slug(s: string) {
 /** N criaturas do bestiário prontas para o encontro (PV de cada uma rolados ou na média). */
 export function monsterCombatants(m: Monster, qty: number, opts: { hpMode: 'average' | 'roll'; hidden: boolean; together: boolean }): NewCombatant[] {
   const n = Math.max(1, Math.min(20, qty));
+  // nome que o mestre deu a esta criatura na mesa (bestiário da mesa), se houver
+  const name = useBestiaryStore.getState().customs[m.id]?.name?.trim() || m.name;
   const group = n > 1 && opts.together ? `${slug(m.id)}-${Math.random().toString(36).slice(2, 6)}` : null;
   return Array.from({ length: n }, (_, i) => {
     const hp = monsterHp(m, opts.hpMode);
     return {
       type: 'monster' as const,
-      name: n > 1 ? `${m.name} #${i + 1}` : m.name,
+      name: n > 1 ? `${name} #${i + 1}` : name,
       initiativeBonus: abilityMod(m.abilities.dex),
       hpCurrent: hp,
       hpMax: hp,
