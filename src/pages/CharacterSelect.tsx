@@ -17,6 +17,8 @@ import { raceOf } from '@/data/races';
 import { derivedOf } from '@/lib/derivedCache';
 import type { Character } from '@/types/character';
 import { GuildDashboard } from '@/components/character/GuildDashboard';
+import { PasteImportModal } from '@/components/character/PasteImportModal';
+import { importHeroText } from '@/lib/heroImport';
 
 export function CharacterSelect() {
   const navigate = useNavigate();
@@ -31,7 +33,6 @@ export function CharacterSelect() {
 
   const characters = useCharacterStore((s) => s.characters);
   const setCurrent = useCharacterStore((s) => s.setCurrent);
-  const importCharacter = useCharacterStore((s) => s.importCharacter);
 
   const mine = useMemo(
     () =>
@@ -42,24 +43,26 @@ export function CharacterSelect() {
   );
 
   const [importError, setImportError] = useState<string | null>(null);
+  const [pasting, setPasting] = useState(false);
 
-  const open = (c: Character) => {
-    setCurrent(c.id);
+  const openId = (id: string) => {
+    setCurrent(id);
     bump(1.3);
-    navigate(`/ficha/${c.id}`);
+    navigate(`/ficha/${id}`);
   };
+  const open = (c: Character) => openId(c.id);
 
   const onImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const res = importCharacter(String(reader.result), user.id);
+      const res = importHeroText(String(reader.result), user.id);
       if (!res.ok) setImportError(res.error ?? 'Falha ao importar.');
       else {
         setImportError(null);
         bump(1.2);
-        toast('Personagem importado.');
+        toast(res.warnings?.length ? `Personagem importado — ${res.warnings.length} ajuste(s): ${res.warnings[0]}` : 'Personagem importado.', { tone: res.warnings?.length ? 'info' : 'ok' });
       }
     };
     reader.readAsText(file);
@@ -86,6 +89,7 @@ export function CharacterSelect() {
           onOpen={open}
           onNew={() => { bump(1); navigate('/criar'); }}
           onImport={() => fileRef.current?.click()}
+          onPaste={() => setPasting(true)}
           importError={importError}
         />
       ) : (
@@ -295,11 +299,23 @@ export function CharacterSelect() {
 
         <div style={{ marginTop: 28, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
+          <Button onClick={() => setPasting(true)}>Colar ficha (ChatGPT)</Button>
           {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
         </div>
       </div>
       )}
       <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+      {pasting && (
+        <PasteImportModal
+          ownerId={user.id}
+          onClose={() => setPasting(false)}
+          onOpen={(id) => {
+            setPasting(false);
+            toast('Herói importado.');
+            openId(id);
+          }}
+        />
+      )}
     </Screen>
   );
 }

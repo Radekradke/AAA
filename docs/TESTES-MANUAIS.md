@@ -173,3 +173,12 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 4. Na mesa ao vivo, ponha o goblin no encontro: entra como "Batedor Garra-Negra", com a foto na faixa de iniciativa e no peão do mapa. O jogador (outra conta) vê a foto e o nome, **não** a nota.
 5. **Personalizar** → **Restaurar padrão**: volta ao Goblin com o emblema.
 6. Solte um arquivo `src/assets/bestiario/goblin.webp` (veja `docs/ARTE-BESTIARIO.md`) e rode o app: o goblin passa a usar essa arte em todas as mesas.
+
+## 28. Criar personagem com o ChatGPT (`docs/CRIAR-COM-CHATGPT.md`)
+1. No ChatGPT, crie um Projeto e cole o guia inteiro nas instruções. Peça: "Crie uma clériga anã nível 3, protetora da família".
+2. Copie a resposta inteira (com o texto em volta) → app → **Heróis** → **Colar ficha (ChatGPT)** → cole → **Importar herói**. Abre a ficha pronta: raça, classe, subclasse, perícias, idiomas, magias, equipamento inicial e PV cheio.
+3. A aparência e a história aparecem nas **Notas** da ficha.
+4. Troque a raça no JSON para "Hobbit" e importe de novo: aparece **Herói importado** com a lista de ajustes ("Raça "Hobbit" não encontrada — usei Humano") e **Abrir a ficha**.
+5. Cole um texto qualquer: aparece "Não consegui ler…" e a janela não fecha. Com texto digitado, clicar fora também não fecha.
+6. **Importar personagem (JSON)** com um arquivo da ficha simples também funciona e avisa os ajustes num toast.
+7. Tema **Guilda Rubra**: o botão **Colar ficha (ChatGPT)** aparece ao lado de **Importar personagem (JSON)**.

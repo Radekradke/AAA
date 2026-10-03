@@ -26,7 +26,8 @@ export interface CharacterState {
   /** Devolve uma ficha recém-excluída (botão Desfazer do aviso). */
   restoreCharacter: (char: Character) => void;
   duplicateCharacter: (id: string) => void;
-  importCharacter: (json: string, ownerId: string) => { ok: boolean; error?: string };
+  /** Ficha completa (JSON exportado). Texto colado/ficha simples: use lib/heroImport. */
+  importCharacter: (json: string, ownerId: string) => { ok: boolean; error?: string; id?: string };
   exportCharacter: (id: string) => string | null;
 
   // ---- gameplay (operam no personagem informado) ----

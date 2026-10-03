@@ -4655,6 +4655,41 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--danger);
 }
 
+/* Colar ficha (ChatGPT / JSON) */
+.fv-paste-lead {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.fv-paste-text {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre;
+}
+.fv-paste-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+.fv-paste-done p {
+  margin: 0 0 8px;
+}
+.fv-paste-done ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.fv-paste-btn {
+  min-height: 42px;
+  padding: 0 20px;
+}
+
 /* recursos do herói ativo */
 .fv-guild-stats {
   grid-area: stats;
