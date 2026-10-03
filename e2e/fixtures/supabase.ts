@@ -8,7 +8,8 @@ import type { Page, Route } from '@playwright/test';
  * "banco" em memória com uma campanha em andamento — mestre, jogador,
  * encontro, mapa com peões, NPCs, convite com código e uma ficha.
  *
- * Responde ao PostgREST (filtros eq/neq/in/is.null, POST/PATCH/DELETE), ao
+ * Responde ao PostgREST (filtros eq/neq/in/gte/is.null, POST/PATCH/DELETE e
+ * upsert com on_conflict), ao
  * Storage (imagens) e ao Realtime (WebSocket: join, presença, heartbeat).
  */
 
@@ -19,6 +20,7 @@ export const P = '33333333-3333-4333-8333-333333333333'; // jogador
 const S = '44444444-4444-4444-8444-444444444444'; // sessão
 const E = '55555555-5555-4555-8555-555555555555'; // encontro
 const SC = '66666666-6666-4666-8666-666666666666'; // cena (mapa)
+export const EV = '77777777-7777-4777-8777-777777777777'; // sessão marcada na agenda
 export const INVITE_CODE = 'K7Q42MXP';
 export const SHARE_TOKEN = 'TestToken234567890abcdefg';
 
@@ -46,6 +48,9 @@ function seed(who: Who): Record<string, Row[]> {
     cb('c3', { type: 'npc', name: 'Espião do Barão', initiative: null, turn_order: 3, hidden: true, hp_current: 27, hp_max: 27 }),
   ].filter((c) => master || !c.hidden);
   const session = { id: S, campaign_id: C, name: 'Sessão 4 — A Estrada Real', status: 'active', started_at: now, ended_at: null, created_by: M, created_at: now, updated_at: now };
+  // daqui a 3 dias, 19h30 (hora do navegador): "Próxima sessão em 3 dias"
+  const when = new Date(Date.now() + 3 * 86_400_000);
+  when.setHours(19, 30, 0, 0);
   const tokens = [
     { id: 't1', scene_id: SC, campaign_id: C, kind: 'hero', label: 'Kael Venturo', sheet_id: 'k', owner_id: P, combatant_id: 'c1', x: 3, y: 3, size: 1, hidden: false },
     { id: 't2', scene_id: SC, campaign_id: C, kind: 'monster', label: 'Goblin #1', monster_ref: 'goblin', combatant_id: 'c2', x: 8, y: 3, size: 1, hidden: false },
@@ -65,7 +70,9 @@ function seed(who: Who): Record<string, Row[]> {
     campaign_npc_secrets: [],
     campaign_notes: [],
     session_prep: [],
-    app_schema_steps: ['base', 'multiplayer', 'npcs_bestiario', 'palco', 'mestre_console', 'recursos_extras'].map((step) => ({ step })),
+    campaign_events: [{ id: EV, campaign_id: C, starts_at: when.toISOString(), duration_min: 240, title: 'Sessão 5 — O Baile de Máscaras', place: 'Casa do Léo', note: null, canceled: false, created_by: M, created_at: now, updated_at: now }],
+    campaign_rsvps: [{ event_id: EV, user_id: M, campaign_id: C, status: 'yes', display_name: 'Rui', hero_name: null, updated_at: now }],
+    app_schema_steps: ['base', 'multiplayer', 'npcs_bestiario', 'palco', 'mestre_console', 'agenda', 'recursos_extras'].map((step) => ({ step })),
     invite_links: [{ id: 'inv1', campaign_id: C, token: 'abcdefghijklm', created_by: M, expires_at: null, max_uses: null, uses: 0, code: INVITE_CODE }],
     sheets: [{ id: 'k', user_id: P, snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: 1000 }],
     shared_sheets: [{ id: 'sh1', campaign_id: C, sheet_id: 'k', owner_id: P, permissions: {}, shared_at: 1 }],
@@ -115,12 +122,21 @@ async function handle(route: Route, db: MockDb) {
     else if (v.startsWith('in.(')) {
       const set = v.slice(4, -1).split(',').map((x) => x.replace(/"/g, ''));
       rows = rows.filter((r) => set.includes(String(r[k])));
-    } else if (v === 'is.null') rows = rows.filter((r) => r[k] == null);
+    } else if (v.startsWith('gte.')) rows = rows.filter((r) => String(r[k]) >= v.slice(4));
+    else if (v === 'is.null') rows = rows.filter((r) => r[k] == null);
   }
 
   if (method === 'POST') {
-    const list = (Array.isArray(payload) ? payload : [payload]).map((x: Row) => ({ id: `new-${Math.random().toString(36).slice(2, 8)}`, created_at: Date.now(), ...x }));
-    (db.tables[name] ??= []).push(...list);
+    const conflict = url.searchParams.get('on_conflict')?.split(',');
+    const table = (db.tables[name] ??= []);
+    const list = (Array.isArray(payload) ? payload : [payload]).map((x: Row) => {
+      // upsert: a linha com a mesma chave é atualizada, não duplicada
+      const hit = conflict && table.find((r) => conflict.every((c) => r[c] === x[c]));
+      if (hit) return Object.assign(hit, x);
+      const row = { id: `new-${Math.random().toString(36).slice(2, 8)}`, created_at: Date.now(), ...x };
+      table.push(row);
+      return row;
+    });
     db.writes.push(`POST ${name}`);
     rows = list;
   } else if (method === 'PATCH') {

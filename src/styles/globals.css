@@ -5244,6 +5244,33 @@ body.fv-dragging .fv-screen-scroll {
   background: linear-gradient(180deg, var(--goldB), var(--gold));
   box-shadow: 0 16px 34px -14px rgba(0, 0, 0, 0.65), 0 0 0 3px color-mix(in srgb, var(--gold), transparent 60%);
 }
+/* próxima sessão marcada (agenda da campanha) como item do menu */
+.fv-menu-item .fv-menu-when {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0;
+  line-height: 1;
+}
+.fv-menu-when b {
+  font: 700 18px/1 var(--font-num);
+  color: var(--ink);
+}
+.fv-menu-when small {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.fv-menu-rsvp {
+  font-weight: 700;
+}
+.fv-menu-rsvp.is-yes {
+  color: color-mix(in srgb, #3fc56b 62%, var(--ink));
+}
+.fv-menu-rsvp.is-ask {
+  color: var(--acc);
+}
 .fv-menu-foot {
   display: flex;
   flex-wrap: wrap;

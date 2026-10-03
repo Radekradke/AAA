@@ -18,6 +18,7 @@ export const SCHEMA_STEPS: SchemaStep[] = [
   { step: 'npcs_bestiario', file: 'supabase/atualizacao_npcs_bestiario.sql', what: 'NPCs da campanha e criaturas no encontro' },
   { step: 'palco', file: 'supabase/palco.sql', what: 'palco: mapas, cenas, peões e handouts' },
   { step: 'mestre_console', file: 'supabase/mestre_console.sql', what: 'console do mestre: preparação e notas privadas' },
+  { step: 'agenda', file: 'supabase/agenda.sql', what: 'agenda: marcar a próxima sessão e confirmar presença' },
   { step: 'recursos_extras', file: 'supabase/recursos_extras.sql', what: 'convite por código/QR, ficha compartilhada e registro de erros' },
 ];
 
