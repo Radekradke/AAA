@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -28,6 +28,9 @@ import '@/styles/stage.css';
 import { InviteCard } from '@/components/campaign/InviteCard';
 import { SchemaNotice } from '@/components/campaign/SchemaNotice';
 import { AgendaCard } from '@/components/campaign/AgendaCard';
+
+// bestiário (65 criaturas com ficha e arte): só o mestre vê, baixa sob demanda
+const BestiaryGallery = lazy(() => import('@/components/bestiary/BestiaryGallery').then((m) => ({ default: m.BestiaryGallery })));
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -199,6 +202,13 @@ export function CampaignRoom() {
           <div style={{ marginTop: 22 }}>
             <NpcGallery campaignId={campaign.id} isMaster={isMaster} masterSheets={isMaster ? mySheets : []} />
           </div>
+        )}
+
+        {/* bestiário da mesa: criaturas em cartas, personalizáveis (só o mestre) */}
+        {campaign && user && !user.guest && isMaster && (
+          <Suspense fallback={null}>
+            <BestiaryGallery campaignId={campaign.id} />
+          </Suspense>
         )}
 
         {/* Crônica da Mesa: notas, NPCs e missões (mestre escreve, todos leem) */}

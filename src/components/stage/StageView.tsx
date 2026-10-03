@@ -8,6 +8,8 @@ import { useCharacterStore } from '@/store/characterStore';
 import { deriveCharacter } from '@/engine/dndRules';
 import { heroAvatar, heroFace } from '@/lib/summary';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { monsterLook } from '@/lib/monsterArt';
+import { useBestiaryStore } from '@/services/bestiaryService';
 import { coverArea, revealArea } from '@/engine/grid';
 import { useSessionStore } from '@/store/sessionStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
@@ -560,6 +562,7 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
 /** Rosto, deslocamento, vida e turno de cada peão (a partir das fichas, NPCs e do encontro). */
 function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens }: { heroes: SharedHero[]; npcs: CampaignNpc[]; combatants: Combatant[]; encounter: Encounter | null; isMaster: boolean; tokens: Token[] }) {
   const local = useCharacterStore((c) => c.characters);
+  const customs = useBestiaryStore((b) => b.customs);
   const art = useMediaUrls(tokens.map((t) => t.imagePath));
   const bySheet = useMemo(() => {
     const m = new Map<string, { face: TokenFace; speed: number | null }>();
@@ -591,6 +594,10 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
       if (t.sheetId && bySheet.has(t.sheetId)) return bySheet.get(t.sheetId)!.face;
       const n = t.npcId ? npcById.get(t.npcId) : null;
       if (n?.portrait) return { url: n.portrait, style: { backgroundSize: 'cover', backgroundPosition: '50% 20%' } };
+      // criatura do bestiário: foto da mesa ou arte oficial (emblema não vira peão: fica a inicial)
+      const m = t.monsterRef ? MONSTER_BY_ID[t.monsterRef] : null;
+      const look = m ? monsterLook(m, customs[m.id]) : null;
+      if (look?.art) return { url: look.art, style: { backgroundSize: 'cover', backgroundPosition: '50% 18%' } };
       return null;
     },
     speedFor: (t: Token): number | null => {

@@ -165,3 +165,11 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 5. **Adicionar ao calendário** baixa um `.ics` que abre no calendário do celular com lembrete 2 h antes; **Google Agenda** abre o evento já preenchido.
 6. Mestre → **+ Marcar outra**: a sugestão é uma semana depois da última, na mesma hora. A segunda aparece em "mais adiante".
 7. Mestre → **Cancelar sessão** → confirmar: o jogador vê a próxima da lista (ou "O mestre ainda não marcou"); a cancelada fica riscada com "Cancelada" e o mestre pode **Reativar** ou **Apagar**.
+
+## 27. Bestiário da mesa (personalizar precisa de `supabase/bestiario.sql`)
+1. Mestre abre a sala da mesa: aparece **Bestiário da mesa · 65** com 12 cartas (selo de ND e moldura na cor do tipo) e **Mostrar todas as 65 criaturas**.
+2. Filtre por **Dragão** e por **ND 8+**; busque "goblin". Toque na carta: abre a ficha completa ao lado da arte.
+3. **Personalizar** → envie uma foto, mude o nome para "Batedor Garra-Negra" e escreva uma nota → **Salvar**. A carta mostra a foto, o novo nome e o selo **da mesa**; a nota aparece em "Suas notas".
+4. Na mesa ao vivo, ponha o goblin no encontro: entra como "Batedor Garra-Negra", com a foto na faixa de iniciativa e no peão do mapa. O jogador (outra conta) vê a foto e o nome, **não** a nota.
+5. **Personalizar** → **Restaurar padrão**: volta ao Goblin com o emblema.
+6. Solte um arquivo `src/assets/bestiario/goblin.webp` (veja `docs/ARTE-BESTIARIO.md`) e rode o app: o goblin passa a usar essa arte em todas as mesas.

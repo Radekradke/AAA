@@ -6,6 +6,9 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useMasterStore } from '../masterStore';
 import { addToEncounter } from '../actions';
 import { TrayStar } from './SessionPanel';
+import { monsterLook } from '@/lib/monsterArt';
+import { useBestiaryStore } from '@/services/bestiaryService';
+import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -18,13 +21,14 @@ export function CreaturesPanel() {
   const select = useMasterStore((m) => m.select);
   const openQuick = useMasterStore((m) => m.openQuick);
   const s = useSessionStore();
+  const customs = useBestiaryStore((b) => b.customs);
   const [q, setQ] = useState('');
   const [qty, setQty] = useState(1);
   const list = useMemo(() => {
     const t = norm(q.trim());
-    const f = t ? MONSTERS.filter((m) => norm(`${m.name} ${m.en} ${m.type} nd ${m.cr}`).includes(t)) : MONSTERS;
+    const f = t ? MONSTERS.filter((m) => norm(`${m.name} ${customs[m.id]?.name ?? ''} ${m.en} ${m.type} nd ${m.cr}`).includes(t)) : MONSTERS;
     return f.slice(0, 60);
-  }, [q]);
+  }, [q, customs]);
   const enc = s.encounter;
   const pending = s.combatants.filter((c) => c.type !== 'player' && c.initiative === null).length;
   const foes = s.combatants.filter((c) => c.type !== 'player').length;
@@ -52,13 +56,18 @@ export function CreaturesPanel() {
         </div>
       )}
       <ul className="fv-bs-list">
-        {list.map((m) => (
+        {list.map((m) => {
+          const look = monsterLook(m, customs[m.id]);
+          return (
           <li key={m.id}>
-            <button type="button" className="fv-bs-item" onClick={() => select({ kind: 'monster', ref: m.id })} {...stageDragProps({ kind: 'monster', ref: m.id, qty }, qty > 1 ? `${qty}× ${m.name}` : m.name)}>
-              <b>{m.name}</b>
+            <button type="button" className="fv-bs-item fv-bs-item-face" onClick={() => select({ kind: 'monster', ref: m.id })} {...stageDragProps({ kind: 'monster', ref: m.id, qty }, qty > 1 ? `${qty}× ${look.name}` : look.name)}>
+              <MonsterPortrait look={look} size={34} round />
+              <span className="fv-bs-item-text">
+              <b>{look.name}</b>
               <small>
                 ND {m.cr} · CA {m.ac} · {m.hp} PV · {m.type}
               </small>
+              </span>
             </button>
             <div className="fv-bs-item-acts">
               <TrayStar kind="monsters" id={m.id} label={m.name} />
@@ -73,7 +82,8 @@ export function CreaturesPanel() {
               </button>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
       {list.length === 60 && <p className="fv-bs-hint">Mostrando 60 — refine a busca.</p>}
     </div>

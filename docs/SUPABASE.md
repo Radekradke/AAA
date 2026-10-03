@@ -575,3 +575,16 @@ Rode `supabase/agenda.sql` (depois do SQL base da seção 5). Pode rodar de novo
 No app: a sala da mesa mostra a próxima sessão (com **Vou / Talvez / Não vou**, quem já respondeu, **Adicionar ao calendário** em `.ics` e **Google Agenda**); o mestre marca a sessão — o formulário já sugere uma semana depois da última, na mesma hora. A tela inicial mostra a próxima sessão de qualquer mesa sua e se você já confirmou. Sem esse SQL, nada disso aparece (o mestre vê o aviso de script faltando).
 
 `npm test` roda `supabase/__tests__/agenda.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.
+
+## 11. Bestiário da mesa — foto, nome e notas das criaturas
+
+Rode `supabase/bestiario.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+- **`campaign_monsters`** — a aparência que o mestre deu a uma criatura nesta campanha: `name` e `portrait` (imagem leve em data URL, até ~400 KB, só `data:image/…`). Todos da mesa leem, porque a foto e o nome aparecem na iniciativa e nos peões do mapa; só o mestre grava. Apagar a linha volta ao padrão.
+- **`campaign_monster_notes`** — notas do mestre por criatura (táticas, ganchos). Só o mestre lê e grava: o jogador não recebe nem a linha.
+- `monster_ref` é o id da criatura no bestiário do app (`goblin`, `young-red-dragon`). Já aceita ids `hb:<uuid>`, reservados para as criaturas próprias do mestre (bestiário do mestre, valendo para todas as mesas dele), que virão num script à parte.
+- `campaign_monsters` entra na publication `supabase_realtime`: trocou a foto, a mesa de todos atualiza.
+
+No app: a sala da mesa mostra ao mestre o **Bestiário da mesa** (cartas com arte, filtros por tipo e ND, ficha completa e **Personalizar**). A arte padrão vem de `src/assets/bestiario/<id>.webp` (guia com um prompt por criatura em `docs/ARTE-BESTIARIO.md`); sem arquivo, aparece o emblema do tipo. Sem esse SQL, as cartas e a arte funcionam, só o **Personalizar** pede para rodar o script.
+
+`npm test` roda `supabase/__tests__/bestiario.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.
