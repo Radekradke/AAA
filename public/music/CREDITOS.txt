@@ -1,14 +1,44 @@
 Trilha sonora do Ficha Viva AAA
 ================================
-Todas as faixas são de RandomMind, publicadas no OpenGameArt.org sob a
-licença CC0 1.0 (domínio público): https://creativecommons.org/publicdomain/zero/1.0/
-Recomprimidas em MP3 80 kbps para o app.
+Todas as faixas foram publicadas no OpenGameArt.org sob a licença CC0 1.0
+(domínio público): https://creativecommons.org/publicdomain/zero/1.0/
+Uso livre, inclusive comercial, sem exigir crédito — damos o crédito mesmo assim.
+Recomprimidas em MP3 (80 kbps as 8 primeiras; 64 kbps com volume igualado as demais).
 
-- taverna-velha-torre.mp3   — Medieval: The Old Tower Inn   https://opengameart.org/content/medieval-the-old-tower-inn
-- danca-do-menestrel.mp3    — Medieval: Minstrel Dance      https://opengameart.org/content/medieval-minstrel-dance
-- banquete-do-rei.mp3       — Medieval: King's Feast        https://opengameart.org/content/medieval-kings-feast
-- dia-de-feira.mp3          — Medieval: Market Day          https://opengameart.org/content/medieval-market-day
-- exploracao.mp3            — Medieval: Exploration         https://opengameart.org/content/medieval-exploration
-- conto-do-bardo.mp3        — Medieval: The Bard's Tale     https://opengameart.org/content/medieval-the-bards-tale
-- batalha.mp3               — Medieval: Battle              https://opengameart.org/content/medieval-battle
-- lamento-do-guerreiro.mp3  — Fantasy: Lament for a Warrior's Soul https://opengameart.org/content/fantasy-lament-for-a-warriors-soul
+Taverna e cidade
+- taverna-velha-torre.mp3   — RandomMind — Medieval: The Old Tower Inn      https://opengameart.org/content/medieval-the-old-tower-inn
+- danca-do-menestrel.mp3    — RandomMind — Medieval: Minstrel Dance         https://opengameart.org/content/medieval-minstrel-dance
+- banquete-do-rei.mp3       — RandomMind — Medieval: King's Feast           https://opengameart.org/content/medieval-kings-feast
+- dia-de-feira.mp3          — RandomMind — Medieval: Market Day             https://opengameart.org/content/medieval-market-day
+- festa-na-vila.mp3         — RandomMind — Medieval: Rejoicing              https://opengameart.org/content/medieval-rejoicing
+- epoca-da-colheita.mp3     — RandomMind — Medieval: Harvest Season         https://opengameart.org/content/medieval-harvest-season
+- praca-da-cidade.mp3       — cynicmusic — Town Theme RPG                   https://opengameart.org/content/town-theme-rpg
+- cidade-magica.mp3         — controllerhead — Magic Town                   https://opengameart.org/content/magic-town
+- hora-da-historia.mp3      — HaelDB — Story Time                           https://opengameart.org/content/story-time
+
+Aventura
+- exploracao.mp3            — RandomMind — Medieval: Exploration            https://opengameart.org/content/medieval-exploration
+- conto-do-bardo.mp3        — RandomMind — Medieval: The Bard's Tale        https://opengameart.org/content/medieval-the-bards-tale
+- tema-orquestral.mp3       — Joth — Fantasy Orchestral Theme               https://opengameart.org/content/fantasy-orchestral-theme
+- lago-espelhado.mp3        — Joth — Mirror Lake                            https://opengameart.org/content/mirror-lake
+- perdido-nos-campos.mp3    — HaelDB — Lost in the Meadows                  https://opengameart.org/content/lost-in-the-meadows
+- campo-dos-sonhos.mp3      — pauliuw — The Field of Dreams                 https://opengameart.org/content/the-field-of-dreams
+
+Combate
+- batalha.mp3               — RandomMind — Medieval: Battle                 https://opengameart.org/content/medieval-battle
+- preparem-as-espadas.mp3   — bojidar-bg — Prepare Your Swords         https://opengameart.org/content/prepare-your-swords
+- tema-de-batalha.mp3       — cynicmusic — Battle Theme A                   https://opengameart.org/content/battle-theme-a
+- determinacao.mp3          — artisticdude — Determination                  https://opengameart.org/content/determination
+
+Masmorra
+- ruinas-da-vila.mp3        — isaiah658 — Village Ruins                     https://opengameart.org/content/village-ruins
+- caverna.mp3               — HaelDB — Cave Theme                           https://opengameart.org/content/cave-theme
+- cidade-em-ruinas.mp3      — HaelDB — Town in Ruins (loop)                 https://opengameart.org/content/town-in-ruins-loop
+- espreita-noturna.mp3      — section31 — Night Prowler                    https://opengameart.org/content/night-prowler
+- floresta-sombria.mp3      — HaelDB — Creepy Forest                        https://opengameart.org/content/creepy-forest-f
+
+Drama
+- lamento-do-guerreiro.mp3  — RandomMind — Fantasy: Lament for a Warrior's Soul https://opengameart.org/content/fantasy-lament-for-a-warriors-soul
+- lua-nascente.mp3          — RandomMind — Fantasy: Rising Moon             https://opengameart.org/content/fantasy-rising-moon
+- ambiente-tragico.mp3      — HaelDB — Tragic Ambient Main Menu             https://opengameart.org/content/tragic-ambient-main-menu
+- silencio-frio.mp3         — Eponasoft — Cold Silence                      https://opengameart.org/content/cold-silence

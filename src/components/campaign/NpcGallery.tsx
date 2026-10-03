@@ -10,6 +10,8 @@ import { abilityMod } from '@/engine/monsters';
 import type { CampaignNpc, NpcSecret, NpcStats } from '@/types/npc';
 import type { Character } from '@/types/character';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import { importedSheetIds, npcFromHero, npcPortraitFromHero } from '@/lib/heroToNpc';
+import { heroAvatar, heroFace, shortSubtitle } from '@/lib/summary';
 import '@/styles/session.css';
 import '@/styles/master.css';
 
@@ -61,6 +63,7 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
   const { npcs, secrets, error, reload } = useCampaignNpcs(campaignId, isMaster);
   const [editing, setEditing] = useState<CampaignNpc | 'new' | null>(null);
   const [viewing, setViewing] = useState<CampaignNpc | null>(null);
+  const [importing, setImporting] = useState(false);
   const kept = isMaster ? npcs.filter((n) => !n.improvisedIn) : npcs;
   const improvised = isMaster ? npcs.filter((n) => n.improvisedIn) : [];
   const card = (n: CampaignNpc) => (
@@ -80,7 +83,14 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
       <div className="fv-npcs-head">
         <div className="fv-label">Personagens da campanha · {npcs.length}</div>
         {isMaster && (
-          <button type="button" className="fv-btn-gold" disabled={error === NPC_SETUP_MISSING} onClick={() => setEditing('new')}>+ Novo NPC</button>
+          <div className="fv-npcs-actions">
+            {masterSheets.length > 0 && (
+              <button type="button" className="fv-btn-ghost" disabled={error === NPC_SETUP_MISSING} onClick={() => setImporting(true)}>
+                Importar dos meus heróis
+              </button>
+            )}
+            <button type="button" className="fv-btn-gold" disabled={error === NPC_SETUP_MISSING} onClick={() => setEditing('new')}>+ Novo NPC</button>
+          </div>
         )}
       </div>
       {error && (
@@ -136,6 +146,18 @@ export function NpcGallery({ campaignId, isMaster, masterSheets }: { campaignId:
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
+            reload();
+          }}
+        />
+      )}
+      {importing && (
+        <HeroImport
+          campaignId={campaignId}
+          heroes={masterSheets}
+          already={importedSheetIds(secrets)}
+          onClose={() => setImporting(false)}
+          onDone={() => {
+            setImporting(false);
             reload();
           }}
         />
@@ -291,6 +313,91 @@ function NpcEditor({ campaignId, npc, secret, masterSheets, onClose, onSaved }: 
         </p>
         {base && <MonsterStatBlock m={base} who={f.name || base.name} compact />}
       </div>
+    </Modal>
+  );
+}
+
+/**
+ * Importar heróis da conta do mestre como NPCs: escolhe um ou vários, vira
+ * NPC com retrato, papel, CA/PV/iniciativa e o vínculo com a ficha.
+ */
+function HeroImport({ campaignId, heroes, already, onClose, onDone }: {
+  campaignId: string;
+  heroes: Character[];
+  already: Set<string>;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [reveal, setReveal] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const toggle = (id: string) =>
+    setPicked((p) => {
+      const n = new Set(p);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const list = [...heroes].sort((a, b) => Number(already.has(a.id)) - Number(already.has(b.id)) || b.updatedAt - a.updatedAt);
+
+  const run = async () => {
+    const chosen = list.filter((c) => picked.has(c.id));
+    let ok = 0;
+    for (const c of chosen) {
+      setBusy(`Importando ${c.name}… (${ok + 1}/${chosen.length})`);
+      const base = npcFromHero(c);
+      try {
+        const portrait = await npcPortraitFromHero(c);
+        await npcService.save(campaignId, { name: base.name, role: base.role, summary: '', portrait, revealed: reveal }, { notes: base.notes, stats: base.stats });
+        ok++;
+      } catch (e) {
+        toast(`${c.name}: ${(e as Error).message}`, { tone: 'danger' });
+      }
+    }
+    setBusy(null);
+    if (ok) toast(ok === 1 ? '1 NPC importado.' : `${ok} NPCs importados.`);
+    onDone();
+  };
+
+  return (
+    <Modal
+      title="Importar dos meus heróis"
+      icon="crest"
+      onClose={onClose}
+      maxWidth={560}
+      footer={
+        <div className="fv-npc-editor-foot">
+          <label className="fv-bestiary-check fv-npc-import-reveal">
+            <input type="checkbox" checked={reveal} onChange={(e) => setReveal(e.target.checked)} /> Já revelar aos jogadores
+          </label>
+          {busy && <span className="fv-live-hint" role="status">{busy}</span>}
+          <button type="button" className="fv-btn-gold" disabled={!picked.size || !!busy} onClick={() => void run()}>
+            {picked.size > 1 ? `Importar ${picked.size}` : 'Importar'}
+          </button>
+        </div>
+      }
+    >
+      <p className="fv-live-hint fv-npc-import-lead">
+        Cada herói vira um NPC com retrato, papel (raça · classe), CA, PV e iniciativa — ligado à ficha, para você jogar com ele como um herói.
+        Os segredos e o que os jogadores sabem você completa depois.
+      </p>
+      <ul className="fv-npc-import" aria-label="Seus heróis">
+        {list.map((c) => {
+          const done = already.has(c.id);
+          return (
+            <li key={c.id}>
+              <label className={'fv-npc-import-row' + (done ? ' is-done' : '')}>
+                <input type="checkbox" checked={picked.has(c.id)} onChange={() => toggle(c.id)} disabled={!!busy} />
+                <span className="fv-npc-import-face" aria-hidden style={{ backgroundImage: `url("${heroAvatar(c)}")`, ...heroFace(c) }} />
+                <span className="fv-npc-import-text">
+                  <b>{c.name || 'Sem nome'}</b>
+                  <small>{shortSubtitle(c)}{done ? ' · já é NPC nesta mesa' : ''}</small>
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
     </Modal>
   );
 }

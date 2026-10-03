@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { music, useMusic } from '@/lib/music';
-import { MOODS } from '@/data/soundtrack';
+import { MOODS, TRACKS } from '@/data/soundtrack';
 
 /** Controle da trilha sonora na barra do topo: tocar/pausar, ambiente, próxima e volume. */
 export function MusicControl() {
@@ -49,7 +49,7 @@ export function MusicControl() {
             </button>
             <div className="fv-music-title">
               <b>{m.track?.title ?? 'Trilha sonora'}</b>
-              <small>{m.track ? `${m.track.author} · CC0` : 'Música medieval livre (CC0)'}</small>
+              <small>{m.track ? `${m.track.author} · CC0` : `${TRACKS.length} músicas livres (CC0)`}</small>
             </div>
             <button type="button" className="fv-music-next" onClick={() => music.next()} aria-label="Próxima faixa" title="Próxima faixa">
               ⏭
@@ -72,13 +72,27 @@ export function MusicControl() {
               </button>
             ))}
           </div>
+          <ul className="fv-music-list" aria-label={`Faixas de ${MOODS.find((x) => x.id === m.mood)?.label ?? 'ambiente'}`}>
+            {TRACKS.filter((t) => t.mood === m.mood).map((t) => {
+              const on = m.track?.id === t.id;
+              return (
+                <li key={t.id}>
+                  <button type="button" className={'fv-music-track' + (on ? ' is-on' : '')} aria-current={on ? 'true' : undefined} onClick={() => music.playTrack(t.id)}>
+                    <span aria-hidden>{on && m.playing ? '♪' : '▸'}</span>
+                    <b>{t.title}</b>
+                    <small>{t.author}</small>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
           <label className="fv-music-vol">
             <span>Volume</span>
             <input type="range" min={0} max={1} step={0.05} value={m.volume} onChange={(e) => music.setVolume(Number(e.target.value))} />
             <b>{Math.round(m.volume * 100)}%</b>
           </label>
           <p className="fv-music-credit">
-            Músicas de RandomMind (OpenGameArt), domínio público. Ao rolar iniciativa com a música ligada, entra a trilha de combate.
+            {TRACKS.length} músicas de domínio público (CC0) do OpenGameArt — RandomMind, Joth, HaelDB e outros. Ao rolar iniciativa com a música ligada, entra a trilha de combate.
           </p>
         </div>
       )}

@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
 import { MusicControl } from './MusicControl';
+import { SearchButton } from '@/components/search/SearchButton';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
@@ -104,6 +105,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
       </button>
 
       <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
+        <SearchButton />
         <SyncBadge />
         <MusicControl />
         {actions}

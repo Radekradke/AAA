@@ -3731,12 +3731,24 @@ body.fv-dragging .fv-screen-scroll {
 .fv-music-title { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
 .fv-music-title b { font-family: var(--font-display); font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fv-music-title small { font-size: 11px; color: var(--muted); }
-.fv-music-moods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.fv-music-moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .fv-music-mood {
-  cursor: pointer; padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--line);
-  background: var(--sunk); color: var(--ink); font-size: 12.5px; font-weight: 600; text-align: left;
+  cursor: pointer; padding: 8px 6px; border-radius: var(--radius-md); border: 1px solid var(--line);
+  background: var(--sunk); color: var(--ink); font-size: 12px; font-weight: 600; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .fv-music-mood.is-on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold); }
+/* faixas do ambiente escolhido: toque para tocar uma específica */
+.fv-music-list { list-style: none; margin: 0; padding: 0; max-height: min(220px, 34vh); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 4px; }
+.fv-music-track {
+  width: 100%; display: grid; grid-template-columns: 14px 1fr; column-gap: 8px; align-items: baseline; text-align: left; cursor: pointer;
+  padding: 6px 8px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink);
+}
+.fv-music-track:hover { background: var(--sunk); }
+.fv-music-track span { color: var(--muted); font-size: 11px; }
+.fv-music-track b { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-music-track small { grid-column: 2; font-size: 10.5px; color: var(--muted); }
+.fv-music-track.is-on b, .fv-music-track.is-on span { color: var(--gold); }
 .fv-music-vol { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
 .fv-music-vol input { flex: 1; accent-color: var(--gold); }
 .fv-music-vol b { width: 36px; text-align: right; color: var(--ink); font-family: var(--font-num); }
@@ -6222,4 +6234,39 @@ select.fv-input.fv-mesa-select { min-height: 42px; padding: 9px 34px 9px 12px; f
 .fv-mesa-cond-x {
   cursor: pointer; flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px;
   border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent); background: var(--sunk); color: var(--danger); font-size: 13px;
+}
+
+/* ===== Busca geral: lupa da barra do topo (a paleta mora em search.css) ===== */
+.fv-topbar-icon.fv-search-btn {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 11px;
+}
+.fv-search-btn-label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.fv-search-btn-kbd {
+  font: 600 10px var(--font-num);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .fv-search-btn-kbd {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .fv-topbar-icon.fv-search-btn {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .fv-search-btn-label {
+    display: none;
+  }
 }
