@@ -19,6 +19,17 @@ test.describe('ficha', () => {
     }
   });
 
+  test('tela de impressão rola até o fim da ficha @celular', async ({ page }) => {
+    await page.goto(`/ficha/${ID}/imprimir`);
+    const pagina = page.locator('.fv-printpage');
+    await expect(page.locator('.fv-ills h1')).toHaveText(NAME);
+    const fim = page.locator('.fv-ills-page').last();
+    await pagina.hover();
+    for (let i = 0; i < 40 && !(await fim.evaluate((el) => el.getBoundingClientRect().top < innerHeight)); i++) await page.mouse.wheel(0, 900);
+    expect(await pagina.evaluate((el) => el.scrollTop)).toBeGreaterThan(300);
+    await expect(fim).toBeInViewport();
+  });
+
   test('ficha ilustrada no tema, e a clássica para imprimir', async ({ page }) => {
     await page.goto(`/ficha/${ID}`);
     await page.getByRole('button', { name: 'Mais opções' }).click();

@@ -120,6 +120,14 @@ export const music = {
   next() {
     start(pickNext(state.mood, state.track?.id));
   },
+  /** Toca uma faixa escolhida na lista (e passa para o ambiente dela). */
+  playTrack(id: string) {
+    const t = TRACKS.find((x) => x.id === id);
+    if (!t) return;
+    if (t.id === state.track?.id && state.playing) return;
+    if (t.mood !== state.mood) emit({ mood: t.mood });
+    start(t);
+  },
   setMood(mood: MusicMood) {
     if (mood === state.mood && state.playing) return;
     emit({ mood });

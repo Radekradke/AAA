@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { toast } from '@/store/feedbackStore';
 import { itemGrantedSpells } from '@/engine/spellcasting';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useCharacterStore } from '@/store/characterStore';
@@ -35,7 +35,13 @@ export function CharacterSheet() {
   const exportCharacter = useCharacterStore((s) => s.exportCharacter);
 
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
-  const [tab, setTab] = useState('mesa');
+  const location = useLocation();
+  const [tab, setTab] = useState<string>(() => (location.state as { tab?: string } | null)?.tab ?? 'mesa');
+  // a busca geral pode mandar direto para uma aba ("Magias", "Inventário"…)
+  const wantedTab = (location.state as { tab?: string } | null)?.tab;
+  useEffect(() => {
+    if (wantedTab) setTab(wantedTab);
+  }, [wantedTab, location.key]);
   const [editing, setEditing] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [history, setHistory] = useState(false);

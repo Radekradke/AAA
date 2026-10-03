@@ -989,7 +989,29 @@
 /* ---------- NPCs da campanha ---------- */
 .fv-npcs { display: flex; flex-direction: column; gap: 10px; }
 .fv-npcs-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.fv-npcs-head .fv-btn-gold { min-height: 36px; padding: 0 14px; font-size: 12.5px; }
+.fv-npcs-head .fv-btn-gold,
+.fv-npcs-head .fv-btn-ghost { min-height: 36px; padding: 0 14px; font-size: 12.5px; }
+.fv-npcs-head { flex-wrap: wrap; }
+.fv-npcs-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* importar heróis do mestre como NPCs */
+.fv-npc-import-lead { margin: 0 0 10px; }
+.fv-npc-import { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fv-npc-import-row {
+  display: flex; align-items: center; gap: 12px; padding: 8px 10px; cursor: pointer;
+  border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk);
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-npc-import-row:has(input:checked) { border-color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 90%); }
+.fv-npc-import-row input { width: 18px; height: 18px; flex: none; accent-color: var(--gold); }
+.fv-npc-import-face {
+  width: 46px; height: 46px; flex: none; border-radius: 999px; background-repeat: no-repeat;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+}
+.fv-npc-import-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fv-npc-import-text b { font-family: var(--font-display); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-npc-import-text small { font-size: 12px; color: var(--muted); }
+.fv-npc-import-row.is-done .fv-npc-import-text small { color: var(--acc); }
+.fv-npc-import-reveal { margin-right: auto; }
 .fv-npcs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 10px; }
 .fv-npc-card {
   display: flex; align-items: center; gap: 12px; padding: 10px; text-align: left; cursor: pointer; color: var(--ink);

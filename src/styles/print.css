@@ -139,8 +139,13 @@
 }
 
 /* ----- página que mostra a ficha (barra de ações + papel) ----- */
+/* o app trava a rolagem do body (cada tela rola por dentro): a página de
+   impressão é o próprio contêiner de rolagem — senão só se via o topo da ficha */
 .fv-printpage {
-  min-height: 100dvh;
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px 12px 40px;
   background: #3a3a3f;
 }
@@ -190,7 +195,7 @@
   .fv-print, .fv-print *, .fv-ills, .fv-ills * { visibility: visible; }
   .fv-ills { position: absolute; left: 0; top: 0; width: 100%; }
   .fv-print { position: absolute; left: 0; top: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; }
-  .fv-printpage { background: #fff; padding: 0; }
+  .fv-printpage { background: #fff; padding: 0; height: auto; overflow: visible; }
   .fv-printpage-bar { display: none; }
 }
 

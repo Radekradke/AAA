@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/test';
-import { C, INVITE_CODE, SHARE_TOKEN, installSupabase, signIn } from './fixtures/supabase';
+import { C, INVITE_CODE, M, SHARE_TOKEN, WIZARD, installSupabase, signIn } from './fixtures/supabase';
 
 test.describe('mesa (campanha)', () => {
   test('mestre vê o código curto e o QR do convite', async ({ page }) => {
@@ -75,5 +75,30 @@ test.describe('ficha compartilhada por link', () => {
     expect(db.writes).toContain('POST sheet_shares');
     const token = String(db.tables.sheet_shares[0].token);
     expect(token).toMatch(/^[A-Za-z0-9]{24}$/);
+  });
+});
+
+test.describe('NPCs a partir dos heróis do mestre', () => {
+  test('mestre importa um herói da conta como NPC oculto, com ficha ligada', async ({ page }) => {
+    await signIn(page, 'master', { characters: [{ ...WIZARD, id: 'lyra', ownerId: M }] });
+    const db = await installSupabase(page, 'master');
+    await page.goto(`/mesa/${C}`);
+    await page.getByRole('button', { name: 'Importar dos meus heróis' }).click();
+    const janela = page.getByRole('dialog', { name: 'Importar dos meus heróis' });
+    await janela.getByRole('checkbox', { name: /Lyra Sombraluz/ }).check();
+    await janela.getByRole('button', { name: 'Importar' }).click();
+    await expect(page.getByText('1 NPC importado.')).toBeVisible();
+
+    const npc = db.tables.campaign_npcs.find((n) => n.name === 'Lyra Sombraluz');
+    expect(npc).toMatchObject({ campaign_id: C, revealed: false });
+    expect(String(npc!.role)).toMatch(/·/);
+    expect(String(npc!.portrait)).toMatch(/^data:image\//);
+    const secret = db.tables.campaign_npc_secrets.find((s) => s.npc_id === npc!.id);
+    expect(secret?.stats).toMatchObject({ sheetId: 'lyra', level: WIZARD.level });
+    await expect(page.locator('.fv-npc-card', { hasText: 'Lyra Sombraluz' })).toContainText('oculto dos jogadores');
+
+    // de novo: aparece marcado como "já é NPC nesta mesa"
+    await page.getByRole('button', { name: 'Importar dos meus heróis' }).click();
+    await expect(page.getByRole('dialog', { name: 'Importar dos meus heróis' })).toContainText('já é NPC nesta mesa');
   });
 });
