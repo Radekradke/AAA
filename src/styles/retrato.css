@@ -1,0 +1,524 @@
+/* ===== Aba Retrato: a carta do herói em vitrine + a ficha em leitura ===== */
+.fv-vitrine {
+  display: grid;
+  grid-template-columns: minmax(280px, 440px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+.fv-vitrine-stage {
+  position: sticky;
+  top: calc(var(--topbar-h, 64px) + 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---- a carta ---- */
+.fv-vitrine-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  overflow: hidden;
+  cursor: zoom-in;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--race-color), transparent 40%);
+  background:
+    radial-gradient(80% 60% at 50% 25%, color-mix(in srgb, var(--race-color), transparent 65%), transparent 70%),
+    #07090d;
+  box-shadow:
+    0 28px 60px -28px rgba(0, 0, 0, 0.85),
+    0 0 60px color-mix(in srgb, var(--race-color), transparent 75%);
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.45s ease, box-shadow 0.45s ease;
+  isolation: isolate;
+  /* a carta é sempre escura: dourado fixo (o --gold dos temas claros é escuro) */
+  --card-gold: #e9c46a;
+}
+.fv-vitrine-card:hover {
+  transition: transform 0.12s ease-out, box-shadow 0.45s ease;
+  box-shadow:
+    0 36px 70px -26px rgba(0, 0, 0, 0.9),
+    0 0 80px color-mix(in srgb, var(--race-color), transparent 62%);
+}
+.fv-vitrine-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+.fv-vitrine-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  transition: transform 0.6s ease;
+}
+.fv-vitrine-card:hover img {
+  transform: scale(1.03);
+}
+/* véu de baixo (legibilidade da legenda) + brasa da linhagem */
+.fv-vitrine-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 10, 0.35) 0%, transparent 18%, transparent 52%, rgba(5, 7, 10, 0.95) 100%),
+    radial-gradient(90% 50% at 50% 118%, color-mix(in srgb, var(--race-color), transparent 50%), transparent 70%);
+}
+.fv-vitrine-card .fv-hero-sheen {
+  z-index: 4;
+}
+
+/* folha holográfica: arco-íris que gira com o ponteiro, bem discreto */
+.fv-vitrine-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: color-dodge;
+  background:
+    repeating-linear-gradient(
+      calc(110deg + var(--hue, 0deg) / 6),
+      hsl(calc(0deg + var(--hue, 0deg)) 90% 60% / 0.55) 0%,
+      hsl(calc(60deg + var(--hue, 0deg)) 90% 60% / 0.55) 6%,
+      hsl(calc(140deg + var(--hue, 0deg)) 90% 60% / 0.55) 12%,
+      hsl(calc(220deg + var(--hue, 0deg)) 90% 65% / 0.55) 18%,
+      hsl(calc(300deg + var(--hue, 0deg)) 90% 60% / 0.55) 24%
+    ),
+    radial-gradient(circle at var(--mx, 50%) var(--my, 40%), rgba(255, 255, 255, 0.35), transparent 50%);
+  background-size: 260% 260%, 100% 100%;
+  background-position: var(--mx, 50%) var(--my, 50%), center;
+  transition: opacity 0.4s ease;
+  animation: fv-foil-drift 9s ease-in-out infinite alternate;
+}
+.fv-vitrine-card:hover .fv-vitrine-foil {
+  opacity: 0.22;
+  animation: none;
+}
+@keyframes fv-foil-drift {
+  from {
+    background-position: 0% 30%, center;
+  }
+  to {
+    background-position: 100% 70%, center;
+  }
+}
+
+/* moldura: cantos dourados de carta */
+.fv-vitrine-frame {
+  position: absolute;
+  inset: 10px;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--card-gold), transparent 70%);
+}
+.fv-vitrine-frame i {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--card-gold);
+  opacity: 0.85;
+}
+.fv-vitrine-frame i:nth-child(1) {
+  top: -3px;
+  left: -3px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 14px;
+}
+.fv-vitrine-frame i:nth-child(2) {
+  top: -3px;
+  right: -3px;
+  border-left: 0;
+  border-bottom: 0;
+  border-top-right-radius: 14px;
+}
+.fv-vitrine-frame i:nth-child(3) {
+  bottom: -3px;
+  left: -3px;
+  border-right: 0;
+  border-top: 0;
+  border-bottom-left-radius: 14px;
+}
+.fv-vitrine-frame i:nth-child(4) {
+  bottom: -3px;
+  right: -3px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 14px;
+}
+
+.fv-vitrine-level,
+.fv-vitrine-sigil {
+  position: absolute;
+  top: 20px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 7, 10, 0.72);
+  backdrop-filter: blur(6px);
+}
+.fv-vitrine-level {
+  left: 20px;
+  min-width: 52px;
+  padding: 6px 8px 7px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--card-gold), transparent 45%);
+  font: 800 22px / 1 var(--font-num);
+  color: var(--card-gold);
+}
+.fv-vitrine-level small {
+  font: 700 9px var(--font-num);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d8d2c4;
+  margin-bottom: 3px;
+}
+.fv-vitrine-sigil {
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  color: var(--class-color);
+  border: 1px solid color-mix(in srgb, var(--class-color), transparent 40%);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--class-color), transparent 50%);
+}
+.fv-vitrine-caption {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: 24px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+.fv-vitrine-caption b {
+  font: 800 clamp(22px, 2.4vw, 30px) / 1.05 var(--font-display);
+  color: #f6f2ea;
+  text-shadow: 0 2px 16px #000;
+  overflow-wrap: anywhere;
+}
+.fv-vitrine-caption span {
+  font-size: 14px;
+  color: color-mix(in srgb, var(--race-color), #fff 45%);
+  text-shadow: 0 1px 8px #000;
+}
+.fv-vitrine-caption small {
+  font-size: 12.5px;
+  color: #c9c3b6;
+}
+.fv-vitrine-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---- a ficha em leitura ---- */
+.fv-vitrine-info {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.fv-vitrine-eyebrow {
+  font: 700 11px var(--font-num);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.fv-vitrine-head h2 {
+  margin: 4px 0 2px;
+  font: 800 clamp(28px, 3.4vw, 44px) / 1.05 var(--font-display);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.fv-vitrine-line {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+.fv-vitrine-head blockquote {
+  margin: 14px 0 0;
+  padding: 4px 0 4px 14px;
+  border-left: 3px solid var(--race-color);
+  font: italic 17px / 1.5 var(--font-body);
+  color: var(--ink);
+  max-width: 62ch;
+}
+.fv-vitrine-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-vitrine-tags li {
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.fv-vitrine-abils {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.fv-vitrine-abils > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px 9px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--abil-color), transparent 65%);
+  border-top: 3px solid var(--abil-color);
+  background: color-mix(in srgb, var(--abil-color), transparent 92%);
+}
+.fv-vitrine-abils span {
+  font: 700 10px var(--font-num);
+  letter-spacing: 0.1em;
+  /* puxa para a tinta do tema: legível no fundo claro e no escuro */
+  color: color-mix(in srgb, var(--abil-color), var(--ink) 30%);
+}
+.fv-vitrine-abils b {
+  font: 800 26px / 1 var(--font-num);
+  color: var(--ink);
+}
+.fv-vitrine-abils small {
+  font: 700 13px var(--font-num);
+  color: var(--muted);
+}
+
+.fv-vitrine-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.fv-vitrine-stats > div {
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-vitrine-stats dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-vitrine-stats dd {
+  margin: 2px 0 0;
+  font: 800 20px / 1.1 var(--font-num);
+  color: var(--ink);
+}
+
+.fv-vitrine-sec h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 9px;
+  font: 700 12px var(--font-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.fv-vitrine-sec h3::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold), transparent 60%), transparent);
+}
+.fv-vitrine-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-vitrine-chips li {
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  font-size: 13px;
+  color: var(--ink);
+}
+.fv-vitrine-chips li b {
+  margin-left: 2px;
+  font: 700 12px var(--font-num);
+  color: var(--acc);
+}
+.fv-vitrine-chips li.is-star {
+  border-color: color-mix(in srgb, var(--gold), transparent 45%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold), transparent 80%);
+}
+.fv-vitrine-chips li.is-star::before {
+  content: '★ ';
+  color: var(--gold);
+}
+.fv-vitrine-chips.is-plain li {
+  color: var(--muted);
+}
+.fv-vitrine-chips li.is-feat {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--class-color), transparent 55%);
+}
+.fv-vitrine-chips.is-spells small {
+  font: 700 10.5px var(--font-num);
+  color: var(--class-color);
+}
+.fv-vitrine-chips li.is-more {
+  color: var(--muted);
+}
+.fv-vitrine-gear {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-vitrine-gear li {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--class-color);
+  background: var(--sunk);
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.fv-vitrine-gear small {
+  color: var(--muted);
+}
+.fv-vitrine-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+.fv-vitrine-story {
+  max-width: 68ch;
+}
+.fv-vitrine-story p {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-line;
+}
+
+/* ---- tela cheia: só a arte ---- */
+.fv-vitrine-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 4vw, 48px);
+  background: rgba(3, 4, 8, 0.94);
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+  animation: fv-zoom-in 0.25s ease;
+  outline: none;
+}
+.fv-vitrine-zoom img {
+  max-width: 100%;
+  max-height: calc(100dvh - 120px);
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+}
+.fv-vitrine-zoom-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  pointer-events: none;
+}
+.fv-vitrine-zoom-cap b {
+  font: 800 20px var(--font-display);
+  color: #f6f2ea;
+}
+.fv-vitrine-zoom-cap span {
+  font-size: 13px;
+  color: #bdb7aa;
+}
+.fv-vitrine-zoom-x {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #f6f2ea;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+@keyframes fv-zoom-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---- celular / tablet: carta em cima, ficha embaixo ---- */
+@media (max-width: 900px) {
+  .fv-vitrine {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fv-vitrine-stage {
+    position: static;
+  }
+  .fv-vitrine-card {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
+@media (max-width: 520px) {
+  .fv-vitrine-abils {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fv-vitrine-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-vitrine-card,
+  .fv-vitrine-card:hover {
+    transform: none;
+    transition: none;
+  }
+  .fv-vitrine-card:hover img {
+    transform: none;
+  }
+  .fv-vitrine-foil {
+    animation: none;
+  }
+  .fv-vitrine-zoom {
+    animation: none;
+  }
+}
+
+@media print {
+  .fv-vitrine-foil,
+  .fv-hero-sheen,
+  .fv-vitrine-hint {
+    display: none;
+  }
+}

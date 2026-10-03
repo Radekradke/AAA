@@ -19,6 +19,26 @@ test.describe('ficha', () => {
     }
   });
 
+  test('aba Retrato: carta do herói, detalhes e arte em tela cheia @celular', async ({ page }) => {
+    await page.goto(`/ficha/${ID}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText(NAME).first()).toBeVisible();
+    const aba = page.locator('.fv-sheet-tab', { hasText: 'Retrato' });
+    if (await aba.isVisible()) await aba.click();
+    else {
+      // celular: Retrato fica na gaveta "Mais"
+      await page.getByRole('navigation', { name: 'Abas da ficha' }).getByRole('button', { name: 'Mais' }).click();
+      await page.getByRole('menuitem', { name: /Retrato/ }).click();
+    }
+    const vitrine = page.getByRole('region', { name: 'Retrato do herói' });
+    await expect(vitrine.getByRole('heading', { name: NAME })).toBeVisible();
+    await expect(vitrine.getByLabel('Atributos')).toContainText('INT');
+    await vitrine.getByRole('button', { name: `Ver a arte de ${NAME} em tela cheia` }).click();
+    const zoom = page.getByRole('dialog', { name: `Arte de ${NAME}` });
+    await expect(zoom).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(zoom).toHaveCount(0);
+  });
+
   test('tela de impressão rola até o fim da ficha @celular', async ({ page }) => {
     await page.goto(`/ficha/${ID}/imprimir`);
     const pagina = page.locator('.fv-printpage');

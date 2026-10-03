@@ -182,3 +182,9 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 5. Cole um texto qualquer: aparece "Não consegui ler…" e a janela não fecha. Com texto digitado, clicar fora também não fecha.
 6. **Importar personagem (JSON)** com um arquivo da ficha simples também funciona e avisa os ajustes num toast.
 7. Tema **Guilda Rubra**: o botão **Colar ficha (ChatGPT)** aparece ao lado de **Importar personagem (JSON)**.
+
+## 29. Aba Retrato (vitrine do herói)
+1. Abra uma ficha → aba **Retrato** (no celular: **Mais → Retrato**). A carta do herói aparece grande, com selo de nível, sigilo da classe, cantos dourados e a luz da raça; ao lado (embaixo, no celular), nome, conceito, atributos, números, perícias (★ = especialização), características, equipamento, magias, idiomas e história.
+2. No PC, passe o mouse na carta: ela inclina, o reflexo metálico e a folha holográfica seguem o ponteiro. Com "reduzir movimento" no sistema, a carta fica parada.
+3. Toque na arte: abre só a arte em tela cheia. Fecha no ✕, no Esc ou tocando em qualquer lugar.
+4. Troque de tema (Eclipse e Forja Dourada no modo claro): o número do nível e os cantos da carta continuam dourados e legíveis.
