@@ -37,6 +37,14 @@ export interface InventoryItem {
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
   /**
+   * Como o item é usado (Forja): `worn` = vestível (amuleto, capa, botas…),
+   * vale enquanto vestido; `body` = parte do corpo (olho, braço, implante…),
+   * vale sempre e não sai do personagem. Sem valor: item comum.
+   */
+  wear?: 'worn' | 'body';
+  /** Vestível: está vestido agora. */
+  worn?: boolean;
+  /**
    * Onde o item fica quando NÃO está equipado (escolha do jogador ao arrastar
    * ou em "Guardar no Baú"). Sem valor: tesouros e itens mágicos vão ao Baú,
    * o resto à Mochila.

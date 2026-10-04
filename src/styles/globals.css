@@ -6336,3 +6336,57 @@ select.fv-input.fv-mesa-select { min-height: 42px; padding: 9px 34px 9px 12px; f
   color: #f3f2ee;
   border-color: rgba(243, 242, 238, 0.6);
 }
+
+/* Forja: "Como se usa" e resistências */
+.fv-forge-wear {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 8px;
+}
+.fv-forge-wear-opt {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-forge-wear-opt b {
+  font-size: 13.5px;
+}
+.fv-forge-wear-opt small {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.fv-forge-wear-opt.is-on {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+}
+.fv-forge-wear-opt.is-on b {
+  color: var(--gold);
+}
+.fv-forge-res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fv-forge-res-chip {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+  font-size: 12px;
+}
+.fv-forge-res-chip.is-on {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+}

@@ -16,7 +16,7 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT, containerOf } from '@/engine/inventory';
+import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf } from '@/engine/inventory';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
 import type { EquipPreview } from '@/engine/equipPreview';
@@ -53,7 +53,7 @@ function groupOf(it: InventoryItem): string {
  * "abre" ao toque — e recebe itens arrastados.
  */
 const CONTAINERS: { id: ContainerId; label: string; icon: IconName; openIcon: IconName; color: string; empty: string; hint: string }[] = [
-  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: 'var(--acc)', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura ou escudo para cá — ou toque em Equipar.' },
+  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: 'var(--acc)', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura, escudo ou item vestível para cá — ou toque em Equipar/Vestir. Partes do corpo ficam sempre aqui.' },
   { id: 'mochila', label: 'Mochila', icon: 'satchel', openIcon: 'backpackOpen', color: '#FFE08A', empty: 'Mochila vazia', hint: 'Use + Adicionar para o catálogo ou Forjar para criar algo único.' },
   { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Arraste para cá o que você quer guardar fora da mochila.' },
 ];
@@ -304,10 +304,10 @@ export function TabInventario({ char, derived }: TabProps) {
                 key={c.id}
                 def={c}
                 count={items.reduce((n, it) => n + Math.max(1, it.quantity), 0)}
-                kg={items.reduce((w, it) => w + it.weight * it.quantity, 0)}
+                kg={items.reduce((w, it) => (it.wear === 'body' ? w : w + it.weight * it.quantity), 0)}
                 isOpen={open === c.id}
                 dragging={dragging}
-                accepts={!dragging || c.id !== 'equipado' || slotForItem(dragging) !== null}
+                accepts={!dragging || (dragging.wear === 'body' ? c.id === 'equipado' : c.id !== 'equipado' || canEquip(dragging))}
                 isSource={!!dragging && containerOf(char, dragging) === c.id}
                 onOpen={() => setOpen(c.id)}
               />
@@ -350,7 +350,7 @@ export function TabInventario({ char, derived }: TabProps) {
                       <ItemCard
                         item={it}
                         equipped={where === 'equipado'}
-                        equippable={slotForItem(it) !== null}
+                        equippable={canEquip(it)}
                         preview={previews.get(it.uid) ?? null}
                         handle={handle}
                         stashLabel={where === 'bau' ? 'Levar na Mochila' : 'Guardar no Baú'}
@@ -421,7 +421,7 @@ function DropDock({ dragging, sourceId }: { dragging: InventoryItem; sourceId: C
   return (
     <div className="fv-dock" role="group" aria-label="Soltar em">
       {CONTAINERS.map((c) => (
-        <DockZone key={c.id} def={c} accepts={c.id !== 'equipado' || slotForItem(dragging) !== null} isSource={c.id === sourceId} />
+        <DockZone key={c.id} def={c} accepts={dragging.wear === 'body' ? c.id === 'equipado' : c.id !== 'equipado' || canEquip(dragging)} isSource={c.id === sourceId} />
       ))}
     </div>
   );
@@ -564,17 +564,22 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-            {equipped ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, flex: '1 1 auto', overflow: 'hidden', fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            {it.wear === 'body' ? (
               <span className="fv-item-equipped">
-                <Icon name="equipped" size={11} /> Equipado
+                <Icon name="equipped" size={11} /> Corpo
+              </span>
+            ) : equipped ? (
+              <span className="fv-item-equipped">
+                <Icon name="equipped" size={11} /> {it.wear === 'worn' ? 'Vestido' : 'Equipado'}
               </span>
             ) : (
               <Icon name={icon} size={12} />
             )}
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{CATEGORY_LABEL[it.category] ?? it.category}</span>
+            {/* vestível / parte do corpo: o selo já diz o que é */}
+            {!it.wear && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{CATEGORY_LABEL[it.category] ?? it.category}</span>}
             {it.homebrew && (
-              <span style={{ flex: 'none', padding: '1px 6px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.1em' }}>HOMEBREW</span>
+              <span style={{ flex: 'none', padding: '1px 5px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.07em' }}>HOMEBREW</span>
             )}
           </span>
           <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: ink(rc.color) }}>
@@ -599,7 +604,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </button>
         </div>
         <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {[it.note, it.weight ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
+          {[it.note, it.weight && it.wear !== 'body' ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
         </div>
@@ -629,11 +634,11 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
-              {equipped ? 'Desequipar' : 'Equipar'}
+              {it.wear === 'worn' ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
           {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
-          {!equipped && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
+          {!equipped && it.wear !== 'body' && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
           <button type="button" className="fv-item-remove" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remover ${it.name}`} title="Remover">
             <Icon name="close" size={14} />
