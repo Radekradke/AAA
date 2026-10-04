@@ -52,9 +52,11 @@ export function TabRetrato({ char, derived }: TabProps) {
   const skills = derived.skills.filter((s) => s.proficient);
   const equipped = useMemo(() => {
     const uids = Object.values(char.equipped).filter((u): u is string => !!u);
-    const worn = Array.from(new Set(uids)).map((u) => char.inventory.find((i) => i.uid === u)).filter((i) => !!i);
-    const special = char.inventory.filter((i) => (i.attuned || i.favorite) && !uids.includes(i.uid));
-    return [...worn, ...special];
+    const held = Array.from(new Set(uids)).map((u) => char.inventory.find((i) => i.uid === u)).filter((i) => !!i);
+    // vestidos, partes do corpo, sintonizados e favoritos
+    const onHero = (i: (typeof char.inventory)[number]) => i.wear === 'body' || (i.wear === 'worn' && i.worn) || i.attuned || i.favorite;
+    const special = char.inventory.filter((i) => onHero(i) && !uids.includes(i.uid));
+    return [...held, ...special];
   }, [char.equipped, char.inventory]);
   const spells = useMemo(() => {
     const ids = Array.from(new Set([...char.preparedSpells, ...(char.classId === 'wizard' ? [] : char.knownSpells ?? [])]));
@@ -191,6 +193,8 @@ export function TabRetrato({ char, derived }: TabProps) {
               {equipped.map((it) => (
                 <li key={it.uid}>
                   {it.name}
+                  {it.wear === 'body' && <small> · no corpo</small>}
+                  {it.wear === 'worn' && it.worn && <small> · vestido</small>}
                   {it.attuned && <small> · sintonizado</small>}
                   {it.rarity && it.rarity !== 'comum' && it.rarity !== 'Comum' && <small> · {it.rarity}</small>}
                 </li>

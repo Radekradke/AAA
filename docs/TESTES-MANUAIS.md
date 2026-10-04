@@ -188,3 +188,11 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 2. No PC, passe o mouse na carta: ela inclina, o reflexo metálico e a folha holográfica seguem o ponteiro. Com "reduzir movimento" no sistema, a carta fica parada.
 3. Toque na arte: abre só a arte em tela cheia. Fecha no ✕, no Esc ou tocando em qualquer lugar.
 4. Troque de tema (Eclipse e Forja Dourada no modo claro): o número do nível e os cantos da carta continuam dourados e legíveis.
+
+## 30. Forja: vestível e parte do corpo
+1. Inventário → **+ Outros** (ou Forjar → categoria Outros / Item Mágico): aparece **Como se usa** com **Só carregar**, **Vestível** e **Parte do corpo**.
+2. Forje "Olho Demoníaco" como **Parte do corpo**, com **CD de magia 1** e resistência a **fogo**. O card aparece em **Equipado** com o selo **Corpo**, sem botão de Baú, e o peso não entra na carga. Na aba Magias a CD sobe 1; em Ficha/Retrato aparece a resistência a fogo.
+3. Tente arrastar o olho para o Baú: o app avisa que faz parte do corpo.
+4. Forje "Amuleto" como **Vestível** com **CA extra 1**. Ele já começa **Vestido** (CA +1). **Tirar** leva para a mochila e a CA volta; **Vestir** devolve.
+5. Vestível com **Exige sintonia**: só vale vestido **e** sintonizado.
+6. Um item com **Magia concedida** + Parte do corpo: a magia aparece na aba Magias (antes, item novo perdia a magia ao salvar).

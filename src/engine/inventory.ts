@@ -49,8 +49,31 @@ export function customInventoryItem(partial: Partial<InventoryItem> & { name: st
     attunement: partial.attunement,
     value: partial.value,
     itemId: partial.itemId,
+    magic: partial.magic,
+    grantsSpells: partial.grantsSpells,
+    wear: partial.wear,
+    worn: partial.wear === 'worn' ? (partial.worn ?? false) : undefined,
     homebrew: true,
   };
+}
+
+/** Pode ir para "Equipado": arma, armadura, escudo ou item vestível. */
+export function canEquip(it: InventoryItem): boolean {
+  return slotForItem(it) !== null || it.wear === 'worn';
+}
+
+/**
+ * O item está valendo agora (efeitos mágicos, magias concedidas)?
+ * - parte do corpo: sempre;
+ * - vestível: vestido (e sintonizado, se pede sintonia);
+ * - pede sintonia: sintonizado;
+ * - o resto: com o personagem (no Baú não conta).
+ */
+export function itemIsActive(char: Character, it: InventoryItem, needsAttunement = !!it.attunement): boolean {
+  if (it.wear === 'body') return true;
+  if (it.wear === 'worn') return !!it.worn && (!needsAttunement || it.attuned);
+  if (needsAttunement) return it.attuned;
+  return containerOf(char, it) !== 'bau';
 }
 
 /** Qual slot um item ocupa quando equipado. */
@@ -71,7 +94,7 @@ export function toggleEquip(char: Character, it: InventoryItem): EquippedSlots {
 }
 
 export function isEquipped(char: Character, it: InventoryItem): boolean {
-  return Object.values(char.equipped).includes(it.uid);
+  return Object.values(char.equipped).includes(it.uid) || it.wear === 'body' || (it.wear === 'worn' && !!it.worn);
 }
 
 /** Conta de sintonias ativas (máximo 3 em D&D 5e). */
@@ -105,6 +128,12 @@ export type MoveResult = { ok: true } | { ok: false; reason: string };
 export function moveItemTo(char: Character, uid: string, target: ContainerId): MoveResult {
   const it = char.inventory.find((i) => i.uid === uid);
   if (!it) return { ok: false, reason: 'Item não encontrado.' };
+  if (it.wear === 'body') return { ok: false, reason: `${it.name} faz parte do corpo — fica sempre com o herói.` };
+  if (it.wear === 'worn') {
+    it.worn = target === 'equipado';
+    if (target !== 'equipado') it.location = target;
+    return { ok: true };
+  }
   if (target === 'equipado') {
     const slot = slotForItem(it);
     if (!slot) return { ok: false, reason: `${it.name} não é arma, armadura nem escudo — não dá para equipar.` };

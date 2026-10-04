@@ -10,7 +10,7 @@ import { getFeat } from '@/data/feats';
 import { SKILLS, ABILITY_LABELS } from '@/data/skills';
 import { getItem } from '@/data/items';
 import { casterOf } from './spellcasting';
-import { containerOf } from './inventory';
+import { itemIsActive } from './inventory';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown } from './effects';
 import { breakdown, mod } from './effects';
@@ -132,7 +132,7 @@ function activeMagicItems(char: Character): { name: string; magic: MagicEffects 
   for (const it of char.inventory) {
     const d = resolveItemData(it);
     if (!d.magic) continue;
-    const on = d.attunement ? it.attuned : containerOf(char, it) !== 'bau';
+    const on = itemIsActive(char, it, !!d.attunement);
     if (on) out.push({ name: it.name, magic: d.magic });
   }
   return out;
@@ -663,7 +663,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   ];
   const grantedProficiencies = subBonus?.proficiencies ?? [];
 
-  const carriedWeight = char.inventory.reduce((sum, it) => sum + it.weight * it.quantity, 0);
+  // parte do corpo (olho, braço…) não conta como carga
+  const carriedWeight = char.inventory.reduce((sum, it) => (it.wear === 'body' ? sum : sum + it.weight * it.quantity), 0);
 
   return {
     abilities,

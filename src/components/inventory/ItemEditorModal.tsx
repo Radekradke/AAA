@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { InventoryItem } from '@/types/character';
-import type { DamageType, WeaponRange, WeaponType } from '@/types/dnd';
+import type { AbilityKey, DamageType, MagicEffects, WeaponRange, WeaponType } from '@/types/dnd';
+import { ABILITY_KEYS } from '@/types/dnd';
+import { ABILITY_LABELS } from '@/data/skills';
 import { customInventoryItem } from '@/engine/inventory';
 import { SPELLS } from '@/data/spells';
 import { RARITY } from '@/data/themes';
@@ -28,6 +30,17 @@ const CATEGORIES = [
   { id: 'ring', label: 'Anel' },
   { id: 'treasure', label: 'Tesouro' },
   { id: 'other', label: 'Outros' },
+];
+
+/** Categorias que perguntam "como se usa" (carregar, vestir ou parte do corpo). */
+const WEAR_CATEGORIES = new Set(['other', 'wondrous']);
+/** Categorias com efeitos mágicos automáticos editáveis. */
+const EFFECT_CATEGORIES = new Set(['other', 'wondrous', 'ring']);
+type WearMode = 'carry' | 'worn' | 'body';
+const WEAR_OPTIONS: { id: WearMode; label: string; desc: string }[] = [
+  { id: 'carry', label: 'Só carregar', desc: 'Fica na mochila ou no baú (ferramenta, lembrança, tesouro).' },
+  { id: 'worn', label: 'Vestível', desc: 'Amuleto, capa, botas, luvas… Vale enquanto estiver vestido.' },
+  { id: 'body', label: 'Parte do corpo', desc: 'Olho, braço, implante, marca… Vale sempre e não sai do herói.' },
 ];
 
 const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
@@ -86,7 +99,21 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [addDex, setAddDex] = useState(item?.armor?.addDex ?? true);
   const [maxDex, setMaxDex] = useState(String(item?.armor?.maxDexBonus ?? ''));
 
+  // como se usa + efeitos automáticos
+  const [wear, setWear] = useState<WearMode>(item?.wear ?? 'carry');
+  const [fxAc, setFxAc] = useState(String(item?.magic?.ac ?? ''));
+  const [fxSaves, setFxSaves] = useState(String(item?.magic?.saves ?? ''));
+  const [fxSpellAtk, setFxSpellAtk] = useState(String(item?.magic?.spellAttack ?? ''));
+  const [fxSpellDC, setFxSpellDC] = useState(String(item?.magic?.spellDC ?? ''));
+  const [fxSpeed, setFxSpeed] = useState(String(item?.magic?.speed ?? ''));
+  const [fxRes, setFxRes] = useState<string[]>(item?.magic?.resistances ?? []);
+  const firstSet = Object.entries(item?.magic?.setAbility ?? {})[0] as [AbilityKey, number] | undefined;
+  const [fxSetKey, setFxSetKey] = useState<AbilityKey | ''>(firstSet?.[0] ?? '');
+  const [fxSetVal, setFxSetVal] = useState(String(firstSet?.[1] ?? 19));
+
   const [error, setError] = useState<string | null>(null);
+  const hasWear = WEAR_CATEGORIES.has(category);
+  const hasEffects = EFFECT_CATEGORIES.has(category) || !!item?.magic;
 
   const save = () => {
     if (!name.trim()) {
@@ -128,6 +155,20 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       ? [{ spellId: grantSpell, recharge: grantRecharge, uses: grantRecharge === 'atwill' ? undefined : Math.max(1, parseInt(grantUses) || 1) }]
       : undefined;
 
+    const num = (v: string) => parseInt(v) || 0;
+    const fx: MagicEffects = {
+      ...item?.magic,
+      ac: num(fxAc) || undefined,
+      saves: num(fxSaves) || undefined,
+      spellAttack: num(fxSpellAtk) || undefined,
+      spellDC: num(fxSpellDC) || undefined,
+      speed: parseFloat(fxSpeed.replace(',', '.')) || undefined,
+      resistances: fxRes.length ? fxRes : undefined,
+      setAbility: fxSetKey ? { [fxSetKey]: Math.max(3, Math.min(30, num(fxSetVal))) } : undefined,
+    };
+    const magicFx = hasEffects && Object.values(fx).some((v) => v !== undefined && v !== false) ? fx : undefined;
+    const wearOut = hasWear && wear !== 'carry' ? wear : undefined;
+
     const base = {
       name: name.trim(),
       category,
@@ -141,6 +182,9 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       weapon,
       armor,
       grantsSpells,
+      magic: magicFx,
+      wear: wearOut,
+      worn: wearOut === 'worn' ? (item?.wear === 'worn' ? item.worn : true) : undefined,
       acBonus: category === 'shield' || category === 'ring' ? bonus || (category === 'shield' ? 2 : 0) : bonus || undefined,
     };
 
@@ -316,6 +360,74 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         </fieldset>
       )}
 
+      {/* como se usa: carregar, vestir ou parte do corpo */}
+      {hasWear && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Como se usa</legend>
+          <div className="fv-forge-wear" role="radiogroup" aria-label="Como se usa">
+            {WEAR_OPTIONS.map((o) => (
+              <button key={o.id} type="button" role="radio" aria-checked={wear === o.id} className={'fv-forge-wear-opt' + (wear === o.id ? ' is-on' : '')} onClick={() => setWear(o.id)}>
+                <b>{o.label}</b>
+                <small>{o.desc}</small>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      {/* efeitos automáticos (somados na ficha enquanto o item vale) */}
+      {hasEffects && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Efeitos automáticos (opcional)</legend>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
+            <label>
+              <span style={label}>CA extra</span>
+              <input className="fv-input" value={fxAc} onChange={(e) => setFxAc(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Salvaguardas</span>
+              <input className="fv-input" value={fxSaves} onChange={(e) => setFxSaves(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Ataque mágico</span>
+              <input className="fv-input" value={fxSpellAtk} onChange={(e) => setFxSpellAtk(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>CD de magia</span>
+              <input className="fv-input" value={fxSpellDC} onChange={(e) => setFxSpellDC(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Deslocamento (m)</span>
+              <input className="fv-input" value={fxSpeed} onChange={(e) => setFxSpeed(e.target.value)} inputMode="decimal" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Atributo vira</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <select className="fv-input" value={fxSetKey} onChange={(e) => setFxSetKey(e.target.value as AbilityKey | '')} style={{ flex: 1, minWidth: 0 }}>
+                  <option value="" style={{ color: '#111' }}>—</option>
+                  {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_LABELS[k]}</option>)}
+                </select>
+                <input className="fv-input" value={fxSetVal} onChange={(e) => setFxSetVal(e.target.value)} inputMode="numeric" disabled={!fxSetKey} style={{ width: 56, textAlign: 'center' }} aria-label="Valor do atributo" />
+              </div>
+            </label>
+          </div>
+          <span style={{ ...label, marginTop: 11 }}>Resistências</span>
+          <div className="fv-forge-res" role="group" aria-label="Resistências">
+            {DAMAGE_TYPES.map((d) => {
+              const on = fxRes.includes(d);
+              return (
+                <button key={d} type="button" aria-pressed={on} className={'fv-forge-res-chip' + (on ? ' is-on' : '')} onClick={() => setFxRes(on ? fxRes.filter((x) => x !== d) : [...fxRes, d])}>
+                  {d}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
+            Somados na ficha enquanto o item vale: {hasWear && wear === 'body' ? <b style={{ color: 'var(--ink)' }}>sempre (parte do corpo)</b> : hasWear && wear === 'worn' ? <b style={{ color: 'var(--ink)' }}>quando vestido</b> : <b style={{ color: 'var(--ink)' }}>com o herói (ou sintonizado, se exigir sintonia)</b>}. "Atributo vira" funciona como as Manoplas de Força do Ogro: só vale se o seu for menor.
+          </p>
+        </fieldset>
+      )}
+
       {/* magia concedida (estilo BG3) */}
       <fieldset style={fieldsetStyle(t)}>
         <legend style={legendStyle(t)}>Magia concedida (opcional)</legend>
@@ -355,7 +467,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           )}
         </div>
         <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
-          Ex.: um bastão que concede <b style={{ color: 'var(--ink)' }}>Criar Água</b> à vontade, ou um arco com <b style={{ color: 'var(--ink)' }}>Raio de Gelo</b> 1×/descanso curto. A magia só vale com o item equipado ou sintonizado.
+          Ex.: um bastão que concede <b style={{ color: 'var(--ink)' }}>Criar Água</b> à vontade, ou um arco com <b style={{ color: 'var(--ink)' }}>Raio de Gelo</b> 1×/descanso curto. A magia só vale com o item equipado, vestido, sintonizado ou como parte do corpo.
         </p>
       </fieldset>
 
