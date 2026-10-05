@@ -293,7 +293,7 @@ function NpcEditor({ campaignId, npc, secret, masterSheets, onClose, onSaved }: 
           <label>Base do bestiário
             <select className="fv-input" value={stats.monsterRef ?? ''} onChange={(e) => chooseBase(e.target.value)}>
               <option value="">— nenhuma —</option>
-              {NPC_BASES.map((m) => <option key={m.id} value={m.id} style={{ color: '#111' }}>{m.name} (ND {m.cr})</option>)}
+              {NPC_BASES.map((m) => <option key={m.id} value={m.id}>{m.name} (ND {m.cr})</option>)}
             </select>
           </label>
           <label>CA<input className="fv-input" inputMode="numeric" value={stats.ac ?? ''} onChange={(e) => setStats({ ...stats, ac: num(e.target.value) })} /></label>
@@ -303,7 +303,7 @@ function NpcEditor({ campaignId, npc, secret, masterSheets, onClose, onSaved }: 
           <label>Ficha completa
             <select className="fv-input" value={stats.sheetId ?? ''} onChange={(e) => setStats({ ...stats, sheetId: e.target.value || undefined })}>
               <option value="">— nenhuma —</option>
-              {masterSheets.map((c) => <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.name} (nv {c.level})</option>)}
+              {masterSheets.map((c) => <option key={c.id} value={c.id}>{c.name} (nv {c.level})</option>)}
             </select>
           </label>
         </div>

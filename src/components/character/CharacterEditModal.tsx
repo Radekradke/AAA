@@ -71,7 +71,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           <label>
             <span style={label}>Antecedente</span>
             <select className="fv-input" value={char.backgroundId} onChange={(e) => editCharacter(char.id, { backgroundId: e.target.value })}>
-              {BACKGROUNDS.map((b) => <option key={b.id} value={b.id} style={{ color: '#111' }}>{b.label}</option>)}
+              {BACKGROUNDS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
             </select>
           </label>
           <label>
@@ -105,8 +105,8 @@ export function CharacterEditModal({ char, onClose }: Props) {
                 onChange={(e) => editCharacter(char.id, { subclassId: e.target.value || null })}
                 style={{ opacity: canPickSub ? 1 : 0.55 }}
               >
-                <option value="" style={{ color: '#111' }}>— nenhuma —</option>
-                {subs.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.label}</option>)}
+                <option value="">— nenhuma —</option>
+                {subs.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </label>
             {derived.grantedProficiencies.length > 0 && (
