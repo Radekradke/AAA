@@ -53,6 +53,7 @@ import { startOnboardingSync } from '@/services/onboardingSync';
 // peças globais que quase nunca aparecem: baixam na primeira vez que precisam
 const SessionDock = lazy(() => import('@/components/session/SessionDock').then((m) => ({ default: m.SessionDock })));
 const Onboarding = lazy(() => import('@/components/Onboarding').then((m) => ({ default: m.Onboarding })));
+const CriticalCinematic = lazy(() => import('@/components/session/CriticalCinematic').then((m) => ({ default: m.CriticalCinematic })));
 const GuidedTour = lazy(() => import('@/components/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })));
 
 /** Fica true para sempre depois da 1ª vez (o componente continua montado e anima a saída). */
@@ -104,6 +105,7 @@ export function App() {
   const user = useAuthStore((s) => s.user);
   const showTutorial = useOnceTrue(useUiStore((s) => s.tutorialOpen));
   const showTour = useOnceTrue(useUiStore((s) => !!s.tour));
+  const hasCinematic = useOnceTrue(useUiStore((s) => !!s.cinematic));
   // a mesa ao vivo só existe com conta na nuvem (convidado nunca baixa esse código)
   const canLive = !!user && !user.guest && cloudEnabled();
 
@@ -122,6 +124,8 @@ export function App() {
         {showTutorial && <Onboarding />}
         {/* tour guiado com holofote (ficha e criação) */}
         {showTour && <GuidedTour />}
+        {/* 20 / 1 natural: momento em tela cheia (só carrega no primeiro) */}
+        {hasCinematic && <CriticalCinematic />}
       </Suspense>
     </ErrorBoundary>
     {/* avisos rápidos e confirmações no visual do tema */}

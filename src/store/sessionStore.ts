@@ -441,6 +441,13 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (seeded) {
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
+          // 20 / 1 natural de outro herói: o momento em tela cheia aparece para a mesa toda
+          const epic = fresh
+            .filter((e) => e.type === 'roll' && e.actorId !== me.userId)
+            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string })
+            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail))
+            .pop();
+          if (epic) useUiStore.getState().showCinematic({ kind: epic.crit ? 'crit' : 'fumble', sheetId: epic.sheetId!, name: epic.who, label: epic.label });
         }
         seeded = true;
 
