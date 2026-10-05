@@ -80,7 +80,7 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  opacity: 0.08;
+  opacity: var(--foil-rest, 0.08);
   mix-blend-mode: color-dodge;
   background:
     repeating-linear-gradient(
@@ -98,7 +98,7 @@
   animation: fv-foil-drift 9s ease-in-out infinite alternate;
 }
 .fv-vitrine-card:hover .fv-vitrine-foil {
-  opacity: 0.22;
+  opacity: var(--foil-hover, 0.22);
   animation: none;
 }
 @keyframes fv-foil-drift {
@@ -476,6 +476,259 @@
   }
 }
 
+/* ---- moldura por nível: bronze → prata → ouro → lendária ---- */
+.fv-vitrine-card.is-bronze {
+  --card-gold: #d39a62;
+  --foil-rest: 0.05;
+  --foil-hover: 0.14;
+}
+.fv-vitrine-card.is-prata {
+  --card-gold: #dfe4ec;
+  --foil-rest: 0.09;
+  --foil-hover: 0.24;
+  border-color: color-mix(in srgb, #dfe4ec, transparent 35%);
+}
+.fv-vitrine-card.is-prata .fv-vitrine-frame {
+  /* filete duplo */
+  box-shadow: inset 0 0 0 3px rgba(5, 7, 10, 0.4), inset 0 0 0 4px color-mix(in srgb, var(--card-gold), transparent 60%);
+}
+.fv-vitrine-card.is-ouro {
+  --card-gold: #f3c95a;
+  --foil-rest: 0.13;
+  --foil-hover: 0.32;
+  border-color: color-mix(in srgb, #f3c95a, transparent 25%);
+  box-shadow:
+    0 28px 60px -28px rgba(0, 0, 0, 0.85),
+    0 0 60px color-mix(in srgb, var(--race-color), transparent 75%),
+    0 0 0 1px rgba(243, 201, 90, 0.35),
+    0 0 34px rgba(243, 201, 90, 0.28);
+}
+.fv-vitrine-card.is-ouro .fv-vitrine-frame {
+  box-shadow: inset 0 0 0 3px rgba(5, 7, 10, 0.35), inset 0 0 0 4px rgba(243, 201, 90, 0.55), inset 0 0 22px rgba(243, 201, 90, 0.18);
+}
+.fv-vitrine-card.is-ouro .fv-vitrine-frame i,
+.fv-vitrine-card.is-lendaria .fv-vitrine-frame i {
+  width: 34px;
+  height: 34px;
+  border-width: 3px;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--card-gold), transparent 30%));
+}
+@property --fv-spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.fv-vitrine-card.is-lendaria {
+  --card-gold: #ffe08a;
+  --foil-rest: 0.2;
+  --foil-hover: 0.42;
+  border-color: transparent;
+  box-shadow:
+    0 30px 64px -26px rgba(0, 0, 0, 0.9),
+    0 0 70px rgba(200, 120, 255, 0.28),
+    0 0 40px rgba(255, 224, 138, 0.32);
+}
+/* aro lendário: dourado → violeta → celeste girando (camada própria; os cantos ficam por cima) */
+.fv-vitrine-card.is-lendaria .fv-vitrine-frame {
+  border-color: transparent;
+  box-shadow: inset 0 0 26px rgba(200, 120, 255, 0.22);
+}
+.fv-vitrine-card.is-lendaria .fv-vitrine-frame::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 3px solid transparent;
+  background: conic-gradient(from var(--fv-spin), #ffe08a, #c86bff, #6fd8ff, #ffe08a, #ff9e6b, #ffe08a) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) padding-box exclude, linear-gradient(#000 0 0);
+  animation: fv-legend-spin 6s linear infinite;
+}
+.fv-vitrine-card.is-lendaria .fv-vitrine-foil {
+  animation-duration: 5s;
+}
+.fv-vitrine-card.is-lendaria .fv-vitrine-level {
+  border-color: rgba(255, 224, 138, 0.7);
+  box-shadow: 0 0 18px rgba(255, 224, 138, 0.35);
+}
+@keyframes fv-legend-spin {
+  to {
+    --fv-spin: 360deg;
+  }
+}
+.fv-vitrine-level em {
+  margin-top: 3px;
+  font: 700 8.5px var(--font-num);
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--card-gold);
+  opacity: 0.85;
+}
+
+/* ---- selos dos feitos na carta ---- */
+.fv-vitrine-seals {
+  position: absolute;
+  top: 82px;
+  right: 22px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  align-items: center;
+}
+.fv-seal {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: #2a1d05;
+  background: radial-gradient(circle at 35% 30%, #fff3c4, #e9c46a 55%, #a87a26);
+  border: 1px solid rgba(255, 240, 200, 0.7);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), inset 0 -2px 4px rgba(90, 60, 10, 0.45);
+}
+.fv-seal.is-funny {
+  color: #2b0f2f;
+  background: radial-gradient(circle at 35% 30%, #fbe1ff, #c58ad6 55%, #7c4592);
+  border-color: rgba(250, 220, 255, 0.7);
+}
+.fv-seal.is-locked {
+  color: var(--muted);
+  background: var(--sunk);
+  border: 1px dashed var(--line-strong, var(--line));
+  box-shadow: none;
+  opacity: 0.75;
+}
+.fv-seal-more {
+  font: 700 11px var(--font-num);
+  color: #f6f2ea;
+  text-shadow: 0 1px 6px #000;
+}
+
+/* ---- cicatrizes: marcas de garra gravadas na carta ---- */
+.fv-vitrine-scars {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.fv-vitrine-scars svg {
+  position: absolute;
+  width: 26%;
+  height: auto;
+  overflow: visible;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+.fv-vitrine-scars path,
+.fv-scars svg path {
+  fill: none;
+  stroke: #ffe9e2;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 2px rgba(255, 60, 40, 0.65));
+}
+
+/* ---- lista de feitos e de cicatrizes ---- */
+.fv-deeds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-deeds li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-deeds li.is-earned {
+  border-color: color-mix(in srgb, var(--gold), transparent 55%);
+}
+.fv-deeds li span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fv-deeds b {
+  font-size: 13px;
+  color: var(--ink);
+}
+.fv-deeds li:not(.is-earned) b {
+  color: var(--muted);
+}
+.fv-deeds small {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.fv-scars {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.fv-scars li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border-left: 3px solid var(--danger);
+  background: var(--sunk);
+}
+.fv-scars svg {
+  flex: none;
+  width: 34px;
+  height: 24px;
+  overflow: visible;
+}
+.fv-scars svg path {
+  stroke: var(--danger);
+  filter: none;
+}
+.fv-scars span {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fv-scars b {
+  font-size: 14px;
+  color: var(--ink);
+}
+.fv-scars small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-scar-x {
+  cursor: pointer;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+.fv-scar-form {
+  display: flex;
+  gap: 8px;
+}
+.fv-scar-form .fv-input {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ---- celular / tablet: carta em cima, ficha embaixo ---- */
 @media (max-width: 900px) {
   .fv-vitrine {
@@ -507,7 +760,8 @@
   .fv-vitrine-card:hover img {
     transform: none;
   }
-  .fv-vitrine-foil {
+  .fv-vitrine-foil,
+  .fv-vitrine-card.is-lendaria .fv-vitrine-frame::before {
     animation: none;
   }
   .fv-vitrine-zoom {

@@ -196,3 +196,10 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 4. Forje "Amuleto" como **Vestível** com **CA extra 1**. Ele já começa **Vestido** (CA +1). **Tirar** leva para a mochila e a CA volta; **Vestir** devolve.
 5. Vestível com **Exige sintonia**: só vale vestido **e** sintonizado.
 6. Um item com **Magia concedida** + Parte do corpo: a magia aparece na aba Magias (antes, item novo perdia a magia ao salvar).
+
+## 31. Carta do herói: moldura, feitos e cicatrizes
+1. Aba **Retrato** de heróis nível 2, 6, 12 e 18: moldura **Bronze**, **Prata** (filete duplo), **Ouro** (brilho dourado, cantos maiores) e **Lendária** (aro dourado→violeta→celeste girando). O selo de nível mostra o nome da moldura; a folha holográfica fica mais forte a cada faixa.
+2. Role ataques na ficha até sair um **20 natural**: aparece "Feito conquistado: Primeiro crítico!" e o selo surge na carta (coluna à direita) e em **Feitos**. Um **1 natural** dá "Tropeço histórico" (selo lilás).
+3. Leve o herói a 0 PV e cure: "Voltou do abismo".
+4. Mesa ao vivo (mestre): jogador rola dano → no feed, **aplicar ▸ Goblin**. Se o goblin cair, o golpe final vai para o jogador que rolou (feito "Primeira vitória" na ficha dele). Derrube uma criatura pelo PV direto: aparece **"Goblin caiu! Golpe final de:"** com os heróis — escolha um. Dragão conta "Matador de dragões".
+5. Mestre → toque no herói → **Cicatriz na carta** → "Garra do dragão no ombro" → **Gravar**. Na ficha do jogador, a cicatriz aparece em **Cicatrizes** com data, sessão e "pelo mestre", e a carta ganha uma marca de garra. O jogador também grava as próprias (e só apaga as dele).

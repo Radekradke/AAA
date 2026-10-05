@@ -13,10 +13,12 @@ const chars = {
   addInventoryItem: (id: string, it: { name: string; quantity: number; homebrew?: boolean; note?: string }) =>
     calls.push(`item ${id} ${it.name} x${it.quantity}${it.homebrew ? ' (inventado)' : ''}${it.note ? ` — ${it.note}` : ''}`),
   markEventApplied: (_id: string, e: string) => { hero.appliedEvents.push(e); },
+  addScar: (id: string, sc: { text: string; session?: string | null; by: string }) => calls.push(`cicatriz ${id} ${sc.text} · ${sc.session} · ${sc.by}`),
   resetTurn: vi.fn(),
 };
 vi.mock('@/store/characterStore', () => ({ useCharacterStore: { getState: () => chars } }));
 vi.mock('@/services/supabaseClient', () => ({ getSupabase: () => null }));
+vi.mock('@/lib/deedTracker', () => ({ applyDeedKinds: (id: string, kinds: string[]) => kinds.forEach((k) => calls.push(`feito ${id} ${k}`)) }));
 vi.mock('@/services/realtimeService', () => ({ joinLiveChannel: () => ({ leave: vi.fn(), track: vi.fn(), broadcast: vi.fn(), isPrivate: () => true }) }));
 
 let events: SessionEvent[] = [];
@@ -79,5 +81,18 @@ describe('ordens do mestre chegam na ficha do jogador', () => {
     expect(calls).toEqual(['item sheet-kael Espada Longa x1 — 1d8 (1d10) cortante · Versátil', 'item sheet-kael Chave de osso x2 (inventado) — abre a cripta']);
     await useSessionStore.getState().refresh();
     expect(calls.length).toBe(2);
+  });
+
+  it('golpe final e cicatriz do mestre vão para a carta — uma vez só', async () => {
+    events = [
+      ev('d1', 'hero_deed', 'gm', { sheetId: 'sheet-kael', name: 'Kael', creature: 'Dragão Vermelho Adulto', kinds: ['kills', 'dragons'] }, '2026-01-01T00:00:01Z'),
+      ev('d2', 'hero_scar', 'gm', { sheetId: 'sheet-kael', name: 'Kael', text: 'Garra no ombro', session: 'Sessão 12' }, '2026-01-01T00:00:02Z'),
+      ev('d3', 'hero_scar', 'p2', { sheetId: 'sheet-kael', text: 'Falsa' }, '2026-01-01T00:00:03Z'),
+    ];
+    await useSessionStore.getState().join('camp', { userId: 'p1', name: 'Ana', isMaster: false, characterId: 'sheet-kael', characterName: 'Kael' });
+    // o feito chega pelo módulo carregado sob demanda (assíncrono)
+    await vi.waitFor(() => expect(calls).toEqual(['cicatriz sheet-kael Garra no ombro · Sessão 12 · mestre', 'feito sheet-kael kills', 'feito sheet-kael dragons']));
+    await useSessionStore.getState().refresh();
+    expect(calls.length).toBe(3);
   });
 });
