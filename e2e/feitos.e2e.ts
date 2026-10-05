@@ -1,13 +1,13 @@
 import { test, expect } from './fixtures/test';
 import { C, P, installSupabase, signIn } from './fixtures/supabase';
 
-test('golpe final: dano aplicado a partir da rolagem do jogador vira feito na carta dele', async ({ page }) => {
+test('golpe final: dano de truque aplicado a partir da rolagem do jogador vira feito na carta dele', async ({ page }) => {
   await signIn(page, 'master');
   const db = await installSupabase(page, 'master');
   const S = db.tables.sessions[0].id;
   db.tables.session_events.push({
     id: 'r1', session_id: S, campaign_id: C, actor_id: P, target_id: null, visibility: 'public', created_at: new Date().toISOString(),
-    type: 'roll', payload: { who: 'Kael Venturo', label: 'Dano · Espada Longa', total: 9, expr: '1d8+3', rolls: [6], crit: false, fail: false, damage: true, sheetId: 'k' },
+    type: 'roll', payload: { who: 'Kael Venturo', label: 'Dano · Raio de Fogo', total: 9, expr: '2d10', rolls: [4, 5], crit: false, fail: false, damage: true, sheetId: 'k', cantrip: true },
   });
   await page.goto(`/mesa/${C}/jogar`);
   const aplicar = page.getByRole('button', { name: 'aplicar ▸' });
@@ -17,7 +17,7 @@ test('golpe final: dano aplicado a partir da rolagem do jogador vira feito na ca
 
   await expect
     .poll(() => db.tables.session_events.find((e) => e.type === 'hero_deed')?.payload)
-    .toMatchObject({ sheetId: 'k', name: 'Kael Venturo', creature: 'Goblin #1', kinds: ['kills'] });
+    .toMatchObject({ sheetId: 'k', name: 'Kael Venturo', creature: 'Goblin #1', kinds: ['kills', 'cantripKills'] }); // dano de truque: feito secreto
   // autor conhecido: não pergunta "quem derrubou?"
   await expect(page.getByRole('dialog', { name: /Golpe final em/ })).toHaveCount(0);
 });

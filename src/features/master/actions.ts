@@ -1,4 +1,5 @@
 import { useSessionStore } from '@/store/sessionStore';
+import type { KillBy } from '@/store/sessionStore';
 import { encounterService } from '@/services/encounterService';
 import { toast } from '@/store/feedbackStore';
 import type { Combatant } from '@/types/session';
@@ -17,7 +18,7 @@ import { MONSTER_BY_ID } from '@/data/bestiary';
  */
 const fresh = (id: string) => useSessionStore.getState().combatants.find((c) => c.id === id) ?? null;
 
-export async function hpWithUndo(c: Combatant, delta: number, opts?: { crit?: boolean; by?: { sheetId: string; name: string } | null }): Promise<void> {
+export async function hpWithUndo(c: Combatant, delta: number, opts?: { crit?: boolean; by?: KillBy | null }): Promise<void> {
   if (!delta) return;
   const s = useSessionStore.getState();
   await s.changeHp(c, delta, opts);

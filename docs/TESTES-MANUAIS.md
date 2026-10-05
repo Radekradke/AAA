@@ -224,3 +224,16 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 2. Busca sem acento e por várias palavras ("bola fogo"), e pelo círculo ("3 bola", "truque luz").
 3. Setas ↑/↓ andam pela lista (ela rola junto), **Enter** escolhe, **Esc** fecha só a lista (a forja continua aberta). O ✕ tira a magia.
 4. Os demais seletores do app (Recarga, raças, feras…) mostram a lista com o fundo e o texto do tema — nada de texto escuro sobre fundo escuro.
+
+## 35. Carta: raridade, feitos secretos, títulos, relíquias e jornada
+1. Aba **Retrato → Feitos**: cada selo tem a raridade escrita e a cor dela — **Comum** (bronze), **Raro** (azul), **Épico** (roxo) e **Lendário** (dourado com aro girando). Na carta, os mais raros aparecem primeiro.
+2. Os 5 **feitos secretos** aparecem como **???** com "Feito secreto" até serem conquistados:
+   - **Por um fio**: tome dano e fique com exatamente 1 PV.
+   - **Fúria dos dados**: 3 vinte naturais no mesmo dia.
+   - **Recusou a morte**: 20 natural no **Teste contra a Morte** (aba Mesa).
+   - **Truque mortal** (mesa ao vivo): role o dano de um truque e o mestre aplica com **aplicar ▸** derrubando a criatura.
+   - **Davi contra Golias** (mesa ao vivo): golpe final numa criatura de ND maior que o nível do herói.
+3. **Título**: com um feito raro ou acima conquistado, escolha o título em **Retrato → Título**. Ele aparece sob o nome na carta, no cabeçalho da ficha, no painel do herói do mestre e na iniciativa (dock do mestre e lista da mesa). **Sem título** remove.
+4. **Carta do item**: no inventário, o botão de imagem na miniatura do card envia a arte (ou use **Editar → Carta do item**). Passe o mouse no card (ou segure no celular): os detalhes aparecem com a carta ao lado; raros, muito raros e lendários têm brilho holográfico.
+5. **Relíquias** (aba Retrato): itens com arte e itens raros+ aparecem como cartas colecionáveis.
+6. **Jornada**: linha do tempo com o começo, as subidas de nível (com a data), os feitos, as cicatrizes e as sessões jogadas na mesa ao vivo (entram sozinhas ao abrir uma sessão ativa como jogador). Mais de 10 marcos: **Ver desde o começo**.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Character } from '@/types/character';
-import { DEEDS, earnedDeeds } from '@/engine/deeds';
+import { availableTitles, DEED_RARITY, DEEDS, earnedDeeds, heroTitle } from '@/engine/deeds';
 import type { DeedDef, Scar } from '@/engine/deeds';
 import { useCharacterStore } from '@/store/characterStore';
 import { Icon } from '@/components/ui/Icon';
@@ -8,24 +8,25 @@ import { MonsterIcon } from '@/components/bestiary/MonsterPortrait';
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
-/** Medalha do feito (ícone do HUD ou emblema do tipo de criatura). */
+/** Medalha do feito (ícone do HUD ou emblema do tipo de criatura); borda e brilho pela raridade. */
 export function DeedSeal({ def, size = 34, locked }: { def: DeedDef; size?: number; locked?: boolean }) {
   const inner = Math.round(size * 0.52);
+  const hidden = locked && def.secret;
   return (
-    <span className={'fv-seal' + (def.funny ? ' is-funny' : '') + (locked ? ' is-locked' : '')} style={{ width: size, height: size }} aria-hidden>
-      {def.icon.kind === 'monster' ? <MonsterIcon type={def.icon.type} size={inner} /> : <Icon name={def.icon.name} size={inner} />}
+    <span className={`fv-seal is-${def.rarity}` + (def.funny ? ' is-funny' : '') + (locked ? ' is-locked' : '')} style={{ width: size, height: size }} aria-hidden>
+      {hidden ? <b className="fv-seal-q">?</b> : def.icon.kind === 'monster' ? <MonsterIcon type={def.icon.type} size={inner} /> : <Icon name={def.icon.name} size={inner} />}
     </span>
   );
 }
 
-/** Selos na própria carta: os mais recentes primeiro. */
+/** Selos na própria carta: os mais raros primeiro (empate: o mais recente). */
 export function CardSeals({ char, max = 5 }: { char: Character; max?: number }) {
-  const earned = earnedDeeds(char.deeds);
+  const earned = [...earnedDeeds(char.deeds)].sort((a, b) => DEED_RARITY[b.def.rarity].order - DEED_RARITY[a.def.rarity].order);
   if (!earned.length) return null;
   return (
     <span className="fv-vitrine-seals" aria-hidden>
       {earned.slice(0, max).map(({ def }) => (
-        <span key={def.id} title={def.name}>
+        <span key={def.id} title={`${def.name} · ${DEED_RARITY[def.rarity].label}`}>
           <DeedSeal def={def} size={32} />
         </span>
       ))}
@@ -71,17 +72,51 @@ export function DeedsSection({ char }: { char: Character }) {
         {DEEDS.map((d) => {
           const at = unlocked[d.id];
           const n = Math.min(d.min, counts[d.kind] ?? 0);
+          const hidden = !at && d.secret;
           return (
-            <li key={d.id} className={at ? 'is-earned' : ''}>
+            <li key={d.id} className={(at ? 'is-earned ' : '') + `is-${d.rarity}`}>
               <DeedSeal def={d} size={36} locked={!at} />
               <span>
-                <b>{d.name}</b>
-                <small>{at ? `${d.desc} · ${day(at)}` : d.min > 1 ? `${d.desc} (${n}/${d.min})` : d.desc}</small>
+                <b>
+                  {hidden ? '???' : d.name}
+                  <em className={`fv-rarity is-${d.rarity}`}>{DEED_RARITY[d.rarity].label}</em>
+                </b>
+                <small>{hidden ? 'Feito secreto — só aparece quando alguém conquistar.' : at ? `${d.desc} · ${day(at)}` : d.min > 1 ? `${d.desc} (${n}/${d.min})` : d.desc}</small>
+                {at && d.title && <small className="fv-deed-title">Título: {d.title}</small>}
               </span>
             </li>
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+/** Título sob o nome: escolhido entre os feitos conquistados que dão título. */
+export function TitlePicker({ char }: { char: Character }) {
+  const edit = useCharacterStore((s) => s.editCharacter);
+  const titles = availableTitles(char.deeds);
+  const current = heroTitle(char) ? char.title ?? '' : '';
+  const locked = DEEDS.filter((d) => d.title && !char.deeds?.unlocked[d.id]).length;
+  return (
+    <section className="fv-vitrine-sec">
+      <h3>Título</h3>
+      {titles.length ? (
+        <div className="fv-titles" role="radiogroup" aria-label="Título do herói">
+          <button type="button" role="radio" aria-checked={!current} className={!current ? 'is-on' : ''} onClick={() => edit(char.id, { title: null })}>
+            Sem título
+          </button>
+          {titles.map((d) => (
+            <button key={d.id} type="button" role="radio" aria-checked={current === d.id} className={`is-${d.rarity}` + (current === d.id ? ' is-on' : '')} onClick={() => edit(char.id, { title: d.id })} title={`Do feito “${d.name}”`}>
+              {d.title}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <p className="fv-vitrine-text fv-titles-hint">
+        {titles.length ? 'Aparece sob o nome na carta, no cabeçalho da ficha, na mesa e na iniciativa.' : 'Conquiste feitos raros, épicos e lendários para ganhar títulos — eles aparecem sob o nome, na carta e na mesa.'}
+        {locked > 0 && ` ${locked} ${locked === 1 ? 'título ainda bloqueado' : 'títulos ainda bloqueados'}.`}
+      </p>
     </section>
   );
 }

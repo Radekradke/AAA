@@ -6498,3 +6498,183 @@ select optgroup {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* ===== Título do herói (cabeçalho da ficha, mesa, iniciativa) ===== */
+.fv-sh-title {
+  display: block;
+  margin-top: 2px;
+  font: italic 600 0.5em / 1.2 var(--font-display);
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+}
+.fv-hero-title-inline {
+  display: block;
+  font: italic 600 0.82em / 1.15 var(--font-display);
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-ins-title {
+  margin: -2px 0 2px;
+  font: italic 600 13px / 1.2 var(--font-display);
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+}
+
+/* ===== Carta do item (arte opcional; relíquias com holográfico) ===== */
+.fv-itemcard {
+  --rc: #9ba7b5;
+  position: relative;
+  display: block;
+  flex: none;
+  width: 180px;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--rc), transparent 25%);
+  background: radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--rc), transparent 70%), transparent 75%), #07090d;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 0 0 4px rgba(7, 9, 13, 0.85), inset 0 0 0 5px color-mix(in srgb, var(--rc), transparent 55%);
+}
+.fv-itemcard.is-incomum {
+  --rc: #3fc56b;
+}
+.fv-itemcard.is-raro {
+  --rc: #4d9bff;
+}
+.fv-itemcard.is-muito-raro {
+  --rc: #b061ff;
+}
+.fv-itemcard.is-lendario {
+  --rc: #ffa033;
+}
+.fv-itemcard.is-holo {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px color-mix(in srgb, var(--rc), transparent 45%), inset 0 0 0 4px rgba(7, 9, 13, 0.85), inset 0 0 0 5px color-mix(in srgb, var(--rc), transparent 35%);
+}
+.fv-itemcard img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* folha holográfica das relíquias: arco-íris que desliza devagar */
+.fv-itemcard-foil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: 0.32;
+  background: repeating-linear-gradient(115deg, hsl(0 90% 60% / 0.5) 0%, hsl(60 90% 60% / 0.5) 6%, hsl(140 90% 60% / 0.5) 12%, hsl(220 90% 65% / 0.5) 18%, hsl(300 90% 60% / 0.5) 24%);
+  background-size: 260% 260%;
+  animation: fv-foil-slide 6s ease-in-out infinite alternate;
+}
+.fv-itemcard.is-lendario .fv-itemcard-foil {
+  opacity: 0.45;
+}
+@keyframes fv-foil-slide {
+  from {
+    background-position: 0% 30%;
+  }
+  to {
+    background-position: 100% 70%;
+  }
+}
+.fv-itemcard.is-sm {
+  width: 96px;
+  border-radius: 10px;
+}
+
+/* balão de detalhes com a carta ao lado (PC) ou em cima (celular) */
+.fv-lore-tooltip.has-art {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.fv-lore-tooltip.has-art .fv-lore-text {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  .fv-lore-tooltip.has-art {
+    flex-direction: column;
+    align-items: center;
+  }
+  .fv-lore-tooltip.has-art .fv-itemcard {
+    width: 132px;
+  }
+  .fv-lore-tooltip.has-art .fv-lore-text {
+    align-self: stretch;
+  }
+}
+
+/* miniatura no card do inventário (com o botão de enviar arte) */
+.fv-item-thumb {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+}
+.fv-item-thumb img {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  object-fit: cover;
+}
+.fv-item-thumb .fv-portrait-badge {
+  width: 20px;
+  height: 20px;
+  right: -7px;
+  bottom: -7px;
+}
+.fv-item-thumb .fv-portrait-badge svg {
+  width: 11px;
+  height: 11px;
+}
+.fv-item-thumb .fv-portrait-badge.is-remove {
+  width: 17px;
+  height: 17px;
+  top: -6px;
+  left: -6px;
+}
+
+/* Forja: campo da carta */
+.fv-forge-art {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--line);
+  background: var(--sunk);
+}
+.fv-forge-art p {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-forge-art .fv-portrait-picker.is-chip {
+  position: static;
+  max-width: none;
+}
+.fv-forge-art-empty {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  aspect-ratio: 4 / 5;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-itemcard-foil {
+    animation: none;
+  }
+}

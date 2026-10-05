@@ -79,7 +79,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
 
   const roll = (r: CastRoll | null, suffix = '', isDamage = true) => {
     if (!r) return null;
-    return rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: isDamage });
+    return rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: isDamage, cantrip: isDamage && isCantrip });
   };
 
   /**
@@ -218,7 +218,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     const dmg = spellHitDamage(pending.plan, outcomes);
     setPending(null);
     if (!dmg) return;
-    const r = rollEngine(dmg.sides, { count: dmg.count, modifier: dmg.bonus, label: dmg.label, damage: true });
+    const r = rollEngine(dmg.sides, { count: dmg.count, modifier: dmg.bonus, label: dmg.label, damage: true, cantrip: isCantrip });
     if (dmg.half) return pushRoll({ ...r, total: Math.floor(r.total / 2), expr: `(${r.expr}) ÷ 2` });
     // Bruxaria: +1d6 necrótico por acerto (dobra no crítico)
     const hits = outcomes.filter((o) => o !== 'miss').length;

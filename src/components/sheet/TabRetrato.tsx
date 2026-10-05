@@ -18,8 +18,11 @@ import { themedIcon } from '@/components/character/creatorUi';
 import { useDialogFocus } from '@/lib/useDialogFocus';
 import { tiltHandlers } from '@/lib/tilt';
 import { AlliesSection } from './RetratoAllies';
-import { CARD_TIERS, cardTier } from '@/engine/deeds';
-import { CardScars, CardSeals, DeedsSection, ScarsSection } from './RetratoDeeds';
+import { JourneySection } from './RetratoJourney';
+import { ItemArtCard } from '@/components/ui/LoreTooltip';
+import { RARITY } from '@/data/themes';
+import { CARD_TIERS, cardTier, heroTitle } from '@/engine/deeds';
+import { CardScars, CardSeals, DeedsSection, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
 
 /** Características que só repetem a regra (aparecem como aumentos/talentos). */
@@ -44,6 +47,7 @@ export function TabRetrato({ char, derived }: TabProps) {
   const name = char.name.trim() || 'Herói sem nome';
   const origin = sub && race.id !== 'dragonborn' ? sub.label : race.label;
   const tier = cardTier(char.level);
+  const title = heroTitle(char);
 
   const features = useMemo(() => {
     const out: string[] = [];
@@ -63,6 +67,11 @@ export function TabRetrato({ char, derived }: TabProps) {
     const special = char.inventory.filter((i) => onHero(i) && !uids.includes(i.uid));
     return [...held, ...special];
   }, [char.equipped, char.inventory]);
+  // relíquias: itens com arte e os raros (ou acima) — viram cartas colecionáveis
+  const relics = useMemo(
+    () => char.inventory.filter((i) => i.image || ['raro', 'muito-raro', 'lendario'].includes(i.rarity)).sort((a, b) => Number(!!b.image) - Number(!!a.image)),
+    [char.inventory],
+  );
   const spells = useMemo(() => {
     const ids = Array.from(new Set([...char.preparedSpells, ...(char.classId === 'wizard' ? [] : char.knownSpells ?? [])]));
     return ids
@@ -110,6 +119,7 @@ export function TabRetrato({ char, derived }: TabProps) {
           <CardSeals char={char} />
           <span className="fv-vitrine-caption">
             <b>{name}</b>
+            {title && <em className="fv-vitrine-title">{title}</em>}
             <span>
               {origin} · {cls.label}
             </span>
@@ -124,6 +134,7 @@ export function TabRetrato({ char, derived }: TabProps) {
         <header className="fv-vitrine-head">
           <span className="fv-vitrine-eyebrow">Retrato do herói</span>
           <h2>{name}</h2>
+          {title && <p className="fv-vitrine-titleline">{title}</p>}
           <p className="fv-vitrine-line">
             {origin} · {cls.label} {char.level}
             {subclass ? ` · ${subclass.label}` : ''}
@@ -191,7 +202,21 @@ export function TabRetrato({ char, derived }: TabProps) {
                   {it.wear === 'body' && <small> · no corpo</small>}
                   {it.wear === 'worn' && it.worn && <small> · vestido</small>}
                   {it.attuned && <small> · sintonizado</small>}
-                  {it.rarity && it.rarity !== 'comum' && it.rarity !== 'Comum' && <small> · {it.rarity}</small>}
+                  {it.rarity && it.rarity !== 'comum' && it.rarity !== 'Comum' && <small> · {(RARITY[it.rarity]?.label ?? it.rarity).toLowerCase()}</small>}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
+
+        {relics.length > 0 && (
+          <Section title={`Relíquias · ${relics.length}`}>
+            <ul className="fv-relics">
+              {relics.map((it) => (
+                <li key={it.uid}>
+                  <ItemArtCard src={it.image} rarity={it.rarity} fallback={<Icon name={it.category === 'weapon' ? 'sword' : it.category === 'armor' || it.category === 'shield' ? 'crest' : 'spark'} size={34} />} />
+                  <b>{it.name}</b>
+                  <small style={{ color: `color-mix(in srgb, ${(RARITY[it.rarity] ?? RARITY.comum).color}, var(--ink) 30%)` }}>{(RARITY[it.rarity] ?? RARITY.comum).label}</small>
                 </li>
               ))}
             </ul>
@@ -211,8 +236,10 @@ export function TabRetrato({ char, derived }: TabProps) {
           </Section>
         )}
 
+        <TitlePicker char={char} />
         <DeedsSection char={char} />
         <ScarsSection char={char} />
+        <JourneySection char={char} />
 
         <Section title="Idiomas">
           <p className="fv-vitrine-text">{derived.languages.join(' · ') || '—'}</p>

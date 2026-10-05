@@ -579,6 +579,7 @@
   align-items: center;
 }
 .fv-seal {
+  position: relative;
   display: grid;
   place-items: center;
   flex: none;
@@ -588,10 +589,51 @@
   border: 1px solid rgba(255, 240, 200, 0.7);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), inset 0 -2px 4px rgba(90, 60, 10, 0.45);
 }
+/* raridade: comum (bronze), raro (prata azulada), épico (ametista), lendário (ouro vivo, aro girando) */
+.fv-seal.is-comum {
+  color: #2b1806;
+  background: radial-gradient(circle at 35% 30%, #f7dfc4, #c38a55 55%, #7a4a22);
+  border-color: rgba(250, 220, 190, 0.6);
+}
+.fv-seal.is-raro {
+  color: #0d2140;
+  background: radial-gradient(circle at 35% 30%, #f2f8ff, #9cc3ee 55%, #3f6ea8);
+  border-color: rgba(210, 232, 255, 0.85);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(110, 170, 255, 0.45), 0 0 12px rgba(110, 170, 255, 0.55), inset 0 -2px 4px rgba(20, 50, 100, 0.45);
+}
+.fv-seal.is-epico {
+  color: #22083f;
+  background: radial-gradient(circle at 35% 30%, #f8ecff, #bb8ff0 55%, #5e2f9e);
+  border-color: rgba(240, 220, 255, 0.85);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(180, 120, 255, 0.55), 0 0 16px rgba(170, 110, 255, 0.75), inset 0 -2px 4px rgba(50, 15, 90, 0.5);
+}
+.fv-seal.is-lendario {
+  color: #2a1d05;
+  background: radial-gradient(circle at 35% 30%, #fffbe6, #ffd15c 50%, #b07818);
+  border-color: rgba(255, 248, 210, 0.95);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), 0 0 20px rgba(255, 190, 60, 0.85), inset 0 -2px 4px rgba(90, 60, 10, 0.45);
+}
+.fv-seal.is-lendario::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(from var(--fv-spin, 0deg), #ffe08a, #ff9d3c, #fff5c8, #c77dff, #ffe08a);
+  /* só o anel de fora (a medalha fica intacta) */
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: fv-seal-spin 4s linear infinite;
+}
+@keyframes fv-seal-spin {
+  to {
+    --fv-spin: 360deg;
+  }
+}
+/* humor: miolo lilás (a borda e o brilho seguem a raridade) */
 .fv-seal.is-funny {
   color: #2b0f2f;
   background: radial-gradient(circle at 35% 30%, #fbe1ff, #c58ad6 55%, #7c4592);
-  border-color: rgba(250, 220, 255, 0.7);
 }
 .fv-seal.is-locked {
   color: var(--muted);
@@ -599,6 +641,13 @@
   border: 1px dashed var(--line-strong, var(--line));
   box-shadow: none;
   opacity: 0.75;
+}
+.fv-seal.is-locked::before {
+  content: none;
+}
+.fv-seal-q {
+  font: 800 1.05em var(--font-display);
+  line-height: 1;
 }
 .fv-seal-more {
   font: 700 11px var(--font-num);
@@ -650,6 +699,44 @@
 }
 .fv-deeds li.is-earned {
   border-color: color-mix(in srgb, var(--gold), transparent 55%);
+}
+.fv-deeds li.is-earned.is-raro {
+  border-color: rgba(110, 170, 255, 0.55);
+}
+.fv-deeds li.is-earned.is-epico {
+  border-color: rgba(170, 110, 255, 0.6);
+  background: color-mix(in srgb, #a06bff, var(--sunk) 92%);
+}
+.fv-deeds li.is-earned.is-lendario {
+  border-color: rgba(255, 190, 60, 0.7);
+  background: color-mix(in srgb, #ffb830, var(--sunk) 90%);
+}
+.fv-deeds b {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+.fv-rarity {
+  font: 700 9.5px var(--font-num);
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* puxadas para a tinta do tema: legíveis no claro e no escuro */
+.fv-rarity.is-raro {
+  color: color-mix(in srgb, #4f8fe0, var(--ink) 25%);
+}
+.fv-rarity.is-epico {
+  color: color-mix(in srgb, #9a5cf0, var(--ink) 25%);
+}
+.fv-rarity.is-lendario {
+  color: color-mix(in srgb, #d08a10, var(--ink) 25%);
+}
+.fv-deeds small.fv-deed-title {
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+  font-weight: 600;
 }
 .fv-deeds li span:last-child {
   display: flex;
@@ -761,7 +848,8 @@
     transform: none;
   }
   .fv-vitrine-foil,
-  .fv-vitrine-card.is-lendaria .fv-vitrine-frame::before {
+  .fv-vitrine-card.is-lendaria .fv-vitrine-frame::before,
+  .fv-seal.is-lendario::before {
     animation: none;
   }
   .fv-vitrine-zoom {
@@ -1210,4 +1298,189 @@
     transform: none;
     transition: none;
   }
+}
+
+/* ===== Títulos do herói ===== */
+.fv-vitrine-caption em.fv-vitrine-title {
+  margin-top: -2px;
+  font: italic 600 clamp(14px, 1.5vw, 17px) / 1.2 var(--font-display);
+  color: var(--card-gold);
+  text-shadow: 0 1px 10px #000;
+}
+.fv-vitrine-titleline {
+  margin: -2px 0 4px;
+  font: italic 600 clamp(15px, 1.6vw, 19px) / 1.2 var(--font-display);
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+}
+.fv-titles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fv-titles button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+}
+.fv-titles button:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--gold), transparent 40%);
+}
+.fv-titles button.is-raro {
+  border-color: rgba(110, 170, 255, 0.45);
+}
+.fv-titles button.is-epico {
+  border-color: rgba(170, 110, 255, 0.5);
+}
+.fv-titles button.is-lendario {
+  border-color: rgba(255, 190, 60, 0.6);
+}
+.fv-titles button.is-on {
+  color: var(--ink);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), var(--sunk) 82%);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.fv-titles-hint {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ===== Linha da jornada ===== */
+.fv-journey {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* o fio que liga os marcos */
+.fv-journey::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--gold), transparent 55%) 8%, color-mix(in srgb, var(--gold), transparent 55%) 92%, transparent);
+}
+.fv-journey li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 7px 0;
+}
+.fv-journey li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fv-journey small {
+  font: 600 11px var(--font-num);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.fv-journey b {
+  font-size: 14.5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.fv-journey li > div > span {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-journey .fv-seal {
+  margin: 1px;
+}
+.fv-journey-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+}
+.fv-journey-dot.is-nivel {
+  color: color-mix(in oklab, var(--gold) 75%, var(--ink));
+  border-color: color-mix(in srgb, var(--gold), transparent 45%);
+}
+.fv-journey-dot.is-inicio {
+  color: var(--ink);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold), transparent 80%);
+}
+.fv-journey-dot.is-sessao {
+  color: var(--acc);
+}
+.fv-journey-dot.is-cicatriz svg {
+  width: 20px;
+  fill: none;
+  stroke: color-mix(in srgb, var(--danger), var(--ink) 25%);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.fv-journey li.is-nivel b {
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+.fv-journey-more {
+  align-self: flex-start;
+  min-height: 34px;
+  margin-bottom: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+/* ===== Relíquias: os itens como cartas ===== */
+.fv-relics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-relics li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-relics .fv-itemcard {
+  width: 100%;
+}
+.fv-relics b {
+  margin-top: 4px;
+  font: 600 13.5px / 1.2 var(--font-display);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.fv-relics small {
+  font: 700 10px var(--font-num);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fv-itemcard-emblem {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--rc), #fff 25%);
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--rc), transparent 40%));
 }

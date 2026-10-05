@@ -4,6 +4,12 @@ import { useSessionStore } from '@/store/sessionStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { healthState } from '@/engine/encounter';
 import { useMasterStore } from '../masterStore';
+import { heroTitle } from '@/engine/deeds';
+import { tableHero } from '@/lib/tableHeroes';
+import type { Combatant } from '@/types/session';
+
+/** Título do herói (ficha compartilhada da mesa). */
+const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.sheetId) ?? {}) : null);
 
 /**
  * INICIATIVA sempre à vista durante o encontro: a ordem numa faixa (o da vez
@@ -50,10 +56,13 @@ export function InitiativeDock() {
                 onClick={() => select({ kind: 'combatant', id: c.id })}
                 aria-current={active ? 'step' : undefined}
                 {...stageDragProps({ kind: 'combatant', id: c.id }, c.name)}
-                title={`${c.name}${c.hidden ? ' (oculto)' : ''} — arraste para o mapa`}
+                title={`${c.name}${titleOf(c) ? `, ${titleOf(c)}` : ''}${c.hidden ? ' (oculto)' : ''} — arraste para o mapa`}
               >
                 <span className="fv-initdock-init">{c.initiative ?? '?'}</span>
-                <span className="fv-initdock-name">{c.name}</span>
+                <span className="fv-initdock-name">
+                  {c.name}
+                  {titleOf(c) && <small className="fv-hero-title-inline">{titleOf(c)}</small>}
+                </span>
                 {c.hpMax !== null && c.type !== 'player' && (
                   <span className="fv-initdock-hp" aria-label={`${c.hpCurrent ?? '?'} de ${c.hpMax} PV`}>
                     <i style={{ width: `${Math.max(0, Math.min(100, ((c.hpCurrent ?? 0) / c.hpMax) * 100))}%` }} />

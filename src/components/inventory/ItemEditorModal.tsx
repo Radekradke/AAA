@@ -9,6 +9,9 @@ import { RARITY } from '@/data/themes';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Modal } from '@/components/ui/Modal';
+import { ItemArtCard } from '@/components/ui/LoreTooltip';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { Icon } from '@/components/ui/Icon';
 
 interface ItemEditorModalProps {
   /** Item existente para editar; ausente = forjar um novo. */
@@ -74,6 +77,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [favorite, setFavorite] = useState(!!item?.favorite);
   const [attunement, setAttunement] = useState(!!item?.attunement);
   const [acBonus, setAcBonus] = useState(String(item?.acBonus ?? 0));
+  const [image, setImage] = useState<string | null>(item?.image ?? null);
   // magia concedida pelo item (estilo BG3)
   const [grantSpell, setGrantSpell] = useState(item?.grantsSpells?.[0]?.spellId ?? '');
   const [grantRecharge, setGrantRecharge] = useState<'atwill' | 'short' | 'long'>(item?.grantsSpells?.[0]?.recharge ?? 'atwill');
@@ -186,6 +190,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       wear: wearOut,
       worn: wearOut === 'worn' ? (item?.wear === 'worn' ? item.worn : true) : undefined,
       acBonus: category === 'shield' || category === 'ring' ? bonus || (category === 'shield' ? 2 : 0) : bonus || undefined,
+      image: image ?? undefined,
     };
 
     onSave(editing ? ({ ...item!, ...base, itemId: undefined, homebrew: true } as InventoryItem) : customInventoryItem(base));
@@ -212,6 +217,16 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         </>
       }
     >
+      {/* carta do item (opcional): a arte aparece ao lado dos detalhes */}
+      <div className="fv-forge-art">
+        {image ? <ItemArtCard src={image} rarity={rarity} size="sm" /> : <span className="fv-forge-art-empty" aria-hidden><Icon name="image" size={20} /></span>}
+        <div>
+          <span style={label}>Carta do item (opcional)</span>
+          <p>Uma imagem da arma ou do objeto. Ela vira uma carta ao lado dos detalhes; raros, muito raros e lendários ganham o brilho holográfico.</p>
+          <PortraitPicker portrait={image} onChange={setImage} max={{ w: 480, h: 600 }} labels={{ add: 'Enviar arte', change: 'Trocar arte' }} />
+        </div>
+      </div>
+
       {/* identidade do item */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
         <label style={{ gridColumn: '1 / -1' }}>

@@ -64,7 +64,7 @@ export function TabMesa({ char, derived }: TabProps) {
 
   // teste contra a morte: rola e registra automaticamente (PHB 2014)
   const rollDeathSave = () => {
-    const r = rollDice(20, { label: 'Teste contra a Morte' });
+    const r = rollDice(20, { label: 'Teste contra a Morte', deathSave: true });
     const nat = r.rolls[0];
     const ds = char.combat.deathSaves;
     if (nat === 20) {

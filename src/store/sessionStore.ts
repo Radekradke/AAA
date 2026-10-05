@@ -12,6 +12,7 @@ import { useUiStore } from './uiStore';
 import { getItem } from '@/data/items';
 import { itemToInventory } from '@/engine/inventory';
 import type { InventoryItem } from '@/types/character';
+import { tableHero } from '@/lib/tableHeroes';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -22,6 +23,14 @@ import type { InventoryItem } from '@/types/character';
  * completo — assim duas abas/aparelhos nunca divergem, e um reload não perde
  * nada (é só buscar de novo).
  */
+/** Quem deu o golpe (dano aplicado a partir da rolagem do jogador). */
+export interface KillBy {
+  sheetId: string;
+  name: string;
+  /** O dano veio de um truque (feito secreto "Truque mortal"). */
+  cantrip?: boolean;
+}
+
 export interface LiveMe {
   userId: string;
   name: string;
@@ -91,10 +100,10 @@ interface SessionState {
    * na ficha do jogador (evento); monstro/NPC direto no encontro.
    */
   /** `by`: herói que causou o dano (golpe final vai para ele). */
-  changeHp: (c: Combatant, delta: number, opts?: { crit?: boolean; by?: { sheetId: string; name: string } | null }) => Promise<void>;
+  changeHp: (c: Combatant, delta: number, opts?: { crit?: boolean; by?: KillBy | null }) => Promise<void>;
   /** Criatura que acabou de cair sem autor conhecido: o mestre escolhe quem deu o golpe final. */
   pendingKill: { combatantId: string; name: string; monsterRef: string | null } | null;
-  creditKill: (sheetId: string | null, heroName?: string) => Promise<void>;
+  creditKill: (sheetId: string | null, heroName?: string, how?: { cantrip?: boolean }) => Promise<void>;
   /** Mestre grava uma cicatriz na carta do herói. */
   sendHeroScar: (sheetId: string, heroName: string, text: string) => Promise<void>;
   /** Registra o ataque na crônica da sessão (quem, em quem, golpe, rolagem vs CA, dano, PV). A rodada entra sozinha. */
@@ -295,18 +304,20 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       // caiu agora: golpe final para quem rolou o dano, ou o mestre escolhe
       if (cur > 0 && next === 0 && get().me?.isMaster) {
         set({ pendingKill: { combatantId: c.id, name: c.name, monsterRef: c.monsterRef } });
-        if (opts?.by) await get().creditKill(opts.by.sheetId, opts.by.name);
+        if (opts?.by) await get().creditKill(opts.by.sheetId, opts.by.name, { cantrip: opts.by.cantrip });
       }
     },
 
-    async creditKill(sheetId, heroName) {
+    async creditKill(sheetId, heroName, how) {
       const { session, campaignId, me, pendingKill } = get();
       set({ pendingKill: null });
       if (!sheetId || !pendingKill || !session || !campaignId || !me) return;
       // bestiário sob demanda (não pesa a primeira tela)
-      const type = pendingKill.monsterRef ? (await import('@/data/bestiary')).MONSTER_BY_ID[pendingKill.monsterRef]?.type : null;
+      const monster = pendingKill.monsterRef ? (await import('@/data/bestiary')).MONSTER_BY_ID[pendingKill.monsterRef] : undefined;
+      // ND acima do nível do herói (ficha compartilhada da mesa) e golpe de truque: feitos secretos
+      const kinds = (await import('@/engine/deeds')).killKindsFor(monster?.type, { cr: monster?.cr, level: tableHero(sheetId)?.level, cantrip: how?.cantrip });
       await sessionService
-        .log(session.id, campaignId, me.userId, 'hero_deed', { sheetId, name: heroName ?? null, creature: pendingKill.name, kinds: (await import('@/engine/deeds')).killKindsFor(type) }, 'public')
+        .log(session.id, campaignId, me.userId, 'hero_deed', { sheetId, name: heroName ?? null, creature: pendingKill.name, kinds }, 'public')
         .catch(() => undefined);
     },
 
@@ -552,6 +563,7 @@ useUiStore.subscribe((s, prev) => {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
       // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
       sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
+      ...(r.cantrip && { cantrip: true }),
     }, st.rollVisibility)
     .catch(() => undefined);
 });

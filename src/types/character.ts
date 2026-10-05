@@ -44,6 +44,8 @@ export interface InventoryItem {
   wear?: 'worn' | 'body';
   /** Vestível: está vestido agora. */
   worn?: boolean;
+  /** Arte do item (opcional): vira uma carta ao lado dos detalhes. */
+  image?: string | null;
   /**
    * Onde o item fica quando NÃO está equipado (escolha do jogador ao arrastar
    * ou em "Guardar no Baú"). Sem valor: tesouros e itens mágicos vão ao Baú,
@@ -265,6 +267,10 @@ export interface Character {
   deeds?: import('@/engine/deeds').HeroDeeds;
   /** Cicatrizes gravadas na carta (mestre ou jogador). */
   scars?: import('@/engine/deeds').Scar[];
+  /** Título exibido sob o nome (id de um feito conquistado que dá título). */
+  title?: string | null;
+  /** Sessões da mesa ao vivo jogadas com esta ficha (linha da jornada). */
+  sessions?: { id: string; name: string; at: string }[];
   /** Níveis por classe (pronto para multiclasse). */
   classLevels: { classId: string; level: number }[];
   subclassId: string | null;

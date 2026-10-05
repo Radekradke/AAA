@@ -1,7 +1,7 @@
 import { useUiStore } from '@/store/uiStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { toast } from '@/store/feedbackStore';
-import { addDeed, DEED_KINDS } from '@/engine/deeds';
+import { addCrit, addDeed, DEED_KINDS } from '@/engine/deeds';
 import type { DeedDef, DeedKind } from '@/engine/deeds';
 
 /** Aviso de selo novo na carta do herói. */
@@ -19,6 +19,16 @@ export function recordDeed(id: string, kind: DeedKind, by = 1): DeedDef[] {
   return res.unlocked;
 }
 
+/** 20 natural (com a "Fúria dos dados" no 3º do dia). */
+function recordCrit(id: string): DeedDef[] {
+  const store = useCharacterStore.getState();
+  const char = store.getCharacter(id);
+  if (!char) return [];
+  const res = addCrit(char.deeds);
+  store.setDeeds(id, res.deeds);
+  return res.unlocked;
+}
+
 /** Evento do mestre (golpe final): soma cada contador válido e avisa os selos. */
 export function applyDeedKinds(sheetId: string, kinds: string[]): void {
   const valid = kinds.filter((k): k is DeedKind => DEED_KINDS.includes(k as DeedKind));
@@ -29,8 +39,9 @@ let started = false;
 
 /**
  * Feitos automáticos da própria ficha (rodam em qualquer tela):
- * - 20 / 1 natural no d20 (rolagens com a ficha);
- * - caiu a 0 PV / voltou de 0 PV.
+ * - 20 / 1 natural no d20 (rolagens com a ficha), 3 críticos no mesmo dia e
+ *   o 20 no teste contra a morte;
+ * - caiu a 0 PV / voltou de 0 PV / ficou com 1 PV.
  * O golpe final vem do mestre (evento hero_deed, em sessionStore).
  */
 export function startDeedTracker(): void {
@@ -43,7 +54,7 @@ export function startDeedTracker(): void {
     if (Date.now() - r.timestamp > 5000) return; // histórico hidratado, não é rolagem nova
     const store = useCharacterStore.getState();
     if (!store.getCharacter(r.charId)) return;
-    if (r.crit) announceDeeds(recordDeed(r.charId, 'crits'));
+    if (r.crit) announceDeeds([...recordCrit(r.charId), ...(r.deathSave ? recordDeed(r.charId, 'deathSaveCrits') : [])]);
     else if (r.fail) announceDeeds(recordDeed(r.charId, 'fumbles'));
   });
 
@@ -52,7 +63,7 @@ export function startDeedTracker(): void {
   for (const c of useCharacterStore.getState().characters) lastHp.set(c.id, c.hpCurrent);
   useCharacterStore.subscribe((s) => {
     const fresh: DeedDef[] = [];
-    const queue: [string, 'downs' | 'comebacks'][] = [];
+    const queue: [string, 'downs' | 'comebacks' | 'clutch'][] = [];
     for (const c of s.characters) {
       if (c.draft) continue;
       const before = lastHp.get(c.id);
@@ -60,6 +71,7 @@ export function startDeedTracker(): void {
       if (before === undefined || before === c.hpCurrent) continue;
       if (before > 0 && c.hpCurrent === 0) queue.push([c.id, 'downs']);
       else if (before === 0 && c.hpCurrent > 0) queue.push([c.id, 'comebacks']);
+      else if (before > 1 && c.hpCurrent === 1) queue.push([c.id, 'clutch']); // levou o golpe e ficou de pé com 1 PV
     }
     // fora do laço: recordDeed dispara esta assinatura de novo (sem mudança de PV)
     for (const [id, kind] of queue) fresh.push(...recordDeed(id, kind));

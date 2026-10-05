@@ -9,6 +9,8 @@ export interface LoreInfo {
   subtitle?: string;
   body: string;
   tags?: string[];
+  /** Arte (item com imagem): aparece como carta ao lado do texto. */
+  art?: { src: string; rarity: string };
 }
 
 export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {

@@ -8,6 +8,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore, calcLore } from '@/lib/lore';
+import { heroTitle } from '@/engine/deeds';
 
 interface SheetHeaderProps {
   char: Character;
@@ -90,6 +91,7 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="fv-sh-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
           {char.name}
+          {heroTitle(char) && <span className="fv-sh-title">{heroTitle(char)}</span>}
         </div>
         <div className="fv-sh-sub">
           <span>{heroSubtitle(char)}</span>

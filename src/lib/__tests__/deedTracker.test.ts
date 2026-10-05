@@ -44,4 +44,15 @@ describe('feitos automáticos da ficha', () => {
     expect(get().deeds?.counts).toMatchObject({ kills: 1, dragons: 1 });
     expect(get().deeds?.unlocked['dragon-1']).toBeTruthy();
   });
+
+  it('secretos: ficou com 1 PV; 20 natural no teste contra a morte', () => {
+    const store = useCharacterStore.getState();
+    store.heal(hero.id, 99);
+    const max = get().hpCurrent;
+    store.applyDamage(hero.id, max - 1);
+    expect(get().hpCurrent).toBe(1);
+    expect(get().deeds?.unlocked['clutch-1']).toBeTruthy();
+    useUiStore.getState().pushRoll({ ...d20(20, hero.id), label: 'Teste contra a Morte', deathSave: true });
+    expect(get().deeds?.unlocked['deathsave-20']).toBeTruthy();
+  });
 });
