@@ -95,4 +95,17 @@ describe('ordens do mestre chegam na ficha do jogador', () => {
     await useSessionStore.getState().refresh();
     expect(calls.length).toBe(3);
   });
+
+  it('20 natural de outro herói abre o crítico cinematográfico na minha tela', async () => {
+    const { useUiStore } = await import('../uiStore');
+    useUiStore.setState({ cinematic: null, cinematics: true });
+    events = [];
+    await useSessionStore.getState().join('camp', { userId: 'p1', name: 'Ana', isMaster: false, characterId: 'sheet-kael', characterName: 'Kael' });
+    events = [
+      ev('r1', 'roll', 'p2', { who: 'Lyra', label: 'Ataque · Arco', d20: true, crit: true, fail: false, sheetId: 'sheet-lyra' }, '2026-01-01T00:00:05Z'),
+      ev('r2', 'roll', 'p1', { who: 'Kael', label: 'Ataque', d20: true, crit: true, sheetId: 'sheet-kael' }, '2026-01-01T00:00:06Z'),
+    ];
+    await useSessionStore.getState().refresh();
+    expect(useUiStore.getState().cinematic).toMatchObject({ kind: 'crit', sheetId: 'sheet-lyra', name: 'Lyra', label: 'Ataque · Arco' });
+  });
 });

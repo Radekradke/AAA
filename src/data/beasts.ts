@@ -19,7 +19,7 @@ export interface BeastAttack {
 export interface Beast {
   id: string;
   label: string;
-  size: 'Miúdo' | 'Pequeno' | 'Médio';
+  size: 'Miúdo' | 'Pequeno' | 'Médio' | 'Grande';
   cr: string;
   ac: number;
   hp: number;

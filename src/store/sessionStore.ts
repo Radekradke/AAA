@@ -441,6 +441,13 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (seeded) {
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
+          // 20 / 1 natural de outro herói: o momento em tela cheia aparece para a mesa toda
+          const epic = fresh
+            .filter((e) => e.type === 'roll' && e.actorId !== me.userId)
+            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string })
+            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail))
+            .pop();
+          if (epic) useUiStore.getState().showCinematic({ kind: epic.crit ? 'crit' : 'fumble', sheetId: epic.sheetId!, name: epic.who, label: epic.label });
         }
         seeded = true;
 
@@ -544,7 +551,7 @@ useUiStore.subscribe((s, prev) => {
     .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
       // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
-      sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage,
+      sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
     }, st.rollVisibility)
     .catch(() => undefined);
 });

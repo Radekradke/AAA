@@ -203,3 +203,18 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 3. Leve o herói a 0 PV e cure: "Voltou do abismo".
 4. Mesa ao vivo (mestre): jogador rola dano → no feed, **aplicar ▸ Goblin**. Se o goblin cair, o golpe final vai para o jogador que rolou (feito "Primeira vitória" na ficha dele). Derrube uma criatura pelo PV direto: aparece **"Goblin caiu! Golpe final de:"** com os heróis — escolha um. Dragão conta "Matador de dragões".
 5. Mestre → toque no herói → **Cicatriz na carta** → "Garra do dragão no ombro" → **Gravar**. Na ficha do jogador, a cicatriz aparece em **Cicatrizes** com data, sessão e "pelo mestre", e a carta ganha uma marca de garra. O jogador também grava as próprias (e só apaga as dele).
+
+## 32. Crítico cinematográfico
+1. Role ataques/testes de d20 na ficha. Num **20 natural**: tela cheia com a arte do herói, raios dourados, "20" gigante, "Crítico!" e o nome. Num **1 natural**: "Tropeço!" com a arte desbotada caindo e uma frase de humor sorteada. Toque, Esc ou ~3 s fecham.
+2. Rolagem de dano não dispara (só o d20).
+3. Mesa ao vivo com dois jogadores (rolagens públicas): o 20/1 de um aparece na tela do outro e do mestre, com a arte do herói de quem rolou. Rolagens "só eu" não aparecem para ninguém.
+4. **Configurações → Crítico cinematográfico** desliga (vale para este aparelho).
+5. Com "reduzir movimento" no sistema, a tela aparece parada (sem raios girando), mas aparece.
+
+## 33. Companheiros e montarias com carta
+1. Aba **Retrato** → **Companheiros → Adicionar**: escolha **Montaria**, nome "Trovão", base **Cavalo de Guerra** (a linha mostra CA 11 · 19 PV · 18 m) → **Adicionar**. A ficha da montaria abre com a carta (mesma folha holográfica, reflexo e moldura da carta do herói), o emblema de fera e o selo **ND 1/2**.
+2. **Sua arte** na ficha da montaria: a carta e a mini-carta da lista passam a usar a imagem.
+3. PV com **−/+**, testes de atributo e ataque (**+6** / **2d6+4**) rolam e entram no histórico da ficha. Um **20 natural** da montaria **não** abre o crítico cinematográfico nem conta como feito do herói.
+4. **Familiar** com base **Livre**: CA, PV máx. e deslocamento à mão; as anotações aparecem na ficha. **Editar** reabre com os valores; **Dispensar** pede confirmação.
+5. Patrulheiro **Mestre das Feras** nível 3+: o companheiro da classe já aparece primeiro na lista (CA e ataques com a proficiência somada), com retrato próprio; nome e fera continuam no painel de Combate.
+6. Celular: a carta fica em cima e a ficha embaixo; os atributos em 3 colunas.

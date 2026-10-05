@@ -4,6 +4,7 @@ import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import { useAuthStore } from '@/store/authStore';
+import { setTableHeroes } from '@/lib/tableHeroes';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCampaignBestiary } from '@/services/bestiaryService';
 import { campaignService } from '@/services/campaignService';
@@ -80,7 +81,13 @@ export function LiveSession() {
   const encId = s.encounter?.id;
   useEffect(() => {
     if (!id || !canPlay) return;
-    campaignService.sharedSheets(id).then(setHeroes).catch(() => undefined);
+    campaignService
+      .sharedSheets(id)
+      .then((list) => {
+        setHeroes(list);
+        setTableHeroes(list); // arte dos heróis para o crítico cinematográfico
+      })
+      .catch(() => undefined);
   }, [id, canPlay, encId, s.session?.id]);
 
   // começou o combate com a trilha tocando → música de batalha

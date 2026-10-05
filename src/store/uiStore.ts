@@ -17,6 +17,16 @@ export type RollMode = 'normal' | 'advantage' | 'disadvantage';
 /** Tours guiados: a ficha e a criação de personagem. */
 export type TourId = 'sheet' | 'creator';
 
+/** Crítico cinematográfico na tela (quem rolou e o quê). */
+export interface Cinematic {
+  kind: 'crit' | 'fumble';
+  sheetId: string | null;
+  /** Nome de quem rolou (rolagem de outro jogador). */
+  name?: string;
+  label?: string;
+  at?: number;
+}
+
 interface UiState {
   theme: ThemeName;
   toggleTheme: () => void;
@@ -33,6 +43,13 @@ interface UiState {
   /** Dados 3D com física no lugar do dado 2D do overlay. */
   dice3d: boolean;
   toggleDice3d: () => void;
+  /** Crítico cinematográfico: 20 natural em tela cheia, 1 natural com tropeço. */
+  cinematics: boolean;
+  toggleCinematics: () => void;
+  /** Momento em tela cheia agora (efêmero). */
+  cinematic: Cinematic | null;
+  showCinematic: (c: Cinematic) => void;
+  clearCinematic: () => void;
   /** Pacotes de conteúdo ligados (Xanathar, Tasha, raças extras). */
   packs: Record<PackId, boolean>;
   togglePack: (id: PackId) => void;
@@ -184,6 +201,18 @@ export const useUiStore = create<UiState>()(
         set((s) => ({ dice3d: !s.dice3d }));
       },
 
+      cinematics: true,
+      toggleCinematics() {
+        set((s) => ({ cinematics: !s.cinematics, cinematic: null }));
+      },
+      cinematic: null,
+      showCinematic(c) {
+        if (get().cinematics) set({ cinematic: { ...c, at: Date.now() } });
+      },
+      clearCinematic() {
+        set({ cinematic: null });
+      },
+
       packs: { xge: false, tce: false, races: false },
       togglePack(id) {
         set((s) => ({ packs: { ...s.packs, [id]: !s.packs[id] } }));
@@ -263,6 +292,8 @@ export const useUiStore = create<UiState>()(
       pushRoll(roll) {
         const r = roll.charId || !get().activeCharId ? roll : { ...roll, charId: get().activeCharId! };
         set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, HISTORY_MAX) }));
+        // 20 / 1 natural no d20 da ficha: momento em tela cheia
+        if (r.charId && !r.ally && !r.damage && r.sides === 20 && (r.crit || r.fail)) get().showCinematic({ kind: r.crit ? 'crit' : 'fumble', sheetId: r.charId, label: r.label });
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);
@@ -281,7 +312,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics }),
     },
   ),
 );

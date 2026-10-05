@@ -2,12 +2,13 @@ import type { Character } from '@/types/character';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { useCharacterStore } from '@/store/characterStore';
-import { useDiceRoller } from '@/components/dice/useDiceRoller';
+import { useUiStore } from '@/store/uiStore';
 import { companionOf } from '@/engine/companion';
 import { COMPANION_BEASTS } from '@/data/beasts';
 import { calcLore, passiveLore } from '@/lib/lore';
-import { modStr } from '@/engine/dice';
-import { damageExpr } from '@/engine/combat';
+import { modStr, rollCheck } from '@/engine/dice';
+import type { RollResult } from '@/engine/dice';
+import { damageExpr, rollAttack, rollDamage } from '@/engine/combat';
 import { ABILITY_SHORT } from '@/data/skills';
 import { ABILITY_KEYS } from '@/types/dnd';
 
@@ -17,10 +18,17 @@ import { ABILITY_KEYS } from '@/types/dnd';
  */
 export function CompanionPanel({ char }: { char: Character }) {
   const store = useCharacterStore();
-  const { attack, damage, check } = useDiceRoller();
+  const pushRoll = useUiStore((s) => s.pushRoll);
+  const mode = useUiStore((s) => s.rollMode);
   const comp = companionOf(char);
   if (!comp) return null;
   const { beast } = comp;
+  // rolagem da fera: vai para o histórico da ficha, mas não conta como crítico do herói
+  const flags = { advantage: mode === 'advantage', disadvantage: mode === 'disadvantage' };
+  const asAlly = (r: RollResult) => pushRoll({ ...r, ally: comp.name });
+  const check = (label: string, mod: number) => asAlly(rollCheck(label, mod, flags));
+  const attack = (atk: (typeof comp.attacks)[number]) => asAlly(rollAttack(atk, flags));
+  const damage = (atk: (typeof comp.attacks)[number]) => asAlly(rollDamage(atk));
 
   const setHp = (hp: number) => store.editCharacter(char.id, { companion: { ...char.companion, hpCurrent: Math.max(0, Math.min(comp.maxHp, hp)) } });
   const pct = comp.maxHp ? comp.hp / comp.maxHp : 0;

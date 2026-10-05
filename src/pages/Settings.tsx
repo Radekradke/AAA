@@ -56,6 +56,8 @@ export function Settings() {
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
   const dice3d = useUiStore((s) => s.dice3d);
+  const cinematics = useUiStore((s) => s.cinematics);
+  const toggleCinematics = useUiStore((s) => s.toggleCinematics);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
@@ -136,6 +138,9 @@ export function Settings() {
           <h2 id="cfg-dados-t">Dados</h2>
           <Row title="Dados 3D" hint="Dados com física rolando pela tela. Desligado, aparece um dado 2D mais leve (bom para celulares antigos).">
             <Switch on={dice3d} label="Dados 3D" onToggle={toggleDice3d} />
+          </Row>
+          <Row title="Crítico cinematográfico" hint="No 20 natural, um momento em tela cheia com a arte do herói; no 1, um tropeço com humor. Na mesa ao vivo aparece para todos.">
+            <Switch on={cinematics} label="Crítico cinematográfico" onToggle={toggleCinematics} />
           </Row>
           <Row title="Histórico de rolagens" hint={`${historyCount} rolagem(ns) guardada(s) neste aparelho.`}>
             <button

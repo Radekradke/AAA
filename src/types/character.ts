@@ -97,6 +97,22 @@ export interface ToolProf {
   notes?: string;
 }
 
+/** Companheiro, montaria ou familiar do herói (base do catálogo ou livre). */
+export interface Ally {
+  id: string;
+  kind: 'companheiro' | 'montaria' | 'familiar';
+  name: string;
+  /** Fera de base (data/beasts); sem base = criatura livre (homebrew). */
+  beastId?: string | null;
+  portrait?: string | null;
+  hpCurrent?: number;
+  /** Ajustes livres (sobrepõem a base). */
+  hpMax?: number;
+  ac?: number;
+  speed?: string;
+  notes?: string;
+}
+
 export interface EquippedSlots {
   armor: string | null;
   shield: string | null;
@@ -260,7 +276,9 @@ export interface Character {
    */
   choices?: Record<string, string[]>;
   /** Companheiro de Patrulheiro (Mestre das Feras): nome e PV atuais. A fera vem de `choices['ranger.companion']`. */
-  companion?: { name?: string; hpCurrent?: number };
+  companion?: { name?: string; hpCurrent?: number; portrait?: string | null };
+  /** Companheiros, montarias e familiares (qualquer herói), com carta e retrato próprios. */
+  allies?: Ally[];
   /** Trocas de magia conhecida disponíveis (1 por nível ganho em classe de magias conhecidas). */
   spellSwaps?: number;
   /** Mago: magias copiadas para o grimório pagando ouro (não gastam as grátis do nível). */

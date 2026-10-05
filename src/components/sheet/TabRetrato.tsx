@@ -16,6 +16,8 @@ import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from '@/components/character/creatorUi';
 import { useDialogFocus } from '@/lib/useDialogFocus';
+import { tiltHandlers } from '@/lib/tilt';
+import { AlliesSection } from './RetratoAllies';
 import { CARD_TIERS, cardTier } from '@/engine/deeds';
 import { CardScars, CardSeals, DeedsSection, ScarsSection } from './RetratoDeeds';
 import '@/styles/retrato.css';
@@ -71,21 +73,7 @@ export function TabRetrato({ char, derived }: TabProps) {
   const story = (char.notes ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
   // mesma inclinação + reflexo da carta da criação, um pouco mais funda
-  const onTilt = (e: React.PointerEvent<HTMLElement>) => {
-    if (e.pointerType === 'touch') return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width;
-    const y = (e.clientY - r.top) / r.height;
-    const el = e.currentTarget.style;
-    el.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
-    el.setProperty('--my', `${(y * 100).toFixed(1)}%`);
-    el.setProperty('--rx', `${((0.5 - y) * 9).toFixed(2)}deg`);
-    el.setProperty('--ry', `${((x - 0.5) * 11).toFixed(2)}deg`);
-    el.setProperty('--hue', `${Math.round(x * 220 + y * 140)}deg`);
-  };
-  const offTilt = (e: React.PointerEvent<HTMLElement>) => {
-    for (const v of ['--mx', '--my', '--rx', '--ry', '--hue']) e.currentTarget.style.removeProperty(v);
-  };
+  const tilt = tiltHandlers();
 
   const stats: [string, string][] = [
     ['PV', String(derived.maxHp)],
@@ -100,7 +88,7 @@ export function TabRetrato({ char, derived }: TabProps) {
   return (
     <section className="fv-vitrine" aria-label="Retrato do herói" style={{ '--race-color': race.jewel, '--class-color': cls.jewel } as CSSProperties}>
       <div className="fv-vitrine-stage">
-        <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} onPointerMove={onTilt} onPointerLeave={offTilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
+        <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} {...tilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
           <img src={art} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
           <span className="fv-vitrine-foil" aria-hidden />
           <span className="fv-hero-sheen" aria-hidden />
@@ -129,6 +117,7 @@ export function TabRetrato({ char, derived }: TabProps) {
           </span>
         </button>
         <p className="fv-vitrine-hint">Toque na arte para vê-la em tela cheia</p>
+        <AlliesSection char={char} />
       </div>
 
       <div className="fv-vitrine-info">
