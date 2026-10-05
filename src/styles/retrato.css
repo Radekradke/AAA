@@ -927,6 +927,11 @@
   align-items: center;
   gap: 10px;
 }
+.fv-ally-sheet-card .fv-portrait-picker.is-chip {
+  position: static;
+  justify-content: center;
+  max-width: 100%;
+}
 .fv-ally-card {
   --race-color: var(--ally-color);
   --class-color: var(--ally-color);
@@ -1133,6 +1138,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 36px;
+  padding: 7px 14px;
+  font-size: 14px;
 }
 .fv-ally-actions .is-danger {
   color: var(--danger);
@@ -1168,7 +1176,16 @@
 .fv-ally-editor-foot {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
+}
+.fv-ally-editor-foot .fv-btn-gold {
+  min-height: 40px;
+  padding: 0 20px;
+}
+.fv-ally-editor-foot .fv-btn-ghost {
+  min-height: 40px;
+  padding: 0 14px;
 }
 
 @media (max-width: 720px) {

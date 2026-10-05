@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Ally, Character } from '@/types/character';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { ABILITY_COLORS, ABILITY_SHORT } from '@/data/skills';
-import { getAllyBeast } from '@/data/beasts';
+import { getAllyBeast } from '@/data/allyBeasts';
 import { ALLY_KINDS, alliesOf, beastsFor, damageText } from '@/engine/allies';
 import type { AllyAttack, AllyView } from '@/engine/allies';
 import { modStr, roll } from '@/engine/dice';

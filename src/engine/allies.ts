@@ -1,7 +1,8 @@
 import type { Ally, Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
-import { COMPANION_BEASTS, FAMILIARS, MOUNTS, getAllyBeast } from '@/data/beasts';
+import { COMPANION_BEASTS } from '@/data/beasts';
+import { FAMILIARS, MOUNTS, getAllyBeast } from '@/data/allyBeasts';
 import type { Beast } from '@/data/beasts';
 import { abilityModifier } from './modifiers';
 import { companionOf } from './companion';

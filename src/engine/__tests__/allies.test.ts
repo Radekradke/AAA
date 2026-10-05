@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { allyView, alliesOf, beastsFor, damageText } from '../allies';
-import { getAllyBeast } from '@/data/beasts';
+import { getAllyBeast } from '@/data/allyBeasts';
 import type { Character } from '@/types/character';
 
 function at(classId: string, level: number, patch: Partial<Character> = {}): Character {
