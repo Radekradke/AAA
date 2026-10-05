@@ -30,9 +30,9 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, active: boole
       if (stack[stack.length - 1] !== el) return;
       if (e.key === 'Escape') {
         if (!escRef.current) return;
-        // busca com a lista aberta: o Esc fecha só a lista (o campo cuida disso)
+        // campo que pediu (data-esc-list) com a lista aberta: o Esc fecha só a lista
         const t = e.target as HTMLElement | null;
-        if (t?.getAttribute?.('role') === 'combobox' && t.getAttribute('aria-expanded') === 'true') return;
+        if (t?.hasAttribute?.('data-esc-list') && t.getAttribute('aria-expanded') === 'true') return;
         e.preventDefault();
         e.stopPropagation(); // não chega aos atalhos da página (ex.: sair da tela cheia)
         escRef.current();

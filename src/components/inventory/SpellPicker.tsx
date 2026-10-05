@@ -74,6 +74,7 @@ export function SpellPicker({ value, onChange, label = 'Magia', labelStyle }: { 
           id={id}
           className="fv-input"
           role="combobox"
+          data-esc-list
           aria-expanded={open}
           aria-controls={listId}
           aria-autocomplete="list"
