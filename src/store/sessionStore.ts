@@ -551,7 +551,7 @@ useUiStore.subscribe((s, prev) => {
     .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
       // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
-      sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage,
+      sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
     }, st.rollVisibility)
     .catch(() => undefined);
 });

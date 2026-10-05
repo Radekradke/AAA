@@ -293,7 +293,7 @@ export const useUiStore = create<UiState>()(
         const r = roll.charId || !get().activeCharId ? roll : { ...roll, charId: get().activeCharId! };
         set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, HISTORY_MAX) }));
         // 20 / 1 natural no d20 da ficha: momento em tela cheia
-        if (r.charId && !r.damage && r.sides === 20 && (r.crit || r.fail)) get().showCinematic({ kind: r.crit ? 'crit' : 'fumble', sheetId: r.charId, label: r.label });
+        if (r.charId && !r.ally && !r.damage && r.sides === 20 && (r.crit || r.fail)) get().showCinematic({ kind: r.crit ? 'crit' : 'fumble', sheetId: r.charId, label: r.label });
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);

@@ -776,3 +776,421 @@
     display: none;
   }
 }
+
+/* ===== Companheiros, montarias e familiares: a mesma carta, em miniatura ===== */
+.fv-allies {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.fv-allies-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fv-allies-head h3 {
+  flex: 1;
+  margin: 0;
+  font: 700 12px var(--font-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.fv-allies-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.fv-allies-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-allies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* tom de cada tipo: fera (verde), montaria (âmbar), familiar (violeta) */
+.fv-ally-mini,
+.fv-ally-card {
+  --ally-color: #6fbf73;
+}
+.fv-ally-mini.is-montaria,
+.fv-ally-card.is-montaria {
+  --ally-color: #e0a54a;
+}
+.fv-ally-mini.is-familiar,
+.fv-ally-card.is-familiar {
+  --ally-color: #a98be0;
+}
+.fv-ally-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px 7px 7px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--ally-color), transparent 55%);
+  background: color-mix(in srgb, var(--ally-color), var(--sunk) 90%);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.fv-ally-mini:hover {
+  transform: translateY(-1px);
+  border-color: var(--ally-color);
+}
+.fv-ally-mini:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.fv-ally-mini-art {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, #e9c46a, transparent 45%);
+  background: radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--ally-color), transparent 55%), transparent 75%), #07090d;
+}
+.fv-ally-mini-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fv-ally-mini-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.fv-ally-mini-txt small {
+  font: 700 10px var(--font-num);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ally-color), var(--ink) 35%);
+}
+.fv-ally-mini-txt b {
+  font: 700 15px / 1.15 var(--font-display);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-ally-bar {
+  display: block;
+  height: 4px;
+  margin-top: 3px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--ink), transparent 85%);
+  overflow: hidden;
+}
+.fv-ally-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #5fbf6a;
+  transition: width 0.3s ease;
+}
+
+/* emblema de fera quando não há retrato */
+.fv-ally-emblem {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--ally-color), #fff 25%);
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--ally-color), transparent 40%));
+}
+
+/* ---- ficha do aliado (modal) ---- */
+.fv-ally-sheet {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 28px);
+  align-items: start;
+}
+.fv-ally-sheet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.fv-ally-card {
+  --race-color: var(--ally-color);
+  --class-color: var(--ally-color);
+  cursor: default;
+}
+.fv-ally-card .fv-vitrine-caption b {
+  font-size: clamp(20px, 2.2vw, 26px);
+}
+.fv-ally-card .fv-vitrine-level {
+  font-size: 18px;
+}
+.fv-ally-sheet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.fv-ally-line {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.fv-ally-stats {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 8px;
+}
+.fv-ally-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 9px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  text-align: center;
+}
+.fv-ally-stats b {
+  font: 800 24px / 1 var(--font-num);
+  color: var(--ink);
+}
+.fv-ally-stats b.is-low {
+  color: var(--danger);
+}
+.fv-ally-stats b small {
+  font-size: 0.55em;
+  color: var(--muted);
+}
+.fv-ally-stats span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-ally-stats .fv-ally-speed {
+  font-size: 14px;
+  line-height: 1.25;
+}
+.fv-ally-hp .fv-ally-bar {
+  width: 100%;
+  margin: 2px 0 0;
+}
+.fv-ally-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fv-ally-hp-row button {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel, transparent);
+  color: var(--ink);
+  font: 700 18px / 1 var(--font-num);
+  cursor: pointer;
+}
+.fv-ally-hp-row button:hover {
+  border-color: var(--gold);
+}
+.fv-ally-abils {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.fv-ally-abils button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 2px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--abil-color), transparent 65%);
+  border-top: 3px solid var(--abil-color);
+  background: color-mix(in srgb, var(--abil-color), transparent 92%);
+  color: var(--ink);
+  cursor: pointer;
+}
+.fv-ally-abils button:hover {
+  border-color: var(--abil-color);
+}
+.fv-ally-abils span {
+  font: 700 10px var(--font-num);
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--abil-color), var(--ink) 30%);
+}
+.fv-ally-abils b {
+  font: 800 20px / 1 var(--font-num);
+}
+.fv-ally-abils small {
+  font: 700 12px var(--font-num);
+  color: var(--muted);
+}
+.fv-ally-attacks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-ally-attacks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-ally-attacks li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.fv-ally-attacks b {
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.fv-ally-attacks small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-ally-hit,
+.fv-ally-dmg {
+  flex: none;
+  min-width: 52px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font: 800 14px var(--font-num);
+  cursor: pointer;
+}
+.fv-ally-hit {
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+  color: var(--ink);
+}
+.fv-ally-dmg {
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 50%);
+  background: color-mix(in srgb, var(--danger), transparent 90%);
+  color: var(--ink);
+}
+.fv-ally-dmg.is-flat {
+  display: inline-grid;
+  place-items: center;
+  cursor: default;
+}
+.fv-ally-note,
+.fv-ally-notes {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-ally-notes {
+  padding: 8px 12px;
+  border-left: 3px solid var(--gold);
+  color: var(--ink);
+  white-space: pre-line;
+}
+.fv-ally-traits {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.fv-ally-traits b {
+  color: var(--gold);
+}
+.fv-ally-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fv-ally-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fv-ally-actions .is-danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger), transparent 55%);
+}
+
+/* ---- editor ---- */
+.fv-ally-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-ally-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.fv-ally-field > label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fv-ally-field select option,
+.fv-ally-field select optgroup {
+  color: #111;
+}
+.fv-ally-free {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 10px;
+}
+.fv-ally-editor-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .fv-ally-sheet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fv-ally-sheet-card .fv-ally-card {
+    max-width: 260px;
+  }
+}
+@media (max-width: 520px) {
+  .fv-ally-abils {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fv-ally-free {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-ally-mini,
+  .fv-ally-mini:hover {
+    transform: none;
+    transition: none;
+  }
+}

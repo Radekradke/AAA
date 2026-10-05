@@ -23,6 +23,9 @@ describe('feitos automáticos da ficha', () => {
     useUiStore.getState().pushRoll(d20(1, hero.id));
     useUiStore.getState().pushRoll(d20(12, hero.id));
     useUiStore.getState().pushRoll({ ...d20(20, hero.id), damage: true, sides: 8 }); // dano não conta
+    useUiStore.getState().clearCinematic();
+    useUiStore.getState().pushRoll({ ...d20(20, hero.id), ally: 'Trovão' }); // 20 da montaria não é do herói
+    expect(useUiStore.getState().cinematic).toBeNull();
     expect(get().deeds?.counts).toMatchObject({ crits: 1, fumbles: 1 });
     expect(get().deeds?.unlocked['crit-1']).toBeTruthy();
   });

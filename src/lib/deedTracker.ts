@@ -39,7 +39,7 @@ export function startDeedTracker(): void {
 
   useUiStore.subscribe((s, prev) => {
     const r = s.history[0];
-    if (!r || r === prev.history[0] || !r.charId || r.damage || r.sides !== 20) return;
+    if (!r || r === prev.history[0] || !r.charId || r.ally || r.damage || r.sides !== 20) return;
     if (Date.now() - r.timestamp > 5000) return; // histórico hidratado, não é rolagem nova
     const store = useCharacterStore.getState();
     if (!store.getCharacter(r.charId)) return;

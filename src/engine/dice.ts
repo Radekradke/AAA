@@ -26,6 +26,8 @@ export interface RollResult {
   timestamp: number;
   /** Personagem que rolou (histórico por ficha). */
   charId?: string;
+  /** Rolou o companheiro/montaria (nome): não conta como crítico do herói. */
+  ally?: string;
 }
 
 let _seq = 0;
