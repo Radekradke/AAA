@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import type { KillBy } from '@/store/sessionStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { eventText as text } from '@/lib/combatLog';
 import type { Combatant, SessionEvent } from '@/types/session';
@@ -10,7 +11,7 @@ const ChronicleModal = lazy(() => import('./ChronicleModal').then((m) => ({ defa
  * mestre, rolagem de dano de qualquer pessoa ganha "aplicar em…": um toque
  * e o PV do alvo cai. "Exportar" gera a crônica inteira em Markdown.
  */
-export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]; targets?: Combatant[]; onApply?: (c: Combatant, amount: number, by: { sheetId: string; name: string } | null) => void }) {
+export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]; targets?: Combatant[]; onApply?: (c: Combatant, amount: number, by: KillBy | null) => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const [done, setDone] = useState<Record<string, string>>({});
   const [exporting, setExporting] = useState(false);
@@ -35,7 +36,7 @@ export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]
       )}
       <ul className="fv-live-feed">
         {recent.map((e) => {
-          const p = e.payload as { crit?: boolean; damage?: boolean; total?: number; sheetId?: string | null; who?: string };
+          const p = e.payload as { crit?: boolean; damage?: boolean; total?: number; sheetId?: string | null; who?: string; cantrip?: boolean };
           const canApply = !!onApply && !!targets?.length && e.type === 'roll' && p.damage && typeof p.total === 'number';
           return (
             <li key={e.id} className={`is-${e.type.split('_')[0]}` + (e.visibility !== 'public' ? ' is-secret' : '') + (p.crit ? ' is-crit' : '')}>
@@ -57,7 +58,7 @@ export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]
                       type="button"
                       onClick={() => {
                         // quem rolou leva o golpe final se a criatura cair
-                        onApply!(c, p.total!, p.sheetId ? { sheetId: p.sheetId, name: p.who ?? 'Herói' } : null);
+                        onApply!(c, p.total!, p.sheetId ? { sheetId: p.sheetId, name: p.who ?? 'Herói', cantrip: p.cantrip === true } : null);
                         setDone((d) => ({ ...d, [e.id]: c.name }));
                         setOpen(null);
                       }}

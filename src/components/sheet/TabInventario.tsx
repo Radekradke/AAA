@@ -29,6 +29,19 @@ import type { InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { itemLore } from '@/lib/lore';
+import type { LoreInfo } from '@/lib/lore';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+
+/** Arte do item: menor que um retrato (fica salva na ficha). */
+const ITEM_ART_MAX = { w: 480, h: 600 };
+
+/** Detalhes do item + a carta com a arte (quando o jogador enviou uma). */
+function itemInfo(it: InventoryItem): LoreInfo {
+  const lore = itemLore(it);
+  // categoria e raridade com o nome em português (não o código interno)
+  const tags = lore.tags?.map((t, i) => (i === 0 ? CATEGORY_LABEL[t] ?? t : i === 1 ? RARITY[t]?.label ?? t : t));
+  return { ...lore, tags, ...(it.image ? { art: { src: it.image, rarity: it.rarity } } : {}) };
+}
 import { useInk } from '@/lib/contrast';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
@@ -235,7 +248,7 @@ export function TabInventario({ char, derived }: TabProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {attuneItems.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum item que exija sintonia na mochila.</div>}
           {attuneItems.map((it) => (
-            <LoreTooltip key={it.uid} info={itemLore(it)} anchorStyle={{ display: 'block' }}>
+            <LoreTooltip key={it.uid} info={itemInfo(it)} anchorStyle={{ display: 'block' }}>
               <button
                 onClick={() => store.toggleAttune(char.id, it.uid)}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
@@ -361,6 +374,7 @@ export function TabInventario({ char, derived }: TabProps) {
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
                         onDrink={healOf(it) ? () => drink(it) : undefined}
+                        onArt={(img) => store.updateInventoryItem(char.id, it.uid, { image: img })}
                       />
                     )}
                   </DraggableItem>
@@ -524,7 +538,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onArt }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -540,6 +554,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onRemove: () => void;
   /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
   onDrink?: () => void;
+  /** Arte do item (carta ao lado dos detalhes). */
+  onArt: (img: string | null) => void;
 }) {
   const t = useTheme();
   const ink = useInk();
@@ -549,7 +565,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   const borderColor = equipped ? t.gold : it.favorite ? hexA(t.gold, 0.55) : hexA(rc.color, big ? 0.5 : 0.18);
 
   return (
-    <LoreTooltip info={itemLore(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
+    <LoreTooltip info={itemInfo(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
       <div
         style={{
           position: 'relative',
@@ -591,7 +607,12 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* miniatura da carta: envia/troca a arte do item */}
+          <span className={'fv-item-thumb' + (it.image ? ' has-art' : '')} style={{ borderColor: hexA(rc.color, big ? 0.7 : 0.35) }}>
+            {it.image ? <img src={it.image} alt="" /> : <Icon name={icon} size={16} />}
+            <PortraitPicker variant="badge" portrait={it.image} onChange={onArt} max={ITEM_ART_MAX} labels={{ add: `Enviar arte de ${it.name}`, change: `Trocar arte de ${it.name}` }} />
+          </span>
           <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
             {it.name}
           </div>

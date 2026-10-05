@@ -52,6 +52,7 @@ export function customInventoryItem(partial: Partial<InventoryItem> & { name: st
     magic: partial.magic,
     grantsSpells: partial.grantsSpells,
     wear: partial.wear,
+    image: partial.image ?? undefined,
     worn: partial.wear === 'worn' ? (partial.worn ?? false) : undefined,
     homebrew: true,
   };

@@ -86,6 +86,8 @@ export interface CharacterState {
   setDeeds: (id: string, deeds: import('@/engine/deeds').HeroDeeds) => void;
   addScar: (id: string, scar: Omit<import('@/engine/deeds').Scar, 'id'> & { id?: string }) => void;
   removeScar: (id: string, scarId: string) => void;
+  /** Sessão da mesa ao vivo jogada com esta ficha (linha da jornada). */
+  recordSession: (id: string, session: { id: string; name: string; at: string }) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
   forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */

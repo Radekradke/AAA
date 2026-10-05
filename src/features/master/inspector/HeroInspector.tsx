@@ -7,6 +7,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useMaster } from '../context';
 import { useMasterStore } from '../masterStore';
 import { HpControl } from './CombatantInspector';
+import { heroTitle } from '@/engine/deeds';
 
 /** Resumo da ficha vinculada (snapshot que o jogador sincronizou). */
 export function HeroSummary({ sheetId }: { sheetId: string }) {
@@ -75,6 +76,7 @@ export function HeroInspector({ sheetId }: { sheetId: string }) {
       <header className="fv-ins-head">
         <small>Herói{snap ? ` · nível ${snap.level}` : ''}</small>
         <h3>{snap?.name ?? 'Herói'}</h3>
+        {snap && heroTitle(snap) && <p className="fv-ins-title">{heroTitle(snap)}</p>}
         {snap && <p className="fv-ins-line">{heroSubtitle(snap)}</p>}
       </header>
       {inFight ? (

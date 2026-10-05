@@ -28,6 +28,10 @@ export interface RollResult {
   charId?: string;
   /** Rolou o companheiro/montaria (nome): não conta como crítico do herói. */
   ally?: string;
+  /** Dano de truque (feito "Truque mortal" no golpe final). */
+  cantrip?: boolean;
+  /** Teste contra a morte (feito do 20 natural). */
+  deathSave?: boolean;
 }
 
 let _seq = 0;
@@ -53,6 +57,8 @@ export interface RollOptions {
   disadvantage?: boolean;
   /** Menor natural do d20 que conta como crítico (padrão 20; Campeão reduz). */
   critMin?: number;
+  cantrip?: boolean;
+  deathSave?: boolean;
 }
 
 /** Rola `count`d`sides` + modificador, com opção de vantagem/desvantagem (apenas 1d20). */
@@ -97,6 +103,8 @@ export function roll(sides: number, options: RollOptions = {}): RollResult {
     fail,
     damage,
     timestamp: Date.now(),
+    ...(options.cantrip && { cantrip: true }),
+    ...(options.deathSave && { deathSave: true }),
   };
 }
 

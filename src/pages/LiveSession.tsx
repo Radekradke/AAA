@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import { useAuthStore } from '@/store/authStore';
 import { setTableHeroes } from '@/lib/tableHeroes';
+import { useCharacterStore } from '@/store/characterStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCampaignBestiary } from '@/services/bestiaryService';
 import { campaignService } from '@/services/campaignService';
@@ -89,6 +90,14 @@ export function LiveSession() {
       })
       .catch(() => undefined);
   }, [id, canPlay, encId, s.session?.id]);
+
+  // jogador numa sessão ativa: entra na linha da jornada da ficha (uma vez por sessão)
+  const sessionId = s.session?.status === 'active' ? s.session.id : null;
+  const mySheet = s.me && !s.me.isMaster ? s.me.characterId : null;
+  useEffect(() => {
+    if (!sessionId || !mySheet || !s.session) return;
+    useCharacterStore.getState().recordSession(mySheet, { id: sessionId, name: s.session.name, at: new Date().toISOString() });
+  }, [sessionId, mySheet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // começou o combate com a trilha tocando → música de batalha
   const combatOn = s.encounter?.status === 'active';

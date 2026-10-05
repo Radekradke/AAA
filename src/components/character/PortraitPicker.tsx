@@ -8,13 +8,17 @@ interface PortraitPickerProps {
   onChange: (dataUrl: string | null) => void;
   /** 'chip' (sobre o retrato grande) ou 'badge' (bolinha sobre o avatar redondo da ficha). */
   variant?: 'chip' | 'badge';
+  /** Tamanho máximo da imagem salva (itens usam menor que retratos). */
+  max?: { w: number; h: number };
+  /** Rótulos do botão (padrão: arte do personagem). */
+  labels?: { add: string; change: string };
 }
 
 /**
  * "Sua arte": o jogador envia a imagem do próprio personagem. Ela é reduzida,
  * tem o fundo branco liso recortado (quando houver) e fica salva na ficha.
  */
-export function PortraitPicker({ portrait, onChange, variant = 'chip' }: PortraitPickerProps) {
+export function PortraitPicker({ portrait, onChange, variant = 'chip', max, labels }: PortraitPickerProps) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
@@ -30,7 +34,7 @@ export function PortraitPicker({ portrait, onChange, variant = 'chip' }: Portrai
     setBusy(true);
     setMsg(null);
     try {
-      const r = await processPortraitFile(file);
+      const r = await processPortraitFile(file, max ? { max } : {});
       onChange(r.dataUrl);
       setMsg({ text: r.cutout ? 'Arte aplicada · fundo recortado' : 'Arte aplicada' });
     } catch (e) {
@@ -42,14 +46,14 @@ export function PortraitPicker({ portrait, onChange, variant = 'chip' }: Portrai
   };
 
   const open = () => input.current?.click();
-  const label = busy ? 'Processando…' : portrait ? 'Trocar arte' : 'Sua arte';
+  const label = busy ? 'Processando…' : portrait ? labels?.change ?? 'Trocar arte' : labels?.add ?? 'Sua arte';
 
   return (
     <div className={'fv-portrait-picker is-' + variant}>
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => pick(e.target.files?.[0])} />
       {variant === 'badge' ? (
         <>
-          <button type="button" className="fv-portrait-badge" onClick={open} disabled={busy} aria-label={portrait ? 'Trocar a arte do personagem' : 'Enviar a arte do personagem'} title={portrait ? 'Trocar arte' : 'Enviar sua arte'}>
+          <button type="button" className="fv-portrait-badge" onClick={open} disabled={busy} aria-label={portrait ? labels?.change ?? 'Trocar a arte do personagem' : labels?.add ?? 'Enviar a arte do personagem'} title={portrait ? labels?.change ?? 'Trocar arte' : labels?.add ?? 'Enviar sua arte'}>
             <Icon name="image" size={14} />
           </button>
           {portrait && !busy && (
