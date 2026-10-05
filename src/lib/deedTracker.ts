@@ -1,0 +1,68 @@
+import { useUiStore } from '@/store/uiStore';
+import { useCharacterStore } from '@/store/characterStore';
+import { toast } from '@/store/feedbackStore';
+import { addDeed, DEED_KINDS } from '@/engine/deeds';
+import type { DeedDef, DeedKind } from '@/engine/deeds';
+
+/** Aviso de selo novo na carta do herói. */
+export function announceDeeds(fresh: DeedDef[]): void {
+  for (const d of fresh) toast(`Feito conquistado: ${d.name}! — ${d.desc}`, { tone: 'ok', ms: 6500 });
+}
+
+/** Soma um contador na ficha e devolve os selos recém-conquistados. */
+export function recordDeed(id: string, kind: DeedKind, by = 1): DeedDef[] {
+  const store = useCharacterStore.getState();
+  const char = store.getCharacter(id);
+  if (!char || !by) return [];
+  const res = addDeed(char.deeds, kind, by);
+  store.setDeeds(id, res.deeds);
+  return res.unlocked;
+}
+
+/** Evento do mestre (golpe final): soma cada contador válido e avisa os selos. */
+export function applyDeedKinds(sheetId: string, kinds: string[]): void {
+  const valid = kinds.filter((k): k is DeedKind => DEED_KINDS.includes(k as DeedKind));
+  announceDeeds(valid.flatMap((k) => recordDeed(sheetId, k)));
+}
+
+let started = false;
+
+/**
+ * Feitos automáticos da própria ficha (rodam em qualquer tela):
+ * - 20 / 1 natural no d20 (rolagens com a ficha);
+ * - caiu a 0 PV / voltou de 0 PV.
+ * O golpe final vem do mestre (evento hero_deed, em sessionStore).
+ */
+export function startDeedTracker(): void {
+  if (started) return;
+  started = true;
+
+  useUiStore.subscribe((s, prev) => {
+    const r = s.history[0];
+    if (!r || r === prev.history[0] || !r.charId || r.damage || r.sides !== 20) return;
+    if (Date.now() - r.timestamp > 5000) return; // histórico hidratado, não é rolagem nova
+    const store = useCharacterStore.getState();
+    if (!store.getCharacter(r.charId)) return;
+    if (r.crit) announceDeeds(recordDeed(r.charId, 'crits'));
+    else if (r.fail) announceDeeds(recordDeed(r.charId, 'fumbles'));
+  });
+
+  // PV de cada ficha visto por último (só conta a partir da segunda leitura)
+  const lastHp = new Map<string, number>();
+  for (const c of useCharacterStore.getState().characters) lastHp.set(c.id, c.hpCurrent);
+  useCharacterStore.subscribe((s) => {
+    const fresh: DeedDef[] = [];
+    const queue: [string, 'downs' | 'comebacks'][] = [];
+    for (const c of s.characters) {
+      if (c.draft) continue;
+      const before = lastHp.get(c.id);
+      lastHp.set(c.id, c.hpCurrent);
+      if (before === undefined || before === c.hpCurrent) continue;
+      if (before > 0 && c.hpCurrent === 0) queue.push([c.id, 'downs']);
+      else if (before === 0 && c.hpCurrent > 0) queue.push([c.id, 'comebacks']);
+    }
+    // fora do laço: recordDeed dispara esta assinatura de novo (sem mudança de PV)
+    for (const [id, kind] of queue) fresh.push(...recordDeed(id, kind));
+    announceDeeds(fresh);
+  });
+}

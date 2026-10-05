@@ -72,7 +72,7 @@ export function SessionPanel() {
           </div>
         </section>
         <SessionTrayView />
-        <EventFeed events={s.events} targets={s.combatants} onApply={(c, n) => void hpWithUndo(c, -n)} />
+        <EventFeed events={s.events} targets={s.combatants} onApply={(c, n, by) => void hpWithUndo(c, -n, { by })} />
       </div>
     );
   }

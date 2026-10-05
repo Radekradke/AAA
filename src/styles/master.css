@@ -909,3 +909,7 @@ body:has(.fv-mw.has-dock) .fv-toasts { bottom: calc(190px + env(safe-area-inset-
 @media (max-height: 780px) {
   .fv-mw-stage .fv-map-hint { display: none; }
 }
+.fv-ins-scar { display: flex; align-items: flex-end; gap: 6px; margin-top: 10px; }
+.fv-ins-scar label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-ins-scar small { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-ins-scar .fv-input { min-height: 34px; font-size: 13px; }

@@ -6,6 +6,7 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { campaignService } from '@/services/campaignService';
 import { TurnBanner } from './TurnBanner';
 import { TableRollToast } from './TableRollToast';
+import { KillCreditPrompt } from './KillCreditPrompt';
 import '@/styles/session.css';
 
 /**
@@ -53,6 +54,7 @@ export function SessionDock() {
     <>
       <TurnBanner />
       <TableRollToast />
+      <KillCreditPrompt />
       {!onLivePage && (
         <button type="button" className={'fv-live-dock' + (mine ? ' is-mine' : '')} onClick={() => nav(`/mesa/${campaignId}/jogar`)} title="Voltar para a mesa ao vivo">
           <i className={`fv-live-dot is-${connection}`} aria-hidden />

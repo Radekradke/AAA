@@ -245,6 +245,10 @@ export interface Character {
    * aplicarem o mesmo dano duas vezes.
    */
   appliedEvents?: string[];
+  /** Feitos da carta (contadores + quando cada selo foi conquistado). */
+  deeds?: import('@/engine/deeds').HeroDeeds;
+  /** Cicatrizes gravadas na carta (mestre ou jogador). */
+  scars?: import('@/engine/deeds').Scar[];
   /** Níveis por classe (pronto para multiclasse). */
   classLevels: { classId: string; level: number }[];
   subclassId: string | null;

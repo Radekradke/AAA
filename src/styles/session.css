@@ -1230,3 +1230,50 @@
 }
 .fv-chron-actions { flex: 1; display: flex; justify-content: flex-end; gap: 8px; }
 .fv-chron-actions > button { min-height: 42px; padding: 0 18px; font-size: 13.5px; }
+
+/* golpe final: o mestre escolhe quem derrubou a criatura */
+.fv-kill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 70;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 24px));
+  padding: 14px 16px;
+  animation: fv-kill-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-kill p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.fv-kill p b {
+  font-family: var(--font-display);
+  color: var(--danger);
+}
+.fv-kill-heroes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fv-kill-hero {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+@keyframes fv-kill-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-kill {
+    animation: none;
+  }
+}
+@media (max-width: 720px) {
+  .fv-kill {
+    bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+}

@@ -16,6 +16,8 @@ import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from '@/components/character/creatorUi';
 import { useDialogFocus } from '@/lib/useDialogFocus';
+import { CARD_TIERS, cardTier } from '@/engine/deeds';
+import { CardScars, CardSeals, DeedsSection, ScarsSection } from './RetratoDeeds';
 import '@/styles/retrato.css';
 
 /** Características que só repetem a regra (aparecem como aumentos/talentos). */
@@ -39,6 +41,7 @@ export function TabRetrato({ char, derived }: TabProps) {
   const art = heroAvatar(char);
   const name = char.name.trim() || 'Herói sem nome';
   const origin = sub && race.id !== 'dragonborn' ? sub.label : race.label;
+  const tier = cardTier(char.level);
 
   const features = useMemo(() => {
     const out: string[] = [];
@@ -97,10 +100,11 @@ export function TabRetrato({ char, derived }: TabProps) {
   return (
     <section className="fv-vitrine" aria-label="Retrato do herói" style={{ '--race-color': race.jewel, '--class-color': cls.jewel } as CSSProperties}>
       <div className="fv-vitrine-stage">
-        <button type="button" className="fv-vitrine-card" onPointerMove={onTilt} onPointerLeave={offTilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
+        <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} onPointerMove={onTilt} onPointerLeave={offTilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
           <img src={art} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
           <span className="fv-vitrine-foil" aria-hidden />
           <span className="fv-hero-sheen" aria-hidden />
+          <CardScars scars={char.scars} />
           <span className="fv-vitrine-frame" aria-hidden>
             <i />
             <i />
@@ -110,10 +114,12 @@ export function TabRetrato({ char, derived }: TabProps) {
           <span className="fv-vitrine-level" aria-hidden>
             <small>Nível</small>
             {char.level}
+            <em>{CARD_TIERS[tier].label}</em>
           </span>
           <span className="fv-vitrine-sigil" aria-hidden title={cls.label}>
             <Icon name={themedIcon('class', cls.id)} size={26} />
           </span>
+          <CardSeals char={char} />
           <span className="fv-vitrine-caption">
             <b>{name}</b>
             <span>
@@ -215,6 +221,9 @@ export function TabRetrato({ char, derived }: TabProps) {
             </ul>
           </Section>
         )}
+
+        <DeedsSection char={char} />
+        <ScarsSection char={char} />
 
         <Section title="Idiomas">
           <p className="fv-vitrine-text">{derived.languages.join(' · ') || '—'}</p>

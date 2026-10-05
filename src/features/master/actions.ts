@@ -17,7 +17,7 @@ import { MONSTER_BY_ID } from '@/data/bestiary';
  */
 const fresh = (id: string) => useSessionStore.getState().combatants.find((c) => c.id === id) ?? null;
 
-export async function hpWithUndo(c: Combatant, delta: number, opts?: { crit?: boolean }): Promise<void> {
+export async function hpWithUndo(c: Combatant, delta: number, opts?: { crit?: boolean; by?: { sheetId: string; name: string } | null }): Promise<void> {
   if (!delta) return;
   const s = useSessionStore.getState();
   await s.changeHp(c, delta, opts);

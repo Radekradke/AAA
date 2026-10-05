@@ -7,6 +7,7 @@ import { createDraftCharacter, finalizeCharacter, emptyCombat } from '@/engine/c
 import { deriveCharacter } from '@/engine/dndRules';
 import { ensureCharacterV2 } from '@/engine/levelUp';
 import type { CharacterState, Recipe } from './character/types';
+import { deedActions } from './character/deeds';
 import { newId } from './character/ids';
 import { combatActions } from './character/combat';
 import { inventoryActions } from './character/inventory';
@@ -132,6 +133,7 @@ export const useCharacterStore = create<CharacterState>()(
           return JSON.stringify(char, null, 2);
         },
         ...combatActions(ctx),
+        ...deedActions(ctx),
         ...inventoryActions(ctx),
         ...proficienciesActions(ctx),
         ...spellsActions(ctx),

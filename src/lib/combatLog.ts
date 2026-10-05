@@ -43,6 +43,8 @@ export function eventText(e: SessionEvent): string {
     case 'hero_condition': return `${s(p.name)} ${p.on ? 'ficou' : 'não está mais'} ${s(p.condition).toLowerCase()}`;
     case 'attack': return strikeText(p as unknown as StrikeLog);
     case 'hero_item': return `${s(p.name)} recebeu ${Number(p.quantity) > 1 ? `${p.quantity}× ` : ''}${s(p.item, 'um item')}`;
+    case 'hero_deed': return `${s(p.name, 'Um herói')} deu o golpe final em ${s(p.creature, 'uma criatura')}`;
+    case 'hero_scar': return `${s(p.name, 'Um herói')} ganhou uma cicatriz: ${s(p.text)}`;
     case 'xp_award': return `+${s(p.amount)} XP para ${((p.names as string[] | undefined) ?? []).join(', ')}${p.note ? ` — ${p.note}` : ''}`;
     default: return e.type.replace(/_/g, ' ');
   }

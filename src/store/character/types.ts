@@ -82,6 +82,10 @@ export interface CharacterState {
   addXp: (id: string, amount: number) => void;
   /** Marca uma ordem da mesa ao vivo como aplicada nesta ficha. */
   markEventApplied: (id: string, eventId: string) => void;
+  /** Grava os feitos já calculados (a conta fica em lib/deedTracker, carregado sob demanda). */
+  setDeeds: (id: string, deeds: import('@/engine/deeds').HeroDeeds) => void;
+  addScar: (id: string, scar: Omit<import('@/engine/deeds').Scar, 'id'> & { id?: string }) => void;
+  removeScar: (id: string, scarId: string) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
   forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */

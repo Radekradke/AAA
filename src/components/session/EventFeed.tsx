@@ -10,7 +10,7 @@ const ChronicleModal = lazy(() => import('./ChronicleModal').then((m) => ({ defa
  * mestre, rolagem de dano de qualquer pessoa ganha "aplicar em…": um toque
  * e o PV do alvo cai. "Exportar" gera a crônica inteira em Markdown.
  */
-export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]; targets?: Combatant[]; onApply?: (c: Combatant, amount: number) => void }) {
+export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]; targets?: Combatant[]; onApply?: (c: Combatant, amount: number, by: { sheetId: string; name: string } | null) => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const [done, setDone] = useState<Record<string, string>>({});
   const [exporting, setExporting] = useState(false);
@@ -35,7 +35,7 @@ export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]
       )}
       <ul className="fv-live-feed">
         {recent.map((e) => {
-          const p = e.payload as { crit?: boolean; damage?: boolean; total?: number };
+          const p = e.payload as { crit?: boolean; damage?: boolean; total?: number; sheetId?: string | null; who?: string };
           const canApply = !!onApply && !!targets?.length && e.type === 'roll' && p.damage && typeof p.total === 'number';
           return (
             <li key={e.id} className={`is-${e.type.split('_')[0]}` + (e.visibility !== 'public' ? ' is-secret' : '') + (p.crit ? ' is-crit' : '')}>
@@ -56,7 +56,8 @@ export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]
                       key={c.id}
                       type="button"
                       onClick={() => {
-                        onApply!(c, p.total!);
+                        // quem rolou leva o golpe final se a criatura cair
+                        onApply!(c, p.total!, p.sheetId ? { sheetId: p.sheetId, name: p.who ?? 'Herói' } : null);
                         setDone((d) => ({ ...d, [e.id]: c.name }));
                         setOpen(null);
                       }}

@@ -150,8 +150,39 @@ export function CombatantInspector({ c }: { c: Combatant }) {
           </button>
         ))}
       </div>
+      {c.type === 'player' && c.sheetId && <ScarForm sheetId={c.sheetId} heroName={c.name} />}
       {c.type === 'player' && c.sheetId && <HeroSummary sheetId={c.sheetId} />}
       {monster && <MonsterStatBlock m={monster} who={c.name} attacker={c} targets={s.combatants} />}
     </div>
+  );
+}
+
+/** Mestre grava uma cicatriz na carta do herói (vai com a data e a sessão). */
+function ScarForm({ sheetId, heroName }: { sheetId: string; heroName: string }) {
+  const send = useSessionStore((st) => st.sendHeroScar);
+  const [text, setText] = useState('');
+  const save = async () => {
+    const t = text.trim();
+    if (!t) return;
+    await send(sheetId, heroName, t);
+    setText('');
+    toast(`Cicatriz gravada na carta de ${heroName}.`, { tone: 'ok' });
+  };
+  return (
+    <form
+      className="fv-ins-scar"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void save();
+      }}
+    >
+      <label>
+        <small>Cicatriz na carta</small>
+        <input className="fv-input" value={text} maxLength={200} onChange={(e) => setText(e.target.value)} placeholder="Ex.: garra do dragão vermelho no ombro" />
+      </label>
+      <button type="submit" className="fv-btn-ghost fv-bs-mini" disabled={!text.trim()}>
+        Gravar
+      </button>
+    </form>
   );
 }
