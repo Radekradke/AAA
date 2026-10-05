@@ -174,7 +174,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
               <select className="fv-input" value={scene?.id ?? ''} onChange={(e) => st.viewScene(e.target.value || null)} aria-label="Cena no seu palco">
                 {!scene && <option value="">Escolha uma cena…</option>}
                 {st.scenes.map((s) => (
-                  <option key={s.id} value={s.id} style={{ color: '#111' }}>
+                  <option key={s.id} value={s.id}>
                     {s.id === live?.id ? '● ' : ''}{s.name} · {KIND_LABEL[s.kind]}
                   </option>
                 ))}

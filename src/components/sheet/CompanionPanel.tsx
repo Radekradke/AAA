@@ -53,7 +53,7 @@ export function CompanionPanel({ char }: { char: Character }) {
           onChange={(e) => store.editCharacter(char.id, { choices: { ...(char.choices ?? {}), 'ranger.companion': [e.target.value] }, companion: { ...char.companion, hpCurrent: undefined } })}
         >
           {COMPANION_BEASTS.map((b) => (
-            <option key={b.id} value={b.id} style={{ color: '#111' }}>{b.label}</option>
+            <option key={b.id} value={b.id}>{b.label}</option>
           ))}
         </select>
       </div>

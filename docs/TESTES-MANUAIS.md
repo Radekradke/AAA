@@ -218,3 +218,9 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 4. **Familiar** com base **Livre**: CA, PV máx. e deslocamento à mão; as anotações aparecem na ficha. **Editar** reabre com os valores; **Dispensar** pede confirmação.
 5. Patrulheiro **Mestre das Feras** nível 3+: o companheiro da classe já aparece primeiro na lista (CA e ataques com a proficiência somada), com retrato próprio; nome e fera continuam no painel de Combate.
 6. Celular: a carta fica em cima e a ficha embaixo; os atributos em 3 colunas.
+
+## 34. Forja: magia concedida com busca
+1. Inventário → **+ Outros** → **Magia concedida**: digite "raio" — aparece a lista filtrada (círculo, nome e escola), legível em qualquer tema claro ou escuro.
+2. Busca sem acento e por várias palavras ("bola fogo"), e pelo círculo ("3 bola", "truque luz").
+3. Setas ↑/↓ andam pela lista (ela rola junto), **Enter** escolhe, **Esc** fecha só a lista (a forja continua aberta). O ✕ tira a magia.
+4. Os demais seletores do app (Recarga, raças, feras…) mostram a lista com o fundo e o texto do tema — nada de texto escuro sobre fundo escuro.

@@ -114,7 +114,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
             {packs.tce && <button type="button" onClick={() => fromTemplate('tasha')} title="Caldeirão de Tasha — compatível com 2014">Linhagem Personalizada</button>}
             <select className="fv-input" defaultValue="" onChange={(e) => e.target.value && fromTemplate(e.target.value)} aria-label="Copiar uma raça do livro">
               <option value="">Copiar raça do livro…</option>
-              {RACES.map((x) => <option key={x.id} value={x.id} style={{ color: '#111' }}>{x.label}</option>)}
+              {RACES.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
             </select>
           </div>
         )}

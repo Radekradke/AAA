@@ -4,7 +4,7 @@ import type { AbilityKey, DamageType, MagicEffects, WeaponRange, WeaponType } fr
 import { ABILITY_KEYS } from '@/types/dnd';
 import { ABILITY_LABELS } from '@/data/skills';
 import { customInventoryItem } from '@/engine/inventory';
-import { SPELLS } from '@/data/spells';
+import { SpellPicker } from './SpellPicker';
 import { RARITY } from '@/data/themes';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -221,13 +221,13 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         <label>
           <span style={label}>Categoria</span>
           <select className="fv-input" value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label}</option>)}
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </label>
         <label>
           <span style={label}>Raridade</span>
           <select className="fv-input" value={rarity} onChange={(e) => setRarity(e.target.value)}>
-            {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id} style={{ color: '#111' }}>{r.label}</option>)}
+            {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
           </select>
         </label>
         <label>
@@ -255,30 +255,30 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
                 <input className="fv-input" value={dmgDice} onChange={(e) => setDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} />
                 <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={dmgDie} onChange={(e) => setDmgDie(e.target.value)} style={{ flex: 1 }}>
-                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                  {DICE.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </label>
             <label>
               <span style={label}>Tipo de dano</span>
               <select className="fv-input" value={dmgType} onChange={(e) => setDmgType(e.target.value as DamageType)}>
-                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
             <label>
               <span style={label}>Bônus mágico</span>
               <select className="fv-input" value={magicBonus} onChange={(e) => setMagicBonus(e.target.value)}>
-                <option value="0" style={{ color: '#111' }}>Comum (sem bônus)</option>
-                <option value="1" style={{ color: '#111' }}>+1 (acerto e dano)</option>
-                <option value="2" style={{ color: '#111' }}>+2 (acerto e dano)</option>
-                <option value="3" style={{ color: '#111' }}>+3 (acerto e dano)</option>
+                <option value="0">Comum (sem bônus)</option>
+                <option value="1">+1 (acerto e dano)</option>
+                <option value="2">+2 (acerto e dano)</option>
+                <option value="3">+3 (acerto e dano)</option>
               </select>
             </label>
             <label>
               <span style={label}>Alcance</span>
               <select className="fv-input" value={wpnRange} onChange={(e) => setWpnRange(e.target.value as WeaponRange)}>
-                <option value="melee" style={{ color: '#111' }}>Corpo a corpo</option>
-                <option value="ranged" style={{ color: '#111' }}>À distância</option>
+                <option value="melee">Corpo a corpo</option>
+                <option value="ranged">À distância</option>
               </select>
             </label>
             {wpnRange === 'ranged' && (
@@ -290,15 +290,15 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             <label>
               <span style={label}>Treinamento</span>
               <select className="fv-input" value={wpnType} onChange={(e) => setWpnType(e.target.value as WeaponType)}>
-                <option value="simple" style={{ color: '#111' }}>Simples</option>
-                <option value="martial" style={{ color: '#111' }}>Marcial</option>
+                <option value="simple">Simples</option>
+                <option value="martial">Marcial</option>
               </select>
             </label>
             <label>
               <span style={label}>Versátil (dado)</span>
               <select className="fv-input" value={versatile} onChange={(e) => setVersatile(e.target.value)}>
-                <option value="" style={{ color: '#111' }}>Não</option>
-                {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>d{d}</option>)}
+                <option value="">Não</option>
+                {DICE.map((d) => <option key={d} value={d}>d{d}</option>)}
               </select>
             </label>
             <CheckRow checked={finesse} onChange={setFinesse} text="Acuidade (usa DES)" />
@@ -312,14 +312,14 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
                 <input className="fv-input" value={bonusDmgDice} onChange={(e) => setBonusDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} title="0 = sem dano extra" />
                 <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={bonusDmgDie} onChange={(e) => setBonusDmgDie(e.target.value)} style={{ flex: 1 }} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
-                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                  {DICE.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </label>
             <label>
               <span style={label}>Tipo do dano extra</span>
               <select className="fv-input" value={bonusDmgType} onChange={(e) => setBonusDmgType(e.target.value as DamageType)} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
-                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
           </div>
@@ -346,9 +346,9 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             <label>
               <span style={label}>Categoria</span>
               <select className="fv-input" value={armorCat} onChange={(e) => setArmorCat(e.target.value as 'leve' | 'média' | 'pesada')}>
-                <option value="leve" style={{ color: '#111' }}>Leve</option>
-                <option value="média" style={{ color: '#111' }}>Média</option>
-                <option value="pesada" style={{ color: '#111' }}>Pesada</option>
+                <option value="leve">Leve</option>
+                <option value="média">Média</option>
+                <option value="pesada">Pesada</option>
               </select>
             </label>
             <label>
@@ -404,8 +404,8 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
               <span style={label}>Atributo vira</span>
               <div style={{ display: 'flex', gap: 6 }}>
                 <select className="fv-input" value={fxSetKey} onChange={(e) => setFxSetKey(e.target.value as AbilityKey | '')} style={{ flex: 1, minWidth: 0 }}>
-                  <option value="" style={{ color: '#111' }}>—</option>
-                  {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_LABELS[k]}</option>)}
+                  <option value="">—</option>
+                  {ABILITY_KEYS.map((k) => <option key={k} value={k}>{ABILITY_LABELS[k]}</option>)}
                 </select>
                 <input className="fv-input" value={fxSetVal} onChange={(e) => setFxSetVal(e.target.value)} inputMode="numeric" disabled={!fxSetKey} style={{ width: 56, textAlign: 'center' }} aria-label="Valor do atributo" />
               </div>
@@ -432,29 +432,17 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       <fieldset style={fieldsetStyle(t)}>
         <legend style={legendStyle(t)}>Magia concedida (opcional)</legend>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
-          <label style={{ gridColumn: '1 / -1' }}>
-            <span style={label}>Magia</span>
-            <select className="fv-input" value={grantSpell} onChange={(e) => setGrantSpell(e.target.value)}>
-              <option value="" style={{ color: '#111' }}>— nenhuma —</option>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((lv) => {
-                const opts = SPELLS.filter((s) => s.level === lv);
-                if (!opts.length) return null;
-                return (
-                  <optgroup key={lv} label={lv === 0 ? 'Truques' : `${lv}º círculo`}>
-                    {opts.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.name}</option>)}
-                  </optgroup>
-                );
-              })}
-            </select>
-          </label>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <SpellPicker value={grantSpell} onChange={setGrantSpell} labelStyle={label} />
+          </div>
           {grantSpell && (
             <>
               <label>
                 <span style={label}>Recarga</span>
                 <select className="fv-input" value={grantRecharge} onChange={(e) => setGrantRecharge(e.target.value as 'atwill' | 'short' | 'long')}>
-                  <option value="atwill" style={{ color: '#111' }}>À vontade (como truque)</option>
-                  <option value="short" style={{ color: '#111' }}>1×/descanso curto</option>
-                  <option value="long" style={{ color: '#111' }}>1×/descanso longo</option>
+                  <option value="atwill">À vontade (como truque)</option>
+                  <option value="short">1×/descanso curto</option>
+                  <option value="long">1×/descanso longo</option>
                 </select>
               </label>
               {grantRecharge !== 'atwill' && (

@@ -2751,10 +2751,6 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--ink);
   font: 700 14px var(--font-num);
 }
-.fv-abil-ctrl select option,
-.fv-field select option {
-  color: #111;
-}
 .fv-abil-ctrl button {
   width: 34px;
   height: 34px;
@@ -6389,4 +6385,116 @@ select.fv-input.fv-mesa-select { min-height: 42px; padding: 9px 34px 9px 12px; f
   border-color: var(--gold);
   color: var(--gold);
   background: color-mix(in srgb, var(--gold), transparent 90%);
+}
+
+/* lista nativa dos seletores: fundo e texto da paleta do tema (antes o texto
+   era #111 fixo, que some quando o navegador desenha a lista no escuro) */
+select option,
+select optgroup {
+  background-color: var(--panel) !important;
+  color: var(--ink) !important;
+}
+select optgroup {
+  color: var(--muted) !important;
+}
+
+/* ===== Escolher magia com busca (Forja: magia concedida) ===== */
+.fv-spellpick {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.fv-spellpick-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.fv-spellpick-box > svg {
+  position: absolute;
+  left: 13px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.fv-spellpick-box .fv-input {
+  padding-left: 38px;
+  padding-right: 42px;
+}
+.fv-spellpick-clear {
+  position: absolute;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+}
+.fv-spellpick-clear:hover {
+  color: var(--ink);
+  border-color: var(--gold);
+}
+.fv-spellpick-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-spellpick-list {
+  max-height: 272px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 55%);
+  background: var(--panel);
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.6);
+}
+.fv-spellpick-list li[role='option'] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fv-spellpick-list li[role='option'] b {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-spellpick-list li[role='option'] small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-spellpick-list li.is-active {
+  background: color-mix(in srgb, var(--gold), transparent 84%);
+}
+.fv-spellpick-list li.is-picked b {
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+}
+.fv-spellpick-lv {
+  flex: none;
+  min-width: 30px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  font: 700 11px var(--font-num);
+  text-align: center;
+  color: var(--muted);
+}
+.fv-spellpick-empty {
+  padding: 10px;
+  font-size: 13px;
+  color: var(--muted);
 }

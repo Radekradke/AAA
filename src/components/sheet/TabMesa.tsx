@@ -417,9 +417,9 @@ export function TabMesa({ char, derived }: TabProps) {
             }}
             className="fv-input fv-mesa-select"
           >
-            <option value="" style={{ color: '#111' }}>Selecionar condição…</option>
+            <option value="">Selecionar condição…</option>
             {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
-              <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label} — {c.short}</option>
+              <option key={c.id} value={c.id}>{c.label} — {c.short}</option>
             ))}
           </select>
           <div className="fv-mesa-conds">

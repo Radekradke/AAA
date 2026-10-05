@@ -185,12 +185,12 @@ export function PortraitWorkshop() {
                       <select className="fv-input" value={cls === '' ? '' : cls} onChange={(e) => setKey(it.id, e.target.value, gen || 'masc')}>
                         <option value="">Classe…</option>
                         {CLASSES.map((c) => (
-                          <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label}</option>
+                          <option key={c.id} value={c.id}>{c.label}</option>
                         ))}
                       </select>
                       <select className="fv-input" value={gen || 'masc'} onChange={(e) => setKey(it.id, cls, e.target.value)} disabled={!it.key}>
                         {GENDERS.map((g) => (
-                          <option key={g.id} value={g.id} style={{ color: '#111' }}>{g.label}</option>
+                          <option key={g.id} value={g.id}>{g.label}</option>
                         ))}
                       </select>
                     </div>

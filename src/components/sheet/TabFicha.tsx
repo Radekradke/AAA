@@ -207,7 +207,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     aria-label={`Atributo de ${tool.label}`}
                     style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: 'var(--font-num)' }}
                   >
-                    {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_SHORT[k]}</option>)}
+                    {ABILITY_KEYS.map((k) => <option key={k} value={k}>{ABILITY_SHORT[k]}</option>)}
                   </select>
                   {canExpertiseTools && tool.id === 'thieves-tools' && (
                     <button
@@ -238,11 +238,11 @@ export function TabFicha({ char, derived }: TabProps) {
                 aria-label="Adicionar proficiência com ferramenta"
                 style={{ flex: 1, minHeight: 40, padding: '8px 34px 8px 12px', fontSize: 13 }}
               >
-                <option value="" style={{ color: '#111' }}>Adicionar ferramenta…</option>
+                <option value="">Adicionar ferramenta…</option>
                 {(['kit', 'artesao', 'instrumento', 'jogo', 'veiculo'] as const).map((g) => (
                   <optgroup key={g} label={TOOL_GROUP_LABELS[g]}>
                     {TOOLS.filter((tl) => tl.group === g && !(char.toolProfs ?? []).some((p) => p.id === tl.id)).map((tl) => (
-                      <option key={tl.id} value={tl.id} style={{ color: '#111' }}>{tl.label}</option>
+                      <option key={tl.id} value={tl.id}>{tl.label}</option>
                     ))}
                   </optgroup>
                 ))}
