@@ -30,6 +30,7 @@ import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
 import { useInk } from '@/lib/contrast';
+import { deathSaveOutcome } from '@/engine/deathSave';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -66,16 +67,12 @@ export function TabMesa({ char, derived }: TabProps) {
   const rollDeathSave = () => {
     const r = rollDice(20, { label: 'Teste contra a Morte', deathSave: true });
     const nat = r.rolls[0];
-    const ds = char.combat.deathSaves;
-    if (nat === 20) {
-      store.heal(char.id, 1);
-    } else if (nat === 1) {
-      store.setDeathSave(char.id, 'fail', Math.min(3, ds.fail + 2));
-    } else if (r.total >= 10) {
-      store.setDeathSave(char.id, 'success', Math.min(3, ds.success + 1));
-    } else {
-      store.setDeathSave(char.id, 'fail', Math.min(3, ds.fail + 1));
-    }
+    const res = deathSaveOutcome(char.combat.deathSaves, nat, r.total);
+    if (res.outcome === 'revive') store.heal(char.id, 1);
+    else if (res.outcome === 'success' || res.outcome === 'stable') store.setDeathSave(char.id, 'success', res.success);
+    else store.setDeathSave(char.id, 'fail', res.fail);
+    // o momento em tela cheia (na mesa ao vivo, a mesa toda vê — sessionStore)
+    useUiStore.getState().showCinematic({ kind: 'death', sheetId: char.id, label: r.label, death: { nat, ...res } });
   };
 
   return (

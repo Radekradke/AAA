@@ -14,6 +14,7 @@ import { itemToInventory } from '@/engine/inventory';
 import type { InventoryItem } from '@/types/character';
 import { tableHero } from '@/lib/tableHeroes';
 import { heroDice } from '@/data/diceTrophies';
+import { deathSaveOutcome, isDeathOutcome } from '@/engine/deathSave';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -454,13 +455,17 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (seeded) {
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
-          // 20 / 1 natural de outro herói: o momento em tela cheia aparece para a mesa toda
+          // 20 / 1 natural e teste contra a morte de outro herói: o momento em tela cheia aparece para a mesa toda
           const epic = fresh
             .filter((e) => e.type === 'roll' && e.actorId !== me.userId)
-            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string })
-            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail))
+            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string; death?: Record<string, unknown> })
+            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail || p.death))
             .pop();
-          if (epic) useUiStore.getState().showCinematic({ kind: epic.crit ? 'crit' : 'fumble', sheetId: epic.sheetId!, name: epic.who, label: epic.label });
+          const d = epic?.death;
+          if (epic && d && isDeathOutcome(d.outcome)) {
+            const n = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.round(Number(v) || 0)));
+            useUiStore.getState().showCinematic({ kind: 'death', sheetId: epic.sheetId!, name: epic.who, label: epic.label, death: { nat: n(d.nat, 20), success: n(d.success, 3), fail: n(d.fail, 3), outcome: d.outcome } });
+          } else if (epic) useUiStore.getState().showCinematic({ kind: epic.crit ? 'crit' : 'fumble', sheetId: epic.sheetId!, name: epic.who, label: epic.label });
         }
         seeded = true;
 
@@ -561,7 +566,10 @@ useUiStore.subscribe((s, prev) => {
   if (!st.session || st.session.status !== 'active' || !st.me || !st.campaignId || st.rollVisibility === 'private') return;
   const who = st.me.isMaster ? 'Mestre' : st.me.characterName ?? st.me.name;
   // dado conquistado do herói: a mesa vê o dado dele no aviso da rolagem
-  const dice = !r.ally && r.charId ? heroDice(useCharacterStore.getState().getCharacter(r.charId))?.id : undefined;
+  const hero = !r.ally && r.charId ? useCharacterStore.getState().getCharacter(r.charId) : undefined;
+  const dice = heroDice(hero)?.id;
+  // teste contra a morte: a mesa vê o momento com os contadores (calculados antes da ficha gravar)
+  const death = r.deathSave && hero ? { nat: r.rolls[0], ...deathSaveOutcome(hero.combat.deathSaves, r.rolls[0], r.total) } : undefined;
   void sessionService
     .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
@@ -569,6 +577,7 @@ useUiStore.subscribe((s, prev) => {
       sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
       ...(r.cantrip && { cantrip: true }),
       ...(dice && { dice }),
+      ...(death && { death }),
     }, st.rollVisibility)
     .catch(() => undefined);
 });

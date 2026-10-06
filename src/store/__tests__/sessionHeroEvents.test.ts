@@ -107,5 +107,18 @@ describe('ordens do mestre chegam na ficha do jogador', () => {
     ];
     await useSessionStore.getState().refresh();
     expect(useUiStore.getState().cinematic).toMatchObject({ kind: 'crit', sheetId: 'sheet-lyra', name: 'Lyra', label: 'Ataque · Arco' });
+
+    // teste contra a morte de outro herói: o momento com batimentos para a mesa toda (dados saneados)
+    events = [
+      ...events,
+      ev('r3', 'roll', 'p2', { who: 'Lyra', label: 'Teste contra a Morte', d20: true, crit: false, fail: true, sheetId: 'sheet-lyra', death: { nat: 1, success: 1, fail: 9, outcome: 'double' } }, '2026-01-01T00:00:07Z'),
+    ];
+    await useSessionStore.getState().refresh();
+    expect(useUiStore.getState().cinematic).toMatchObject({ kind: 'death', sheetId: 'sheet-lyra', name: 'Lyra', death: { nat: 1, success: 1, fail: 3, outcome: 'double' } });
+
+    // desfecho desconhecido: cai no tropeço comum
+    events = [...events, ev('r4', 'roll', 'p2', { who: 'Lyra', label: 'Teste', d20: true, fail: true, sheetId: 'sheet-lyra', death: { nat: 1, outcome: 'inventado' } }, '2026-01-01T00:00:08Z')];
+    await useSessionStore.getState().refresh();
+    expect(useUiStore.getState().cinematic).toMatchObject({ kind: 'fumble' });
   });
 });
