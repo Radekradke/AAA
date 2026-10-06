@@ -67,5 +67,18 @@ test.describe('carta do herói: raridade, secretos, títulos e jornada', () => {
 
     await tab(page, 'Retrato', 'Retrato');
     await expect(page.getByRole('region', { name: 'Retrato do herói' }).locator('.fv-relics li')).toContainText(['Bordão']);
+
+    // submenu "Suas cartas": herói + o item com foto (itens sem foto não viram carta)
+    await page.getByRole('tab', { name: /Suas cartas/ }).click();
+    const colecao = page.getByRole('region', { name: 'Suas cartas' });
+    await expect(colecao.getByRole('heading', { name: 'Suas cartas · 2' })).toBeVisible();
+    await colecao.getByRole('button', { name: `Ver a carta ${NAME} em tela cheia` }).click();
+    await expect(page.getByRole('dialog', { name: `Carta: ${NAME}` })).toBeVisible();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('dialog', { name: 'Carta: Bordão' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByRole('tab', { name: /^Retrato/ }).click();
+    await expect(page.getByRole('region', { name: 'Retrato do herói' })).toBeVisible();
   });
 });

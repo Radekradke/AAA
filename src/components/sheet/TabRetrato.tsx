@@ -19,6 +19,7 @@ import { useDialogFocus } from '@/lib/useDialogFocus';
 import { tiltHandlers } from '@/lib/tilt';
 import { AlliesSection } from './RetratoAllies';
 import { JourneySection } from './RetratoJourney';
+import { CardsGallery, collectCards } from './RetratoCartas';
 import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import { RARITY } from '@/data/themes';
 import { CARD_TIERS, cardTier, heroTitle } from '@/engine/deeds';
@@ -36,7 +37,29 @@ const SPELLS_SHOWN = 14;
  * atributos, números, perícias, características, equipamento, magias e a
  * história. Tocar na arte abre a tela cheia, só a arte.
  */
-export function TabRetrato({ char, derived }: TabProps) {
+/**
+ * Aba Retrato com submenu: a vitrine do herói e "Suas cartas" (a coleção:
+ * herói, companheiros e itens com foto).
+ */
+export function TabRetrato(props: TabProps) {
+  const [view, setView] = useState<'retrato' | 'cartas'>('retrato');
+  const count = useMemo(() => collectCards(props.char).length, [props.char]);
+  return (
+    <div className="fv-retrato">
+      <div className="fv-seg fv-retrato-switch" role="tablist" aria-label="Retrato">
+        <button type="button" role="tab" aria-selected={view === 'retrato'} className={view === 'retrato' ? 'is-on' : ''} onClick={() => setView('retrato')}>
+          <Icon name="image" size={14} /> Retrato
+        </button>
+        <button type="button" role="tab" aria-selected={view === 'cartas'} className={view === 'cartas' ? 'is-on' : ''} onClick={() => setView('cartas')}>
+          <Icon name="crest" size={14} /> Suas cartas <span className="fv-retrato-count">{count}</span>
+        </button>
+      </div>
+      {view === 'retrato' ? <Vitrine {...props} /> : <CardsGallery char={props.char} />}
+    </div>
+  );
+}
+
+function Vitrine({ char, derived }: TabProps) {
   const [zoom, setZoom] = useState(false);
   const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
@@ -67,11 +90,8 @@ export function TabRetrato({ char, derived }: TabProps) {
     const special = char.inventory.filter((i) => onHero(i) && !uids.includes(i.uid));
     return [...held, ...special];
   }, [char.equipped, char.inventory]);
-  // relíquias: itens com arte e os raros (ou acima) — viram cartas colecionáveis
-  const relics = useMemo(
-    () => char.inventory.filter((i) => i.image || ['raro', 'muito-raro', 'lendario'].includes(i.rarity)).sort((a, b) => Number(!!b.image) - Number(!!a.image)),
-    [char.inventory],
-  );
+  // relíquias: só os itens com arte viram carta (sem foto, não aparece)
+  const relics = useMemo(() => char.inventory.filter((i) => i.image), [char.inventory]);
   const spells = useMemo(() => {
     const ids = Array.from(new Set([...char.preparedSpells, ...(char.classId === 'wizard' ? [] : char.knownSpells ?? [])]));
     return ids
@@ -214,7 +234,7 @@ export function TabRetrato({ char, derived }: TabProps) {
             <ul className="fv-relics">
               {relics.map((it) => (
                 <li key={it.uid}>
-                  <ItemArtCard src={it.image} rarity={it.rarity} fallback={<Icon name={it.category === 'weapon' ? 'sword' : it.category === 'armor' || it.category === 'shield' ? 'crest' : 'spark'} size={34} />} />
+                  <ItemArtCard src={it.image} rarity={it.rarity} />
                   <b>{it.name}</b>
                   <small style={{ color: `color-mix(in srgb, ${(RARITY[it.rarity] ?? RARITY.comum).color}, var(--ink) 30%)` }}>{(RARITY[it.rarity] ?? RARITY.comum).label}</small>
                 </li>
