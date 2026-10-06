@@ -8,7 +8,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore, calcLore } from '@/lib/lore';
-import { heroTitle } from '@/engine/deeds';
+import { heroTitle } from '@/engine/titles';
 
 interface SheetHeaderProps {
   char: Character;

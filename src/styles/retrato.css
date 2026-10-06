@@ -1746,3 +1746,52 @@
     animation: none;
   }
 }
+
+/* títulos: lenda do escolhido + lista dos que faltam */
+.fv-title-lore {
+  margin: 10px 0 0;
+  font: italic 14px / 1.5 var(--font-body);
+  color: var(--muted);
+}
+.fv-titles-missing {
+  margin-top: 12px;
+}
+.fv-titles-missing summary {
+  cursor: pointer;
+  width: fit-content;
+  font: 600 13px var(--font-body);
+  color: var(--muted);
+}
+.fv-titles-missing summary:hover {
+  color: var(--ink);
+}
+.fv-titles-missing ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-titles-missing li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  background: var(--sunk);
+}
+.fv-titles-missing b {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font: 600 13.5px var(--font-display);
+  color: var(--ink);
+}
+.fv-titles-missing small {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}

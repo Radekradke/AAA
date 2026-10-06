@@ -22,7 +22,8 @@ import { JourneySection } from './RetratoJourney';
 import { CardsGallery, collectCards } from './RetratoCartas';
 import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import { RARITY } from '@/data/themes';
-import { CARD_TIERS, cardTier, heroTitle } from '@/engine/deeds';
+import { CARD_TIERS, cardTier } from '@/engine/deeds';
+import { heroTitle } from '@/engine/titles';
 import { CardScars, CardSeals, DeedsSection, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
 

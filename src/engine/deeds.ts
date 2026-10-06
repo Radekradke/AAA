@@ -86,31 +86,29 @@ export interface DeedDef {
   rarity: DeedRarity;
   /** Aparece como "???" até ser conquistado. */
   secret?: boolean;
-  /** Título que o herói pode exibir sob o nome ("Lyra, Flagelo dos Dragões"). */
-  title?: string;
 }
 
 export const DEEDS: DeedDef[] = [
   { id: 'crit-1', name: 'Primeiro crítico', desc: 'Tirou o primeiro 20 natural.', icon: { kind: 'icon', name: 'd20' }, kind: 'crits', min: 1, rarity: 'comum' },
-  { id: 'crit-10', name: 'Mão abençoada', desc: '10 vinte naturais.', icon: { kind: 'icon', name: 'd20' }, kind: 'crits', min: 10, rarity: 'raro', title: 'Mão Abençoada' },
-  { id: 'crit-50', name: 'Favorito dos deuses', desc: '50 vinte naturais.', icon: { kind: 'icon', name: 'inspiration' }, kind: 'crits', min: 50, rarity: 'lendario', title: 'Favorito dos Deuses' },
+  { id: 'crit-10', name: 'Mão abençoada', desc: '10 vinte naturais.', icon: { kind: 'icon', name: 'd20' }, kind: 'crits', min: 10, rarity: 'raro' },
+  { id: 'crit-50', name: 'Favorito dos deuses', desc: '50 vinte naturais.', icon: { kind: 'icon', name: 'inspiration' }, kind: 'crits', min: 50, rarity: 'lendario' },
   { id: 'fumble-1', name: 'Tropeço histórico', desc: 'O primeiro 1 natural a gente nunca esquece.', icon: { kind: 'icon', name: 'd20' }, kind: 'fumbles', min: 1, funny: true, rarity: 'comum' },
-  { id: 'fumble-20', name: 'Azarado crônico', desc: '20 uns naturais. Os dados têm algo contra você.', icon: { kind: 'icon', name: 'moon' }, kind: 'fumbles', min: 20, funny: true, rarity: 'raro', title: 'Inimigo dos Dados' },
+  { id: 'fumble-20', name: 'Azarado crônico', desc: '20 uns naturais. Os dados têm algo contra você.', icon: { kind: 'icon', name: 'moon' }, kind: 'fumbles', min: 20, funny: true, rarity: 'raro' },
   { id: 'kill-1', name: 'Primeira vitória', desc: 'Deu o golpe final numa criatura.', icon: { kind: 'icon', name: 'swords' }, kind: 'kills', min: 1, rarity: 'comum' },
-  { id: 'kill-25', name: 'Veterano', desc: '25 golpes finais.', icon: { kind: 'icon', name: 'swords' }, kind: 'kills', min: 25, rarity: 'raro', title: 'Veterano de Guerra' },
-  { id: 'kill-100', name: 'Lenda do campo de batalha', desc: '100 inimigos derrotados.', icon: { kind: 'icon', name: 'crest' }, kind: 'kills', min: 100, rarity: 'lendario', title: 'Lenda do Campo de Batalha' },
-  { id: 'dragon-1', name: 'Matador de dragões', desc: 'Derrubou um dragão.', icon: { kind: 'monster', type: 'dragon' }, kind: 'dragons', min: 1, rarity: 'epico', title: 'Flagelo dos Dragões' },
-  { id: 'giant-1', name: 'Derruba-gigantes', desc: 'Derrubou um gigante.', icon: { kind: 'monster', type: 'giant' }, kind: 'giants', min: 1, rarity: 'raro', title: 'Derruba-Gigantes' },
-  { id: 'undead-10', name: 'Caçador de mortos-vivos', desc: '10 mortos-vivos devolvidos ao túmulo.', icon: { kind: 'monster', type: 'undead' }, kind: 'undead', min: 10, rarity: 'raro', title: 'Guardião do Túmulo' },
-  { id: 'fiend-1', name: 'Exorcista', desc: 'Derrubou um corruptor.', icon: { kind: 'monster', type: 'fiend' }, kind: 'fiends', min: 1, rarity: 'raro', title: 'Exorcista' },
+  { id: 'kill-25', name: 'Veterano', desc: '25 golpes finais.', icon: { kind: 'icon', name: 'swords' }, kind: 'kills', min: 25, rarity: 'raro' },
+  { id: 'kill-100', name: 'Lenda do campo de batalha', desc: '100 inimigos derrotados.', icon: { kind: 'icon', name: 'crest' }, kind: 'kills', min: 100, rarity: 'lendario' },
+  { id: 'dragon-1', name: 'Matador de dragões', desc: 'Derrubou um dragão.', icon: { kind: 'monster', type: 'dragon' }, kind: 'dragons', min: 1, rarity: 'epico' },
+  { id: 'giant-1', name: 'Derruba-gigantes', desc: 'Derrubou um gigante.', icon: { kind: 'monster', type: 'giant' }, kind: 'giants', min: 1, rarity: 'raro' },
+  { id: 'undead-10', name: 'Caçador de mortos-vivos', desc: '10 mortos-vivos devolvidos ao túmulo.', icon: { kind: 'monster', type: 'undead' }, kind: 'undead', min: 10, rarity: 'raro' },
+  { id: 'fiend-1', name: 'Exorcista', desc: 'Derrubou um corruptor.', icon: { kind: 'monster', type: 'fiend' }, kind: 'fiends', min: 1, rarity: 'raro' },
   { id: 'comeback-1', name: 'Voltou do abismo', desc: 'Caiu a 0 PV e voltou.', icon: { kind: 'icon', name: 'spark' }, kind: 'comebacks', min: 1, rarity: 'comum' },
-  { id: 'comeback-5', name: 'Teimoso demais para morrer', desc: 'Voltou de 0 PV cinco vezes.', icon: { kind: 'icon', name: 'levelup' }, kind: 'comebacks', min: 5, rarity: 'epico', title: 'Indomável' },
+  { id: 'comeback-5', name: 'Teimoso demais para morrer', desc: 'Voltou de 0 PV cinco vezes.', icon: { kind: 'icon', name: 'levelup' }, kind: 'comebacks', min: 5, rarity: 'epico' },
   // secretos: "???" até alguém conquistar
-  { id: 'clutch-1', name: 'Por um fio', desc: 'Levou um golpe e ficou com 1 PV.', icon: { kind: 'icon', name: 'quill' }, kind: 'clutch', min: 1, rarity: 'raro', secret: true, title: 'Por Um Fio' },
-  { id: 'burst-1', name: 'Fúria dos dados', desc: '3 críticos na mesma sessão.', icon: { kind: 'icon', name: 'inspiration' }, kind: 'critBursts', min: 1, rarity: 'epico', secret: true, title: 'Tempestade de Críticos' },
-  { id: 'cantrip-kill-1', name: 'Truque mortal', desc: 'Derrotou uma criatura com um truque.', icon: { kind: 'icon', name: 'spark' }, kind: 'cantripKills', min: 1, rarity: 'raro', secret: true, title: 'Mestre dos Truques' },
-  { id: 'deathsave-20', name: 'Recusou a morte', desc: '20 natural num teste contra a morte.', icon: { kind: 'icon', name: 'banner' }, kind: 'deathSaveCrits', min: 1, rarity: 'epico', secret: true, title: 'Desafiante da Morte' },
-  { id: 'upset-1', name: 'Davi contra Golias', desc: 'Derrotou um inimigo de ND acima do seu nível.', icon: { kind: 'icon', name: 'anvil' }, kind: 'upsets', min: 1, rarity: 'epico', secret: true, title: 'Algoz dos Poderosos' },
+  { id: 'clutch-1', name: 'Por um fio', desc: 'Levou um golpe e ficou com 1 PV.', icon: { kind: 'icon', name: 'quill' }, kind: 'clutch', min: 1, rarity: 'raro', secret: true },
+  { id: 'burst-1', name: 'Fúria dos dados', desc: '3 críticos na mesma sessão.', icon: { kind: 'icon', name: 'inspiration' }, kind: 'critBursts', min: 1, rarity: 'epico', secret: true },
+  { id: 'cantrip-kill-1', name: 'Truque mortal', desc: 'Derrotou uma criatura com um truque.', icon: { kind: 'icon', name: 'spark' }, kind: 'cantripKills', min: 1, rarity: 'raro', secret: true },
+  { id: 'deathsave-20', name: 'Recusou a morte', desc: '20 natural num teste contra a morte.', icon: { kind: 'icon', name: 'banner' }, kind: 'deathSaveCrits', min: 1, rarity: 'epico', secret: true },
+  { id: 'upset-1', name: 'Davi contra Golias', desc: 'Derrotou um inimigo de ND acima do seu nível.', icon: { kind: 'icon', name: 'anvil' }, kind: 'upsets', min: 1, rarity: 'epico', secret: true },
 ];
 
 export const DEED_BY_ID: Record<string, DeedDef> = Object.fromEntries(DEEDS.map((d) => [d.id, d]));
@@ -151,17 +149,6 @@ export function addCrit(deeds: HeroDeeds | undefined, now = new Date()): { deeds
   if (n !== 3) return { deeds: withBurst, unlocked: first.unlocked };
   const second = addDeed(withBurst, 'critBursts', 1, now);
   return { deeds: { ...second.deeds, burst: withBurst.burst }, unlocked: [...first.unlocked, ...second.unlocked] };
-}
-
-/** Título escolhido (só vale se o feito estiver conquistado). */
-export function heroTitle(c: { title?: string | null; deeds?: HeroDeeds }): string | null {
-  const d = c.title ? DEED_BY_ID[c.title] : undefined;
-  return d?.title && c.deeds?.unlocked[d.id] ? d.title : null;
-}
-
-/** Títulos que o herói já pode usar. */
-export function availableTitles(deeds: HeroDeeds | undefined): DeedDef[] {
-  return DEEDS.filter((d) => d.title && deeds?.unlocked[d.id]);
 }
 
 /** Feitos conquistados, do mais recente ao mais antigo. */

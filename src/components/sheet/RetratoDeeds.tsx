@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Character } from '@/types/character';
-import { availableTitles, DEED_RARITY, DEEDS, earnedDeeds, heroTitle } from '@/engine/deeds';
+import { DEED_RARITY, DEEDS, earnedDeeds } from '@/engine/deeds';
+import { availableTitles, heroTitle, titleName, titlesFor } from '@/engine/titles';
 import type { DeedDef, Scar } from '@/engine/deeds';
 import { useCharacterStore } from '@/store/characterStore';
 import { Icon } from '@/components/ui/Icon';
@@ -82,7 +83,6 @@ export function DeedsSection({ char }: { char: Character }) {
                   <em className={`fv-rarity is-${d.rarity}`}>{DEED_RARITY[d.rarity].label}</em>
                 </b>
                 <small>{hidden ? 'Feito secreto — só aparece quando alguém conquistar.' : at ? `${d.desc} · ${day(at)}` : d.min > 1 ? `${d.desc} (${n}/${d.min})` : d.desc}</small>
-                {at && d.title && <small className="fv-deed-title">Título: {d.title}</small>}
               </span>
             </li>
           );
@@ -92,31 +92,57 @@ export function DeedsSection({ char }: { char: Character }) {
   );
 }
 
-/** Título sob o nome: escolhido entre os feitos conquistados que dão título. */
+/**
+ * Título: a alcunha de lenda do personagem (na forma do gênero da ficha).
+ * Os liberados viram escolha; os que faltam mostram como conquistar
+ * (os secretos, só "???").
+ */
 export function TitlePicker({ char }: { char: Character }) {
   const edit = useCharacterStore((s) => s.editCharacter);
-  const titles = availableTitles(char.deeds);
+  const open = availableTitles(char);
+  const openIds = new Set(open.map((t) => t.id));
   const current = heroTitle(char) ? char.title ?? '' : '';
-  const locked = DEEDS.filter((d) => d.title && !char.deeds?.unlocked[d.id]).length;
+  const chosen = open.find((t) => t.id === current);
+  const pool = titlesFor(char);
+  const missing = pool.filter((t) => !openIds.has(t.id));
   return (
     <section className="fv-vitrine-sec">
-      <h3>Título</h3>
-      {titles.length ? (
+      <h3>
+        Título · {open.length} de {pool.length}
+      </h3>
+      {open.length ? (
         <div className="fv-titles" role="radiogroup" aria-label="Título do herói">
           <button type="button" role="radio" aria-checked={!current} className={!current ? 'is-on' : ''} onClick={() => edit(char.id, { title: null })}>
             Sem título
           </button>
-          {titles.map((d) => (
-            <button key={d.id} type="button" role="radio" aria-checked={current === d.id} className={`is-${d.rarity}` + (current === d.id ? ' is-on' : '')} onClick={() => edit(char.id, { title: d.id })} title={`Do feito “${d.name}”`}>
-              {d.title}
+          {open.map((t) => (
+            <button key={t.id} type="button" role="radio" aria-checked={current === t.id} className={`is-${t.rarity}` + (current === t.id ? ' is-on' : '')} onClick={() => edit(char.id, { title: t.id })} title={t.lore}>
+              {titleName(t, char.gender)}
             </button>
           ))}
         </div>
-      ) : null}
-      <p className="fv-vitrine-text fv-titles-hint">
-        {titles.length ? 'Aparece sob o nome na carta, no cabeçalho da ficha, na mesa e na iniciativa.' : 'Conquiste feitos raros, épicos e lendários para ganhar títulos — eles aparecem sob o nome, na carta e na mesa.'}
-        {locked > 0 && ` ${locked} ${locked === 1 ? 'título ainda bloqueado' : 'títulos ainda bloqueados'}.`}
-      </p>
+      ) : (
+        <p className="fv-vitrine-text fv-titles-hint">Ainda sem alcunha. O mundo começa a chamar o herói por um título quando ele faz por merecer — veja abaixo como.</p>
+      )}
+      {chosen && <p className="fv-title-lore">“{chosen.lore}”</p>}
+      {missing.length > 0 && (
+        <details className="fv-titles-missing">
+          <summary>
+            Por conquistar · {missing.length}
+          </summary>
+          <ul>
+            {missing.map((t) => (
+              <li key={t.id} className={`is-${t.rarity}`}>
+                <b>
+                  {t.secret ? '???' : titleName(t, char.gender)}
+                  <em className={`fv-rarity is-${t.rarity}`}>{DEED_RARITY[t.rarity].label}</em>
+                </b>
+                <small>{t.secret ? 'Título secreto — conquiste para descobrir.' : t.hint}</small>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }

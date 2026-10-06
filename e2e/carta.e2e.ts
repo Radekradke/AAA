@@ -34,10 +34,17 @@ test.describe('carta do herói: raridade, secretos, títulos e jornada', () => {
     await expect(vitrine.locator('.fv-deeds li', { hasText: '???' })).toHaveCount(5);
     await expect(vitrine.getByText('Davi contra Golias')).toHaveCount(0);
 
-    // título: escolhe e aparece na carta e no cabeçalho
-    await vitrine.getByRole('radio', { name: 'Flagelo dos Dragões' }).click();
-    await expect(vitrine.locator('.fv-vitrine-caption')).toContainText('Flagelo dos Dragões');
-    await expect(page.locator('.fv-sh-title')).toHaveText('Flagelo dos Dragões');
+    // título: alcunha do personagem (no gênero da ficha), liberada pelo dragão e pelo nível 5
+    await expect(vitrine.getByRole('radio', { name: 'Herói da Estrada' })).toBeVisible();
+    await vitrine.getByRole('radio', { name: 'Coração de Dragão' }).click();
+    await expect(vitrine.locator('.fv-vitrine-caption')).toContainText('Coração de Dragão');
+    await expect(page.locator('.fv-sh-title')).toHaveText('Coração de Dragão');
+    await expect(vitrine.locator('.fv-title-lore')).toContainText('wyrm');
+    // os que faltam: com o caminho; os secretos, ocultos
+    await vitrine.getByText(/Por conquistar/).click();
+    await expect(vitrine.locator('.fv-titles-missing')).toContainText('o Imperador da Loucura');
+    await expect(vitrine.locator('.fv-titles-missing')).toContainText('Cair a 0 PV 5 vezes.');
+    await expect(vitrine.locator('.fv-titles-missing')).not.toContainText('Lenda Viva');
     await vitrine.getByRole('radio', { name: 'Sem título' }).click();
     await expect(page.locator('.fv-sh-title')).toHaveCount(0);
 

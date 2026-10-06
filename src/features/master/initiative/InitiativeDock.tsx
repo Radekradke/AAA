@@ -4,12 +4,12 @@ import { useSessionStore } from '@/store/sessionStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { healthState } from '@/engine/encounter';
 import { useMasterStore } from '../masterStore';
-import { heroTitle } from '@/engine/deeds';
+import { heroTitle } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
 import type { Combatant } from '@/types/session';
 
 /** Título do herói (ficha compartilhada da mesa). */
-const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.sheetId) ?? {}) : null);
+const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.sheetId)) : null);
 
 /**
  * INICIATIVA sempre à vista durante o encontro: a ordem numa faixa (o da vez

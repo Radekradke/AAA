@@ -3,19 +3,29 @@ import { useCharacterStore } from '@/store/characterStore';
 import { toast } from '@/store/feedbackStore';
 import { addCrit, addDeed, DEED_KINDS } from '@/engine/deeds';
 import type { DeedDef, DeedKind } from '@/engine/deeds';
+import { availableTitles, titleName } from '@/engine/titles';
+import type { Character } from '@/types/character';
 
 /** Aviso de selo novo na carta do herói. */
 export function announceDeeds(fresh: DeedDef[]): void {
   for (const d of fresh) toast(`Feito conquistado: ${d.name}! — ${d.desc}`, { tone: 'ok', ms: 6500 });
 }
 
+/** Grava os feitos e avisa os títulos que eles acabaram de liberar. */
+function saveDeeds(char: Character, deeds: Character['deeds']): void {
+  const before = new Set(availableTitles(char).map((t) => t.id));
+  useCharacterStore.getState().setDeeds(char.id, deeds!);
+  for (const t of availableTitles({ ...char, deeds })) {
+    if (!before.has(t.id)) toast(`Novo título: ${titleName(t, char.gender)}! “${t.lore}” — escolha em Retrato → Título.`, { tone: 'ok', ms: 7500 });
+  }
+}
+
 /** Soma um contador na ficha e devolve os selos recém-conquistados. */
 export function recordDeed(id: string, kind: DeedKind, by = 1): DeedDef[] {
-  const store = useCharacterStore.getState();
-  const char = store.getCharacter(id);
+  const char = useCharacterStore.getState().getCharacter(id);
   if (!char || !by) return [];
   const res = addDeed(char.deeds, kind, by);
-  store.setDeeds(id, res.deeds);
+  saveDeeds(char, res.deeds);
   return res.unlocked;
 }
 
@@ -25,7 +35,7 @@ function recordCrit(id: string): DeedDef[] {
   const char = store.getCharacter(id);
   if (!char) return [];
   const res = addCrit(char.deeds);
-  store.setDeeds(id, res.deeds);
+  saveDeeds(char, res.deeds);
   return res.unlocked;
 }
 
