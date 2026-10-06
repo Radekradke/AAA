@@ -34,6 +34,33 @@ test.describe('crítico cinematográfico', () => {
     await expect(cine).toHaveCount(0);
   });
 
+  test('teste contra a morte: monitor com batimentos, contadores e o 20 que levanta @celular', async ({ page }) => {
+    const dying = { ...WIZARD, hpCurrent: 0, combat: { ...(WIZARD.combat as object), deathSaves: { success: 1, fail: 1 }, conditions: ['Inconsciente'] } };
+    await signIn(page, 'guest', { characters: [dying], ui: { dice3d: false } });
+    await page.goto(`/ficha/${ID}`);
+    await expect(page.getByText('CAINDO — Testes contra a Morte')).toBeVisible();
+
+    await dice(page, 0.2); // 5 natural: falha
+    await page.getByRole('button', { name: 'Rolar teste' }).click();
+    const cine = page.locator('.fv-cine');
+    await expect(cine).toHaveClass(/is-death/);
+    await expect(cine).toHaveClass(/is-fail/);
+    await expect(cine).toHaveCSS('opacity', '1');
+    await expect(cine).toContainText('Escorrega…');
+    await expect(cine).toContainText(NAME);
+    await expect(cine.locator('.fv-cine-pips .is-ok i.is-on')).toHaveCount(1);
+    await expect(cine.locator('.fv-cine-pips .is-bad i.is-on')).toHaveCount(2);
+    await cine.click();
+
+    await dice(page, 0.999); // 20 natural: levanta com 1 PV (sem o crítico comum por cima)
+    await page.getByRole('button', { name: 'Rolar teste' }).click();
+    await expect(cine).toHaveClass(/is-revive/);
+    await expect(cine).toContainText('De volta!');
+    await expect(cine).not.toContainText('Crítico!');
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('CAINDO — Testes contra a Morte')).toHaveCount(0);
+  });
+
   test('desligado em Configurações não aparece', async ({ page }) => {
     await signIn(page, 'guest', { characters: [WIZARD], ui: { dice3d: false } });
     await page.goto('/config');

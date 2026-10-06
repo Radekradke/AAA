@@ -185,6 +185,153 @@
   }
 }
 
+/* ===== Teste contra a morte: monitor, batimento e contadores ===== */
+.fv-cine.is-death {
+  --pulse: 220, 40, 50;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(26, 6, 10, 0.94), rgba(2, 2, 4, 0.99));
+}
+.fv-cine.is-death.is-revive,
+.fv-cine.is-death.is-stable {
+  --pulse: 120, 220, 150;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(6, 22, 14, 0.94), rgba(2, 3, 4, 0.99));
+}
+/* vinheta que pulsa no ritmo do coração */
+.fv-cine-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 18vmax rgba(var(--pulse), 0.45);
+  animation: fv-cine-beat var(--beat, 1s) ease-out infinite;
+}
+.fv-cine.is-death.is-dead .fv-cine-vignette {
+  animation: none;
+  box-shadow: inset 0 0 22vmax rgba(0, 0, 0, 0.9);
+}
+.fv-cine-ecg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  width: 100%;
+  height: 18vh;
+  translate: 0 -50%;
+  pointer-events: none;
+  opacity: 0.4;
+}
+.fv-cine-ecg path {
+  fill: none;
+  stroke: rgb(var(--pulse));
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  filter: drop-shadow(0 0 6px rgba(var(--pulse), 0.8));
+  animation: fv-cine-trace calc(var(--beat, 1s) * 1.6) linear infinite;
+}
+.fv-cine.is-death.is-dead .fv-cine-ecg path {
+  stroke: #e8e4da;
+  filter: none;
+  animation: fv-cine-trace 1.4s linear both;
+}
+.fv-cine.is-death .fv-cine-art {
+  border-color: rgba(var(--pulse), 0.7);
+  box-shadow: 0 0 0 6px rgba(var(--pulse), 0.12), 0 0 70px rgba(var(--pulse), 0.35), 0 40px 90px rgba(0, 0, 0, 0.7);
+  animation: fv-cine-art-in 0.7s cubic-bezier(0.2, 1.3, 0.3, 1) both, fv-cine-beat-art var(--beat, 1s) ease-out 0.7s infinite;
+}
+.fv-cine.is-death .fv-cine-art img {
+  filter: saturate(0.55) brightness(0.8);
+}
+.fv-cine.is-death.is-dead .fv-cine-art {
+  animation: fv-cine-art-in 0.7s ease both;
+}
+.fv-cine.is-death.is-dead .fv-cine-art img {
+  filter: grayscale(1) brightness(0.55);
+}
+.fv-cine.is-death.is-revive .fv-cine-art img,
+.fv-cine.is-death.is-stable .fv-cine-art img {
+  filter: none;
+}
+.fv-cine.is-death .fv-cine-num {
+  background: linear-gradient(180deg, #ffe4e4 0%, rgb(var(--pulse)) 60%, #4a0a12 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 24px rgba(var(--pulse), 0.5));
+}
+.fv-cine.is-death.is-revive .fv-cine-num,
+.fv-cine.is-death.is-stable .fv-cine-num {
+  background: linear-gradient(180deg, #f0fff4 0%, rgb(var(--pulse)) 60%, #0d4a26 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.fv-cine.is-death .fv-cine-title {
+  color: rgb(var(--pulse));
+}
+.fv-cine.is-death.is-dead .fv-cine-title {
+  color: #e8e4da;
+}
+.fv-cine.is-death .fv-cine-line {
+  color: #efe6e6;
+}
+.fv-cine-pips {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  animation: fv-cine-up 0.5s ease 0.85s both;
+}
+.fv-cine-pips > span {
+  display: flex;
+  gap: 6px;
+}
+.fv-cine-pips i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+.fv-cine-pips .is-ok i.is-on {
+  border-color: #5fd68b;
+  background: #5fd68b;
+  box-shadow: 0 0 10px rgba(95, 214, 139, 0.7);
+}
+.fv-cine-pips .is-bad i.is-on {
+  border-color: #ef4b5a;
+  background: #ef4b5a;
+  box-shadow: 0 0 10px rgba(239, 75, 90, 0.7);
+}
+@keyframes fv-cine-beat {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  12% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.55;
+  }
+  42% {
+    opacity: 0.85;
+  }
+}
+@keyframes fv-cine-beat-art {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.025);
+  }
+  42% {
+    transform: scale(1.012);
+  }
+}
+@keyframes fv-cine-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* celular: arte em cima, texto embaixo */
 @media (max-width: 720px) {
   .fv-cine {
@@ -214,7 +361,14 @@
   .fv-cine-who,
   .fv-cine-line,
   .fv-cine.is-fumble .fv-cine-art,
-  .fv-cine.is-fumble .fv-cine-num {
+  .fv-cine.is-fumble .fv-cine-num,
+  .fv-cine.is-death .fv-cine-art,
+  .fv-cine-vignette,
+  .fv-cine-pips {
     animation: none;
+  }
+  .fv-cine-ecg path {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }

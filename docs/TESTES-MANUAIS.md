@@ -257,3 +257,10 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 3. Na mesa ao vivo, o aviso de rolagem que os outros veem mostra o dado do herói no canto.
 4. Se o herói perder a condição (ex.: ficha voltou de nível), o dado volta ao do tema sozinho.
 5. Texturas novas não entram na instalação do app (PWA): só baixam quando alguém rola com o dado.
+
+## 39. Teste contra a morte para a mesa toda
+1. Com o herói a 0 PV, na aba **Mesa** aparece "CAINDO — Testes contra a Morte". **Rolar teste** abre o momento em tela cheia: a arte do herói, o número natural, o monitor cardíaco atravessando a tela e os contadores (verdes = sucessos, vermelhos = falhas).
+2. O batimento (vinheta, arte e traçado) acelera a cada falha: calmo com 0, mais rápido com 1, disparado com 2. Com os efeitos sonoros ligados, toca o coração no mesmo ritmo.
+3. Desfechos: **Resiste…** (10+), **Escorrega…** (abaixo de 10), **A morte se aproxima** (1 natural, duas falhas), **Estabilizado** (3 sucessos, verde), **De volta!** (20 natural, levanta com 1 PV, verde — sem o "Crítico!" comum por cima) e **Tombou.** (3 falhas: arte em preto e branco e linha reta com o apito).
+4. Na mesa ao vivo, os outros jogadores e o mestre veem o mesmo momento (com o nome do herói e os contadores de quem rolou).
+5. Toque, Esc ou o tempo (~4 s) fecham. Desligar **Crítico cinematográfico** em Configurações desliga este momento também.

@@ -19,7 +19,9 @@ export type TourId = 'sheet' | 'creator';
 
 /** Crítico cinematográfico na tela (quem rolou e o quê). */
 export interface Cinematic {
-  kind: 'crit' | 'fumble';
+  kind: 'crit' | 'fumble' | 'death';
+  /** Teste contra a morte: natural e contadores depois do teste. */
+  death?: { nat: number } & import('@/engine/deathSave').DeathSaveResult;
   sheetId: string | null;
   /** Nome de quem rolou (rolagem de outro jogador). */
   name?: string;
@@ -293,7 +295,8 @@ export const useUiStore = create<UiState>()(
         const r = roll.charId || !get().activeCharId ? roll : { ...roll, charId: get().activeCharId! };
         set((s) => ({ currentRoll: r, history: [r, ...s.history].slice(0, HISTORY_MAX) }));
         // 20 / 1 natural no d20 da ficha: momento em tela cheia
-        if (r.charId && !r.ally && !r.damage && r.sides === 20 && (r.crit || r.fail)) get().showCinematic({ kind: r.crit ? 'crit' : 'fumble', sheetId: r.charId, label: r.label });
+        // (o teste contra a morte tem o seu próprio momento, com batimentos — aba Mesa)
+        if (r.charId && !r.ally && !r.damage && !r.deathSave && r.sides === 20 && (r.crit || r.fail)) get().showCinematic({ kind: r.crit ? 'crit' : 'fumble', sheetId: r.charId, label: r.label });
         get().bump(r.crit ? 1.7 : 1.3);
         if (get().sound) playDice(r.crit);
         if (_rollTimer) clearTimeout(_rollTimer);
