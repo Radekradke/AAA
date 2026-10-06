@@ -1,8 +1,10 @@
+import { fileURLToPath } from 'node:url';
 import { test, expect } from './fixtures/test';
 import type { Page } from '@playwright/test';
 import { signIn, WIZARD } from './fixtures/supabase';
 
 const ID = String(WIZARD.id);
+const ARTE = fileURLToPath(new URL('../public/icons/icon-512.png', import.meta.url));
 /** Fixa o dado: 0.999 → 20 natural. */
 const dice = (page: Page, v: number) => page.evaluate((x) => { Math.random = () => x; }, v);
 
@@ -70,10 +72,14 @@ test('familiar livre (sem base): números à mão', async ({ page }) => {
   await editor.getByLabel('PV máx.').fill('4');
   await editor.getByLabel('Deslocamento').fill('3 m, voo 12 m');
   await editor.getByLabel('Anotações').fill('Espírito de fogo em forma de salamandra.');
+  // retrato já na criação
+  await editor.locator('.fv-forge-art input[type="file"]').setInputFiles(ARTE);
+  await expect(editor.locator('.fv-ally-editor-art img')).toBeVisible();
   await editor.getByRole('button', { name: 'Adicionar' }).click();
 
   const ficha = page.getByRole('dialog', { name: 'Faísca' });
   await expect(ficha).toContainText('Familiar · criatura livre');
+  await expect(ficha.locator('.fv-ally-card img')).toBeVisible();
   await expect(ficha.getByLabel('4 de 4 PV')).toBeVisible();
   await expect(ficha).toContainText('3 m, voo 12 m');
   await expect(ficha).toContainText('Espírito de fogo');
