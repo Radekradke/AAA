@@ -13,6 +13,7 @@ import { getItem } from '@/data/items';
 import { itemToInventory } from '@/engine/inventory';
 import type { InventoryItem } from '@/types/character';
 import { tableHero } from '@/lib/tableHeroes';
+import { heroDice } from '@/data/diceTrophies';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -559,12 +560,15 @@ useUiStore.subscribe((s, prev) => {
   const st = useSessionStore.getState();
   if (!st.session || st.session.status !== 'active' || !st.me || !st.campaignId || st.rollVisibility === 'private') return;
   const who = st.me.isMaster ? 'Mestre' : st.me.characterName ?? st.me.name;
+  // dado conquistado do herói: a mesa vê o dado dele no aviso da rolagem
+  const dice = !r.ally && r.charId ? heroDice(useCharacterStore.getState().getCharacter(r.charId))?.id : undefined;
   void sessionService
     .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
       // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
       sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
       ...(r.cantrip && { cantrip: true }),
+      ...(dice && { dice }),
     }, st.rollVisibility)
     .catch(() => undefined);
 });

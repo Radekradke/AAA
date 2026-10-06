@@ -15,7 +15,7 @@ export interface DiceSkin {
   ink: string[];
   /** Contorno dos números ('none' = sem contorno). */
   outline: string[];
-  texture: 'none' | 'stars' | 'fire' | 'marble' | 'cloudy_2' | 'astral' | 'metal';
+  texture: 'none' | 'stars' | 'fire' | 'marble' | 'cloudy_2' | 'astral' | 'metal' | 'skulls' | 'dragon' | 'ice' | 'stainedglass' | 'tiger' | 'water' | 'wood';
   /** 'metal' fica escuro demais (a biblioteca zera o reflexo do ambiente): use vidro. */
   material: 'none' | 'glass';
 }

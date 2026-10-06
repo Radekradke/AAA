@@ -67,6 +67,8 @@ export default defineConfig({
         // a instalação baixa ~2,5 MB em vez de ~7,5 MB de fontes de temas que a
         // pessoa talvez nunca abra.
         globPatterns: ['**/*.{js,css,html,svg}', 'icons/*.png', 'dice/textures/*.webp'],
+        // texturas dos dados conquistados: só quem ganhou baixa (runtime, abaixo)
+        globIgnores: ['dice/textures/{skulls,dragon,dragon-bump,ice,stainedglass,stainedglass-bump,tiger,water,wood}.webp'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
@@ -81,6 +83,12 @@ export default defineConfig({
             urlPattern: ({ url, sameOrigin }) => sameOrigin && /^\/(static|assets)\/.*\.(png|jpe?g|webp)$/.test(url.pathname),
             handler: 'CacheFirst',
             options: { cacheName: 'fv-imagens', expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 60 } },
+          },
+          {
+            // texturas dos dados conquistados (a do tema já vem no precache)
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/dice/textures/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'fv-dados', expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 } },
           },
           {
             // trilha sonora: baixa só a faixa que tocar e guarda para jogar offline

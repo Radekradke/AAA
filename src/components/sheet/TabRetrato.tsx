@@ -24,7 +24,7 @@ import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import { RARITY } from '@/data/themes';
 import { CARD_TIERS, cardTier } from '@/engine/deeds';
 import { heroTitle } from '@/engine/titles';
-import { CardScars, CardSeals, DeedsSection, ScarsSection, TitlePicker } from './RetratoDeeds';
+import { CardScars, CardSeals, DeedsSection, DicePicker, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
 
 /** Características que só repetem a regra (aparecem como aumentos/talentos). */
@@ -258,6 +258,7 @@ function Vitrine({ char, derived }: TabProps) {
         )}
 
         <TitlePicker char={char} />
+        <DicePicker char={char} />
         <DeedsSection char={char} />
         <ScarsSection char={char} />
         <JourneySection char={char} />

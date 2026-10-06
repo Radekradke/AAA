@@ -7,6 +7,8 @@ import { useTheme } from '@/lib/useTheme';
 import { modStr } from '@/engine/dice';
 import { canRoll3d, clear3d, roll3d } from '@/lib/dice3d';
 import { DICE_SKINS } from '@/data/diceSkins';
+import type { DiceSkin } from '@/data/diceSkins';
+import { useCharacterStore } from '@/store/characterStore';
 
 const TUMBLE_MS = 620;
 
@@ -21,6 +23,8 @@ export function RollOverlay() {
   const dice3d = useUiStore((s) => s.dice3d);
   const themeName = useUiStore((s) => s.theme);
   const t = useTheme();
+  /** Dado conquistado do herói que rolou (ficha), no lugar do dado do tema. */
+  const [trophy, setTrophy] = useState<{ id: string; skin: DiceSkin } | null>(null);
 
   const [phase, setPhase] = useState<'physics' | 'tumble' | 'result'>('tumble');
   /** Esta rolagem foi encenada em 3D (painel vai para baixo, sem dado 2D). */
@@ -53,23 +57,36 @@ export function RollOverlay() {
       }, TUMBLE_MS);
     };
 
-    if (dice3d && canRoll3d(roll)) {
-      setStaged3d(true);
-      setPhase('physics');
-      void roll3d(roll, themeName).then((outcome) => {
-        if (rollIdRef.current !== roll.id) return; // já veio outra rolagem
-        if (outcome === 'unavailable') {
-          clear3d();
-          tumble2d();
-        } else {
-          // 'slow': aparelho lento — o total aparece e os dados terminam de cair
-          setPhase('result');
-        }
-      });
-    } else {
-      clear3d();
-      tumble2d();
-    }
+    const stage = (won: { id: string; skin: DiceSkin } | null) => {
+      setTrophy(won);
+      if (dice3d && canRoll3d(roll)) {
+        setStaged3d(true);
+        setPhase('physics');
+        void roll3d(roll, themeName, undefined, won ? { key: won.id, skin: won.skin } : undefined).then((outcome) => {
+          if (rollIdRef.current !== roll.id) return; // já veio outra rolagem
+          if (outcome === 'unavailable') {
+            clear3d();
+            tumble2d();
+          } else {
+            // 'slow': aparelho lento — o total aparece e os dados terminam de cair
+            setPhase('result');
+          }
+        });
+      } else {
+        clear3d();
+        tumble2d();
+      }
+    };
+
+    // dado conquistado (catálogo sob demanda: só quem escolheu um carrega)
+    const hero = roll.charId && !roll.ally ? useCharacterStore.getState().characters.find((c) => c.id === roll.charId) : undefined;
+    if (hero?.diceSkin) {
+      setPhase(dice3d && canRoll3d(roll) ? 'physics' : 'tumble');
+      void import('@/data/diceTrophies').then(
+        (m) => rollIdRef.current === roll.id && stage(m.heroDice(hero) ?? null),
+        () => rollIdRef.current === roll.id && stage(null),
+      );
+    } else stage(null);
     return () => {
       if (flickerRef.current) clearInterval(flickerRef.current);
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -88,7 +105,7 @@ export function RollOverlay() {
   useEffect(() => () => clear3d(), []);
 
   // dado 2D com a mesma skin do 3D (corpo, números e contorno do tema)
-  const skin = DICE_SKINS[themeName];
+  const skin = trophy?.skin ?? DICE_SKINS[themeName];
   const color = roll ? (roll.crit ? t.gold : roll.fail ? t.danger : roll.damage ? t.danger : t.acc) : t.acc;
   const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : 'rolagem') : '';
   const detail = roll ? `${roll.expr} [${roll.rolls.join(', ')}]${roll.modifier ? ' ' + modStr(roll.modifier) : ''}` : '';
