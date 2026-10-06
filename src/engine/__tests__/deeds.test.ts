@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addCrit, addDeed, availableTitles, cardTier, crValue, DEEDS, earnedDeeds, heroTitle, killKindsFor } from '../deeds';
+import { addCrit, addDeed, cardTier, crValue, DEEDS, earnedDeeds, killKindsFor } from '../deeds';
 
 describe('carta do herói: moldura, feitos e golpe final', () => {
   it('moldura sobe com o nível', () => {
@@ -34,11 +34,10 @@ describe('carta do herói: moldura, feitos e golpe final', () => {
     expect(new Set(DEEDS.map((x) => x.id)).size).toBe(DEEDS.length);
   });
 
-  it('todo feito tem raridade; os 5 secretos existem e dão título', () => {
+  it('todo feito tem raridade; os 5 secretos existem', () => {
     for (const d of DEEDS) expect(['comum', 'raro', 'epico', 'lendario']).toContain(d.rarity);
     const secret = DEEDS.filter((d) => d.secret);
     expect(secret.map((d) => d.kind).sort()).toEqual(['cantripKills', 'clutch', 'critBursts', 'deathSaveCrits', 'upsets']);
-    expect(secret.every((d) => d.title)).toBe(true);
     expect(DEEDS.find((d) => d.id === 'crit-1')?.rarity).toBe('comum');
     expect(DEEDS.find((d) => d.id === 'dragon-1')?.rarity).toBe('epico');
   });
@@ -64,11 +63,4 @@ describe('carta do herói: moldura, feitos e golpe final', () => {
     expect(killKindsFor('Humanoide', { cr: '1/2', level: null })).toEqual(['kills']);
   });
 
-  it('título só vale com o feito conquistado', () => {
-    const deeds = addDeed(undefined, 'dragons', 1).deeds;
-    expect(heroTitle({ title: 'dragon-1', deeds })).toBe('Flagelo dos Dragões');
-    expect(heroTitle({ title: 'crit-50', deeds })).toBeNull();
-    expect(heroTitle({ title: null, deeds })).toBeNull();
-    expect(availableTitles(deeds).map((d) => d.id)).toEqual(['dragon-1']);
-  });
 });

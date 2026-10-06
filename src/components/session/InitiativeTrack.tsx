@@ -8,7 +8,7 @@ import { useMonsterLook } from '@/services/bestiaryService';
 import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 import { CONDITIONS } from '@/data/conditions';
 import { MonsterStatBlock } from './MonsterStatBlock';
-import { heroTitle } from '@/engine/deeds';
+import { heroTitle } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
@@ -120,7 +120,7 @@ function MemberEditor({ c }: { c: Combatant }) {
     <div className="fv-live-member">
       <span className="fv-live-member-name">
         {c.name}
-        {c.type === 'player' && heroTitle(tableHero(c.sheetId) ?? {}) && <small className="fv-hero-title-inline">{heroTitle(tableHero(c.sheetId) ?? {})}</small>}
+        {c.type === 'player' && heroTitle(tableHero(c.sheetId)) && <small className="fv-hero-title-inline">{heroTitle(tableHero(c.sheetId))}</small>}
       </span>
       <label>
         Inic.

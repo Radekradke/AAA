@@ -7,7 +7,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useMaster } from '../context';
 import { useMasterStore } from '../masterStore';
 import { HpControl } from './CombatantInspector';
-import { heroTitle } from '@/engine/deeds';
+import { heroTitle } from '@/engine/titles';
 
 /** Resumo da ficha vinculada (snapshot que o jogador sincronizou). */
 export function HeroSummary({ sheetId }: { sheetId: string }) {
