@@ -550,6 +550,11 @@
 .fv-ins-hp-btns button:hover { background: var(--lift); border-color: var(--line-strong); }
 
 .fv-ins-conds { display: flex; flex-wrap: wrap; gap: 4px; }
+.fv-ins-conds button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .fv-ins-conds button,
 .fv-ins-recips button {
   min-height: 28px;

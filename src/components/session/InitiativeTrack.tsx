@@ -14,6 +14,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { bestHunt, huntKnowledge } from '@/engine/hunts';
 import { HuntLore } from '@/components/bestiary/HuntLore';
 import type { Character } from '@/types/character';
+import { ConditionIcon } from '@/components/ui/RuleIcon';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -81,7 +82,7 @@ function TrackRow({ row, isMaster, mine, hunted }: { row: InitiativeRow; isMaste
             {lead.initiative === null && ' · aguardando iniciativa'}
           </small>
           {lead.conditions.length > 0 && (
-            <span className="fv-live-conds">{lead.conditions.map((c) => <i key={c}>{c}</i>)}</span>
+            <span className="fv-live-conds">{lead.conditions.map((c) => <i key={c}><ConditionIcon id={c} size={12} />{c}</i>)}</span>
           )}
         </div>
         {prey && huntKnowledge(hunted).defense && (
@@ -189,6 +190,7 @@ function MemberEditor({ c }: { c: Combatant }) {
       <span className="fv-live-conds-edit" aria-label="Condições">
         {CONDITIONS.filter((x) => x.id !== 'Exausto').map((x) => (
           <button key={x.id} type="button" className={c.conditions.includes(x.id) ? 'is-on' : ''} onClick={() => toggleCond(x.id)} title={x.short}>
+            <ConditionIcon id={x.id} size={12} />
             {x.label}
           </button>
         ))}

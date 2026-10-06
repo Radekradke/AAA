@@ -20,6 +20,7 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
+import { SchoolIcon } from '@/components/ui/RuleIcon';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -302,7 +303,10 @@ export function TabMagias({ char, derived }: TabProps) {
                           <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
                             {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
-                            <Mini>{sp.school}</Mini>
+                            <Mini>
+                              <SchoolIcon school={sp.school} size={10} />
+                              {sp.school}
+                            </Mini>
                             {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
                             {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
@@ -374,7 +378,7 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
 function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
   const ink = useInk();
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

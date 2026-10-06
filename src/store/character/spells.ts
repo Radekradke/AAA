@@ -1,5 +1,6 @@
 import { syncSpellSlots } from '@/engine/spellcasting';
 import type { CharacterState, StoreCtx } from './types';
+import { playSample } from '@/lib/sfx';
 
 /** Magias: conjurar gastando espaço, espaços, magias de itens, esquecer e copiar (grimório). */
 export function spellsActions({ mutate }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot'> {
@@ -17,6 +18,7 @@ export function spellsActions({ mutate }: StoreCtx): Pick<CharacterState, 'noteC
       });
     },
     castWithSlot(id, level, concentration) {
+      playSample('pagina');
       mutate(id, (c) => {
         if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
         const slot = c.combat.spellSlots[level];

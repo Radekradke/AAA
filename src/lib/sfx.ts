@@ -87,3 +87,39 @@ export function playFlatline() {
   if (!enabled || !ctx) return;
   tone(880, 0.1, 2.2, 'sine', 0.035);
 }
+
+/**
+ * Sons gravados (Kenney "RPG Audio", CC0 — public/sfx): baixados só na
+ * primeira vez que tocam, com os efeitos sonoros ligados.
+ */
+export type SampleName = 'moedas' | 'lamina' | 'pagina' | 'equipar' | 'mochila' | 'descanso';
+const samples = new Map<SampleName, Promise<AudioBuffer | null>>();
+
+function sample(name: SampleName): Promise<AudioBuffer | null> {
+  let p = samples.get(name);
+  if (!p) {
+    const c = ctx;
+    p = c
+      ? fetch(`${import.meta.env.BASE_URL}sfx/${name}.mp3`)
+          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+          .then((b) => c.decodeAudioData(b))
+          .catch(() => null)
+      : Promise.resolve(null);
+    samples.set(name, p);
+  }
+  return p;
+}
+
+/** Toca um som gravado (moedas, lâmina, página…); nada se os efeitos estiverem desligados. */
+export function playSample(name: SampleName, volume = 0.55) {
+  if (!enabled || !ctx) return;
+  void sample(name).then((buf) => {
+    if (!buf || !ctx || !enabled) return;
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    src.buffer = buf;
+    src.connect(gain).connect(ctx.destination);
+    src.start();
+  });
+}

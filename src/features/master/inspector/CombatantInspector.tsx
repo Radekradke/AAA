@@ -11,6 +11,7 @@ import { hpWithUndo, removeWithUndo, toggleHiddenWithUndo } from '../actions';
 import { useMaster } from '../context';
 import { useMasterStore } from '../masterStore';
 import { HeroSummary } from './HeroInspector';
+import { ConditionIcon } from '@/components/ui/RuleIcon';
 
 const QUICK = [-10, -5, -1, 1, 5, 10];
 
@@ -146,6 +147,7 @@ export function CombatantInspector({ c }: { c: Combatant }) {
       <div className="fv-ins-conds" aria-label="Condições">
         {CONDITIONS.filter((x) => x.id !== 'Exausto').map((x) => (
           <button key={x.id} type="button" className={c.conditions.includes(x.id) ? 'is-on' : ''} onClick={() => toggleCond(x.id)} title={x.short}>
+            <ConditionIcon id={x.id} size={12} />
             {x.label}
           </button>
         ))}
