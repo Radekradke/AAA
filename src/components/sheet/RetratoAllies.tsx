@@ -315,6 +315,7 @@ function AllyEditor({ char, ally, onClose, onSaved }: { char: Character; ally: A
   const [hpMax, setHpMax] = useState(String(ally?.hpMax ?? ''));
   const [speed, setSpeed] = useState(ally?.speed ?? '');
   const [notes, setNotes] = useState(ally?.notes ?? '');
+  const [portrait, setPortrait] = useState<string | null>(ally?.portrait ?? null);
   const free = !beastId;
   const base = getAllyBeast(beastId);
   const num = (s: string) => (s.trim() && Number.isFinite(Number(s)) ? Math.max(0, Math.round(Number(s))) : undefined);
@@ -331,7 +332,7 @@ function AllyEditor({ char, ally, onClose, onSaved }: { char: Character; ally: A
       kind,
       name: name.trim(),
       beastId: beastId || null,
-      portrait: ally?.portrait ?? null,
+      portrait,
       // trocou a fera: PV voltam ao máximo da nova
       hpCurrent: ally && (ally.beastId ?? null) === (beastId || null) ? ally.hpCurrent : undefined,
       notes: notes.trim() || undefined,
@@ -373,6 +374,24 @@ function AllyEditor({ char, ally, onClose, onSaved }: { char: Character; ally: A
               {ALLY_KINDS[k].label}
             </button>
           ))}
+        </div>
+
+        {/* retrato: a arte da carta do aliado (opcional) */}
+        <div className="fv-forge-art">
+          {portrait ? (
+            <span className="fv-ally-editor-art">
+              <img src={portrait} alt="" />
+            </span>
+          ) : (
+            <span className="fv-forge-art-empty" aria-hidden>
+              <MonsterIcon type="beast" size={26} />
+            </span>
+          )}
+          <div>
+            <span className="fv-ally-editor-label">Retrato (opcional)</span>
+            <p>A arte da carta {kind === 'montaria' ? 'da montaria' : kind === 'familiar' ? 'do familiar' : 'do companheiro'}. Sem retrato, a carta usa o emblema de fera.</p>
+            <PortraitPicker portrait={portrait} onChange={setPortrait} labels={{ add: 'Enviar retrato', change: 'Trocar retrato' }} />
+          </div>
         </div>
 
         <Field label="Nome">{(id) => <input id={id} className="fv-input" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} placeholder={base?.label ?? 'Ex.: Relâmpago'} />}</Field>

@@ -213,7 +213,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 
 ## 33. Companheiros e montarias com carta
 1. Aba **Retrato** → **Companheiros → Adicionar**: escolha **Montaria**, nome "Trovão", base **Cavalo de Guerra** (a linha mostra CA 11 · 19 PV · 18 m) → **Adicionar**. A ficha da montaria abre com a carta (mesma folha holográfica, reflexo e moldura da carta do herói), o emblema de fera e o selo **ND 1/2**.
-2. **Sua arte** na ficha da montaria: a carta e a mini-carta da lista passam a usar a imagem.
+2. O formulário **Novo companheiro** (e **Editar**) já tem **Retrato (opcional)**: envie a arte ali e a carta nasce com ela. **Sua arte** na ficha da montaria: a carta e a mini-carta da lista passam a usar a imagem.
 3. PV com **−/+**, testes de atributo e ataque (**+6** / **2d6+4**) rolam e entram no histórico da ficha. Um **20 natural** da montaria **não** abre o crítico cinematográfico nem conta como feito do herói.
 4. **Familiar** com base **Livre**: CA, PV máx. e deslocamento à mão; as anotações aparecem na ficha. **Editar** reabre com os valores; **Dispensar** pede confirmação.
 5. Patrulheiro **Mestre das Feras** nível 3+: o companheiro da classe já aparece primeiro na lista (CA e ataques com a proficiência somada), com retrato próprio; nome e fera continuam no painel de Combate.
