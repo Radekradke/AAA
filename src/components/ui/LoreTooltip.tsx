@@ -26,10 +26,11 @@ type Point = { x: number; y: number };
 const HOLO = new Set(['raro', 'muito-raro', 'lendario']);
 
 /** Carta do item: a arte com moldura da raridade (e holográfico nas relíquias). */
-export function ItemArtCard({ src, rarity, size, fallback }: { src?: string | null; rarity: string; size?: 'sm'; fallback?: ReactNode }) {
+export function ItemArtCard({ src, rarity, size }: { src: string | null | undefined; rarity: string; size?: 'sm' }) {
+  if (!src) return null; // sem foto, sem carta
   return (
     <span className={`fv-itemcard is-${rarity}` + (HOLO.has(rarity) ? ' is-holo' : '') + (size ? ` is-${size}` : '')} aria-hidden>
-      {src ? <img src={src} alt="" /> : <span className="fv-itemcard-emblem">{fallback}</span>}
+      <img src={src} alt="" />
       {HOLO.has(rarity) && <span className="fv-itemcard-foil" />}
     </span>
   );

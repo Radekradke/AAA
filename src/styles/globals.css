@@ -6635,6 +6635,29 @@ select optgroup {
   width: 11px;
   height: 11px;
 }
+/* sem foto: nada de moldura vazia, só o ícone de enviar arte */
+.fv-item-thumb.is-empty {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  background: none;
+}
+.fv-item-thumb.is-empty .fv-portrait-badge {
+  position: static;
+  width: 26px;
+  height: 26px;
+  border-style: dashed;
+  border-color: var(--line);
+  background: none;
+  box-shadow: none;
+  color: var(--muted);
+  opacity: 0.75;
+}
+.fv-item-thumb.is-empty .fv-portrait-badge:hover {
+  opacity: 1;
+  color: var(--gold);
+  border-color: var(--gold);
+}
 .fv-item-thumb .fv-portrait-badge.is-remove {
   width: 17px;
   height: 17px;

@@ -235,5 +235,11 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
    - **Davi contra Golias** (mesa ao vivo): golpe final numa criatura de ND maior que o nível do herói.
 3. **Título**: com um feito raro ou acima conquistado, escolha o título em **Retrato → Título**. Ele aparece sob o nome na carta, no cabeçalho da ficha, no painel do herói do mestre e na iniciativa (dock do mestre e lista da mesa). **Sem título** remove.
 4. **Carta do item**: no inventário, o botão de imagem na miniatura do card envia a arte (ou use **Editar → Carta do item**). Passe o mouse no card (ou segure no celular): os detalhes aparecem com a carta ao lado; raros, muito raros e lendários têm brilho holográfico.
-5. **Relíquias** (aba Retrato): itens com arte e itens raros+ aparecem como cartas colecionáveis.
+5. **Relíquias** (aba Retrato): só os itens **com foto** viram carta (sem foto, não aparece nada — nem no inventário, onde fica só o botãozinho de enviar arte).
 6. **Jornada**: linha do tempo com o começo, as subidas de nível (com a data), os feitos, as cicatrizes e as sessões jogadas na mesa ao vivo (entram sozinhas ao abrir uma sessão ativa como jogador). Mais de 10 marcos: **Ver desde o começo**.
+
+## 36. Retrato → Suas cartas
+1. Na aba **Retrato**, o submenu **Retrato | Suas cartas** (com o número de cartas). **Suas cartas** mostra a coleção: a carta do herói (cor da moldura do nível), companheiros/montarias **com retrato** e itens **com foto** (cor da raridade; raros+ com holográfico).
+2. Filtros **Todas / Herói / Companheiros / Itens** (só aparecem os que têm carta).
+3. Tocar numa carta abre em tela cheia, com inclinação e reflexo; **‹ ›** ou as setas do teclado passam para as outras; Esc, ✕ ou tocar fora fecham.
+4. Só a carta do herói? Aparece a dica de como ganhar mais cartas (foto no item ou no companheiro).

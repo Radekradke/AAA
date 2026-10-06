@@ -608,9 +608,9 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* miniatura da carta: envia/troca a arte do item */}
-          <span className={'fv-item-thumb' + (it.image ? ' has-art' : '')} style={{ borderColor: hexA(rc.color, big ? 0.7 : 0.35) }}>
-            {it.image ? <img src={it.image} alt="" /> : <Icon name={icon} size={16} />}
+          {/* miniatura da carta (só com foto); sem foto, só o botão discreto de enviar */}
+          <span className={'fv-item-thumb' + (it.image ? ' has-art' : ' is-empty')} style={it.image ? { borderColor: hexA(rc.color, big ? 0.7 : 0.35) } : undefined}>
+            {it.image && <img src={it.image} alt="" />}
             <PortraitPicker variant="badge" portrait={it.image} onChange={onArt} max={ITEM_ART_MAX} labels={{ add: `Enviar arte de ${it.name}`, change: `Trocar arte de ${it.name}` }} />
           </span>
           <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
