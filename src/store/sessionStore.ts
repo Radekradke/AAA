@@ -168,7 +168,8 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
       // com o catálogo de feitos sob demanda (não pesa a primeira tela)
       chars.markEventApplied(sheetId, e.id);
       const kinds = (p.kinds as string[] | undefined) ?? [];
-      void import('@/lib/deedTracker').then((m) => m.applyDeedKinds(sheetId, kinds));
+      const ref = typeof p.monsterRef === 'string' ? p.monsterRef : null;
+      void import('@/lib/deedTracker').then((m) => m.applyDeedKinds(sheetId, kinds, ref));
       continue;
     }
     if (e.type === 'hero_scar') {
@@ -317,7 +318,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       // ND acima do nível do herói (ficha compartilhada da mesa) e golpe de truque: feitos secretos
       const kinds = (await import('@/engine/deeds')).killKindsFor(monster?.type, { cr: monster?.cr, level: tableHero(sheetId)?.level, cantrip: how?.cantrip });
       await sessionService
-        .log(session.id, campaignId, me.userId, 'hero_deed', { sheetId, name: heroName ?? null, creature: pendingKill.name, kinds }, 'public')
+        .log(session.id, campaignId, me.userId, 'hero_deed', { sheetId, name: heroName ?? null, creature: pendingKill.name, monsterRef: pendingKill.monsterRef ?? null, kinds }, 'public')
         .catch(() => undefined);
     },
 

@@ -60,6 +60,8 @@ export interface HeroDeeds {
   unlocked: Record<string, string>;
   /** Críticos do dia (sessão) — para "3 críticos na mesma sessão". */
   burst?: { day: string; crits: number };
+  /** Bestiário de caçadas: id da criatura → abates (engine/hunts). */
+  hunts?: Record<string, import('./hunts').HuntEntry>;
 }
 
 /* ---------- raridade ---------- */
@@ -131,7 +133,7 @@ export function addDeed(deeds: HeroDeeds | undefined, kind: DeedKind, by = 1, no
     unlocked[d.id] = now.toISOString();
     fresh.push(d);
   }
-  return { deeds: { counts, unlocked }, unlocked: fresh };
+  return { deeds: { ...base, counts, unlocked }, unlocked: fresh };
 }
 
 /** Dia local (AAAA-MM-DD): a "sessão" do feito de críticos seguidos. */

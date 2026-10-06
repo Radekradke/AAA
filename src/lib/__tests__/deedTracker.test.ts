@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { useUiStore } from '@/store/uiStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { createDraftCharacter, finalizeCharacter } from '@/engine/characterBuilder';
-import { applyDeedKinds, startDeedTracker } from '../deedTracker';
+import { applyDeedKinds, recordHunt, startDeedTracker } from '../deedTracker';
 import type { RollResult } from '@/engine/dice';
 
 const d20 = (natural: number, charId: string): RollResult => ({
@@ -54,5 +54,14 @@ describe('feitos automáticos da ficha', () => {
     expect(get().deeds?.unlocked['clutch-1']).toBeTruthy();
     useUiStore.getState().pushRoll({ ...d20(20, hero.id), label: 'Teste contra a Morte', deathSave: true });
     expect(get().deeds?.unlocked['deathsave-20']).toBeTruthy();
+  });
+
+  it('golpe final numa criatura do bestiário: soma a caçada', async () => {
+    applyDeedKinds(hero.id, ['kills'], 'goblin');
+    await recordHunt(hero.id, 'goblin');
+    await recordHunt(hero.id, 'nada/torto');
+    expect(get().deeds?.hunts?.goblin?.n).toBe(2);
+    expect(Object.keys(get().deeds?.hunts ?? {})).toEqual(['goblin']);
+    expect(get().deeds?.counts.kills).toBe(2);
   });
 });

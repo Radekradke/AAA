@@ -4,6 +4,7 @@ import { toast } from '@/store/feedbackStore';
 import { addCrit, addDeed, DEED_KINDS } from '@/engine/deeds';
 import type { DeedDef, DeedKind } from '@/engine/deeds';
 import { availableTitles, titleName } from '@/engine/titles';
+import { addHunt, isHuntRef } from '@/engine/hunts';
 import type { Character } from '@/types/character';
 
 /** Aviso de selo novo na carta do herói. */
@@ -39,10 +40,28 @@ function recordCrit(id: string): DeedDef[] {
   return res.unlocked;
 }
 
-/** Evento do mestre (golpe final): soma cada contador válido e avisa os selos. */
-export function applyDeedKinds(sheetId: string, kinds: string[]): void {
+/**
+ * Golpe final numa criatura do bestiário: soma no bestiário de caçadas e
+ * avisa a carta nova ou o que o herói passou a saber dela.
+ */
+export async function recordHunt(sheetId: string, monsterRef: string): Promise<void> {
+  const char = useCharacterStore.getState().getCharacter(sheetId);
+  if (!char || !isHuntRef(monsterRef)) return;
+  const res = addHunt(char.deeds, monsterRef);
+  if (res.deeds === char.deeds) return;
+  useCharacterStore.getState().setDeeds(sheetId, res.deeds);
+  if (!res.tier) return;
+  // nome da criatura sob demanda (o bestiário não pesa a primeira tela)
+  const name = (await import('@/data/bestiary')).MONSTER_BY_ID[monsterRef]?.name ?? 'criatura';
+  if (res.tier.min === 1) toast(`Nova carta de caçada: ${name}! Veja em Retrato → Suas cartas.`, { tone: 'ok', ms: 6500 });
+  else toast(`Caçada — ${name}: ${res.tier.label}! Agora você conhece ${res.tier.reveals}.`, { tone: 'ok', ms: 7500 });
+}
+
+/** Evento do mestre (golpe final): soma cada contador válido, a caçada e avisa os selos. */
+export function applyDeedKinds(sheetId: string, kinds: string[], monsterRef?: string | null): void {
   const valid = kinds.filter((k): k is DeedKind => DEED_KINDS.includes(k as DeedKind));
   announceDeeds(valid.flatMap((k) => recordDeed(sheetId, k)));
+  if (monsterRef) void recordHunt(sheetId, monsterRef);
 }
 
 let started = false;

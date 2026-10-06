@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { healthState, initiativeRows } from '@/engine/encounter';
 import type { InitiativeRow } from '@/engine/encounter';
 import type { Combatant, Encounter } from '@/types/session';
@@ -10,6 +10,10 @@ import { CONDITIONS } from '@/data/conditions';
 import { MonsterStatBlock } from './MonsterStatBlock';
 import { heroTitle } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
+import { useCharacterStore } from '@/store/characterStore';
+import { bestHunt, huntKnowledge } from '@/engine/hunts';
+import { HuntLore } from '@/components/bestiary/HuntLore';
+import type { Character } from '@/types/character';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -23,10 +27,23 @@ const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
  * Trilha de iniciativa compartilhada: todos veem a MESMA ordem e o mesmo
  * turno (vêm do banco). O mestre ganha os controles de cada linha; o
  * jogador vê a própria linha em destaque e a vida dos inimigos só como
- * "ferido/sangrando" (sem números).
+ * "ferido/sangrando" (sem números) — a não ser que o herói dele já tenha
+ * caçado a criatura (bestiário de caçadas: CA, fraquezas, ataques…).
  */
 export function InitiativeTrack({ encounter, combatants, isMaster, userId }: { encounter: Encounter; combatants: Combatant[]; isMaster: boolean; userId: string }) {
   const rows = initiativeRows(combatants, encounter.activeCombatantId);
+  const characters = useCharacterStore((s) => s.characters);
+  // fichas do jogador neste encontro (o que elas já caçaram vale na mesa)
+  const mine = useMemo(
+    () =>
+      isMaster
+        ? []
+        : combatants
+            .filter((c) => c.type === 'player' && c.ownerId === userId && c.sheetId)
+            .map((c) => characters.find((x) => x.id === c.sheetId))
+            .filter((x): x is Character => !!x),
+    [isMaster, combatants, userId, characters],
+  );
   if (!rows.length) {
     return (
       <div className="fv-live-empty">
@@ -37,15 +54,16 @@ export function InitiativeTrack({ encounter, combatants, isMaster, userId }: { e
   return (
     <ol className="fv-live-track" aria-label="Ordem de iniciativa">
       {rows.map((row) => (
-        <TrackRow key={row.key} row={row} isMaster={isMaster} mine={row.members.some((m) => m.ownerId === userId)} />
+        <TrackRow key={row.key} row={row} isMaster={isMaster} mine={row.members.some((m) => m.ownerId === userId)} hunted={row.lead.monsterRef && mine.length ? bestHunt(mine, row.lead.monsterRef) : 0} />
       ))}
     </ol>
   );
 }
 
-function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boolean; mine: boolean }) {
+function TrackRow({ row, isMaster, mine, hunted }: { row: InitiativeRow; isMaster: boolean; mine: boolean; hunted: number }) {
   const [open, setOpen] = useState(false);
   const lead = row.lead;
+  const prey = !isMaster && hunted > 0 && lead.monsterRef ? MONSTER_BY_ID[lead.monsterRef] : undefined;
   const kind = lead.type === 'player' ? 'hero' : lead.type === 'npc' ? 'npc' : 'foe';
   const cls = ['fv-live-row', `is-${kind}`, row.active && 'is-active', row.defeated && 'is-down', mine && 'is-mine', lead.hidden && 'is-hidden'].filter(Boolean).join(' ');
   return (
@@ -66,6 +84,16 @@ function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boole
             <span className="fv-live-conds">{lead.conditions.map((c) => <i key={c}>{c}</i>)}</span>
           )}
         </div>
+        {prey && huntKnowledge(hunted).defense && (
+          <div className="fv-live-row-stats">
+            <span title="Classe de Armadura (você já caçou esta criatura)">CA {lead.armorClass ?? prey.ac}</span>
+          </div>
+        )}
+        {prey && (
+          <button type="button" className="fv-live-row-lore" aria-expanded={open} onClick={() => setOpen((v) => !v)} title="O que você sabe desta criatura (bestiário de caçadas)">
+            <span aria-hidden>📖</span> ×{hunted}
+          </button>
+        )}
         {isMaster && (
           <div className="fv-live-row-stats">
             {lead.armorClass !== null && <span title="Classe de Armadura">CA {lead.armorClass}</span>}
@@ -82,6 +110,11 @@ function TrackRow({ row, isMaster, mine }: { row: InitiativeRow; isMaster: boole
         <div className="fv-live-row-edit">
           {row.members.map((m) => <MemberEditor key={m.id} c={m} />)}
           {lead.monsterRef && MONSTER_BY_ID[lead.monsterRef] && <MonsterStatBlock m={MONSTER_BY_ID[lead.monsterRef]} who={lead.name} compact />}
+        </div>
+      )}
+      {prey && open && (
+        <div className="fv-live-row-edit">
+          <HuntLore m={prey} n={hunted} name={row.label} compact />
         </div>
       )}
     </li>
