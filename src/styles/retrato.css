@@ -1814,19 +1814,23 @@
   font: italic 14px / 1.5 var(--font-body);
   color: var(--muted);
 }
-.fv-titles-missing {
+.fv-titles-missing,
+.fv-dice-missing {
   margin-top: 12px;
 }
-.fv-titles-missing summary {
+.fv-titles-missing summary,
+.fv-dice-missing summary {
   cursor: pointer;
   width: fit-content;
   font: 600 13px var(--font-body);
   color: var(--muted);
 }
-.fv-titles-missing summary:hover {
+.fv-titles-missing summary:hover,
+.fv-dice-missing summary:hover {
   color: var(--ink);
 }
-.fv-titles-missing ul {
+.fv-titles-missing ul,
+.fv-dice-missing ul {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 6px;
@@ -1834,7 +1838,8 @@
   padding: 0;
   list-style: none;
 }
-.fv-titles-missing li {
+.fv-titles-missing li,
+.fv-dice-missing li {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1843,7 +1848,8 @@
   border: 1px dashed var(--line);
   background: var(--sunk);
 }
-.fv-titles-missing b {
+.fv-titles-missing b,
+.fv-dice-missing b {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -1851,7 +1857,8 @@
   font: 600 13.5px var(--font-display);
   color: var(--ink);
 }
-.fv-titles-missing small {
+.fv-titles-missing small,
+.fv-dice-missing small {
   font-size: 12px;
   line-height: 1.4;
   color: var(--muted);
@@ -1875,4 +1882,64 @@
   font-size: 12.5px;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* dados conquistados: escolha com a miniatura do dado */
+.fv-dicepick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fv-dicepick button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+}
+.fv-dicepick button:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--gold), transparent 40%);
+}
+.fv-dicepick button.is-raro {
+  border-color: rgba(110, 170, 255, 0.45);
+}
+.fv-dicepick button.is-epico {
+  border-color: rgba(170, 110, 255, 0.5);
+}
+.fv-dicepick button.is-lendario {
+  border-color: rgba(255, 190, 60, 0.6);
+}
+.fv-dicepick button.is-on {
+  color: var(--ink);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold), var(--sunk) 82%);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.fv-dicepick-theme {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background: var(--acc);
+  color: var(--on-acc, var(--bg));
+  font: 700 11px var(--font-num);
+}
+.fv-dice-missing .fv-dicepick-locked li {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.fv-dicepick-locked li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }

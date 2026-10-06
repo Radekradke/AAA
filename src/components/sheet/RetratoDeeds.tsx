@@ -6,6 +6,8 @@ import type { DeedDef, Scar } from '@/engine/deeds';
 import { useCharacterStore } from '@/store/characterStore';
 import { Icon } from '@/components/ui/Icon';
 import { MonsterIcon } from '@/components/bestiary/MonsterPortrait';
+import { DICE_TROPHIES, heroDice } from '@/data/diceTrophies';
+import { DieChip } from '@/components/dice/DieChip';
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -138,6 +140,58 @@ export function TitlePicker({ char }: { char: Character }) {
                   <em className={`fv-rarity is-${t.rarity}`}>{DEED_RARITY[t.rarity].label}</em>
                 </b>
                 <small>{t.secret ? 'Título secreto — conquiste para descobrir.' : t.hint}</small>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Dados conquistados: o herói escolhe com que dado rola (no 3D, no 2D e no
+ * aviso que a mesa vê). Os trancados mostram como liberar.
+ */
+export function DicePicker({ char }: { char: Character }) {
+  const edit = useCharacterStore((s) => s.editCharacter);
+  const open = DICE_TROPHIES.filter((t) => t.unlocked(char));
+  const current = heroDice(char)?.id ?? '';
+  const locked = DICE_TROPHIES.filter((t) => !t.unlocked(char));
+  return (
+    <section className="fv-vitrine-sec">
+      <h3>
+        Dados · {open.length} de {DICE_TROPHIES.length}
+      </h3>
+      <div className="fv-dicepick" role="radiogroup" aria-label="Dado do herói">
+        <button type="button" role="radio" aria-checked={!current} className={!current ? 'is-on' : ''} onClick={() => edit(char.id, { diceSkin: null })}>
+          <span className="fv-dicepick-theme" aria-hidden>
+            20
+          </span>
+          Do tema
+        </button>
+        {open.map((t) => (
+          <button key={t.id} type="button" role="radio" aria-checked={current === t.id} className={`is-${t.rarity}` + (current === t.id ? ' is-on' : '')} onClick={() => edit(char.id, { diceSkin: t.id })}>
+            <DieChip skin={t.skin} size={30} />
+            {t.skin.label}
+          </button>
+        ))}
+      </div>
+      {!open.length && <p className="fv-vitrine-text fv-titles-hint">Nenhum dado conquistado ainda — cada um sai de um feito na mesa.</p>}
+      {locked.length > 0 && (
+        <details className="fv-dice-missing">
+          <summary>Dados por conquistar · {locked.length}</summary>
+          <ul className="fv-dicepick-locked">
+            {locked.map((t) => (
+              <li key={t.id}>
+                <DieChip skin={t.skin} size={26} locked />
+                <span>
+                  <b>
+                    {t.skin.label}
+                    <em className={`fv-rarity is-${t.rarity}`}>{DEED_RARITY[t.rarity].label}</em>
+                  </b>
+                  <small>{t.hint}</small>
+                </span>
               </li>
             ))}
           </ul>

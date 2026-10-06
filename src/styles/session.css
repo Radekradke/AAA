@@ -979,11 +979,12 @@
 }
 .fv-tableroll-who { grid-column: 1 / -1; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .fv-tableroll-label { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fv-tableroll b { grid-row: 2 / 4; grid-column: 2; font-family: var(--font-num); font-size: 28px; color: var(--gold); }
+.fv-tableroll > b { grid-row: 2 / 4; grid-column: 2; font-family: var(--font-num); font-size: 28px; color: var(--gold); }
 .fv-tableroll small { font-size: 11px; color: var(--muted); font-family: var(--font-num); }
-.fv-tableroll.is-dmg b { color: var(--danger); }
+.fv-tableroll.is-dmg > b { color: var(--danger); }
 .fv-tableroll.is-crit { border-color: var(--gold); box-shadow: 0 0 26px var(--bloom), 0 14px 36px rgba(0, 0, 0, 0.55); }
-.fv-tableroll.is-fail b { color: var(--muted); }
+.fv-tableroll.is-fail > b { color: var(--muted); }
+.fv-tableroll-die { position: absolute; top: -14px; right: 12px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); }
 @keyframes fv-tableroll-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (max-width: 760px) { .fv-tableroll { bottom: calc(86px + env(safe-area-inset-bottom)); } }
 @media (prefers-reduced-motion: reduce) { .fv-tableroll { animation: none; } }

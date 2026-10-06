@@ -250,3 +250,10 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 3. Tocar na carta abre a tela cheia com **o que o herói sabe**: barra até o próximo nível e blocos destravados por abates — **Básico** (1), **Defesa: CA e PV** (3), **Pontos fracos: resistências, imunidades, vulnerabilidades e sentidos** (5), **Como luta: ataques, salvaguardas e características** (10) e **Ficha inteira** (25). Os trancados mostram 🔒 com quantos abates faltam.
 4. Cada nível novo avisa: "Caçada — Goblin: Presa conhecida! Agora você conhece CA e pontos de vida."
 5. Na mesa, como jogador: inimigos que o seu herói já caçou mostram **📖 ×N** na iniciativa (e a **CA**, a partir de 3 abates, no PC). Tocar abre o mesmo painel. Criaturas nunca abatidas continuam só com "ferido/sangrando".
+
+## 38. Dados conquistados
+1. Aba **Retrato → Dados**: "Do tema" mais os dados que o herói já ganhou (ex.: **Bordão do Errante** no nível 5, **Escamas de Dragão** ao dar o golpe final num dragão). **Dados por conquistar** mostra os outros trancados, com a raridade e como liberar.
+2. Escolha um: as rolagens da ficha passam a usar esse dado — no 3D (textura própria: escamas, crânios, gelo, vitral, madeira, tigre, água…) e no dado 2D. Rolagens do companheiro/montaria continuam com o dado do tema.
+3. Na mesa ao vivo, o aviso de rolagem que os outros veem mostra o dado do herói no canto.
+4. Se o herói perder a condição (ex.: ficha voltou de nível), o dado volta ao do tema sozinho.
+5. Texturas novas não entram na instalação do app (PWA): só baixam quando alguém rola com o dado.

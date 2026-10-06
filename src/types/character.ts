@@ -269,6 +269,8 @@ export interface Character {
   scars?: import('@/engine/deeds').Scar[];
   /** Título exibido sob o nome (id de um feito conquistado que dá título). */
   title?: string | null;
+  /** Dado conquistado escolhido (data/diceTrophies); null = o do tema. */
+  diceSkin?: string | null;
   /** Sessões da mesa ao vivo jogadas com esta ficha (linha da jornada). */
   sessions?: { id: string; name: string; at: string }[];
   /** Níveis por classe (pronto para multiclasse). */

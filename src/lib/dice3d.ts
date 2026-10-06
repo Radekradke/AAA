@@ -3,6 +3,7 @@ import type { DiceBoxColorset } from '@3d-dice/dice-box-threejs';
 import type { RollResult } from '@/engine/dice';
 import type { ThemeName } from '@/types/dnd';
 import { DICE_SKINS } from '@/data/diceSkins';
+import type { DiceSkin } from '@/data/diceSkins';
 
 /**
  * Dados 3D com física (three.js + cannon-es, via @3d-dice/dice-box-threejs).
@@ -25,14 +26,22 @@ const MAX_DICE = 10;
 let box: DiceBox | null = null;
 let loading: Promise<DiceBox | null> | null = null;
 let failed = false;
-let currentTheme: ThemeName | null = null;
+/** Skin em uso na caixa (tema ou dado conquistado). */
+let currentKey: string | null = null;
 
-/** Skin do tema (veja data/diceSkins.ts): uma cor vira string, várias viram sorteio por dado. */
-function colorset(theme: ThemeName): DiceBoxColorset {
-  const s = DICE_SKINS[theme];
-  const one = (v: string[]) => (v.length > 1 ? v : v[0]);
-  return { name: `fv-${theme}-v2`, foreground: one(s.ink), background: one(s.body), outline: one(s.outline), texture: s.texture, material: s.material };
+/** Dado conquistado do herói que rolou (data/diceTrophies) — no lugar do dado do tema. */
+export interface Dice3dSkin {
+  key: string;
+  skin: DiceSkin;
 }
+
+/** Skin do tema (veja data/diceSkins.ts) ou a conquistada: uma cor vira string, várias viram sorteio por dado. */
+function colorset(theme: ThemeName, over?: Dice3dSkin): DiceBoxColorset {
+  const s = over?.skin ?? DICE_SKINS[theme];
+  const one = (v: string[]) => (v.length > 1 ? v : v[0]);
+  return { name: over ? `fv-trofeu-${over.key}` : `fv-${theme}-v2`, foreground: one(s.ink), background: one(s.body), outline: one(s.outline), texture: s.texture, material: s.material };
+}
+const keyOf = (theme: ThemeName, over?: Dice3dSkin) => (over ? `trofeu:${over.key}` : `tema:${theme}`);
 
 /** WebGL disponível? (celulares muito antigos / navegadores travados). */
 function webglAvailable(): boolean {
@@ -76,7 +85,7 @@ export function loadDice3d(theme: ThemeName): Promise<DiceBox | null> {
         strength: 1.3,
       });
       await b.initialize();
-      currentTheme = theme;
+      currentKey = keyOf(theme);
       box = b;
       return b;
     })().catch((err) => {
@@ -102,14 +111,15 @@ export function canRoll3d(r: RollResult): boolean {
  */
 export type Roll3dOutcome = 'landed' | 'slow' | 'unavailable';
 
-/** Joga os dados 3D caindo nas faces de `r.rolls`. */
-export async function roll3d(r: RollResult, theme: ThemeName, timeoutMs = 3500): Promise<Roll3dOutcome> {
+/** Joga os dados 3D caindo nas faces de `r.rolls` (com o dado conquistado do herói, se houver). */
+export async function roll3d(r: RollResult, theme: ThemeName, timeoutMs = 3500, over?: Dice3dSkin): Promise<Roll3dOutcome> {
   if (!canRoll3d(r)) return 'unavailable';
   const b = await loadDice3d(theme);
   if (!b) return 'unavailable';
-  if (currentTheme !== theme) {
-    currentTheme = theme;
-    await b.updateConfig({ theme_customColorset: colorset(theme) });
+  const key = keyOf(theme, over);
+  if (currentKey !== key) {
+    currentKey = key;
+    await b.updateConfig({ theme_customColorset: colorset(theme, over) });
   }
   setVisible(true);
   // vantagem/desvantagem: 1d20 com duas rolagens → dois d20 na mesa
