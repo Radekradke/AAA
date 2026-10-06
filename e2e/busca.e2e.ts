@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/test';
-import { signIn, WIZARD } from './fixtures/supabase';
+import { installSupabase, signIn, WIZARD } from './fixtures/supabase';
+import type { Page } from '@playwright/test';
 
 const ID = String(WIZARD.id);
 const NAME = String(WIZARD.name);
@@ -49,11 +50,43 @@ test.describe('busca geral', () => {
     await expect(page.locator('.fv-sheet-tab', { hasText: 'Magias' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('criatura mostra o bloco de estatísticas @celular', async ({ page }) => {
-    await page.goto('/personagens');
-    await page.getByRole('button', { name: 'Buscar (Ctrl+K)' }).click();
-    await page.getByRole('dialog', { name: 'Buscar' }).getByRole('combobox').fill('goblin');
-    await page.getByRole('option', { name: /Goblin/ }).first().click();
-    await expect(page.getByRole('dialog', { name: 'Buscar' }).getByRole('heading', { name: 'Goblin' })).toBeVisible();
+  test('jogador: criatura nunca caçada não mostra a ficha @celular', async ({ page }) => {
+    const busca = await openGoblin(page);
+    await expect(busca.getByRole('heading', { name: 'Goblin' })).toBeVisible();
+    await expect(busca).toContainText('A ficha completa fica com o mestre');
+    await expect(busca.getByRole('region', { name: 'Bestiário de caçadas: Goblin' })).toContainText('Nunca abatida');
+    await expect(busca).not.toContainText('Cimitarra');
+    await expect(busca).not.toContainText('armadura de couro');
+  });
+});
+
+/** Abre a busca, procura "goblin" e entra no resumo da criatura. */
+async function openGoblin(page: Page) {
+  await page.goto('/personagens');
+  await page.getByRole('button', { name: 'Buscar (Ctrl+K)' }).click();
+  const busca = page.getByRole('dialog', { name: 'Buscar' });
+  await busca.getByRole('combobox').fill('goblin');
+  await busca.getByRole('option', { name: /Goblin/ }).first().click();
+  return busca;
+}
+
+test.describe('busca geral: criaturas pelo bestiário de caçadas', () => {
+  test('jogador vê só o que os heróis já caçaram', async ({ page }) => {
+    const hunts = { goblin: { n: 10, first: '2026-09-01T20:00:00.000Z', last: '2026-09-09T20:00:00.000Z' } };
+    await signIn(page, 'guest', { characters: [{ ...WIZARD, deeds: { counts: {}, unlocked: {}, hunts } }] });
+    const busca = await openGoblin(page);
+    await expect(busca).toContainText('10 abates');
+    const lore = busca.getByRole('region', { name: 'Bestiário de caçadas: Goblin' });
+    await expect(lore).toContainText('Especialidade');
+    await expect(lore).toContainText('Cimitarra');
+    await expect(lore).toContainText('Ficha inteira — com 25 abates');
+  });
+
+  test('mestre vê a ficha completa', async ({ page }) => {
+    await signIn(page, 'master');
+    await installSupabase(page, 'master');
+    const busca = await openGoblin(page);
+    await expect(busca.getByText('Cimitarra').first()).toBeVisible();
+    await expect(busca).not.toContainText('A ficha completa fica com o mestre');
   });
 });

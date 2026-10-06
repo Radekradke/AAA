@@ -22,6 +22,9 @@ import { MONSTERS } from '@/data/bestiary';
 import { getClass } from '@/data/classes';
 import { SHEET_TABS } from '@/components/sheet/sheetTabDefs';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
+import { HuntLore } from '@/components/bestiary/HuntLore';
+import { useSessionStore } from '@/store/sessionStore';
+import { bestHunt } from '@/engine/hunts';
 import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 import { monsterLook } from '@/lib/monsterArt';
 import type { Item, Spell } from '@/types/dnd';
@@ -90,6 +93,13 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
 
   const sheetId = /^\/ficha\/([^/]+)$/.exec(location.pathname)?.[1] ?? null;
 
+  // ficha completa das criaturas: só para quem é mestre (de alguma mesa ou da sessão aberta);
+  // o jogador vê o que os heróis dele já caçaram (bestiário de caçadas)
+  const sessionMaster = useSessionStore((s) => !!s.me?.isMaster);
+  const master = sessionMaster || campaigns.some((c) => c.master);
+  const myHeroes = useMemo(() => characters.filter((c) => !c.draft && (!user || c.ownerId === user.id || user.guest)), [characters, user]);
+  const hunted = (ref: string) => bestHunt(myHeroes, ref);
+
   const entries = useMemo<Entry[]>(() => {
     const list: Entry[] = [
       { id: 't-home', kind: 'tela', title: 'Menu principal', keywords: 'inicio home', boost: 3, ref: { t: 'nav', to: '/' } },
@@ -114,9 +124,13 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
     for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), keywords: i.group, ref: { t: 'item', v: i } });
     for (const c of CONDITIONS) list.push({ id: `c-${c.id}`, kind: 'condicao', title: c.label, subtitle: c.short, boost: 1, ref: { t: 'cond', v: c } });
     for (const f of FEATS) list.push({ id: `f-${f.id}`, kind: 'talento', title: f.label, subtitle: f.prereq ? `Pré-requisito: ${f.prereq}` : f.source, ref: { t: 'feat', v: f } });
-    for (const m of MONSTERS) list.push({ id: `x-${m.id}`, kind: 'criatura', title: m.name, subtitle: `ND ${m.cr} · ${m.type}`, keywords: m.en, ref: { t: 'monster', v: m } });
+    for (const m of MONSTERS) {
+      const n = master ? 0 : bestHunt(myHeroes, m.id);
+      const subtitle = master ? `ND ${m.cr} · ${m.type}` : n ? `ND ${m.cr} · ${m.type} · ${n} ${n === 1 ? 'abate' : 'abates'}` : 'Criatura ainda não caçada';
+      list.push({ id: `x-${m.id}`, kind: 'criatura', title: m.name, subtitle, keywords: m.en, ref: { t: 'monster', v: m } });
+    }
     return list;
-  }, [characters, user, campaigns, sheetId, openTutorial]);
+  }, [characters, user, campaigns, sheetId, openTutorial, master, myHeroes]);
 
   const groups = useMemo(() => searchAll(entries, q), [entries, q]);
   const flat = useMemo(() => groups.flatMap((g) => g.items) as Entry[], [groups]);
@@ -150,7 +164,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
     <div className="fv-search-backdrop" onClick={onClose}>
       <div ref={boxRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Buscar" className="fv-search fv-panel" onClick={(e) => e.stopPropagation()}>
         {detail ? (
-          <Detail e={detail} onBack={() => setDetail(null)} />
+          <Detail e={detail} onBack={() => setDetail(null)} master={master} hunted={hunted} />
         ) : (
           <>
             <div className="fv-search-field">
@@ -232,7 +246,7 @@ function Row({ k, v }: { k: string; v?: ReactNode }) {
 }
 
 /** Resumo da regra escolhida, sem sair da tela. */
-function Detail({ e, onBack }: { e: Entry; onBack: () => void }) {
+function Detail({ e, onBack, master, hunted }: { e: Entry; onBack: () => void; master: boolean; hunted: (ref: string) => number }) {
   const r = e.ref;
   return (
     <div className="fv-search-detail">
@@ -283,7 +297,14 @@ function Detail({ e, onBack }: { e: Entry; onBack: () => void }) {
       {r.t === 'monster' && (
         <div className="fv-search-monster">
           <MonsterPortrait look={monsterLook(r.v)} size={120} />
-          <MonsterStatBlock m={r.v} compact />
+          {master ? (
+            <MonsterStatBlock m={r.v} compact />
+          ) : (
+            <div className="fv-search-hunt">
+              <p className="fv-search-hunt-note">A ficha completa fica com o mestre. Aqui está o que os seus heróis já aprenderam caçando esta criatura.</p>
+              <HuntLore m={r.v} n={hunted(r.v.id)} compact />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -250,6 +250,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 3. Tocar na carta abre a tela cheia com **o que o herói sabe**: barra até o próximo nível e blocos destravados por abates — **Básico** (1), **Defesa: CA e PV** (3), **Pontos fracos: resistências, imunidades, vulnerabilidades e sentidos** (5), **Como luta: ataques, salvaguardas e características** (10) e **Ficha inteira** (25). Os trancados mostram 🔒 com quantos abates faltam.
 4. Cada nível novo avisa: "Caçada — Goblin: Presa conhecida! Agora você conhece CA e pontos de vida."
 5. Na mesa, como jogador: inimigos que o seu herói já caçou mostram **📖 ×N** na iniciativa (e a **CA**, a partir de 3 abates, no PC). Tocar abre o mesmo painel. Criaturas nunca abatidas continuam só com "ferido/sangrando".
+6. **Busca geral (Ctrl+K)**: a ficha completa das criaturas só aparece para quem é **mestre** (de alguma mesa da conta ou da sessão aberta). Para o jogador, a criatura mostra a arte e o painel do bestiário de caçadas — "Criatura ainda não caçada" (tudo com cadeado) ou o que os heróis dele já aprenderam (ex.: "ND 1/4 · Humanoide · 10 abates").
 
 ## 38. Dados conquistados
 1. Aba **Retrato → Dados**: "Do tema" mais os dados que o herói já ganhou (ex.: **Bordão do Errante** no nível 5, **Escamas de Dragão** ao dar o golpe final num dragão). **Dados por conquistar** mostra os outros trancados, com a raridade e como liberar.
