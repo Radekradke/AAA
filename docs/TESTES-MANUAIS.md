@@ -243,3 +243,10 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 2. Filtros **Todas / Herói / Companheiros / Itens** (só aparecem os que têm carta).
 3. Tocar numa carta abre em tela cheia, com inclinação e reflexo; **‹ ›** ou as setas do teclado passam para as outras; Esc, ✕ ou tocar fora fecham.
 4. Só a carta do herói? Aparece a dica de como ganhar mais cartas (foto no item ou no companheiro).
+
+## 37. Bestiário de caçadas
+1. Na mesa ao vivo, o mestre derruba uma criatura do bestiário (ex.: Goblin) e dá o golpe final a um herói. Na ficha desse herói aparece o aviso **"Nova carta de caçada: Goblin!"**.
+2. **Retrato → Suas cartas → Caçadas**: uma carta por criatura abatida, com a arte oficial (ou o emblema do tipo), o número de abates e o ND. A moldura sobe com os abates: bronze (1 e 3), prata (5), ouro (10, holográfica) e lendária (25, **Nêmesis**).
+3. Tocar na carta abre a tela cheia com **o que o herói sabe**: barra até o próximo nível e blocos destravados por abates — **Básico** (1), **Defesa: CA e PV** (3), **Pontos fracos: resistências, imunidades, vulnerabilidades e sentidos** (5), **Como luta: ataques, salvaguardas e características** (10) e **Ficha inteira** (25). Os trancados mostram 🔒 com quantos abates faltam.
+4. Cada nível novo avisa: "Caçada — Goblin: Presa conhecida! Agora você conhece CA e pontos de vida."
+5. Na mesa, como jogador: inimigos que o seu herói já caçou mostram **📖 ×N** na iniciativa (e a **CA**, a partir de 3 abates, no PC). Tocar abre o mesmo painel. Criaturas nunca abatidas continuam só com "ferido/sangrando".

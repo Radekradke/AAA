@@ -8,14 +8,23 @@ import { RARITY } from '@/data/themes';
 import { CARD_TIERS, cardTier } from '@/engine/deeds';
 import { heroTitle } from '@/engine/titles';
 import { ALLY_KINDS, alliesOf } from '@/engine/allies';
+import { huntTier, huntsOf } from '@/engine/hunts';
+import { MONSTER_BY_ID } from '@/data/bestiary';
+import { monsterLook } from '@/lib/monsterArt';
+import type { MonsterTypeKey } from '@/lib/monsterArt';
+import { MonsterIcon } from '@/components/bestiary/MonsterPortrait';
+import { HuntLore } from '@/components/bestiary/HuntLore';
 import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { tiltHandlers } from '@/lib/tilt';
 import { useDialogFocus } from '@/lib/useDialogFocus';
 import { Icon } from '@/components/ui/Icon';
 
-type CardKind = 'heroi' | 'aliado' | 'item';
+type CardKind = 'heroi' | 'aliado' | 'monstro' | 'item';
 
-/** Uma carta da coleção: sempre com arte (sem foto, não entra). */
+/**
+ * Uma carta da coleção. Herói, aliados e itens só entram com arte; as
+ * caçadas entram sempre (sem arte oficial, mostram o emblema do tipo).
+ */
 export interface CollectCard {
   id: string;
   kind: CardKind;
@@ -24,7 +33,11 @@ export interface CollectCard {
   line: string;
   /** Selo de cima (raridade, moldura, tipo). */
   badge: string;
-  art: string;
+  art: string | null;
+  /** Emblema da criatura quando não há arte. */
+  emblem?: { type: MonsterTypeKey; color: string };
+  /** Bestiário de caçadas: criatura e abates (abre o que o herói sabe). */
+  hunt?: { ref: string; n: number };
   position?: string;
   /** Cor da moldura. */
   color: string;
@@ -34,9 +47,9 @@ export interface CollectCard {
 const TIER_COLOR = { bronze: '#c38a55', prata: '#cfd9e6', ouro: '#e9c46a', lendaria: '#ffb030' } as const;
 const ALLY_COLOR = { companheiro: '#6fbf73', montaria: '#e0a54a', familiar: '#a98be0' } as const;
 const HOLO_RARITY = new Set(['raro', 'muito-raro', 'lendario']);
-const KIND_LABEL: Record<CardKind, string> = { heroi: 'Herói', aliado: 'Companheiros', item: 'Itens' };
+const KIND_LABEL: Record<CardKind, string> = { heroi: 'Herói', aliado: 'Companheiros', monstro: 'Caçadas', item: 'Itens' };
 
-/** Todas as cartas do herói: a dele, a dos aliados com retrato e a dos itens com foto. */
+/** Todas as cartas do herói: a dele, a dos aliados com retrato, as caçadas e a dos itens com foto. */
 export function collectCards(char: Character): CollectCard[] {
   const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
@@ -60,6 +73,24 @@ export function collectCards(char: Character): CollectCard[] {
     if (!a.portrait) continue;
     out.push({ id: `aliado-${a.id}`, kind: 'aliado', title: a.name, line: [ALLY_KINDS[a.kind].label, a.base && a.base !== a.name ? a.base : null].filter(Boolean).join(' · '), badge: ALLY_KINDS[a.kind].label, art: a.portrait, color: ALLY_COLOR[a.kind], holo: false });
   }
+  for (const [ref, h] of huntsOf(char.deeds)) {
+    const m = MONSTER_BY_ID[ref];
+    const tier = huntTier(h.n);
+    if (!m || !tier) continue;
+    const look = monsterLook(m);
+    out.push({
+      id: `caca-${ref}`,
+      kind: 'monstro',
+      title: m.name,
+      line: `${h.n} ${h.n === 1 ? 'abate' : 'abates'} · ND ${m.cr}`,
+      badge: tier.label,
+      art: look.art,
+      emblem: look.art ? undefined : { type: look.type, color: look.color },
+      hunt: { ref, n: h.n },
+      color: TIER_COLOR[tier.frame],
+      holo: tier.frame === 'ouro' || tier.frame === 'lendaria',
+    });
+  }
   for (const it of char.inventory) {
     if (!it.image) continue;
     const r = RARITY[it.rarity] ?? RARITY.comum;
@@ -73,7 +104,13 @@ function CardFace({ c, big }: { c: CollectCard; big?: boolean }) {
   const tilt = tiltHandlers(big ? 1 : 0.6);
   return (
     <span className={'fv-cc-card' + (c.holo ? ' is-holo' : '') + (big ? ' is-big' : '')} style={{ '--cc': c.color } as CSSProperties} {...tilt}>
-      <img src={c.art} alt="" style={{ objectPosition: c.position }} />
+      {c.art ? (
+        <img src={c.art} alt="" style={{ objectPosition: c.position }} />
+      ) : c.emblem ? (
+        <span className="fv-cc-emblem" style={{ '--mc': c.emblem.color } as CSSProperties} aria-hidden>
+          <MonsterIcon type={c.emblem.type} size={big ? 150 : 72} />
+        </span>
+      ) : null}
       {c.holo && <span className="fv-cc-foil" aria-hidden />}
       <span className="fv-hero-sheen" aria-hidden />
       <span className="fv-cc-frame" aria-hidden />
@@ -91,7 +128,7 @@ export function CardsGallery({ char }: { char: Character }) {
   const cards = useMemo(() => collectCards(char), [char]);
   const [filter, setFilter] = useState<CardKind | 'todas'>('todas');
   const [open, setOpen] = useState<number | null>(null);
-  const kinds = (['heroi', 'aliado', 'item'] as CardKind[]).filter((k) => cards.some((c) => c.kind === k));
+  const kinds = (['heroi', 'aliado', 'monstro', 'item'] as CardKind[]).filter((k) => cards.some((c) => c.kind === k));
   const shown = filter === 'todas' ? cards : cards.filter((c) => c.kind === filter);
   const missing = cards.length < 2;
 
@@ -125,7 +162,7 @@ export function CardsGallery({ char }: { char: Character }) {
 
       {missing && (
         <p className="fv-cc-hint">
-          <Icon name="image" size={15} /> Mais cartas aparecem aqui quando você envia uma foto: no item (inventário ou Forja) ou no retrato de um companheiro ou montaria.
+          <Icon name="image" size={15} /> Mais cartas aparecem aqui quando você envia uma foto (no item ou no retrato de um companheiro ou montaria) e a cada criatura nova que o herói abate na mesa.
         </p>
       )}
 
@@ -140,6 +177,7 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
   useDialogFocus(ref, true, onClose);
   const c = cards[index];
   const many = cards.length > 1;
+  const prey = c.hunt ? MONSTER_BY_ID[c.hunt.ref] : undefined;
   const go = (d: number) => onIndex((index + d + cards.length) % cards.length);
 
   useEffect(() => {
@@ -153,7 +191,7 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
   return createPortal(
     <div
       ref={ref}
-      className="fv-cc-viewer"
+      className={'fv-cc-viewer' + (prey ? ' has-lore' : '')}
       role="dialog"
       aria-modal="true"
       aria-label={`Carta: ${c.title}`}
@@ -178,6 +216,11 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
           </button>
         )}
       </div>
+      {prey && c.hunt && (
+        <div className="fv-cc-lore" onClick={(e) => e.stopPropagation()}>
+          <HuntLore key={c.id} m={prey} n={c.hunt.n} />
+        </div>
+      )}
       {many && (
         <p className="fv-cc-count" aria-live="polite">
           {index + 1} de {cards.length}

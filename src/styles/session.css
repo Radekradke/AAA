@@ -493,6 +493,24 @@
   color: var(--ink);
   border-color: var(--line-strong);
 }
+.fv-live-row-lore {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--acc), transparent 55%);
+  background: color-mix(in srgb, var(--acc), transparent 90%);
+  color: var(--ink);
+  font: 700 12px var(--font-num);
+  cursor: pointer;
+}
+.fv-live-row-lore:hover,
+.fv-live-row-lore[aria-expanded='true'] {
+  border-color: var(--acc);
+}
 .fv-live-row-edit {
   display: flex;
   flex-direction: column;
