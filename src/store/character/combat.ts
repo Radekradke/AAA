@@ -4,6 +4,7 @@ import { syncSpellSlots } from '@/engine/spellcasting';
 import { characterResources, syncResources } from '@/engine/classResources';
 import { getFeat } from '@/data/feats';
 import type { CharacterState, StoreCtx } from './types';
+import { playSample } from '@/lib/sfx';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
 export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
@@ -174,6 +175,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       });
     },
     shortRest(id) {
+      playSample('descanso');
       const char = get().getCharacter(id);
       if (!char) return;
       mutate(id, (c) => {
@@ -207,6 +209,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       });
     },
     longRest(id) {
+      playSample('descanso');
       const char = get().getCharacter(id);
       if (!char) return;
       const derived = deriveCharacter(char);

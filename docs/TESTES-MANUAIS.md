@@ -264,3 +264,9 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 3. Desfechos: **Resiste…** (10+), **Escorrega…** (abaixo de 10), **A morte se aproxima** (1 natural, duas falhas), **Estabilizado** (3 sucessos, verde), **De volta!** (20 natural, levanta com 1 PV, verde — sem o "Crítico!" comum por cima) e **Tombou.** (3 falhas: arte em preto e branco e linha reta com o apito).
 4. Na mesa ao vivo, os outros jogadores e o mestre veem o mesmo momento (com o nome do herói e os contadores de quem rolou).
 5. Toque, Esc ou o tempo (~4 s) fecham. Desligar **Crítico cinematográfico** em Configurações desliga este momento também.
+
+## 40. Ícones das regras (game-icons.net) e sons da Kenney
+1. **Condições com ícone**: na aba **Mesa** (cartões das condições ativas), em **Descanso** (botões de todas as condições), na iniciativa da mesa (chips da criatura e botões do mestre), no inspetor do console e nos **peões do mapa** (antes eram só duas letras; agora o desenho de cada condição: veneno, venda nos olhos, correntes…).
+2. **Escolas de magia com ícone**: nas magias da ficha (Abjuração = escudo mágico, Evocação = raio de fogo, Necromancia = caveira…) e nos filtros/cartões da biblioteca de magias.
+3. **Sons gravados** (Configurações → **Efeitos sonoros** ligado): moedas ao mexer nas moedas, lâmina ao rolar ataque, página ao conjurar com espaço de magia, cinto ao equipar, mochila ao ganhar item (inclusive o que o mestre entrega), tecido no descanso. Desligado, nada toca (nem baixa).
+4. Créditos em **Apoie o projeto**: game-icons.net (CC BY 3.0), Kenney (CC0) e texturas dos dados (MIT).

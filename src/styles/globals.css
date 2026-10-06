@@ -6258,7 +6258,8 @@ select.fv-input.fv-mesa-select { min-height: 42px; padding: 9px 34px 9px 12px; f
   background: color-mix(in srgb, var(--danger) 10%, transparent);
   box-shadow: 0 0 12px color-mix(in srgb, var(--danger) 18%, transparent);
 }
-.fv-mesa-cond-dot { width: 8px; height: 8px; border-radius: 999px; flex: none; background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.fv-mesa-cond-dot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; flex: none; color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--danger) 35%, transparent); }
+.fv-mesa-cond-dot:empty { width: 8px; height: 8px; background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 .fv-mesa-cond-body { flex: 1; min-width: 0; }
 .fv-mesa-cond-name { font-size: 13px; font-weight: 700; color: #fff; }
 .fv-mesa-cond-short { font-size: 11px; color: var(--muted); }

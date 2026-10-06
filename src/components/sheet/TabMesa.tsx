@@ -31,6 +31,7 @@ import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
 import { useInk } from '@/lib/contrast';
 import { deathSaveOutcome } from '@/engine/deathSave';
+import { ConditionIcon } from '@/components/ui/RuleIcon';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -425,7 +426,9 @@ export function TabMesa({ char, derived }: TabProps) {
               return (
                 <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
                   <div className="fv-mesa-cond">
-                    <span className="fv-mesa-cond-dot" />
+                    <span className="fv-mesa-cond-dot">
+                      <ConditionIcon id={c} size={18} />
+                    </span>
                     <div className="fv-mesa-cond-body">
                       <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
                       {def && <div className="fv-mesa-cond-short">{def.short}</div>}

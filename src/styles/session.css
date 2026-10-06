@@ -462,6 +462,9 @@
   gap: 4px;
 }
 .fv-live-conds i {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-style: normal;
   font-size: 10.5px;
   padding: 1px 7px;
@@ -998,6 +1001,7 @@
 /* ---------- mestre: condições e PV dos heróis ---------- */
 .fv-live-conds-edit { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 100%; }
 .fv-live-conds-edit button {
+  display: inline-flex; align-items: center; gap: 4px;
   cursor: pointer; font-size: 10.5px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted);
 }
 .fv-live-conds-edit button.is-on { color: var(--danger); border-color: color-mix(in srgb, var(--danger), transparent 40%); background: color-mix(in srgb, var(--danger), transparent 88%); }

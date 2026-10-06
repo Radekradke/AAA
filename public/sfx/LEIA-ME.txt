@@ -1,0 +1,5 @@
+Efeitos sonoros: Kenney "RPG Audio" (https://kenney.nl/assets/rpg-audio)
+Licença CC0 (domínio público) — uso livre, crédito opcional (obrigado, Kenney!).
+Convertidos para MP3 mono 64 kbps: moedas (handleCoins), lamina (drawKnife1),
+pagina (bookFlip2), equipar (clothBelt), mochila (dropLeather), descanso (cloth3).
+Só tocam com os efeitos sonoros ligados.

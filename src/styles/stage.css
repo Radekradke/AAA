@@ -797,6 +797,10 @@
   gap: 1px;
   pointer-events: none;
 }
+.fv-token-conds i svg {
+  width: 1.15em;
+  height: 1.15em;
+}
 .fv-token-conds i {
   display: grid;
   place-items: center;

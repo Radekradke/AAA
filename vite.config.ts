@@ -91,6 +91,12 @@ export default defineConfig({
             options: { cacheName: 'fv-dados', expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 } },
           },
           {
+            // efeitos sonoros gravados (Kenney, CC0): baixam no primeiro toque
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/sfx/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'fv-sons', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+          },
+          {
             // trilha sonora: baixa só a faixa que tocar e guarda para jogar offline
             urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/music/'),
             handler: 'CacheFirst',

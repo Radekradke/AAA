@@ -6,6 +6,7 @@ import { CELL_METERS } from '@/types/stage';
 import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token } from '@/types/stage';
+import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 
 export interface TokenFace {
   /** Imagem do peão (retrato, arte do herói). */
@@ -491,7 +492,7 @@ export function StageMap(p: StageMapProps) {
                 )}
                 {conds.length > 0 && (
                   <span className="fv-token-conds" aria-hidden>
-                    {conds.slice(0, 3).map((c) => <i key={c} title={c}>{c.slice(0, 2)}</i>)}
+                    {conds.slice(0, 3).map((c) => <i key={c} title={c}>{hasConditionIcon(c) ? <ConditionIcon id={c} size={11} /> : c.slice(0, 2)}</i>)}
                     {conds.length > 3 && <i>+{conds.length - 3}</i>}
                   </span>
                 )}

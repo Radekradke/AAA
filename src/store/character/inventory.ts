@@ -2,11 +2,13 @@ import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
 import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
+import { playSample } from '@/lib/sfx';
 
 /** Mochila e moedas: itens, equipar, mover entre recipientes, favoritos, sintonização. */
 export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
   return {
     addInventoryItem(id, item) {
+      playSample('mochila');
       mutate(id, (c) => {
         const inst = 'uid' in item ? (item as InventoryItem) : itemToInventory(item as Item);
         c.inventory.push(inst);
@@ -29,6 +31,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       });
     },
     toggleEquip(id, uid) {
+      playSample('equipar');
       const char = get().getCharacter(id);
       if (!char) return;
       const it = char.inventory.find((i) => i.uid === uid);
@@ -65,6 +68,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       });
     },
     adjustCoin(id, coin, delta) {
+      if (delta) playSample('moedas');
       mutate(id, (c) => {
         c.coins[coin] = Math.max(0, c.coins[coin] + delta);
       });
