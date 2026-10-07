@@ -8,7 +8,7 @@ import { useMonsterLook } from '@/services/bestiaryService';
 import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 import { CONDITIONS } from '@/data/conditions';
 import { MonsterStatBlock } from './MonsterStatBlock';
-import { heroTitle } from '@/engine/titles';
+import { heroTitle, heroTitleTip } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
 import { useCharacterStore } from '@/store/characterStore';
 import { bestHunt, huntKnowledge } from '@/engine/hunts';
@@ -154,7 +154,7 @@ function MemberEditor({ c }: { c: Combatant }) {
     <div className="fv-live-member">
       <span className="fv-live-member-name">
         {c.name}
-        {c.type === 'player' && heroTitle(tableHero(c.sheetId)) && <small className="fv-hero-title-inline">{heroTitle(tableHero(c.sheetId))}</small>}
+        {c.type === 'player' && heroTitle(tableHero(c.sheetId)) && <small className="fv-hero-title-inline" title={heroTitleTip(tableHero(c.sheetId))}>{heroTitle(tableHero(c.sheetId))}</small>}
       </span>
       <label>
         Inic.
