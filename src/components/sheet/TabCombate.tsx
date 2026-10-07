@@ -207,7 +207,7 @@ export function TabCombate({ char, derived }: TabProps) {
               atk={atk}
               hitStyle={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
               dmgStyle={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
-              subStyle={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
+              subStyle={{ fontSize: 10, letterSpacing: '.08em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
               dmgSub={atk.damageType.toUpperCase()}
             />
           </div>
