@@ -99,12 +99,18 @@ describe('comparação antes de equipar (estilo BG3)', () => {
     expect(dmg.better).toBe(true);
   });
 
-  it('arma de duas mãos avisa quando há escudo', () => {
+  it('arma de duas mãos avisa que o escudo sai (e ele sai de verdade ao equipar)', () => {
     const c = fighter();
     const shield = add(c, 's-shield');
     const greataxe = add(c, 'w-greataxe');
     moveItemTo(c, shield.uid, 'equipado');
-    expect(previewEquip(c, greataxe.uid)!.warnings.some((w) => w.startsWith('Duas mãos'))).toBe(true);
+    const p = previewEquip(c, greataxe.uid)!;
+    expect(p.warnings.some((w) => /Escudo.*mochila.*duas mãos/i.test(w))).toBe(true);
+    expect(p.replaces?.uid).toBe(shield.uid);
+    const r = moveItemTo(c, greataxe.uid, 'equipado');
+    expect(r.ok && r.note).toMatch(/duas mãos/);
+    expect(c.equipped.shield).toBeNull();
+    expect(c.equipped.mainHand).toBe(greataxe.uid);
   });
 
   it('sem prévia para item já equipado ou sem slot', () => {

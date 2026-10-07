@@ -292,3 +292,13 @@ Teste no DevTools (modo dispositivo) ou girando o celular. O teste automático `
 3. **Tablet em pé (768 px)**: CA/Iniciativa/… ganham uma faixa própria embaixo do nome (o nome não quebra mais em duas linhas).
 4. **Monitor largo (1920 px ou mais)**: a ficha fica mais larga (até 1440 px, e 1680 px em telas de 2200+), e a aba Mesa passa a usar 4 colunas em vez de uma faixa estreita no meio.
 5. Em qualquer tamanho, os rótulos pequenos (CA, Iniciativa, FOR, INSPIRAÇÃO, Acerto/Dano, "save DES") ficam com pelo menos 10 px.
+
+## 43. Inventário: anéis, amuletos, capas e mãos
+Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando itens").
+1. **Vestir**: anéis, amuletos/periaptos, capas, mantos, botas, luvas/manoplas, braçadeiras, tiaras/chapéus, cintos, óculos e pedras Ioun mostram **Vestir** (e **Tirar** depois). Vestido, o card mostra o selo **Vestido** e a parte do corpo (Anel, Capa, Pés…), e o item vai para **Equipado**.
+2. **Limites**: até **2 anéis**; **1** capa, 1 veste (Manto do Arquimago), 1 par de botas, 1 par de luvas/manoplas, 1 par de braçadeiras, 1 peça de cabeça e 1 cinto. Amuletos, óculos e pedras Ioun não têm limite na regra (o mestre decide). Antes de vestir, o card já avisa "Já está usando 2 anéis (…) — tire um antes"; tentar mesmo assim não veste e explica o motivo.
+3. **Sintonia (máx. 3)**: item que pede sintonia só funciona **vestido E sintonizado**. Vestir sem sintonia avisa "só funciona sintonizado". Sintonizar um anel/capa guardado já veste junto, se houver encaixe livre; se não houver, a Sintonia mostra "sintonizado · vista para valer". Com 3 sintonias, tentar a quarta avisa o máximo.
+4. **Não acumula**: dois itens iguais (ex.: dois Anéis de Proteção) dão o bônus uma vez só.
+5. **Mãos**: arma de **duas mãos** tira o escudo (e vice-versa), com aviso do que foi para a mochila. Duas armas **leves** (ex.: espada curta + adaga): a segunda vai para a **mão secundária** — o ataque dela aparece como "mão secundária · ação bônus" e sem o atributo no dano (com o **Estilo de Luta com Duas Armas**, o atributo volta). O talento **Combatente com Duas Armas** libera armas não leves e dá **+1 de CA** com uma arma em cada mão. Tirar a arma principal passa a secundária para a principal.
+6. **Varinhas**: a Varinha de Mísseis Mágicos e a de Detecção de Magia (sem sintonia) liberam as magias com o herói (Mochila); no Baú, não. Itens maravilhosos novos chegam na Mochila (não mais no Baú).
+7. Fichas antigas: anel/amuleto que já estava sintonizado continua valendo (conta como vestido) — nada some da CA ao atualizar.

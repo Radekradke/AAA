@@ -1,6 +1,6 @@
 import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
-import { toggleEquip as computeEquip, itemToInventory, MAX_ATTUNEMENT, moveItemTo } from '@/engine/inventory';
+import { toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 
@@ -25,9 +25,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
     removeInventoryItem(id, uid) {
       mutate(id, (c) => {
         c.inventory = c.inventory.filter((i) => i.uid !== uid);
-        for (const slot of Object.keys(c.equipped) as Array<keyof typeof c.equipped>) {
-          if (c.equipped[slot] === uid) c.equipped[slot] = null;
-        }
+        c.equipped = removeFromSlots(c.equipped, uid);
       });
     },
     toggleEquip(id, uid) {
@@ -63,7 +61,11 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
         if (it.attuned) {
           it.attuned = false;
         } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT) {
+          // fixa o "vestido" antes (ficha antiga não tinha): sintonizar não veste sozinho por baixo dos panos
+          if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);
           it.attuned = true;
+          // sintonizou anel/capa/botas guardado: veste junto, se houver encaixe livre
+          if (isWearable(it) && !it.worn) moveItemTo(c, uid, 'equipado');
         }
       });
     },

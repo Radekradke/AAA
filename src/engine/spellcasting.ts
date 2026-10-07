@@ -6,7 +6,7 @@ import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
 import { getClass } from '@/data/classes';
 import { multiclassSlots, spellSlotsForClass, thirdCasterSlots } from './progression';
-import { itemIsActive } from './inventory';
+import { itemIsActive, slotForItem } from './inventory';
 
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
@@ -139,8 +139,10 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
   const out: ItemSpell[] = [];
   for (const it of char.inventory ?? []) {
     if (!it.grantsSpells?.length) continue;
-    // vestível/parte do corpo seguem a própria regra (vestido / sempre)
-    if (!(it.wear ? itemIsActive(char, it) : equipped.has(it.uid) || it.attuned)) continue;
+    // arma/armadura/escudo: empunhado ou sintonizado; vestível: vestido;
+    // varinha, cajado…: sintonizado se pede, senão enquanto está com o herói
+    const ok = slotForItem(it) ? equipped.has(it.uid) || it.attuned : itemIsActive(char, it);
+    if (!ok) continue;
     for (const g of it.grantsSpells) {
       const spell = getSpell(g.spellId);
       if (!spell) continue;

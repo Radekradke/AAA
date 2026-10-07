@@ -1,15 +1,18 @@
 import type { Character, InventoryItem } from '@/types/character';
 import type { DerivedAttack, DerivedCharacter } from './dndRules';
 import { deriveCharacter } from './dndRules';
-import { slotForItem, isEquipped, toggleEquip } from './inventory';
+import { canEquip, isEquipped, moveItemTo } from './inventory';
 import { modStr } from './dice';
 import { damageExpr } from './combat';
 import { getItem } from '@/data/items';
+import { ABILITY_SHORT } from '@/data/skills';
+import type { AbilityKey } from '@/types/dnd';
 
 /**
- * Comparação estilo BG3 antes de equipar: simula a ficha com o item no
- * slot e compara com a atual usando a MESMA engine (deriveCharacter). Assim
- * "CA 16 → 18" nunca discorda do que a ficha mostra depois de equipar.
+ * Comparação estilo BG3 antes de equipar/vestir: simula a ficha com o item
+ * no lugar (usando a MESMA regra de equipar, com mãos, escudo e encaixes do
+ * corpo) e compara com a atual usando a MESMA engine (deriveCharacter).
+ * Assim "CA 16 → 18" nunca discorda do que a ficha mostra depois.
  */
 
 export interface StatDelta {
@@ -21,12 +24,14 @@ export interface StatDelta {
 }
 
 export interface EquipPreview {
-  /** Item que sai do slot (null se o slot estava vazio). */
+  /** Item que sai (null se nada sai). */
   replaces: InventoryItem | null;
   deltas: StatDelta[];
-  /** Avisos de regra: Força mínima, desvantagem em Furtividade… */
+  /** Avisos de regra: Força mínima, Furtividade, duas mãos, encaixe cheio, sintonia… */
   warnings: string[];
 }
+
+const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 /** Dano médio de um ataque (para dizer se a troca melhora). */
 function avgDamage(a: DerivedAttack): number {
@@ -41,20 +46,27 @@ function num(label: string, from: number, to: number, fmt: (n: number) => string
 
 export function previewEquip(char: Character, uid: string, before: DerivedCharacter = deriveCharacter(char)): EquipPreview | null {
   const it = char.inventory.find((i) => i.uid === uid);
-  if (!it || isEquipped(char, it)) return null;
-  const slot = slotForItem(it);
-  if (!slot) return null;
+  if (!it || isEquipped(char, it) || !canEquip(it)) return null;
 
-  const replacedUid = char.equipped[slot];
-  const replaces = replacedUid ? char.inventory.find((i) => i.uid === replacedUid) ?? null : null;
-  const after = deriveCharacter({ ...char, equipped: toggleEquip(char, it) });
+  const draft = structuredClone(char);
+  const r = moveItemTo(draft, uid, 'equipado');
+  if (!r.ok) return { replaces: null, deltas: [], warnings: [r.reason] };
+  const after = deriveCharacter(draft);
+
+  // o que estava equipado e saiu
+  const wasOn = new Set(char.inventory.filter((i) => isEquipped(char, i)).map((i) => i.uid));
+  const replaces = draft.inventory.find((i) => wasOn.has(i.uid) && !isEquipped(draft, i)) ?? null;
 
   const deltas: StatDelta[] = [];
   const push = (d: StatDelta | null) => d && deltas.push(d);
   push(num('CA', before.ac, after.ac));
   push(num('Desloc.', before.speed, after.speed, (n) => `${String(n).replace('.', ',')}m`));
+  for (const k of KEYS) push(num(ABILITY_SHORT[k], before.abilities[k].total, after.abilities[k].total));
+  // salvaguardas (Manto/Anel de Proteção, Pedra da Sorte): mede pela de SAB, que atributo fixo não mexe
+  if (!deltas.some((d) => d.label === ABILITY_SHORT.wis)) push(num('Salvaguardas', before.abilities.wis.save, after.abilities.wis.save, modStr));
+  if (before.spellDC != null && after.spellDC != null) push(num('CD de magia', before.spellDC, after.spellDC));
 
-  // arma: compara com a que sai do slot (ou mostra o ataque novo)
+  // arma: compara com a que sai (ou mostra o ataque novo)
   const newAtk = after.attacks.find((a) => a.uid === it.uid);
   if (newAtk) {
     const oldAtk = replaces ? before.attacks.find((a) => a.uid === replaces.uid) : undefined;
@@ -77,11 +89,7 @@ export function previewEquip(char: Character, uid: string, before: DerivedCharac
     warnings.push(`Exige Força ${armor.strReq} (você tem ${after.abilities.str.total})`);
   }
   if (armor?.stealthDisadvantage) warnings.push('Desvantagem em Furtividade');
-  // PHB: arma de duas mãos não combina com escudo
-  const weapon = it.weapon ?? getItem(it.itemId)?.weapon;
-  if (slot === 'mainHand' && char.equipped.shield && weapon?.properties.some((p) => /duas m[ãa]os/i.test(p))) {
-    warnings.push('Duas mãos: não dá para usar com o escudo equipado');
-  }
+  if (r.note) warnings.push(r.note);
 
   return { replaces, deltas, warnings };
 }
