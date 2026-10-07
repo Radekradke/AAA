@@ -28,6 +28,8 @@ import { bestHunt } from '@/engine/hunts';
 import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
 import { monsterLook } from '@/lib/monsterArt';
 import type { Item, Spell } from '@/types/dnd';
+import { itemArt } from '@/lib/itemArt';
+import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import '@/styles/search.css';
 
 type Ref =
@@ -203,6 +205,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                   {(g.items as Entry[]).map((e) => {
                     n++;
                     const i = n;
+                    const art = e.ref.t === 'item' ? itemArt({ itemId: e.ref.v.id }) : null;
                     return (
                       <div
                         key={e.id}
@@ -213,7 +216,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                         onMouseMove={() => setActive(i)}
                         onClick={() => choose(e)}
                       >
-                        <Icon name={KIND_ICON[e.kind]} size={15} />
+                        {art ? <img className="fv-search-thumb" src={art} alt="" loading="lazy" decoding="async" /> : <Icon name={KIND_ICON[e.kind]} size={15} />}
                         <span className="fv-search-item-text">
                           <b>{e.title}</b>
                           {e.subtitle && <small>{e.subtitle}</small>}
@@ -270,19 +273,22 @@ function Detail({ e, onBack, master, hunted }: { e: Entry; onBack: () => void; m
         </>
       )}
       {r.t === 'item' && (
-        <>
-          <dl>
-            <Row k="Dano" v={dmg(r.v) && `${dmg(r.v)}${r.v.weapon?.versatileDie ? ` (versátil d${r.v.weapon.versatileDie})` : ''}`} />
-            <Row k="Propriedades" v={r.v.weapon?.properties.join(', ')} />
-            <Row k="CA" v={r.v.armor ? `${r.v.armor.baseAC}${!r.v.armor.addDex ? '' : r.v.armor.maxDexBonus != null ? ` + Des (máx. ${r.v.armor.maxDexBonus})` : ' + Des'}` : r.v.acBonus ? `+${r.v.acBonus}` : ''} />
-            <Row k="Furtividade" v={r.v.armor?.stealthDisadvantage && 'desvantagem'} />
-            <Row k="Raridade" v={RARITY[r.v.rarity]} />
-            <Row k="Sintonização" v={r.v.attunement && 'exige'} />
-            <Row k="Peso" v={r.v.weight ? `${String(r.v.weight).replace('.', ',')} kg` : ''} />
-            <Row k="Preço" v={r.v.value ? `${r.v.value} PO` : ''} />
-          </dl>
-          {r.v.note && <p>{r.v.note}</p>}
-        </>
+        <div className={'fv-search-itemdetail' + (itemArt({ itemId: r.v.id }) ? ' has-art' : '')}>
+          <ItemArtCard src={itemArt({ itemId: r.v.id })} rarity={r.v.rarity} />
+          <div className="fv-search-itemdetail-text">
+            <dl>
+              <Row k="Dano" v={dmg(r.v) && `${dmg(r.v)}${r.v.weapon?.versatileDie ? ` (versátil d${r.v.weapon.versatileDie})` : ''}`} />
+              <Row k="Propriedades" v={r.v.weapon?.properties.join(', ')} />
+              <Row k="CA" v={r.v.armor ? `${r.v.armor.baseAC}${!r.v.armor.addDex ? '' : r.v.armor.maxDexBonus != null ? ` + Des (máx. ${r.v.armor.maxDexBonus})` : ' + Des'}` : r.v.acBonus ? `+${r.v.acBonus}` : ''} />
+              <Row k="Furtividade" v={r.v.armor?.stealthDisadvantage && 'desvantagem'} />
+              <Row k="Raridade" v={RARITY[r.v.rarity]} />
+              <Row k="Sintonização" v={r.v.attunement && 'exige'} />
+              <Row k="Peso" v={r.v.weight ? `${String(r.v.weight).replace('.', ',')} kg` : ''} />
+              <Row k="Preço" v={r.v.value ? `${r.v.value} PO` : ''} />
+            </dl>
+            {r.v.note && <p>{r.v.note}</p>}
+          </div>
+        </div>
       )}
       {r.t === 'cond' && <p>{r.v.desc}</p>}
       {r.t === 'feat' && (

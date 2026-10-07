@@ -50,6 +50,23 @@ test.describe('busca geral', () => {
     await expect(page.locator('.fv-sheet-tab', { hasText: 'Magias' })).toHaveAttribute('aria-current', 'page');
   });
 
+  test('item com arte: miniatura na lista e a carta ao lado das informações @celular', async ({ page }) => {
+    await page.goto('/personagens');
+    await expect(page.getByText(NAME).first()).toBeVisible();
+    await page.keyboard.press('Control+k');
+    const busca = page.getByRole('dialog', { name: 'Buscar' });
+    await busca.getByRole('combobox').fill('anel de protecao');
+    const opt = busca.getByRole('option', { name: /Anel de Proteção/ });
+    await expect(opt.locator('img.fv-search-thumb')).toBeVisible();
+    await opt.click();
+    await expect(busca.getByRole('heading', { name: 'Anel de Proteção' })).toBeVisible();
+    const card = busca.locator('.fv-search-itemdetail .fv-itemcard img');
+    await expect(card).toBeVisible();
+    await expect.poll(() => card.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    await expect(busca).toContainText('Raridade');
+    await page.screenshot({ path: test.info().outputPath('busca-item.png') });
+  });
+
   test('jogador: criatura nunca caçada não mostra a ficha @celular', async ({ page }) => {
     const busca = await openGoblin(page);
     await expect(busca.getByRole('heading', { name: 'Goblin' })).toBeVisible();

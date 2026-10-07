@@ -11,6 +11,7 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { itemLore } from '@/lib/lore';
 import { Modal } from '@/components/ui/Modal';
 import { Icon } from '@/components/ui/Icon';
+import { itemArt } from '@/lib/itemArt';
 
 interface AddItemPickerProps {
   onAdd: (item: Item) => void;
@@ -129,12 +130,19 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
         {items.map((raw) => {
           const item = current.enchant && enchant && !query ? enchantItem(raw, enchant) : raw;
           const rc = RARITY[item.rarity] ?? RARITY.comum;
+          const art = itemArt({ itemId: item.id });
+          const lore = itemLore(item);
           return (
-            <LoreTooltip key={item.id} info={itemLore(item)} anchorStyle={{ display: 'block' }}>
+            <LoreTooltip key={item.id} info={art ? { ...lore, art: { src: art, rarity: item.rarity } } : lore} anchorStyle={{ display: 'block' }}>
               <button
                 onClick={() => pick(raw)}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (item.rarity === 'comum' ? 'var(--line)' : hexA(rc.color, 0.35)), background: 'var(--sunk)' }}
               >
+                {art && (
+                  <span className="fv-item-thumb">
+                    <img src={art} alt="" loading="lazy" decoding="async" />
+                  </span>
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: item.rarity === 'comum' ? 'var(--ink)' : rc.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {item.name}
