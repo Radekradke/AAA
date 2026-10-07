@@ -343,6 +343,10 @@ export interface MagicEffects {
   saves?: number;
   /** O atributo passa a valer X (se o seu for menor): Manoplas de Força do Ogro, Amuleto da Saúde… */
   setAbility?: Partial<Record<AbilityKey, number>>;
+  /** Soma ao atributo até um teto (Cinto Anão: CON +2, máx. 20; Pedras Ioun de atributo). */
+  addAbility?: Partial<Record<AbilityKey, { bonus: number; max: number }>>;
+  /** CA base sem armadura (Manto do Arquimago: 15 + DES). Escudo pode; não soma com outras CAs base. */
+  unarmoredAC?: { base: number; ability: AbilityKey };
   /** Bônus em ataque e CD de magia (Varinha do Mago de Guerra, Bastão do Guardião do Pacto…). */
   spellAttack?: number;
   spellDC?: number;

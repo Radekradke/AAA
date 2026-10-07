@@ -151,6 +151,8 @@ export function itemLore(item: {
         m.ac ? `+${m.ac} CA${m.unarmoredOnly ? ' (sem armadura/escudo)' : ''}` : '',
         m.saves ? `+${m.saves} salvaguardas` : '',
         ...Object.entries(m.setAbility ?? {}).map(([k, v]) => `${k.toUpperCase()} ${v}`),
+        ...Object.entries(m.addAbility ?? {}).map(([k, v]) => `+${v!.bonus} ${k.toUpperCase()} (máx. ${v!.max})`),
+        m.unarmoredAC ? `CA ${m.unarmoredAC.base} + ${m.unarmoredAC.ability.toUpperCase()} sem armadura` : '',
         m.spellAttack ? `+${m.spellAttack} ataque de magia` : '',
         m.spellDC ? `+${m.spellDC} CD de magia` : '',
         m.speed ? `+${m.speed} m deslocamento` : '',
