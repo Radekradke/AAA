@@ -308,3 +308,8 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 2. **Cinto Anão**: **+2 CON até no máximo 20** — CON 16 vira 18, 19 vira 20 e 20 fica 20. Salvaguarda de CON e PV acompanham.
 3. **Pedras Ioun** de Fortitude, Discernimento, Intelecto, Liderança, Força e Agilidade: **+2** no atributo, até 20. Um item que fixa o atributo (ex.: Amuleto da Saúde, CON 19) ganha se der mais.
 4. A prévia "Ao vestir" já mostra a mudança de CA/atributo antes de vestir. Itens que já estavam na mochila antes desta versão passam a valer sozinhos.
+
+## 45. Arte dos itens na busca
+1. **Busca geral** (Ctrl+K ou a lupa): itens com arte mostram uma miniatura da carta no lugar do ícone na lista. Abrindo o item, a carta aparece **ao lado das informações** (no celular, em cima), com a moldura da raridade.
+2. **Adicionar item** (inventário): cada item com arte mostra a miniatura na linha; passar o mouse (ou segurar no celular) abre os detalhes com a carta ao lado.
+3. Itens sem arte continuam como antes (ícone, sem moldura vazia).

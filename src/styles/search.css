@@ -98,6 +98,17 @@
   color: var(--gold);
   box-shadow: inset 2px 0 0 var(--gold);
 }
+/* item com arte: miniatura da carta no lugar do ícone */
+.fv-search-thumb {
+  flex: none;
+  width: 26px;
+  height: 32px;
+  margin: -4px 0;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: #07090d;
+}
 .fv-search-item-text {
   flex: 1;
   min-width: 0;
@@ -174,6 +185,31 @@
   margin: 0 0 8px;
   font-size: 13.5px;
   line-height: 1.6;
+}
+/* item: a carta ao lado das informações (no celular, em cima) */
+.fv-search-itemdetail.has-art {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.fv-search-itemdetail .fv-itemcard {
+  width: 150px;
+}
+.fv-search-itemdetail-text {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .fv-search-itemdetail.has-art {
+    flex-direction: column;
+    align-items: center;
+  }
+  .fv-search-itemdetail .fv-itemcard {
+    width: 128px;
+  }
+  .fv-search-itemdetail-text {
+    align-self: stretch;
+  }
 }
 @media (max-width: 640px) {
   .fv-search-backdrop {
