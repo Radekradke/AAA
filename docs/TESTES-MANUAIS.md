@@ -285,3 +285,10 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 6. Com a sessão aberta, a tela do celular não apaga sozinha. **Configurações → Dados → Tela acesa na mesa ao vivo** liga/desliga (em navegadores sem suporte, a dica avisa).
 7. **App instalado** (Android/Chrome): a tela de instalação mostra 3 imagens do app. Segurando o ícone aparecem os atalhos **Continuar** (abre a última ficha), **Heróis**, **Mesas** e **Nova ficha**. No app instalado, puxar a tela para baixo não recarrega a página.
 
+## 42. Responsividade: do celular pequeno ao monitor largo
+Teste no DevTools (modo dispositivo) ou girando o celular. O teste automático `e2e/responsividade.e2e.ts` cobre 320×568, 667×375, 844×390, 768×1024 e 2560×1080.
+1. **Celular pequeno (320 px)**: a barra do topo cabe sem encavalar no logo (o modo de rolagem mostra só o ícone); no cabeçalho ficam os botões de nível e some a barrinha 1–20; na aba **Magias**, "Preparar" e "Conjurar" descem para a linha de baixo do nome — nada sai da tela.
+2. **Celular deitado (667×375 / 844×390)**: o cabeçalho vira uma faixa fina (retrato, nome, nível e CA/Inic./Desl./Perc./Prof. na mesma linha), as abas ficam numa linha só que rola de lado e a barra de baixo fica baixinha com ícone + nome lado a lado. A ficha aparece já na primeira tela (antes, cabeçalho + abas ocupavam tudo). Na criação, o título encolhe e as escolhas ganham a altura; **Avançar** sempre visível. Na mesa ao vivo, "Seu turno!" e a iniciativa vêm primeiro.
+3. **Tablet em pé (768 px)**: CA/Iniciativa/… ganham uma faixa própria embaixo do nome (o nome não quebra mais em duas linhas).
+4. **Monitor largo (1920 px ou mais)**: a ficha fica mais larga (até 1440 px, e 1680 px em telas de 2200+), e a aba Mesa passa a usar 4 colunas em vez de uma faixa estreita no meio.
+5. Em qualquer tamanho, os rótulos pequenos (CA, Iniciativa, FOR, INSPIRAÇÃO, Acerto/Dano, "save DES") ficam com pelo menos 10 px.

@@ -541,8 +541,8 @@ function atkBtn(color: string): CSSProperties {
 }
 
 const atkSub: CSSProperties = {
-  fontSize: 7.5,
-  letterSpacing: '.12em',
+  fontSize: 10,
+  letterSpacing: '.06em',
   color: 'var(--muted)',
   fontWeight: 600,
   marginTop: 2,

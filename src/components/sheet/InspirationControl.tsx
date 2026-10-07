@@ -57,7 +57,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
           <Icon name="inspiration" size={30} color={lit ? '#5a3d05' : 'var(--muted)'} />
           <div style={{ minWidth: 0, overflow: 'hidden', textAlign: 'left', lineHeight: 1.1 }} title={hintLong}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.2em', opacity: 0.75 }}>INSPIRAÇÃO</span>
+              <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.16em', opacity: 0.8 }}>INSPIRAÇÃO</span>
               <Pips points={points} lit={lit} />
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 15, lineHeight: 1.1, marginTop: 2, overflowWrap: 'break-word' }}>{title}</div>
