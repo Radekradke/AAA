@@ -8,6 +8,7 @@ import { installGlobalErrorHandlers } from './lib/errorReporter';
 import './store/homebrewStore';
 import './styles/fonts';
 import './styles/globals.css';
+import './styles/mobile.css';
 import { loadFixesCss, loadThemeCss, savedTheme } from './lib/themeCss';
 // animações básicas vêm junto (entradas com opacity:0 não podem esperar a rede
 // para aparecer); arrastar/layout (domMax) só nos toasts, carregado à parte.

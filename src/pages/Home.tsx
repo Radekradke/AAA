@@ -7,6 +7,7 @@ import { RuneRing } from '@/components/animations/RuneRing';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
+import { lastHeroOf } from '@/lib/lastHero';
 import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
@@ -51,8 +52,7 @@ export function Home() {
   // o herói para "Continuar": o aberto por último (ou o mais recente)
   const lastHero = useMemo(() => {
     if (!user || !hydrated) return null;
-    const mine = characters.filter((c) => c.ownerId === user.id && !c.draft);
-    return mine.find((c) => c.id === currentId) ?? [...mine].sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null;
+    return lastHeroOf(characters, user.id, currentId);
   }, [characters, currentId, user, hydrated]);
 
   // a próxima sessão marcada em qualquer mesa minha (sem o agenda.sql: nada aparece)

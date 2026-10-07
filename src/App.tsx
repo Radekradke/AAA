@@ -23,6 +23,7 @@ const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) 
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
 const PrintSheet = lazy(() => import('@/pages/PrintSheet').then((m) => ({ default: m.PrintSheet })));
 const SharedSheet = lazy(() => import('@/pages/SharedSheet').then((m) => ({ default: m.SharedSheet })));
+const Continue = lazy(() => import('@/pages/Continue').then((m) => ({ default: m.Continue })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
 
 /** Enquanto a tela baixa: o sigilo pulsando (só aparece se demorar, sem piscar). */
@@ -147,6 +148,15 @@ export function App() {
           element={
             <RequireAuth>
               <Page><CharacterSelect /></Page>
+            </RequireAuth>
+          }
+        />
+        {/* atalho do app instalado: abre a última ficha */}
+        <Route
+          path="/continuar"
+          element={
+            <RequireAuth>
+              <Page><Continue /></Page>
             </RequireAuth>
           }
         />

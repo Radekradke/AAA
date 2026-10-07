@@ -44,6 +44,8 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
+        // identidade fixa do app instalado (não muda se o start_url mudar)
+        id: '/',
         name: 'Ficha Viva AAA',
         short_name: 'Ficha Viva',
         description: 'Crie, desperte e jogue suas fichas de D&D 5e com experiência cinematográfica.',
@@ -51,7 +53,10 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         orientation: 'any',
+        // abrir de novo (atalho, link) reaproveita a janela do app em vez de abrir outra
+        launch_handler: { client_mode: ['navigate-existing', 'auto'] },
         background_color: '#06080c',
         theme_color: '#06080c',
         categories: ['games', 'entertainment'],
@@ -59,6 +64,19 @@ export default defineConfig({
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        // segurar o ícone do app instalado (Android/Windows): atalhos direto para o que importa
+        shortcuts: [
+          { name: 'Continuar a última ficha', short_name: 'Continuar', url: '/continuar', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Meus heróis', short_name: 'Heróis', url: '/personagens', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Mesas', short_name: 'Mesas', url: '/mesas', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Nova ficha', short_name: 'Nova ficha', url: '/criar', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+        ],
+        // tela de instalação mais rica no Android/Chrome (fora do precache: só baixa quem for instalar)
+        screenshots: [
+          { src: '/screenshots/ficha-celular.webp', sizes: '780x1688', type: 'image/webp', form_factor: 'narrow', label: 'A ficha na mesa: vida, defesa e rolagens' },
+          { src: '/screenshots/carta-celular.webp', sizes: '780x1688', type: 'image/webp', form_factor: 'narrow', label: 'A carta do herói, com título e selos' },
+          { src: '/screenshots/ficha-pc.webp', sizes: '1280x720', type: 'image/webp', form_factor: 'wide', label: 'O retrato do herói no computador' },
         ],
       },
       workbox: {

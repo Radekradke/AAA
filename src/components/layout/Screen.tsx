@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import type { ReactNode, UIEvent } from 'react';
 import { m } from 'framer-motion';
 import { AppShell } from './AppShell';
 import { TopBar } from './TopBar';
@@ -24,13 +25,21 @@ interface ScreenProps {
  */
 export function Screen({ children, actions, menu, video, videoOpacity, darken, scroll }: ScreenProps) {
   const theme = useUiStore((s) => s.theme);
+  // a barra do topo ganha fundo quando o conteúdo rola por baixo dela (só muda o estado ao cruzar o limite)
+  const [scrolled, setScrolled] = useState(false);
+  const frame = useRef(0);
+  const onScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => setScrolled(el.scrollTop > 12));
+  }, []);
   return (
     <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
       {/* teclado/leitor de tela: pula a barra do topo direto para o conteúdo */}
       <a className="fv-skip" href="#fv-conteudo" onClick={(e) => { e.preventDefault(); document.getElementById('fv-conteudo')?.focus(); }}>
         Pular para o conteúdo
       </a>
-      <TopBar actions={actions} menu={menu} />
+      <TopBar actions={actions} menu={menu} scrolled={scrolled} />
       {/* Guilda Rubra: navegação de app de jogos (lateral no PC, inferior no celular) */}
       {theme === 'rubra' && <GuildNav />}
       {/* só opacidade + transform (GPU): blur na tela inteira custava quadros no
@@ -43,6 +52,7 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
         className="fv-screen-scroll"
         id="fv-conteudo"
         tabIndex={-1}
+        onScroll={scroll ? onScroll : undefined}
         style={{
           position: 'absolute',
           inset: 0,

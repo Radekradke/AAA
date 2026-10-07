@@ -223,7 +223,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
-                  <button onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                  <button className="fv-chip-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
                 </div>
               );
             })}
@@ -270,7 +270,7 @@ export function TabFicha({ char, derived }: TabProps) {
                 <span key={lang} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
                   {lang}
                   {extra && (
-                    <button onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, padding: 0 }}>✕</button>
+                    <button className="fv-chip-remove" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, padding: 0 }}>✕</button>
                   )}
                 </span>
               );

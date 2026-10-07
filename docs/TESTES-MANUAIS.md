@@ -239,7 +239,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
    - **Como conquistou**: passe o mouse num título liberado e o balão mostra a lenda e o que o herói fez (ex.: "Deu 25 golpes finais — já são 34."). A mesma linha aparece embaixo da lenda do escolhido e numa **placa sob a carta** (fora dela), com o título e o feito. No cabeçalho da ficha, na iniciativa e no painel do mestre, o título também mostra isso ao passar o mouse.
    - **Por conquistar** mostra o progresso dos títulos de contagem (ex.: **34/50**) e põe primeiro os que estão mais perto de sair.
 4. **Carta do item**: no inventário, o botão de imagem na miniatura do card envia a arte (ou use **Editar → Carta do item**). Passe o mouse no card (ou segure no celular): os detalhes aparecem com a carta ao lado; o brilho acompanha a raridade: prateado, dourado nas muito raras e ouro claro nas lendárias.
-5. **Relíquias** (aba Retrato): só os itens **com foto** viram carta (sem foto, não aparece nada — nem no inventário, onde fica só o botãozinho de enviar arte).
+5. **Relíquias** (aba Retrato): viram carta os itens **com foto sua** e os itens **acima de comum** que têm arte padrão. Mochila, corda, rações e outros itens comuns mostram a arte padrão só na miniatura do inventário — não enchem a coleção.
 6. **Jornada**: linha do tempo com o começo, as subidas de nível (com a data), os feitos, as cicatrizes e as sessões jogadas na mesa ao vivo (entram sozinhas ao abrir uma sessão ativa como jogador). Mais de 10 marcos: **Ver desde o começo**.
 
 ## 36. Retrato → Suas cartas
@@ -275,3 +275,13 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 2. **Escolas de magia com ícone**: nas magias da ficha (Abjuração = escudo mágico, Evocação = raio de fogo, Necromancia = caveira…) e nos filtros/cartões da biblioteca de magias.
 3. **Sons gravados** (Configurações → **Efeitos sonoros** ligado): moedas ao mexer nas moedas, lâmina ao rolar ataque, página ao conjurar com espaço de magia, cinto ao equipar, mochila ao ganhar item (inclusive o que o mestre entrega), tecido no descanso. Desligado, nada toca (nem baixa).
 4. Créditos em **Apoie o projeto**: game-icons.net (CC BY 3.0), Kenney (CC0) e texturas dos dados (MIT).
+
+## 41. Celular e app instalado (jogador)
+1. Abra a ficha num celular (ou no DevTools com 360 px de largura). Em todas as abas, o cabeçalho é compacto: retrato pequeno, nome, raça/classe numa linha e nível com botões **−/+** grandes. CA, Inic., Desl., Perc. e Prof. cabem lado a lado, sem cortar nas bordas.
+2. Role a ficha: a barra do topo ganha fundo e uma linha embaixo; o conteúdo não passa mais "por trás" dos botões. Volte ao topo: ela fica transparente de novo.
+3. **Heróis**: "Novo personagem" vira uma faixa curta e seus heróis aparecem logo na primeira tela.
+4. Botões pequenos (estrela de favoritar, ✕ de idioma/ferramenta, alavanca de arrastar item, interruptores) aceitam toque com folga, sem precisar acertar o pixel.
+5. **Mesa ao vivo (jogador, celular)**: a ordem é **rodada/iniciativa → Seu herói → mapa → pistas e crônica**. O card **Seu herói** mostra os **PV** (barra verde → dourada → vermelha) e a **CA**, e **Abrir ficha** é um botão.
+6. Com a sessão aberta, a tela do celular não apaga sozinha. **Configurações → Dados → Tela acesa na mesa ao vivo** liga/desliga (em navegadores sem suporte, a dica avisa).
+7. **App instalado** (Android/Chrome): a tela de instalação mostra 3 imagens do app. Segurando o ícone aparecem os atalhos **Continuar** (abre a última ficha), **Heróis**, **Mesas** e **Nova ficha**. No app instalado, puxar a tela para baixo não recarrega a página.
+

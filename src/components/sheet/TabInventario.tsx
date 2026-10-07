@@ -620,6 +620,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             {it.name}
           </div>
           <button
+            className="fv-item-fav"
             onClick={(e) => { e.stopPropagation(); onFavorite(); }}
             aria-label="Favoritar"
             style={{ cursor: 'pointer', flex: 'none', background: 'none', border: 'none', color: it.favorite ? t.gold : 'var(--muted)', filter: it.favorite ? `drop-shadow(0 0 6px ${hexA(t.gold, 0.7)})` : 'none' }}

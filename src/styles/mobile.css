@@ -1,0 +1,178 @@
+/*
+ * Celular (jogador): cabeçalho da ficha compacto, alvos de toque de dedo e
+ * barra do topo com fundo quando o conteúdo rola por baixo dela.
+ * `html[data-theme]` na frente ganha das regras de cada tema (carregadas
+ * depois, sob demanda) sem precisar de !important.
+ */
+
+/* ---------- barra do topo: ganha fundo quando o conteúdo já rolou ---------- */
+html[data-theme] .fv-topbar.is-scrolled {
+  background: color-mix(in srgb, var(--bg), transparent 8%);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: inset 0 -1px 0 var(--line), 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme] .fv-topbar.is-scrolled {
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* rótulos curtos dos blocos de defesa: só no celular */
+.fv-hs-short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* ---------- cabeçalho da ficha: ~40% da tela → ~20% ---------- */
+  html[data-theme] .fv-sheet-head {
+    gap: 10px 12px;
+    padding: 12px 14px !important; /* o padding vem inline (PC) */
+  }
+  html[data-theme] .fv-sheet-head .fv-sh-portrait {
+    width: 56px !important;
+    height: 56px !important;
+  }
+  html[data-theme] .fv-sheet-head .fv-sh-name {
+    font-size: 20px !important;
+    line-height: 1.1;
+  }
+  html[data-theme] .fv-sh-sub {
+    margin-top: 3px;
+    flex-wrap: nowrap;
+    font-size: 13px;
+  }
+  html[data-theme] .fv-sh-sub > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* o alinhamento fica no Retrato e em Editar: aqui só ocupava uma linha */
+  html[data-theme] .fv-sh-align {
+    display: none;
+  }
+  html[data-theme] .fv-sh-level {
+    margin-top: 6px !important;
+    max-width: none;
+  }
+  html[data-theme] .fv-sh-lvl-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+  html[data-theme] .fv-sh-share {
+    width: 34px;
+    height: 34px;
+    right: -8px;
+    bottom: -8px;
+  }
+
+  /* blocos de defesa: 5 colunas iguais, sempre cabem (o Véu Astral pedia 74 px cada) */
+  html[data-theme] .fv-header-stats {
+    width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  html[data-theme] .fv-header-stat {
+    min-width: 0;
+    padding: 7px 2px 6px;
+    border-radius: 12px;
+  }
+  html[data-theme] .fv-header-stat-val {
+    font-size: 17px;
+    line-height: 1.15;
+  }
+  html[data-theme] .fv-header-stat-label {
+    margin-top: 1px;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+  }
+  .fv-hs-short {
+    display: inline;
+  }
+  .fv-hs-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ---------- botões de magia/uso e resumos dobráveis ---------- */
+  html[data-theme] .fv-cast-btn,
+  html[data-theme] .fv-cast-btn.is-compact {
+    min-height: 36px;
+    padding: 6px 13px;
+    font-size: 12.5px;
+  }
+  html[data-theme] :is(.fv-titles-missing, .fv-dice-missing) summary {
+    padding: 10px 0;
+  }
+
+  /* ---------- Mesa: blocos de defesa do mesmo tamanho (o balão de cálculo encolhia o CA) ---------- */
+  html[data-theme] .fv-vitals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  html[data-theme] .fv-vitals > * {
+    justify-self: stretch;
+    width: 100%;
+  }
+  html[data-theme='astral'] .fv-stat-chip {
+    width: min(100%, 88px);
+    margin-inline: auto;
+  }
+  html[data-theme] .fv-stat-chip-label {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- Heróis: "Novo personagem" vira uma faixa, os heróis aparecem logo ---------- */
+  html[data-theme] .fv-new-hero {
+    min-height: 72px !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  html[data-theme] .fv-new-hero-plus {
+    width: 44px !important;
+    height: 44px !important;
+    flex: none;
+    font-size: 24px !important;
+  }
+  html[data-theme] .fv-new-hero-text > span:first-child {
+    font-size: 16.5px !important;
+  }
+}
+
+/* ---------- dedo, não mouse: ícones pequenos ganham área de toque invisível ---------- */
+@media (pointer: coarse) {
+  /* (o selo de arte já é absoluto: só ganha a área) */
+  :is(.fv-sh-lvl-btn, .fv-switch, .fv-drag-handle, .fv-item-remove, .fv-item-fav, .fv-chip-remove, .fv-mesa-cond-x) {
+    position: relative;
+  }
+  :is(.fv-sh-lvl-btn, .fv-switch, .fv-drag-handle, .fv-portrait-badge, .fv-item-remove, .fv-item-fav, .fv-chip-remove, .fv-mesa-cond-x)::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+  /* sem destaque azul do toque no Android: cada botão já tem o próprio estado ativo */
+  :is(button, a, [role='button'], [role='tab'], [role='radio'], summary, label) {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* app instalado: puxar a tela para baixo não recarrega no meio do combate */
+@media (display-mode: standalone) {
+  html,
+  body,
+  .fv-screen-scroll {
+    overscroll-behavior-y: none;
+  }
+}

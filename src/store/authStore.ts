@@ -98,7 +98,3 @@ export const useAuthStore = create<AuthState>()(
     { name: 'fv-auth' },
   ),
 );
-console.log("tste")
-
-
-console.log("tste")
