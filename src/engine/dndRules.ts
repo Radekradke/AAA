@@ -12,7 +12,7 @@ import { getItem } from '@/data/items';
 import { casterOf } from './spellcasting';
 import { itemIsActive } from './inventory';
 import { averageHp, ABILITY_CAP } from './levelUp';
-import type { Breakdown } from './effects';
+import type { Breakdown, Modifier } from './effects';
 import { breakdown, mod } from './effects';
 import { languagePicks, languagesLeftText, raceSkillProfs } from './originChoices';
 import { isArmorProficient, isWeaponProficient, proficienciesOf, proficiencySummary } from './proficiencies';
@@ -114,11 +114,13 @@ export interface DerivedCharacter {
 /** Resolve um item da mochila (instância pode trazer dados embutidos ou referenciar o catálogo). */
 function resolveItemData(it: InventoryItem) {
   const base = getItem(it.itemId);
+  // item do catálogo: efeitos novos do catálogo valem também para cópias antigas já na mochila
+  const magic = !it.homebrew && base?.magic ? { ...base.magic, ...it.magic } : it.magic ?? base?.magic;
   return {
     weapon: it.weapon ?? base?.weapon,
     armor: it.armor ?? base?.armor,
     acBonus: it.acBonus ?? base?.acBonus,
-    magic: it.magic ?? base?.magic,
+    magic,
     attunement: it.attunement ?? base?.attunement,
   };
 }
@@ -215,11 +217,21 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const cap = primal ? 24 : ABILITY_CAP;
     const raw = Math.min(ABILITY_CAP, raceTotals[key] + asi) + primal;
     const natural = Math.min(cap, raw);
+    // Cinto Anão, Pedras Ioun…: +N no atributo até um teto (acima do teto não sobe nem desce)
+    let boosted = natural;
+    const addParts: Modifier[] = [];
+    for (const m of magicItems) {
+      const add = m.magic.addAbility?.[key];
+      if (!add) continue;
+      const next = Math.max(boosted, Math.min(add.max, boosted + add.bonus));
+      if (next > boosted) addParts.push(mod(key, next - boosted, m.name, 'item', { label: `+${add.bonus} (máx. ${add.max})` }));
+      boosted = next;
+    }
     // Manoplas do Ogro, Amuleto da Saúde, Cintos de Gigante…: o atributo PASSA a valer X
     const setBy = magicItems
-      .filter((m) => (m.magic.setAbility?.[key] ?? 0) > natural)
+      .filter((m) => (m.magic.setAbility?.[key] ?? 0) > boosted)
       .sort((a, b) => b.magic.setAbility![key]! - a.magic.setAbility![key]!)[0];
-    const total = setBy ? setBy.magic.setAbility![key]! : natural;
+    const total = setBy ? setBy.magic.setAbility![key]! : boosted;
     const bd = breakdown(
       [
         mod(key, char.baseAbilities[key], 'Valores de criação', 'base'),
@@ -232,6 +244,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
             ]),
         asi ? mod(key, asi, 'Aumentos de nível', 'asi') : null,
         primal ? mod(key, primal, 'Campeão Primal', 'class', { label: 'Bárbaro 20º (teto 24)' }) : null,
+        ...(setBy ? [] : addParts),
         setBy ? mod(key, total - natural, setBy.name, 'item', { label: `atributo passa a ${total}` }) : null,
       ],
       raceTotals[key] + asi > ABILITY_CAP ? `limitado ao teto de ${ABILITY_CAP}` : undefined,
@@ -266,10 +279,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const spellEffects = char.combat.spellEffects ?? [];
   const mageArmor = spellEffects.find((e) => e.acBase);
   const altSources = [
-    subBonus?.unarmoredAC ? { ...subBonus.unarmoredAC, source: subclass!.label, sourceType: 'subclass' as 'subclass' | 'feat' | 'spell' } : null,
+    subBonus?.unarmoredAC ? { ...subBonus.unarmoredAC, source: subclass!.label, sourceType: 'subclass' as 'subclass' | 'feat' | 'spell' | 'item' } : null,
     featUnarmored ? { ...featUnarmored.unarmoredAC!, source: featUnarmored.label, sourceType: 'feat' as const } : null,
     // Armadura Arcana: CA base 13 + DES sem armadura
     mageArmor ? { base: mageArmor.acBase!, ability: 'dex' as AbilityKey, source: mageArmor.name, sourceType: 'spell' as const } : null,
+    // Manto do Arquimago: CA base 15 + DES sem armadura
+    ...magicItems.map((m) => (m.magic.unarmoredAC ? { ...m.magic.unarmoredAC, source: m.name, sourceType: 'item' as const } : null)),
   ]
     .filter((x): x is NonNullable<typeof x> => !!x)
     .map((x) => ({ ...x, total: x.base + abilities[x.ability].mod }));

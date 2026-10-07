@@ -302,3 +302,9 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 5. **Mãos**: arma de **duas mãos** tira o escudo (e vice-versa), com aviso do que foi para a mochila. Duas armas **leves** (ex.: espada curta + adaga): a segunda vai para a **mão secundária** — o ataque dela aparece como "mão secundária · ação bônus" e sem o atributo no dano (com o **Estilo de Luta com Duas Armas**, o atributo volta). O talento **Combatente com Duas Armas** libera armas não leves e dá **+1 de CA** com uma arma em cada mão. Tirar a arma principal passa a secundária para a principal.
 6. **Varinhas**: a Varinha de Mísseis Mágicos e a de Detecção de Magia (sem sintonia) liberam as magias com o herói (Mochila); no Baú, não. Itens maravilhosos novos chegam na Mochila (não mais no Baú).
 7. Fichas antigas: anel/amuleto que já estava sintonizado continua valendo (conta como vestido) — nada some da CA ao atualizar.
+
+## 44. Manto do Arquimago, Cinto Anão e Pedras Ioun nas contas
+1. **Manto do Arquimago** (vestido e sintonizado), sem armadura: a CA vira **15 + DES** ("ver cálculo" mostra o manto como CA base). Com escudo, o escudo soma; com armadura, o manto não vale. Não acumula com Armadura Arcana nem com Defesa sem Armadura — fica a melhor (o Monge com SAB alta pode continuar com a própria). O +2 no ataque e na CD de magia segue valendo.
+2. **Cinto Anão**: **+2 CON até no máximo 20** — CON 16 vira 18, 19 vira 20 e 20 fica 20. Salvaguarda de CON e PV acompanham.
+3. **Pedras Ioun** de Fortitude, Discernimento, Intelecto, Liderança, Força e Agilidade: **+2** no atributo, até 20. Um item que fixa o atributo (ex.: Amuleto da Saúde, CON 19) ganha se der mais.
+4. A prévia "Ao vestir" já mostra a mudança de CA/atributo antes de vestir. Itens que já estavam na mochila antes desta versão passam a valer sozinhos.
