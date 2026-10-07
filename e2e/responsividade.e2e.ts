@@ -53,7 +53,7 @@ for (const s of SIZES) {
       await openTab(page, 'Ficha');
       await page.locator('.fv-screen-scroll').evaluate((el) => el.scrollTo(0, 0));
       const top = await page.evaluate(() => {
-        const panels = [...document.querySelectorAll('.fv-screen-scroll .fv-panel')].filter((p) => !p.classList.contains('fv-sheet-head') && !p.closest('.fv-sheet-tabs'));
+        const panels = Array.from(document.querySelectorAll('.fv-screen-scroll .fv-panel')).filter((p) => !p.classList.contains('fv-sheet-head') && !p.closest('.fv-sheet-tabs'));
         return panels[0]?.getBoundingClientRect().top ?? Infinity;
       });
       expect(top).toBeLessThan(s.h * 0.6);
