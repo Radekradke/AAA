@@ -27,6 +27,8 @@ interface TopBarProps {
   actions?: ReactNode;
   /** Ações secundárias, recolhidas no menu "⋯". */
   menu?: TopBarMenuItem[];
+  /** O conteúdo já rolou: a barra ganha fundo sólido (no celular, o conteúdo passa por baixo). */
+  scrolled?: boolean;
 }
 
 /**
@@ -34,7 +36,7 @@ interface TopBarProps {
  * Celular: só o essencial (marca, salvamento, ações principais) — o resto
  * vai para o menu "⋯", para nada ser cortado na borda da tela.
  */
-export function TopBar({ actions, menu = [] }: TopBarProps) {
+export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
   const theme = useUiStore((s) => s.theme);
   const mode = useThemeMode();
   const toggleThemeMode = useUiStore((s) => s.toggleThemeMode);
@@ -93,7 +95,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   ];
 
   return (
-    <div className="fv-topbar">
+    <div className={'fv-topbar' + (scrolled ? ' is-scrolled' : '')}>
       {/* a marca leva ao menu principal */}
       <button type="button" className="fv-topbar-brand" onClick={() => navigate('/')} aria-label="Menu principal" title="Menu principal">
         <div className="fv-topbar-logo" aria-hidden>

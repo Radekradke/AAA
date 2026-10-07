@@ -129,6 +129,7 @@ export function CharacterSelect() {
         >
           {/* card criar novo */}
           <button
+            className="fv-new-hero"
             onClick={() => { bump(1); navigate('/criar'); }}
             onMouseMove={tilt.onMouseMove}
             onMouseLeave={tilt.onMouseLeave}
@@ -149,6 +150,7 @@ export function CharacterSelect() {
             }}
           >
             <div
+              className="fv-new-hero-plus"
               style={{
                 width: 54,
                 height: 54,
@@ -164,10 +166,10 @@ export function CharacterSelect() {
             >
               +
             </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
-              Novo Personagem
-            </div>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</div>
+            <span className="fv-new-hero-text">
+              <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>Novo Personagem</span>
+              <span style={{ display: 'block', marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</span>
+            </span>
           </button>
 
           {mine.map((c) => {

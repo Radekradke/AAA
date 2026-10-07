@@ -13,6 +13,8 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { music } from '@/lib/music';
 import { useCampaignNpcs } from '@/components/campaign/NpcGallery';
 import { useStageStore } from '@/store/stageStore';
+import { useUiStore } from '@/store/uiStore';
+import { useWakeLock } from '@/lib/wakeLock';
 import { MasterWorkspace } from '@/features/master/MasterWorkspace';
 import { PlayerWorkspace } from '@/features/live/PlayerWorkspace';
 import type { Campaign } from '@/types/models';
@@ -98,6 +100,10 @@ export function LiveSession() {
     if (!sessionId || !mySheet || !s.session) return;
     useCharacterStore.getState().recordSession(mySheet, { id: sessionId, name: s.session.name, at: new Date().toISOString() });
   }, [sessionId, mySheet]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // sessão aberta: o celular em cima da mesa não apaga sozinho
+  const keepAwake = useUiStore((u) => u.keepAwake);
+  useWakeLock(keepAwake && !!s.session);
 
   // começou o combate com a trilha tocando → música de batalha
   const combatOn = s.encounter?.status === 'active';

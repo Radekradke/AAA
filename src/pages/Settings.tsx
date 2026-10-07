@@ -15,6 +15,7 @@ import { MOODS } from '@/data/soundtrack';
 import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
 import { rememberNext } from '@/lib/nextPath';
+import { wakeLockSupported } from '@/lib/wakeLock';
 
 const SECTIONS: { id: string; label: string; icon: IconName }[] = [
   { id: 'aparencia', label: 'Aparência', icon: 'image' },
@@ -58,6 +59,8 @@ export function Settings() {
   const dice3d = useUiStore((s) => s.dice3d);
   const cinematics = useUiStore((s) => s.cinematics);
   const toggleCinematics = useUiStore((s) => s.toggleCinematics);
+  const keepAwake = useUiStore((s) => s.keepAwake);
+  const toggleKeepAwake = useUiStore((s) => s.toggleKeepAwake);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
@@ -141,6 +144,9 @@ export function Settings() {
           </Row>
           <Row title="Crítico cinematográfico" hint="No 20 natural, um momento em tela cheia com a arte do herói; no 1, um tropeço com humor. Na mesa ao vivo aparece para todos.">
             <Switch on={cinematics} label="Crítico cinematográfico" onToggle={toggleCinematics} />
+          </Row>
+          <Row title="Tela acesa na mesa ao vivo" hint={wakeLockSupported() ? 'Durante a sessão, o celular não apaga sozinho — dá para deixar a ficha aberta em cima da mesa.' : 'Este navegador não deixa manter a tela acesa; ajuste o tempo de bloqueio do aparelho.'}>
+            <Switch on={keepAwake} label="Tela acesa na mesa ao vivo" onToggle={toggleKeepAwake} />
           </Row>
           <Row title="Histórico de rolagens" hint={`${historyCount} rolagem(ns) guardada(s) neste aparelho.`}>
             <button

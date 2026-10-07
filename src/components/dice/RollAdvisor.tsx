@@ -45,7 +45,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
             <button
               key={ex}
               onClick={() => setText(ex)}
-              style={{ cursor: 'pointer', fontSize: 11.5, minHeight: 30, padding: '5px 11px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)' }}
+              style={{ cursor: 'pointer', fontSize: 12.5, minHeight: 36, padding: '6px 12px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)' }}
             >
               {ex}
             </button>

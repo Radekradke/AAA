@@ -106,8 +106,8 @@ function StepBtn({ children, label, onClick, disabled, accent }: { children: Rea
       style={{
         cursor: disabled ? 'default' : 'pointer',
         flex: 1,
-        minWidth: 36,
-        minHeight: 26,
+        minWidth: 44,
+        minHeight: 40,
         borderRadius: 10,
         border: '1px solid ' + (accent && !disabled ? 'var(--gold)' : 'var(--line)'),
         background: accent && !disabled ? 'rgba(255,224,138,.12)' : 'var(--sunk)',

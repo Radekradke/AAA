@@ -26,7 +26,7 @@ import { CARD_TIERS, cardTier } from '@/engine/deeds';
 import { heroTitle, heroTitleDef, heroTitleTip, titleDeed } from '@/engine/titles';
 import { CardScars, CardSeals, DeedsSection, DicePicker, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
-import { itemArt } from '@/lib/itemArt';
+import { cardArt } from '@/lib/itemArt';
 
 /** Características que só repetem a regra (aparecem como aumentos/talentos). */
 const SKIP_FEATURES = new Set(['Aumento de Atributo']);
@@ -94,7 +94,7 @@ function Vitrine({ char, derived }: TabProps) {
     return [...held, ...special];
   }, [char.equipped, char.inventory]);
   // relíquias: só os itens com arte viram carta (sem foto, não aparece)
-  const relics = useMemo(() => char.inventory.filter((i) => itemArt(i)), [char.inventory]);
+  const relics = useMemo(() => char.inventory.filter((i) => cardArt(i)), [char.inventory]);
   const spells = useMemo(() => {
     const ids = Array.from(new Set([...char.preparedSpells, ...(char.classId === 'wizard' ? [] : char.knownSpells ?? [])]));
     return ids
@@ -246,7 +246,7 @@ function Vitrine({ char, derived }: TabProps) {
             <ul className="fv-relics">
               {relics.map((it) => (
                 <li key={it.uid}>
-                  <ItemArtCard src={itemArt(it)} rarity={it.rarity} />
+                  <ItemArtCard src={cardArt(it)} rarity={it.rarity} />
                   <b>{it.name}</b>
                   <small style={{ color: `color-mix(in srgb, ${(RARITY[it.rarity] ?? RARITY.comum).color}, var(--ink) 30%)` }}>{(RARITY[it.rarity] ?? RARITY.comum).label}</small>
                 </li>

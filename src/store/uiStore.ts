@@ -48,6 +48,9 @@ interface UiState {
   /** Crítico cinematográfico: 20 natural em tela cheia, 1 natural com tropeço. */
   cinematics: boolean;
   toggleCinematics: () => void;
+  /** Mesa ao vivo: manter a tela do aparelho acesa. */
+  keepAwake: boolean;
+  toggleKeepAwake: () => void;
   /** Momento em tela cheia agora (efêmero). */
   cinematic: Cinematic | null;
   showCinematic: (c: Cinematic) => void;
@@ -207,6 +210,10 @@ export const useUiStore = create<UiState>()(
       toggleCinematics() {
         set((s) => ({ cinematics: !s.cinematics, cinematic: null }));
       },
+      keepAwake: true,
+      toggleKeepAwake() {
+        set((s) => ({ keepAwake: !s.keepAwake }));
+      },
       cinematic: null,
       showCinematic(c) {
         if (get().cinematics) set({ cinematic: { ...c, at: Date.now() } });
@@ -315,7 +322,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake }),
     },
   ),
 );

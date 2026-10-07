@@ -121,7 +121,7 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
 
   if (!mine.length) {
     return (
-      <section className="fv-panel fv-live-card">
+      <section className="fv-panel fv-live-card fv-live-me">
         <div className="fv-label">Seu herói</div>
         <p className="fv-live-hint">
           Vincule sua ficha na <Link to={`/mesa/${s.campaignId}`}>sala da mesa</Link> para o mestre poder colocá-la no combate.
@@ -132,7 +132,7 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
 
   const needsRoll = inEncounter && inEncounter.initiative === null && s.encounter?.status !== 'finished';
   return (
-    <section className={'fv-panel fv-live-card' + (needsRoll ? ' is-calling' : '')}>
+    <section className={'fv-panel fv-live-card fv-live-me' + (needsRoll ? ' is-calling' : '')}>
       <div className="fv-label">Seu herói</div>
       {mine.length > 1 && !inEncounter && (
         <div className="fv-live-chips">
@@ -150,6 +150,7 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
       )}
       <div className="fv-live-hero">
         <b>{selectedName ?? 'Herói'}</b>
+        {local && derived && <HeroVitals hp={local.hpCurrent} max={derived.maxHp} temp={local.combat.hpTemp} ac={derived.ac} />}
         {inEncounter ? (
           <small>{inEncounter.initiative === null ? 'No combate — role sua iniciativa!' : `Iniciativa ${inEncounter.initiative}`}</small>
         ) : (
@@ -173,10 +174,31 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
           </button>
         ))}
       {local && (
-        <Link className="fv-live-link" to={`/ficha/${local.id}`}>
+        <Link className="fv-live-openhero" to={`/ficha/${local.id}`}>
           Abrir ficha ›
         </Link>
       )}
     </section>
+  );
+}
+
+/** PV e CA do herói, à vista na mesa (no celular, sem precisar abrir a ficha). */
+function HeroVitals({ hp, max, temp, ac }: { hp: number; max: number; temp: number; ac: number }) {
+  const pct = Math.max(0, Math.min(100, Math.round((hp / Math.max(1, max)) * 100)));
+  const tone = hp <= 0 ? 'is-down' : pct <= 25 ? 'is-low' : pct <= 50 ? 'is-hurt' : '';
+  return (
+    <div className="fv-live-vitals">
+      <span className={'fv-live-hp ' + tone} role="meter" aria-label="Pontos de vida" aria-valuemin={0} aria-valuemax={max} aria-valuenow={hp} aria-valuetext={`${hp} de ${max} PV${temp > 0 ? `, mais ${temp} temporários` : ''}`}>
+        <span className="fv-live-hp-num">
+          <b>{hp}</b>/{max} PV{temp > 0 && <em> +{temp}</em>}
+        </span>
+        <span className="fv-live-hp-bar" aria-hidden>
+          <i style={{ width: `${pct}%` }} />
+        </span>
+      </span>
+      <span className="fv-live-ac">
+        CA <b>{ac}</b>
+      </span>
+    </div>
   );
 }

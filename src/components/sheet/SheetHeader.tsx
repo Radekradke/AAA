@@ -27,11 +27,11 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
   // valores derivados com cálculo rastreável (tooltip mostra cada origem)
   const bd = derived.breakdowns;
   const defense = [
-    { label: 'CA', val: String(derived.ac), info: calcLore('Classe de Armadura', bd.ac, { intro: 'Quanto maior, mais difícil é acertar você.' }) },
-    { label: 'Iniciativa', val: modStr(derived.initiative), info: calcLore('Iniciativa', bd.initiative, { intro: 'Ordem no início do combate.' }) },
-    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m`, info: calcLore('Deslocamento', bd.speed, { unit: 'm', intro: 'Metros de movimento por turno.' }) },
-    { label: 'Perc. Pass.', val: String(derived.passivePerception), info: calcLore('Percepção Passiva', bd.passivePerception, { intro: 'Usada pelo mestre para perigos não anunciados.' }) },
-    { label: 'Profic.', val: modStr(derived.proficiency), info: passiveLore('Bônus de Proficiência', modStr(derived.proficiency), `Nível ${char.level} → bônus ${modStr(derived.proficiency)} (2 + ⌊(nível − 1) / 4⌋, PHB 2014). Soma em tudo que você é treinado.`, ['Ver cálculo']) },
+    { label: 'CA', short: 'CA', val: String(derived.ac), info: calcLore('Classe de Armadura', bd.ac, { intro: 'Quanto maior, mais difícil é acertar você.' }) },
+    { label: 'Iniciativa', short: 'Inic.', val: modStr(derived.initiative), info: calcLore('Iniciativa', bd.initiative, { intro: 'Ordem no início do combate.' }) },
+    { label: 'Desloc.', short: 'Desl.', val: `${derived.speed.toString().replace('.', ',')}m`, info: calcLore('Deslocamento', bd.speed, { unit: 'm', intro: 'Metros de movimento por turno.' }) },
+    { label: 'Perc. Pass.', short: 'Perc.', val: String(derived.passivePerception), info: calcLore('Percepção Passiva', bd.passivePerception, { intro: 'Usada pelo mestre para perigos não anunciados.' }) },
+    { label: 'Profic.', short: 'Prof.', val: modStr(derived.proficiency), info: passiveLore('Bônus de Proficiência', modStr(derived.proficiency), `Nível ${char.level} → bônus ${modStr(derived.proficiency)} (2 + ⌊(nível − 1) / 4⌋, PHB 2014). Soma em tudo que você é treinado.`, ['Ver cálculo']) },
   ];
 
   return (
@@ -124,7 +124,10 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
           >
             <div className="fv-header-stat">
               <div className="fv-header-stat-val">{d.val}</div>
-              <div className="fv-header-stat-label">{d.label}</div>
+              <div className="fv-header-stat-label">
+                <span className="fv-hs-full">{d.label}</span>
+                <span className="fv-hs-short" aria-hidden>{d.short}</span>
+              </div>
             </div>
           </LoreTooltip>
         ))}

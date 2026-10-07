@@ -24,3 +24,13 @@ export function itemArt(it: Pick<InventoryItem, 'image' | 'itemId'>): string | n
   const id = it.itemId?.replace(/-plus[123]$/, '');
   return (id && ART[id]) || null;
 }
+
+/**
+ * Arte para a coleção (Suas cartas e Relíquias): a foto do jogador sempre;
+ * a arte padrão só nos itens acima de comum. Mochila, corda e rações têm
+ * arte na mochila, mas não viram carta.
+ */
+export function cardArt(it: Pick<InventoryItem, 'image' | 'itemId' | 'rarity'>): string | null {
+  if (it.image) return it.image;
+  return it.rarity && it.rarity !== 'comum' ? itemArt(it) : null;
+}
