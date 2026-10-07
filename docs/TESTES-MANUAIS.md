@@ -182,6 +182,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 5. Cole um texto qualquer: aparece "Não consegui ler…" e a janela não fecha. Com texto digitado, clicar fora também não fecha.
 6. **Importar personagem (JSON)** com um arquivo da ficha simples também funciona e avisa os ajustes num toast.
 7. Tema **Guilda Rubra**: o botão **Colar ficha (ChatGPT)** aparece ao lado de **Importar personagem (JSON)**.
+8. **Exportar em JSON**: na ficha, o botão de corrente (**Compartilhar a ficha**) agora tem três opções: **Por link**, **Em PDF** e **Em arquivo (JSON)**. A terceira baixa `nome-do-heroi.json` (sem acento) com a ficha inteira, fecha a janela e avisa "Ficha salva em …". Importar esse arquivo em **Importar personagem (JSON)**, em outra conta, cria uma cópia igual (nível, cicatrizes, título, inventário). O menu **⋯ → Exportar ficha (JSON)** continua lá e faz o mesmo.
 
 ## 29. Aba Retrato (vitrine do herói)
 1. Abra uma ficha → aba **Retrato** (no celular: **Mais → Retrato**). A carta do herói aparece grande, com selo de nível, sigilo da classe, cantos dourados e a luz da raça; ao lado (embaixo, no celular), nome, conceito, atributos, números, perícias (★ = especialização), características, equipamento, magias, idiomas e história.

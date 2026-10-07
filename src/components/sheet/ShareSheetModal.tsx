@@ -9,12 +9,14 @@ import { syncNow } from '@/services/offlineSyncService';
 import { shareService, shareUrl } from '@/services/shareService';
 import type { SheetShare } from '@/services/shareService';
 import type { Character } from '@/types/character';
+import { characterFileName, downloadCharacterJson } from '@/lib/exportCharacter';
 
 /**
  * Compartilhar a ficha (botão de corrente no cabeçalho): primeiro a escolha —
  * por link ou em PDF. Link: quem recebe vê a ficha ilustrada (só leitura, sem
  * conta, a última versão na nuvem); dá para ter mais de um e revogar cada um.
- * PDF: abre a ficha pronta para imprimir / salvar em PDF.
+ * PDF: abre a ficha pronta para imprimir / salvar em PDF. JSON: baixa a ficha
+ * inteira num arquivo (backup ou para importar em outra conta).
  */
 export function ShareSheetModal({ char, onClose }: { char: Character; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
@@ -93,6 +95,21 @@ export function ShareSheetModal({ char, onClose }: { char: Character; onClose: (
             <span>
               <b>Em PDF</b>
               <small>A ficha pronta para imprimir no visual do tema, com a arte em destaque — salve em PDF ou imprima para a mesa.</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="fv-share-choice"
+            onClick={() => {
+              downloadCharacterJson(char);
+              toast(`Ficha salva em ${characterFileName(char)}.`, { tone: 'ok' });
+              onClose();
+            }}
+          >
+            <span className="fv-share-choice-ico" aria-hidden><Icon name="download" size={22} /></span>
+            <span>
+              <b>Em arquivo (JSON)</b>
+              <small>Baixa a ficha inteira num arquivo — serve de backup e abre em outra conta com “Importar personagem (JSON)”.</small>
             </span>
           </button>
         </div>

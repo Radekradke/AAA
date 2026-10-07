@@ -22,6 +22,7 @@ import { RollModeToggle } from '@/components/dice/RollModeToggle';
 import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
 import { loadDice3d } from '@/lib/dice3d';
+import { downloadCharacterJson } from '@/lib/exportCharacter';
 
 // diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
 const SheetHistoryModal = lazy(() => import('@/components/sheet/SheetHistoryModal').then((m) => ({ default: m.SheetHistoryModal })));
@@ -33,7 +34,6 @@ export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const characters = useCharacterStore((s) => s.characters);
-  const exportCharacter = useCharacterStore((s) => s.exportCharacter);
 
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
   const location = useLocation();
@@ -108,15 +108,7 @@ export function CharacterSheet() {
   const activeTab = tab === 'magias' && !isCaster ? 'ficha' : tab;
 
   const exportJson = () => {
-    const json = exportCharacter(char.id);
-    if (!json) return;
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${char.name.replace(/\s+/g, '-').toLowerCase()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCharacterJson(char);
     toast('Ficha exportada como arquivo JSON.');
   };
 
