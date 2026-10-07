@@ -38,16 +38,16 @@ describe('catálogo do Livro do Jogador', () => {
   });
 });
 
-describe('itens mágicos aplicam sozinhos (só sintonizados)', () => {
+describe('itens mágicos aplicam sozinhos (vestidos e sintonizados)', () => {
   it('Manoplas de Força do Ogro: FOR passa a 19', () => {
-    const { c, it } = give(hero(), 'm-gauntlets-ogre');
+    const { c, it } = give(hero(), 'm-gauntlets-ogre', { worn: true });
     expect(deriveCharacter(c).abilities.str.total).toBeLessThan(19);
     const on = { ...c, inventory: c.inventory.map((x) => (x.uid === it.uid ? { ...x, attuned: true } : x)) };
     expect(deriveCharacter(on).abilities.str.total).toBe(19);
   });
-  it('Anel de Proteção sintonizado: +1 CA e +1 em salvaguardas', () => {
+  it('Anel de Proteção vestido e sintonizado: +1 CA e +1 em salvaguardas', () => {
     const base = deriveCharacter(hero());
-    const { c } = give(hero(), 'm-ring-prot', { attuned: true });
+    const { c } = give(hero(), 'm-ring-prot', { attuned: true, worn: true });
     const d = deriveCharacter(c);
     expect(d.ac).toBe(base.ac + 1);
     expect(d.abilities.dex.save).toBe(base.abilities.dex.save + 1);
@@ -55,7 +55,7 @@ describe('itens mágicos aplicam sozinhos (só sintonizados)', () => {
   it('Braçadeiras de Defesa só sem armadura e sem escudo', () => {
     const bare = (c: Character) => ({ ...c, equipped: { ...c.equipped, armor: null, shield: null } });
     const monk = hero('monk');
-    const { c } = give(monk, 'm-bracers-defense', { attuned: true });
+    const { c } = give(monk, 'm-bracers-defense', { attuned: true, worn: true });
     expect(deriveCharacter(bare(c)).ac).toBe(deriveCharacter(bare(monk)).ac + 2);
     // com armadura de couro: as braçadeiras não somam
     const { c: armored, it: leather } = give(c, 'a-leather');
