@@ -185,7 +185,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 
 ## 29. Aba Retrato (vitrine do herói)
 1. Abra uma ficha → aba **Retrato** (no celular: **Mais → Retrato**). A carta do herói aparece grande, com selo de nível, sigilo da classe, cantos dourados e a luz da raça; ao lado (embaixo, no celular), nome, conceito, atributos, números, perícias (★ = especialização), características, equipamento, magias, idiomas e história.
-2. No PC, passe o mouse na carta: ela inclina, o reflexo metálico e a folha holográfica seguem o ponteiro. Com "reduzir movimento" no sistema, a carta fica parada.
+2. No PC, passe o mouse na carta: ela inclina, o reflexo metálico (na cor do metal do nível) segue o ponteiro; parada, um lampejo atravessa a carta de tempos em tempos. Com "reduzir movimento" no sistema, a carta fica parada.
 3. Toque na arte: abre só a arte em tela cheia. Fecha no ✕, no Esc ou tocando em qualquer lugar.
 4. Troque de tema (Eclipse e Forja Dourada no modo claro): o número do nível e os cantos da carta continuam dourados e legíveis.
 
@@ -198,7 +198,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 6. Um item com **Magia concedida** + Parte do corpo: a magia aparece na aba Magias (antes, item novo perdia a magia ao salvar).
 
 ## 31. Carta do herói: moldura, feitos e cicatrizes
-1. Aba **Retrato** de heróis nível 2, 6, 12 e 18: moldura **Bronze**, **Prata** (filete duplo), **Ouro** (brilho dourado, cantos maiores) e **Lendária** (aro dourado→violeta→celeste girando). O selo de nível mostra o nome da moldura; a folha holográfica fica mais forte a cada faixa.
+1. Aba **Retrato** de heróis nível 2, 6, 12 e 18: moldura **Bronze**, **Prata** (filete duplo), **Ouro** (brilho dourado, cantos maiores) e **Lendária** (aro de ouro claro girando). O selo de nível mostra o nome da moldura; o reflexo acompanha o metal: bronze, prateado, dourado e ouro claro na lendária (sem arco-íris).
 2. Role ataques na ficha até sair um **20 natural**: aparece "Feito conquistado: Primeiro crítico!" e o selo surge na carta (coluna à direita) e em **Feitos**. Um **1 natural** dá "Tropeço histórico" (selo lilás).
 3. Leve o herói a 0 PV e cure: "Voltou do abismo".
 4. Mesa ao vivo (mestre): jogador rola dano → no feed, **aplicar ▸ Goblin**. Se o goblin cair, o golpe final vai para o jogador que rolou (feito "Primeira vitória" na ficha dele). Derrube uma criatura pelo PV direto: aparece **"Goblin caiu! Golpe final de:"** com os heróis — escolha um. Dragão conta "Matador de dragões".
@@ -212,7 +212,7 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
 5. Com "reduzir movimento" no sistema, a tela aparece parada (sem raios girando), mas aparece.
 
 ## 33. Companheiros e montarias com carta
-1. Aba **Retrato** → **Companheiros → Adicionar**: escolha **Montaria**, nome "Trovão", base **Cavalo de Guerra** (a linha mostra CA 11 · 19 PV · 18 m) → **Adicionar**. A ficha da montaria abre com a carta (mesma folha holográfica, reflexo e moldura da carta do herói), o emblema de fera e o selo **ND 1/2**.
+1. Aba **Retrato** → **Companheiros → Adicionar**: escolha **Montaria**, nome "Trovão", base **Cavalo de Guerra** (a linha mostra CA 11 · 19 PV · 18 m) → **Adicionar**. A ficha da montaria abre com a carta (mesmo reflexo prateado, inclinação e moldura da carta do herói), o emblema de fera e o selo **ND 1/2**.
 2. O formulário **Novo companheiro** (e **Editar**) já tem **Retrato (opcional)**: envie a arte ali e a carta nasce com ela. **Sua arte** na ficha da montaria: a carta e a mini-carta da lista passam a usar a imagem.
 3. PV com **−/+**, testes de atributo e ataque (**+6** / **2d6+4**) rolam e entram no histórico da ficha. Um **20 natural** da montaria **não** abre o crítico cinematográfico nem conta como feito do herói.
 4. **Familiar** com base **Livre**: CA, PV máx. e deslocamento à mão; as anotações aparecem na ficha. **Editar** reabre com os valores; **Dispensar** pede confirmação.
@@ -234,19 +234,19 @@ Use duas contas: o **mestre** num navegador e um **jogador** em outro (ou janela
    - **Truque mortal** (mesa ao vivo): role o dano de um truque e o mestre aplica com **aplicar ▸** derrubando a criatura.
    - **Davi contra Golias** (mesa ao vivo): golpe final numa criatura de ND maior que o nível do herói.
 3. **Título** (alcunha do personagem, não conquista de jogador): em **Retrato → Título** aparecem os liberados (ex.: "Coração de Dragão", "o Imperador da Loucura"/"a Imperatriz da Loucura", "Koschei, o Imortal"/"Baba Yaga") na forma do gênero da ficha, com a frase de lenda do escolhido. **Por conquistar** lista o resto com o caminho (secretos como **???**). Ao liberar um título por feito, aparece o aviso "Novo título". O escolhido aparece sob o nome na carta, no cabeçalho da ficha, no painel do herói do mestre e na iniciativa. **Sem título** remove.
-4. **Carta do item**: no inventário, o botão de imagem na miniatura do card envia a arte (ou use **Editar → Carta do item**). Passe o mouse no card (ou segure no celular): os detalhes aparecem com a carta ao lado; raros, muito raros e lendários têm brilho holográfico.
+4. **Carta do item**: no inventário, o botão de imagem na miniatura do card envia a arte (ou use **Editar → Carta do item**). Passe o mouse no card (ou segure no celular): os detalhes aparecem com a carta ao lado; o brilho acompanha a raridade: prateado, dourado nas muito raras e ouro claro nas lendárias.
 5. **Relíquias** (aba Retrato): só os itens **com foto** viram carta (sem foto, não aparece nada — nem no inventário, onde fica só o botãozinho de enviar arte).
 6. **Jornada**: linha do tempo com o começo, as subidas de nível (com a data), os feitos, as cicatrizes e as sessões jogadas na mesa ao vivo (entram sozinhas ao abrir uma sessão ativa como jogador). Mais de 10 marcos: **Ver desde o começo**.
 
 ## 36. Retrato → Suas cartas
-1. Na aba **Retrato**, o submenu **Retrato | Suas cartas** (com o número de cartas). **Suas cartas** mostra a coleção: a carta do herói (cor da moldura do nível), companheiros/montarias **com retrato** e itens **com foto** (cor da raridade; raros+ com holográfico).
+1. Na aba **Retrato**, o submenu **Retrato | Suas cartas** (com o número de cartas). **Suas cartas** mostra a coleção: a carta do herói (cor da moldura do nível), companheiros/montarias **com retrato** e itens **com foto** (cor da raridade). A borda de cada carta é de metal polido pelo nível — bronze, prata, ouro ou lendária — com o reflexo do mesmo metal.
 2. Filtros **Todas / Herói / Companheiros / Itens** (só aparecem os que têm carta).
 3. Tocar numa carta abre em tela cheia, com inclinação e reflexo; **‹ ›** ou as setas do teclado passam para as outras; Esc, ✕ ou tocar fora fecham.
 4. Só a carta do herói? Aparece a dica de como ganhar mais cartas (foto no item ou no companheiro).
 
 ## 37. Bestiário de caçadas
 1. Na mesa ao vivo, o mestre derruba uma criatura do bestiário (ex.: Goblin) e dá o golpe final a um herói. Na ficha desse herói aparece o aviso **"Nova carta de caçada: Goblin!"**.
-2. **Retrato → Suas cartas → Caçadas**: uma carta por criatura abatida, com a arte oficial (ou o emblema do tipo), o número de abates e o ND. A moldura sobe com os abates: bronze (1 e 3), prata (5), ouro (10, holográfica) e lendária (25, **Nêmesis**).
+2. **Retrato → Suas cartas → Caçadas**: uma carta por criatura abatida, com a arte oficial (ou o emblema do tipo), o número de abates e o ND. A moldura sobe com os abates: bronze (1 e 3), prata (5), ouro (10, reflexo dourado) e lendária (25, **Nêmesis**).
 3. Tocar na carta abre a tela cheia com **o que o herói sabe**: barra até o próximo nível e blocos destravados por abates — **Básico** (1), **Defesa: CA e PV** (3), **Pontos fracos: resistências, imunidades, vulnerabilidades e sentidos** (5), **Como luta: ataques, salvaguardas e características** (10) e **Ficha inteira** (25). Os trancados mostram 🔒 com quantos abates faltam.
 4. Cada nível novo avisa: "Caçada — Goblin: Presa conhecida! Agora você conhece CA e pontos de vida."
 5. Na mesa, como jogador: inimigos que o seu herói já caçou mostram **📖 ×N** na iniciativa (e a **CA**, a partir de 3 abates, no PC). Tocar abre o mesmo painel. Criaturas nunca abatidas continuam só com "ferido/sangrando".

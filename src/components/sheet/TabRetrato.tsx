@@ -26,6 +26,7 @@ import { CARD_TIERS, cardTier } from '@/engine/deeds';
 import { heroTitle } from '@/engine/titles';
 import { CardScars, CardSeals, DeedsSection, DicePicker, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
+import { itemArt } from '@/lib/itemArt';
 
 /** Características que só repetem a regra (aparecem como aumentos/talentos). */
 const SKIP_FEATURES = new Set(['Aumento de Atributo']);
@@ -34,7 +35,7 @@ const SPELLS_SHOWN = 14;
 /**
  * Retrato: a aba "de vitrine". A carta do herói em destaque (a mesma da
  * criação — luz da linhagem, sigilo da classe, inclinação e reflexo
- * metálico, agora com folha holográfica) e, ao lado, a ficha em leitura:
+ * metálico, com o brilho do metal do nível) e, ao lado, a ficha em leitura:
  * atributos, números, perícias, características, equipamento, magias e a
  * história. Tocar na arte abre a tela cheia, só a arte.
  */
@@ -92,7 +93,7 @@ function Vitrine({ char, derived }: TabProps) {
     return [...held, ...special];
   }, [char.equipped, char.inventory]);
   // relíquias: só os itens com arte viram carta (sem foto, não aparece)
-  const relics = useMemo(() => char.inventory.filter((i) => i.image), [char.inventory]);
+  const relics = useMemo(() => char.inventory.filter((i) => itemArt(i)), [char.inventory]);
   const spells = useMemo(() => {
     const ids = Array.from(new Set([...char.preparedSpells, ...(char.classId === 'wizard' ? [] : char.knownSpells ?? [])]));
     return ids
@@ -120,8 +121,7 @@ function Vitrine({ char, derived }: TabProps) {
       <div className="fv-vitrine-stage">
         <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} {...tilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
           <img src={art} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
-          <span className="fv-vitrine-foil" aria-hidden />
-          <span className="fv-hero-sheen" aria-hidden />
+          <span className={`fv-metal is-${tier}`} aria-hidden />
           <CardScars scars={char.scars} />
           <span className="fv-vitrine-frame" aria-hidden>
             <i />
@@ -235,7 +235,7 @@ function Vitrine({ char, derived }: TabProps) {
             <ul className="fv-relics">
               {relics.map((it) => (
                 <li key={it.uid}>
-                  <ItemArtCard src={it.image} rarity={it.rarity} />
+                  <ItemArtCard src={itemArt(it)} rarity={it.rarity} />
                   <b>{it.name}</b>
                   <small style={{ color: `color-mix(in srgb, ${(RARITY[it.rarity] ?? RARITY.comum).color}, var(--ink) 30%)` }}>{(RARITY[it.rarity] ?? RARITY.comum).label}</small>
                 </li>

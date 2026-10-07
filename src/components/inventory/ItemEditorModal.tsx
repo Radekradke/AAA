@@ -222,7 +222,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         {image ? <ItemArtCard src={image} rarity={rarity} size="sm" /> : <span className="fv-forge-art-empty" aria-hidden><Icon name="image" size={20} /></span>}
         <div>
           <span style={label}>Carta do item (opcional)</span>
-          <p>Uma imagem da arma ou do objeto. Ela vira uma carta ao lado dos detalhes; raros, muito raros e lendários ganham o brilho holográfico.</p>
+          <p>Uma imagem da arma ou do objeto. Ela vira uma carta ao lado dos detalhes; o brilho acompanha a raridade — prateado, dourado nas muito raras e ouro claro nas lendárias.</p>
           <PortraitPicker portrait={image} onChange={setImage} max={{ w: 480, h: 600 }} labels={{ add: 'Enviar arte', change: 'Trocar arte' }} />
         </div>
       </div>

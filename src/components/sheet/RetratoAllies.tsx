@@ -119,8 +119,7 @@ function AllyCard({ v }: { v: AllyView }) {
   return (
     <div className={`fv-vitrine-card fv-ally-card is-${v.kind}`} {...tilt}>
       <AllyArt v={v} size={120} />
-      <span className="fv-vitrine-foil" aria-hidden />
-      <span className="fv-hero-sheen" aria-hidden />
+      <span className="fv-metal is-prata" aria-hidden />
       <span className="fv-vitrine-frame" aria-hidden>
         <i />
         <i />
