@@ -40,9 +40,11 @@ function itemInfo(it: InventoryItem): LoreInfo {
   const lore = itemLore(it);
   // categoria e raridade com o nome em português (não o código interno)
   const tags = lore.tags?.map((t, i) => (i === 0 ? CATEGORY_LABEL[t] ?? t : i === 1 ? RARITY[t]?.label ?? t : t));
-  return { ...lore, tags, ...(it.image ? { art: { src: it.image, rarity: it.rarity } } : {}) };
+  const art = itemArt(it);
+  return { ...lore, tags, ...(art ? { art: { src: art, rarity: it.rarity } } : {}) };
 }
 import { useInk } from '@/lib/contrast';
+import { itemArt } from '@/lib/itemArt';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
 const GROUP_DEFS: { id: string; label: string; icon: IconName; match: (it: InventoryItem) => boolean }[] = [
@@ -561,6 +563,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   const ink = useInk();
   const rc = RARITY[it.rarity] ?? RARITY.comum;
   const big = it.rarity !== 'comum';
+  const art = itemArt(it);
   const icon = CATEGORY_ICON[it.category] ?? 'satchel';
   const borderColor = equipped ? t.gold : it.favorite ? hexA(t.gold, 0.55) : hexA(rc.color, big ? 0.5 : 0.18);
 
@@ -609,8 +612,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* miniatura da carta (só com foto); sem foto, só o botão discreto de enviar */}
-          <span className={'fv-item-thumb' + (it.image ? ' has-art' : ' is-empty')} style={it.image ? { borderColor: hexA(rc.color, big ? 0.7 : 0.35) } : undefined}>
-            {it.image && <img src={it.image} alt="" />}
+          <span className={'fv-item-thumb' + (art ? ' has-art' : ' is-empty')} style={art ? { borderColor: hexA(rc.color, big ? 0.7 : 0.35) } : undefined}>
+            {art && <img src={art} alt="" />}
             <PortraitPicker variant="badge" portrait={it.image} onChange={onArt} max={ITEM_ART_MAX} labels={{ add: `Enviar arte de ${it.name}`, change: `Trocar arte de ${it.name}` }} />
           </span>
           <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>

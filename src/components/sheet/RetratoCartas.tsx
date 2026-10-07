@@ -20,6 +20,7 @@ import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { tiltHandlers } from '@/lib/tilt';
 import { useDialogFocus } from '@/lib/useDialogFocus';
 import { Icon } from '@/components/ui/Icon';
+import { itemArt } from '@/lib/itemArt';
 
 type CardKind = 'heroi' | 'aliado' | 'monstro' | 'item';
 
@@ -94,9 +95,10 @@ export function collectCards(char: Character): CollectCard[] {
     });
   }
   for (const it of char.inventory) {
-    if (!it.image) continue;
+    const art = itemArt(it);
+    if (!art) continue;
     const r = RARITY[it.rarity] ?? RARITY.comum;
-    out.push({ id: `item-${it.uid}`, kind: 'item', title: it.name, line: r.label, badge: r.label, art: it.image, color: r.color, metal: rarityMetal(it.rarity) });
+    out.push({ id: `item-${it.uid}`, kind: 'item', title: it.name, line: r.label, badge: r.label, art, color: r.color, metal: rarityMetal(it.rarity) });
   }
   return out;
 }
