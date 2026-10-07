@@ -40,13 +40,21 @@ test.describe('carta do herói: raridade, secretos, títulos e jornada', () => {
     await expect(vitrine.locator('.fv-vitrine-caption')).toContainText('Coração de Dragão');
     await expect(page.locator('.fv-sh-title')).toHaveText('Coração de Dragão');
     await expect(vitrine.locator('.fv-title-lore')).toContainText('wyrm');
+    // o que fez para merecer: ao passar o mouse, no seletor e na placa sob a carta
+    await expect(vitrine.getByRole('radio', { name: 'Coração de Dragão' })).toHaveAttribute('title', /Como conquistou: Derrubou um dragão\./);
+    await expect(vitrine.locator('.fv-title-earned')).toContainText('Derrubou um dragão.');
+    await expect(vitrine.locator('.fv-vitrine-earned')).toContainText('Coração de Dragão');
+    await expect(vitrine.locator('.fv-vitrine-earned')).toContainText('Derrubou um dragão.');
     // os que faltam: com o caminho; os secretos, ocultos
     await vitrine.getByText(/Por conquistar/).click();
     await expect(vitrine.locator('.fv-titles-missing')).toContainText('o Imperador da Loucura');
     await expect(vitrine.locator('.fv-titles-missing')).toContainText('Cair a 0 PV 5 vezes.');
     await expect(vitrine.locator('.fv-titles-missing')).not.toContainText('Lenda Viva');
+    // progresso dos títulos de contagem
+    await expect(vitrine.locator('.fv-titles-missing li', { hasText: 'Lâmina Sangrenta' }).locator('.fv-title-prog')).toHaveText('1/10');
     await vitrine.getByRole('radio', { name: 'Sem título' }).click();
     await expect(page.locator('.fv-sh-title')).toHaveCount(0);
+    await expect(vitrine.locator('.fv-vitrine-earned')).toHaveCount(0);
 
     // jornada
     const jornada = vitrine.getByRole('list', { name: 'Linha da jornada' });

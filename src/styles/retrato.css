@@ -1819,6 +1819,67 @@
   color: var(--muted);
 }
 
+/* o que o herói fez para merecer o título escolhido */
+.fv-title-earned {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.fv-title-earned span {
+  margin-right: 6px;
+  font: 700 10.5px var(--font-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--gold) 70%, var(--ink));
+}
+.fv-title-prog {
+  position: relative;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font: 600 11px var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold), transparent 60%) var(--p), color-mix(in srgb, var(--line), transparent 40%) var(--p));
+}
+
+/* placa sob a carta, como a etiqueta de um quadro na galeria */
+.fv-vitrine-earned {
+  --plaque: color-mix(in oklab, var(--gold) 70%, var(--ink));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: min(100%, 360px);
+  margin: 2px 0 0;
+  padding: 8px 14px 9px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 55%);
+  border-top-width: 2px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold), var(--sunk) 88%), var(--sunk));
+  text-align: center;
+}
+.fv-vitrine-earned.is-raro {
+  border-top-color: rgba(110, 170, 255, 0.7);
+}
+.fv-vitrine-earned.is-epico {
+  border-top-color: rgba(170, 110, 255, 0.75);
+}
+.fv-vitrine-earned.is-lendario {
+  border-top-color: rgba(255, 190, 60, 0.85);
+}
+.fv-vitrine-earned b {
+  font: italic 600 14.5px / 1.25 var(--font-display);
+  color: var(--plaque);
+}
+.fv-vitrine-earned span {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 /* editor de aliado: retrato */
 .fv-ally-editor-art {
   flex: none;

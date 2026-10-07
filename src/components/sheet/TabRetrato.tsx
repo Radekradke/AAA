@@ -23,7 +23,7 @@ import { CardsGallery, collectCards } from './RetratoCartas';
 import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import { RARITY } from '@/data/themes';
 import { CARD_TIERS, cardTier } from '@/engine/deeds';
-import { heroTitle } from '@/engine/titles';
+import { heroTitle, heroTitleDef, heroTitleTip, titleDeed } from '@/engine/titles';
 import { CardScars, CardSeals, DeedsSection, DicePicker, ScarsSection, TitlePicker } from './RetratoDeeds';
 import '@/styles/retrato.css';
 import { itemArt } from '@/lib/itemArt';
@@ -73,6 +73,7 @@ function Vitrine({ char, derived }: TabProps) {
   const origin = sub && race.id !== 'dragonborn' ? sub.label : race.label;
   const tier = cardTier(char.level);
   const title = heroTitle(char);
+  const titleDef = heroTitleDef(char);
 
   const features = useMemo(() => {
     const out: string[] = [];
@@ -147,6 +148,12 @@ function Vitrine({ char, derived }: TabProps) {
             {subclass && <small>{subclass.label}</small>}
           </span>
         </button>
+        {titleDef && title && (
+          <p className={`fv-vitrine-earned is-${titleDef.rarity}`} title={titleDef.lore}>
+            <b>{title}</b>
+            <span>{titleDeed(titleDef, char)}</span>
+          </p>
+        )}
         <p className="fv-vitrine-hint">Toque na arte para vê-la em tela cheia</p>
         <AlliesSection char={char} />
       </div>
@@ -155,7 +162,11 @@ function Vitrine({ char, derived }: TabProps) {
         <header className="fv-vitrine-head">
           <span className="fv-vitrine-eyebrow">Retrato do herói</span>
           <h2>{name}</h2>
-          {title && <p className="fv-vitrine-titleline">{title}</p>}
+          {title && (
+            <p className="fv-vitrine-titleline" title={heroTitleTip(char)}>
+              {title}
+            </p>
+          )}
           <p className="fv-vitrine-line">
             {origin} · {cls.label} {char.level}
             {subclass ? ` · ${subclass.label}` : ''}

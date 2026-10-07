@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Character } from '@/types/character';
 import { DEED_RARITY, DEEDS, earnedDeeds } from '@/engine/deeds';
-import { availableTitles, heroTitle, titleName, titlesFor } from '@/engine/titles';
+import { availableTitles, heroTitle, titleDeed, titleName, titleProgress, titlesFor } from '@/engine/titles';
 import type { DeedDef, Scar } from '@/engine/deeds';
 import { useCharacterStore } from '@/store/characterStore';
 import { Icon } from '@/components/ui/Icon';
@@ -106,7 +107,16 @@ export function TitlePicker({ char }: { char: Character }) {
   const current = heroTitle(char) ? char.title ?? '' : '';
   const chosen = open.find((t) => t.id === current);
   const pool = titlesFor(char);
-  const missing = pool.filter((t) => !openIds.has(t.id));
+  // os mais perto de sair primeiro (pela fração já feita); o resto na ordem da lista
+  const near = (t: (typeof pool)[number]) => {
+    const p = t.secret ? null : titleProgress(t, char);
+    return p && p.have > 0 ? p.have / p.need : 0;
+  };
+  const missing = pool
+    .filter((t) => !openIds.has(t.id))
+    .map((t, i) => ({ t, i, r: near(t) }))
+    .sort((a, b) => b.r - a.r || a.i - b.i)
+    .map((x) => x.t);
   return (
     <section className="fv-vitrine-sec">
       <h3>
@@ -118,7 +128,7 @@ export function TitlePicker({ char }: { char: Character }) {
             Sem título
           </button>
           {open.map((t) => (
-            <button key={t.id} type="button" role="radio" aria-checked={current === t.id} className={`is-${t.rarity}` + (current === t.id ? ' is-on' : '')} onClick={() => edit(char.id, { title: t.id })} title={t.lore}>
+            <button key={t.id} type="button" role="radio" aria-checked={current === t.id} className={`is-${t.rarity}` + (current === t.id ? ' is-on' : '')} onClick={() => edit(char.id, { title: t.id })} title={`${t.lore}\nComo conquistou: ${titleDeed(t, char)}`}>
               {titleName(t, char.gender)}
             </button>
           ))}
@@ -126,22 +136,37 @@ export function TitlePicker({ char }: { char: Character }) {
       ) : (
         <p className="fv-vitrine-text fv-titles-hint">Ainda sem alcunha. O mundo começa a chamar o herói por um título quando ele faz por merecer — veja abaixo como.</p>
       )}
-      {chosen && <p className="fv-title-lore">“{chosen.lore}”</p>}
+      {chosen && (
+        <>
+          <p className="fv-title-lore">“{chosen.lore}”</p>
+          <p className="fv-title-earned">
+            <span>Como conquistou</span> {titleDeed(chosen, char)}
+          </p>
+        </>
+      )}
       {missing.length > 0 && (
         <details className="fv-titles-missing">
           <summary>
             Por conquistar · {missing.length}
           </summary>
           <ul>
-            {missing.map((t) => (
+            {missing.map((t) => {
+              const prog = t.secret ? null : titleProgress(t, char);
+              return (
               <li key={t.id} className={`is-${t.rarity}`}>
                 <b>
                   {t.secret ? '???' : titleName(t, char.gender)}
                   <em className={`fv-rarity is-${t.rarity}`}>{DEED_RARITY[t.rarity].label}</em>
                 </b>
                 <small>{t.secret ? 'Título secreto — conquiste para descobrir.' : t.hint}</small>
+                {prog && prog.have > 0 && (
+                  <span className="fv-title-prog" role="progressbar" aria-label={`Progresso: ${prog.have} de ${prog.need}`} aria-valuemin={0} aria-valuemax={prog.need} aria-valuenow={prog.have} style={{ '--p': `${Math.min(100, (prog.have / prog.need) * 100)}%` } as CSSProperties}>
+                    {prog.have.toLocaleString('pt-BR')}/{prog.need.toLocaleString('pt-BR')}
+                  </span>
+                )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </details>
       )}
