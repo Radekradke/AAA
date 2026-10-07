@@ -4156,6 +4156,94 @@ body.fv-dragging .fv-screen-scroll {
   }
 }
 
+/*
+ * Reflexo metálico das cartas (herói, aliados, caçadas, itens): no lugar do
+ * holográfico, um brilho do metal do nível — bronze, prata, ouro e lendária.
+ * Em repouso, um lampejo atravessa a carta de tempos em tempos; com o
+ * ponteiro em cima, a luz segue o cursor (--mx/--my de lib/tilt).
+ */
+.fv-metal {
+  --m-light: 236, 241, 250;
+  --m-deep: 150, 162, 182;
+  --m-rest: 0.65;
+  --m-hover: 0.9;
+  --m-speed: 9s;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  mix-blend-mode: screen;
+  opacity: var(--m-rest);
+  background:
+    radial-gradient(circle at var(--mx, 28%) var(--my, 18%), rgba(var(--m-light), 0.24), transparent 46%),
+    linear-gradient(118deg, transparent 30%, rgba(var(--m-light), 0.08) 39%, rgba(var(--m-light), 0.5) 46%, rgba(var(--m-deep), 0.22) 52%, transparent 62%);
+  background-size: 100% 100%, 260% 260%;
+  background-position: center, 110% 110%;
+  transition: opacity 0.4s ease;
+  animation: fv-metal-glint var(--m-speed) ease-in-out infinite;
+}
+/* moldura com brilho do metal (filete interno) */
+.fv-metal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(var(--m-light), 0.22), inset 0 1px 18px rgba(var(--m-light), 0.08);
+}
+:hover > .fv-metal {
+  opacity: var(--m-hover);
+  animation: none;
+  background-position: center, var(--mx, 50%) var(--my, 50%);
+}
+@keyframes fv-metal-glint {
+  0%,
+  55% {
+    background-position: center, 110% 110%;
+  }
+  80%,
+  100% {
+    background-position: center, -10% -10%;
+  }
+}
+.fv-metal.is-bronze {
+  --m-light: 255, 205, 160;
+  --m-deep: 176, 104, 56;
+  --m-rest: 0.5;
+}
+.fv-metal.is-prata {
+  --m-light: 240, 245, 252;
+  --m-deep: 160, 174, 196;
+}
+.fv-metal.is-ouro {
+  --m-light: 255, 228, 140;
+  --m-deep: 222, 158, 40;
+  --m-rest: 0.7;
+  --m-hover: 1;
+  --m-speed: 7s;
+}
+/* lendária: ouro claro quase branco, lampejo mais frequente e um halo quente */
+.fv-metal.is-lendaria {
+  --m-light: 255, 244, 205;
+  --m-deep: 255, 176, 70;
+  --m-rest: 0.8;
+  --m-hover: 1;
+  --m-speed: 5s;
+}
+.fv-metal.is-lendaria::after {
+  box-shadow: inset 0 0 0 1px rgba(255, 236, 170, 0.4), inset 0 0 28px rgba(255, 190, 80, 0.16);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-metal {
+    animation: none;
+  }
+}
+@media print {
+  .fv-metal {
+    display: none;
+  }
+}
+
 /* ===== Abas da ficha (cores pelas variáveis; cada tema pode repintar) ===== */
 .fv-sheet-tabs {
   display: flex;
@@ -6521,7 +6609,7 @@ select optgroup {
   color: color-mix(in oklab, var(--gold) 70%, var(--ink));
 }
 
-/* ===== Carta do item (arte opcional; relíquias com holográfico) ===== */
+/* ===== Carta do item (arte opcional; brilho metálico pela raridade) ===== */
 .fv-itemcard {
   --rc: #9ba7b5;
   position: relative;
@@ -6547,37 +6635,12 @@ select optgroup {
 .fv-itemcard.is-lendario {
   --rc: #ffa033;
 }
-.fv-itemcard.is-holo {
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px color-mix(in srgb, var(--rc), transparent 45%), inset 0 0 0 4px rgba(7, 9, 13, 0.85), inset 0 0 0 5px color-mix(in srgb, var(--rc), transparent 35%);
-}
 .fv-itemcard img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-/* folha holográfica das relíquias: arco-íris que desliza devagar */
-.fv-itemcard-foil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  mix-blend-mode: color-dodge;
-  opacity: 0.32;
-  background: repeating-linear-gradient(115deg, hsl(0 90% 60% / 0.5) 0%, hsl(60 90% 60% / 0.5) 6%, hsl(140 90% 60% / 0.5) 12%, hsl(220 90% 65% / 0.5) 18%, hsl(300 90% 60% / 0.5) 24%);
-  background-size: 260% 260%;
-  animation: fv-foil-slide 6s ease-in-out infinite alternate;
-}
-.fv-itemcard.is-lendario .fv-itemcard-foil {
-  opacity: 0.45;
-}
-@keyframes fv-foil-slide {
-  from {
-    background-position: 0% 30%;
-  }
-  to {
-    background-position: 100% 70%;
-  }
 }
 .fv-itemcard.is-sm {
   width: 96px;
@@ -6697,8 +6760,4 @@ select optgroup {
   border: 1px dashed var(--line);
   color: var(--muted);
 }
-@media (prefers-reduced-motion: reduce) {
-  .fv-itemcard-foil {
-    animation: none;
-  }
-}
+

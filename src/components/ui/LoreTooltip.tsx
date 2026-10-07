@@ -22,16 +22,18 @@ function clamp(n: number, min: number, max: number) {
 type Placement = 'right' | 'left' | 'bottom' | 'top';
 type Point = { x: number; y: number };
 
-/** Raridades que ganham a folha holográfica (relíquias). */
-const HOLO = new Set(['raro', 'muito-raro', 'lendario']);
+/** Metal do brilho da carta do item pela raridade: prateado, dourado nas muito raras e o claro das lendárias. */
+export function rarityMetal(rarity: string): 'prata' | 'ouro' | 'lendaria' {
+  return rarity === 'lendario' ? 'lendaria' : rarity === 'muito-raro' ? 'ouro' : 'prata';
+}
 
-/** Carta do item: a arte com moldura da raridade (e holográfico nas relíquias). */
+/** Carta do item: a arte com moldura da raridade e o reflexo do metal. */
 export function ItemArtCard({ src, rarity, size }: { src: string | null | undefined; rarity: string; size?: 'sm' }) {
   if (!src) return null; // sem foto, sem carta
   return (
-    <span className={`fv-itemcard is-${rarity}` + (HOLO.has(rarity) ? ' is-holo' : '') + (size ? ` is-${size}` : '')} aria-hidden>
+    <span className={`fv-itemcard is-${rarity}` + (size ? ` is-${size}` : '')} aria-hidden>
       <img src={src} alt="" />
-      {HOLO.has(rarity) && <span className="fv-itemcard-foil" />}
+      <span className={`fv-metal is-${rarityMetal(rarity)}`} />
     </span>
   );
 }

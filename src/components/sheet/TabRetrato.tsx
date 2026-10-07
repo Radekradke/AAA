@@ -34,7 +34,7 @@ const SPELLS_SHOWN = 14;
 /**
  * Retrato: a aba "de vitrine". A carta do herói em destaque (a mesma da
  * criação — luz da linhagem, sigilo da classe, inclinação e reflexo
- * metálico, agora com folha holográfica) e, ao lado, a ficha em leitura:
+ * metálico, com o brilho do metal do nível) e, ao lado, a ficha em leitura:
  * atributos, números, perícias, características, equipamento, magias e a
  * história. Tocar na arte abre a tela cheia, só a arte.
  */
@@ -120,8 +120,7 @@ function Vitrine({ char, derived }: TabProps) {
       <div className="fv-vitrine-stage">
         <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} {...tilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
           <img src={art} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
-          <span className="fv-vitrine-foil" aria-hidden />
-          <span className="fv-hero-sheen" aria-hidden />
+          <span className={`fv-metal is-${tier}`} aria-hidden />
           <CardScars scars={char.scars} />
           <span className="fv-vitrine-frame" aria-hidden>
             <i />

@@ -6,6 +6,8 @@ import { raceOf, getSubrace } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { RARITY } from '@/data/themes';
 import { CARD_TIERS, cardTier } from '@/engine/deeds';
+import type { CardTier } from '@/engine/deeds';
+import { rarityMetal } from '@/components/ui/LoreTooltip';
 import { heroTitle } from '@/engine/titles';
 import { ALLY_KINDS, alliesOf } from '@/engine/allies';
 import { huntTier, huntsOf } from '@/engine/hunts';
@@ -41,12 +43,12 @@ export interface CollectCard {
   position?: string;
   /** Cor da moldura. */
   color: string;
-  holo: boolean;
+  /** Metal do brilho e da borda (acompanha o nível / raridade). */
+  metal: CardTier;
 }
 
 const TIER_COLOR = { bronze: '#c38a55', prata: '#cfd9e6', ouro: '#e9c46a', lendaria: '#ffb030' } as const;
 const ALLY_COLOR = { companheiro: '#6fbf73', montaria: '#e0a54a', familiar: '#a98be0' } as const;
-const HOLO_RARITY = new Set(['raro', 'muito-raro', 'lendario']);
 const KIND_LABEL: Record<CardKind, string> = { heroi: 'Herói', aliado: 'Companheiros', monstro: 'Caçadas', item: 'Itens' };
 
 /** Todas as cartas do herói: a dele, a dos aliados com retrato, as caçadas e a dos itens com foto. */
@@ -66,12 +68,12 @@ export function collectCards(char: Character): CollectCard[] {
       art: heroAvatar(char),
       position: heroPortraitPosition(char),
       color: TIER_COLOR[tier],
-      holo: tier !== 'bronze',
+      metal: tier,
     },
   ];
   for (const a of alliesOf(char)) {
     if (!a.portrait) continue;
-    out.push({ id: `aliado-${a.id}`, kind: 'aliado', title: a.name, line: [ALLY_KINDS[a.kind].label, a.base && a.base !== a.name ? a.base : null].filter(Boolean).join(' · '), badge: ALLY_KINDS[a.kind].label, art: a.portrait, color: ALLY_COLOR[a.kind], holo: false });
+    out.push({ id: `aliado-${a.id}`, kind: 'aliado', title: a.name, line: [ALLY_KINDS[a.kind].label, a.base && a.base !== a.name ? a.base : null].filter(Boolean).join(' · '), badge: ALLY_KINDS[a.kind].label, art: a.portrait, color: ALLY_COLOR[a.kind], metal: 'prata' });
   }
   for (const [ref, h] of huntsOf(char.deeds)) {
     const m = MONSTER_BY_ID[ref];
@@ -88,22 +90,22 @@ export function collectCards(char: Character): CollectCard[] {
       emblem: look.art ? undefined : { type: look.type, color: look.color },
       hunt: { ref, n: h.n },
       color: TIER_COLOR[tier.frame],
-      holo: tier.frame === 'ouro' || tier.frame === 'lendaria',
+      metal: tier.frame,
     });
   }
   for (const it of char.inventory) {
     if (!it.image) continue;
     const r = RARITY[it.rarity] ?? RARITY.comum;
-    out.push({ id: `item-${it.uid}`, kind: 'item', title: it.name, line: r.label, badge: r.label, art: it.image, color: r.color, holo: HOLO_RARITY.has(it.rarity) });
+    out.push({ id: `item-${it.uid}`, kind: 'item', title: it.name, line: r.label, badge: r.label, art: it.image, color: r.color, metal: rarityMetal(it.rarity) });
   }
   return out;
 }
 
-/** A face da carta (galeria e tela cheia): moldura na cor, holográfico nas raras. */
+/** A face da carta (galeria e tela cheia): borda de metal pelo nível, cor do tipo/raridade e o reflexo do metal. */
 function CardFace({ c, big }: { c: CollectCard; big?: boolean }) {
   const tilt = tiltHandlers(big ? 1 : 0.6);
   return (
-    <span className={'fv-cc-card' + (c.holo ? ' is-holo' : '') + (big ? ' is-big' : '')} style={{ '--cc': c.color } as CSSProperties} {...tilt}>
+    <span className={`fv-cc-card is-m-${c.metal}` + (big ? ' is-big' : '')} style={{ '--cc': c.color } as CSSProperties} {...tilt}>
       {c.art ? (
         <img src={c.art} alt="" style={{ objectPosition: c.position }} />
       ) : c.emblem ? (
@@ -111,8 +113,7 @@ function CardFace({ c, big }: { c: CollectCard; big?: boolean }) {
           <MonsterIcon type={c.emblem.type} size={big ? 150 : 72} />
         </span>
       ) : null}
-      {c.holo && <span className="fv-cc-foil" aria-hidden />}
-      <span className="fv-hero-sheen" aria-hidden />
+      <span className={`fv-metal is-${c.metal}`} aria-hidden />
       <span className="fv-cc-frame" aria-hidden />
       <span className="fv-cc-badge">{c.badge}</span>
       <span className="fv-cc-cap">

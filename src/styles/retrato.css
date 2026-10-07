@@ -74,42 +74,6 @@
   z-index: 4;
 }
 
-/* folha holográfica: arco-íris que gira com o ponteiro, bem discreto */
-.fv-vitrine-foil {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  opacity: var(--foil-rest, 0.08);
-  mix-blend-mode: color-dodge;
-  background:
-    repeating-linear-gradient(
-      calc(110deg + var(--hue, 0deg) / 6),
-      hsl(calc(0deg + var(--hue, 0deg)) 90% 60% / 0.55) 0%,
-      hsl(calc(60deg + var(--hue, 0deg)) 90% 60% / 0.55) 6%,
-      hsl(calc(140deg + var(--hue, 0deg)) 90% 60% / 0.55) 12%,
-      hsl(calc(220deg + var(--hue, 0deg)) 90% 65% / 0.55) 18%,
-      hsl(calc(300deg + var(--hue, 0deg)) 90% 60% / 0.55) 24%
-    ),
-    radial-gradient(circle at var(--mx, 50%) var(--my, 40%), rgba(255, 255, 255, 0.35), transparent 50%);
-  background-size: 260% 260%, 100% 100%;
-  background-position: var(--mx, 50%) var(--my, 50%), center;
-  transition: opacity 0.4s ease;
-  animation: fv-foil-drift 9s ease-in-out infinite alternate;
-}
-.fv-vitrine-card:hover .fv-vitrine-foil {
-  opacity: var(--foil-hover, 0.22);
-  animation: none;
-}
-@keyframes fv-foil-drift {
-  from {
-    background-position: 0% 30%, center;
-  }
-  to {
-    background-position: 100% 70%, center;
-  }
-}
-
 /* moldura: cantos dourados de carta */
 .fv-vitrine-frame {
   position: absolute;
@@ -479,13 +443,9 @@
 /* ---- moldura por nível: bronze → prata → ouro → lendária ---- */
 .fv-vitrine-card.is-bronze {
   --card-gold: #d39a62;
-  --foil-rest: 0.05;
-  --foil-hover: 0.14;
 }
 .fv-vitrine-card.is-prata {
   --card-gold: #dfe4ec;
-  --foil-rest: 0.09;
-  --foil-hover: 0.24;
   border-color: color-mix(in srgb, #dfe4ec, transparent 35%);
 }
 .fv-vitrine-card.is-prata .fv-vitrine-frame {
@@ -494,8 +454,6 @@
 }
 .fv-vitrine-card.is-ouro {
   --card-gold: #f3c95a;
-  --foil-rest: 0.13;
-  --foil-hover: 0.32;
   border-color: color-mix(in srgb, #f3c95a, transparent 25%);
   box-shadow:
     0 28px 60px -28px rgba(0, 0, 0, 0.85),
@@ -520,18 +478,16 @@
 }
 .fv-vitrine-card.is-lendaria {
   --card-gold: #ffe08a;
-  --foil-rest: 0.2;
-  --foil-hover: 0.42;
   border-color: transparent;
   box-shadow:
     0 30px 64px -26px rgba(0, 0, 0, 0.9),
-    0 0 70px rgba(200, 120, 255, 0.28),
-    0 0 40px rgba(255, 224, 138, 0.32);
+    0 0 70px rgba(255, 190, 90, 0.26),
+    0 0 40px rgba(255, 224, 138, 0.34);
 }
 /* aro lendário: dourado → violeta → celeste girando (camada própria; os cantos ficam por cima) */
 .fv-vitrine-card.is-lendaria .fv-vitrine-frame {
   border-color: transparent;
-  box-shadow: inset 0 0 26px rgba(200, 120, 255, 0.22);
+  box-shadow: inset 0 0 26px rgba(255, 200, 100, 0.2);
 }
 .fv-vitrine-card.is-lendaria .fv-vitrine-frame::before {
   content: '';
@@ -539,14 +495,11 @@
   inset: -2px;
   border-radius: inherit;
   border: 3px solid transparent;
-  background: conic-gradient(from var(--fv-spin), #ffe08a, #c86bff, #6fd8ff, #ffe08a, #ff9e6b, #ffe08a) border-box;
+  background: conic-gradient(from var(--fv-spin), #ffe08a, #fff6dc, #e9a83a, #ffe08a, #fffbe9, #c98a2a, #ffe08a) border-box;
   -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) padding-box exclude, linear-gradient(#000 0 0);
   animation: fv-legend-spin 6s linear infinite;
-}
-.fv-vitrine-card.is-lendaria .fv-vitrine-foil {
-  animation-duration: 5s;
 }
 .fv-vitrine-card.is-lendaria .fv-vitrine-level {
   border-color: rgba(255, 224, 138, 0.7);
@@ -847,7 +800,6 @@
   .fv-vitrine-card:hover img {
     transform: none;
   }
-  .fv-vitrine-foil,
   .fv-vitrine-card.is-lendaria .fv-vitrine-frame::before,
   .fv-seal.is-lendario::before {
     animation: none;
@@ -858,7 +810,6 @@
 }
 
 @media print {
-  .fv-vitrine-foil,
   .fv-hero-sheen,
   .fv-vitrine-hint {
     display: none;
@@ -1544,7 +1495,7 @@
   color: var(--muted);
 }
 
-/* a carta: moldura na cor (raridade / moldura / tipo), foil nas raras */
+/* a carta: moldura na cor (raridade / moldura / tipo) e reflexo do metal do nível */
 .fv-cc-card {
   --cc: #c38a55;
   position: relative;
@@ -1564,11 +1515,42 @@
   transition: transform 0.12s ease-out, box-shadow 0.4s ease;
   box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.9), 0 0 36px color-mix(in srgb, var(--cc), transparent 62%);
 }
-.fv-cc-card:hover .fv-hero-sheen {
-  opacity: 1;
+/*
+ * borda de metal polido pelo nível (bronze, prata, ouro, lendária); a cor
+ * do tipo/raridade (--cc) fica no filete interno, no selo e na legenda
+ */
+.fv-cc-card[class*='is-m-'] {
+  border-color: transparent;
+  background:
+    radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--cc), transparent 70%), transparent 75%) padding-box,
+    linear-gradient(#07090d, #07090d) padding-box,
+    linear-gradient(135deg, var(--m-a), var(--m-b) 30%, var(--m-a) 50%, var(--m-c) 72%, var(--m-a)) border-box;
 }
-.fv-cc-card.is-holo {
-  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.85), 0 0 30px color-mix(in srgb, var(--cc), transparent 60%);
+.fv-cc-card.is-m-bronze {
+  --m-a: #f0b98a;
+  --m-b: #8a4f28;
+  --m-c: #c98652;
+}
+.fv-cc-card.is-m-prata {
+  --m-a: #f4f7fb;
+  --m-b: #8e9bb0;
+  --m-c: #c9d2df;
+}
+.fv-cc-card.is-m-ouro {
+  --m-a: #fff0b8;
+  --m-b: #b8801c;
+  --m-c: #f0c454;
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 196, 84, 0.3);
+}
+.fv-cc-card.is-m-lendaria {
+  --m-a: #fffbe9;
+  --m-b: #d0902c;
+  --m-c: #ffe08a;
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.85), 0 0 34px rgba(255, 200, 100, 0.38);
+}
+.fv-cc-card.is-m-ouro:hover,
+.fv-cc-card.is-m-lendaria:hover {
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.9), 0 0 44px rgba(255, 210, 110, 0.42);
 }
 .fv-cc-card img {
   position: absolute;
@@ -1586,30 +1568,6 @@
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(5, 7, 10, 0.35) 0%, transparent 20%, transparent 55%, rgba(5, 7, 10, 0.94) 100%);
-}
-.fv-cc-foil {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  mix-blend-mode: color-dodge;
-  opacity: 0.18;
-  background: repeating-linear-gradient(calc(115deg + var(--hue, 0deg) / 6), hsl(calc(0deg + var(--hue, 0deg)) 90% 60% / 0.55) 0%, hsl(calc(60deg + var(--hue, 0deg)) 90% 60% / 0.55) 6%, hsl(calc(140deg + var(--hue, 0deg)) 90% 60% / 0.55) 12%, hsl(calc(220deg + var(--hue, 0deg)) 90% 65% / 0.55) 18%, hsl(calc(300deg + var(--hue, 0deg)) 90% 60% / 0.55) 24%);
-  background-size: 260% 260%;
-  background-position: var(--mx, 50%) var(--my, 50%);
-  animation: fv-foil-drift-cc 8s ease-in-out infinite alternate;
-}
-.fv-cc-card:hover .fv-cc-foil {
-  opacity: 0.32;
-  animation: none;
-}
-@keyframes fv-foil-drift-cc {
-  from {
-    background-position: 0% 30%;
-  }
-  to {
-    background-position: 100% 70%;
-  }
 }
 .fv-cc-frame {
   position: absolute;
@@ -1799,9 +1757,6 @@
   .fv-cc-card:hover {
     transform: none;
     transition: none;
-  }
-  .fv-cc-foil {
-    animation: none;
   }
   .fv-cc-viewer {
     animation: none;
