@@ -82,7 +82,7 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
         </div>
         {/* trocar a arte fica em "Editar"; aqui, compartilhar a ficha */}
         {onShare && (
-          <button type="button" className="fv-sh-share" onClick={onShare} aria-label="Compartilhar a ficha (link ou PDF)" title="Compartilhar a ficha">
+          <button type="button" className="fv-sh-share" onClick={onShare} aria-label="Compartilhar a ficha (link, PDF ou JSON)" title="Compartilhar a ficha">
             <Icon name="link" size={15} />
           </button>
         )}

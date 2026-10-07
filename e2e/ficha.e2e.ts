@@ -88,7 +88,7 @@ test.describe('ficha', () => {
 
   test('corrente no retrato: compartilhar por link ou em PDF', async ({ page }) => {
     await page.goto(`/ficha/${ID}`);
-    await page.getByRole('button', { name: 'Compartilhar a ficha (link ou PDF)' }).click();
+    await page.getByRole('button', { name: 'Compartilhar a ficha (link, PDF ou JSON)' }).click();
     const dialog = page.getByRole('dialog', { name: 'Compartilhar a ficha' });
     await expect(dialog.getByRole('button', { name: /Por link/ })).toBeVisible();
 
@@ -102,6 +102,20 @@ test.describe('ficha', () => {
     await page.getByRole('dialog', { name: 'Compartilhar a ficha' }).getByRole('button', { name: /Em PDF/ }).click();
     await expect(page).toHaveURL(new RegExp(`/ficha/${ID}/imprimir$`));
     await expect(page.locator('.fv-ills h1')).toHaveText(NAME);
+  });
+
+  test('compartilhar em arquivo: baixa a ficha inteira em JSON', async ({ page }) => {
+    await page.goto(`/ficha/${ID}`);
+    await page.getByRole('button', { name: 'Compartilhar a ficha (link, PDF ou JSON)' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Compartilhar a ficha' });
+    const [download] = await Promise.all([page.waitForEvent('download'), dialog.getByRole('button', { name: /Em arquivo \(JSON\)/ }).click()]);
+    expect(download.suggestedFilename()).toMatch(/^[a-z0-9-]+\.json$/);
+    const path = await download.path();
+    const data = JSON.parse(await (await import('node:fs/promises')).readFile(path, 'utf8'));
+    expect(data.id).toBe(ID);
+    expect(data.name).toBe(NAME);
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByText(/Ficha salva em .*\.json/)).toBeVisible();
   });
 
   test('trocar a arte fica em Editar (não mais no retrato)', async ({ page }) => {
