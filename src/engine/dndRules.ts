@@ -129,13 +129,23 @@ function resolveItemData(it: InventoryItem) {
  */
 function activeMagicItems(char: Character): { name: string; magic: MagicEffects }[] {
   const out: { name: string; magic: MagicEffects }[] = [];
+  const seen = new Set<string>();
   for (const it of char.inventory) {
     const d = resolveItemData(it);
     if (!d.magic) continue;
     const on = itemIsActive(char, it, !!d.attunement);
-    if (on) out.push({ name: it.name, magic: d.magic });
+    // o mesmo item mágico duas vezes não soma o efeito duas vezes (DMG: efeitos iguais não se acumulam)
+    if (on && !seen.has(sameItemKey(it))) {
+      seen.add(sameItemKey(it));
+      out.push({ name: it.name, magic: d.magic });
+    }
   }
   return out;
+}
+
+/** Chave de "mesmo item": catálogo (sem o +N) ou o nome. */
+function sameItemKey(it: InventoryItem): string {
+  return it.itemId ? it.itemId.replace(/-plus[123]$/, '') : it.name.trim().toLowerCase();
 }
 
 function findEquipped(char: Character, uid: string | null): InventoryItem | undefined {
@@ -321,10 +331,19 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const bonus = resolveItemData(shieldItem).acBonus ?? 0;
     if (bonus) acParts.push(mod('ac', bonus, shieldItem.name, 'item', { label: 'escudo' }));
   }
+  // anéis com bônus de CA (Anel de Proteção): vestidos e sintonizados; dois iguais não somam
+  const ringSeen = new Set<string>();
   for (const it of char.inventory) {
-    if (!it.attuned || it.category !== 'ring') continue;
+    if (it.category !== 'ring') continue;
     const data = resolveItemData(it);
-    if (data.acBonus) acParts.push(mod('ac', data.acBonus, it.name, it.homebrew ? 'homebrew' : 'item'));
+    if (!data.acBonus || !itemIsActive(char, it, !!data.attunement) || ringSeen.has(sameItemKey(it))) continue;
+    ringSeen.add(sameItemKey(it));
+    acParts.push(mod('ac', data.acBonus, it.name, it.homebrew ? 'homebrew' : 'item'));
+  }
+  // Combatente com Duas Armas: +1 de CA com uma arma corpo a corpo em cada mão
+  const offHandItem = findEquipped(char, char.equipped.offHand);
+  if (offHandItem && findEquipped(char, char.equipped.mainHand) && feats.some((f) => f.id === 'dual-wielder')) {
+    acParts.push(mod('ac', 1, 'Combatente com Duas Armas', 'feat', { label: 'uma arma em cada mão' }));
   }
   for (const m of magicItems) {
     if (!m.magic.ac) continue;
@@ -534,9 +553,13 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const bonusDamage = w.bonusDamage && w.bonusDamage.dice > 0
       ? { dice: w.bonusDamage.dice, die: w.bonusDamage.die, type: w.bonusDamage.type }
       : undefined;
+    // mão secundária (luta com duas armas, ação bônus): sem o atributo no dano,
+    // a não ser negativo ou com o Estilo de Luta com Duas Armas
+    const offHand = it.uid === char.equipped.offHand && it.uid !== char.equipped.mainHand;
+    const dmgAbil = offHand && abilMod > 0 && !styles.has('twf') ? 0 : abilMod;
     const dmgBd = breakdown(
       [
-        mod('damage', abilMod, ABILITY_LABELS[abilKey], 'ability'),
+        dmgAbil ? mod('damage', dmgAbil, ABILITY_LABELS[abilKey], 'ability') : null,
         magic ? mod('damage', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
         dueling ? mod('damage', 2, 'Estilo de Luta: Duelo', 'class') : null,
       ],
@@ -545,7 +568,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     attacks.push({
       uid: it.uid,
       name: it.name,
-      note: `${weaponProf ? '' : 'sem proficiência · '}${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
+      note: `${offHand ? 'mão secundária · ação bônus · ' : ''}${weaponProf ? '' : 'sem proficiência · '}${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
       attackBonus: hitBd.total,
       damageDice: w.damageDice,
       // Artes Marciais: usa o dado do monge se for maior que o da arma

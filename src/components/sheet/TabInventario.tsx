@@ -16,7 +16,8 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf } from '@/engine/inventory';
+import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn } from '@/engine/inventory';
+import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
 import type { EquipPreview } from '@/engine/equipPreview';
@@ -141,7 +142,7 @@ export function TabInventario({ char, derived }: TabProps) {
     const r = store.moveItem(char.id, it.uid, target);
     const label = CONTAINERS.find((c) => c.id === target)!.label;
     if (r.ok) {
-      setFlash({ ok: true, text: `${it.name} → ${label}` });
+      setFlash({ ok: true, text: r.note ?? `${it.name} → ${label}` });
       bump(0.8);
     } else setFlash({ ok: false, text: r.reason });
   };
@@ -252,12 +253,20 @@ export function TabInventario({ char, derived }: TabProps) {
           {attuneItems.map((it) => (
             <LoreTooltip key={it.uid} info={itemInfo(it)} anchorStyle={{ display: 'block' }}>
               <button
-                onClick={() => store.toggleAttune(char.id, it.uid)}
+                onClick={() => {
+                  if (!it.attuned && attunedCount(char) >= MAX_ATTUNEMENT) {
+                    setFlash({ ok: false, text: `Já tem ${MAX_ATTUNEMENT} itens sintonizados (o máximo) — desfaça uma sintonia antes.` });
+                    return;
+                  }
+                  store.toggleAttune(char.id, it.uid);
+                }}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
               >
                 <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
                 <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{it.attuned ? 'sintonizado' : 'guardado'}</span>
+                <span style={{ fontSize: 11, color: it.attuned && isWearable(it) && !isWorn(it) ? '#E0A93E' : 'var(--muted)' }}>
+                  {it.attuned ? (isWearable(it) && !isWorn(it) ? 'sintonizado · vista para valer' : 'sintonizado') : 'sem sintonia'}
+                </span>
               </button>
             </LoreTooltip>
           ))}
@@ -570,6 +579,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   return (
     <LoreTooltip info={itemInfo(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
       <div
+        className="fv-inv-card"
+        data-item={it.name}
         style={{
           position: 'relative',
           borderRadius: 'var(--radius-md)',
@@ -590,13 +601,13 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               </span>
             ) : equipped ? (
               <span className="fv-item-equipped">
-                <Icon name="equipped" size={11} /> {it.wear === 'worn' ? 'Vestido' : 'Equipado'}
+                <Icon name="equipped" size={11} /> {isWearable(it) ? 'Vestido' : 'Equipado'}
               </span>
             ) : (
               <Icon name={icon} size={12} />
             )}
             {/* vestível / parte do corpo: o selo já diz o que é */}
-            {!it.wear && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{CATEGORY_LABEL[it.category] ?? it.category}</span>}
+            {!it.wear && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bodySlotOf(it) ? BODY_SLOTS[bodySlotOf(it)!].label : CATEGORY_LABEL[it.category] ?? it.category}</span>}
             {it.homebrew && (
               <span style={{ flex: 'none', padding: '1px 5px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.07em' }}>HOMEBREW</span>
             )}
@@ -638,7 +649,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         {preview && (preview.deltas.length > 0 || preview.warnings.length > 0) && (
           <div className="fv-compare">
             <div className="fv-compare-head">
-              Ao equipar{preview.replaces ? <span> · troca {preview.replaces.name}</span> : null}
+              {isWearable(it) ? 'Ao vestir' : 'Ao equipar'}{preview.replaces ? <span> · sai {preview.replaces.name}</span> : null}
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {preview.deltas.map((d) => {
@@ -659,7 +670,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
-              {it.wear === 'worn' ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}
+              {isWearable(it) ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
           {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
