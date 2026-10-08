@@ -1,5 +1,5 @@
 import type { Character, EquippedSlots, InventoryItem } from '@/types/character';
-import { itemToInventory, isTwoHanded } from './inventory';
+import { itemToInventory, isLightWeapon, isTwoHanded } from './inventory';
 import { proficienciesOf } from './proficiencies';
 import { getItem } from '@/data/items';
 
@@ -209,8 +209,37 @@ export function kitForClass(classId: string): ClassKit {
 /** A opção está liberada para este personagem (proficiência exigida)? */
 export function optionAllowed(char: Character | null, opt: KitOption): boolean {
   if (!opt.requires || !char) return !opt.requires;
+  // clérigo ainda sem domínio (escolhido depois, em Evoluir): libera, com aviso na tela
+  if (domainPending(char)) return true;
   const p = proficienciesOf(char);
   return opt.requires === 'martial' ? p.weaponTypes.has('martial') || p.weapons.has('w-warhammer') : p.armor.has('pesada');
+}
+
+/** Clérigo que ainda não escolheu o domínio: não dá para saber se terá armadura pesada/armas marciais. */
+export function domainPending(char: Character | null): boolean {
+  return !!char && char.classId === 'cleric' && !char.subclassId;
+}
+
+/**
+ * Riqueza inicial (PHB 2014, cap. 5): em vez do kit da classe, começar com
+ * ouro para comprar o equipamento. [dados d4, multiplicador]
+ */
+export const STARTING_WEALTH: Record<string, [number, number]> = {
+  barbarian: [2, 10], bard: [5, 10], cleric: [5, 10], druid: [2, 10], fighter: [5, 10], monk: [5, 1],
+  paladin: [5, 10], ranger: [5, 10], rogue: [4, 10], sorcerer: [3, 10], warlock: [4, 10], wizard: [4, 10],
+};
+export const GOLD_KEY = '__gold';
+
+/** Texto da fórmula ("5d4 × 10 po") e a média. */
+export function wealthOf(classId: string): { formula: string; average: number; dice: number; mult: number } {
+  const [dice, mult] = STARTING_WEALTH[classId] ?? [4, 10];
+  return { formula: `${dice}d4${mult > 1 ? ` × ${mult}` : ''} po`, average: Math.round(dice * 2.5 * mult), dice, mult };
+}
+
+/** Escolheu o ouro no lugar do kit? Devolve quanto (po). */
+export function kitGold(sel: KitSelection | undefined): number | null {
+  const g = sel?.[GOLD_KEY];
+  return g?.option === 'gold' ? Math.max(0, Number(g.picks?.[0]) || 0) : null;
 }
 
 /** Primeira opção liberada de cada grupo; nos "qualquer…", a primeira da lista. */
@@ -224,14 +253,17 @@ export function defaultSelection(classId: string, char: Character | null = null)
   return sel;
 }
 
-function defaultPicks(p: KitPick): string[] {
+/** Escolha padrão num "qualquer…": a preferida que estiver na lista (bordão, espada longa…), repetida se forem duas. */
+export function defaultPicks(p: KitPick): string[] {
   const preferred = ['w-quarterstaff', 'w-longsword', 'w-mace', 'w-spear', 'g-inst-lyre', 'g-focus-crystal'];
-  const first = p.from.find((id) => preferred.includes(id)) ?? p.from[0];
+  const first = preferred.find((id) => p.from.includes(id)) ?? p.from[0];
   return Array.from({ length: p.count ?? 1 }, () => first);
 }
 
 /** Todos os itens do kit escolhido (pacotes ainda fechados), na ordem: escolhas, depois fixos. */
 export function kitItems(classId: string, sel: KitSelection, char: Character | null = null): KitItem[] {
+  // ouro no lugar do kit: nada da classe (o antecedente continua valendo)
+  if (kitGold(sel) !== null) return [];
   const kit = kitForClass(classId);
   const out: KitItem[] = [];
   for (const c of kit.choices) {
@@ -296,6 +328,11 @@ export function buildLoadout(classId: string, sel: KitSelection, char: Character
   equipped.mainHand = main?.uid ?? null;
   const shield = inventory.find((it) => it.category === 'shield');
   if (shield && !(main && isTwoHanded(main.weapon))) equipped.shield = shield.uid;
+  // par de armas leves iguais (patrulheiro: duas espadas curtas) e sem escudo: a segunda vai para a outra mão
+  if (main && !equipped.shield && isLightWeapon(main.weapon)) {
+    const twin = inventory.find((it) => it.uid !== main.uid && it.itemId === main.itemId);
+    if (twin) equipped.offHand = twin.uid;
+  }
   // arco/besta na mão de disparo; sem eles, os dardos do monge
   equipped.ranged = firstOf((it) => it.weapon?.range === 'ranged' && it.itemId !== 'w-dart') ?? firstOf((it) => it.itemId === 'w-dart');
   return { inventory, equipped };

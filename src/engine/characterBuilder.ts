@@ -11,7 +11,7 @@ import { defaultPreparedForClass, getSpell } from '@/data/spells';
 import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
 import { resourceMaxMap } from './classResources';
-import { buildLoadout, defaultSelection } from './loadout';
+import { buildLoadout, defaultSelection, kitGold } from './loadout';
 import { itemToInventory } from './inventory';
 import { getItem } from '@/data/items';
 
@@ -153,7 +153,7 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
     toolProfs: [],
     extraLanguages: [],
     hpCurrent: 0,
-    coins: { pp: 0, gp: 25, ep: 0, sp: 0, cp: 0 },
+    coins: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
     inventory: [],
     equipped: { armor: null, shield: null, mainHand: null, offHand: null, ranged: null },
     knownSpells: [],
@@ -262,7 +262,8 @@ export function finalizeCharacter(draft: Character): Character {
     equipped,
     skillProfs,
     toolProfs,
-    coins: bg.startingGold ? { ...draft.coins, gp: Math.max(draft.coins.gp, bg.startingGold) } : draft.coins,
+    // ouro: bolsa do antecedente (PHB) + riqueza inicial, se trocou o kit da classe por ouro
+    coins: { ...draft.coins, gp: draft.coins.gp + (bg.startingGold ?? 0) + (kitGold(draft.startingKit) ?? 0) },
     preparedSpells,
     knownSpells,
     combat: {

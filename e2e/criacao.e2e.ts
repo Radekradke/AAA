@@ -32,6 +32,15 @@ test.describe('criação de herói', () => {
     await page.getByRole('radiogroup', { name: 'Armadura' }).getByRole('radio', { name: /Couro, arco longo/ }).click();
     await expect(page.locator('.fv-kit-list')).toContainText('Arco Longo');
     await expect(page.getByText('Kit personalizado')).toBeVisible();
+    // regra do livro: trocar o kit pelo ouro da classe (Guerreiro 5d4 × 10, média 125)
+    await page.getByRole('button', { name: /Trocar o kit por ouro/ }).click();
+    await expect(page.locator('.fv-kit-gold-n')).toContainText('125 po');
+    await expect(page.locator('.fv-kit-bag')).toContainText('Do antecedente (Soldado)');
+    // volta ao kit que estava escolhido (o personalizado, com arco longo)
+    await page.getByRole('button', { name: 'Voltar ao kit' }).click();
+    await expect(page.getByText('Kit personalizado')).toBeVisible();
+    await expect(page.locator('.fv-kit-list')).toContainText('Arco Longo');
+    await expect(page.getByRole('button', { name: 'Fechar personalização' })).toBeVisible(); // a personalização continua aberta
     await cta.click(); // Despertar
 
     // Sem nome o botão fica travado e diz o que falta

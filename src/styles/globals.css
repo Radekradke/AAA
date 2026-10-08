@@ -2950,6 +2950,40 @@ body.fv-dragging .fv-screen-scroll {
   display: grid;
   gap: 8px;
 }
+.fv-kit-warn {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #e0a93e;
+}
+.fv-gear-wide {
+  grid-column: 1 / -1;
+}
+.fv-kit-load {
+  font-family: var(--font-num);
+}
+.fv-kit-gold {
+  margin-top: 4px;
+}
+.fv-kit-gold-n {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fv-kit-gold-n b {
+  font: 700 30px var(--font-display);
+  color: var(--gold);
+}
+.fv-kit-gold-n small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.fv-kit-gold-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 .fv-gear-picks label {
   display: grid;
   gap: 4px;

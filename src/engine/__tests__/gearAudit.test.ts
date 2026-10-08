@@ -4,7 +4,7 @@ import { deriveCharacter } from '../dndRules';
 import { attunementBlock, itemToInventory, slotForItem } from '../inventory';
 import { itemGrantedSpells } from '../spellcasting';
 import { chargeOptions, chargesLeft, rechargeAll } from '../itemCharges';
-import { buildLoadout, defaultSelection, expandKit, kitForClass, kitItems } from '../loadout';
+import { buildLoadout, defaultSelection, domainPending, expandKit, GOLD_KEY, kitForClass, kitItems, optionAllowed, wealthOf } from '../loadout';
 import { materialCover, materialWarning } from '../spellFocus';
 import { defenseFor } from '../strike';
 import { baseWeaponId, isWeaponProficient, proficienciesOf } from '../proficiencies';
@@ -205,6 +205,46 @@ describe('kits iniciais do Livro do Jogador', () => {
     const c = finalizeCharacter(createDraftCharacter({ ownerId: 't', name: 'K', classId: 'rogue', raceId: 'human', backgroundId: 'criminal' }));
     expect(c.inventory.some((i) => i.itemId === 'g-thieves')).toBe(true);
     expect(c.inventory.some((i) => i.itemId === 'g-crowbar')).toBe(true); // Pé de cabra do Criminoso
+  });
+});
+
+describe('kits: revisão da tela de seleção', () => {
+  it('ouro inicial: só o ouro do antecedente (Soldado: 10 po), não 25 fixos', () => {
+    const c = finalizeCharacter(createDraftCharacter({ ownerId: 't', name: 'K', classId: 'fighter', raceId: 'human', backgroundId: 'soldier' }));
+    expect(c.coins.gp).toBe(10);
+  });
+
+  it('trocar o kit por ouro (regra do livro): sem itens da classe, ouro somado ao do antecedente', () => {
+    expect(wealthOf('fighter')).toMatchObject({ formula: '5d4 × 10 po', average: 125 });
+    expect(wealthOf('monk').formula).toBe('5d4 po');
+    const d = createDraftCharacter({ ownerId: 't', name: 'K', classId: 'wizard', raceId: 'human', backgroundId: 'sage' });
+    d.startingKit = { [GOLD_KEY]: { option: 'gold', picks: ['100'] } };
+    const c = finalizeCharacter(d);
+    expect(c.coins.gp).toBe(110); // 100 + 10 do Sábio
+    expect(c.inventory.some((i) => i.itemId === 'g-spellbook')).toBe(false);
+    expect(c.inventory.some((i) => i.itemId === 'g-ink')).toBe(true); // o antecedente continua
+  });
+
+  it('patrulheiro: as duas espadas curtas ficam uma em cada mão', () => {
+    const { inventory, equipped } = buildLoadout('ranger', defaultSelection('ranger'));
+    const name = (u: string | null) => inventory.find((i) => i.uid === u)?.itemId;
+    expect(name(equipped.mainHand)).toBe('w-shortsword');
+    expect(name(equipped.offHand)).toBe('w-shortsword');
+    expect(equipped.mainHand).not.toBe(equipped.offHand);
+  });
+
+  it('"qualquer arma simples" do bruxo começa no bordão (não na maça)', () => {
+    expect(defaultSelection('warlock').w2.picks).toEqual(['w-quarterstaff']);
+    expect(defaultSelection('fighter').w1.picks).toEqual(['w-longsword']);
+  });
+
+  it('clérigo sem domínio ainda: cota de malha liberada com aviso; com domínio sem a proficiência, bloqueada', () => {
+    const c = hero('cleric');
+    const chain = kitForClass('cleric').choices.find((x) => x.id === 'armor')!.options.find((o) => o.id === 'a-chainmail')!;
+    expect(domainPending(c)).toBe(true);
+    expect(optionAllowed(c, chain)).toBe(true);
+    const knowledge = { ...c, subclassId: 'knowledge' };
+    expect(optionAllowed(knowledge, chain)).toBe(false);
   });
 });
 
