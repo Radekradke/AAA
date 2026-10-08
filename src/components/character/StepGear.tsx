@@ -174,7 +174,7 @@ export function StepGear({ char, update }: StepProps) {
 
       {custom && gold === null && (
         <div className="fv-gear-custom">
-          {domainNote && <p className="fv-kit-warn fv-gear-wide">O domínio do clérigo é escolhido depois (em Evoluir): martelo de guerra e cota de malha só valem se o domínio der a proficiência (Vida, Natureza, Tempestade, Guerra…).</p>}
+          {domainNote && <p className="fv-kit-warn fv-gear-wide">Você ainda não escolheu o domínio (no Caminho): martelo de guerra e cota de malha só valem se o domínio der a proficiência (Vida, Natureza, Tempestade, Guerra…).</p>}
           {kit.choices.map((choice) => {
             const cur = sel[choice.id];
             const opt = choice.options.find((o) => o.id === cur?.option);

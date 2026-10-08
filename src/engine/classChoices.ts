@@ -36,7 +36,11 @@ export function specsAt(
   choices: Record<string, string[]> = {},
 ): ResolvedSpec[] {
   const out: ResolvedSpec[] = [];
-  const ok = (spec: ChoiceSpec) => !spec.requires || (choices[storeKeyFor(classId, spec.requires.key)] ?? []).includes(spec.requires.id);
+  const ok = (spec: ChoiceSpec) => {
+    if (!spec.requires) return true;
+    const have = choices[storeKeyFor(classId, spec.requires.key)] ?? [];
+    return (spec.requires.anyOf ?? [spec.requires.id]).some((id) => have.includes(id));
+  };
   for (const spec of CLASS_CHOICES[classId]?.[classLevel] ?? []) {
     if (ok(spec)) out.push({ ...spec, storeKey: storeKeyFor(classId, spec.key), classId, classLevel, source: getClass(classId).label });
   }
@@ -87,10 +91,7 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
     const sub = cl.classId === char.classId ? char.subclassId : null;
     for (let lv = 1; lv <= cl.level; lv++) out.push(...specsAt(cl.classId, lv, sub, char.choices ?? {}).filter((s) => s.count > 0));
   }
-  // escolhas da raça (Anão: ferramenta)
-  for (const spec of RACE_CHOICES[char.raceId] ?? []) {
-    out.push({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: raceOf(char).label });
-  }
+  out.push(...raceSpecs(char));
   // escolhas dos talentos que o personagem tem
   for (const featId of char.feats ?? []) {
     for (const spec of FEAT_CHOICES[featId] ?? []) {
@@ -98,6 +99,46 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
     }
   }
   return out;
+}
+
+/** Escolhas da raça (Anão: ferramenta). */
+export function raceSpecs(char: Character): ResolvedSpec[] {
+  return (RACE_CHOICES[char.raceId] ?? []).map((spec) => ({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: raceOf(char).label }));
+}
+
+/**
+ * Escolhas do 1º nível feitas na própria criação: as da classe e da
+ * subclasse de 1º nível (Estilo de Luta, Inimigo Favorito, Ancestral
+ * Dragão…) e as da raça.
+ */
+export function creationSpecs(char: Character, scope: 'class' | 'race' | 'all' = 'all'): ResolvedSpec[] {
+  const cls = scope === 'race' ? [] : specsAt(char.classId, 1, char.subclassId, char.choices ?? {}).filter((s) => s.count > 0);
+  return [...cls, ...(scope === 'class' ? [] : raceSpecs(char))];
+}
+
+/** Uma escolha da criação com o que já foi marcado e quantas faltam. */
+export interface CreationChoice {
+  spec: ResolvedSpec;
+  /** Quantas a regra pede (limitado ao que existe no catálogo). */
+  total: number;
+  chosen: string[];
+  missing: number;
+  options: ChoiceOption[];
+}
+
+export function creationChoices(char: Character, scope: 'class' | 'race' | 'all' = 'all'): CreationChoice[] {
+  const byKey = new Map<string, { spec: ResolvedSpec; count: number }>();
+  for (const spec of creationSpecs(char, scope)) {
+    const cur = byKey.get(spec.storeKey);
+    byKey.set(spec.storeKey, { spec: cur?.spec ?? spec, count: (cur?.count ?? 0) + spec.count });
+  }
+  return [...byKey.values()].map(({ spec, count }) => {
+    const options = catalogFor(spec, char);
+    const valid = new Set(options.map((o) => o.id));
+    const chosen = chosenFor(char, spec.storeKey).filter((id) => valid.has(id));
+    const total = Math.min(count, options.length);
+    return { spec, total, chosen, missing: Math.max(0, total - chosen.length), options };
+  });
 }
 
 export function chosenFor(char: Character, storeKey: string): string[] {
@@ -111,9 +152,9 @@ export interface PendingChoice {
 }
 
 /** O que falta escolher (ex.: ficha antiga de Guerreiro sem Estilo de Luta). */
-export function pendingChoices(char: Character): PendingChoice[] {
+export function pendingChoices(char: Character, specs: ResolvedSpec[] = specsUpTo(char)): PendingChoice[] {
   const required = new Map<string, { spec: ResolvedSpec; total: number }>();
-  for (const spec of specsUpTo(char)) {
+  for (const spec of specs) {
     const cur = required.get(spec.storeKey);
     required.set(spec.storeKey, { spec, total: (cur?.total ?? 0) + spec.count });
   }
@@ -181,8 +222,8 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   }
   // idiomas: só os que o personagem ainda não fala
   if (char && spec.catalog === 'language') {
-    const speaks = new Set([...(raceOf(char).languages ?? []), ...(char.extraLanguages ?? [])]);
-    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage)$/.test(k)).flatMap(([, v]) => v));
+    const speaks = new Set([...(raceOf(char).languages ?? []), ...(char.extraLanguages ?? []), ...(char.subclassId === 'draconic' ? ['Dracônico'] : [])]);
+    const own = new Set(Object.entries(char.choices ?? {}).filter(([k]) => /\.(knowledgeLanguages|prodigyLanguage|favoredLanguage)$/.test(k)).flatMap(([, v]) => v));
     all = all.filter((o) => !speaks.has(o.id) || own.has(o.id));
   }
   // magias: esconde as que o personagem já conhece por outro caminho
@@ -309,4 +350,20 @@ export function bonusSpellIds(char: Character): Set<string> {
     if (/^(loreSecrets|tomeCantrips|natureCantrip|arcanum\d|signature)$/.test(key)) ids.forEach((id) => out.add(id));
   }
   return out;
+}
+
+/** Troca de subclasse na criação: esquece as escolhas que eram só da subclasse antiga. */
+export function clearSubclassChoices(c: Character): void {
+  const old = c.subclassId ? SUBCLASS_CHOICES[c.subclassId] : undefined;
+  if (!old || !c.choices) return;
+  const classKeys = new Set(Object.values(CLASS_CHOICES[c.classId] ?? {}).flat().map((s) => s.key));
+  const next = { ...c.choices };
+  for (const spec of Object.values(old).flat()) if (!classKeys.has(spec.key)) delete next[storeKeyFor(c.classId, spec.key)];
+  c.choices = next;
+}
+
+/** Troca de classe na criação: só ficam as escolhas da raça e dos talentos. */
+export function clearClassChoices(c: Character): void {
+  if (!c.choices) return;
+  c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => k.startsWith('race.') || k.startsWith('feat.')));
 }

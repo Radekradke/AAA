@@ -40,8 +40,8 @@ export interface ChoiceSpec {
   canReplace?: boolean;
   /** Catálogo `spell`: de quais listas e de que círculo (exato ou até o maior espaço da classe). */
   spell?: { classes?: string[]; circle?: number; upToSlots?: boolean; schools?: string[] };
-  /** Só aparece se outra escolha da mesma classe tiver esta opção (ex.: Pacto do Tomo). */
-  requires?: { key: string; id: string };
+  /** Só aparece se outra escolha da mesma classe tiver esta opção (ex.: Pacto do Tomo) — ou uma de `anyOf`. */
+  requires?: { key: string; id: string; anyOf?: string[] };
   /** Opções que não contam no limite de magias conhecidas/truques (ex.: Livro das Sombras). */
   bonusSpells?: boolean;
 }
@@ -362,6 +362,16 @@ const METAMAGIC_HINT = 'Formas de moldar suas magias gastando Pontos de Feitiça
 const SECRETS_HINT = 'Duas magias de QUALQUER classe (ou truques), de um círculo que você já consegue conjurar. Contam como magias de bardo e entram no total de magias conhecidas.';
 const INVOCATION_HINT = 'Fragmentos de saber proibido. Alguns pedem nível, pacto ou a rajada mística. Ao subir de nível no Bruxo você pode trocar uma invocação por outra.';
 const ENEMY_HINT = 'Vantagem em testes de SAB (Sobrevivência) para rastreá-los e de INT para lembrar informações sobre eles. Também aprende um idioma que eles falem.';
+/** Inimigos favoritos que falam algum idioma (o patrulheiro aprende um deles). */
+const SPEAKING_ENEMIES = ['aberrations', 'celestials', 'dragons', 'elementals', 'fey', 'fiends', 'giants', 'undead', 'humanoids'];
+const favoredLanguage: ChoiceSpec = {
+  key: 'favoredLanguage',
+  catalog: 'language',
+  label: 'Idioma do inimigo favorito',
+  count: 1,
+  requires: { key: 'favoredEnemy', id: '', anyOf: SPEAKING_ENEMIES },
+  hint: 'Um idioma falado pelo seu inimigo favorito (Dracônico para dragões, Gigante para gigantes, Abissal ou Infernal para corruptores…).',
+};
 const TERRAIN_HINT = 'No terreno escolhido: proficiência dobrada em testes de INT e SAB ligados a ele, o grupo não é atrasado por terreno difícil, você não se perde, fica alerta e rastreia/forrageia melhor.';
 const invocationSwap: ChoiceSpec = { key: 'invocation', catalog: 'invocation', label: 'Invocações Místicas', count: 0, canReplace: true, hint: 'Neste nível você não ganha invocação nova, mas pode trocar uma que conhece por outra.' };
 const invocationGain = (count: number): ChoiceSpec => ({ key: 'invocation', catalog: 'invocation', label: count > 1 ? 'Invocações Místicas' : 'Invocação Mística adicional', count, hint: INVOCATION_HINT, canReplace: count === 1 });
@@ -391,14 +401,16 @@ export const CLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
     1: [
       { key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito', count: 1, hint: ENEMY_HINT },
       { key: 'favoredTerrain', catalog: 'favoredTerrain', label: 'Explorador Nato (terreno)', count: 1, hint: TERRAIN_HINT },
+      favoredLanguage,
     ],
     2: [{ key: 'fightingStyle', catalog: 'fightingStyle', label: 'Estilo de Luta', count: 1, only: ['archery', 'defense', 'dueling', 'twf'] }],
     6: [
       { key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito adicional', count: 1, hint: ENEMY_HINT },
       { key: 'favoredTerrain', catalog: 'favoredTerrain', label: 'Terreno favorito adicional', count: 1, hint: TERRAIN_HINT },
+      favoredLanguage,
     ],
     10: [{ key: 'favoredTerrain', catalog: 'favoredTerrain', label: 'Terreno favorito adicional', count: 1, hint: TERRAIN_HINT }],
-    14: [{ key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito adicional', count: 1, hint: ENEMY_HINT }],
+    14: [{ key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito adicional', count: 1, hint: ENEMY_HINT }, favoredLanguage],
   },
   bard: {
     // PHB 2014: três instrumentos musicais à escolha
