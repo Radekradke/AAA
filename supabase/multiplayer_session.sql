@@ -109,8 +109,12 @@ alter table public.combatants enable row level security;
 alter table public.session_events enable row level security;
 
 drop policy if exists "sessions_participant_read" on public.sessions;
+-- sessão em preparação ('planned') só o mestre vê (o nome pode ser spoiler)
 create policy "sessions_participant_read" on public.sessions for select
-  using (public.is_campaign_participant(campaign_id));
+  using (
+    public.is_campaign_master(campaign_id)
+    or (public.is_campaign_member(campaign_id) and status <> 'planned')
+  );
 
 drop policy if exists "encounters_participant_read" on public.encounters;
 create policy "encounters_participant_read" on public.encounters for select
@@ -555,3 +559,14 @@ do $fn$ begin alter publication supabase_realtime add table public.campaign_npcs
 
 -- a API do Supabase (PostgREST) passa a enxergar as tabelas novas na hora
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------
+-- versão do banco: registra que este script rodou (o app avisa o mestre
+-- do que falta). Idempotente.
+-- ---------------------------------------------------------------------
+create table if not exists public.app_schema_steps (step text primary key, applied_at timestamptz not null default now());
+alter table public.app_schema_steps enable row level security;
+drop policy if exists "schema_steps_read" on public.app_schema_steps;
+create policy "schema_steps_read" on public.app_schema_steps for select to authenticated using (true);
+grant select on public.app_schema_steps to authenticated;
+insert into public.app_schema_steps (step) values ('multiplayer') on conflict (step) do update set applied_at = now();

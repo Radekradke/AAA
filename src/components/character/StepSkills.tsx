@@ -3,6 +3,7 @@ import { StepHeader, SectionTitle } from './creatorUi';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
+import { skillBudget } from '@/engine/originChoices';
 import { SKILLS, SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import type { SkillKey } from '@/types/dnd';
@@ -20,15 +21,17 @@ export function StepSkills({ char, update }: StepProps) {
   const bg = getBackground(char.backgroundId);
   const race = raceOf(char);
 
-  const bgSkills = new Set(bg.skills);
-  const raceSkills = new Set(race.skillProfs ?? []);
-  const granted = new Set<SkillKey>([...bgSkills, ...raceSkills]);
-
-  const classChosen = char.skillProfs.filter((k) => cls.skillChoices.includes(k) && !granted.has(k));
-  const extraChosen = char.skillProfs.filter((k) => !cls.skillChoices.includes(k) && !granted.has(k));
-  const classRemaining = cls.skillPicks - classChosen.length;
-  const extraPicks = race.extraSkillPicks ?? 0;
-  const extraRemaining = extraPicks - extraChosen.length;
+  const budget = skillBudget(char);
+  const otherSkills = SKILLS.filter((sk) => !cls.skillChoices.includes(sk.key) && !budget.granted.has(sk.key));
+  const { bgSkills, granted } = budget;
+  const classRemaining = budget.classLeft;
+  const extraPicks = budget.freeTotal;
+  const extraRemaining = budget.freeLeft;
+  // origem das livres: Meio-Elfo etc. e/ou perícia repetida entre raça e antecedente
+  const freeWhy = [
+    race.extraSkillPicks ? race.label : '',
+    budget.overlap.length ? `${budget.overlap.map((k) => SKILL_BY_KEY[k].label).join(', ')} repetida${budget.overlap.length > 1 ? 's' : ''} — troque por outra` : '',
+  ].filter(Boolean).join(' · ');
 
   // expertise no nível 1 (Ladino: 2 vagas — perícias OU Ferramentas de Ladrão)
   const slots = expertiseSlots(char);
@@ -57,23 +60,21 @@ export function StepSkills({ char, update }: StepProps) {
       }
     });
 
-  const toggle = (key: SkillKey, pool: 'class' | 'extra') =>
+  const toggle = (key: SkillKey) =>
     update((c) => {
       if (granted.has(key)) return;
-      const has = c.skillProfs.includes(key);
-      if (has) {
+      if (c.skillProfs.includes(key)) {
         c.skillProfs = c.skillProfs.filter((k) => k !== key);
         return;
       }
-      const remaining = pool === 'class' ? classRemaining : extraRemaining;
-      if (remaining > 0) c.skillProfs = [...c.skillProfs, key];
+      if (budget.canPick(key)) c.skillProfs = [...c.skillProfs, key];
     });
 
   return (
     <div className="fv-step">
       <StepHeader
         step={4}
-        subtitle={`Escolha ${cls.skillPicks} de ${cls.label}${extraPicks ? ` e ${extraPicks} livres (${race.label})` : ''}.`}
+        subtitle={`Escolha ${cls.skillPicks} de ${cls.label}${extraPicks ? ` e ${extraPicks} livre${extraPicks > 1 ? 's' : ''}` : ''}.`}
       />
 
       {/* já treinadas: antecedente, linhagem e ferramentas */}
@@ -83,7 +84,7 @@ export function StepSkills({ char, update }: StepProps) {
           <LoreTooltip key={k} info={skillLore(k, 0, true)}>
             <span className="fv-pill is-on is-static">
               {SKILL_BY_KEY[k].label}
-              <small>{bgSkills.has(k) ? bg.label : race.label}</small>
+              <small>{bgSkills.has(k) && budget.raceSkills.has(k) ? `${bg.label} + ${race.label}` : bgSkills.has(k) ? bg.label : race.label}</small>
             </span>
           </LoreTooltip>
         ))}
@@ -101,8 +102,8 @@ export function StepSkills({ char, update }: StepProps) {
             <SkillToggle
               key={key}
               skill={key}
-              state={isGranted ? 'granted' : active ? 'on' : classRemaining <= 0 ? 'blocked' : 'off'}
-              onClick={() => toggle(key, 'class')}
+              state={isGranted ? 'granted' : active ? 'on' : budget.canPick(key) ? 'off' : 'blocked'}
+              onClick={() => toggle(key)}
             />
           );
         })}
@@ -131,23 +132,27 @@ export function StepSkills({ char, update }: StepProps) {
         </>
       )}
 
-      {/* escolhas livres (Meio-Elfo — Versatilidade em Perícias) */}
+      {/* escolhas livres: Meio-Elfo (Versatilidade em Perícias) e perícia repetida (PHB) */}
       {extraPicks > 0 && (
         <>
-          <SectionTitle right={<Counter left={extraRemaining} total={extraPicks} />}>Livres — {race.label}</SectionTitle>
-          <div className="fv-skill-grid">
-            {SKILLS.filter((sk) => !cls.skillChoices.includes(sk.key) && !granted.has(sk.key)).map((sk) => {
-              const active = char.skillProfs.includes(sk.key);
-              return (
-                <SkillToggle
-                  key={sk.key}
-                  skill={sk.key}
-                  state={active ? 'on' : extraRemaining <= 0 ? 'blocked' : 'off'}
-                  onClick={() => toggle(sk.key, 'extra')}
-                />
-              );
-            })}
-          </div>
+          <SectionTitle right={<Counter left={extraRemaining} total={extraPicks} />}>Livres — {freeWhy}</SectionTitle>
+          {otherSkills.length > 0 ? (
+            <div className="fv-skill-grid">
+              {otherSkills.map((sk) => {
+                const active = char.skillProfs.includes(sk.key);
+                return (
+                  <SkillToggle
+                    key={sk.key}
+                    skill={sk.key}
+                    state={active ? 'on' : budget.canPick(sk.key) ? 'off' : 'blocked'}
+                    onClick={() => toggle(sk.key)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="fv-step-note">Sua classe já escolhe entre todas as perícias: marque as livres na lista acima.</p>
+          )}
         </>
       )}
     </div>

@@ -12,16 +12,18 @@ import { modStr } from '@/engine/dice';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Modal } from '@/components/ui/Modal';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { heroAvatar, heroFace } from '@/lib/summary';
 
 interface Props {
   char: Character;
   onClose: () => void;
 }
 
-/** Edição da ficha após criada: identidade, nível, atributos e perícias. */
+/** Edição da ficha após criada: arte, identidade, nível, atributos e perícias. */
 export function CharacterEditModal({ char, onClose }: Props) {
   const t = useTheme();
-  const { editCharacter, setLevel } = useCharacterStore();
+  const { editCharacter, setLevel, updateCharacter } = useCharacterStore();
   const derived = deriveCharacter(char);
 
   const setAbility = (k: AbilityKey, v: number) =>
@@ -50,6 +52,16 @@ export function CharacterEditModal({ char, onClose }: Props) {
         </button>
       }
     >
+        {/* arte do personagem (antes ficava no retrato do cabeçalho) */}
+        <div className="fv-edit-art">
+          <div className="fv-edit-art-face" style={{ backgroundImage: `url("${heroAvatar(char)}")`, ...heroFace(char) }} aria-hidden />
+          <div className="fv-edit-art-body">
+            <span style={label}>Arte do personagem</span>
+            <p>{char.portrait ? 'Usando a sua arte. Troque ou volte à arte padrão da classe.' : 'Usando a arte padrão da classe. Envie a sua (PNG, JPG ou WebP) — fundo branco liso é recortado.'}</p>
+            <PortraitPicker portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
+          </div>
+        </div>
+
         {/* identidade */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           <label>
@@ -59,7 +71,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           <label>
             <span style={label}>Antecedente</span>
             <select className="fv-input" value={char.backgroundId} onChange={(e) => editCharacter(char.id, { backgroundId: e.target.value })}>
-              {BACKGROUNDS.map((b) => <option key={b.id} value={b.id} style={{ color: '#111' }}>{b.label}</option>)}
+              {BACKGROUNDS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
             </select>
           </label>
           <label>
@@ -76,7 +88,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
           </div>
           <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
             <button onClick={() => setLevel(char.id, char.level - 1)} style={stepBtn(false)}>−</button>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: 30, textAlign: 'center' }}>{char.level}</span>
+            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: 30, textAlign: 'center' }}>{char.level}</span>
             <button onClick={() => setLevel(char.id, char.level + 1)} style={stepBtn(true)}>+</button>
           </div>
         </div>
@@ -93,8 +105,8 @@ export function CharacterEditModal({ char, onClose }: Props) {
                 onChange={(e) => editCharacter(char.id, { subclassId: e.target.value || null })}
                 style={{ opacity: canPickSub ? 1 : 0.55 }}
               >
-                <option value="" style={{ color: '#111' }}>— nenhuma —</option>
-                {subs.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.label}</option>)}
+                <option value="">— nenhuma —</option>
+                {subs.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </label>
             {derived.grantedProficiencies.length > 0 && (
@@ -116,13 +128,13 @@ export function CharacterEditModal({ char, onClose }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 10 }}>
             {ABILITY_KEYS.map((k) => {
               const base = char.baseAbilities[k];
-              const racial = racialBonusFor(k, char.raceId, char.subraceId);
+              const racial = racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
               const total = base + racial;
               return (
                 <div key={k} style={{ textAlign: 'center', background: 'linear-gradient(170deg, var(--panel), var(--panel2))', border: '1px solid var(--line)', borderRadius: 13, padding: '12px 8px' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.12em', color: 'var(--muted)' }} title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
-                  <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
+                  <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
+                  <div style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
                   <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6 }}>
                     <button onClick={() => setAbility(k, base - 1)} style={stepBtn(false)}>−</button>
                     <button onClick={() => setAbility(k, base + 1)} style={stepBtn(true)}>+</button>

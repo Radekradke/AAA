@@ -1,3 +1,4 @@
+import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
@@ -14,6 +15,7 @@ import { characterResources } from '@/engine/classResources';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
+import { useInk } from '@/lib/contrast';
 
 /** Efeito acumulado de cada nível de exaustão (PHB 2014). */
 const EXHAUSTION_EFFECT: Record<number, string> = {
@@ -28,6 +30,7 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
+  const ink = useInk();
   const { rollDice, check } = useDiceRoller();
   const store = useCharacterStore();
   const [amt, setAmt] = useState('');
@@ -36,6 +39,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
+  const hpFx = useValueDelta(char.hpCurrent, char.id);
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
 
   const turnDefs = [
@@ -72,26 +76,18 @@ export function TabCombate({ char, derived }: TabProps) {
           <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
             <div className="fv-label" style={{ cursor: 'help' }}>Pontos de Vida</div>
           </LoreTooltip>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: hpColor }}>
+          <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: ink(hpColor, 3.2) }}>
+            <HpPops pops={hpFx.pops} />
             {char.hpCurrent}
             <span style={{ fontSize: '.5em', color: 'var(--muted)' }}> / {hpMax}</span>
           </div>
         </div>
-        <div
-          style={{
-            marginTop: 12,
-            height: 'clamp(20px,2.6vw,26px)',
-            borderRadius: 5,
-            background: 'var(--sunk-deep)',
-            border: '1px solid var(--line)',
-            overflow: 'hidden',
-            position: 'relative',
-            boxShadow: 'inset 0 2px 6px rgba(0,0,0,.4)',
-            clipPath: 'polygon(7px 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 7px 100%, 0 50%)',
-          }}
-        >
+        <div className="fv-hp-bar" style={{ marginTop: 12, height: 'clamp(20px,2.6vw,26px)' }}>
+          <HpTrail key={char.id} pct={pct} />
           <div
             style={{
+              position: 'relative',
+              zIndex: 1,
               width: `${pct}%`,
               height: '100%',
               background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`,
@@ -100,17 +96,9 @@ export function TabCombate({ char, derived }: TabProps) {
             }}
           />
           {/* entalhes de HUD a cada 10% */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.5) calc(10% - 1px) 10%)',
-              pointerEvents: 'none',
-            }}
-          />
-          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 12, letterSpacing: '.1em', color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.7)' }}>
-            {pct}%
+          <div aria-hidden className="fv-hp-notches" />
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em' }}>
+            <span className="fv-hp-bar-label">{pct}%</span>
           </div>
         </div>
         <div style={{ marginTop: 14, display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -124,7 +112,7 @@ export function TabCombate({ char, derived }: TabProps) {
               onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}
               onContextMenu={(e) => { e.preventDefault(); store.setTempHp(char.id, 0); }}
               title="Clique: +5 · clique direito: zerar"
-              style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'var(--sunk)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
+              style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'var(--sunk)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
             >
               {char.combat.hpTemp}
             </button>
@@ -141,21 +129,21 @@ export function TabCombate({ char, derived }: TabProps) {
             placeholder="Qtd."
             aria-label="Valor de dano ou cura"
             className="fv-input fv-amt-input"
-            style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700 }}
+            style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: 'var(--font-num)', fontWeight: 700 }}
           />
           <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>
-          <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt)}>Curar</button>
+          <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt, ink('#3FC56B'))}>Curar</button>
         </div>
 
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
         {concentrating && concDC !== null && (
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: 'var(--lift)' }}>
             <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
-              Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: "'Chakra Petch', monospace" }}>{concDC}</b>
+              Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: 'var(--font-num)' }}>{concDC}</b>
             </span>
             <button
               onClick={() => { check(`Concentração · CON (CD ${concDC})`, derived.abilities.con.save); setConcDC(null); }}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: 'var(--lift)', color: t.acc, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: 'var(--lift)', color: t.acc, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
             >
               Rolar {modStr(derived.abilities.con.save)}
             </button>
@@ -193,7 +181,7 @@ export function TabCombate({ char, derived }: TabProps) {
               <span style={{ width: 11, height: 11, borderRadius: 999, background: concentrating ? t.acc : 'transparent', border: '1px solid ' + (concentrating ? t.acc : t.muted), boxShadow: concentrating ? `0 0 10px ${t.acc}` : 'none', transition: '.2s' }} />
               {concentrating ? 'Concentrando numa magia' : 'Concentração'}
             </span>
-            <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11.5 }}>{concentrating ? 'romper' : 'inativa'}</span>
+            <span style={{ fontFamily: 'var(--font-num)', fontSize: 11.5 }}>{concentrating ? 'romper' : 'inativa'}</span>
           </button>
         </LoreTooltip>
       </Panel>
@@ -212,14 +200,14 @@ export function TabCombate({ char, derived }: TabProps) {
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{atk.note}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{atk.note}</div>
             </div>
             <AttackActions
               char={char}
               atk={atk}
-              hitStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
-              dmgStyle={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
-              subStyle={{ fontSize: 8, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
+              hitStyle={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--gold)', padding: '7px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)', lineHeight: 1.05 }}
+              dmgStyle={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, color: 'var(--danger)', padding: '7px 13px', borderRadius: 10, border: '1px solid rgba(255,80,40,.35)', background: 'transparent', lineHeight: 1.05 }}
+              subStyle={{ fontSize: 10, letterSpacing: '.08em', color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}
               dmgSub={atk.damageType.toUpperCase()}
             />
           </div>
@@ -233,7 +221,7 @@ export function TabCombate({ char, derived }: TabProps) {
         <InitiativeButton char={char} derived={derived} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13, marginTop: 14 }}>
           <div className="fv-label">Economia de Turno</div>
-          <button onClick={() => store.resetTurn(char.id)} style={{ cursor: 'pointer', fontSize: 11, color: 'var(--acc)', background: 'none', border: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+          <button onClick={() => store.resetTurn(char.id)} style={{ cursor: 'pointer', fontSize: 11, color: 'var(--acc)', background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 600 }}>
             ↺ Novo turno
           </button>
         </div>
@@ -243,6 +231,8 @@ export function TabCombate({ char, derived }: TabProps) {
             return (
               <LoreTooltip key={d.k} info={passiveLore(d.label, used ? 'Usada' : 'Disponível', 'Marque para controlar o que seu personagem já gastou no turno atual. Use “Novo turno” para limpar ação, bônus, reação e movimento.', ['Economia de turno'])} anchorStyle={{ display: 'block' }}>
                 <button
+                  className={'fv-turn-btn' + (used ? ' is-used' : '')}
+                  aria-pressed={used}
                   onClick={() => store.toggleTurn(char.id, d.k)}
                   style={{
                   cursor: 'pointer',
@@ -261,8 +251,8 @@ export function TabCombate({ char, derived }: TabProps) {
                   transition: '.2s',
                 }}
                 >
-                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used ? '✓ ' : ''}{d.label}</span>
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: used ? t.muted : t.acc }}>{used ? 'Usada' : 'Disponível'}</span>
+                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used && <i className="fv-tick" aria-hidden>✓ </i>}{d.label}</span>
+                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: used ? t.muted : t.acc }}>{used ? 'Usada' : 'Disponível'}</span>
                 </button>
               </LoreTooltip>
             );
@@ -293,7 +283,7 @@ export function TabCombate({ char, derived }: TabProps) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>
                   {res.label}
-                  {res.die && <span style={{ marginLeft: 6, fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>{res.die}</span>}
+                  {res.die && <span style={{ marginLeft: 6, fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>{res.die}</span>}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
               </div>
@@ -301,7 +291,7 @@ export function TabCombate({ char, derived }: TabProps) {
                 <button
                   disabled={res.unlimited}
                   onClick={() => store.setResource(char.id, res.id, left > 0 ? left - 1 : res.max)}
-                  style={{ cursor: res.unlimited ? 'default' : 'pointer', flex: 'none', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (res.unlimited || left > 0 ? t.gold : t.line), color: res.unlimited || left > 0 ? t.gold : t.muted, background: 'var(--lift)' }}
+                  style={{ cursor: res.unlimited ? 'default' : 'pointer', flex: 'none', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (res.unlimited || left > 0 ? t.gold : t.line), color: res.unlimited || left > 0 ? t.gold : t.muted, background: 'var(--lift)' }}
                 >
                   {res.unlimited ? '∞' : `${left} / ${res.max}`}
                 </button>
@@ -320,12 +310,12 @@ export function TabCombate({ char, derived }: TabProps) {
             <LoreTooltip info={passiveLore('Dado de Vida', `${derived.hitDiceMax}d${derived.hitDie}`, 'Durante um descanso curto, gaste um dado de vida para rolar cura e somar Constituição. Descanso longo recupera parte deles.', ['Descanso', 'Cura'])}>
               <button
                 onClick={() => { if (char.combat.hitDiceRemaining > 0) { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); } }}
-                style={{ cursor: 'pointer', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
+                style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
               >
                 Gastar
               </button>
             </LoreTooltip>
-            <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
+            <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
               {char.combat.hitDiceRemaining} / {derived.hitDiceMax}
             </div>
           </div>
@@ -360,7 +350,7 @@ export function TabCombate({ char, derived }: TabProps) {
                       height: 26,
                       display: 'grid',
                       placeItems: 'center',
-                      fontFamily: "'Chakra Petch', monospace",
+                      fontFamily: 'var(--font-num)',
                       fontWeight: 700,
                       fontSize: 12,
                       borderRadius: 7,
@@ -384,15 +374,16 @@ export function TabCombate({ char, derived }: TabProps) {
 }
 
 function HpBtn({ label, color, strong, onClick }: { label: string; color: string; strong?: boolean; onClick: () => void }) {
+  const ink = useInk();
   return (
     <button
       onClick={onClick}
       style={{
         cursor: 'pointer',
-        fontFamily: "'Chakra Petch', monospace",
+        fontFamily: 'var(--font-num)',
         fontWeight: 700,
         fontSize: 14,
-        color,
+        color: ink(color),
         minHeight: 40,
         padding: strong ? '9px 16px' : '9px 14px',
         borderRadius: 'var(--radius-md)',
@@ -406,13 +397,14 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
   );
 }
 
-function amtBtn(color: string, enabled: boolean): React.CSSProperties {
+/** `text`: a mesma cor já ajustada para leitura (useInk) — borda/fundo usam a original. */
+function amtBtn(color: string, enabled: boolean, text: string = color): React.CSSProperties {
   return {
     cursor: enabled ? 'pointer' : 'not-allowed',
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: 'var(--font-body)',
     fontWeight: 700,
     fontSize: 12.5,
-    color,
+    color: text,
     minHeight: 40,
     padding: '9px 14px',
     borderRadius: 'var(--radius-md)',
@@ -426,7 +418,7 @@ function amtBtn(color: string, enabled: boolean): React.CSSProperties {
 function moveBtn(accent: boolean): React.CSSProperties {
   return {
     cursor: 'pointer',
-    fontFamily: "'Chakra Petch', monospace",
+    fontFamily: 'var(--font-num)',
     fontWeight: 700,
     fontSize: 13,
     color: accent ? 'var(--acc)' : 'var(--ink)',
@@ -439,9 +431,10 @@ function moveBtn(accent: boolean): React.CSSProperties {
 }
 
 function DeathRow({ label, color, value, onClick }: { label: string; color: string; value: number; onClick: (n: number) => void }) {
+  const ink = useInk();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-      <span style={{ fontSize: 11, color }}>{label}</span>
+      <span style={{ fontSize: 11, color: ink(color) }}>{label}</span>
       {[1, 2, 3].map((n) => (
         <span
           key={n}

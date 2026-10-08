@@ -22,6 +22,8 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Sintonia restrita (copiada do catálogo; itens novos leem do catálogo). */
+  attuneBy?: string[];
   /** Efeitos automáticos de item mágico (ver MagicEffects). */
   magic?: import('./dnd').MagicEffects;
   /** Dados de cura ao beber/usar (poções). */
@@ -34,8 +36,20 @@ export interface InventoryItem {
    * Só valem quando o item está equipado ou sintonizado.
    */
   grantsSpells?: ItemSpellGrant[];
+  /** Cargas do item (cajados, varinhas…). */
+  charges?: ItemCharges;
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
+  /**
+   * Como o item é usado (Forja): `worn` = vestível (amuleto, capa, botas…),
+   * vale enquanto vestido; `body` = parte do corpo (olho, braço, implante…),
+   * vale sempre e não sai do personagem. Sem valor: item comum.
+   */
+  wear?: 'worn' | 'body';
+  /** Vestível: está vestido agora. */
+  worn?: boolean;
+  /** Arte do item (opcional): vira uma carta ao lado dos detalhes. */
+  image?: string | null;
   /**
    * Onde o item fica quando NÃO está equipado (escolha do jogador ao arrastar
    * ou em "Guardar no Baú"). Sem valor: tesouros e itens mágicos vão ao Baú,
@@ -72,6 +86,27 @@ export interface ItemSpellGrant {
   recharge: 'atwill' | 'short' | 'long';
   /** Quantos usos por descanso (recharge short/long). Padrão 1. */
   uses?: number;
+  /** Item com cargas: quantas cargas a magia gasta (padrão 1). */
+  cost?: number;
+  /** Cargas por círculo (Cajado da Cura: Curar Ferimentos, 1 carga por círculo até `maxLevel`). */
+  perLevel?: boolean;
+  /** Círculo máximo com `perLevel`. */
+  maxLevel?: number;
+  /** Conjura sempre neste círculo (Cajado do Poder: Bola de Fogo de 5º). */
+  castLevel?: number;
+  /** Cada carga extra sobe 1 círculo (Varinha de Bolas de Fogo, de Mísseis Mágicos). */
+  upcast?: boolean;
+  /** CD fixa do item (varinhas: 15). Sem valor: usa a CD de quem empunha. */
+  dc?: number;
+}
+
+/** Cargas de um item mágico (cajados, varinhas, alguns anéis). */
+export interface ItemCharges {
+  max: number;
+  /** Quanto volta ao amanhecer (no app: no descanso longo) — dados ("1d6+4") ou "all". */
+  regain: string;
+  /** Ao gastar a última carga, rola-se um d20: no 1 acontece isto. */
+  emptyRisk?: { text: string; remove?: boolean };
 }
 
 /** Proficiência com ferramenta (id do catálogo ou rótulo livre). */
@@ -86,6 +121,22 @@ export interface ToolProf {
   ability?: AbilityKey;
   /** Bônus manual extra (itens, situações fixas). */
   manualBonus?: number;
+  notes?: string;
+}
+
+/** Companheiro, montaria ou familiar do herói (base do catálogo ou livre). */
+export interface Ally {
+  id: string;
+  kind: 'companheiro' | 'montaria' | 'familiar';
+  name: string;
+  /** Fera de base (data/beasts); sem base = criatura livre (homebrew). */
+  beastId?: string | null;
+  portrait?: string | null;
+  hpCurrent?: number;
+  /** Ajustes livres (sobrepõem a base). */
+  hpMax?: number;
+  ac?: number;
+  speed?: string;
   notes?: string;
 }
 
@@ -140,6 +191,8 @@ export interface CombatState {
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
   itemSpellUses?: Record<string, number>;
+  /** Cargas gastas de itens com cargas (uid -> gastas). */
+  itemCharges?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
 }
 
@@ -207,6 +260,20 @@ export interface Character {
   // identidade
   raceId: string;
   subraceId: string | null;
+  /** Atributos escolhidos no bônus racial à escolha (Meio-Elfo). */
+  raceAbilityChoice?: AbilityKey[];
+  /**
+   * Origem personalizada (Caldeirão de Tasha): bônus raciais redistribuídos e
+   * perícias/idiomas da raça trocados. Ausente = regras normais da raça.
+   */
+  customOrigin?: {
+    /** Bônus de atributo da raça, já redistribuídos (substituem os da raça). */
+    asi?: Partial<Record<AbilityKey, number>>;
+    /** Perícia da raça → perícia escolhida no lugar. */
+    skillSwap?: Record<string, import('./dnd').SkillKey>;
+    /** Idioma da raça → idioma escolhido no lugar. */
+    langSwap?: Record<string, string>;
+  } | null;
   /** Raça homebrew usada por esta ficha (cópia embutida: funciona offline e na tela do mestre). */
   customRace?: import('./dnd').Race | null;
   classId: string;
@@ -223,6 +290,16 @@ export interface Character {
    * aplicarem o mesmo dano duas vezes.
    */
   appliedEvents?: string[];
+  /** Feitos da carta (contadores + quando cada selo foi conquistado). */
+  deeds?: import('@/engine/deeds').HeroDeeds;
+  /** Cicatrizes gravadas na carta (mestre ou jogador). */
+  scars?: import('@/engine/deeds').Scar[];
+  /** Título exibido sob o nome (id de um feito conquistado que dá título). */
+  title?: string | null;
+  /** Dado conquistado escolhido (data/diceTrophies); null = o do tema. */
+  diceSkin?: string | null;
+  /** Sessões da mesa ao vivo jogadas com esta ficha (linha da jornada). */
+  sessions?: { id: string; name: string; at: string }[];
   /** Níveis por classe (pronto para multiclasse). */
   classLevels: { classId: string; level: number }[];
   subclassId: string | null;
@@ -234,7 +311,9 @@ export interface Character {
    */
   choices?: Record<string, string[]>;
   /** Companheiro de Patrulheiro (Mestre das Feras): nome e PV atuais. A fera vem de `choices['ranger.companion']`. */
-  companion?: { name?: string; hpCurrent?: number };
+  companion?: { name?: string; hpCurrent?: number; portrait?: string | null };
+  /** Companheiros, montarias e familiares (qualquer herói), com carta e retrato próprios. */
+  allies?: Ally[];
   /** Trocas de magia conhecida disponíveis (1 por nível ganho em classe de magias conhecidas). */
   spellSwaps?: number;
   /** Mago: magias copiadas para o grimório pagando ouro (não gastam as grátis do nível). */
@@ -263,6 +342,8 @@ export interface Character {
   hpCurrent: number;
   // recursos / posses
   coins: Coins;
+  /** Kit inicial escolhido na criação (Livro do Jogador: opções "(a) ou (b)"). */
+  startingKit?: Record<string, { option: string; picks?: string[] }>;
   inventory: InventoryItem[];
   equipped: EquippedSlots;
   knownSpells: string[];
@@ -276,6 +357,12 @@ export interface Character {
   updatedAt: number;
   /** Última sincronização com a nuvem (ms); ausente = nunca sincronizada. */
   lastSyncedAt?: number;
+  /**
+   * Versão da nuvem (`updated_at`) que este aparelho viu por último — a base
+   * comum dos dois lados. Mudou na nuvem = `updated_at` diferente dela; mudou
+   * aqui = `updatedAt` diferente dela. Não depende do relógio dos aparelhos.
+   */
+  syncBase?: number;
   /** Estado de sincronização ('synced' | 'pending' | 'conflict' | 'offline'). */
   syncStatus?: import('./models').SyncStatus;
   /** Personagem ainda em criação (rascunho). */

@@ -33,3 +33,8 @@ logs
 .env.*
 !.env.example
 .vercel
+
+# testes de ponta a ponta
+test-results
+playwright-report
+blob-report

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { toast } from '@/store/feedbackStore';
 import { itemGrantedSpells } from '@/engine/spellcasting';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useCharacterStore } from '@/store/characterStore';
@@ -13,24 +14,38 @@ import { TabCombate } from '@/components/sheet/TabCombate';
 import { TabInventario } from '@/components/sheet/TabInventario';
 import { TabMagias } from '@/components/sheet/TabMagias';
 import { TabDescanso } from '@/components/sheet/TabDescanso';
-import { TabDiario } from '@/components/sheet/TabDiario';
 import { DiceRoller } from '@/components/dice/DiceRoller';
 import { TabMesa } from '@/components/sheet/TabMesa';
 import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
 import { useUiStore } from '@/store/uiStore';
+import { mayAutoShow } from '@/services/onboardingSync';
 import { loadDice3d } from '@/lib/dice3d';
+import { downloadCharacterJson } from '@/lib/exportCharacter';
+
+// diário puxa handouts/NPCs da mesa (código e estilos do palco): só quando a aba abre
+const SheetHistoryModal = lazy(() => import('@/components/sheet/SheetHistoryModal').then((m) => ({ default: m.SheetHistoryModal })));
+const ShareSheetModal = lazy(() => import('@/components/sheet/ShareSheetModal').then((m) => ({ default: m.ShareSheetModal })));
+const TabRetrato = lazy(() => import('@/components/sheet/TabRetrato').then((m) => ({ default: m.TabRetrato })));
+const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const characters = useCharacterStore((s) => s.characters);
-  const exportCharacter = useCharacterStore((s) => s.exportCharacter);
 
   const char = useMemo(() => characters.find((c) => c.id === id), [characters, id]);
-  const [tab, setTab] = useState('mesa');
+  const location = useLocation();
+  const [tab, setTab] = useState<string>(() => (location.state as { tab?: string } | null)?.tab ?? 'mesa');
+  // a busca geral pode mandar direto para uma aba ("Magias", "Inventário"…)
+  const wantedTab = (location.state as { tab?: string } | null)?.tab;
+  useEffect(() => {
+    if (wantedTab) setTab(wantedTab);
+  }, [wantedTab, location.key]);
   const [editing, setEditing] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [history, setHistory] = useState(false);
 
   const derived = useMemo(() => (char ? deriveCharacter(char) : null), [char]);
 
@@ -55,6 +70,22 @@ export function CharacterSheet() {
     return () => setActiveChar(null);
   }, [id, setActiveChar]);
 
+  // 1ª ficha aberta neste aparelho: o tour guiado mostra onde fica cada coisa
+  const startTour = useUiStore((s) => s.startTour);
+  const sheetTourSeen = useUiStore((s) => !!s.toursSeen.sheet || s.tipsOff);
+  const hasChar = !!char;
+  useEffect(() => {
+    if (!hasChar || sheetTourSeen) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      void mayAutoShow((ui) => !!ui.toursSeen.sheet).then((ok) => alive && ok && startTour('sheet'));
+    }, 1300);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [hasChar, sheetTourSeen, startTour]);
+
   if (!char || !derived) {
     return (
       <Screen actions={<Button onClick={() => navigate('/personagens')}>Voltar</Button>}>
@@ -77,15 +108,8 @@ export function CharacterSheet() {
   const activeTab = tab === 'magias' && !isCaster ? 'ficha' : tab;
 
   const exportJson = () => {
-    const json = exportCharacter(char.id);
-    if (!json) return;
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${char.name.replace(/\s+/g, '-').toLowerCase()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCharacterJson(char);
+    toast('Ficha exportada como arquivo JSON.');
   };
 
   const renderTab = () => {
@@ -96,7 +120,8 @@ export function CharacterSheet() {
       case 'inventario': return <TabInventario char={char} derived={derived} />;
       case 'magias': return <TabMagias char={char} derived={derived} />;
       case 'descanso': return <TabDescanso char={char} derived={derived} />;
-      case 'diario': return <TabDiario char={char} derived={derived} />;
+      case 'retrato': return <Suspense fallback={null}><TabRetrato char={char} derived={derived} /></Suspense>;
+      case 'diario': return <Suspense fallback={null}><TabDiario char={char} derived={derived} /></Suspense>;
       case 'dados': return <DiceRoller char={char} />;
       default: return <TabFicha char={char} derived={derived} />;
     }
@@ -115,10 +140,21 @@ export function CharacterSheet() {
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
         { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
+        { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
+        { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+        {
+          label: 'Tour pela ficha',
+          icon: 'spark',
+          onClick: () => {
+            setTab('mesa');
+            setTimeout(() => startTour('sheet'), 250);
+          },
+        },
       ]}
     >
       <div
+        className="fv-sheet-wrap"
         style={{
           maxWidth: 1180,
           margin: '0 auto',
@@ -126,7 +162,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa'} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />
@@ -139,6 +175,16 @@ export function CharacterSheet() {
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
+      {sharing && (
+        <Suspense fallback={null}>
+          <ShareSheetModal char={char} onClose={() => setSharing(false)} />
+        </Suspense>
+      )}
+      {history && (
+        <Suspense fallback={null}>
+          <SheetHistoryModal char={char} onClose={() => setHistory(false)} />
+        </Suspense>
+      )}
     </Screen>
   );
 }

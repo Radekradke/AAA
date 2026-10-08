@@ -6,8 +6,13 @@ import { useAuthStore } from '@/store/authStore';
 import { campaignService } from '@/services/campaignService';
 import { authService } from '@/services/authService';
 import { cloudEnabled } from '@/services/supabaseClient';
+import { normalizeCode } from '@/lib/inviteCode';
+import '@/styles/session.css';
 
-/** Entrada na sala pelo link de convite: /sala/:token → vira membro e abre a mesa. */
+/**
+ * Entrada na sala: /sala/:token (link antigo) ou /sala/K7Q4-2MXP (código
+ * curto / QR) → vira membro e abre a mesa.
+ */
 export function JoinCampaign() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -30,7 +35,8 @@ export function JoinCampaign() {
         return;
       }
       try {
-        const campaignId = await campaignService.joinByToken(token);
+        const code = normalizeCode(token);
+        const campaignId = code ? await campaignService.joinByCode(code) : await campaignService.joinByToken(token);
         navigate(`/mesa/${campaignId}`, { replace: true });
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Convite inválido.');

@@ -413,9 +413,12 @@ create policy "sheets_master_read_shared" on public.sheets for select using (
   )
 );
 
+-- notas com visibility = 'master' são o caderno privado do mestre (console do mestre)
+alter table public.campaign_notes add column if not exists visibility text not null default 'shared';
 drop policy if exists "notes_member_read" on public.campaign_notes;
 create policy "notes_member_read" on public.campaign_notes for select using (
-  public.is_campaign_master(campaign_id) or public.is_campaign_member(campaign_id)
+  public.is_campaign_master(campaign_id)
+  or (public.is_campaign_member(campaign_id) and visibility = 'shared')
 );
 drop policy if exists "notes_master_write" on public.campaign_notes;
 create policy "notes_master_write" on public.campaign_notes for all
@@ -454,6 +457,16 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   alter publication supabase_realtime add table public.campaign_notes;
 exception when duplicate_object then null; end $$;
+-- ---------------------------------------------------------------------
+-- versão do banco: registra que este script rodou (o app avisa o mestre
+-- do que falta). Idempotente.
+-- ---------------------------------------------------------------------
+create table if not exists public.app_schema_steps (step text primary key, applied_at timestamptz not null default now());
+alter table public.app_schema_steps enable row level security;
+drop policy if exists "schema_steps_read" on public.app_schema_steps;
+create policy "schema_steps_read" on public.app_schema_steps for select to authenticated using (true);
+grant select on public.app_schema_steps to authenticated;
+insert into public.app_schema_steps (step) values ('base') on conflict (step) do update set applied_at = now();
 ```
 
 ## 6. Mesa ao vivo — sessão, encontro e iniciativa (multiplayer)
@@ -523,3 +536,55 @@ O script cria:
 - Bucket privado `campaign-media` no Storage (máx. 10 MB por arquivo, só imagens). O mestre envia para a pasta da campanha; cada jogador só baixa imagens de cenas reveladas ou de handouts entregues a ele (`fv_media_readable`).
 
 As imagens são comprimidas no aparelho do mestre antes de subir (WebP; mapas até 3072 px) e ficam guardadas no aparelho de cada jogador depois do primeiro download, para poupar a franquia de tráfego do plano grátis.
+
+## 8. Console do mestre — preparação, notas privadas e improviso
+
+Rode `supabase/mestre_console.sql` (depois do `multiplayer_session.sql`; se o palco já existir, ele também marca as pistas). Numa aba nova do SQL Editor, cole **tudo** e clique em Run sem nada selecionado. Pode rodar de novo sem problema e não apaga dados.
+
+O script:
+
+- **Sessão preparada** — reaproveita `sessions.status = 'planned'`. RPCs `plan_session`, `start_planned_session` (recusa se já houver sessão ao vivo), `rename_session` e `discard_planned_session` (só apaga sessão que ainda não começou). A política `sessions_participant_read` passa a esconder sessões preparadas dos jogadores — o nome pode ser spoiler.
+- **`session_prep`** — a "bandeja da sessão" (atalhos de NPCs, cenas, pistas e criaturas que o mestre separou). Tabela própria, porque a linha da sessão é lida pelos jogadores; RLS `session_prep_master`: só o mestre lê e escreve. Não é roteiro: sem ordem, nada obrigatório.
+- **Notas privadas** — `campaign_notes` ganha `visibility` (`'shared'` padrão ou `'master'`), `session_id` e `updated_at`. A política `notes_member_read` só devolve ao jogador notas `'shared'`: a nota privada **não chega** ao aparelho dele (não é só escondida na tela).
+- **Improviso** — `campaign_npcs.improvised_in` e `campaign_handouts.improvised_in` marcam o que nasceu durante uma sessão. "Guardar na campanha" limpa a marca. Nada é apagado sozinho.
+
+Os scripts antigos (§5 e `multiplayer_session.sql`) foram atualizados com as mesmas políticas: rodá-los de novo **não reabre** notas privadas nem sessões preparadas. O teste `supabase/__tests__/mestre.sql.test.ts` (PGlite) cobre isso.
+
+Sem esse SQL, o console continua funcionando para a sessão ao vivo; bandeja, notas privadas e "preparar para depois" mostram um aviso pedindo para rodar o script.
+
+## 9. Recursos extras — convite por código, ficha compartilhada e registro de erros
+
+Rode `supabase/recursos_extras.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema.
+
+- **Versão do banco** (`app_schema_steps`): cada script registra que rodou. Na sala, o mestre vê um aviso dizendo exatamente qual arquivo falta. Quem já rodou os scripts antigos não precisa rodá-los de novo: este script reconhece o que já existe.
+- **Convite por código**: `invite_links.code` (8 caracteres sem 0/O/1/I/L, mostrado como `XXXX-XXXX`) + a função `join_campaign_code`. O jogador entra em **Mesas → Entrar com código** ou apontando a câmera para o QR. O mestre pode gerar um código novo (o antigo para de valer).
+- **Ficha compartilhada** (`sheet_shares` + `shared_sheet`): link `/f/<token>` só de leitura, sem conta; o dono revoga quando quiser.
+- **Registro de erros** (`client_errors`): erros do app de quem está logado. Ninguém lê pelo app; veja no painel do Supabase → Table Editor → `client_errors`.
+
+`npm test` roda `supabase/__tests__/extras.sql.test.ts` num Postgres em memória (PGlite) com todas as permissões.
+
+## 10. Agenda da campanha — próxima sessão e presença
+
+Rode `supabase/agenda.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+- **`campaign_events`** — os encontros marcados: dia e hora (`starts_at`), duração, título, lugar, recado e `canceled`. RLS: todos da mesa (mestre e jogadores) leem; só o mestre marca, edita, cancela e apaga.
+- **`campaign_rsvps`** — uma resposta por pessoa por encontro (`yes` / `maybe` / `no`), com o nome de quem respondeu e o herói vinculado (o app não tem tabela de perfis). Cada um grava só a própria resposta, só em encontro da própria mesa e que não foi cancelado. Apagar o encontro leva as respostas junto.
+- É separado de `sessions` de propósito: a sessão **preparada** do console do mestre pode ter nome de spoiler e o jogador não a vê; a agenda é pública para a mesa.
+- As duas tabelas entram na publication `supabase_realtime`: a data e as confirmações aparecem sem recarregar.
+
+No app: a sala da mesa mostra a próxima sessão (com **Vou / Talvez / Não vou**, quem já respondeu, **Adicionar ao calendário** em `.ics` e **Google Agenda**); o mestre marca a sessão — o formulário já sugere uma semana depois da última, na mesma hora. A tela inicial mostra a próxima sessão de qualquer mesa sua e se você já confirmou. Sem esse SQL, nada disso aparece (o mestre vê o aviso de script faltando).
+
+`npm test` roda `supabase/__tests__/agenda.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.
+
+## 11. Bestiário da mesa — foto, nome e notas das criaturas
+
+Rode `supabase/bestiario.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+- **`campaign_monsters`** — a aparência que o mestre deu a uma criatura nesta campanha: `name` e `portrait` (imagem leve em data URL, até ~400 KB, só `data:image/…`). Todos da mesa leem, porque a foto e o nome aparecem na iniciativa e nos peões do mapa; só o mestre grava. Apagar a linha volta ao padrão.
+- **`campaign_monster_notes`** — notas do mestre por criatura (táticas, ganchos). Só o mestre lê e grava: o jogador não recebe nem a linha.
+- `monster_ref` é o id da criatura no bestiário do app (`goblin`, `young-red-dragon`). Já aceita ids `hb:<uuid>`, reservados para as criaturas próprias do mestre (bestiário do mestre, valendo para todas as mesas dele), que virão num script à parte.
+- `campaign_monsters` entra na publication `supabase_realtime`: trocou a foto, a mesa de todos atualiza.
+
+No app: a sala da mesa mostra ao mestre o **Bestiário da mesa** (cartas com arte, filtros por tipo e ND, ficha completa e **Personalizar**). A arte padrão vem de `src/assets/bestiario/<id>.webp` (guia com um prompt por criatura em `docs/ARTE-BESTIARIO.md`); sem arquivo, aparece o emblema do tipo. Sem esse SQL, as cartas e a arte funcionam, só o **Personalizar** pede para rodar o script.
+
+`npm test` roda `supabase/__tests__/bestiario.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.

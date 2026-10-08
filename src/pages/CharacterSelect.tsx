@@ -1,5 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from '@/store/feedbackStore';
+import { deleteHeroWithUndo, duplicateHero } from '@/lib/heroActions';
 import { useNavigate } from 'react-router-dom';
+import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
@@ -11,20 +14,25 @@ import { hexA } from '@/lib/color';
 import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { raceOf } from '@/data/races';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import type { Character } from '@/types/character';
+import { GuildDashboard } from '@/components/character/GuildDashboard';
+import { PasteImportModal } from '@/components/character/PasteImportModal';
+import { importHeroText } from '@/lib/heroImport';
 
 export function CharacterSelect() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
-  const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
+  const theme = useUiStore((s) => s.theme);
+  // tocar num herói abre a ficha na hora: o pedaço dela já vem com o aparelho ocioso
+  useEffect(() => prefetchOnIdle('sheet', 'creator'), []);
   const t = useTheme();
   const tilt = useTilt();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const characters = useCharacterStore((s) => s.characters);
-  const { setCurrent, deleteCharacter, duplicateCharacter, importCharacter } = useCharacterStore();
+  const setCurrent = useCharacterStore((s) => s.setCurrent);
 
   const mine = useMemo(
     () =>
@@ -34,25 +42,27 @@ export function CharacterSelect() {
     [characters, user.id],
   );
 
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [pasting, setPasting] = useState(false);
 
-  const open = (c: Character) => {
-    setCurrent(c.id);
+  const openId = (id: string) => {
+    setCurrent(id);
     bump(1.3);
-    navigate(`/ficha/${c.id}`);
+    navigate(`/ficha/${id}`);
   };
+  const open = (c: Character) => openId(c.id);
 
   const onImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const res = importCharacter(String(reader.result), user.id);
+      const res = importHeroText(String(reader.result), user.id);
       if (!res.ok) setImportError(res.error ?? 'Falha ao importar.');
       else {
         setImportError(null);
         bump(1.2);
+        toast(res.warnings?.length ? `Personagem importado — ${res.warnings.length} ajuste(s): ${res.warnings[0]}` : 'Personagem importado.', { tone: res.warnings?.length ? 'info' : 'ok' });
       }
     };
     reader.readAsText(file);
@@ -67,12 +77,22 @@ export function CharacterSelect() {
           <Button variant="accent" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>
             Mesas
           </Button>
-          <Button onClick={() => { logout(); navigate('/'); }} style={{ fontSize: 12.5 }}>
-            Sair
+          <Button onClick={() => navigate('/')} style={{ fontSize: 12.5 }}>
+            Menu
           </Button>
         </>
       }
     >
+      {theme === 'rubra' ? (
+        <GuildDashboard
+          heroes={mine}
+          onOpen={open}
+          onNew={() => { bump(1); navigate('/criar'); }}
+          onImport={() => fileRef.current?.click()}
+          onPaste={() => setPasting(true)}
+          importError={importError}
+        />
+      ) : (
       <div
         style={{
           maxWidth: 1080,
@@ -83,6 +103,7 @@ export function CharacterSelect() {
         <div style={{ marginBottom: 'clamp(20px,3vh,32px)' }}>
           <div className="fv-label">Bem-vindo, {user.name}</div>
           <h1
+            className="fv-page-title"
             style={{
               margin: '6px 0 4px',
               fontFamily: 'var(--font-display)',
@@ -108,6 +129,7 @@ export function CharacterSelect() {
         >
           {/* card criar novo */}
           <button
+            className="fv-new-hero"
             onClick={() => { bump(1); navigate('/criar'); }}
             onMouseMove={tilt.onMouseMove}
             onMouseLeave={tilt.onMouseLeave}
@@ -128,6 +150,7 @@ export function CharacterSelect() {
             }}
           >
             <div
+              className="fv-new-hero-plus"
               style={{
                 width: 54,
                 height: 54,
@@ -143,19 +166,20 @@ export function CharacterSelect() {
             >
               +
             </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
-              Novo Personagem
-            </div>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</div>
+            <span className="fv-new-hero-text">
+              <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>Novo Personagem</span>
+              <span style={{ display: 'block', marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</span>
+            </span>
           </button>
 
           {mine.map((c) => {
             const cls = getClass(c.classId);
             const race = raceOf(c);
-            const d = deriveCharacter(c);
+            const d = derivedOf(c);
             return (
               <div
                 key={c.id}
+                className="fv-hero-card"
                 onMouseMove={tilt.onMouseMove}
                 onMouseLeave={tilt.onMouseLeave}
                 style={{
@@ -232,15 +256,16 @@ export function CharacterSelect() {
                           textAlign: 'center',
                           padding: '9px 4px',
                           borderRadius: 11,
-                          background: 'rgba(6,8,12,.62)',
+                          background: 'rgba(6,8,12,.8)',
                           backdropFilter: 'blur(4px)',
                           border: '1px solid var(--line)',
                         }}
                       >
-                        <div style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
+                        {/* placa escura sobre a arte em qualquer modo: texto sempre claro */}
+                        <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 16, color: '#f4f1ea' }}>
                           {stat.v}
                         </div>
-                        <div style={{ fontSize: 9, letterSpacing: '.1em', color: 'var(--muted)', marginTop: 2 }}>
+                        <div style={{ fontSize: 9, letterSpacing: '.1em', color: '#ddd6c9', marginTop: 2 }}>
                           {stat.k}
                         </div>
                       </div>
@@ -258,19 +283,9 @@ export function CharacterSelect() {
                     zIndex: 1,
                   }}
                 >
-                  <CardAction label="Duplicar" onClick={() => duplicateCharacter(c.id)} />
-                  <CardAction
-                    label={confirmId === c.id ? 'Confirmar?' : 'Excluir'}
-                    danger
-                    onClick={() => {
-                      if (confirmId === c.id) {
-                        deleteCharacter(c.id);
-                        setConfirmId(null);
-                      } else {
-                        setConfirmId(c.id);
-                      }
-                    }}
-                  />
+                  <CardAction label="Duplicar" onClick={() => duplicateHero(c.id)} />
+                  {/* exclui na hora; o aviso traz "Desfazer" */}
+                  <CardAction label="Excluir" danger onClick={() => deleteHeroWithUndo(c.id)} />
                 </div>
               </div>
             );
@@ -286,10 +301,23 @@ export function CharacterSelect() {
 
         <div style={{ marginTop: 28, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
-          <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+          <Button onClick={() => setPasting(true)}>Colar ficha (ChatGPT)</Button>
           {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
         </div>
       </div>
+      )}
+      <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+      {pasting && (
+        <PasteImportModal
+          ownerId={user.id}
+          onClose={() => setPasting(false)}
+          onOpen={(id) => {
+            setPasting(false);
+            toast('Herói importado.');
+            openId(id);
+          }}
+        />
+      )}
     </Screen>
   );
 }
@@ -300,14 +328,15 @@ function CardAction({ label, onClick, danger }: { label: string; onClick: () => 
       onClick={onClick}
       style={{
         cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: 'var(--font-body)',
         fontWeight: 600,
         fontSize: 11.5,
         padding: '6px 12px',
         borderRadius: 999,
         border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : 'var(--line)'),
         color: danger ? 'var(--danger)' : 'var(--muted)',
-        background: 'var(--sunk)',
+        // fundo sólido: o card fica sobre a arte do herói (translúcido apagava o texto)
+        background: 'var(--panel)',
         transition: '.2s',
       }}
     >

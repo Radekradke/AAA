@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { useUiStore, historyFor } from '@/store/uiStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -34,8 +35,8 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
         <div className="fv-label" style={{ margin: '13px 0 8px' }}>Últimas Rolagens</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {shown.map((r) => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: "'Chakra Petch', monospace" }}>
-              <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: "'Inter', sans-serif" }}>{r.label}</span>
+            <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: 'var(--font-num)' }}>
+              <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>{r.label}</span>
               <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
               <b style={{ color: rollColor(r), fontSize: 13 }}>{r.total}</b>
             </div>
@@ -55,9 +56,9 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
     setTimeout(() => setSaved(false), 2200);
   };
 
-  const clear = () => {
+  const clear = async () => {
     if (rolls.length === 0) return;
-    if (window.confirm('Limpar o histórico de rolagens desta ficha?')) clearHistory(char?.id);
+    if (await confirmAction({ title: 'Limpar o histórico desta ficha?', message: 'As rolagens registradas somem deste aparelho.', confirmLabel: 'Limpar', danger: true })) clearHistory(char?.id);
   };
 
   return (
@@ -65,7 +66,7 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
         <div className="fv-label">Linha do tempo da sessão</div>
         {rolls.length > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+          <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
             {stats.count} rolag. · <span style={{ color: 'var(--gold)' }}>{stats.crits} crít.</span> · <span style={{ color: 'var(--danger)' }}>{stats.fails} falhas</span>
           </span>
         )}
@@ -78,16 +79,16 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
           <ol style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 420, overflowY: 'auto' }}>
             {shown.map((r) => (
               <li key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: '1px solid var(--line)' }}>
-                <time style={{ flex: 'none', width: 40, fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{rollTime(r.timestamp)}</time>
+                <time style={{ flex: 'none', width: 40, fontSize: 10.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{rollTime(r.timestamp)}</time>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.label}
                     {r.crit && <span style={tag('var(--gold)')}>CRÍTICO</span>}
                     {r.fail && <span style={tag('var(--danger)')}>FALHA</span>}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{r.expr} [{r.rolls.join(', ')}]</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{r.expr} [{r.rolls.join(', ')}]</div>
                 </div>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 18, color: rollColor(r) }}>{r.total}</span>
+                <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 18, color: rollColor(r) }}>{r.total}</span>
               </li>
             ))}
           </ol>

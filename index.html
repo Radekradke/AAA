@@ -15,9 +15,57 @@
       content="Ficha Viva AAA — crie, desperte e jogue suas fichas de D&D 5e com uma experiência cinematográfica de jogo AAA."
     />
     <title>Ficha Viva AAA</title>
+    <script>
+      // aplica o tema e o modo (claro/escuro) salvos (ou o padrão, Véu Astral escuro) antes do app carregar: sem piscar a cor errada.
+      // BOOT = [fundo, fundo 2, metal, tinta] de cada tema/modo, para a tela de abertura (teste: src/data/__tests__/bootSplash.test.ts)
+      var BOOT = {"astral":{"dark":["#0E0A24","#2A1A55","#F4D58D","#F5F1FF"],"light":["#EEE9FB","#FDF0EA","#6A3DCF","#1E1537"]},"frio":{"dark":["#070B16","#0F1A33","#C9D6EA","#E8EEF8"],"light":["#E9EEF4","#F6F8FB","#1D3557","#0F1B2D"]},"brasa":{"dark":["#110D0B","#2B170C","#E0B356","#F7EDE0"],"light":["#EDE4D6","#F7EFE2","#7C4F08","#2A1D12"]},"verdejante":{"dark":["#07130F","#12302A","#E8D9A8","#EAF6EF"],"light":["#EEF3EA","#FBF8EE","#4B682B","#15291F"]},"carmesim":{"dark":["#12060B","#3A0B1C","#E9B48F","#FBEFEA"],"light":["#F3E9E2","#FBF4EE","#8C3B2E","#2B0F18"]},"ouro":{"dark":["#0B0A09","#14120F","#D4BF8A","#E9E3D5"],"light":["#ECE6D8","#F2EDE1","#6E5520","#221C12"]},"eclipse":{"dark":["#141414","#1A1A1A","#F3F2EE","#EEEDE9"],"light":["#E7E5E0","#F1EFEA","#111111","#121212"]},"rubra":{"dark":["#1E0D10","#3A161B","#FE8578","#FBEFEC"],"light":["#F6E9E6","#FBF1EE","#B3241C","#2A1215"]}};
+      try {
+        var st = JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {};
+        var t = BOOT[st.theme] ? st.theme : 'astral';
+        var m = (st.modes || {})[t] || (t === 'eclipse' ? 'light' : 'dark');
+      } catch (e) {
+        var t = 'astral', m = 'dark';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-mode', m);
+      var c = BOOT[t][m], r = document.documentElement.style;
+      r.setProperty('--boot-bg', c[0]);
+      r.setProperty('--boot-bg2', c[1]);
+      r.setProperty('--boot-gold', c[2]);
+      r.setProperty('--boot-ink', c[3]);
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', c[0]);
+    </script>
+    <style>
+      /* tela de abertura: aparece em ~300 ms, antes do JS; o React a substitui ao montar */
+      html { background: var(--boot-bg, #0e0a24); }
+      .fv-boot {
+        position: fixed; inset: 0; display: grid; place-items: center; align-content: center; gap: 18px;
+        background: radial-gradient(120% 95% at 50% -12%, var(--boot-bg2, #2a1a55) 0%, var(--boot-bg, #0e0a24) 58%);
+        color: var(--boot-ink, #f5f1ff); font: 600 13px/1.2 Georgia, 'Times New Roman', serif;
+      }
+      .fv-boot-mark { position: relative; width: 84px; height: 84px; display: grid; place-items: center; }
+      .fv-boot-mark::before {
+        content: ''; position: absolute; inset: 0; border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--boot-gold, #f4d58d) 55%, transparent);
+        animation: fv-boot-pulse 1.6s ease-in-out infinite;
+      }
+      .fv-boot-mark span {
+        width: 44px; height: 44px; display: grid; place-items: center; transform: rotate(45deg);
+        border: 1.5px solid var(--boot-gold, #f4d58d); color: var(--boot-gold, #f4d58d);
+      }
+      .fv-boot-mark b { transform: rotate(-45deg); font-size: 22px; font-weight: 700; }
+      .fv-boot-name { letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.85; }
+      @keyframes fv-boot-pulse { 0%, 100% { transform: scale(0.92); opacity: 0.45; } 50% { transform: scale(1.06); opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { .fv-boot-mark::before { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="fv-boot" role="status" aria-label="Abrindo o Ficha Viva">
+        <div class="fv-boot-mark" aria-hidden="true"><span><b>F</b></span></div>
+        <div class="fv-boot-name">Ficha Viva</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

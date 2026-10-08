@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import type { InventoryItem } from '@/types/character';
-import type { DamageType, WeaponRange, WeaponType } from '@/types/dnd';
+import type { AbilityKey, DamageType, MagicEffects, WeaponRange, WeaponType } from '@/types/dnd';
+import { ABILITY_KEYS } from '@/types/dnd';
+import { ABILITY_LABELS } from '@/data/skills';
 import { customInventoryItem } from '@/engine/inventory';
-import { SPELLS } from '@/data/spells';
+import { SpellPicker } from './SpellPicker';
 import { RARITY } from '@/data/themes';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { Modal } from '@/components/ui/Modal';
+import { ItemArtCard } from '@/components/ui/LoreTooltip';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { Icon } from '@/components/ui/Icon';
 
 interface ItemEditorModalProps {
   /** Item existente para editar; ausente = forjar um novo. */
@@ -30,7 +35,18 @@ const CATEGORIES = [
   { id: 'other', label: 'Outros' },
 ];
 
-const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
+/** Categorias que perguntam "como se usa" (carregar, vestir ou parte do corpo). */
+const WEAR_CATEGORIES = new Set(['other', 'wondrous']);
+/** Categorias com efeitos mágicos automáticos editáveis. */
+const EFFECT_CATEGORIES = new Set(['other', 'wondrous', 'ring']);
+type WearMode = 'carry' | 'worn' | 'body';
+const WEAR_OPTIONS: { id: WearMode; label: string; desc: string }[] = [
+  { id: 'carry', label: 'Só carregar', desc: 'Fica na mochila ou no baú (ferramenta, lembrança, tesouro).' },
+  { id: 'worn', label: 'Vestível', desc: 'Amuleto, capa, botas, luvas… Vale enquanto estiver vestido.' },
+  { id: 'body', label: 'Parte do corpo', desc: 'Olho, braço, implante, marca… Vale sempre e não sai do herói.' },
+];
+
+const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'frio', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
 const DICE = [4, 6, 8, 10, 12];
 
 const label: React.CSSProperties = {
@@ -61,6 +77,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [favorite, setFavorite] = useState(!!item?.favorite);
   const [attunement, setAttunement] = useState(!!item?.attunement);
   const [acBonus, setAcBonus] = useState(String(item?.acBonus ?? 0));
+  const [image, setImage] = useState<string | null>(item?.image ?? null);
   // magia concedida pelo item (estilo BG3)
   const [grantSpell, setGrantSpell] = useState(item?.grantsSpells?.[0]?.spellId ?? '');
   const [grantRecharge, setGrantRecharge] = useState<'atwill' | 'short' | 'long'>(item?.grantsSpells?.[0]?.recharge ?? 'atwill');
@@ -86,7 +103,21 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
   const [addDex, setAddDex] = useState(item?.armor?.addDex ?? true);
   const [maxDex, setMaxDex] = useState(String(item?.armor?.maxDexBonus ?? ''));
 
+  // como se usa + efeitos automáticos
+  const [wear, setWear] = useState<WearMode>(item?.wear ?? 'carry');
+  const [fxAc, setFxAc] = useState(String(item?.magic?.ac ?? ''));
+  const [fxSaves, setFxSaves] = useState(String(item?.magic?.saves ?? ''));
+  const [fxSpellAtk, setFxSpellAtk] = useState(String(item?.magic?.spellAttack ?? ''));
+  const [fxSpellDC, setFxSpellDC] = useState(String(item?.magic?.spellDC ?? ''));
+  const [fxSpeed, setFxSpeed] = useState(String(item?.magic?.speed ?? ''));
+  const [fxRes, setFxRes] = useState<string[]>(item?.magic?.resistances ?? []);
+  const firstSet = Object.entries(item?.magic?.setAbility ?? {})[0] as [AbilityKey, number] | undefined;
+  const [fxSetKey, setFxSetKey] = useState<AbilityKey | ''>(firstSet?.[0] ?? '');
+  const [fxSetVal, setFxSetVal] = useState(String(firstSet?.[1] ?? 19));
+
   const [error, setError] = useState<string | null>(null);
+  const hasWear = WEAR_CATEGORIES.has(category);
+  const hasEffects = EFFECT_CATEGORIES.has(category) || !!item?.magic;
 
   const save = () => {
     if (!name.trim()) {
@@ -128,6 +159,20 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       ? [{ spellId: grantSpell, recharge: grantRecharge, uses: grantRecharge === 'atwill' ? undefined : Math.max(1, parseInt(grantUses) || 1) }]
       : undefined;
 
+    const num = (v: string) => parseInt(v) || 0;
+    const fx: MagicEffects = {
+      ...item?.magic,
+      ac: num(fxAc) || undefined,
+      saves: num(fxSaves) || undefined,
+      spellAttack: num(fxSpellAtk) || undefined,
+      spellDC: num(fxSpellDC) || undefined,
+      speed: parseFloat(fxSpeed.replace(',', '.')) || undefined,
+      resistances: fxRes.length ? fxRes : undefined,
+      setAbility: fxSetKey ? { [fxSetKey]: Math.max(3, Math.min(30, num(fxSetVal))) } : undefined,
+    };
+    const magicFx = hasEffects && Object.values(fx).some((v) => v !== undefined && v !== false) ? fx : undefined;
+    const wearOut = hasWear && wear !== 'carry' ? wear : undefined;
+
     const base = {
       name: name.trim(),
       category,
@@ -141,7 +186,11 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
       weapon,
       armor,
       grantsSpells,
+      magic: magicFx,
+      wear: wearOut,
+      worn: wearOut === 'worn' ? (item?.wear === 'worn' ? item.worn : true) : undefined,
       acBonus: category === 'shield' || category === 'ring' ? bonus || (category === 'shield' ? 2 : 0) : bonus || undefined,
+      image: image ?? undefined,
     };
 
     onSave(editing ? ({ ...item!, ...base, itemId: undefined, homebrew: true } as InventoryItem) : customInventoryItem(base));
@@ -168,6 +217,16 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         </>
       }
     >
+      {/* carta do item (opcional): a arte aparece ao lado dos detalhes */}
+      <div className="fv-forge-art">
+        {image ? <ItemArtCard src={image} rarity={rarity} size="sm" /> : <span className="fv-forge-art-empty" aria-hidden><Icon name="image" size={20} /></span>}
+        <div>
+          <span style={label}>Carta do item (opcional)</span>
+          <p>Uma imagem da arma ou do objeto. Ela vira uma carta ao lado dos detalhes; o brilho acompanha a raridade — prateado, dourado nas muito raras e ouro claro nas lendárias.</p>
+          <PortraitPicker portrait={image} onChange={setImage} max={{ w: 480, h: 600 }} labels={{ add: 'Enviar arte', change: 'Trocar arte' }} />
+        </div>
+      </div>
+
       {/* identidade do item */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
         <label style={{ gridColumn: '1 / -1' }}>
@@ -177,13 +236,13 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         <label>
           <span style={label}>Categoria</span>
           <select className="fv-input" value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.label}</option>)}
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </label>
         <label>
           <span style={label}>Raridade</span>
           <select className="fv-input" value={rarity} onChange={(e) => setRarity(e.target.value)}>
-            {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id} style={{ color: '#111' }}>{r.label}</option>)}
+            {Object.entries(RARITY).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
           </select>
         </label>
         <label>
@@ -209,32 +268,32 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
               <span style={label}>Dados de dano</span>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input className="fv-input" value={dmgDice} onChange={(e) => setDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} />
-                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={dmgDie} onChange={(e) => setDmgDie(e.target.value)} style={{ flex: 1 }}>
-                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                  {DICE.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </label>
             <label>
               <span style={label}>Tipo de dano</span>
               <select className="fv-input" value={dmgType} onChange={(e) => setDmgType(e.target.value as DamageType)}>
-                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
             <label>
               <span style={label}>Bônus mágico</span>
               <select className="fv-input" value={magicBonus} onChange={(e) => setMagicBonus(e.target.value)}>
-                <option value="0" style={{ color: '#111' }}>Comum (sem bônus)</option>
-                <option value="1" style={{ color: '#111' }}>+1 (acerto e dano)</option>
-                <option value="2" style={{ color: '#111' }}>+2 (acerto e dano)</option>
-                <option value="3" style={{ color: '#111' }}>+3 (acerto e dano)</option>
+                <option value="0">Comum (sem bônus)</option>
+                <option value="1">+1 (acerto e dano)</option>
+                <option value="2">+2 (acerto e dano)</option>
+                <option value="3">+3 (acerto e dano)</option>
               </select>
             </label>
             <label>
               <span style={label}>Alcance</span>
               <select className="fv-input" value={wpnRange} onChange={(e) => setWpnRange(e.target.value as WeaponRange)}>
-                <option value="melee" style={{ color: '#111' }}>Corpo a corpo</option>
-                <option value="ranged" style={{ color: '#111' }}>À distância</option>
+                <option value="melee">Corpo a corpo</option>
+                <option value="ranged">À distância</option>
               </select>
             </label>
             {wpnRange === 'ranged' && (
@@ -246,15 +305,15 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             <label>
               <span style={label}>Treinamento</span>
               <select className="fv-input" value={wpnType} onChange={(e) => setWpnType(e.target.value as WeaponType)}>
-                <option value="simple" style={{ color: '#111' }}>Simples</option>
-                <option value="martial" style={{ color: '#111' }}>Marcial</option>
+                <option value="simple">Simples</option>
+                <option value="martial">Marcial</option>
               </select>
             </label>
             <label>
               <span style={label}>Versátil (dado)</span>
               <select className="fv-input" value={versatile} onChange={(e) => setVersatile(e.target.value)}>
-                <option value="" style={{ color: '#111' }}>Não</option>
-                {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>d{d}</option>)}
+                <option value="">Não</option>
+                {DICE.map((d) => <option key={d} value={d}>d{d}</option>)}
               </select>
             </label>
             <CheckRow checked={finesse} onChange={setFinesse} text="Acuidade (usa DES)" />
@@ -266,16 +325,16 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
               <span style={label}>Dano extra (dados)</span>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input className="fv-input" value={bonusDmgDice} onChange={(e) => setBonusDmgDice(e.target.value)} inputMode="numeric" style={{ width: 54, textAlign: 'center' }} title="0 = sem dano extra" />
-                <span style={{ color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>d</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>d</span>
                 <select className="fv-input" value={bonusDmgDie} onChange={(e) => setBonusDmgDie(e.target.value)} style={{ flex: 1 }} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
-                  {DICE.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                  {DICE.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </label>
             <label>
               <span style={label}>Tipo do dano extra</span>
               <select className="fv-input" value={bonusDmgType} onChange={(e) => setBonusDmgType(e.target.value as DamageType)} disabled={(parseInt(bonusDmgDice) || 0) <= 0}>
-                {DAMAGE_TYPES.map((d) => <option key={d} value={d} style={{ color: '#111' }}>{d}</option>)}
+                {DAMAGE_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
           </div>
@@ -302,9 +361,9 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
             <label>
               <span style={label}>Categoria</span>
               <select className="fv-input" value={armorCat} onChange={(e) => setArmorCat(e.target.value as 'leve' | 'média' | 'pesada')}>
-                <option value="leve" style={{ color: '#111' }}>Leve</option>
-                <option value="média" style={{ color: '#111' }}>Média</option>
-                <option value="pesada" style={{ color: '#111' }}>Pesada</option>
+                <option value="leve">Leve</option>
+                <option value="média">Média</option>
+                <option value="pesada">Pesada</option>
               </select>
             </label>
             <label>
@@ -316,33 +375,89 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
         </fieldset>
       )}
 
+      {/* como se usa: carregar, vestir ou parte do corpo */}
+      {hasWear && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Como se usa</legend>
+          <div className="fv-forge-wear" role="radiogroup" aria-label="Como se usa">
+            {WEAR_OPTIONS.map((o) => (
+              <button key={o.id} type="button" role="radio" aria-checked={wear === o.id} className={'fv-forge-wear-opt' + (wear === o.id ? ' is-on' : '')} onClick={() => setWear(o.id)}>
+                <b>{o.label}</b>
+                <small>{o.desc}</small>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      {/* efeitos automáticos (somados na ficha enquanto o item vale) */}
+      {hasEffects && (
+        <fieldset style={fieldsetStyle(t)}>
+          <legend style={legendStyle(t)}>Efeitos automáticos (opcional)</legend>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: 11 }}>
+            <label>
+              <span style={label}>CA extra</span>
+              <input className="fv-input" value={fxAc} onChange={(e) => setFxAc(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Salvaguardas</span>
+              <input className="fv-input" value={fxSaves} onChange={(e) => setFxSaves(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Ataque mágico</span>
+              <input className="fv-input" value={fxSpellAtk} onChange={(e) => setFxSpellAtk(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>CD de magia</span>
+              <input className="fv-input" value={fxSpellDC} onChange={(e) => setFxSpellDC(e.target.value)} inputMode="numeric" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Deslocamento (m)</span>
+              <input className="fv-input" value={fxSpeed} onChange={(e) => setFxSpeed(e.target.value)} inputMode="decimal" placeholder="0" />
+            </label>
+            <label>
+              <span style={label}>Atributo vira</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <select className="fv-input" value={fxSetKey} onChange={(e) => setFxSetKey(e.target.value as AbilityKey | '')} style={{ flex: 1, minWidth: 0 }}>
+                  <option value="">—</option>
+                  {ABILITY_KEYS.map((k) => <option key={k} value={k}>{ABILITY_LABELS[k]}</option>)}
+                </select>
+                <input className="fv-input" value={fxSetVal} onChange={(e) => setFxSetVal(e.target.value)} inputMode="numeric" disabled={!fxSetKey} style={{ width: 56, textAlign: 'center' }} aria-label="Valor do atributo" />
+              </div>
+            </label>
+          </div>
+          <span style={{ ...label, marginTop: 11 }}>Resistências</span>
+          <div className="fv-forge-res" role="group" aria-label="Resistências">
+            {DAMAGE_TYPES.map((d) => {
+              const on = fxRes.includes(d);
+              return (
+                <button key={d} type="button" aria-pressed={on} className={'fv-forge-res-chip' + (on ? ' is-on' : '')} onClick={() => setFxRes(on ? fxRes.filter((x) => x !== d) : [...fxRes, d])}>
+                  {d}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
+            Somados na ficha enquanto o item vale: {hasWear && wear === 'body' ? <b style={{ color: 'var(--ink)' }}>sempre (parte do corpo)</b> : hasWear && wear === 'worn' ? <b style={{ color: 'var(--ink)' }}>quando vestido</b> : <b style={{ color: 'var(--ink)' }}>com o herói (ou sintonizado, se exigir sintonia)</b>}. "Atributo vira" funciona como as Manoplas de Força do Ogro: só vale se o seu for menor.
+          </p>
+        </fieldset>
+      )}
+
       {/* magia concedida (estilo BG3) */}
       <fieldset style={fieldsetStyle(t)}>
         <legend style={legendStyle(t)}>Magia concedida (opcional)</legend>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 11 }}>
-          <label style={{ gridColumn: '1 / -1' }}>
-            <span style={label}>Magia</span>
-            <select className="fv-input" value={grantSpell} onChange={(e) => setGrantSpell(e.target.value)}>
-              <option value="" style={{ color: '#111' }}>— nenhuma —</option>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((lv) => {
-                const opts = SPELLS.filter((s) => s.level === lv);
-                if (!opts.length) return null;
-                return (
-                  <optgroup key={lv} label={lv === 0 ? 'Truques' : `${lv}º círculo`}>
-                    {opts.map((s) => <option key={s.id} value={s.id} style={{ color: '#111' }}>{s.name}</option>)}
-                  </optgroup>
-                );
-              })}
-            </select>
-          </label>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <SpellPicker value={grantSpell} onChange={setGrantSpell} labelStyle={label} />
+          </div>
           {grantSpell && (
             <>
               <label>
                 <span style={label}>Recarga</span>
                 <select className="fv-input" value={grantRecharge} onChange={(e) => setGrantRecharge(e.target.value as 'atwill' | 'short' | 'long')}>
-                  <option value="atwill" style={{ color: '#111' }}>À vontade (como truque)</option>
-                  <option value="short" style={{ color: '#111' }}>1×/descanso curto</option>
-                  <option value="long" style={{ color: '#111' }}>1×/descanso longo</option>
+                  <option value="atwill">À vontade (como truque)</option>
+                  <option value="short">1×/descanso curto</option>
+                  <option value="long">1×/descanso longo</option>
                 </select>
               </label>
               {grantRecharge !== 'atwill' && (
@@ -355,7 +470,7 @@ export function ItemEditorModal({ item, onSave, onClose, initialCategory }: Item
           )}
         </div>
         <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
-          Ex.: um bastão que concede <b style={{ color: 'var(--ink)' }}>Criar Água</b> à vontade, ou um arco com <b style={{ color: 'var(--ink)' }}>Raio de Gelo</b> 1×/descanso curto. A magia só vale com o item equipado ou sintonizado.
+          Ex.: um bastão que concede <b style={{ color: 'var(--ink)' }}>Criar Água</b> à vontade, ou um arco com <b style={{ color: 'var(--ink)' }}>Raio de Gelo</b> 1×/descanso curto. A magia só vale com o item equipado, vestido, sintonizado ou como parte do corpo.
         </p>
       </fieldset>
 

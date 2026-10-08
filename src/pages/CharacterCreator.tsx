@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { confirmAction } from '@/store/feedbackStore';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
+import { mayAutoShow } from '@/services/onboardingSync';
 import type { Character } from '@/types/character';
 import { StepRace } from '@/components/character/StepRace';
 import { StepClass } from '@/components/character/StepClass';
@@ -22,6 +24,13 @@ import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
 import { raceOf } from '@/data/races';
+
+/**
+ * Vídeos animados de fundo por raça/classe (Draconato, Bruxo) — em espera
+ * para uma atualização futura. Os arquivos e o mapeamento (`video` em
+ * races.ts/classes.ts) continuam no projeto: para religar, troque para true.
+ */
+const CREATOR_VIDEOS = false;
 import { getClass } from '@/data/classes';
 
 export function CharacterCreator() {
@@ -34,6 +43,20 @@ export function CharacterCreator() {
   const currentId = useCharacterStore((s) => s.currentId);
 
   const [step, setStep] = useState(0);
+  // 1ª criação neste aparelho: tour guiado pelas partes da tela
+  const startTour = useUiStore((s) => s.startTour);
+  const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator || s.tipsOff);
+  useEffect(() => {
+    if (creatorTourSeen) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      void mayAutoShow((ui) => !!ui.toursSeen.creator).then((ok) => alive && ok && startTour('creator'));
+    }, 1300);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [creatorTourSeen, startTour]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const startedRef = useRef(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -65,7 +88,7 @@ export function CharacterCreator() {
   // pré-preenche o equipamento ao entrar no passo, se ainda vazio
   useEffect(() => {
     if (step === STEP_GEAR && char && char.inventory.length === 0) {
-      update((c) => applySelection(c, defaultSelection(c.classId)));
+      update((c) => applySelection(c, defaultSelection(c.classId, c)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, char?.id]);
@@ -85,7 +108,7 @@ export function CharacterCreator() {
   const pending = creationPending(char);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
-  const creatorVideo = getClass(char.classId).video ?? raceOf(char).video ?? null;
+  const creatorVideo = CREATOR_VIDEOS ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
   const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
   const creatorDarken = creatorVideo ? 0.5 : 1;
 
@@ -116,8 +139,9 @@ export function CharacterCreator() {
     navigate('/personagens');
   };
 
-  const discard = () => {
-    if (!window.confirm(`Descartar ${char.name.trim() || 'este herói'}? Tudo o que foi escolhido até aqui será perdido.`)) return;
+  const discard = async () => {
+    const ok = await confirmAction({ title: `Descartar ${char.name.trim() || 'este herói'}?`, message: 'Tudo o que foi escolhido até aqui será perdido.', confirmLabel: 'Descartar', danger: true });
+    if (!ok) return;
     deleteCharacter(char.id);
     navigate('/personagens');
   };
@@ -145,7 +169,10 @@ export function CharacterCreator() {
         </Button>
       }
       // destrutivo fica no menu, longe do polegar
-      menu={[{ label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true }]}
+      menu={[
+        { label: 'Tour da criação', icon: 'spark', onClick: () => startTour('creator') },
+        { label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true },
+      ]}
     >
       <RaceAura raceId={char.raceId} />
       <div className="fv-forge">
@@ -185,7 +212,7 @@ export function CharacterCreator() {
 
         <main ref={bodyRef} className="fv-forge-main">
           <AnimatePresence mode="wait">
-            <motion.div
+            <m.div
               key={step}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -193,7 +220,7 @@ export function CharacterCreator() {
               transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {renderStep()}
-            </motion.div>
+            </m.div>
           </AnimatePresence>
         </main>
 

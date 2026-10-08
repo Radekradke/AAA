@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
+import type React from 'react';
 import type { Character } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
 import { creationPending } from '@/engine/creationSummary';
@@ -37,9 +38,27 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
   const bg = getBackground(char.backgroundId);
   const named = char.name.trim();
 
+  // hover: leve inclinação e reflexo metálico seguindo o ponteiro
+  const onSheen = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    const el = e.currentTarget.style;
+    el.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
+    el.setProperty('--my', `${(y * 100).toFixed(1)}%`);
+    el.setProperty('--rx', `${((0.5 - y) * 5).toFixed(2)}deg`);
+    el.setProperty('--ry', `${((x - 0.5) * 6).toFixed(2)}deg`);
+  };
+  const offSheen = (e: React.PointerEvent<HTMLDivElement>) => {
+    for (const v of ['--mx', '--my', '--rx', '--ry']) e.currentTarget.style.removeProperty(v);
+  };
+
   return (
     <div className="fv-hero-panel" style={{ ['--race-color' as string]: race.jewel, ['--class-color' as string]: cls.jewel } as CSSProperties}>
-      <div className="fv-hero-portrait">
+      <div className="fv-hero-portrait" onPointerMove={onSheen} onPointerLeave={offSheen}>
+        {/* reflexo metálico que segue o ponteiro */}
+        <span className="fv-hero-sheen" aria-hidden />
         <img src={heroAvatar(char)} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
         {onPortrait && <PortraitPicker portrait={char.portrait} onChange={onPortrait} />}
         <div className="fv-hero-sigil" title={cls.label}>
@@ -48,7 +67,7 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
         <div className="fv-hero-caption">
           <div className={'fv-hero-name' + (named ? '' : ' is-empty')}>{named || 'Herói sem nome'}</div>
           <div className="fv-hero-line">
-            {sub ? sub.label : race.label} · {cls.label}
+            {sub && race.id !== 'dragonborn' ? sub.label : race.label} · {cls.label}
           </div>
           <div className="fv-hero-bg">{bg.label}</div>
         </div>

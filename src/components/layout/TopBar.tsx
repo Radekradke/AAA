@@ -1,14 +1,17 @@
+import { ThemePickerModal } from './ThemePickerModal';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
+import { useThemeMode } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { SyncBadge } from '@/components/ui/SyncBadge';
 import { MusicControl } from './MusicControl';
+import { SearchButton } from '@/components/search/SearchButton';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
-import { THEMES, THEME_ORDER } from '@/data/themes';
+import { THEMES } from '@/data/themes';
 
 export interface TopBarMenuItem {
   label: string;
@@ -24,6 +27,8 @@ interface TopBarProps {
   actions?: ReactNode;
   /** Ações secundárias, recolhidas no menu "⋯". */
   menu?: TopBarMenuItem[];
+  /** O conteúdo já rolou: a barra ganha fundo sólido (no celular, o conteúdo passa por baixo). */
+  scrolled?: boolean;
 }
 
 /**
@@ -31,25 +36,44 @@ interface TopBarProps {
  * Celular: só o essencial (marca, salvamento, ações principais) — o resto
  * vai para o menu "⋯", para nada ser cortado na borda da tela.
  */
-export function TopBar({ actions, menu = [] }: TopBarProps) {
+export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
   const theme = useUiStore((s) => s.theme);
-  const setTheme = useUiStore((s) => s.setTheme);
-  const sound = useUiStore((s) => s.sound);
-  const toggleSound = useUiStore((s) => s.toggleSound);
-  const dice3d = useUiStore((s) => s.dice3d);
-  const toggleDice3d = useUiStore((s) => s.toggleDice3d);
+  const mode = useThemeMode();
+  const toggleThemeMode = useUiStore((s) => s.toggleThemeMode);
   const [open, setOpen] = useState(false);
   const [iosGuide, setIosGuide] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(false);
   const installer = useInstallPrompt();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    // teclado: o foco entra no 1º item; setas/Home/End andam; Esc fecha e devolve o foco; Tab sai
+    const itemsOf = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])].filter((n) => n.getClientRects().length > 0);
+    itemsOf()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        moreRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab') return setOpen(false);
+      const list = itemsOf();
+      const i = list.indexOf(document.activeElement as HTMLElement);
+      const go = (n: number) => {
+        e.preventDefault();
+        list[(n + list.length) % list.length]?.focus();
+      };
+      if (e.key === 'ArrowDown') go(i + 1);
+      else if (e.key === 'ArrowUp') go(i - 1);
+      else if (e.key === 'Home') go(0);
+      else if (e.key === 'End') go(list.length - 1);
+    };
     window.addEventListener('pointerdown', onDown);
     window.addEventListener('keydown', onKey);
     return () => {
@@ -60,9 +84,10 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
 
   const items: (TopBarMenuItem & { key: string })[] = [
     ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
-    { key: 'sound', label: sound ? 'Som: ligado' : 'Som: desligado', icon: sound ? 'volume' : 'volumeOff', onClick: toggleSound },
-    { key: 'dice3d', label: dice3d ? 'Dados 3D: ligados' : 'Dados 3D: desligados', icon: 'd20', onClick: toggleDice3d },
-    { key: 'portraits', label: 'Oficina de retratos', icon: 'image', onClick: () => navigate('/retratos') },
+    { key: 'home', label: 'Menu principal', icon: 'spark', onClick: () => navigate('/') },
+    { key: 'config', label: 'Configurações', icon: 'gear', onClick: () => navigate('/config') },
+    { key: 'theme', label: `Escolher tema · ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
+    { key: 'mode', label: mode === 'dark' ? 'Paleta clara' : 'Paleta escura', icon: 'spark', onClick: toggleThemeMode },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
       ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
@@ -70,25 +95,29 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
   ];
 
   return (
-    <div className="fv-topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0, pointerEvents: 'auto' }}>
+    <div className={'fv-topbar' + (scrolled ? ' is-scrolled' : '')}>
+      {/* a marca leva ao menu principal */}
+      <button type="button" className="fv-topbar-brand" onClick={() => navigate('/')} aria-label="Menu principal" title="Menu principal">
         <div className="fv-topbar-logo" aria-hidden>
           <span>F</span>
         </div>
         <span className="fv-hide-mobile" style={{ fontFamily: 'var(--font-display)', letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
           FICHA&nbsp;VIVA
         </span>
-      </div>
+      </button>
 
       <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
+        <SearchButton />
         <SyncBadge />
         <MusicControl />
         {actions}
 
         <div ref={menuRef} style={{ position: 'relative' }}>
           <button
+            ref={moreRef}
             onClick={() => setOpen((o) => !o)}
             aria-label="Mais opções"
+            data-tour="more"
             aria-haspopup="menu"
             aria-expanded={open}
             className="fv-topbar-icon"
@@ -97,48 +126,17 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
             <Icon name="more" size={18} />
           </button>
           {open && (
-            <div role="menu" className="fv-topbar-menu fv-panel">
-              {/* atmosfera: os climas lado a lado, escolha direta */}
-              <div className="fv-topbar-themes" role="group" aria-label="Atmosfera">
-                <span>Atmosfera</span>
-                <div>
-                  {THEME_ORDER.map((id) => {
-                    const th = THEMES[id];
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={theme === id}
-                        className={'fv-topbar-theme' + (theme === id ? ' is-on' : '')}
-                        onClick={() => setTheme(id)}
-                        title={th.label}
-                      >
-                        <i
-                          aria-hidden
-                          style={{
-                            background: `radial-gradient(circle at 70% 72%, ${th.acc} 0 16%, transparent 18%), radial-gradient(circle at 30% 30%, ${th.gold} 0 9%, transparent 11%), radial-gradient(120% 90% at 50% 0%, ${th.bg2}, ${th.bg})`,
-                            borderColor: theme === id ? th.gold : undefined,
-                            boxShadow: `0 0 12px ${th.bloom}`,
-                          }}
-                        />
-                        <span className="fv-topbar-theme-text">
-                          <b style={{ fontFamily: th.font }}>{th.label}</b>
-                          <small>{th.tagline}</small>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+            <div role="menu" aria-label="Mais opções" className="fv-topbar-menu fv-panel">
               {items.map((it) => (
                 <button
                   key={it.key}
                   role="menuitem"
+                  tabIndex={-1}
                   className={'fv-topbar-menu-item' + (it.mobileOnly ? ' fv-mobile-only' : '')}
                   style={{ color: it.danger ? 'var(--danger)' : undefined }}
                   onClick={() => {
                     setOpen(false);
+                    moreRef.current?.focus(); // o item some com o menu: quem abrir um modal devolve o foco aqui
                     it.onClick();
                   }}
                 >
@@ -151,6 +149,7 @@ export function TopBar({ actions, menu = [] }: TopBarProps) {
         </div>
       </div>
 
+      {themesOpen && <ThemePickerModal onClose={() => setThemesOpen(false)} />}
       {iosGuide && (
         <Modal title="Instalar no iPhone / iPad" icon="d20" onClose={() => setIosGuide(false)} maxWidth={420}>
           <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>

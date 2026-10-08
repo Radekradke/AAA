@@ -1,0 +1,41 @@
+/* ============================================================
+   MODOS CLARO / ESCURO
+   O tema decide o layout; o modo ([data-mode]) decide só a paleta.
+   1) ajustes gerais para qualquer tema no modo claro;
+   2) a paleta "do outro lado" de Ouro Velho, Eclipse e Guilda Rubra
+      (os outros temas trazem as duas paletas no próprio arquivo).
+   As cores batem com THEME_ALT em src/data/themes.ts.
+   ============================================================ */
+
+/* ---------- 1. modo claro: o que era escuro "fixo" passa a usar a paleta ---------- */
+[data-mode='light'] {
+  color-scheme: light;
+}
+[data-mode='dark'] {
+  color-scheme: dark;
+}
+[data-mode='light'] .fv-class-icon,
+[data-mode='light'] .fv-hero-sigil {
+  background: color-mix(in srgb, var(--panel), transparent 8%);
+}
+/* brilhos de texto e "bloom" pensados para o escuro ficam sujos no claro */
+[data-mode='light'] :is(.fv-menu-title, .fv-home-title, .fv-step-head h2, .fv-sh-name, .fv-page-title) {
+  text-shadow: none;
+}
+[data-mode='light'] .fv-hp-notches {
+  opacity: 0.35;
+}
+[data-mode='light'] .fv-hp-bar {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+/* a arte do herói no cabeçalho esmaece para a cor do painel */
+[data-mode='light'] .fv-sheet-head-art {
+  opacity: 0.55;
+}
+
+/* ---------- 2a. Ouro Velho claro: pergaminho e bronze ---------- */
+
+/* ---------- 2b. Eclipse escuro: a página vira grafite e os blocos viram papel ---------- */
+/* os blocos que eram pretos agora são papel claro, com tinta escura */
+
+/* ---------- 2c. Guilda Rubra clara: blush, vinho e coral ---------- */

@@ -1,5 +1,8 @@
 import type { CasterClass, Spell } from '@/types/dnd';
 import { PHB_SPELLS } from './spellsPhb';
+import { XGE_SPELLS } from './spellsXge';
+import { TCE_SPELLS } from './spellsTce';
+import { sourceEnabled } from './contentPacks';
 
 /**
  * Banco de magias — D&D 5e (PHB 2014), em português.
@@ -230,7 +233,7 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-criaragua', level: 1, name: 'Criar ou Destruir Água', school: 'Transmutação',
     castingTime: '1 ação', range: '9 m', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['cleric', 'druid'], save: 'con',
+    classes: ['cleric', 'druid'],
     desc: 'Cria até 40 L de água (ou chuva numa área) ou destrói água/névoa equivalente.', tags: ['utilidade'],
   },
   {
@@ -263,9 +266,9 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-aterrorizar', level: 2, name: 'Raio do Enfraquecimento', school: 'Necromancia',
     castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Concentração, até 1 min', concentration: true,
-    classes: ['warlock', 'wizard'], attack: 'ranged', damage: { dice: '2d8', type: 'necrótico' },
-    desc: 'Um feixe drena a força: o alvo causa metade do dano com ataques corpo a corpo baseados em Força.',
-    higher: 'O dano aumenta em +1d8 por círculo acima do 2º.', tags: ['dano', 'debuff'],
+    classes: ['warlock', 'wizard'], attack: 'ranged', save: 'con',
+    desc: 'Um feixe negro drena a força (ataque de magia à distância, sem dano): o alvo causa metade do dano com ataques de arma baseados em Força. No fim de cada turno dele, faz salvaguarda de CON para encerrar.',
+    tags: ['debuff'],
   },
   {
     id: 'sp-passos', level: 2, name: 'Passo Enevoado', school: 'Conjuração',
@@ -302,7 +305,7 @@ const BASE_SPELLS: Spell[] = [
   },
   {
     id: 'sp-calorabrasante', level: 2, name: 'Raio Ardente', school: 'Evocação',
-    castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Instantânea',
+    castingTime: '1 ação', range: '36 m', components: 'V, S', duration: 'Instantânea',
     classes: ['sorcerer', 'wizard'], attack: 'ranged', damage: { dice: '3× 2d6', type: 'fogo' },
     desc: 'Dispara três raios de fogo; cada um é um ataque à distância separado de 2d6.',
     higher: 'Dispara +1 raio por círculo acima do 2º.', tags: ['dano'],
@@ -357,9 +360,9 @@ const BASE_SPELLS: Spell[] = [
   },
   {
     id: 'sp-palavracoragem', level: 3, name: 'Palavra Curativa em Massa', school: 'Evocação',
-    castingTime: '1 ação', range: '18 m', components: 'V', duration: 'Instantânea',
+    castingTime: '1 ação bônus', range: '18 m', components: 'V', duration: 'Instantânea',
     classes: ['cleric'], heal: '1d4 + mod.', area: 'até 6 criaturas',
-    desc: 'Cura até seis criaturas à distância ao mesmo tempo, com uma única ação.',
+    desc: 'Cura até seis criaturas à distância ao mesmo tempo, como ação bônus.',
     higher: 'A cura aumenta em +1d4 por círculo acima do 3º.', tags: ['cura'],
   },
   {
@@ -393,7 +396,7 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-tempestade', level: 4, name: 'Tempestade de Gelo', school: 'Evocação',
     castingTime: '1 ação', range: '90 m', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['druid', 'sorcerer', 'wizard'], save: 'dex', damage: { dice: '2d8 + 4d6', type: 'concussão/gelo' }, area: 'cilindro de 6 m',
+    classes: ['druid', 'sorcerer', 'wizard'], save: 'dex', damage: { dice: '2d8 + 4d6', type: 'concussão/frio' }, area: 'cilindro de 6 m',
     desc: 'Granizo e frio castigam a área; salvaguarda de DES reduz à metade. Vira terreno difícil.',
     higher: 'O dano concussão aumenta em +1d8 por círculo acima do 4º.', tags: ['dano', 'controle'],
   },
@@ -474,8 +477,17 @@ const BASE_SPELLS: Spell[] = [
   },
 ];
 
-/** Todas as magias do Livro do Jogador (base + restante do PHB). */
-export const SPELLS: Spell[] = [...BASE_SPELLS, ...PHB_SPELLS];
+/**
+ * Biblioteca completa: Livro do Jogador + Xanathar + Tasha. As de outros
+ * livros só aparecem nas listas de escolha com o pacote ligado
+ * (`spellVisible`), mas fichas que já as têm sempre as encontram.
+ */
+export const SPELLS: Spell[] = [...BASE_SPELLS, ...PHB_SPELLS, ...XGE_SPELLS, ...TCE_SPELLS];
+
+/** A magia aparece nas listas de escolha? (pacote do livro ligado) */
+export function spellVisible(spell: Spell): boolean {
+  return sourceEnabled(spell.source);
+}
 
 export const SPELL_BY_ID: Record<string, Spell> = Object.fromEntries(
   SPELLS.map((s) => [s.id, s]),
@@ -488,7 +500,7 @@ export function getSpell(id: string): Spell | undefined {
 /** Todas as magias que a classe pode aprender/preparar até o círculo dado. */
 export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
   return SPELLS.filter(
-    (spell) => (spell.classes ? spell.classes.includes(classId as CasterClass) : true) && spell.level <= Math.max(0, maxCircle),
+    (spell) => spellVisible(spell) && (spell.classes ? spell.classes.includes(classId as CasterClass) : true) && spell.level <= Math.max(0, maxCircle),
   ).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
 }
 

@@ -1,4 +1,4 @@
-import type { AbilityKey, CasterClass, Spell, SpellTag } from '@/types/dnd';
+import type { AbilityKey, CasterClass, SourceBook, Spell, SpellTag } from '@/types/dnd';
 
 /**
  * Restante do Livro do Jogador (PHB 2014) — completa `spells.ts`.
@@ -29,7 +29,7 @@ const CONC: Record<string, string> = {
   c1h: 'Concentração, até 1 hora', c2h: 'Concentração, até 2 horas', c6r: 'Concentração, até 6 rodadas', c8h: 'Concentração, até 8 horas', c24h: 'Concentração, até 24 horas',
 };
 
-interface Extra {
+export interface Extra {
   ritual?: boolean;
   save?: AbilityKey;
   attack?: 'melee' | 'ranged';
@@ -43,7 +43,19 @@ interface Extra {
   tags?: SpellTag[];
 }
 
-function S(
+export type SpellBuilder = (
+  id: string, level: number, name: string, school: string, cast: string, range: string,
+  components: string, duration: string, classes: string, desc: string, x?: Extra,
+) => Spell;
+
+/** Construtor compacto de magias com prefixo de id e livro de origem. */
+export function spellBuilder(prefix: string, source?: SourceBook): SpellBuilder {
+  return (...args) => ({ ...buildSpell(...args), id: `${prefix}-${args[0]}`, source });
+}
+
+const S: SpellBuilder = (...args) => buildSpell(...args);
+
+function buildSpell(
   id: string, level: number, name: string, school: string, cast: string, range: string,
   components: string, duration: string, classes: string, desc: string, x: Extra = {},
 ): Spell {
@@ -76,7 +88,7 @@ function S(
   };
 }
 
-const CANTRIP_SCALE = 'O dano aumenta em um dado nos níveis 5, 11 e 17.';
+export const CANTRIP_SCALE = 'O dano aumenta em um dado nos níveis 5, 11 e 17.';
 
 export const PHB_SPELLS: Spell[] = [
   // ======================= TRUQUES =======================
@@ -142,7 +154,7 @@ export const PHB_SPELLS: Spell[] = [
   S('alter-self', 2, 'Alterar-se', 'T', 'A', 'Pessoal', 'V, S', 'c1h', 'sw', 'Escolha: adaptação aquática (respira na água, natação), mudar a aparência ou armas naturais (1d6 mágicas).', { tags: ['buff'] }),
   S('animal-messenger', 2, 'Mensageiro Animal', 'E', 'A', '9 m', 'V, S, M', '24 horas', 'bdr', 'Uma fera Miúda leva uma mensagem de até 25 palavras a um local e destinatário descritos.', { ritual: true }),
   S('arcane-lock', 2, 'Tranca Arcana', 'A', 'A', 'Toque', 'V, S, M', 'Até ser dissipada', 'w', 'Tranca magicamente uma porta, janela ou baú; só você e quem você designar abrem. CD +10 para arrombar.', { material: 'pó de ouro de 25 po (consumido)', tags: ['defesa'] }),
-  S('augury', 2, 'Augúrio', 'D', 'M', 'Pessoal', 'V, S, M', 'I', 'c', 'Pergunta sobre uma ação nos próximos 30 minutos e recebe um presságio: bem-estar, infortúnio, ambos ou nada.', { ritual: true }),
+  S('augury', 2, 'Augúrio', 'D', 'M', 'Pessoal', 'V, S, M', 'I', 'c', 'Pergunta sobre uma ação nos próximos 30 minutos e recebe um presságio: bem-estar, infortúnio, ambos ou nada.', { ritual: true, material: 'varetas, ossos ou fichas marcadas de 25 po' }),
   S('barkskin', 2, 'Pele de Árvore', 'T', 'A', 'Toque', 'V, S, M', 'c1h', 'dr', 'A CA da criatura tocada não pode ser menor que 16.', { tags: ['defesa'] }),
   S('beast-sense', 2, 'Sentido Bestial', 'D', 'A', 'Toque', 'S', 'c1h', 'dr', 'Usa os sentidos de uma fera voluntária (fica cego e surdo para os seus).', { ritual: true }),
   S('blindness', 2, 'Cegueira/Surdez', 'N', 'A', '9 m', 'V', '1 minuto', 'bcsw', 'O alvo faz salvaguarda de CON ou fica cego ou surdo (você escolhe); repete ao fim de cada turno.', { save: 'con', conditions: ['cego', 'surdo'], higher: '+1 alvo por círculo acima do 2º.', tags: ['debuff'] }),
@@ -151,7 +163,7 @@ export const PHB_SPELLS: Spell[] = [
   S('calm-emotions', 2, 'Acalmar Emoções', 'E', 'A', '18 m', 'V, S', 'c1m', 'bc', 'Humanoides numa esfera de 6 m fazem salvaguarda de CAR: suprime encantar/amedrontar ou deixa-os indiferentes a quem eram hostis.', { save: 'cha', area: 'esfera de 6 m', tags: ['controle'] }),
   S('cloud-daggers', 2, 'Nuvem de Adagas', 'C', 'A', '18 m', 'V, S, M', 'c1m', 'bskw', 'Adagas giram num cubo de 1,5 m; quem entrar ou começar o turno ali sofre dano cortante.', { dmg: ['4d4', 'cortante'], area: 'cubo de 1,5 m', higher: '+2d4 por círculo acima do 2º.' }),
   S('continual-flame', 2, 'Chama Contínua', 'V', 'A', 'Toque', 'V, S, M', 'Até ser dissipada', 'cw', 'Uma chama sem calor, como uma tocha, que nunca se apaga.', { material: 'pó de rubi de 50 po (consumido)' }),
-  S('cordon-arrows', 2, 'Cordão de Flechas', 'T', 'A', 'Toque', 'V, S, M', '8 horas', 'r', 'Planta até quatro flechas no chão; elas disparam contra quem entrar a 9 m (salvaguarda de DES ou 1d6 perfurante).', { save: 'dex', dmg: ['1d6', 'perfurante'], higher: '+2 flechas por círculo acima do 2º.', tags: ['defesa'] }),
+  S('cordon-arrows', 2, 'Cordão de Flechas', 'T', 'A', '1,5 m', 'V, S, M', '8 horas', 'r', 'Planta até quatro flechas no chão; elas disparam contra quem entrar a 9 m (salvaguarda de DES ou 1d6 perfurante).', { save: 'dex', dmg: ['1d6', 'perfurante'], higher: '+2 flechas por círculo acima do 2º.', tags: ['defesa'] }),
   S('crown-madness', 2, 'Coroa da Loucura', 'E', 'A', '36 m', 'V, S', 'c1m', 'bskw', 'Um humanoide faz salvaguarda de SAB ou fica encantado e ataca uma criatura que você escolher; você gasta a ação para manter.', { save: 'wis', conditions: ['enfeitiçado'], tags: ['controle'] }),
   S('darkness', 2, 'Escuridão', 'V', 'A', '18 m', 'V, M', 'c10m', 'skw', 'Escuridão mágica numa esfera de 4,5 m; visão no escuro não atravessa e luz não mágica não ilumina.', { area: 'esfera de 4,5 m', tags: ['controle'] }),
   S('darkvision', 2, 'Visão no Escuro', 'T', 'A', 'Toque', 'V, S, M', '8 horas', 'drsw', 'A criatura tocada ganha visão no escuro de 18 m.', { tags: ['buff'] }),
@@ -264,7 +276,7 @@ export const PHB_SPELLS: Spell[] = [
   // ======================= 5º CÍRCULO =======================
   S('animate-objects', 5, 'Animar Objetos', 'T', 'A', '36 m', 'V, S', 'c1m', 'bsw', 'Até dez objetos não carregados ganham vida e atacam sob seu comando (ação bônus).', { higher: '+2 objetos por círculo acima do 5º.', tags: ['invocação'] }),
   S('antilife-shell', 5, 'Concha Antivida', 'A', 'A', 'Pessoal (3 m)', 'V, S', 'c1h', 'd', 'Uma barreira de 3 m ao seu redor impede criaturas vivas (exceto mortos-vivos e constructos) de passar ou alcançar através dela.', { tags: ['defesa'] }),
-  S('awaken', 5, 'Despertar', 'T', 'H', 'Toque', 'V, S, M', 'I', 'bd', 'Uma fera ou planta ganha INT 10, fala um idioma seu e fica enfeitiçada por você por 30 dias.', { material: 'ágata de 1.000 po (consumida)' }),
+  S('awaken', 5, 'Despertar', 'T', '8 horas', 'Toque', 'V, S, M', 'I', 'bd', 'Uma fera ou planta ganha INT 10, fala um idioma seu e fica enfeitiçada por você por 30 dias.', { material: 'ágata de 1.000 po (consumida)' }),
   S('banishing-smite', 5, 'Destruição Banidora', 'A', 'B', 'Pessoal', 'V', 'c1m', 'p', 'No próximo acerto com arma, +5d10 de energia; se o alvo ficar com 50 PV ou menos, é banido para o plano natal (ou semiplano inofensivo).', { dmg: ['5d10', 'energia'] }),
   S('bigbys-hand', 5, 'Mão de Bigby', 'V', 'A', '36 m', 'V, S, M', 'c1m', 'w', 'Uma mão de energia Grande: punho (4d8 energia), empurrão, agarrão (esmaga 2d6+mod) ou escudo, com uma ação bônus por turno.', { dmg: ['4d8', 'energia'], higher: '+2d8 no punho e +2d6 no aperto por círculo acima do 5º.' }),
   S('circle-power', 5, 'Círculo de Poder', 'A', 'A', 'Pessoal (9 m)', 'V', 'c10m', 'p', 'Aliados a 9 m têm vantagem em salvaguardas contra magias; se passarem numa de meio dano, não sofrem nada.', { tags: ['defesa'] }),
@@ -309,11 +321,11 @@ export const PHB_SPELLS: Spell[] = [
   S('create-undead', 6, 'Criar Mortos-Vivos', 'N', 'M', '3 m', 'V, S, M', 'I', 'ckw', 'À noite, transforma até três cadáveres em carniçais que obedecem você por 24 h.', { material: 'ônix negro de 150 po por cadáver', higher: '7º: 4 carniçais; 8º: 5 carniçais ou 2 lívidos/múmias; 9º: 6 ou 3 múmias.', tags: ['invocação'] }),
   S('instant-summons', 6, 'Convocação Instantânea de Drawmij', 'C', 'M', 'Toque', 'V, S, M', 'Até ser dissipada', 'w', 'Marca um objeto; esmagando a safira, ele aparece na sua mão, de onde estiver.', { ritual: true, material: 'safira de 1.000 po' }),
   S('eyebite', 6, 'Mau-Olhado', 'N', 'A', 'Pessoal', 'V, S', 'c1m', 'bskw', 'A cada turno, uma criatura a 18 m que vê você faz SAB ou sofre: adormecer, pânico (amedrontada) ou enjoo (desvantagem).', { save: 'wis', conditions: ['inconsciente', 'amedrontado'], tags: ['controle'] }),
-  S('find-path', 6, 'Encontrar o Caminho', 'D', 'M', 'Pessoal', 'V, S, M', 'c24h', 'bcd', 'Sabe a rota mais curta e direta até um local fixo conhecido no mesmo plano.'),
+  S('find-path', 6, 'Encontrar o Caminho', 'D', 'M', 'Pessoal', 'V, S, M', 'c24h', 'bcd', 'Sabe a rota mais curta e direta até um local fixo conhecido no mesmo plano.', { material: 'instrumentos de adivinhação de 100 po' }),
   S('flesh-stone', 6, 'Carne para Pedra', 'T', 'A', '18 m', 'V, S, M', 'c1m', 'kw', 'CON ou impedido; depois, três falhas antes de três sucessos e o alvo vira pedra permanentemente.', { save: 'con', conditions: ['impedido', 'petrificado'], tags: ['controle'] }),
   S('forbiddance', 6, 'Proibição', 'A', 'X', 'Toque', 'V, S, M', '1 dia', 'c', 'Protege uma área contra teleporte e viagem planar, e fere tipos de criatura escolhidos (5d10 radiante ou necrótico).', { ritual: true, dmg: ['5d10', 'radiante/necrótico'], material: 'pó de rubi de 1.000 po (consumido)', tags: ['defesa'] }),
   S('globe-invulnerability', 6, 'Globo de Invulnerabilidade', 'A', 'A', 'Pessoal (3 m)', 'V, S, M', 'c1m', 'sw', 'Magias de 5º círculo ou menor conjuradas de fora não afetam nada dentro da esfera de 3 m.', { higher: 'Bloqueia +1 círculo por círculo acima do 6º.', tags: ['defesa'] }),
-  S('guards-wards', 6, 'Guardas e Proteções', 'A', 'X', 'Toque', 'V, S, M', '24 horas', 'bw', 'Protege até 230 m² de um prédio: névoa nos corredores, portas trancadas, teias nas escadas, caminhos confusos e mais.', { tags: ['defesa'] }),
+  S('guards-wards', 6, 'Guardas e Proteções', 'A', 'X', 'Toque', 'V, S, M', '24 horas', 'bw', 'Protege até 230 m² de um prédio: névoa nos corredores, portas trancadas, teias nas escadas, caminhos confusos e mais.', { material: 'bastão de prata de 10 po', tags: ['defesa'] }),
   S('harm', 6, 'Prejudicar', 'N', 'A', '18 m', 'V, S', 'I', 'c', 'Doença virulenta: CON (metade); o dano também reduz o PV máximo por 1 hora (não abaixo de 1).', { save: 'con', dmg: ['14d6', 'necrótico'] }),
   S('heal', 6, 'Cura Completa', 'V', 'A', '18 m', 'V, S', 'I', 'cd', 'Cura 70 PV e encerra cegueira, surdez e doenças.', { heal: '70 PV', higher: '+10 PV por círculo acima do 6º.' }),
   S('heroes-feast', 6, 'Banquete dos Heróis', 'C', 'X', '9 m', 'V, S, M', 'I', 'cd', 'Um banquete para até 12: cura doenças e venenos, imunidade a veneno e medo, vantagem em SAB e +2d10 de PV máximo por 24 h.', { material: 'taça de 1.000 po (consumida)', tags: ['buff'] }),
@@ -376,7 +388,7 @@ export const PHB_SPELLS: Spell[] = [
   S('astral-projection', 9, 'Projeção Astral', 'N', 'H', '3 m', 'V, S, M', 'Especial', 'ckw', 'Você e até oito aliados projetam corpos astrais para o Plano Astral.', { material: 'jacinto de 1.000 po e barra de prata de 100 po por criatura' }),
   S('foresight', 9, 'Presciência', 'D', 'M', 'Toque', 'V, S, M', '8 horas', 'bdkw', 'O alvo não pode ser surpreendido e tem vantagem em ataques, testes e salvaguardas; ataques contra ele têm desvantagem.', { tags: ['buff'] }),
   S('gate', 9, 'Portal', 'C', 'A', '18 m', 'V, S, M', 'c1m', 'csw', 'Abre um portal para outro plano; dizendo o nome de uma criatura, pode puxá-la através dele.', { material: 'diamante de 5.000 po', tags: ['movimento'] }),
-  S('imprisonment', 9, 'Aprisionamento', 'A', 'M', '9 m', 'V, S, M', 'Até ser dissipada', 'kw', 'Aprisiona uma criatura (SAB evita) em correntes, prisão subterrânea, gema, sono eterno ou semiplano.', { save: 'wis', tags: ['controle'] }),
+  S('imprisonment', 9, 'Aprisionamento', 'A', 'M', '9 m', 'V, S, M', 'Até ser dissipada', 'kw', 'Aprisiona uma criatura (SAB evita) em correntes, prisão subterrânea, gema, sono eterno ou semiplano.', { save: 'wis', material: 'pergaminho ou estatueta com a imagem do alvo, de 500 po por Dado de Vida dele', tags: ['controle'] }),
   S('mass-heal', 9, 'Cura Completa em Massa', 'V', 'A', '18 m', 'V, S', 'I', 'c', 'Distribui até 700 PV entre quantas criaturas quiser e cura cegueira, surdez e doenças.', { heal: 'até 700 PV divididos' }),
   S('power-word-heal', 9, 'Palavra de Poder: Curar', 'V', 'A', 'Toque', 'V, S', 'I', 'b', 'Cura todos os PV da criatura e encerra enfeitiçar, amedrontar, paralisar e atordoar; ela pode se levantar com a reação.', { heal: 'todos os PV' }),
   S('power-word-kill', 9, 'Palavra de Poder: Matar', 'E', 'A', '18 m', 'V', 'I', 'bskw', 'Uma criatura com 100 PV ou menos morre, sem salvaguarda.', { tags: ['dano'] }),

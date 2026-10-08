@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { getSupabase, cloudEnabled } from '@/services/supabaseClient';
+import { clearErrors, errorReport, onErrorsChange, recentErrors } from '@/lib/errorReporter';
+import type { ErrorEntry } from '@/lib/errorReporter';
 
 /**
  * Diagnóstico da nuvem: mostra, em tempo real, se o Supabase está
@@ -108,10 +110,12 @@ export function Diagnostics() {
                 <span style={{ width: 10, height: 10, borderRadius: 999, flex: 'none', background: c.ok === null ? 'var(--muted)' : c.ok ? '#3FC56B' : 'var(--danger)', boxShadow: c.ok ? '0 0 8px #3FC56B' : c.ok === false ? '0 0 8px var(--danger)' : 'none' }} />
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{c.label}</span>
               </div>
-              <div style={{ marginTop: 5, marginLeft: 19, fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'pre-wrap', fontFamily: "'Chakra Petch', monospace" }}>{c.detail}</div>
+              <div style={{ marginTop: 5, marginLeft: 19, fontSize: 12.5, color: 'var(--muted)', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-num)' }}>{c.detail}</div>
             </div>
           ))}
         </div>
+
+        <RecentErrors />
 
         <p style={{ margin: '18px 0 0', fontSize: 11.5, color: 'var(--muted)' }}>
           Dica: se “Ler tabela sheets/campaigns” falhar com <b style={{ color: 'var(--ink)' }}>recursion</b> ou <b style={{ color: 'var(--ink)' }}>HTTP 500</b>, re-execute o script da seção 5 de <b style={{ color: 'var(--ink)' }}>docs/SUPABASE.md</b>. Se “Sessão ativa” estiver vermelho logo após entrar com Google, confira as <b style={{ color: 'var(--ink)' }}>Redirect URLs</b> no Supabase.
@@ -120,3 +124,53 @@ export function Diagnostics() {
     </Screen>
   );
 }
+
+/** Erros registrados neste aparelho (captador global + telas que quebraram). */
+function RecentErrors() {
+  const [list, setList] = useState<ErrorEntry[]>(() => recentErrors());
+  const [copied, setCopied] = useState(false);
+  useEffect(() => onErrorsChange(() => setList(recentErrors())), []);
+
+  const copy = async () => {
+    const text = errorReport(list);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.prompt('Copie o relatório:', text);
+    }
+  };
+
+  return (
+    <section className="fv-panel fv-diag-errors" aria-labelledby="fv-diag-err-title">
+      <div className="fv-diag-errors-head">
+        <h2 id="fv-diag-err-title" className="fv-label">Erros recentes neste aparelho</h2>
+        {list.length > 0 && (
+          <div className="fv-diag-errors-acts">
+            <button type="button" className="fv-btn-ghost" onClick={() => void copy()}>{copied ? 'Copiado ✓' : 'Copiar relatório'}</button>
+            <button type="button" className="fv-btn-ghost" onClick={clearErrors}>Limpar</button>
+          </div>
+        )}
+      </div>
+      {list.length === 0 ? (
+        <p className="fv-diag-empty">Nenhum erro registrado. Se algo quebrar, ele aparece aqui (e, com conta na nuvem, chega ao dono do projeto).</p>
+      ) : (
+        <ul className="fv-diag-errlist">
+          {list.map((e) => (
+            <li key={e.id}>
+              <div className="fv-diag-errmeta">
+                <span>{new Date(e.at).toLocaleString('pt-BR')}</span>
+                <span>{e.where || '/'}</span>
+                {e.scope && <span>{e.scope}</span>}
+                {e.count > 1 && <b>×{e.count}</b>}
+              </div>
+              <div className="fv-diag-errmsg">{e.message}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+

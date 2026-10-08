@@ -71,3 +71,55 @@ export function playLevel() {
   if (!enabled || !ctx) return;
   [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.08, 0.22, 'sine', 0.06));
 }
+
+/** Batimentos do teste contra a morte: graves, mais rápidos a cada falha. */
+export function playHeartbeat(beats: number, gap: number) {
+  if (!enabled || !ctx) return;
+  for (let i = 0; i < beats; i++) {
+    const t = i * gap;
+    tone(58, t, 0.16, 'sine', 0.16);
+    tone(52, t + 0.17, 0.2, 'sine', 0.12);
+  }
+}
+
+/** Linha reta do monitor (três falhas). */
+export function playFlatline() {
+  if (!enabled || !ctx) return;
+  tone(880, 0.1, 2.2, 'sine', 0.035);
+}
+
+/**
+ * Sons gravados (Kenney "RPG Audio", CC0 — public/sfx): baixados só na
+ * primeira vez que tocam, com os efeitos sonoros ligados.
+ */
+export type SampleName = 'moedas' | 'lamina' | 'pagina' | 'equipar' | 'mochila' | 'descanso';
+const samples = new Map<SampleName, Promise<AudioBuffer | null>>();
+
+function sample(name: SampleName): Promise<AudioBuffer | null> {
+  let p = samples.get(name);
+  if (!p) {
+    const c = ctx;
+    p = c
+      ? fetch(`${import.meta.env.BASE_URL}sfx/${name}.mp3`)
+          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+          .then((b) => c.decodeAudioData(b))
+          .catch(() => null)
+      : Promise.resolve(null);
+    samples.set(name, p);
+  }
+  return p;
+}
+
+/** Toca um som gravado (moedas, lâmina, página…); nada se os efeitos estiverem desligados. */
+export function playSample(name: SampleName, volume = 0.55) {
+  if (!enabled || !ctx) return;
+  void sample(name).then((buf) => {
+    if (!buf || !ctx || !enabled) return;
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    src.buffer = buf;
+    src.connect(gain).connect(ctx.destination);
+    src.start();
+  });
+}

@@ -27,26 +27,50 @@ export function addAbilityBonuses(
   return out;
 }
 
+/** Bônus racial à escolha (Meio-Elfo): os atributos escolhidos, ou o padrão antigo. */
+export function raceChoiceBonus(raceId: string, choice?: AbilityKey[] | null): Partial<AbilityScores> {
+  const ch = getRace(raceId).abilityChoice;
+  if (!ch) return {};
+  const picked = (choice ?? []).filter((k) => !ch.exclude?.includes(k)).slice(0, ch.count);
+  const keys = picked.length === ch.count ? picked : ch.default;
+  return Object.fromEntries(keys.map((k) => [k, ch.amount]));
+}
+
 /**
- * Atributos totais = base + bônus de raça + bônus de sublinhagem.
+ * Atributos totais = base + bônus de raça + bônus de sublinhagem (+ escolha racial).
  */
 export function totalAbilities(
   base: AbilityScores,
   raceId: string,
   subraceId: string | null,
+  choice?: AbilityKey[] | null,
+  custom?: Partial<AbilityScores> | null,
 ): AbilityScores {
+  // Origem personalizada (Tasha): os bônus redistribuídos substituem os da raça
+  if (custom) return addAbilityBonuses(base, custom);
   const race = getRace(raceId);
   const sub = getSubrace(raceId, subraceId);
-  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {});
+  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {}, raceChoiceBonus(raceId, choice));
 }
 
-/** Bônus racial total para um atributo específico (raça + sublinhagem). */
+/** Bônus raciais do personagem como lista (+2, +1…), do maior para o menor. */
+export function racialIncreases(raceId: string, subraceId: string | null, choice?: AbilityKey[] | null): { ability: AbilityKey; amount: number }[] {
+  const race = getRace(raceId);
+  const sub = getSubrace(raceId, subraceId);
+  const sum = addAbilityBonuses({ str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }, race.abilityBonus, sub?.abilityBonus ?? {}, raceChoiceBonus(raceId, choice));
+  return ABILITY_KEYS.filter((k) => sum[k] > 0).map((k) => ({ ability: k, amount: sum[k] })).sort((a, b) => b.amount - a.amount);
+}
+
+/** Bônus racial total para um atributo específico (raça + sublinhagem + escolha). */
 export function racialBonusFor(
   ability: AbilityKey,
   raceId: string,
   subraceId: string | null,
+  choice?: AbilityKey[] | null,
+  custom?: Partial<AbilityScores> | null,
 ): number {
+  if (custom) return custom[ability] ?? 0;
   const race = getRace(raceId);
   const sub = getSubrace(raceId, subraceId);
-  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0);
+  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0) + (raceChoiceBonus(raceId, choice)[ability] ?? 0);
 }

@@ -1,3 +1,4 @@
+import { LANGUAGE_OPTIONS } from '@/data/classChoices';
 import { useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -19,6 +20,7 @@ import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '
 import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
+import { useInk } from '@/lib/contrast';
 
 /**
  * Aba Ficha — identidade de HUD: os 6 atributos na mesma linha (desktop)
@@ -28,6 +30,7 @@ import { SkillsModal } from './SkillsModal';
  */
 export function TabFicha({ char, derived }: TabProps) {
   const t = useTheme();
+  const ink = useInk();
   const tilt = useTilt();
   const { check } = useDiceRoller();
   const store = useCharacterStore();
@@ -64,7 +67,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: hexA(color, 0.95) }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: ink(color) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
                   {/* modificador dentro de um d20 na cor do atributo */}
@@ -74,11 +77,11 @@ export function TabFicha({ char, derived }: TabProps) {
                       <polygon points="32,10 50,41 14,41" fill="none" stroke={hexA(color, 0.5)} strokeWidth="1" />
                       <path d="M32 2 L32 10 M58 17 L50 41 M6 17 L14 41 M32 60 L50 41 M32 60 L14 41 M58 45 L50 41 M6 45 L14 41" stroke={hexA(color, 0.4)} strokeWidth="1" />
                     </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 24, color: 'var(--ink)', textShadow: `0 0 14px ${hexA(color, 0.7)}` }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 24, color: 'var(--ink)', textShadow: `0 0 14px ${hexA(color, 0.7)}` }}>
                       {modStr(a.mod)}
                     </div>
                   </div>
-                  <div style={{ marginTop: 3, fontFamily: "'Chakra Petch', monospace", fontSize: 11.5, color: 'var(--muted)' }}>
+                  <div style={{ marginTop: 3, fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>
                     valor <b style={{ color: 'var(--ink)' }}>{a.total}</b>
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
@@ -87,12 +90,12 @@ export function TabFicha({ char, derived }: TabProps) {
                       style={{
                         marginTop: 7,
                         fontSize: 10,
-                        fontFamily: "'Chakra Petch', monospace",
+                        fontFamily: 'var(--font-num)',
                         letterSpacing: '.05em',
                         padding: '4px 0',
                         borderRadius: 4,
                         cursor: 'pointer',
-                        color: a.saveProf ? '#140d04' : 'var(--muted)',
+                        color: a.saveProf ? 'var(--on-gold, #140d04)' : 'var(--muted)',
                         background: a.saveProf ? t.gold : 'rgba(255,255,255,.05)',
                         border: '1px solid ' + (a.saveProf ? t.gold : t.line),
                       }}
@@ -116,7 +119,7 @@ export function TabFicha({ char, derived }: TabProps) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
             <div className="fv-label">Perícias</div>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
-              <span style={{ cursor: 'help', fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+              <span style={{ cursor: 'help', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                 Percepção Passiva <b style={{ color: t.gold }}>{derived.passivePerception}</b>
               </span>
             </LoreTooltip>
@@ -142,10 +145,11 @@ export function TabFicha({ char, derived }: TabProps) {
                     transition: '.2s',
                   }}
                 >
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 9.5, color: ABILITY_COLORS[sk.ability] }}>{ABILITY_SHORT[sk.ability]}</span>
+                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 9.5, color: ink(ABILITY_COLORS[sk.ability]) }}>{ABILITY_SHORT[sk.ability]}</span>
                   {sk.label}
-                  <b style={{ color: t.gold, fontFamily: "'Chakra Petch', monospace" }}>{modStr(sk.bonus)}</b>
+                  <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
                   {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}
+                  {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
               </LoreTooltip>
             ))}
@@ -163,6 +167,11 @@ export function TabFicha({ char, derived }: TabProps) {
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
         <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
+          {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
+          <dl className="fv-profs">
+            <div><dt>Armaduras</dt><dd>{derived.weaponArmorProfs.armor}</dd></div>
+            <div><dt>Armas</dt><dd>{derived.weaponArmorProfs.weapons}</dd></div>
+          </dl>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
             <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>
@@ -196,9 +205,9 @@ export function TabFicha({ char, derived }: TabProps) {
                     value={tool.ability ?? chk.ability}
                     onChange={(e) => store.setToolAbility(char.id, tool.id, e.target.value as AbilityKey)}
                     aria-label={`Atributo de ${tool.label}`}
-                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: "'Chakra Petch', monospace" }}
+                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: 'var(--font-num)' }}
                   >
-                    {ABILITY_KEYS.map((k) => <option key={k} value={k} style={{ color: '#111' }}>{ABILITY_SHORT[k]}</option>)}
+                    {ABILITY_KEYS.map((k) => <option key={k} value={k}>{ABILITY_SHORT[k]}</option>)}
                   </select>
                   {canExpertiseTools && tool.id === 'thieves-tools' && (
                     <button
@@ -210,11 +219,11 @@ export function TabFicha({ char, derived }: TabProps) {
                   )}
                   <button
                     onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
-                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 13 }}
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
-                  <button onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                  <button className="fv-chip-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
                 </div>
               );
             })}
@@ -226,13 +235,14 @@ export function TabFicha({ char, derived }: TabProps) {
                 className="fv-input"
                 value={toolPick}
                 onChange={(e) => setToolPick(e.target.value)}
+                aria-label="Adicionar proficiência com ferramenta"
                 style={{ flex: 1, minHeight: 40, padding: '8px 34px 8px 12px', fontSize: 13 }}
               >
-                <option value="" style={{ color: '#111' }}>Adicionar ferramenta…</option>
+                <option value="">Adicionar ferramenta…</option>
                 {(['kit', 'artesao', 'instrumento', 'jogo', 'veiculo'] as const).map((g) => (
                   <optgroup key={g} label={TOOL_GROUP_LABELS[g]}>
                     {TOOLS.filter((tl) => tl.group === g && !(char.toolProfs ?? []).some((p) => p.id === tl.id)).map((tl) => (
-                      <option key={tl.id} value={tl.id} style={{ color: '#111' }}>{tl.label}</option>
+                      <option key={tl.id} value={tl.id}>{tl.label}</option>
                     ))}
                   </optgroup>
                 ))}
@@ -260,7 +270,7 @@ export function TabFicha({ char, derived }: TabProps) {
                 <span key={lang} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
                   {lang}
                   {extra && (
-                    <button onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, padding: 0 }}>✕</button>
+                    <button className="fv-chip-remove" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, padding: 0 }}>✕</button>
                   )}
                 </span>
               );
@@ -270,6 +280,7 @@ export function TabFicha({ char, derived }: TabProps) {
             <input
               className="fv-input"
               placeholder="Novo idioma (Élfico, Anão…)"
+              list="fv-lang-options"
               value={langDraft}
               onChange={(e) => setLangDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { store.addLanguage(char.id, langDraft); setLangDraft(''); } }}
@@ -285,6 +296,10 @@ export function TabFicha({ char, derived }: TabProps) {
             </button>
           </div>
 
+          <datalist id="fv-lang-options">
+            {LANGUAGE_OPTIONS.map((o) => <option key={o.id} value={o.label} />)}
+          </datalist>
+
           <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos Passivos</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {([
@@ -294,7 +309,7 @@ export function TabFicha({ char, derived }: TabProps) {
             ] as const).map((pas) => (
               <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
                 <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)', gap: 6 }}>
-                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{pas.value}</b>
+                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{pas.value}</b>
                 </span>
               </LoreTooltip>
             ))}
@@ -333,7 +348,7 @@ export function TabFicha({ char, derived }: TabProps) {
 function RaceTraits({ char }: { char: TabProps['char'] }) {
   const race = raceOf(char);
   const sub = getSubrace(char.raceId, char.subraceId);
-  const details = race.traitDetails ?? [];
+  const details = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
   const names = [...race.traits, ...(sub?.traits ?? [])];
   if (!names.length && !details.length) return null;
   return (

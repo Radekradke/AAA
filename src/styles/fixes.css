@@ -1,0 +1,6 @@
+/* Camada que vem DEPOIS do tema (o tema entra antes dela, sob demanda — ver
+   lib/themeCss.ts): ajustes gerais do modo claro/escuro, polimento e as
+   correções de contraste. A ordem é a mesma de quando tudo vinha junto. */
+@import './themes/modes.css';
+@import './polish.css';
+@import './contrast.css';

@@ -1,9 +1,12 @@
+import { SOURCE_SHORT } from '@/data/contentPacks';
 import { useMemo, useState } from 'react';
 import type { Spell, SpellTag } from '@/types/dnd';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
+import { useInk } from '@/lib/contrast';
+import { SchoolIcon } from '@/components/ui/RuleIcon';
 
 interface SpellLibraryProps {
   title: string;
@@ -96,7 +99,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
       </div>
       <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
         {SCHOOLS.map((sc) => (
-          <button key={sc} onClick={() => setSchool(school === sc ? null : sc)} style={chip(school === sc, t.gold)}>{sc}</button>
+          <button key={sc} onClick={() => setSchool(school === sc ? null : sc)} style={{ ...chip(school === sc, t.gold), display: 'inline-flex', alignItems: 'center', gap: 5 }}><SchoolIcon school={sc} size={13} />{sc}</button>
         ))}
       </div>
 
@@ -117,7 +120,11 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                     <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                     {reasonOf(sp) && <span className="fv-spell-block-reason">🔒 {reasonOf(sp)}</span>}
                     <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
-                      <MiniChip>{sp.school}</MiniChip>
+                      <MiniChip>
+                        <SchoolIcon school={sp.school} size={10} />
+                        {sp.school}
+                      </MiniChip>
+                      {sp.source && <MiniChip color="var(--acc)">{SOURCE_SHORT[sp.source]}</MiniChip>}
                       {sp.damage && <MiniChip color="#FF6A3D">{sp.damage.dice} {sp.damage.type}</MiniChip>}
                       {sp.heal && <MiniChip color="#3FC56B">cura</MiniChip>}
                       {sp.save && <MiniChip color="#9BB0CC">save {ABILITY_SHORT[sp.save]}</MiniChip>}
@@ -146,7 +153,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
               {expanded && (
                 <div style={{ padding: '0 12px 12px 52px', display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {sp.desc && <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)' }}>{sp.desc}</p>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '3px 12px', fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '3px 12px', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                     {sp.castingTime && <span>⏱ {sp.castingTime}</span>}
                     {sp.range && <span>◎ {sp.range}</span>}
                     {sp.duration && <span>⧗ {sp.duration}</span>}
@@ -170,8 +177,9 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
 }
 
 function MiniChip({ children, color }: { children: React.ReactNode; color?: string }) {
+  const ink = useInk();
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ?? 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ? ink(color) : 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

@@ -1,3 +1,4 @@
+import { voices } from '@/lib/voices';
 import type { StepProps } from './stepTypes';
 import { StepHeader, SectionTitle, FactList } from './creatorUi';
 import { HeroPanel } from './HeroPanel';
@@ -66,7 +67,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
             <span>Aparência</span>
             <div className="fv-seg" role="radiogroup" aria-label="Aparência">
               {(['masc', 'fem'] as const).map((g) => (
-                <button key={g} type="button" role="radio" aria-checked={char.gender === g} className={char.gender === g ? 'is-on' : ''} onClick={() => update((c) => { c.gender = g; })}>
+                <button key={g} type="button" role="radio" aria-checked={char.gender === g} className={char.gender === g ? 'is-on' : ''} onClick={() => { update((c) => { c.gender = g; }); voices.play(char.classId, g); }}>
                   {g === 'masc' ? 'Masculina' : 'Feminina'}
                 </button>
               ))}

@@ -8,5 +8,6 @@
   "druid-masc": [38, 13],
   "druid-fem": [48, 16],
   "fighter-masc": [37, 14],
-  "fighter-fem": [37, 18]
+  "fighter-fem": [37, 18],
+  "warlock-fem": [60, 12]
 }

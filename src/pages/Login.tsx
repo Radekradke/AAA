@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { consumeNext } from '@/lib/nextPath';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
@@ -50,7 +51,7 @@ export function Login() {
     void authService.currentUser().then((u) => {
       if (u) {
         setUser(u);
-        navigate('/personagens');
+        navigate(consumeNext());
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +81,7 @@ export function Login() {
         }
       }
       bump(1.3);
-      navigate('/personagens');
+      navigate(consumeNext());
     } finally {
       setBusy(false);
     }
@@ -89,7 +90,7 @@ export function Login() {
   const guest = () => {
     loginAsGuest();
     bump(1.2);
-    navigate('/personagens');
+    navigate(consumeNext());
   };
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -235,7 +236,7 @@ export function Login() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: 'var(--font-body)',
                 fontWeight: 600,
                 fontSize: 14,
                 color: 'var(--ink)',
@@ -263,7 +264,7 @@ export function Login() {
             style={{
               width: '100%',
               cursor: 'pointer',
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: 'var(--font-body)',
               fontWeight: 600,
               fontSize: 14,
               color: 'var(--ink)',
@@ -284,7 +285,7 @@ export function Login() {
           </p>
           {cloud && (
             <p style={{ margin: '8px 0 0', textAlign: 'center' }}>
-              <button type="button" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
+              <button type="button" className="fv-textlink" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
                 Problemas com o login? Abrir diagnóstico →
               </button>
             </p>

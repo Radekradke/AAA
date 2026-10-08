@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StageMap } from './StageMap';
+import { BlankMapButton } from './BlankMap';
 import type { TokenFace } from './StageMap';
 import { mediaService, useMediaUrl, useMediaUrls } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
@@ -7,13 +8,18 @@ import { useCharacterStore } from '@/store/characterStore';
 import { deriveCharacter } from '@/engine/dndRules';
 import { heroAvatar, heroFace } from '@/lib/summary';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { monsterLook } from '@/lib/monsterArt';
+import { useBestiaryStore } from '@/services/bestiaryService';
 import { coverArea, revealArea } from '@/engine/grid';
 import { useSessionStore } from '@/store/sessionStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc } from '@/types/npc';
 import type { Combatant, Encounter } from '@/types/session';
 import type { NewToken } from '@/services/stageService';
+import { stageDragProps } from '@/lib/stageDrop';
+import type { StageDrop } from '@/lib/stageDrop';
 import type { Scene, Token } from '@/types/stage';
+import '@/styles/stage.css';
 
 interface StageViewProps {
   isMaster: boolean;
@@ -24,6 +30,13 @@ interface StageViewProps {
   encounter: Encounter | null;
   /** Mestre: abre a aba de cenas. */
   onOpenLibrary?: () => void;
+  /** Mestre: avisa o console qual peão foi tocado (abre o inspetor). */
+  onSelectToken?: (token: Token | null) => void;
+  /**
+   * Mestre: uma criatura do bestiário foi solta no mapa — põe no encontro
+   * (abrindo um se precisar) e devolve os combatentes novos para virar peão.
+   */
+  onDropMonster?: (ref: string, qty: number) => Promise<Combatant[]>;
 }
 
 const KIND_LABEL: Record<Scene['kind'], string> = { map: 'Mapa tático', image: 'Ambiente', cutscene: 'Cutscene' };
@@ -32,12 +45,18 @@ const KIND_LABEL: Record<Scene['kind'], string> = { map: 'Mapa tático', image: 
  * O PALCO: o que a mesa está vendo. Jogador vê a cena no ar; o mestre vê
  * a cena que escolher (pode preparar uma sem mostrar) e tem as ferramentas.
  */
-export function StageView({ isMaster, userId, heroes, npcs, combatants, encounter, onOpenLibrary }: StageViewProps) {
+export function StageView({ isMaster, userId, heroes, npcs, combatants, encounter, onOpenLibrary, onSelectToken, onDropMonster }: StageViewProps) {
   const st = useStageStore();
   const live = liveScene(st);
   const scene = isMaster ? st.scenes.find((s) => s.id === st.viewSceneId) ?? live : live;
   const isLive = !!scene && scene.id === live?.id;
   const [selected, setSelected] = useState<string | null>(null);
+  const [fullOn, toggleFull] = useMapFullscreen();
+  const full = fullOn && scene?.kind === 'map';
+  // a cena trocou para algo que não é mapa: sai da tela cheia (destrava a página)
+  useEffect(() => {
+    if (fullOn && scene?.kind !== 'map') toggleFull();
+  }, [scene?.kind]); // eslint-disable-line react-hooks/exhaustive-deps
   const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens: st.tokens });
   const canMove = (t: Token) => isMaster || (t.ownerId === userId && !t.hidden);
   const [follow, setFollow] = useState(() => {
@@ -56,12 +75,41 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   // mestre: tocar num peão que não é o da vez escolhe o alvo do próximo ataque
   const select = (id: string | null) => {
     setSelected(id);
+    if (isMaster) onSelectToken?.(id ? st.tokens.find((k) => k.id === id) ?? null : null);
     if (!isMaster || !id) return;
     const t = st.tokens.find((k) => k.id === id);
     const c = t ? ctx.combFor(t) : undefined;
     if (c && !activeIds.has(id)) session.setTarget(c.id);
   };
   const activeToken = st.tokens.find((t) => activeIds.has(t.id)) ?? null;
+
+  // mestre: soltar no mapa o que veio arrastado dos bastidores / da iniciativa
+  const dropOnMap = async (item: StageDrop, cell: { x: number; y: number }) => {
+    if (!scene || scene.kind !== 'map') return;
+    const tokens = useStageStore.getState().tokens;
+    const existing = (pred: (t: Token) => boolean) => tokens.find(pred);
+    const putOne = async (tk: Omit<NewToken, 'x' | 'y' | 'sceneId'>, already?: Token) => {
+      // já está no mapa: só leva até a casa
+      if (already) return st.moveToken(already.id, cell.x, cell.y);
+      const [at] = freeCellsAround(cell, 1, tokens, scene);
+      return st.addTokens([{ ...tk, sceneId: scene.id, ...at }]);
+    };
+    if (item.kind === 'npc') {
+      const n = npcs.find((x) => x.id === item.id);
+      if (n) await putOne({ ...TOKEN_BASE, kind: 'npc', label: n.name, npcId: n.id, hidden: !n.revealed }, existing((t) => t.npcId === n.id));
+    } else if (item.kind === 'hero') {
+      const h = heroes.find((x) => x.share.sheetId === item.sheetId);
+      if (h) await putOne({ ...TOKEN_BASE, kind: 'hero', label: h.snapshot?.name ?? 'Herói', sheetId: h.share.sheetId, ownerId: h.share.ownerId }, existing((t) => t.sheetId === h.share.sheetId));
+    } else if (item.kind === 'combatant') {
+      const c = combatants.find((x) => x.id === item.id);
+      if (c) await putOne(tokenForCombatant(c, npcs, scene.campaignId), existing((t) => t.combatantId === c.id || (!!c.sheetId && t.sheetId === c.sheetId)));
+    } else if (item.kind === 'monster' && onDropMonster) {
+      const added = await onDropMonster(item.ref, item.qty ?? 1);
+      if (!added.length) return;
+      const cells = freeCellsAround(cell, added.length, useStageStore.getState().tokens, scene);
+      await st.addTokens(added.map((c, i) => ({ ...tokenForCombatant(c, npcs, scene.campaignId), sceneId: scene.id, ...cells[i] })));
+    }
+  };
 
   // seguir o turno: o mapa vai até o peão da vez quando o turno muda
   useEffect(() => {
@@ -107,7 +155,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   }
 
   return (
-    <section className={'fv-panel fv-stage' + (scene ? ` is-${scene.kind}` : ' fv-stage-empty')}>
+    <section className={'fv-panel fv-stage' + (scene ? ` is-${scene.kind}` : ' fv-stage-empty') + (full ? ' is-full' : '')}>
       <header className="fv-stage-head">
         <div className="fv-stage-title">
           {scene ? (
@@ -126,7 +174,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
               <select className="fv-input" value={scene?.id ?? ''} onChange={(e) => st.viewScene(e.target.value || null)} aria-label="Cena no seu palco">
                 {!scene && <option value="">Escolha uma cena…</option>}
                 {st.scenes.map((s) => (
-                  <option key={s.id} value={s.id} style={{ color: '#111' }}>
+                  <option key={s.id} value={s.id}>
                     {s.id === live?.id ? '● ' : ''}{s.name} · {KIND_LABEL[s.kind]}
                   </option>
                 ))}
@@ -155,6 +203,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             <>
               <p>Prepare mapas, ambientes e cutscenes em <b>Cenas</b> e ponha no ar quando a história pedir — a tela de todos muda junto.</p>
               {onOpenLibrary && <button type="button" className="fv-btn-gold" onClick={onOpenLibrary}>Abrir cenas</button>}
+              <BlankMapButton />
             </>
           ) : (
             <p>Quando o mestre mostrar um mapa ou uma cena, ela aparece aqui.</p>
@@ -172,6 +221,12 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
                 return tg ? <> → alvo <b className="is-target">{tg.name}</b></> : null;
               })()}</span>
               <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
+              {/* em tela cheia a iniciativa fica escondida: o mestre passa a vez daqui */}
+              {full && isMaster && encounter?.status === 'active' && (
+                <button type="button" className="fv-stage-next" disabled={session.busy} onClick={() => void session.nextTurn()}>
+                  Próximo ▶
+                </button>
+              )}
               <label>
                 <input
                   type="checkbox"
@@ -218,6 +273,9 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
             onFogAll={isMaster ? (mode) => void st.saveFog(scene, mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) : undefined}
             onPullView={isMaster && isLive ? st.pullView : undefined}
+            onDropItem={isMaster ? (item, cell) => void dropOnMap(item, cell) : undefined}
+            full={full}
+            onToggleFull={toggleFull}
           />
           {isMaster && <TokenTray scene={scene} tokens={st.tokens} heroes={heroes} npcs={npcs} combatants={combatants} />}
         </>
@@ -365,6 +423,51 @@ const SIZE_NAME: Record<number, string> = { 0.5: 'Miúdo', 1: 'Pequeno/Médio', 
 const SIZE_FROM_TEXT: Record<string, number> = { Miúdo: 0.5, Pequeno: 1, Médio: 1, Grande: 2, Enorme: 3, Imenso: 4 };
 const MARKER_COLORS = ['#f5c542', '#ff5a5f', '#5cc8ff', '#7dff9b', '#c49bff'];
 
+const TOKEN_BASE = { sheetId: null, ownerId: null, npcId: null, combatantId: null, monsterRef: null, color: null, imagePath: null, size: 1, hidden: false } as const;
+
+/** Peão de um combatente do encontro (herói, NPC ou criatura), com o retrato já lembrado. */
+function tokenForCombatant(c: Combatant, npcs: CampaignNpc[], campaignId: string): Omit<NewToken, 'x' | 'y' | 'sceneId'> {
+  const m = c.monsterRef ? MONSTER_BY_ID[c.monsterRef] : null;
+  // NPC do encontro com o mesmo nome de um NPC da galeria → usa o retrato dele
+  const npc = c.type === 'npc' ? npcs.find((n) => n.name.trim().toLowerCase() === c.name.trim().toLowerCase()) : undefined;
+  return {
+    ...TOKEN_BASE,
+    kind: c.type === 'player' ? 'hero' : c.type === 'npc' ? 'npc' : 'monster',
+    label: c.name,
+    npcId: npc?.id ?? null,
+    imagePath: tokenArt(campaignId)[artKey(c.monsterRef, c.name)] ?? null,
+    sheetId: c.sheetId,
+    ownerId: c.type === 'player' ? c.ownerId : null,
+    combatantId: c.id,
+    monsterRef: c.monsterRef,
+    hidden: c.hidden,
+    size: m ? SIZE_FROM_TEXT[m.size.split(' ')[0]] ?? 1 : 1,
+  };
+}
+
+/** Casas livres mais perto de onde soltou (em espiral), dentro do tabuleiro. */
+export function freeCellsAround(cell: { x: number; y: number }, n: number, tokens: Token[], scene: Scene): { x: number; y: number }[] {
+  const busy = new Set(tokens.filter((t) => t.sceneId === scene.id).map((t) => `${Math.round(t.x)},${Math.round(t.y)}`));
+  const maxX = scene.grid.cols ?? 200;
+  const maxY = scene.grid.rows ?? 200;
+  const out: { x: number; y: number }[] = [];
+  const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < maxX && y < maxY;
+  for (let r = 0; out.length < n && r < 40; r++) {
+    for (let dy = -r; dy <= r && out.length < n; dy++) {
+      for (let dx = -r; dx <= r && out.length < n; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; // só o anel deste raio
+        const x = cell.x + dx;
+        const y = cell.y + dy;
+        if (!inside(x, y) || busy.has(`${x},${y}`)) continue;
+        busy.add(`${x},${y}`);
+        out.push({ x, y });
+      }
+    }
+  }
+  while (out.length < n) out.push({ ...cell });
+  return out;
+}
+
 /** Mestre: põe no mapa heróis, NPCs, o encontro atual ou um marcador. */
 function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; tokens: Token[]; heroes: SharedHero[]; npcs: CampaignNpc[]; combatants: Combatant[] }) {
   const st = useStageStore();
@@ -387,31 +490,12 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
     return out;
   };
 
-  const base = { sheetId: null, ownerId: null, npcId: null, combatantId: null, monsterRef: null, color: null, imagePath: null, size: 1, hidden: false } as const;
-  const remembered = tokenArt(scene.campaignId);
+  const base = TOKEN_BASE;
   const heroesOff = heroes.filter((h) => !onMap((t) => t.sheetId === h.share.sheetId));
   const npcsOff = npcs.filter((n) => !onMap((t) => t.npcId === n.id));
   const combOff = combatants.filter((c) => !onMap((t) => t.combatantId === c.id || (!!c.sheetId && t.sheetId === c.sheetId)));
 
-  const addEncounter = () =>
-    void st.addTokens(place(combOff.map((c) => {
-      const m = c.monsterRef ? MONSTER_BY_ID[c.monsterRef] : null;
-      // NPC do encontro com o mesmo nome de um NPC da galeria → usa o retrato dele
-      const npc = c.type === 'npc' ? npcs.find((n) => n.name.trim().toLowerCase() === c.name.trim().toLowerCase()) : undefined;
-      return {
-        ...base,
-        kind: c.type === 'player' ? 'hero' : c.type === 'npc' ? 'npc' : 'monster',
-        label: c.name,
-        npcId: npc?.id ?? null,
-        imagePath: remembered[artKey(c.monsterRef, c.name)] ?? null,
-        sheetId: c.sheetId,
-        ownerId: c.type === 'player' ? c.ownerId : null,
-        combatantId: c.id,
-        monsterRef: c.monsterRef,
-        hidden: c.hidden,
-        size: m ? SIZE_FROM_TEXT[m.size.split(' ')[0]] ?? 1 : 1,
-      };
-    })));
+  const addEncounter = () => void st.addTokens(place(combOff.map((c) => tokenForCombatant(c, npcs, scene.campaignId))));
 
   return (
     <div className="fv-tray" aria-label="Pôr peões no mapa">
@@ -438,6 +522,7 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
             type="button"
             className="fv-tray-chip is-hero"
             disabled={st.busy}
+            {...stageDragProps({ kind: 'hero', sheetId: h.share.sheetId }, h.snapshot?.name ?? 'Herói')}
             onClick={() => void st.addTokens(place([{ ...base, kind: 'hero', label: h.snapshot?.name ?? 'Herói', sheetId: h.share.sheetId, ownerId: h.share.ownerId }]))}
           >
             + {h.snapshot?.name ?? 'Herói'}
@@ -449,6 +534,7 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
             type="button"
             className="fv-tray-chip is-npc"
             disabled={st.busy}
+            {...stageDragProps({ kind: 'npc', id: n.id }, n.name)}
             onClick={() => void st.addTokens(place([{ ...base, kind: 'npc', label: n.name, npcId: n.id, hidden: !n.revealed }]))}
           >
             + {n.name}
@@ -476,6 +562,7 @@ function TokenTray({ scene, tokens, heroes, npcs, combatants }: { scene: Scene; 
 /** Rosto, deslocamento, vida e turno de cada peão (a partir das fichas, NPCs e do encontro). */
 function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens }: { heroes: SharedHero[]; npcs: CampaignNpc[]; combatants: Combatant[]; encounter: Encounter | null; isMaster: boolean; tokens: Token[] }) {
   const local = useCharacterStore((c) => c.characters);
+  const customs = useBestiaryStore((b) => b.customs);
   const art = useMediaUrls(tokens.map((t) => t.imagePath));
   const bySheet = useMemo(() => {
     const m = new Map<string, { face: TokenFace; speed: number | null }>();
@@ -507,6 +594,10 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
       if (t.sheetId && bySheet.has(t.sheetId)) return bySheet.get(t.sheetId)!.face;
       const n = t.npcId ? npcById.get(t.npcId) : null;
       if (n?.portrait) return { url: n.portrait, style: { backgroundSize: 'cover', backgroundPosition: '50% 20%' } };
+      // criatura do bestiário: foto da mesa ou arte oficial (emblema não vira peão: fica a inicial)
+      const m = t.monsterRef ? MONSTER_BY_ID[t.monsterRef] : null;
+      const look = m ? monsterLook(m, customs[m.id]) : null;
+      if (look?.art) return { url: look.art, style: { backgroundSize: 'cover', backgroundPosition: '50% 18%' } };
       return null;
     },
     speedFor: (t: Token): number | null => {
@@ -526,4 +617,53 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
       return new Set(tokens.filter((t) => combFor(t)?.id === id).map((t) => t.id));
     },
   };
+}
+
+/**
+ * Mapa em tela cheia: o palco cobre a janela (CSS) e, onde o navegador deixa,
+ * a página entra em tela cheia de verdade (some a barra do navegador). É o
+ * documento inteiro que vai para tela cheia — não só o palco — para que
+ * avisos, rolagens e janelas (que abrem no <body>) continuem aparecendo.
+ */
+function useMapFullscreen(): [boolean, () => void] {
+  const [full, setFull] = useState(false);
+  const fullRef = useRef(full);
+  fullRef.current = full;
+
+  // saiu pelo navegador (Esc, gesto, F11): o palco volta junto
+  useEffect(() => {
+    const onChange = () => {
+      if (!document.fullscreenElement) setFull(false);
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  // trava a rolagem da página por baixo e sinaliza o modo para o resto da tela
+  useEffect(() => {
+    if (!full) return;
+    document.body.classList.add('fv-map-full');
+    return () => document.body.classList.remove('fv-map-full');
+  }, [full]);
+
+  // saiu da mesa com o mapa em tela cheia: devolve a janela ao normal
+  useEffect(
+    () => () => {
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    },
+    [],
+  );
+
+  const toggle = useCallback(() => {
+    const next = !fullRef.current;
+    setFull(next);
+    if (next) {
+      // iPhone e alguns navegadores não têm a API: fica só a tela cheia do app
+      void document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => undefined);
+    } else if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+    }
+  }, []);
+
+  return [full, toggle];
 }

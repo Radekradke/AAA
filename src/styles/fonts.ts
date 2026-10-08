@@ -3,7 +3,11 @@
  * app instalado e sem depender de rede. Só o subconjunto latino — cobre o
  * português (ã, ç, é…). Uma fonte de título por clima:
  * Cinzel (Noite Arcana) · Grenze (Forja Dourada) · Alegreya SC (Bosque Élfico) ·
- * Cormorant SC (Corte Carmesim) · Marcellus SC (Véu Astral).
+ * Cormorant SC (Corte Carmesim) · Marcellus SC (Véu Astral) · EB Garamond (Ouro Velho) ·
+ * Manrope + Antonio (Eclipse) · Outfit (Guilda Rubra).
+ * Texto e números também mudam por identidade: Nunito (Véu Astral),
+ * IBM Plex Sans/Mono (Noite Arcana), Barlow + Oswald (Forja Dourada),
+ * Alegreya Sans (Bosque Élfico), Crimson Pro (Corte Carmesim).
  */
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
@@ -27,3 +31,42 @@ import '@fontsource/cormorant-sc/latin-500.css';
 import '@fontsource/cormorant-sc/latin-600.css';
 import '@fontsource/cormorant-sc/latin-700.css';
 import '@fontsource/marcellus-sc/latin-400.css';
+import '@fontsource/eb-garamond/latin-500.css';
+import '@fontsource/eb-garamond/latin-600.css';
+import '@fontsource/eb-garamond/latin-700.css';
+import '@fontsource/manrope/latin-500.css';
+import '@fontsource/manrope/latin-600.css';
+import '@fontsource/manrope/latin-700.css';
+import '@fontsource/manrope/latin-800.css';
+import '@fontsource/antonio/latin-300.css';
+import '@fontsource/antonio/latin-500.css';
+import '@fontsource/outfit/latin-400.css';
+import '@fontsource/outfit/latin-500.css';
+import '@fontsource/outfit/latin-600.css';
+import '@fontsource/outfit/latin-700.css';
+import '@fontsource/nunito/latin-400.css';
+import '@fontsource/nunito/latin-600.css';
+import '@fontsource/nunito/latin-700.css';
+import '@fontsource/nunito/latin-800.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '@fontsource/ibm-plex-mono/latin-600.css';
+import '@fontsource/barlow/latin-400.css';
+import '@fontsource/barlow/latin-500.css';
+import '@fontsource/barlow/latin-600.css';
+import '@fontsource/barlow/latin-700.css';
+import '@fontsource/oswald/latin-500.css';
+import '@fontsource/oswald/latin-600.css';
+import '@fontsource/oswald/latin-700.css';
+import '@fontsource/alegreya-sans/latin-400.css';
+import '@fontsource/alegreya-sans/latin-500.css';
+import '@fontsource/alegreya-sans/latin-700.css';
+import '@fontsource/alegreya-sans/latin-400-italic.css';
+import '@fontsource/crimson-pro/latin-400.css';
+import '@fontsource/crimson-pro/latin-500.css';
+import '@fontsource/crimson-pro/latin-600.css';
+import '@fontsource/crimson-pro/latin-700.css';
+import '@fontsource/crimson-pro/latin-400-italic.css';

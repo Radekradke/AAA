@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { consumeNext } from '@/lib/nextPath';
 import { useNavigate } from 'react-router-dom';
 import { RuneRing } from '@/components/animations/RuneRing';
 import { Screen } from '@/components/layout/Screen';
@@ -18,7 +19,7 @@ export function AuthCallback() {
       if (!alive) return;
       if (res.ok && res.user) {
         setUser(res.user);
-        navigate('/personagens', { replace: true });
+        navigate(consumeNext(), { replace: true });
       } else {
         setError(res.error ?? 'Nao foi possivel concluir o login com Google.');
       }

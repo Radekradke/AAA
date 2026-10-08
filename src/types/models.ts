@@ -42,6 +42,8 @@ export interface SyncConflict {
   name: string;
   localUpdatedAt: number;
   remoteUpdatedAt: number;
+  /** A versão da nuvem, para mostrar a diferença antes de escolher. */
+  remote?: import('./character').Character;
 }
 
 /* ============================================================
@@ -79,6 +81,8 @@ export interface InviteLink {
   expiresAt: number | null;
   maxUses: number | null;
   uses: number;
+  /** Código curto (XXXX-XXXX) — nulo se o banco ainda não tem recursos_extras.sql. */
+  code: string | null;
 }
 
 /** Permissões que o jogador concede ao mestre sobre a própria ficha. */

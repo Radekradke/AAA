@@ -5,6 +5,7 @@ import { ABILITY_LABELS } from '@/data/skills';
 import { standardArrayFor } from '@/engine/characterBuilder';
 import { applySelection, defaultSelection } from '@/engine/loadout';
 import { classFacts } from '@/engine/creationSummary';
+import { voiceFor, voices, useVoices } from '@/lib/voices';
 
 /** O papel de cada classe em poucas palavras (o card não é lugar de sigla). */
 const ROLE: Record<string, string> = {
@@ -25,17 +26,28 @@ const ROLE: Record<string, string> = {
 /** Capítulo II — Caminho: a classe. */
 export function StepClass({ char, update }: StepProps) {
   const cls = getClass(char.classId);
+  const voice = useVoices();
+  const hasVoice = !!voiceFor(cls.id, char.gender);
+  const speaking = voice.speaking === `${cls.id}-${char.gender}`;
 
-  const pickClass = (id: string) =>
+  const pickClass = (id: string) => {
+    voices.play(id, char.gender);
     update((c) => {
       c.classId = id;
+      c.classLevels = [{ classId: id, level: c.level }];
       const newCls = getClass(id);
       c.savingThrowProfs = newCls.savingThrows;
       // realinha o array padrão e limpa as perícias para as opções da nova classe
       c.baseAbilities = standardArrayFor(id);
       c.skillProfs = [];
-      if (c.inventory.length > 0) applySelection(c, defaultSelection(id));
+      if (c.inventory.length > 0) applySelection(c, defaultSelection(id, c));
     });
+  };
+
+  const pickGender = (g: 'masc' | 'fem') => {
+    update((c) => { c.gender = g; });
+    voices.play(cls.id, g);
+  };
 
   return (
     <div className="fv-step">
@@ -62,7 +74,46 @@ export function StepClass({ char, update }: StepProps) {
           title={cls.label}
           desc={cls.blurb}
           facts={classFacts(char)}
-        />
+        >
+          <div className="fv-voice">
+            <div className="fv-seg" role="radiogroup" aria-label="Voz e aparência">
+              {(['masc', 'fem'] as const).map((g) => (
+                <button key={g} type="button" role="radio" aria-checked={char.gender === g} className={char.gender === g ? 'is-on' : ''} onClick={() => pickGender(g)}>
+                  {g === 'masc' ? 'Masculina' : 'Feminina'}
+                </button>
+              ))}
+            </div>
+            {hasVoice ? (
+              <>
+                <button
+                  type="button"
+                  className={'fv-voice-play' + (speaking ? ' is-on' : '')}
+                  onClick={() => (speaking ? voices.stop() : voices.play(cls.id, char.gender))}
+                  disabled={voice.muted}
+                  aria-label={speaking ? 'Parar a fala' : `Ouvir ${cls.label}`}
+                >
+                  {speaking ? (
+                    <span aria-hidden className="fv-voice-eq"><i /><i /><i /></span>
+                  ) : (
+                    <span aria-hidden>▶</span>
+                  )}
+                  {speaking ? 'Falando…' : 'Ouvir'}
+                </button>
+                <button
+                  type="button"
+                  className="fv-voice-mute"
+                  aria-pressed={voice.muted}
+                  onClick={() => voices.setMuted(!voice.muted)}
+                  title={voice.muted ? 'Ligar as falas dos heróis' : 'Silenciar as falas dos heróis'}
+                >
+                  {voice.muted ? 'Falas desligadas' : 'Silenciar'}
+                </button>
+              </>
+            ) : (
+              <small className="fv-voice-none">sem fala gravada para esta versão</small>
+            )}
+          </div>
+        </ChoiceDetail>
       </div>
     </div>
   );

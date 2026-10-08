@@ -5,6 +5,7 @@ import type { RollOptions, RollResult } from '@/engine/dice';
 import type { DerivedAttack } from '@/engine/dndRules';
 import { rollAttack, rollDamage } from '@/engine/combat';
 import { useCharacterStore } from '@/store/characterStore';
+import { playSample } from '@/lib/sfx';
 
 /**
  * Inspiração preparada: marca a rolagem, desconta o ponto da ficha e
@@ -53,6 +54,7 @@ export function useDiceRoller() {
   const attack = useCallback(
     (atk: DerivedAttack, opts: { advantage?: boolean; disadvantage?: boolean } = {}): RollResult => {
       const result = consumeArmedInspiration(rollAttack(atk, { ...modeFlags(), ...opts }));
+      playSample('lamina', 0.4);
       pushRoll(result);
       return result;
     },

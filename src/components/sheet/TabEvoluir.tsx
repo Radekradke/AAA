@@ -8,6 +8,7 @@ import { passiveLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
+import { useSourceOn } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { CLASSES, getClass } from '@/data/classes';
 import { getSubclass, subclassesFor } from '@/data/subclasses';
@@ -71,6 +72,7 @@ function XpBar({ char }: { char: TabProps['char'] }) {
 }
 
 export function TabEvoluir({ char, derived }: TabProps) {
+  const sourceOn = useSourceOn();
   const t = useTheme();
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
@@ -249,7 +251,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
         <Panel>
           <SectionLabel
             right={
-              <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: profNext > profNow ? t.gold : 'var(--muted)' }}>
+              <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: profNext > profNow ? t.gold : 'var(--muted)' }}>
                 Proficiência {modStr(profNow)}{profNext > profNow ? ` → ${modStr(profNext)}` : ''}
               </span>
             }
@@ -268,7 +270,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                   return (
                     <button key={c.id} onClick={() => { setClassId(c.id); setHpRoll(null); }} style={{ ...seg(active), display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left' }}>
                       <span>{c.label}{lvl ? ` (${lvl} → ${lvl + 1})` : ' (novo)'}</span>
-                      <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11 }}>d{c.hitDie}</span>
+                      <span style={{ fontFamily: 'var(--font-num)', fontSize: 11 }}>d{c.hitDie}</span>
                     </button>
                   );
                 })}
@@ -288,7 +290,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                   <button onClick={rollHitDie} className="fv-btn-gold" style={{ padding: '10px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                     <Icon name="d20" size={16} /> Rolar d{cls.hitDie}
                   </button>
-                  <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 20, color: hpRoll ? t.gold : 'var(--muted)' }}>
+                  <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 20, color: hpRoll ? t.gold : 'var(--muted)' }}>
                     {hpRoll ?? '—'}
                   </span>
                 </div>
@@ -296,7 +298,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
               {hpMethod === 'manual' && (
                 <input
                   className="fv-input"
-                  style={{ marginTop: 9, maxWidth: 140, textAlign: 'center', fontFamily: "'Chakra Petch', monospace" }}
+                  style={{ marginTop: 9, maxWidth: 140, textAlign: 'center', fontFamily: 'var(--font-num)' }}
                   inputMode="numeric"
                   placeholder={`1–${cls.hitDie}`}
                   value={hpManual}
@@ -304,7 +306,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                 />
               )}
               <div style={{ marginTop: 9, fontSize: 12, color: 'var(--muted)' }}>
-                Ganho total: <b style={{ color: 'var(--ink)', fontFamily: "'Chakra Petch', monospace" }}>{Math.max(0, hpValue) + conMod}</b> PV
+                Ganho total: <b style={{ color: 'var(--ink)', fontFamily: 'var(--font-num)' }}>{Math.max(0, hpValue) + conMod}</b> PV
                 ({hpValue || '?'} + {conMod} CON)
               </div>
             </div>
@@ -320,7 +322,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                   return (
                     <button key={sub.id} onClick={() => setSubPick(sub.id)} style={{ ...seg(active), textAlign: 'left', minHeight: 58 }}>
                       <div style={{ fontSize: 13.5, color: active ? t.gold : 'var(--ink)' }}>{sub.label}</div>
-                      <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: "'Inter', sans-serif", fontWeight: 400 }}>{sub.desc}</div>
+                      <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>{sub.desc}</div>
                     </button>
                   );
                 })}
@@ -392,14 +394,14 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
               {asiMode === 'feat' && (
                 <div style={{ marginTop: 10 }}>
-                  {(['PHB 2014', 'XGE'] as const).map((source) => {
+                  {(['PHB 2014', 'XGE', 'TCE'] as const).filter((source) => sourceOn(source)).map((source) => {
                     const list = FEATS.filter((f) => f.source === source && !char.feats.includes(f.id));
                     if (list.length === 0) return null;
                     return (
                       <div key={source} style={{ marginBottom: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
-                          <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
-                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : "XANATHAR'S GUIDE (RACIAIS)"}
+                          <span style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
+                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : source === 'XGE' ? 'GUIA DE XANATHAR (RACIAIS)' : 'CALDEIRÃO DE TASHA'}
                           </span>
                           <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
                         </div>
@@ -426,12 +428,12 @@ export function TabEvoluir({ char, derived }: TabProps) {
                                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, alignItems: 'baseline' }}>
                                     <span style={{ fontSize: 13, color: active ? t.gold : 'var(--ink)' }}>{f.label}</span>
                                     {f.prereq && (
-                                      <span style={{ flex: 'none', fontSize: 8.5, letterSpacing: '.08em', color: issue ? t.danger : 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+                                      <span style={{ flex: 'none', fontSize: 8.5, letterSpacing: '.08em', color: issue ? t.danger : 'var(--muted)', fontFamily: 'var(--font-num)' }}>
                                         REQ
                                       </span>
                                     )}
                                   </div>
-                                  <div style={{ marginTop: 2, fontSize: 10.5, color: 'var(--muted)', fontFamily: "'Inter', sans-serif", fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
+                                  <div style={{ marginTop: 2, fontSize: 10.5, color: 'var(--muted)', fontFamily: 'var(--font-body)', fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
                                 </button>
                               </LoreTooltip>
                             );
@@ -579,7 +581,7 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
           borderRadius: 'var(--radius-md)',
           border: '1px solid ' + hexA(t.gold, 0.4),
           background: hexA(t.gold, 0.08),
-          fontFamily: "'Chakra Petch', monospace",
+          fontFamily: 'var(--font-num)',
           fontWeight: 700,
           fontSize: 16,
           color: t.gold,
@@ -592,7 +594,7 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
           Nível {record.level} — {cls.label} {record.classLevel}
           {record.synthetic && <span style={{ marginLeft: 8, fontSize: 9.5, letterSpacing: '.08em', color: 'var(--muted)', textTransform: 'uppercase' }}>migrado (média)</span>}
         </div>
-        <div style={{ marginTop: 3, fontSize: 12, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
+        <div style={{ marginTop: 3, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
           {hpLabel}: {record.hpValue} ({methodLabel}) {conMod >= 0 ? '+' : ''}{conMod} CON
         </div>
         {record.choices && Object.entries(record.choices).map(([key, ids]) => (

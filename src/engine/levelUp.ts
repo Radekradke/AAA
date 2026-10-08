@@ -1,4 +1,4 @@
-import type { AbilityScores, Feat } from '@/types/dnd';
+import type { AbilityKey, AbilityScores, Feat } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AsiChoice, Character, LevelUpRecord } from '@/types/character';
 import { DEFAULT_CAMPAIGN } from '@/types/character';
@@ -9,6 +9,9 @@ import { getFeat } from '@/data/feats';
 import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
 import { specsAt, validateChoicePicks } from './classChoices';
+import { proficienciesOf } from './proficiencies';
+import { WEAPON_BY_ID } from '@/data/weapons';
+import { casterOf } from './spellcasting';
 import type { ReplacePick } from './classChoices';
 
 export const MAX_LEVEL = 20;
@@ -43,6 +46,22 @@ export function subclassLevelFor(classId: string): number {
   return SUBCLASS_LEVEL[classId] ?? 3;
 }
 
+/** Atributos mínimos para multiclasse: lista de alternativas, cada uma com os atributos exigidos. */
+const MULTICLASS_REQ: Record<string, AbilityKey[][]> = {
+  barbarian: [['str']],
+  bard: [['cha']],
+  cleric: [['wis']],
+  druid: [['wis']],
+  fighter: [['str'], ['dex']],
+  monk: [['dex', 'wis']],
+  paladin: [['str', 'cha']],
+  ranger: [['dex', 'wis']],
+  rogue: [['dex']],
+  sorcerer: [['cha']],
+  warlock: [['cha']],
+  wizard: [['int']],
+};
+
 /** Valida um plano de evolução contra as regras 2014 + configurações da campanha. */
 export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
   const errors: string[] = [];
@@ -53,6 +72,18 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
   if (char.level >= MAX_LEVEL) errors.push(`Nível máximo (${MAX_LEVEL}) já alcançado.`);
   if (plan.classId !== char.classId && !campaign.allowMulticlass) {
     errors.push('Multiclasse está desativada nas configurações da campanha.');
+  }
+  // pré-requisitos de multiclasse (PHB 2014, cap. 6): 13 no atributo-chave da
+  // classe nova E de todas as classes que o personagem já tem
+  if (classLevelOf(char, plan.classId) === 0 && plan.classId !== char.classId) {
+    const totals = effectiveAbilities(char);
+    const have = new Set([char.classId, ...(char.classLevels ?? []).map((c) => c.classId), plan.classId]);
+    for (const id of have) {
+      const req = MULTICLASS_REQ[id];
+      if (req && !req.some((group) => group.every((k) => totals[k] >= 13))) {
+        errors.push(`Multiclasse em ${cls.label} exige ${req.map((g) => g.map((k) => `${ABILITY_SHORT[k]} 13`).join(' e ')).join(' ou ')} para ${getClass(id).label} (PHB 2014).`);
+      }
+    }
   }
   if (plan.hpValue < 1 || plan.hpValue > cls.hitDie) {
     errors.push(`PV do nível deve estar entre 1 e ${cls.hitDie} (dado de vida d${cls.hitDie}).`);
@@ -127,7 +158,29 @@ export function featPrereqIssue(char: Character, feat: Feat): string | null {
       }
     }
   }
-  if (feat.prereqCaster && !getClass(char.classId).spellcasting) {
+  if (feat.prereqAnyAbility) {
+    const totals = effectiveAbilities(char);
+    const opts = ABILITY_KEYS.filter((k) => feat.prereqAnyAbility![k]);
+    if (!opts.some((k) => totals[k] >= feat.prereqAnyAbility![k]!)) {
+      return `${feat.label} exige ${opts.map((k) => `${ABILITY_SHORT[k]} ${feat.prereqAnyAbility![k]}+`).join(' ou ')}.`;
+    }
+  }
+  if (feat.prereqCasterFeature && !casterOf(char)) {
+    return `${feat.label} exige o traço Conjuração ou Magia de Pacto.`;
+  }
+  if (feat.prereqMartial) {
+    const p = proficienciesOf(char);
+    const martial = p.weaponTypes.has('martial') || [...p.weapons].some((id) => WEAPON_BY_ID[id]?.weapon?.type === 'martial');
+    if (!martial) return `${feat.label} exige proficiência com uma arma marcial.`;
+  }
+  if (feat.prereqArmor && !proficienciesOf(char).armor.has(feat.prereqArmor)) {
+    return `${feat.label} exige proficiência em armadura ${feat.prereqArmor}.`;
+  }
+  // "capaz de conjurar ao menos uma magia": classe, subclasse (Cavaleiro/Trapaceiro),
+  // multiclasse ou magia racial/de talento (Tiefling, Drow, Alto Elfo, Iniciado em Magia…)
+  const innate = char.raceId === 'tiefling' || ['drow', 'high-elf', 'forest-gnome'].includes(char.subraceId ?? '')
+    || (char.feats ?? []).some((f) => ['magic-initiate', 'drow-high-magic', 'fey-teleportation', 'wood-elf-magic', 'ritual-caster'].includes(f));
+  if (feat.prereqCaster && !casterOf(char) && !innate) {
     return `${feat.label} exige capacidade de conjurar magias.`;
   }
   return null;
@@ -145,6 +198,7 @@ export function expertiseSlots(char: Character): number {
     if (cl.classId === 'bard') slots += (cl.level >= 3 ? 2 : 0) + (cl.level >= 10 ? 2 : 0);
   }
   if (char.feats?.includes('prodigy')) slots += 1;
+  if (char.feats?.includes('skill-expert')) slots += 1;
   return slots;
 }
 
@@ -155,7 +209,7 @@ export function expertiseUsed(char: Character): number {
 
 /** Atributos efetivos (base + raça + ASI/talentos), sem itens. */
 export function effectiveAbilities(char: Character): AbilityScores {
-  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId);
+  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
   for (const k of ABILITY_KEYS) {
     totals[k] = Math.min(ABILITY_CAP, totals[k] + (char.asiBonuses?.[k] ?? 0));
   }

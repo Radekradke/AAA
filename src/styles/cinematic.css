@@ -1,0 +1,374 @@
+/* ===== Crítico cinematográfico: 20 natural / tropeço no 1 ===== */
+.fv-cine {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(12px, 3vw, 48px);
+  padding: clamp(16px, 5vw, 72px);
+  overflow: hidden;
+  cursor: pointer;
+  color: #f6f2ea;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(20, 14, 6, 0.93), rgba(3, 3, 6, 0.985));
+  backdrop-filter: blur(6px);
+  /* só a entrada é animada: com "reduzir movimento" (animações quase zeradas) a tela continua visível */
+  animation: fv-cine-fade 0.35s ease;
+}
+.fv-cine.is-fumble {
+  background: radial-gradient(120% 90% at 30% 50%, rgba(18, 12, 26, 0.93), rgba(3, 3, 6, 0.985));
+}
+
+/* raios dourados girando atrás da arte */
+.fv-cine-rays {
+  position: absolute;
+  left: 25%;
+  top: 50%;
+  width: 180vmax;
+  height: 180vmax;
+  translate: -50% -50%;
+  pointer-events: none;
+  opacity: 0.55;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 214, 110, 0.32) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0 18%, transparent 55%);
+  mask: radial-gradient(circle, #000 0 18%, transparent 55%);
+  animation: fv-cine-spin 9s linear infinite;
+}
+.fv-cine.is-fumble .fv-cine-rays {
+  opacity: 0.25;
+  background: repeating-conic-gradient(from 0deg, rgba(190, 150, 230, 0.25) 0deg 4deg, transparent 4deg 22deg);
+  animation-duration: 30s;
+}
+
+.fv-cine-art {
+  position: relative;
+  justify-self: end;
+  width: min(42vh, 100%);
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 224, 138, 0.8);
+  background: #07090d;
+  color: #ffe08a;
+  box-shadow: 0 0 0 6px rgba(255, 224, 138, 0.12), 0 0 90px rgba(255, 200, 90, 0.5), 0 40px 90px rgba(0, 0, 0, 0.7);
+  animation: fv-cine-art-in 0.7s cubic-bezier(0.2, 1.3, 0.3, 1) both;
+}
+.fv-cine-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fv-cine.is-fumble .fv-cine-art {
+  border-color: rgba(190, 150, 230, 0.6);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  animation: fv-cine-trip 1.1s cubic-bezier(0.3, 0, 0.3, 1) both;
+}
+.fv-cine.is-fumble .fv-cine-art img {
+  filter: grayscale(0.7) brightness(0.8);
+}
+
+.fv-cine-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.fv-cine-num {
+  font: 900 clamp(110px, 22vh, 240px) / 0.85 var(--font-display);
+  background: linear-gradient(180deg, #fff6d6 0%, #ffd56a 45%, #c88a1e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 6px 24px rgba(255, 200, 90, 0.55));
+  animation: fv-cine-slam 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.15s both;
+}
+.fv-cine-title {
+  font: 800 clamp(28px, 5vh, 52px) / 1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffe08a;
+  animation: fv-cine-up 0.5s ease 0.35s both;
+}
+.fv-cine-who {
+  font: 700 clamp(18px, 3vh, 26px) / 1.2 var(--font-display);
+  animation: fv-cine-up 0.5s ease 0.45s both;
+}
+.fv-cine-who small {
+  font: 500 0.7em var(--font-body);
+  color: #cfc8b8;
+}
+.fv-cine.is-fumble .fv-cine-num {
+  background: linear-gradient(180deg, #f2e8ff 0%, #b996e0 55%, #6a4a8f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 18px rgba(150, 110, 200, 0.4));
+  animation: fv-cine-wobble 1s ease 0.1s both;
+}
+.fv-cine.is-fumble .fv-cine-title {
+  color: #d9c3f5;
+}
+.fv-cine-line {
+  max-width: 34ch;
+  font: italic 500 clamp(15px, 2.4vh, 20px) / 1.4 var(--font-body);
+  color: #e9e0f6;
+  animation: fv-cine-up 0.5s ease 0.7s both;
+}
+
+@keyframes fv-cine-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fv-cine-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes fv-cine-art-in {
+  from {
+    opacity: 0;
+    transform: translateX(-60px) scale(0.85) rotate(-4deg);
+  }
+}
+@keyframes fv-cine-trip {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  55% {
+    transform: translateY(6px) rotate(-9deg);
+  }
+  75% {
+    transform: translateY(14px) rotate(7deg);
+  }
+  100% {
+    transform: translateY(22px) rotate(-5deg);
+  }
+}
+@keyframes fv-cine-slam {
+  from {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+@keyframes fv-cine-wobble {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  60% {
+    transform: rotate(-12deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
+  100% {
+    transform: rotate(-4deg);
+  }
+}
+@keyframes fv-cine-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ===== Teste contra a morte: monitor, batimento e contadores ===== */
+.fv-cine.is-death {
+  --pulse: 220, 40, 50;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(26, 6, 10, 0.94), rgba(2, 2, 4, 0.99));
+}
+.fv-cine.is-death.is-revive,
+.fv-cine.is-death.is-stable {
+  --pulse: 120, 220, 150;
+  background: radial-gradient(120% 90% at 30% 50%, rgba(6, 22, 14, 0.94), rgba(2, 3, 4, 0.99));
+}
+/* vinheta que pulsa no ritmo do coração */
+.fv-cine-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 18vmax rgba(var(--pulse), 0.45);
+  animation: fv-cine-beat var(--beat, 1s) ease-out infinite;
+}
+.fv-cine.is-death.is-dead .fv-cine-vignette {
+  animation: none;
+  box-shadow: inset 0 0 22vmax rgba(0, 0, 0, 0.9);
+}
+.fv-cine-ecg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  width: 100%;
+  height: 18vh;
+  translate: 0 -50%;
+  pointer-events: none;
+  opacity: 0.4;
+}
+.fv-cine-ecg path {
+  fill: none;
+  stroke: rgb(var(--pulse));
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  filter: drop-shadow(0 0 6px rgba(var(--pulse), 0.8));
+  animation: fv-cine-trace calc(var(--beat, 1s) * 1.6) linear infinite;
+}
+.fv-cine.is-death.is-dead .fv-cine-ecg path {
+  stroke: #e8e4da;
+  filter: none;
+  animation: fv-cine-trace 1.4s linear both;
+}
+.fv-cine.is-death .fv-cine-art {
+  border-color: rgba(var(--pulse), 0.7);
+  box-shadow: 0 0 0 6px rgba(var(--pulse), 0.12), 0 0 70px rgba(var(--pulse), 0.35), 0 40px 90px rgba(0, 0, 0, 0.7);
+  animation: fv-cine-art-in 0.7s cubic-bezier(0.2, 1.3, 0.3, 1) both, fv-cine-beat-art var(--beat, 1s) ease-out 0.7s infinite;
+}
+.fv-cine.is-death .fv-cine-art img {
+  filter: saturate(0.55) brightness(0.8);
+}
+.fv-cine.is-death.is-dead .fv-cine-art {
+  animation: fv-cine-art-in 0.7s ease both;
+}
+.fv-cine.is-death.is-dead .fv-cine-art img {
+  filter: grayscale(1) brightness(0.55);
+}
+.fv-cine.is-death.is-revive .fv-cine-art img,
+.fv-cine.is-death.is-stable .fv-cine-art img {
+  filter: none;
+}
+.fv-cine.is-death .fv-cine-num {
+  background: linear-gradient(180deg, #ffe4e4 0%, rgb(var(--pulse)) 60%, #4a0a12 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 24px rgba(var(--pulse), 0.5));
+}
+.fv-cine.is-death.is-revive .fv-cine-num,
+.fv-cine.is-death.is-stable .fv-cine-num {
+  background: linear-gradient(180deg, #f0fff4 0%, rgb(var(--pulse)) 60%, #0d4a26 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.fv-cine.is-death .fv-cine-title {
+  color: rgb(var(--pulse));
+}
+.fv-cine.is-death.is-dead .fv-cine-title {
+  color: #e8e4da;
+}
+.fv-cine.is-death .fv-cine-line {
+  color: #efe6e6;
+}
+.fv-cine-pips {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  animation: fv-cine-up 0.5s ease 0.85s both;
+}
+.fv-cine-pips > span {
+  display: flex;
+  gap: 6px;
+}
+.fv-cine-pips i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+.fv-cine-pips .is-ok i.is-on {
+  border-color: #5fd68b;
+  background: #5fd68b;
+  box-shadow: 0 0 10px rgba(95, 214, 139, 0.7);
+}
+.fv-cine-pips .is-bad i.is-on {
+  border-color: #ef4b5a;
+  background: #ef4b5a;
+  box-shadow: 0 0 10px rgba(239, 75, 90, 0.7);
+}
+@keyframes fv-cine-beat {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  12% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.55;
+  }
+  42% {
+    opacity: 0.85;
+  }
+}
+@keyframes fv-cine-beat-art {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.025);
+  }
+  42% {
+    transform: scale(1.012);
+  }
+}
+@keyframes fv-cine-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* celular: arte em cima, texto embaixo */
+@media (max-width: 720px) {
+  .fv-cine {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+  }
+  .fv-cine-art {
+    justify-self: center;
+    width: min(56vw, 34vh);
+  }
+  .fv-cine-text {
+    align-items: center;
+  }
+  .fv-cine-rays {
+    left: 50%;
+    top: 35%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-cine-rays,
+  .fv-cine-art,
+  .fv-cine-num,
+  .fv-cine-title,
+  .fv-cine-who,
+  .fv-cine-line,
+  .fv-cine.is-fumble .fv-cine-art,
+  .fv-cine.is-fumble .fv-cine-num,
+  .fv-cine.is-death .fv-cine-art,
+  .fv-cine-vignette,
+  .fv-cine-pips {
+    animation: none;
+  }
+  .fv-cine-ecg path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

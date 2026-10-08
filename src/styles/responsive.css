@@ -1,0 +1,211 @@
+/*
+ * Responsividade além do "celular em pé": telas muito estreitas (≤374 px),
+ * celular deitado (pouca altura), tablet em pé e monitores largos.
+ * `html[data-theme]` ganha das regras de cada tema sem !important; o
+ * !important só aparece onde o valor vem inline do componente.
+ */
+
+/* ---------- rótulos miúdos: mínimo legível em qualquer tela ---------- */
+html[data-theme] .fv-stat-chip-label,
+html[data-theme] .fv-header-stat-label {
+  font-size: 10.5px;
+}
+html[data-theme] :is(.fv-mabil-key, .fv-mesa-chip-ab) {
+  font-size: 10.5px;
+}
+
+/* ---------- magias: com pouca largura, os botões descem para a linha de baixo ---------- */
+@media (max-width: 420px) {
+  .fv-spell-row {
+    flex-wrap: wrap;
+  }
+  .fv-spell-row > :first-child {
+    flex: 1 1 100% !important;
+  }
+}
+
+/* ---------- telas bem estreitas (iPhone SE 1ª geração, Android compacto) ---------- */
+@media (max-width: 374px) {
+  html[data-theme] .fv-topbar {
+    gap: 6px;
+  }
+  html[data-theme] .fv-topbar-icon,
+  html[data-theme] .fv-topbar-icon.fv-search-btn {
+    width: 34px;
+    height: 34px;
+  }
+  html[data-theme] .fv-topbar-logo {
+    width: 26px;
+    height: 26px;
+  }
+  /* modo de rolagem: só o ícone (o rótulo volta no balão ao tocar) */
+  html[data-theme] .fv-rollmode-btn {
+    min-height: 34px;
+    padding: 4px 9px;
+  }
+  html[data-theme] :is(.fv-rollmode-label, .fv-rollmode-caret) {
+    display: none;
+  }
+  /* nível: os botões ficam, a barra de 1–20 sai (não cabia) */
+  html[data-theme] :is(.fv-sh-level-bar, .fv-sh-level-max) {
+    display: none;
+  }
+  html[data-theme] .fv-mobile-nav-btn span {
+    font-size: 9.5px;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ---------- tablet em pé: defesa numa faixa própria, o nome não espreme ---------- */
+@media (min-width: 641px) and (max-width: 980px) and (min-height: 501px) {
+  html[data-theme] .fv-header-stats {
+    width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  html[data-theme] .fv-header-stat {
+    min-width: 0;
+  }
+}
+
+/*
+ * ---------- celular deitado (pouca altura) ----------
+ * Antes, cabeçalho + abas ocupavam a tela inteira (844×390). Aqui tudo que é
+ * moldura encolhe para o conteúdo da ficha aparecer.
+ */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --topbar-h: 52px;
+  }
+  html[data-theme] .fv-topbar {
+    min-height: 52px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  html[data-theme] .fv-sheet-wrap {
+    padding-top: 56px !important;
+  }
+
+  /* cabeçalho da ficha: retrato pequeno, nome e nível à esquerda, defesa à direita numa linha */
+  html[data-theme] .fv-sheet-head {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 8px 14px !important;
+  }
+  html[data-theme] .fv-sheet-head .fv-sh-portrait {
+    width: 46px !important;
+    height: 46px !important;
+  }
+  html[data-theme] .fv-sheet-head .fv-sh-name {
+    font-size: 18px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  html[data-theme] .fv-sh-sub {
+    margin-top: 2px;
+    flex-wrap: nowrap;
+    font-size: 12px;
+  }
+  html[data-theme] .fv-sh-sub > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  html[data-theme] :is(.fv-sh-align, .fv-sh-level-bar, .fv-sh-level-max, .fv-sh-title) {
+    display: none;
+  }
+  html[data-theme] .fv-sh-level {
+    margin-top: 4px !important;
+  }
+  html[data-theme] .fv-header-stats {
+    width: auto;
+    flex: 0 1 380px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+  html[data-theme] .fv-header-stat {
+    min-width: 0;
+    padding: 5px 2px;
+    border-radius: 10px;
+  }
+  html[data-theme] .fv-header-stat-val {
+    font-size: 16px;
+  }
+  .fv-hs-short {
+    display: inline;
+  }
+  .fv-hs-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* abas do PC: uma linha só, rolando de lado (não duas linhas comendo a altura) */
+  html[data-theme] .fv-sheet-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 10px 0 10px;
+    max-width: 100%;
+  }
+  html[data-theme] .fv-sheet-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  html[data-theme] .fv-sheet-tab {
+    flex: none;
+  }
+
+  /* barra inferior: ícone e rótulo lado a lado, bem mais baixa */
+  html[data-theme] .fv-mobile-nav {
+    padding-top: 4px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+  html[data-theme] .fv-mobile-nav-btn {
+    min-height: 40px;
+    flex-direction: row;
+    gap: 6px;
+    padding: 4px 6px;
+  }
+  html[data-theme] .fv-mobile-nav-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* criação: o título encolhe e as escolhas ganham a altura */
+  html[data-theme] .fv-forge {
+    row-gap: 6px;
+  }
+  html[data-theme] .fv-step-head {
+    margin-bottom: 8px;
+  }
+  html[data-theme] .fv-step-head h2 {
+    font-size: 20px;
+  }
+  html[data-theme] .fv-step-head p {
+    display: none;
+  }
+  html[data-theme] .fv-forge-foot {
+    padding-top: 6px;
+  }
+
+  /* mesa ao vivo do jogador */
+  html[data-theme] .fv-live {
+    padding-top: 60px;
+  }
+}
+
+/* ---------- monitores largos: a ficha usa mais da tela em vez de virar uma faixa no meio ---------- */
+@media (min-width: 1700px) {
+  html[data-theme] .fv-sheet-wrap {
+    max-width: 1440px !important;
+  }
+}
+@media (min-width: 2200px) {
+  html[data-theme] .fv-sheet-wrap {
+    max-width: 1680px !important;
+  }
+}

@@ -1,120 +1,240 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { RuneRing } from '@/components/animations/RuneRing';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
+import { lastHeroOf } from '@/lib/lastHero';
+import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
-import { useTheme } from '@/lib/useTheme';
+import { mayAutoShow } from '@/services/onboardingSync';
 import { SupportModal } from '@/components/SupportModal';
 import { hasSupport } from '@/lib/support';
+import { rememberNext } from '@/lib/nextPath';
+import { heroAvatar, heroFace, shortSubtitle } from '@/lib/summary';
+import type { UpcomingForMe } from '@/services/agendaService';
+import { cloudEnabled } from '@/services/supabaseClient';
+import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
 
-/** Tela inicial cinematográfica — o portal de entrada da Ficha Viva. */
+interface MenuItem {
+  key: string;
+  label: string;
+  hint: string;
+  icon: IconName;
+  run: () => void;
+}
+
+/**
+ * Menu principal, como a tela inicial de um jogo: a marca no alto e as
+ * escolhas embaixo — continuar o último herói, heróis, nova ficha, mesas
+ * (multiplayer), configurações e tutorial. Setas ↑/↓ navegam pelo menu.
+ */
 export function Home() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
-  const t = useTheme();
+  // próximas telas prováveis: lista de heróis e a ficha (baixadas com o aparelho ocioso)
+  useEffect(() => prefetchOnIdle('heroes', 'sheet'), []);
+  const onboarded = useUiStore((s) => s.onboarded || s.tipsOff);
+  const openTutorial = useUiStore((s) => s.openTutorial);
+  const characters = useCharacterStore((s) => s.characters);
+  const currentId = useCharacterStore((s) => s.currentId);
+  const setCurrent = useCharacterStore((s) => s.setCurrent);
+  const hydrated = useCharactersHydrated();
   const [support, setSupport] = useState(false);
+  const [nextSession, setNextSession] = useState<UpcomingForMe | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
 
-  const start = () => {
-    bump(1.4);
-    navigate(user ? '/personagens' : '/entrar');
+  // o herói para "Continuar": o aberto por último (ou o mais recente)
+  const lastHero = useMemo(() => {
+    if (!user || !hydrated) return null;
+    return lastHeroOf(characters, user.id, currentId);
+  }, [characters, currentId, user, hydrated]);
+
+  // a próxima sessão marcada em qualquer mesa minha (sem o agenda.sql: nada aparece)
+  useEffect(() => {
+    if (!user || user.guest || !cloudEnabled()) {
+      setNextSession(null);
+      return;
+    }
+    let alive = true;
+    // sob demanda: a agenda não pesa a abertura do app
+    import('@/services/agendaService')
+      .then((m) => m.agendaService.upcomingForMe(user.id))
+      .then((list) => alive && setNextSession(list[0] ?? null))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  // primeira visita: o tutorial abre sozinho (depois só pelo menu). Com conta,
+  // "primeira vez" é da conta: confere o que ela já viu em outro aparelho.
+  useEffect(() => {
+    if (onboarded) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      void mayAutoShow((ui) => ui.onboarded).then((ok) => alive && ok && openTutorial());
+    }, 700);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [onboarded, openTutorial]);
+
+  /** Telas que pedem conta (ou convidado) passam pela tela de entrar e voltam. */
+  const go = (path: string, auth = true) => {
+    bump(1.2);
+    if (auth && !user) {
+      rememberNext(path);
+      navigate('/entrar');
+      return;
+    }
+    navigate(path);
+  };
+
+  const items: MenuItem[] = [
+    { key: 'heroes', label: 'Heróis', hint: 'Abra suas fichas ou importe um personagem', icon: 'crest', run: () => go('/personagens') },
+    { key: 'new', label: 'Nova ficha', hint: 'Forje um herói em 7 capítulos guiados', icon: 'anvil', run: () => go('/criar') },
+    { key: 'tables', label: 'Mesas', hint: 'Jogue com amigos: o mestre cria a sala e convida', icon: 'banner', run: () => go('/mesas') },
+    { key: 'config', label: 'Configurações', hint: 'Tema, som, dados 3D e livros', icon: 'gear', run: () => go('/config', false) },
+    { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona, em 2 minutos', icon: 'book', run: openTutorial },
+  ];
+
+  // setas movem o foco entre os itens, como num menu de jogo
+  const onKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const buttons = Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
+    const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const next = e.key === 'ArrowDown' ? (i + 1) % buttons.length : (i - 1 + buttons.length) % buttons.length;
+    buttons[next]?.focus();
+    e.preventDefault();
   };
 
   return (
     <Screen video="/assets/bg.mp4" videoOpacity={0.32}>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: 24,
-        }}
-      >
-        <RuneRing size="clamp(120px,18vw,168px)" className="mb-[clamp(22px,4vh,40px)]">
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 800,
-              fontSize: 'clamp(34px,5vw,46px)',
-              color: 'var(--gold)',
-              textShadow: '0 0 30px var(--bloom)',
-            }}
-          >
-            F
-          </span>
-        </RuneRing>
+      <div className="fv-menu">
+        <header className="fv-menu-brand">
+          <RuneRing size="clamp(84px,12vh,128px)">
+            <span className="fv-menu-sigil">F</span>
+          </RuneRing>
+          <h1 className="fv-home-title fv-menu-title">FICHA&nbsp;VIVA</h1>
+          <p className="fv-menu-tag">Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue</p>
+        </header>
 
-        <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: 'clamp(40px,8vw,82px)',
-            lineHeight: 0.96,
-            letterSpacing: '.04em',
-            color: 'var(--ink)',
-            textShadow: '0 0 40px var(--bloom)',
-          }}
-        >
-          FICHA&nbsp;VIVA
-        </div>
-        <div
-          style={{
-            marginTop: 14,
-            fontFamily: "'Inter', sans-serif",
-            fontSize: 'clamp(13px,1.6vw,16px)',
-            letterSpacing: '.34em',
-            textTransform: 'uppercase',
-            color: 'var(--acc)',
-          }}
-        >
-          Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue
-        </div>
-        <p style={{ maxWidth: 440, margin: '20px auto 0', color: 'var(--muted)', fontSize: 15, lineHeight: 1.6 }}>
-          A ficha de RPG que ganha vida — criação cinematográfica de personagem e um HUD de combate digno de um
-          jogo AAA.
-        </p>
+        <nav className="fv-menu-nav" aria-label="Menu principal">
+          <ul ref={listRef} onKeyDown={onKeyDown}>
+            {lastHero && (
+              <li>
+                <button
+                  type="button"
+                  className="fv-menu-item is-primary"
+                  onClick={() => {
+                    setCurrent(lastHero.id);
+                    go(`/ficha/${lastHero.id}`);
+                  }}
+                >
+                  <span className="fv-menu-face" aria-hidden style={{ backgroundImage: `url("${heroAvatar(lastHero)}")`, ...heroFace(lastHero) }} />
+                  <span className="fv-menu-text">
+                    <b>Continuar</b>
+                    <small>
+                      {lastHero.name} · {shortSubtitle(lastHero)}
+                    </small>
+                  </span>
+                  <span className="fv-menu-arrow" aria-hidden>
+                    ›
+                  </span>
+                </button>
+              </li>
+            )}
+            {nextSession && <NextSessionItem s={nextSession} onOpen={() => go(`/mesa/${nextSession.event.campaignId}`)} />}
+            {items.map((it, i) => (
+              <li key={it.key}>
+                <button type="button" className={'fv-menu-item' + (!lastHero && i === 0 ? ' is-primary' : '')} onClick={it.run}>
+                  <span className="fv-menu-icon" aria-hidden>
+                    <Icon name={it.icon} size={22} />
+                  </span>
+                  <span className="fv-menu-text">
+                    <b>{it.label}</b>
+                    <small>{it.hint}</small>
+                  </span>
+                  <span className="fv-menu-arrow" aria-hidden>
+                    ›
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        <button
-          onClick={start}
-          className="animate-glowPulse"
-          style={{
-            marginTop: 'clamp(26px,5vh,46px)',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-display)',
-            fontWeight: 700,
-            letterSpacing: '.12em',
-            fontSize: 'clamp(15px,1.7vw,17px)',
-            color: '#1a1206',
-            padding: '16px 42px',
-            borderRadius: 13,
-            border: '1px solid var(--goldB)',
-            background: 'linear-gradient(180deg, var(--goldB), var(--gold))',
-            boxShadow: '0 12px 34px rgba(0,0,0,.5), 0 0 30px var(--bloom), inset 0 1px 0 rgba(255,255,255,.6)',
-          }}
-        >
-          COMEÇAR&nbsp;A&nbsp;JORNADA
-        </button>
-        <div style={{ marginTop: 20, fontSize: 12, color: 'var(--muted)' }}>
-          Toque no seletor no topo para alternar a atmosfera ✦{' '}
-          <b style={{ color: 'var(--ink)' }}>{t.label}</b>
-        </div>
-
-        {hasSupport() && (
-          <button
-            onClick={() => setSupport(true)}
-            style={{ marginTop: 16, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12.5, color: 'var(--gold)', padding: '8px 16px', borderRadius: 999, border: '1px solid ' + t.gold, background: 'rgba(255,224,138,.08)', transition: '.2s' }}
-          >
-            <span aria-hidden style={{ fontSize: 14 }}>❤</span> Apoiar o projeto
-          </button>
-        )}
+        <footer className="fv-menu-foot">
+          {user ? (
+            <span className="fv-menu-user">
+              <span className="fv-menu-avatar" aria-hidden>
+                {user.name.trim().charAt(0).toUpperCase() || '?'}
+              </span>
+              <span>{user.guest ? 'Jogando offline (sem conta)' : <>Entrou como <b>{user.name}</b></>}</span>
+              <button
+                type="button"
+                className="fv-menu-link"
+                onClick={() => {
+                  logout();
+                  if (user.guest) navigate('/entrar');
+                }}
+              >
+                <Icon name="logout" size={14} /> {user.guest ? 'Entrar com conta' : 'Sair'}
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="fv-menu-link" onClick={() => go('/entrar', false)}>
+              Entrar ou criar conta (ou continuar offline)
+            </button>
+          )}
+          {hasSupport() && (
+            <button type="button" className="fv-menu-link" onClick={() => setSupport(true)}>
+              <span aria-hidden>❤</span> Apoiar o projeto
+            </button>
+          )}
+        </footer>
       </div>
 
       {support && <SupportModal onClose={() => setSupport(false)} />}
     </Screen>
+  );
+}
+
+/** Item do menu com a próxima sessão marcada: dia em destaque, mesa e se você já confirmou. */
+function NextSessionItem({ s, onOpen }: { s: UpcomingForMe; onOpen: () => void }) {
+  const d = new Date(s.event.startsAt);
+  const live = isHappening(s.event);
+  return (
+    <li>
+      <button type="button" className="fv-menu-item" onClick={onOpen}>
+        <span className="fv-menu-icon fv-menu-when" aria-hidden>
+          <b>{d.getDate()}</b>
+          <small>{new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(d).replace('.', '')}</small>
+        </span>
+        <span className="fv-menu-text">
+          <b>{live ? 'Sessão acontecendo agora' : `Próxima sessão ${relativeLabel(s.event.startsAt)}`}</b>
+          <small>
+            {s.campaignName} · {timeLabel(s.event.startsAt)} ·{' '}
+            {s.mine === 'yes' ? (
+              <span className="fv-menu-rsvp is-yes">você vai</span>
+            ) : s.mine ? (
+              <span className="fv-menu-rsvp">{s.mine === 'maybe' ? 'talvez' : 'não vai'}</span>
+            ) : (
+              <span className="fv-menu-rsvp is-ask">confirme</span>
+            )}
+          </small>
+        </span>
+        <span className="fv-menu-arrow" aria-hidden>
+          ›
+        </span>
+      </button>
+    </li>
   );
 }

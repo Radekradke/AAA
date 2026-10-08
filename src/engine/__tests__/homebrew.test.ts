@@ -58,3 +58,41 @@ describe('raça homebrew', () => {
     expect(d.abilities.con.total).toBe(base.baseAbilities.con + 2);
   });
 });
+
+import { RACE_PRESETS } from '@/data/racePresets';
+import { getSubraces } from '@/data/races';
+
+describe('pré-montadas e sub-raças', () => {
+  it('Aasimar Protetor: +2 CAR e +1 SAB, resistências, visão e traços de raça + sub-raça', () => {
+    const preset = RACE_PRESETS.find((r) => r.label === 'Aasimar')!;
+    const race = finalizeRace({ ...preset, id: '', subraces: preset.subraces!.map((s) => ({ ...s, id: '' })) });
+    expect(race.subraces).toHaveLength(3);
+    expect(race.subraces!.every((s) => s.id.startsWith(race.id))).toBe(true);
+    const protetor = race.subraces!.find((s) => s.label === 'Aasimar Protetor')!;
+    const base = finalizeCharacter(createDraftCharacter({ ownerId: 'u', name: 'Seraph', classId: 'paladin' }));
+    const char = { ...base, raceId: race.id, subraceId: protetor.id, customRace: race };
+    const d = deriveCharacter(char);
+    expect(getSubraces(race.id)).toHaveLength(3);
+    expect(d.abilities.cha.total).toBe(base.baseAbilities.cha + 2);
+    expect(d.abilities.wis.total).toBe(base.baseAbilities.wis + 1);
+    expect(d.resistances.map((r) => r.value)).toEqual(expect.arrayContaining(['necrótico', 'radiante']));
+    expect(d.darkvision?.range).toBe(18);
+    expect(d.languages).toContain('Celestial');
+    expect(protetor.traits).toEqual(['Alma Radiante']);
+  });
+
+  it('pré-montada oficial não leva aviso de "fora do padrão"', () => {
+    const aasimar = RACE_PRESETS.find((r) => r.label === 'Aasimar')!;
+    expect(validateRace(aasimar).every((w) => w.level === 'info')).toBe(true);
+  });
+
+  it('sub-raça homebrew entra na conta do pior caso', () => {
+    const r = finalizeRace({ ...blankRace(), label: 'Dragão-Menor', abilityBonus: { str: 2 }, subraces: [{ id: '', label: 'Rubro', abilityBonus: { con: 2 } }] });
+    expect(validateRace(r).map((w) => w.text).join(' ')).toMatch(/\+4/);
+    expect(r.subraces![0].bonus).toBe('+2 CON');
+  });
+
+  it('as seis pré-montadas pedidas estão lá (sem Genasi, Tortle, Firbolg)', () => {
+    expect(RACE_PRESETS.map((r) => r.label)).toEqual(['Aasimar', 'Tabaxi', 'Golias', 'Kenku', 'Povo Lagarto', 'Forjado Bélico']);
+  });
+});

@@ -62,8 +62,10 @@ export const RACES: Race[] = [
     label: 'Meio-Elfo',
     mono: 'M',
     jewel: '#4FA37A',
-    abilityBonus: { cha: 2, dex: 1, wis: 1 },
-    bonus: '+2 CAR · +1 / +1',
+    abilityBonus: { cha: 2 },
+    // PHB 2014: +1 em dois atributos à escolha (exceto Carisma)
+    abilityChoice: { count: 2, amount: 1, exclude: ['cha'], default: ['dex', 'wis'] },
+    bonus: '+2 CAR · +1 / +1 à escolha',
     desc: 'Andarilhos entre dois mundos, carismáticos e adaptáveis por natureza.',
     traits: ['Visão no Escuro', 'Ancestral Feérico', 'Versatilidade em Perícias'],
     speed: 9,
@@ -121,12 +123,33 @@ export const RACES: Race[] = [
     abilityBonus: { str: 2, cha: 1 },
     bonus: '+2 FOR · +1 CAR',
     desc: 'Descendentes de dragões, orgulhosos e marcados pela linhagem ancestral.',
-    traits: ['Sopro Dracônico', 'Resistência elemental'],
+    traits: ['Ancestral Dracônico', 'Sopro', 'Resistência a Dano'],
     speed: 9,
-    resistances: ['elemental (linhagem dracônica)'],
     languages: ['Comum', 'Dracônico'],
   },
 ];
+
+/**
+ * Ancestral Dracônico (PHB 2014): a cor do dragão define o tipo de dano do
+ * Sopro e a resistência. Fica como "sub-raça" para reaproveitar a escolha.
+ */
+const DRAGON_LINES: [string, string, string, 'linha' | 'cone', 'DES' | 'CON'][] = [
+  ['black', 'Preto', 'ácido', 'linha', 'DES'],
+  ['blue', 'Azul', 'elétrico', 'linha', 'DES'],
+  ['brass', 'Latão', 'fogo', 'linha', 'DES'],
+  ['bronze', 'Bronze', 'elétrico', 'linha', 'DES'],
+  ['copper', 'Cobre', 'ácido', 'linha', 'DES'],
+  ['gold', 'Ouro', 'fogo', 'cone', 'DES'],
+  ['green', 'Verde', 'veneno', 'cone', 'CON'],
+  ['red', 'Vermelho', 'fogo', 'cone', 'DES'],
+  ['silver', 'Prata', 'frio', 'cone', 'CON'],
+  ['white', 'Branco', 'frio', 'cone', 'CON'],
+];
+
+export function dragonAncestry(subraceId: string | null): { type: string; area: string; save: 'DES' | 'CON' } | null {
+  const row = DRAGON_LINES.find(([id]) => `dragon-${id}` === subraceId);
+  return row ? { type: row[2], area: row[3] === 'linha' ? 'linha de 1,5 × 9 m' : 'cone de 4,5 m', save: row[4] } : null;
+}
 
 export const SUBRACES: Record<string, Subrace[]> = {
   dwarf: [
@@ -141,7 +164,7 @@ export const SUBRACES: Record<string, Subrace[]> = {
     { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR' },
   ],
   elf: [
-    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT' },
+    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'] },
     {
       id: 'wood-elf',
       label: 'Elfo da Floresta',
@@ -156,6 +179,13 @@ export const SUBRACES: Record<string, Subrace[]> = {
     { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
     { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', resistances: ['veneno'], traits: ['Resiliência Robusta'] },
   ],
+  dragonborn: DRAGON_LINES.map(([id, label, type, shape, save]) => ({
+    id: `dragon-${id}`,
+    label: `Dragão ${label}`,
+    bonus: `${type} · ${shape} · ${save}`,
+    resistances: [type],
+    traits: [`Sopro (${type})`],
+  })),
   gnome: [
     { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES' },
     { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON' },
@@ -193,7 +223,7 @@ export function raceOf(char: { raceId: string; customRace?: Race | null }): Race
 }
 
 export function getSubraces(raceId: string): Subrace[] {
-  return SUBRACES[raceId] ?? [];
+  return SUBRACES[raceId] ?? HOMEBREW.get(raceId)?.subraces ?? [];
 }
 
 export function getSubrace(raceId: string, subId: string | null): Subrace | undefined {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaUrl } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
+import '@/styles/stage.css';
 
 /**
  * Cutscene no ar: tela cheia, imagem com zoom lento de cinema e a narração

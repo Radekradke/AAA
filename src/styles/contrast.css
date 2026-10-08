@@ -1,0 +1,212 @@
+/* ============================================================
+   CONTRASTE AA — correções medidas por auditoria automática
+   (8 temas × claro/escuro, 14 telas; fundo real amostrado por pixel).
+   Meta: texto normal ≥ 4,5:1, texto grande/ícone ≥ 3:1.
+   Regra da casa: cor de destaque em TEXTO mantém o matiz e só ajusta a
+   luz; bordas, fundos e brilhos seguem com a cor original.
+   ============================================================ */
+
+/* cores de estado no claro (verde "ao vivo", âmbar "reconectando") */
+/* (vale para o <html> e para o invólucro do app, que repete o data-mode) */
+[data-mode='light'] {
+  --live-ok: #116a33;
+  --live-warn: #8a5a00;
+}
+
+/* .fv-tone: texto na cor de --c (estado, raridade…). O CSS decide a luz
+   pelo contexto — painel claro escurece, painel escuro clareia, e as
+   plaquinhas escuras da Forja clareiam mesmo no modo claro. */
+.fv-tone {
+  color: var(--c);
+}
+[data-mode='light'] .fv-tone {
+  color: color-mix(in oklab, var(--c) 55%, #000);
+  color: oklch(from var(--c) min(l, 0.47) c h);
+}
+[data-mode='dark'] .fv-tone,
+[data-theme='brasa'] .fv-label .fv-tone {
+  color: oklch(from var(--c) max(l, 0.76) c h);
+}
+
+/* acento sobre fundo tingido do próprio acento (segmento ativo):
+   um pouco de tinta para não "afundar" no fundo */
+.fv-seg button.is-on {
+  color: color-mix(in oklab, var(--gold) 78%, var(--ink));
+}
+
+/* ----- console do mestre ----- */
+/* (prefixo `html`: o CSS do console/palco/sala chega depois deste arquivo) */
+html .fv-initdock-init {
+  color: var(--ink);
+}
+html[data-mode='light'] .fv-initdock-chip.is-monster .fv-initdock-init {
+  color: #b3202f;
+}
+html[data-mode='light'] .fv-initdock-chip.is-npc .fv-initdock-init {
+  color: #0b6e61;
+}
+html[data-mode='light'] .fv-initdock-chip.is-player .fv-initdock-init {
+  color: var(--gold);
+}
+/* sem iniciativa ainda ("?"): tinta normal, o tracejado já avisa */
+html[data-mode] .fv-initdock-chip.is-pending .fv-initdock-init {
+  color: var(--ink);
+}
+/* a vez de alguém: o número fica no medalhão dourado, com a tinta dele
+   (mesma força das regras de cor acima, e depois delas: vence) */
+html[data-mode] .fv-initdock-chip.is-active .fv-initdock-init {
+  color: var(--on-gold, #10131c);
+}
+html .fv-initdock-round small {
+  color: color-mix(in srgb, var(--muted), var(--ink) 35%);
+}
+html .fv-bandeja-x {
+  color: var(--ink);
+}
+/* selo "No ar": vermelho mais fundo para o texto branco */
+html .fv-stage-badge.is-live {
+  border-color: #d42a3f;
+  background: #d42a3f;
+}
+/* avatar do mestre: o dourado fica um tom mais fundo para a letra */
+html[data-mode='light'] .fv-live-online li.is-master .fv-live-avatar {
+  background: color-mix(in oklab, var(--gold), #000 18%);
+}
+
+
+/* ----- criação ----- */
+/* sobrancelha "Linhagem/Caminho" na cor da opção escolhida */
+[data-mode='light'] .fv-detail-eyebrow {
+  color: color-mix(in oklab, var(--opt-color, var(--gold)) 55%, #000);
+  color: oklch(from var(--opt-color, var(--gold)) min(l, 0.47) c h);
+}
+[data-mode='dark'] .fv-detail-eyebrow {
+  color: oklch(from var(--opt-color, var(--gold)) max(l, 0.74) c h);
+}
+/* legenda e botão sobre a arte do herói: a arte é escura em qualquer modo */
+.fv-hero-caption {
+  --ink: #f6f2ea;
+  --muted: #d3cbbd;
+}
+.fv-hero-caption .fv-hero-line {
+  color: color-mix(in oklab, var(--acc) 45%, #fff);
+  color: oklch(from var(--acc) max(l, 0.82) c h);
+}
+.fv-portrait-btn {
+  color: #f6f2ea;
+}
+
+/* ----- menu principal: legenda do item em destaque ----- */
+.fv-menu-item.is-primary .fv-menu-text small,
+.fv-menu-item.is-primary .fv-menu-arrow {
+  color: color-mix(in srgb, var(--on-gold, #1a1206), transparent 8%);
+}
+
+/* ----- sala: NPC oculto é avisado pela borda tracejada, não por texto apagado ----- */
+html .fv-npc-card.is-hidden {
+  opacity: 1;
+}
+html[data-mode='light'] .fv-npc-card-text em {
+  color: color-mix(in oklab, var(--acc2) 75%, #000);
+}
+
+/* ----- Forja Dourada: as placas de metal são escuras nos dois modos ----- */
+[data-theme='brasa'] .fv-header-stat {
+  --ink: #f7ede0;
+  --muted: #cdb698;
+}
+[data-theme='brasa'][data-mode='light'] .fv-sheet-tab.is-on {
+  color: #2a1606;
+}
+
+/* ----- Eclipse: as pílulas de status do cabeçalho são pretas nos dois modos ----- */
+[data-theme='eclipse'] .fv-header-stat {
+  --ink: #f3f2ee;
+  --muted: #bdbab3;
+}
+
+/* ----- Corte Carmesim ----- */
+[data-theme='carmesim'][data-mode='light'] .fv-label {
+  color: color-mix(in oklab, var(--gold) 68%, #000);
+}
+/* aba aberta: o carmim desce um tom para o texto branco */
+[data-theme='carmesim'] .fv-sheet-tab.is-on {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--acc), #000 22%), color-mix(in srgb, var(--acc), #000 45%));
+}
+[data-theme='carmesim'][data-mode='light'] .fv-forge-rail button.is-current {
+  color: color-mix(in oklab, var(--acc) 70%, #000);
+}
+/* ----- Forja claro: capítulo atual em ouro escuro ----- */
+[data-theme='brasa'][data-mode='light'] .fv-forge-rail button.is-current {
+  color: var(--gold);
+}
+
+/* ----- Ouro Velho claro: botão de moldura e destaques com o texto no ouro escuro ----- */
+[data-theme='ouro'][data-mode='light'] :is(.fv-btn-gold, .fv-seg button.is-on, .fv-menu-item.is-primary .fv-menu-text b) {
+  color: var(--gold);
+}
+
+/* ----- Guilda Rubra ----- */
+/* rodapé dos cards e destaque do herói ativo são escuros nos dois modos */
+.fv-guild-card-acts {
+  --ink: #fff3f0;
+  --muted: #dcbab5;
+  --danger: #ff8f80;
+  --line: rgba(255, 255, 255, 0.2);
+  --line-strong: rgba(255, 255, 255, 0.38);
+}
+.fv-guild-active {
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 210, 190, 0.14), transparent 60%),
+    linear-gradient(115deg, #c2453a 0%, #a8323b 46%, #5a1b22 100%);
+}
+.fv-guild-active p {
+  color: #fff1ec;
+}
+[data-mode='light'] .fv-guild-tag.is-cream {
+  color: #fff7ea;
+}
+
+/* ----- número dentro da barra de PV: pílula escura atrás, legível em qualquer cor ----- */
+.fv-hp-bar-label {
+  padding: 0 7px;
+  border-radius: 6px;
+  background: rgba(8, 10, 16, 0.62);
+  color: #fff;
+}
+
+/* ----- contadores dentro de rótulos (ex.: Sintonia · 1 de 3) ----- */
+.fv-label-count {
+  color: var(--gold);
+}
+/* na plaquinha escura da Forja o rótulo já é claro: o contador acompanha */
+[data-theme='brasa'] .fv-label .fv-label-count {
+  color: inherit;
+  opacity: 1;
+}
+
+/* ----- Eclipse: blocos que invertem (cards, cabeçalho, trilha) ----- */
+/* claro: blocos pretos → vermelho claro; escuro: blocos de papel → vermelho fundo */
+[data-theme='eclipse'][data-mode='light'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+  --danger: #ff8f80;
+}
+[data-theme='eclipse'][data-mode='dark'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+  --danger: #a62a1e;
+}
+
+/* ----- console: item da bandeja que sumiu do livro ----- */
+html .fv-bandeja-chip.is-gone {
+  opacity: 1;
+}
+html .fv-bandeja-chip.is-gone > button:first-child {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* ----- Guilda Rubra: coral sobre fundo coral tingido ----- */
+[data-theme='rubra'] :is(.fv-item-equipped, .fv-live-seg button.is-on) {
+  color: color-mix(in oklab, var(--acc) 80%, var(--ink));
+}
+
+/* condição ativa na aba Mesa: o nome era branco fixo (ilegível no claro) */
+html[data-mode='light'] .fv-mesa-cond-name { color: var(--ink); }

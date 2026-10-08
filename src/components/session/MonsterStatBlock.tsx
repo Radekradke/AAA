@@ -73,6 +73,10 @@ export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Mo
     return mm ? { vuln: mm.vuln, resist: mm.resist, immune: mm.immune } : {};
   };
 
+  /** PV do alvo antes/depois (para a crônica), quando o encontro sabe o PV. */
+  const hpChange = (c: Combatant, dmg: number) =>
+    c.hpCurrent === null ? {} : { hpBefore: c.hpCurrent, hpAfter: Math.max(0, c.hpCurrent - dmg) };
+
   const strike = async (a: MonsterAction) => {
     if (!target) return;
     const natural = a.toHit !== undefined ? roll(20, { modifier: a.toHit, label: `${label} → ${target.name} · ${a.name}` }) : null;
@@ -80,7 +84,7 @@ export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Mo
     const res = natural ? attackHits(natural.total, natural.rolls[0], target.armorClass) : { hit: true, crit: false };
     if (!res.hit) {
       setLast({ action: a.name, target, total: natural?.total ?? null, hit: false, crit: false, raw: 0, applied: 0, defense: 'normal', type: a.type });
-      void session.logStrike({ by: label, target: target.name, hit: false, crit: false, damage: 0, type: a.type }, !!attacker?.hidden);
+      void session.logStrike({ by: label, target: target.name, hit: false, crit: false, damage: 0, type: a.type, action: a.name, roll: natural?.total, ac: target.armorClass ?? undefined }, !!attacker?.hidden);
       return;
     }
     const { base, extra } = rollDamageParts(a, res.crit);
@@ -94,16 +98,18 @@ export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Mo
       setLast({ action: a.name, target, total: null, hit: true, crit: false, raw, applied, defense, type: a.type, pendingSave: { dc: a.save.dc, ability: ABILITY_SHORT[a.save.ability], half: !!a.save.half } });
       return;
     }
-    await session.changeHp(target, -applied);
+    const hp = hpChange(target, applied);
+    await session.changeHp(target, -applied, { crit: res.crit });
     setLast({ action: a.name, target, total: natural?.total ?? null, hit: true, crit: res.crit, raw, applied, defense, type: a.type });
-    void session.logStrike({ by: label, target: target.name, hit: true, crit: res.crit, damage: applied, type: a.type, note: DEFENSE_LABEL[defense] || undefined }, !!attacker?.hidden);
+    void session.logStrike({ by: label, target: target.name, hit: true, crit: res.crit, damage: applied, type: a.type, note: DEFENSE_LABEL[defense] || undefined, action: a.name, roll: natural?.total, ac: target.armorClass ?? undefined, ...hp }, !!attacker?.hidden);
   };
 
   const resolveSave = async (passed: boolean) => {
     if (!last?.pendingSave) return;
     const amount = passed ? (last.pendingSave.half ? Math.floor(last.applied / 2) : 0) : last.applied;
+    const hp = hpChange(last.target, amount);
     await session.changeHp(last.target, -amount);
-    void session.logStrike({ by: label, target: last.target.name, hit: !passed, crit: false, damage: amount, type: last.type, note: passed ? 'passou na salvaguarda' : 'falhou na salvaguarda' }, !!attacker?.hidden);
+    void session.logStrike({ by: label, target: last.target.name, hit: !passed, crit: false, damage: amount, type: last.type, note: `${passed ? 'passou' : 'falhou'} na salvaguarda de ${last.pendingSave.ability} CD ${last.pendingSave.dc}`, action: last.action, ...hp }, !!attacker?.hidden);
     setLast({ ...last, applied: amount, pendingSave: undefined, hit: amount > 0 });
   };
 

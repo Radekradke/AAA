@@ -5,6 +5,9 @@
    ============================================================ */
 
 :root {
+  /* botão ativo das ferramentas do mapa (o mapa é sempre escuro por trás) */
+  --map-on: var(--gold);
+  --map-on-ink: var(--on-gold, #14100a);
   --stage-live: #ff4d5e;
   --stage-grid: rgba(255, 255, 255, 0.22);
   --stage-ruler: #ffd34d;
@@ -171,13 +174,48 @@
   height: 100%;
   pointer-events: none;
 }
+/* mapa sem arte: tapete de batalha neutro, para a grade ser a protagonista */
 .fv-map-blank {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 50% 40%, #2a2419, #16120c 70%),
-    #16120c;
+    linear-gradient(rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.025)),
+    radial-gradient(ellipse at 50% 40%, #2a2f3a, #1a1e26 75%),
+    #1a1e26;
 }
+.fv-map-blank + .fv-map-grid { color: rgba(220, 230, 255, 0.28); }
+
+/* botão "Mapa em branco" */
+.fv-blankmap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, 100%);
+  margin: 6px auto 0;
+  padding: 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--sunk);
+  text-align: left;
+}
+.fv-blankmap.is-compact { width: 100%; margin: 0; padding: 11px 12px; }
+.fv-blankmap-head { display: flex; align-items: center; gap: 10px; }
+.fv-blankmap-head b { display: block; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.fv-blankmap-head small { color: var(--muted); font-size: 12.5px; }
+.fv-blankmap-ico {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background:
+    linear-gradient(var(--line-strong) 1px, transparent 1px) 0 0 / 8.5px 8.5px,
+    linear-gradient(90deg, var(--line-strong) 1px, transparent 1px) 0 0 / 8.5px 8.5px,
+    var(--well);
+}
+.fv-blankmap .fv-seg { align-self: flex-start; }
+.fv-blankmap-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.fv-blankmap-acts > * { flex: 1 1 auto; min-height: 36px; padding: 0 12px; font-size: 12.5px; }
 .fv-map-grid { position: absolute; inset: 0; color: var(--stage-grid); pointer-events: none; }
 .fv-map-ruler { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
 .fv-map-ruler line { stroke: var(--stage-ruler); stroke-linecap: round; stroke-dasharray: 1 0; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8)); }
@@ -194,7 +232,7 @@
   background: rgba(8, 10, 18, 0.88);
   border: 1px solid var(--stage-ruler);
   color: var(--stage-ruler);
-  font-family: 'Chakra Petch', monospace;
+  font-family: var(--font-num);
   font-weight: 700;
   font-size: 15px;
   pointer-events: none;
@@ -216,28 +254,37 @@
   position: absolute;
   right: 10px;
   bottom: 10px;
+  z-index: 3;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.fv-map-tools button {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  flex-direction: row;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
   border: 1px solid var(--line-strong);
   background: rgba(8, 10, 18, 0.82);
-  color: var(--ink);
+  backdrop-filter: blur(6px);
+}
+.fv-map-tools button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
 }
-.fv-map-tools button.is-on { color: var(--gold); border-color: var(--gold); }
+.fv-map-tools button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.fv-map-tools button.is-on { background: var(--map-on); color: var(--map-on-ink); }
 .fv-map-tools button:focus-visible { outline: 2px solid var(--acc); }
 .fv-map-hint {
   position: absolute;
-  left: 10px;
+  left: 60px;
   bottom: 10px;
-  max-width: calc(100% - 70px);
+  max-width: calc(100% - 290px);
   padding: 5px 10px;
   border-radius: 8px;
   background: rgba(8, 10, 18, 0.72);
@@ -598,7 +645,7 @@
 .fv-calib-view svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .fv-calib-controls { display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; color: var(--muted); }
 .fv-calib-controls label { display: flex; flex-direction: column; gap: 4px; }
-.fv-calib-controls output { color: var(--ink); font-family: 'Chakra Petch', monospace; }
+.fv-calib-controls output { color: var(--ink); font-family: var(--font-num); }
 .fv-calib-controls input[type='range'] { accent-color: var(--gold); }
 .fv-beats { display: flex; flex-direction: column; gap: 10px; }
 .fv-beat { display: grid; grid-template-columns: 26px 150px minmax(0, 1fr) auto; gap: 10px; align-items: start; }
@@ -680,7 +727,7 @@
 .fv-tokenbar-art { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; font-size: 12.5px; cursor: pointer; }
 .fv-tokenbar-art:focus-within { outline: 2px solid var(--acc); }
 .fv-stage-diag { margin: 8px 0; font-size: 12px; color: var(--muted); word-break: break-word; }
-.fv-stage-diag code { color: var(--ink); font-family: 'Chakra Petch', monospace; }
+.fv-stage-diag code { color: var(--ink); font-family: var(--font-num); }
 .fv-stage-empty > .fv-btn-ghost { min-height: 38px; padding: 0 14px; margin-top: 6px; }
 
 /* ---------- ferramentas do mapa (inspiração: Foundry / Owlbear / Dungeon Revealer) ---------- */
@@ -689,8 +736,11 @@
   left: 10px;
   top: 10px;
   z-index: 3;
-  display: flex;
-  flex-direction: column;
+  /* grade que quebra em mais colunas quando o mapa é baixo: nunca sai da tela */
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, 36px);
+  max-height: calc(100% - 20px);
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
@@ -710,7 +760,7 @@
   cursor: pointer;
 }
 .fv-map-toolbox button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.fv-map-toolbox button.is-on { background: var(--gold); color: #14100a; }
+.fv-map-toolbox button.is-on { background: var(--map-on); color: var(--map-on-ink); }
 .fv-map-toolbox button.is-clear { color: var(--stage-over); }
 .fv-map-toolbox button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
 .fv-map-view.is-tool { cursor: crosshair; }
@@ -726,7 +776,7 @@
 .fv-mark.is-measure line { filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9)); }
 .fv-mark.is-measure circle { fill: var(--mk); stroke: rgba(0, 0, 0, 0.6); }
 .fv-mark-label rect { fill: rgba(8, 10, 18, 0.88); stroke: var(--mk); stroke-width: 1.5; }
-.fv-mark-label text { fill: #fff; font-family: 'Chakra Petch', monospace; font-weight: 700; }
+.fv-mark-label text { fill: #fff; font-family: var(--font-num); font-weight: 700; }
 .fv-map-laser polyline {
   fill: none;
   stroke-linecap: round;
@@ -746,6 +796,10 @@
   flex-direction: column;
   gap: 1px;
   pointer-events: none;
+}
+.fv-token-conds i svg {
+  width: 1.15em;
+  height: 1.15em;
 }
 .fv-token-conds i {
   display: grid;
@@ -817,7 +871,7 @@
 .fv-stage-turn label { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; cursor: pointer; }
 
 .fv-tokenbar-hp { display: inline-flex; align-items: center; gap: 6px; }
-.fv-tokenbar-hp span { font-family: 'Chakra Petch', monospace; font-weight: 700; font-size: 12.5px; color: var(--ink); }
+.fv-tokenbar-hp span { font-family: var(--font-num); font-weight: 700; font-size: 12.5px; color: var(--ink); }
 .fv-tokenbar-hp input { width: 58px; min-height: 34px; padding: 4px 8px; font-size: 13px; text-align: center; }
 @media (max-width: 640px) {
   .fv-map-toolbox { flex-direction: row; flex-wrap: wrap; max-width: calc(100% - 70px); }
@@ -837,3 +891,113 @@
 @keyframes fv-target-spin { to { transform: rotate(360deg); } }
 .fv-stage-turn b.is-target { color: #ff7a80; }
 @media (prefers-reduced-motion: reduce) { .fv-token.is-target::after { animation: none; } }
+
+/* modo claro: o "metal" do tema é escuro — no mapa (sempre escuro) o ativo usa a cor viva */
+[data-mode='light'] {
+  --map-on: var(--acc);
+  --map-on-ink: #ffffff;
+}
+[data-theme='eclipse'] {
+  --map-on: #f3f2ee;
+  --map-on-ink: #111111;
+}
+
+/* ---------- arrastar para o mapa ---------- */
+[draggable='true'] { cursor: grab; }
+[draggable='true']:active { cursor: grabbing; }
+/* enquanto algo é arrastado, o mapa avisa que aceita */
+body.fv-dragging-token .fv-map-view {
+  outline: 2px dashed color-mix(in srgb, var(--map-on), transparent 20%);
+  outline-offset: -6px;
+}
+body.fv-dragging-token .fv-map-view::after {
+  content: 'Solte numa casa do mapa';
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  z-index: 4;
+  translate: -50% 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(8, 10, 18, 0.85);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.fv-map-dropcell {
+  position: absolute;
+  z-index: 2;
+  border-radius: 6px;
+  border: 2px solid var(--map-on);
+  background: color-mix(in srgb, var(--map-on), transparent 70%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--map-on), transparent 40%);
+  pointer-events: none;
+  animation: fv-drop-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes fv-drop-pulse { to { background: color-mix(in srgb, var(--map-on), transparent 85%); } }
+@media (prefers-reduced-motion: reduce) {
+  .fv-map-dropcell { animation: none; }
+}
+
+/* ---------- mapa em tela cheia ----------
+   O palco cobre a janela; o mapa estica no que sobra. Fica abaixo de janelas
+   (70), avisos e rolagens, para que continuem aparecendo por cima. */
+.fv-stage.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  margin: 0;
+  border-radius: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: var(--bg);
+}
+.fv-stage.is-full > .fv-stage-head { margin-bottom: 0; }
+.fv-stage.is-full > .fv-stage-turn,
+.fv-stage.is-full > .fv-tokenbar { margin: 0; }
+body.fv-map-full .fv-stage.is-full .fv-map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+body.fv-map-full .fv-stage.is-full .fv-map-view {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  border-radius: var(--radius-md);
+}
+/* bandeja de peões: uma linha que rola de lado, para não comer o mapa */
+.fv-stage.is-full .fv-tray { margin-top: 0; flex: none; }
+.fv-stage.is-full .fv-tray > .fv-label,
+.fv-stage.is-full .fv-tray > .fv-live-hint { display: none; }
+.fv-stage.is-full .fv-tray-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.fv-stage.is-full .fv-tray-row > * { flex: none; }
+.fv-stage.is-full .fv-tray-row .fv-input { flex: 0 0 200px; }
+/* a página por baixo não rola nem aparece (topo, navegação, dock da sessão) */
+body.fv-map-full { overflow: hidden; }
+/* a tela fica num contexto de empilhamento (z 10) abaixo do topo (40) e das
+   barras de navegação: no modo cheio ela sobe — ainda abaixo de avisos,
+   rolagens e janelas globais */
+body.fv-map-full .fv-screen-scroll { overflow: hidden !important; transform: none !important; z-index: 60 !important; }
+.fv-stage-turn .fv-stage-next {
+  border-color: var(--goldB);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  color: var(--on-gold, #1a1206);
+  font-weight: 700;
+}
+.fv-stage-turn .fv-stage-next:disabled { opacity: 0.6; cursor: wait; }
+/* tela baixa (celular deitado): só o essencial em volta do mapa */
+@media (max-height: 520px) {
+  .fv-stage.is-full { gap: 4px; padding-top: max(4px, env(safe-area-inset-top)); padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .fv-stage.is-full .fv-stage-title small,
+  .fv-stage.is-full .fv-stage-turn label { display: none; }
+  .fv-stage.is-full .fv-stage-head .fv-input { min-height: 32px; padding-block: 2px; }
+  .fv-stage.is-full .fv-tray { display: none; }
+}
+/* seletor de cena: o nome não passa por baixo da setinha */
+.fv-stage-actions select.fv-input { padding-right: 30px; text-overflow: ellipsis; max-width: 100%; }

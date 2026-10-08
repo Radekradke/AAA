@@ -18,7 +18,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
     justifyContent: 'center',
     gap: 8,
     maxWidth: '100%',
-    fontFamily: variant === 'gold' ? 'var(--font-display)' : "'Inter', sans-serif",
+    fontFamily: variant === 'gold' ? 'var(--font-display)' : 'var(--font-body)',
     fontWeight: variant === 'gold' ? 700 : 600,
     letterSpacing: variant === 'gold' ? '0.08em' : '0.02em',
     lineHeight: 1.05,
@@ -30,7 +30,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
 
   const variants: Record<Variant, React.CSSProperties> = {
     gold: {
-      color: '#1a1206',
+      color: 'var(--on-gold, #1a1206)',
       padding: '14px 30px',
       fontSize: 15,
       border: '1px solid var(--goldB)',
@@ -65,7 +65,7 @@ export function Button({ variant = 'ghost', pulse, children, className = '', sty
 
   return (
     <button
-      className={className}
+      className={`fv-btn is-${variant} ${className}`.trim()}
       style={{ ...base, ...variants[variant], opacity: rest.disabled ? 0.55 : undefined }}
       {...rest}
     >

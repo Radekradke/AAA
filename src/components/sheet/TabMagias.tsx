@@ -6,17 +6,22 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
-import { SPELL_BY_ID, SPELLS, spellsForClass } from '@/data/spells';
+import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
+import { useUiStore } from '@/store/uiStore';
+import { SOURCE_SHORT } from '@/data/contentPacks';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
+import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
+import { useInk } from '@/lib/contrast';
+import { SchoolIcon } from '@/components/ui/RuleIcon';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -38,6 +43,8 @@ export function TabMagias({ char, derived }: TabProps) {
   const listClass = caster?.listClass ?? char.classId;
   // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
   const st = useMemo(() => spellLearnState(char, castMod), [char, castMod]);
+  // pacotes de conteúdo ligados mudam as listas (Xanathar, Tasha)
+  const packs = useUiStore((s) => s.packs);
   const [freeMode, setFreeMode] = useState(false);
   const blockFor = (sp: Spell, mode: 'class' | 'copy') => (freeMode || !st ? null : learnBlock(char, st, sp, mode));
 
@@ -45,7 +52,10 @@ export function TabMagias({ char, derived }: TabProps) {
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
-  const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses]);
+  const allItemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.combat.itemCharges, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  // cajados e varinhas (cargas) ficam num bloco próprio; o resto segue como antes
+  const chargeSpells = allItemSpells.filter((s) => s.charges);
+  const itemSpells = allItemSpells.filter((s) => !s.charges);
 
   // magias "do personagem": preparadas (todas as classes) + grimório do mago (nível ≥1)
   const prepared = char.preparedSpells;
@@ -71,7 +81,7 @@ export function TabMagias({ char, derived }: TabProps) {
     const base = spellsForClass(listClass, 9);
     const extra = expandedSpellIds(char).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
     return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-  }, [listClass, char.subclassId]);
+  }, [listClass, char.subclassId, packs]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -116,7 +126,7 @@ export function TabMagias({ char, derived }: TabProps) {
     return [...map.entries()].sort((a, b) => a[0] - b[0]);
   }, [active]);
 
-  if (kind === 'none' && itemSpells.length === 0) {
+  if (kind === 'none' && allItemSpells.length === 0) {
     return (
       <div className="animate-riseIn">
         <Panel full>
@@ -137,8 +147,8 @@ export function TabMagias({ char, derived }: TabProps) {
             style={{ marginBottom: 6 }}
             right={
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-                CD <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{derived.spellDC}</b> · ataque{' '}
-                <b style={{ color: 'var(--acc)', fontFamily: "'Chakra Petch', monospace" }}>{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
+                CD <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{derived.spellDC}</b> · ataque{' '}
+                <b style={{ color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
                 {' '}· {ABILITY_SHORT[castAbility]}
               </span>
             }
@@ -212,10 +222,18 @@ export function TabMagias({ char, derived }: TabProps) {
                     );
                   })}
                 </div>
-                <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>{slot.max - slot.used} / {slot.max}</span>
+                <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>{slot.max - slot.used} / {slot.max}</span>
               </div>
             );
           })}
+        </Panel>
+      )}
+
+      {/* Cajados e varinhas: cargas compartilhadas, custo por magia */}
+      {chargeSpells.length > 0 && (
+        <Panel full>
+          <SectionLabel>Cajados e varinhas</SectionLabel>
+          <ItemChargeSpells char={char} derived={derived} castMod={castMod} spells={chargeSpells} />
         </Panel>
       )}
 
@@ -229,14 +247,14 @@ export function TabMagias({ char, derived }: TabProps) {
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                   <span style={{ cursor: 'help', display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `1×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
                   </span>
                 </LoreTooltip>
                 {is.recharge === 'atwill' ? (
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: t.acc, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + hexA(t.acc, 0.5) }}>à vontade</span>
                 ) : (
                   <>
-                    <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
+                    <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
                     <button
                       onClick={() => is.usesLeft > 0 && store.useItemSpell(char.id, is.key)}
                       disabled={is.usesLeft === 0}
@@ -263,7 +281,7 @@ export function TabMagias({ char, derived }: TabProps) {
                   + {learnLabel}
                 </button>
                 {isWizard && (
-                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
+                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
                     📜 Copiar para o grimório
                   </button>
                 )}
@@ -282,7 +300,7 @@ export function TabMagias({ char, derived }: TabProps) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 7px' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
                 <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
-                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>{spells.length}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{spells.length}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
                 {spells.map((sp) => {
@@ -291,13 +309,17 @@ export function TabMagias({ char, derived }: TabProps) {
                   const isPrepared = prepared.includes(sp.id);
                   const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
                   return (
-                    <div key={sp.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
+                    <div key={sp.id} className="fv-spell-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
                       <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                         <span style={{ cursor: 'help', display: 'block' }}>
                           <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
                             {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
-                            <Mini>{sp.school}</Mini>
+                            <Mini>
+                              <SchoolIcon school={sp.school} size={10} />
+                              {sp.school}
+                            </Mini>
+                            {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
                             {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
                             {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
@@ -341,7 +363,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {learn && (
         <SpellLibrary
           title={learn === 'all' ? 'Copiar para o grimório (50 po por círculo)' : `${learnLabel} magias — ${caster?.via ?? cls.label}`}
-          spells={learn === 'all' ? SPELLS.filter((s) => s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
+          spells={learn === 'all' ? SPELLS.filter((s) => spellVisible(s) && s.level >= 1 && (s.classes ?? []).includes('wizard')) : classLearnList}
           blockReason={(s) => blockFor(s, learn === 'all' ? 'copy' : 'class')}
           selected={activeIds}
           onToggle={(id) => learnSpell(id, learn === 'all')}
@@ -359,15 +381,16 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
   return (
     <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, fontSize: 11.5, padding: '4px 10px', borderRadius: 999, border: '1px solid ' + hexA(color, 0.5), background: hexA(color, 0.08) }}>
       <span style={{ color: 'var(--muted)', textTransform: 'capitalize' }}>{label}</span>
-      <b style={{ fontFamily: "'Chakra Petch', monospace", color: over ? 'var(--danger)' : color }}>{have}</b>
+      <b style={{ fontFamily: 'var(--font-num)', color: over ? 'var(--danger)' : color }}>{have}</b>
       <span style={{ color: 'var(--muted)' }}>/ {target}</span>
     </span>
   );
 }
 
 function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
+  const ink = useInk();
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ?? 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

@@ -8,6 +8,7 @@
  * +1 no 10º, +1 no 17º → 4 no total).
  */
 import { TOOLS } from './tools';
+import { WEAPONS } from './weapons';
 import { SKILLS } from './skills';
 import { SPELL_BY_ID } from './spells';
 import { LAND_SPELLS } from './subclassSpells';
@@ -38,7 +39,7 @@ export interface ChoiceSpec {
   /** Pode trocar uma opção antiga por outra ao ganhar novas (Manobras, Invocações). */
   canReplace?: boolean;
   /** Catálogo `spell`: de quais listas e de que círculo (exato ou até o maior espaço da classe). */
-  spell?: { classes?: string[]; circle?: number; upToSlots?: boolean };
+  spell?: { classes?: string[]; circle?: number; upToSlots?: boolean; schools?: string[] };
   /** Só aparece se outra escolha da mesma classe tiver esta opção (ex.: Pacto do Tomo). */
   requires?: { key: string; id: string };
   /** Opções que não contam no limite de magias conhecidas/truques (ex.: Livro das Sombras). */
@@ -67,6 +68,9 @@ export type CatalogId =
   | 'invocation'
   | 'language'
   | 'beast'
+  | 'instrument'
+  | 'monkTool'
+  | 'weapon'
   /** Magias da biblioteca, filtradas pelo `spell` da escolha. */
   | 'spell';
 
@@ -275,6 +279,11 @@ export const INVOCATIONS: ChoiceOption[] = [
   { id: 'witchSight', label: 'Visão da Bruxa', tag: '15º', desc: 'Vê a forma verdadeira de metamorfos e criaturas disfarçadas por ilusão ou transmutação a até 9 m.', prereq: { level: 15 } },
 ];
 
+/* ---------- Lista do artífice (Tasha) dentro da biblioteca do app ---------- */
+const byNames = (names: string[]) => Object.values(SPELL_BY_ID).filter((sp) => names.includes(sp.name)).map((sp) => sp.id);
+export const ARTIFICER_CANTRIPS = byNames(['Respingo Ácido', 'Globos de Luz', 'Raio de Fogo', 'Orientação', 'Luz', 'Mãos Mágicas', 'Consertar', 'Mensagem', 'Rajada de Veneno', 'Prestidigitação', 'Raio de Gelo', 'Resistência', 'Toque Chocante', 'Estabilizar Criatura', 'Chicote de Espinhos']);
+export const ARTIFICER_FIRST = byNames(['Alarme', 'Curar Ferimentos', 'Disfarçar-se', 'Recuo Acelerado', 'Fogo das Fadas', 'Vitalidade Falsa', 'Queda Suave', 'Área Escorregadia', 'Identificação', 'Saltar', 'Passos Longos', 'Purificar Alimentos e Bebidas', 'Santuário']);
+
 /* ---------- Idiomas (Domínio do Conhecimento) ---------- */
 export const LANGUAGE_OPTIONS: ChoiceOption[] = [
   ['Anão', 'padrão'], ['Élfico', 'padrão'], ['Gigante', 'padrão'], ['Gnômico', 'padrão'], ['Goblin', 'padrão'], ['Halfling', 'padrão'], ['Orc', 'padrão'],
@@ -294,6 +303,27 @@ export const ARTISAN_TOOLS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === '
   label: tl.label,
   desc: 'Ganha proficiência com essa ferramenta (entra na lista de ferramentas da ficha).',
 }));
+
+export const INSTRUMENTS: ChoiceOption[] = TOOLS.filter((tl) => tl.group === 'instrumento').map((tl) => ({
+  id: tl.id,
+  label: tl.label,
+  desc: 'Instrumento musical.',
+}));
+
+/** Monge (PHB 2014): uma ferramenta de artesão OU um instrumento musical. */
+export const MONK_TOOLS: ChoiceOption[] = [
+  ...ARTISAN_TOOLS.map((o) => ({ ...o, tag: 'artesão' })),
+  ...INSTRUMENTS.map((o) => ({ ...o, tag: 'instrumento' })),
+];
+
+/** Armas do catálogo (Mestre em Armas, arma do Pacto da Lâmina). */
+export const WEAPON_OPTIONS: ChoiceOption[] = WEAPONS.filter((w) => w.weapon && !/-plus\d$/.test(w.id)).map((w) => ({
+  id: w.id,
+  label: w.name,
+  tag: w.weapon!.type === 'martial' ? 'marcial' : 'simples',
+  desc: `${w.weapon!.damageDice}d${w.weapon!.damageDie} ${w.weapon!.damageType} · ${w.weapon!.range === 'ranged' ? 'à distância' : 'corpo a corpo'}${w.weapon!.properties.length ? ' · ' + w.weapon!.properties.join(', ') : ''}`,
+}));
+export const MELEE_WEAPON_IDS = WEAPONS.filter((w) => w.weapon?.range === 'melee' && !/-plus\d$/.test(w.id)).map((w) => w.id);
 
 export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   metamagic: METAMAGIC,
@@ -317,6 +347,9 @@ export const CATALOGS: Record<CatalogId, ChoiceOption[]> = {
   invocation: INVOCATIONS,
   language: LANGUAGE_OPTIONS,
   beast: BEAST_OPTIONS,
+  instrument: INSTRUMENTS,
+  monkTool: MONK_TOOLS,
+  weapon: WEAPON_OPTIONS,
   spell: [],
 };
 
@@ -368,9 +401,14 @@ export const CLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
     14: [{ key: 'favoredEnemy', catalog: 'favoredEnemy', label: 'Inimigo Favorito adicional', count: 1, hint: ENEMY_HINT }],
   },
   bard: {
+    // PHB 2014: três instrumentos musicais à escolha
+    1: [{ key: 'bardInstruments', catalog: 'instrument', label: 'Instrumentos musicais', count: 3, hint: 'Proficiência com três instrumentos musicais à sua escolha.' }],
     10: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
     14: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
     18: [{ key: 'magicalSecrets', catalog: 'spell', label: 'Segredos Mágicos', count: 2, spell: { upToSlots: true }, hint: SECRETS_HINT }],
+  },
+  monk: {
+    1: [{ key: 'monkTool', catalog: 'monkTool', label: 'Ferramenta ou instrumento', count: 1, hint: 'Proficiência com uma ferramenta de artesão ou um instrumento musical.' }],
   },
   warlock: {
     2: [invocationGain(2)],
@@ -385,6 +423,15 @@ export const CLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
         requires: { key: 'pact', id: 'tome' },
         bonusSpells: true,
         hint: 'Três truques de QUALQUER lista de classe. Contam como magias de bruxo e não entram no limite de truques.',
+      },
+      {
+        key: 'pactWeapon',
+        catalog: 'weapon',
+        label: 'Arma do Pacto',
+        count: 1,
+        only: MELEE_WEAPON_IDS,
+        requires: { key: 'pact', id: 'blade' },
+        hint: 'A forma da sua arma de pacto (corpo a corpo). Você é proficiente com ela, e ela conta como mágica.',
       },
       invocationSwap,
     ],
@@ -479,6 +526,33 @@ export const SUBCLASS_CHOICES: Record<string, Record<number, ChoiceSpec[]>> = {
  * e resolvidas em "Escolhas pendentes" depois de pegar o talento.
  */
 export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
+  // ---- Caldeirão de Tasha ----
+  'artificer-initiate': [
+    { key: 'artificerCantrip', catalog: 'spell', label: 'Iniciado Artífice (truque)', count: 1, spell: { circle: 0 }, only: ARTIFICER_CANTRIPS, bonusSpells: true, hint: 'Um truque da lista do artífice, conjurado com Inteligência.' },
+    { key: 'artificerSpell', catalog: 'spell', label: 'Iniciado Artífice (1º círculo)', count: 1, spell: { circle: 1 }, only: ARTIFICER_FIRST, bonusSpells: true, hint: 'Uma magia de 1º círculo do artífice: 1× por descanso longo sem espaço (ou com seus espaços).' },
+    { key: 'artificerTool', catalog: 'artisanTool', label: 'Iniciado Artífice (ferramenta)', count: 1, hint: 'Proficiência com um tipo de ferramenta de artesão.' },
+  ],
+  'eldritch-adept': [
+    { key: 'invocation', catalog: 'invocation', label: 'Adepto Místico (invocação)', count: 1, only: INVOCATIONS.filter((i) => !i.prereq).map((i) => i.id), hint: 'Uma invocação mística sem pré-requisito. Ao subir de nível, pode trocá-la por outra.' },
+  ],
+  'fey-touched': [
+    { key: 'feyTouchedSpell', catalog: 'spell', label: 'Tocado pelas Fadas (magia)', count: 1, spell: { circle: 1, schools: ['Adivinhação', 'Encantamento'] }, bonusSpells: true, hint: 'Uma magia de 1º círculo de adivinhação ou encantamento: 1× por descanso longo sem espaço.' },
+  ],
+  'fighting-initiate': [
+    { key: 'fightingStyle', catalog: 'fightingStyle', label: 'Iniciado em Combate (estilo)', count: 1, hint: 'Um Estilo de Luta do guerreiro que você ainda não tenha.' },
+  ],
+  'metamagic-adept': [
+    { key: 'metamagic', catalog: 'metamagic', label: 'Adepto Metamágico', count: 2, hint: 'Duas opções de Metamagia. Ganha 2 pontos de feitiçaria só para usá-las.' },
+  ],
+  'shadow-touched': [
+    { key: 'shadowTouchedSpell', catalog: 'spell', label: 'Tocado pelas Sombras (magia)', count: 1, spell: { circle: 1, schools: ['Ilusão', 'Necromancia'] }, bonusSpells: true, hint: 'Uma magia de 1º círculo de ilusão ou necromancia: 1× por descanso longo sem espaço.' },
+  ],
+  'skill-expert': [
+    { key: 'skillExpertSkill', catalog: 'skill', label: 'Especialista em Perícia', count: 1, hint: 'Proficiência numa perícia. Depois escolha uma perícia proficiente para a especialização (aba de Perícias).' },
+  ],
+  'weapon-master': [
+    { key: 'weaponMasterWeapons', catalog: 'weapon', label: 'Mestre em Armas (armas)', count: 4, hint: 'Proficiência com quatro armas simples ou marciais à sua escolha.' },
+  ],
   'wood-elf-magic': [
     { key: 'woodElfCantrip', catalog: 'spell', label: 'Magia do Elfo da Floresta (truque)', count: 1, spell: { classes: ['druid'], circle: 0 }, bonusSpells: true, hint: 'Um truque de druida, conjurado com Sabedoria. Não conta no limite de truques da sua classe.' },
   ],
@@ -488,5 +562,19 @@ export const FEAT_CHOICES: Record<string, ChoiceSpec[]> = {
   prodigy: [
     { key: 'prodigySkill', catalog: 'skill', label: 'Prodígio (perícia)', count: 1, hint: 'Proficiência numa perícia à sua escolha.' },
     { key: 'prodigyLanguage', catalog: 'language', label: 'Prodígio (idioma)', count: 1, hint: 'Fluência num idioma à sua escolha.' },
+  ],
+};
+
+/** Escolhas raciais (PHB 2014): guardadas em `choices['race.<chave>']`. */
+export const RACE_CHOICES: Record<string, ChoiceSpec[]> = {
+  dwarf: [
+    {
+      key: 'dwarfTool',
+      catalog: 'artisanTool',
+      label: 'Proficiência com Ferramentas (Anão)',
+      count: 1,
+      only: ['smiths-tools', 'brewers-supplies', 'masons-tools'],
+      hint: 'Ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.',
+    },
   ],
 };

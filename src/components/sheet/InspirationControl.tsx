@@ -57,7 +57,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
           <Icon name="inspiration" size={30} color={lit ? '#5a3d05' : 'var(--muted)'} />
           <div style={{ minWidth: 0, overflow: 'hidden', textAlign: 'left', lineHeight: 1.1 }} title={hintLong}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.2em', opacity: 0.75 }}>INSPIRAÇÃO</span>
+              <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.16em', opacity: 0.8 }}>INSPIRAÇÃO</span>
               <Pips points={points} lit={lit} />
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 15, lineHeight: 1.1, marginTop: 2, overflowWrap: 'break-word' }}>{title}</div>
@@ -85,7 +85,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
 /** Losangos dos pontos (até 5 à vista; acima disso, "×N"). */
 function Pips({ points, lit }: { points: number; lit: boolean }) {
   if (points <= 0) return null;
-  if (points > 5) return <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, fontWeight: 800 }}>×{points}</span>;
+  if (points > 5) return <span style={{ fontFamily: 'var(--font-num)', fontSize: 11, fontWeight: 800 }}>×{points}</span>;
   return (
     <span aria-hidden style={{ display: 'inline-flex', gap: 3 }}>
       {Array.from({ length: points }, (_, i) => (
@@ -106,13 +106,13 @@ function StepBtn({ children, label, onClick, disabled, accent }: { children: Rea
       style={{
         cursor: disabled ? 'default' : 'pointer',
         flex: 1,
-        minWidth: 36,
-        minHeight: 26,
+        minWidth: 44,
+        minHeight: 40,
         borderRadius: 10,
         border: '1px solid ' + (accent && !disabled ? 'var(--gold)' : 'var(--line)'),
         background: accent && !disabled ? 'rgba(255,224,138,.12)' : 'var(--sunk)',
         color: disabled ? 'rgba(139,153,176,.4)' : accent ? 'var(--gold)' : 'var(--muted)',
-        fontFamily: "'Chakra Petch', monospace",
+        fontFamily: 'var(--font-num)',
         fontWeight: 800,
         fontSize: 17,
         lineHeight: 1,

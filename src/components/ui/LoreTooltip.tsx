@@ -22,6 +22,22 @@ function clamp(n: number, min: number, max: number) {
 type Placement = 'right' | 'left' | 'bottom' | 'top';
 type Point = { x: number; y: number };
 
+/** Metal do brilho da carta do item pela raridade: prateado, dourado nas muito raras e o claro das lendárias. */
+export function rarityMetal(rarity: string): 'prata' | 'ouro' | 'lendaria' {
+  return rarity === 'lendario' ? 'lendaria' : rarity === 'muito-raro' ? 'ouro' : 'prata';
+}
+
+/** Carta do item: a arte com moldura da raridade e o reflexo do metal. */
+export function ItemArtCard({ src, rarity, size }: { src: string | null | undefined; rarity: string; size?: 'sm' }) {
+  if (!src) return null; // sem foto, sem carta
+  return (
+    <span className={`fv-itemcard is-${rarity}` + (size ? ` is-${size}` : '')} aria-hidden>
+      <img src={src} alt="" />
+      <span className={`fv-metal is-${rarityMetal(rarity)}`} />
+    </span>
+  );
+}
+
 /** BG3-like lore popover: hover/focus on desktop, first tap on mobile. */
 export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreTooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
@@ -31,8 +47,11 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
   const [touchMode, setTouchMode] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0, placement: 'right' as Placement });
 
+  // com arte, a carta vai ao lado (PC) ou em cima (celular): o balão alarga
+  const tipWidth = () => Math.min(info.art && window.innerWidth > 560 ? 540 : 340, window.innerWidth - 24);
+
   const place = () => {
-    const width = Math.min(340, window.innerWidth - 24);
+    const width = tipWidth();
     const height = tipRef.current?.offsetHeight ?? 220;
     const gap = 18;
     const point = pointerRef.current;
@@ -207,20 +226,23 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       {open && createPortal(
         <div
           ref={tipRef}
-          className="fv-lore-tooltip"
+          className={'fv-lore-tooltip' + (info.art ? ' has-art' : '')}
           data-placement={pos.placement}
-          style={{ top: pos.top, left: pos.left, width: Math.min(340, window.innerWidth - 24) }}
+          style={{ top: pos.top, left: pos.left, width: tipWidth() }}
           role="tooltip"
         >
-          <div className="fv-lore-title">{info.title}</div>
-          {info.subtitle && <div className="fv-lore-subtitle">{info.subtitle}</div>}
-          <div className="fv-lore-body">{info.body}</div>
-          {info.tags?.length ? (
-            <div className="fv-lore-tags">
-              {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
-            </div>
-          ) : null}
-          {touchMode && <div className="fv-lore-mobile">Toque fora para fechar · toque simples executa a ação.</div>}
+          {info.art && <ItemArtCard src={info.art.src} rarity={info.art.rarity} />}
+          <div className="fv-lore-text">
+            <div className="fv-lore-title">{info.title}</div>
+            {info.subtitle && <div className="fv-lore-subtitle">{info.subtitle}</div>}
+            <div className="fv-lore-body">{info.body}</div>
+            {info.tags?.length ? (
+              <div className="fv-lore-tags">
+                {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              </div>
+            ) : null}
+            {touchMode && <div className="fv-lore-mobile">Toque fora para fechar · toque simples executa a ação.</div>}
+          </div>
         </div>,
         document.body,
       )}

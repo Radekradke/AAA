@@ -54,6 +54,8 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
       </p>
       <p style={{ margin: '8px 0 0', fontSize: 10.5, color: 'var(--muted)', textAlign: 'center', opacity: 0.8 }}>
         Ícones: <a href="https://game-icons.net" target="_blank" rel="noreferrer" style={{ color: 'var(--acc)' }}>game-icons.net</a> (Lorc, Delapouite e colaboradores) — CC BY 3.0.
+        <br />
+        Sons: <a href="https://kenney.nl" target="_blank" rel="noreferrer" style={{ color: 'var(--acc)' }}>Kenney</a> (CC0) · Texturas dos dados 3D: dice-box-threejs (MIT).
       </p>
     </Modal>
   );

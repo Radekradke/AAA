@@ -13,6 +13,8 @@ import { stageService } from '@/services/stageService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 import type { Handout } from '@/types/stage';
+import '@/styles/session.css';
+import '@/styles/stage.css';
 
 /** Pistas (handouts) que o mestre entregou nas mesas desta ficha — com cópia offline. */
 function useSheetHandouts(sheetId: string): Handout[] {

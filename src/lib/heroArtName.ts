@@ -45,3 +45,23 @@ export function artKeyFromFileName(fileName: string): string | null {
   if (!classId) return null;
   return `${classId}-${m[2].startsWith('f') ? 'fem' : 'masc'}`;
 }
+
+/**
+ * Nome do arquivo de voz → chave `<classe>-<masc|fem>`. Igual ao retrato,
+ * mas também aceita só o nome da classe: a forma feminina já diz o sexo
+ * (`Barda.mp3`, `Monja.mp3`) e a masculina também (`Patrulheiro.mp3`).
+ * Nomes iguais nos dois (`Druida.mp3`) precisam de "masculino"/"feminino".
+ */
+export function voiceKeyFromFileName(fileName: string): string | null {
+  const key = artKeyFromFileName(fileName);
+  if (key) return key;
+  const base = slug(fileName.replace(/\.\w+$/, ''));
+  for (const c of CLASSES) {
+    const fem = slug(FEMININE[c.id] ?? c.label);
+    const masc = slug(c.label);
+    if (fem === masc) continue;
+    if (base === fem) return `${c.id}-fem`;
+    if (base === masc) return `${c.id}-masc`;
+  }
+  return null;
+}

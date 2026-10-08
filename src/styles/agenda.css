@@ -1,0 +1,395 @@
+/* =====================================================================
+   Agenda da campanha — próxima sessão na sala (folha de calendário,
+   presença Vou/Talvez/Não vou) e o formulário do mestre.
+   Cores de status misturadas com --ink: escurecem no modo claro e
+   clareiam no escuro, mantendo contraste nos 8 temas.
+   ===================================================================== */
+.fv-agenda {
+  --agenda-yes: color-mix(in srgb, #3fc56b 62%, var(--ink));
+  --agenda-maybe: color-mix(in srgb, #e0a93e 62%, var(--ink));
+  --agenda-no: var(--muted);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.fv-agenda .fv-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 11px;
+}
+.fv-agenda-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.fv-agenda-link {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  min-height: 32px;
+  font: 600 12.5px var(--font-body);
+  color: var(--acc);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.fv-agenda-link:hover {
+  text-decoration: underline;
+}
+.fv-agenda-link.is-danger {
+  color: var(--danger);
+}
+
+/* ---------- próxima sessão ---------- */
+.fv-agenda-hero {
+  display: flex;
+  gap: clamp(12px, 2.4vw, 20px);
+  align-items: flex-start;
+}
+.fv-agenda-leaf {
+  flex: none;
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 45%);
+  background: var(--sunk-deep);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 22px var(--bloom);
+}
+.fv-agenda-leaf-month {
+  align-self: stretch;
+  text-align: center;
+  padding: 3px 0 2px;
+  font: 800 10.5px var(--font-display);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-gold, #1a1206);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+}
+.fv-agenda-leaf-day {
+  font: 700 34px/1.05 var(--font-num);
+  color: var(--ink);
+  padding-top: 4px;
+}
+.fv-agenda-leaf-week {
+  padding-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--muted);
+}
+.fv-agenda-leaf.is-live {
+  border-color: var(--agenda-yes);
+  box-shadow: 0 0 0 1px var(--agenda-yes), 0 0 26px color-mix(in srgb, #3fc56b, transparent 60%);
+}
+
+.fv-agenda-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fv-agenda-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.fv-agenda-when b {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 2.4vw, 19px);
+  color: var(--ink);
+}
+.fv-agenda-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--acc), transparent 55%);
+  color: var(--acc);
+  white-space: nowrap;
+}
+.fv-agenda-tag.is-live {
+  border-color: var(--agenda-yes);
+  color: var(--agenda-yes);
+  animation: fv-agenda-pulse 2s ease-in-out infinite;
+}
+.fv-agenda-tag.is-off {
+  border-color: color-mix(in srgb, var(--danger), transparent 55%);
+  color: var(--danger);
+}
+@keyframes fv-agenda-pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, #3fc56b, transparent 80%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-agenda-tag.is-live {
+    animation: none;
+  }
+}
+.fv-agenda-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--gold);
+}
+.fv-agenda-place {
+  font-size: 13px;
+  color: var(--ink);
+}
+.fv-agenda-note {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  white-space: pre-line;
+}
+
+/* ---------- presença ---------- */
+.fv-agenda-rsvp {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.fv-agenda-rsvp-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  font: 700 13px var(--font-body);
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.fv-agenda-rsvp-btn:hover {
+  border-color: var(--line-strong, var(--gold));
+}
+.fv-agenda-rsvp-n {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font: 700 11px/18px var(--font-num);
+  text-align: center;
+  background: var(--sunk-deep);
+  color: var(--muted);
+}
+.fv-agenda-rsvp-btn.is-yes[aria-pressed='true'] {
+  border-color: var(--agenda-yes);
+  color: var(--agenda-yes);
+  background: color-mix(in srgb, #3fc56b, transparent 88%);
+}
+.fv-agenda-rsvp-btn.is-maybe[aria-pressed='true'] {
+  border-color: var(--agenda-maybe);
+  color: var(--agenda-maybe);
+  background: color-mix(in srgb, #e0a93e, transparent 88%);
+}
+.fv-agenda-rsvp-btn.is-no[aria-pressed='true'] {
+  border-color: var(--muted);
+  color: var(--ink);
+  background: var(--sunk-deep);
+}
+
+.fv-agenda-who {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.fv-agenda-who li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fv-agenda-who li small {
+  font-weight: 500;
+  color: var(--muted);
+}
+.fv-agenda-who li i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--agenda-no);
+}
+.fv-agenda-who li.is-yes i {
+  background: var(--agenda-yes);
+}
+.fv-agenda-who li.is-maybe i {
+  background: var(--agenda-maybe);
+}
+.fv-agenda-who li.is-no {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted), transparent 40%);
+}
+.fv-agenda-nobody {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-agenda-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  margin-top: 6px;
+}
+
+.fv-agenda-empty p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-agenda-empty .fv-btn-gold {
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 13px;
+}
+
+/* ---------- mais adiante ---------- */
+.fv-agenda-later {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fv-agenda-later li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.fv-agenda-later-when {
+  font-family: var(--font-num);
+  font-weight: 700;
+  min-width: 128px;
+}
+.fv-agenda-later-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-agenda-later-count {
+  font-size: 11.5px;
+  color: var(--agenda-yes);
+  font-weight: 700;
+}
+.fv-agenda-later li.is-canceled .fv-agenda-later-when {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.fv-agenda-later-acts {
+  display: inline-flex;
+  gap: 10px;
+}
+.fv-agenda-later-acts button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  min-height: 28px;
+  font: 600 11.5px var(--font-body);
+  color: var(--acc);
+}
+
+/* ---------- formulário do mestre ---------- */
+.fv-agenda-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fv-agenda-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fv-agenda-form-row label {
+  flex: 1 1 180px;
+}
+.fv-agenda-form label > span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fv-agenda-form .fv-input {
+  padding: 9px 12px;
+  font-size: 14px;
+  min-height: 42px;
+}
+.fv-agenda-form select.fv-input {
+  padding-right: 36px;
+}
+.fv-agenda-form textarea.fv-input {
+  resize: vertical;
+  min-height: 60px;
+}
+.fv-agenda-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fv-agenda-form-row label:last-child {
+  flex: 0 1 120px;
+}
+.fv-agenda-form-hint {
+  margin-top: -4px;
+  font-size: 12px;
+  color: var(--acc);
+}
+.fv-agenda-form-acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.fv-agenda-form-acts button {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 13px;
+}
+.fv-agenda-form-acts .fv-btn-gold:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .fv-agenda-leaf {
+    width: 62px;
+  }
+  .fv-agenda-leaf-day {
+    font-size: 28px;
+  }
+  .fv-agenda-rsvp-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 8px;
+  }
+}

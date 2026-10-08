@@ -9,6 +9,8 @@ export interface LoreInfo {
   subtitle?: string;
   body: string;
   tags?: string[];
+  /** Arte (item com imagem): aparece como carta ao lado do texto. */
+  art?: { src: string; rarity: string };
 }
 
 export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
@@ -139,6 +141,7 @@ export function itemLore(item: {
   armor?: ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  attuneBy?: string[];
   magic?: MagicEffects;
   heal?: string;
 }): LoreInfo {
@@ -148,7 +151,11 @@ export function itemLore(item: {
     ? [
         m.ac ? `+${m.ac} CA${m.unarmoredOnly ? ' (sem armadura/escudo)' : ''}` : '',
         m.saves ? `+${m.saves} salvaguardas` : '',
+        m.checks ? `+${m.checks} testes de atributo` : '',
+        m.hpPerLevel ? `+${m.hpPerLevel} PV por nível` : '',
         ...Object.entries(m.setAbility ?? {}).map(([k, v]) => `${k.toUpperCase()} ${v}`),
+        ...Object.entries(m.addAbility ?? {}).map(([k, v]) => `+${v!.bonus} ${k.toUpperCase()} (máx. ${v!.max})`),
+        m.unarmoredAC ? `CA ${m.unarmoredAC.base} + ${m.unarmoredAC.ability.toUpperCase()} sem armadura` : '',
         m.spellAttack ? `+${m.spellAttack} ataque de magia` : '',
         m.spellDC ? `+${m.spellDC} CD de magia` : '',
         m.speed ? `+${m.speed} m deslocamento` : '',
@@ -156,7 +163,10 @@ export function itemLore(item: {
       ].filter(Boolean)
     : [];
   if (item.heal) tags.push(`cura ${item.heal}`);
-  if (item.attunement) tags.push('Sintonia');
+  if (item.attunement) {
+    const who: Record<string, string> = { spellcaster: 'conjurador', bard: 'bardo', cleric: 'clérigo', druid: 'druida', paladin: 'paladino', sorcerer: 'feiticeiro', warlock: 'bruxo', wizard: 'mago' };
+    tags.push(item.attuneBy?.length ? `Sintonia (${item.attuneBy.map((b) => who[b] ?? b).join(', ')})` : 'Sintonia');
+  }
   if (item.weight) tags.push(`${item.weight} kg`);
   if (item.weapon) tags.push(`${item.weapon.damageDice}d${item.weapon.damageDie} ${item.weapon.damageType}`);
   if (item.armor) tags.push(`CA ${item.armor.baseAC}`);

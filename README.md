@@ -48,6 +48,8 @@ A **ficha** inclui:
 - **Evolução de nível** (aba Evoluir): PV, talentos, aumentos de atributo e subclasses, com validação.
 - **Magias estilo BG3**: grimório, pergaminhos e itens que concedem magias com usos por descanso.
 - **Nuvem opcional (Supabase)**: login, sincronização local ↔ nuvem com resolução de conflitos e **mesas de campanha** com convite. Sem Supabase configurado, tudo funciona localmente. Veja `docs/SUPABASE.md`.
+- **Console do mestre** (`/mesa/:id/jogar`, para o mestre): **Bastidores | Palco | Inspetor**, com a **faixa de iniciativa** e a **barra de improviso** sempre à mão. Bastidores reúne Sessão, NPCs, Criaturas (bestiário), Encontro, Cenas, Pistas e Notas privadas; o Inspetor mostra o que foi tocado (no palco, na iniciativa ou nos bastidores) com as ações daquilo. Improviso em segundos: **NPC, criatura, pista, item para um herói, encontro e nota** (Alt+N/C/P/I/E/O). Dá para **preparar a sessão antes** (bandeja de atalhos) ou só começar e reagir — nada é obrigatório. Dano em criatura, ocultar/revelar e remover têm **Desfazer**. No celular, Bastidores e Inspetor viram gavetas. *A FichaViva não tenta controlar a história: dá ao mestre ferramentas para reagir a ela.*
+- **8 temas, cada um uma identidade visual** — não só cor: layout, formas, tipografia e o dado mudam. Véu Astral (planetário: órbitas e cápsulas), Noite Arcana (observatório: instrumentos, régua e leituras em mono), Forja Dourada (oficina anã: chapas rebitadas e porcas sextavadas), Bosque Élfico (clareira: folhas, seixos e menu em galhos), Corte Carmesim (teatro barroco: fitas marcadoras e cartas de tarô), Ouro Velho, Eclipse e Guilda Rubra. **Todos têm paleta clara e escura** (Configurações → Aparência ou menu ⋯): o layout continua o mesmo e só as cores mudam; a escolha fica salva por tema.
 - **Exportar/Importar** personagem em **JSON**.
 
 A engine de regras (`/src/engine`) é simples, tipada e expansível, com suporte a homebrew.
@@ -65,7 +67,19 @@ npm run build      # build de produção em /dist
 npm run preview    # serve o build localmente
 npm run typecheck  # checagem de tipos sem emitir
 npm test           # testes automatizados (engine de regras, sync, "O que eu rolo?")
+npm run e2e        # ponta a ponta no navegador (Playwright): criação, ficha, PDF, mesa, código, tela cheia, link
 ```
+
+**Testes de ponta a ponta** (`e2e/`): o app sobe em modo dev apontando para um
+Supabase de mentira (`e2e/fixtures/supabase.ts`, banco em memória + Realtime),
+então nada sai da máquina. Qualquer erro de JavaScript na página reprova o teste.
+Inclui acessibilidade: axe-core (WCAG 2.1 AA) em todas as telas e abas, e
+teclado (pular para o conteúdo, menu com setas, foco preso nos modais).
+Na primeira vez: `npx playwright install chromium`.
+
+**CI** (`.github/workflows/ci.yml`): a cada push e PR roda tipos, `npm test`,
+build e os testes de ponta a ponta; quando falha, guarda o relatório com captura
+de tela e o rastro de cada passo.
 
 Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 
@@ -85,7 +99,10 @@ src/
     inventory/   AddItemPicker
     spells/      SpellPicker
     diary/       JournalCard
-  pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet
+  pages/         Home, Login, CharacterSelect, CharacterCreator, CharacterSheet, LiveSession
+  features/
+    master/      console do mestre: MasterWorkspace, backstage/, inspector/, initiative/, quick/, masterStore
+    live/        PlayerWorkspace (mesa do jogador) + LiveHeader
   data/          races, classes, backgrounds, skills, weapons, armors, items, spells, themes
   engine/        dndRules, modifiers, dice, combat, inventory, characterBuilder, loadout,
                  levelUp, spellcasting, rollAdvisor ("O que eu rolo?") + __tests__
@@ -93,9 +110,39 @@ src/
   store/         characterStore (IndexedDB), authStore, uiStore (Zustand + persist)
   types/         character.ts, dnd.ts
   lib/           color, useTheme, useTilt, summary
-  styles/        globals.css (temas, keyframes, utilitários)
+  styles/        globals.css (base, keyframes, utilitários) · themes/ (uma identidade por arquivo + modos claro/escuro)
 public/assets/   heroi.png, heroi-fem.png, bg.mp4
 ```
+
+---
+
+## ⚡ Desempenho (o que manter ao mexer)
+
+- **Só a primeira tela vai no pacote inicial.** Páginas, mesa ao vivo, tutorial,
+  tour e a aba Diário são `lazy()`. Estilos de mesa/palco/console
+  (`session.css`, `stage.css`, `master.css`) são importados pelos componentes que os
+  usam, então viajam junto com o pedaço deles. Não importe esses estilos no `main.tsx`.
+- **Animação:** use `m` (não `motion`) do framer-motion; o app roda dentro de
+  `<LazyMotion features={domAnimation} strict>`. Arrastar/layout (`domMax`) existe
+  só nos toasts e é carregado quando o navegador folga.
+- **Cache:** arquivos com hash ficam em `/static` (cache imutável de 1 ano no
+  `vercel.json`); `sw.js`/`index.html` sempre revalidam. O service worker guarda de
+  antemão só a casca do app; fontes e artes entram no cache na primeira vez que aparecem.
+- **Ficha:** a arte do herói (maior elemento da tela) é pedida junto com o código da
+  página (`useHeroArtPreload` no `App.tsx`).
+- **Supabase:** o HTML ganha `preconnect` para o servidor quando `VITE_SUPABASE_URL`
+  existe no build.
+
+## ♿ Contraste (AA nos 8 temas, claro e escuro)
+
+- As paletas (CSS + `src/data/themes.ts`) passam no AA com folga; o teste
+  `themeSync` garante que os dois lados batem.
+- **Cor fixa em texto** (atributos, PV, cura, raridade): use `useInk()` de
+  `src/lib/contrast.ts` — `ink(cor)` mantém o tom e só ajusta a luz para o painel do
+  tema. Bordas e fundos continuam com a cor original.
+- **Cor vinda de variável CSS** (`--c`): use a classe `.fv-tone`; o CSS escurece no
+  claro, clareia no escuro e trata as plaquinhas escuras da Forja.
+- Correções pontuais medidas ficam em `src/styles/contrast.css` (com o porquê).
 
 ---
 

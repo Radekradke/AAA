@@ -86,20 +86,20 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
             value={replace?.from ?? ''}
             onChange={(e) => onReplace(e.target.value ? { from: e.target.value, to: replace?.to ?? '' } : undefined)}
           >
-            <option value="" style={{ color: '#111' }}>Não trocar</option>
+            <option value="">Não trocar</option>
             {takenOptions.map((o) => (
-              <option key={o.id} value={o.id} style={{ color: '#111' }}>{o.label}</option>
+              <option key={o.id} value={o.id}>{o.label}</option>
             ))}
           </select>
           {replace?.from && (
             <>
               <span aria-hidden>→</span>
               <select className="fv-input" value={replace.to} onChange={(e) => onReplace({ from: replace.from, to: e.target.value })}>
-                <option value="" style={{ color: '#111' }}>Escolha a nova…</option>
+                <option value="">Escolha a nova…</option>
                 {options
                   .filter((o) => !taken.includes(o.id) && !value.includes(o.id))
                   .map((o) => (
-                    <option key={o.id} value={o.id} style={{ color: '#111' }}>{o.label}</option>
+                    <option key={o.id} value={o.id}>{o.label}</option>
                   ))}
               </select>
             </>

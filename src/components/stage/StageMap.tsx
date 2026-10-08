@@ -3,7 +3,10 @@ import type { CSSProperties, PointerEvent as RPointerEvent, ReactNode } from 're
 import { useMediaUrl } from '@/services/mediaService';
 import { boardSize, cellDistance, conePoints, fitView, fmtMeters, isRevealed, markLength, metersBetween, pointInMark, rectBetween, snapCell, zoomAt } from '@/engine/grid';
 import { CELL_METERS } from '@/types/stage';
+import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
+import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token } from '@/types/stage';
+import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 
 export interface TokenFace {
   /** Imagem do peão (retrato, arte do herói). */
@@ -46,6 +49,11 @@ interface StageMapProps {
   onFogAll?: (mode: 'reveal' | 'cover' | 'off') => void;
   /** Mestre: todos passam a olhar para este ponto. */
   onPullView?: (x: number, y: number, z: number) => void;
+  /** Mestre: algo arrastado dos bastidores/iniciativa foi solto nesta casa. */
+  onDropItem?: (item: StageDrop, cell: { x: number; y: number }) => void;
+  /** Mapa em tela cheia (o palco cobre a tela; F alterna, Esc sai). */
+  full?: boolean;
+  onToggleFull?: () => void;
 }
 
 type View = { x: number; y: number; z: number };
@@ -83,6 +91,7 @@ export function StageMap(p: StageMapProps) {
   const [tool, setTool] = useState<MapTool>('move');
   const [drag, setDrag] = useState<DragState | null>(null);
   const [act, setAct] = useState<Act | null>(null);
+  const [dropCell, setDropCell] = useState<{ x: number; y: number } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const pinch = useRef<{ d: number; view: View; cx: number; cy: number } | null>(null);
@@ -103,6 +112,27 @@ export function StageMap(p: StageMapProps) {
     fit();
     setFitted(key);
   }, [ready, scene.id, board.w, board.h, fitted, fit]);
+
+  // altura útil do mapa: decide quantas ferramentas cabem por coluna na caixa
+  const [viewH, setViewH] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(([e]) => setViewH(Math.round(e.contentRect.height)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // entrou/saiu da tela cheia: o quadro mudou de tamanho, reenquadra
+  const firstFull = useRef(true);
+  useEffect(() => {
+    if (firstFull.current) {
+      firstFull.current = false;
+      return;
+    }
+    const id = requestAnimationFrame(fit);
+    return () => cancelAnimationFrame(id);
+  }, [p.full]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // o mestre puxou a visão / seguir o turno: centraliza no ponto pedido
   useEffect(() => {
@@ -128,6 +158,8 @@ export function StageMap(p: StageMapProps) {
   }, []);
 
   // atalhos das ferramentas (fora de campos de texto)
+  const keys = useRef({ tool, full: p.full, toggleFull: p.onToggleFull });
+  keys.current = { tool, full: p.full, toggleFull: p.onToggleFull };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
@@ -135,9 +167,15 @@ export function StageMap(p: StageMapProps) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const k = e.key.toLowerCase();
       const map: Record<string, MapTool> = { v: 'move', r: 'measure', c: 'circle', o: 'cone', l: 'line', q: 'square', p: 'laser' };
+      const cur = keys.current;
       if (map[k]) setTool(map[k]);
       else if (p.isMaster && k === 'n') setTool('reveal');
-      else if (k === 'escape') setTool('move');
+      else if (k === 'f' && cur.toggleFull) cur.toggleFull();
+      // Esc: primeiro solta a ferramenta; com "mover" já ativo, sai da tela cheia
+      else if (k === 'escape') {
+        if (cur.tool !== 'move') setTool('move');
+        else if (cur.full && cur.toggleFull) cur.toggleFull();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -357,6 +395,29 @@ export function StageMap(p: StageMapProps) {
         onPointerUp={onUp}
         onPointerCancel={onUp}
         onDoubleClick={onDouble}
+        onDragOver={(e) => {
+          if (!p.onDropItem || !hasStageDrop(e)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+          const pt = local(e);
+          const c = toCell(pt.x, pt.y);
+          const cell = { x: Math.floor(c.x), y: Math.floor(c.y) };
+          setDropCell((d) => (d && d.x === cell.x && d.y === cell.y ? d : cell));
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropCell(null);
+        }}
+        onDrop={(e) => {
+          if (!p.onDropItem) return;
+          const item = readStageDrop(e);
+          setDropCell(null);
+          document.body.classList.remove('fv-dragging-token');
+          if (!item) return;
+          e.preventDefault();
+          const pt = local(e);
+          const c = toCell(pt.x, pt.y);
+          p.onDropItem(item, { x: Math.floor(c.x), y: Math.floor(c.y) });
+        }}
         role="application"
         aria-label={`Mapa tático: ${scene.name}. Ferramenta: ${tools.find((x) => x.t === tool)?.label}.`}
       >
@@ -431,7 +492,7 @@ export function StageMap(p: StageMapProps) {
                 )}
                 {conds.length > 0 && (
                   <span className="fv-token-conds" aria-hidden>
-                    {conds.slice(0, 3).map((c) => <i key={c} title={c}>{c.slice(0, 2)}</i>)}
+                    {conds.slice(0, 3).map((c) => <i key={c} title={c}>{hasConditionIcon(c) ? <ConditionIcon id={c} size={11} /> : c.slice(0, 2)}</i>)}
                     {conds.length > 3 && <i>+{conds.length - 3}</i>}
                   </span>
                 )}
@@ -472,6 +533,8 @@ export function StageMap(p: StageMapProps) {
             ))}
           </svg>
 
+          {dropCell && <span className="fv-map-dropcell" style={{ left: cellPx(dropCell.x, 'x'), top: cellPx(dropCell.y, 'y'), width: g.size, height: g.size }} aria-hidden />}
+
           {p.pings.map((pg) => (
             <span
               key={pg.id}
@@ -501,8 +564,8 @@ export function StageMap(p: StageMapProps) {
         )}
       </div>
 
-      {/* ferramentas (esquerda) */}
-      <div className="fv-map-toolbox" role="toolbar" aria-label="Ferramentas do mapa">
+      {/* ferramentas (esquerda): colunas explícitas — quebra em mais colunas quando o mapa é baixo */}
+      <div className="fv-map-toolbox" role="toolbar" aria-label="Ferramentas do mapa" style={toolboxGrid(tools.filter((x) => !x.master || p.isMaster).length + (p.marks.length > 0 ? 1 : 0), viewH)}>
         {tools.filter((x) => !x.master || p.isMaster).map((x) => (
           <button key={x.t} type="button" className={tool === x.t ? 'is-on' : ''} onClick={() => setTool(x.t)} aria-pressed={tool === x.t} title={x.label} aria-label={x.label}>
             {x.icon}
@@ -533,7 +596,19 @@ export function StageMap(p: StageMapProps) {
         )}
         <button type="button" onClick={() => zoomBtn(1.25)} aria-label="Aproximar">+</button>
         <button type="button" onClick={() => zoomBtn(0.8)} aria-label="Afastar">−</button>
-        <button type="button" onClick={fit} aria-label="Enquadrar o mapa">⤢</button>
+        <button type="button" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa">⤢</button>
+        {p.onToggleFull && (
+          <button
+            type="button"
+            className={'fv-map-fullbtn' + (p.full ? ' is-on' : '')}
+            onClick={p.onToggleFull}
+            aria-pressed={!!p.full}
+            aria-label={p.full ? 'Sair da tela cheia' : 'Mapa em tela cheia'}
+            title={p.full ? 'Sair da tela cheia (Esc)' : 'Mapa em tela cheia (F)'}
+          >
+            {p.full ? <IcoShrink /> : <IcoExpand />}
+          </button>
+        )}
         {g.show && (
           <button type="button" className={showGrid ? 'is-on' : ''} onClick={() => setShowGrid((v) => !v)} aria-pressed={showGrid} aria-label="Mostrar grade">
             #
@@ -544,7 +619,7 @@ export function StageMap(p: StageMapProps) {
         <div className="fv-map-hint">
           {tool === 'move'
             ? p.isMaster
-              ? 'Duplo clique aponta · Shift + duplo clique traz a visão de todos'
+              ? 'Arraste NPCs e criaturas da lateral para cá · duplo clique aponta'
               : 'Arraste o seu peão · duplo clique (ou segure o dedo) aponta um lugar'
             : tool === 'laser'
               ? 'Risque o caminho — some sozinho'
@@ -639,4 +714,14 @@ const IcoLaser = () => <svg {...S}><path d="M4 20c4-1 4-6 8-7s5-5 8-9" /><circle
 const IcoEye = () => <svg {...S}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>;
 const IcoEyeOff = () => <svg {...S}><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.3 6.3C3.6 8.1 2 12 2 12s4 7 10 7c1.8 0 3.4-.6 4.7-1.4" /></svg>;
 const IcoTrash = () => <svg {...S}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>;
+/** Caixa de ferramentas: quantas casas de 36 px cabem na altura do mapa (com folga para as bordas). */
+function toolboxGrid(n: number, viewH: number): CSSProperties | undefined {
+  if (!viewH) return undefined;
+  const rows = Math.max(1, Math.min(n, Math.floor((viewH - 28) / 40)));
+  const cols = Math.ceil(n / rows);
+  return { gridTemplateRows: `repeat(${rows}, 36px)`, gridTemplateColumns: `repeat(${cols}, 36px)` };
+}
+
+const IcoExpand = () => <svg {...S}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>;
+const IcoShrink = () => <svg {...S}><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>;
 const IcoPull = () => <svg {...S}><circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>;

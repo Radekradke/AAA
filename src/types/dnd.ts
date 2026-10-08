@@ -54,14 +54,22 @@ export interface Race {
   skillProfs?: SkillKey[];
   /** Perícias extras à escolha do jogador (ex.: Meio-Elfo → 2). */
   extraSkillPicks?: number;
+  /** Bônus de atributo à escolha (Meio-Elfo: +1 em dois atributos que não CAR). */
+  abilityChoice?: { count: number; amount: number; exclude?: AbilityKey[]; default: AbilityKey[] };
   /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
   video?: string;
   /** Criada pelo jogador (homebrew) — o mestre vê o selo na ficha. */
   homebrew?: boolean;
   /** Tamanho (homebrew; as oficiais seguem o livro). */
   size?: 'Pequeno' | 'Médio';
+  /** Ícone escolhido (homebrew): chave de um ícone de raça do livro ('race-elf') ou extra ('orc-head'). */
+  icon?: string;
   /** Traços com descrição (homebrew). */
   traitDetails?: { name: string; desc: string }[];
+  /** Sub-raças da homebrew (as oficiais ficam em SUBRACES). */
+  subraces?: Subrace[];
+  /** Livro de origem quando é uma pré-montada oficial (ex.: "Volo's Guide to Monsters"). */
+  source?: string;
   /** Quem criou (nome) e quando mudou — para o mestre e para sincronizar. */
   author?: string;
   updatedAt?: number;
@@ -80,11 +88,16 @@ export interface Subrace {
   /** Substitui o alcance de visão no escuro da raça (ex.: Drow 36 m). */
   darkvision?: number;
   resistances?: string[];
+  /** Idiomas da sub-raça ("1 idioma à escolha" vira escolha na criação). */
+  languages?: string[];
   traits?: string[];
+  /** Homebrew: descrição e traços com texto. */
+  desc?: string;
+  traitDetails?: { name: string; desc: string }[];
 }
 
 /** Fonte oficial de um talento/antecedente. */
-export type SourceBook = 'PHB 2014' | 'XGE';
+export type SourceBook = 'PHB 2014' | 'XGE' | 'TCE';
 
 /** Talento (PHB 2014 / Xanathar) com efeitos mecânicos rastreáveis. */
 export interface Feat {
@@ -97,6 +110,10 @@ export interface Feat {
   prereq?: string;
   /** Valores mínimos de atributo exigidos (validados na evolução). */
   prereqAbility?: Partial<AbilityScores>;
+  /** Basta UM destes atributos no mínimo (Conjurador de Rituais: INT ou SAB 13). */
+  prereqAnyAbility?: Partial<AbilityScores>;
+  /** Exige proficiência com esse tipo de armadura. */
+  prereqArmor?: 'leve' | 'média' | 'pesada';
   /** Raças que podem escolher (talentos raciais de Xanathar). */
   prereqRaces?: string[];
   /** Exige capacidade de conjurar magias. */
@@ -124,7 +141,13 @@ export interface Feat {
   /** Magias inatas concedidas, com recarga. */
   grantsSpells?: { spellId: string; recharge: 'atwill' | 'short' | 'long' }[];
   /** Usos por descanso que viram recurso na ficha (Desvanecer, Fúria Orc…). */
-  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long' };
+  uses?: { id: string; label: string; desc: string; recharge: 'short' | 'long'; max?: number };
+  /** Proficiência com ferramentas concedida ao pegar o talento (Chef, Envenenador). */
+  tools?: string[];
+  /** Exige o traço Conjuração ou Magia de Pacto de uma classe (não vale magia racial). */
+  prereqCasterFeature?: boolean;
+  /** Exige proficiência com ao menos uma arma marcial. */
+  prereqMartial?: boolean;
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
@@ -257,7 +280,7 @@ export type DamageType =
   | 'perfurante'
   | 'concussão'
   | 'fogo'
-  | 'gelo'
+  | 'frio'
   | 'ácido'
   | 'elétrico'
   | 'radiante'
@@ -286,6 +309,8 @@ export interface WeaponData {
   bonusDamage?: { dice: number; die: number; type: DamageType };
   /** Bônus mágico estruturado (+1/+2/+3) somado em acerto e dano. */
   magicBonus?: number;
+  /** Arma do Livro do Jogador que este item é (proficiência): cajados → bordão, Língua de Fogo → espada longa. */
+  baseId?: string;
   /** Usa Destreza no ataque/dano (acuidade ou arma à distância). */
   finesse?: boolean;
   thrown?: boolean;
@@ -318,8 +343,16 @@ export interface MagicEffects {
   unarmoredOnly?: boolean;
   /** Bônus em todas as salvaguardas. */
   saves?: number;
+  /** Bônus em testes de atributo — perícias, iniciativa e passivas (Pedra da Sorte). */
+  checks?: number;
+  /** PV máximos extras por nível do personagem (Machado do Berserker). */
+  hpPerLevel?: number;
   /** O atributo passa a valer X (se o seu for menor): Manoplas de Força do Ogro, Amuleto da Saúde… */
   setAbility?: Partial<Record<AbilityKey, number>>;
+  /** Soma ao atributo até um teto (Cinto Anão: CON +2, máx. 20; Pedras Ioun de atributo). */
+  addAbility?: Partial<Record<AbilityKey, { bonus: number; max: number }>>;
+  /** CA base sem armadura (Manto do Arquimago: 15 + DES). Escudo pode; não soma com outras CAs base. */
+  unarmoredAC?: { base: number; ability: AbilityKey };
   /** Bônus em ataque e CD de magia (Varinha do Mago de Guerra, Bastão do Guardião do Pacto…). */
   spellAttack?: number;
   spellDC?: number;
@@ -337,6 +370,8 @@ export interface Item {
   weight: number;
   /** Pode receber sintonia (attunement). */
   attunement?: boolean;
+  /** Sintonia restrita (Guia do Mestre): ids de classe ou 'spellcaster' (qualquer conjurador). */
+  attuneBy?: string[];
   weapon?: WeaponData;
   armor?: ArmorData;
   /** Bônus de CA fixo (escudos, anéis de proteção). */
@@ -351,6 +386,7 @@ export interface Item {
   heal?: string;
   /** Magias que o item concede (varinhas, cajados). */
   grantsSpells?: import('./character').ItemSpellGrant[];
+  charges?: import('./character').ItemCharges;
 }
 
 /** Classes conjuradoras que podem ter uma magia na lista. */
@@ -398,6 +434,8 @@ export interface Spell {
   conditions?: string[];
   /** Etiquetas de papel para filtro rápido. */
   tags?: SpellTag[];
+  /** Livro de origem (ausente = Livro do Jogador 2014). */
+  source?: SourceBook;
 }
 
 export interface RarityDef {
@@ -424,11 +462,16 @@ export interface ThemeDef {
   particle: string;
   label: string;
   /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas ou estrelas. */
-  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars';
+  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars' | 'none';
   /** Frase curta que descreve o clima no seletor. */
   tagline: string;
   /** Fonte de título do clima (a mesma de --font-display). */
   font: string;
+  /** Tema claro (fundo branco quebrado): muda o texto padrão e a barra do navegador. */
+  light?: boolean;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro' | 'eclipse' | 'rubra';
+
+/** Paleta clara ou escura dentro do mesmo tema (o layout não muda). */
+export type ThemeMode = 'dark' | 'light';

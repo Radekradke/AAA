@@ -7,8 +7,14 @@ import { getSupabase } from '@/services/supabaseClient';
 import type { LiveChannel } from '@/services/realtimeService';
 import { useCharacterStore } from './characterStore';
 import { rollEnemyInitiatives } from '@/engine/encounter';
-import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent } from '@/types/session';
+import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent, StrikeLog } from '@/types/session';
 import { useUiStore } from './uiStore';
+import { getItem } from '@/data/items';
+import { itemToInventory } from '@/engine/inventory';
+import type { InventoryItem } from '@/types/character';
+import { tableHero } from '@/lib/tableHeroes';
+import { heroDice } from '@/data/diceTrophies';
+import { deathSaveOutcome, isDeathOutcome } from '@/engine/deathSave';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -19,6 +25,14 @@ import { useUiStore } from './uiStore';
  * completo — assim duas abas/aparelhos nunca divergem, e um reload não perde
  * nada (é só buscar de novo).
  */
+/** Quem deu o golpe (dano aplicado a partir da rolagem do jogador). */
+export interface KillBy {
+  sheetId: string;
+  name: string;
+  /** O dano veio de um truque (feito secreto "Truque mortal"). */
+  cantrip?: boolean;
+}
+
 export interface LiveMe {
   userId: string;
   name: string;
@@ -74,9 +88,11 @@ interface SessionState {
 
   // mestre → ficha do jogador (o jogador aplica na própria ficha)
   /** delta < 0: dano; > 0: cura. */
-  sendHeroHp: (c: Combatant, delta: number) => Promise<void>;
+  sendHeroHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
   sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
   awardXp: (amount: number, note?: string) => Promise<void>;
+  /** Mestre entrega um item (catálogo ou inventado na hora) na mochila do herói. */
+  giveItem: (sheetId: string, heroName: string, item: { name: string; itemId?: string; quantity?: number; note?: string }) => Promise<void>;
 
   /** Alvo escolhido pelo mestre (local): quem recebe o próximo ataque. */
   targetId: string | null;
@@ -85,13 +101,19 @@ interface SessionState {
    * Muda o PV de um combatente: delta < 0 é dano, > 0 é cura. Herói recebe
    * na ficha do jogador (evento); monstro/NPC direto no encontro.
    */
-  changeHp: (c: Combatant, delta: number) => Promise<void>;
-  /** Registra o ataque na crônica da sessão (quem, em quem, acertou, dano). */
-  logStrike: (p: { by: string; target: string; hit: boolean; crit: boolean; damage: number; type?: string; note?: string }, secret: boolean) => Promise<void>;
+  /** `by`: herói que causou o dano (golpe final vai para ele). */
+  changeHp: (c: Combatant, delta: number, opts?: { crit?: boolean; by?: KillBy | null }) => Promise<void>;
+  /** Criatura que acabou de cair sem autor conhecido: o mestre escolhe quem deu o golpe final. */
+  pendingKill: { combatantId: string; name: string; monsterRef: string | null } | null;
+  creditKill: (sheetId: string | null, heroName?: string, how?: { cantrip?: boolean }) => Promise<void>;
+  /** Mestre grava uma cicatriz na carta do herói. */
+  sendHeroScar: (sheetId: string, heroName: string, text: string) => Promise<void>;
+  /** Registra o ataque na crônica da sessão (quem, em quem, golpe, rolagem vs CA, dano, PV). A rodada entra sozinha. */
+  logStrike: (p: StrikeLog, secret: boolean) => Promise<void>;
 }
 
 /** Eventos do mestre que mexem na ficha do jogador. */
-export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award'] as const;
+export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award', 'hero_item', 'hero_deed', 'hero_scar'] as const;
 const VIS_KEY = 'fv-roll-visibility';
 let seenEvents = new Set<string>();
 let seeded = false;
@@ -121,10 +143,46 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
     }
     const sheetId = String(p.sheetId ?? '');
     if (!pending(sheetId, e.id)) continue;
+    if (e.type === 'hero_item') {
+      // item entregue pelo mestre (improviso): entra na mochila do herói
+      const base = typeof p.itemId === 'string' ? getItem(p.itemId) : undefined;
+      const qty = Math.max(1, Math.min(999, Math.round(Number(p.quantity) || 1)));
+      const inst: InventoryItem = base
+        ? { ...itemToInventory(base, qty), note: String(p.note ?? '') || itemToInventory(base, qty).note }
+        : {
+            uid: `it-${e.id.slice(0, 8)}`,
+            name: String(p.item ?? 'Item').slice(0, 80),
+            category: 'Tesouro',
+            note: String(p.note ?? '').slice(0, 500),
+            rarity: 'comum',
+            weight: 0,
+            quantity: qty,
+            favorite: false,
+            attuned: false,
+            homebrew: true,
+          };
+      chars.addInventoryItem(sheetId, inst);
+      chars.markEventApplied(sheetId, e.id);
+      continue;
+    }
+    if (e.type === 'hero_deed') {
+      // golpe final (e afins): marca já (não repete) e soma os contadores da carta
+      // com o catálogo de feitos sob demanda (não pesa a primeira tela)
+      chars.markEventApplied(sheetId, e.id);
+      const kinds = (p.kinds as string[] | undefined) ?? [];
+      const ref = typeof p.monsterRef === 'string' ? p.monsterRef : null;
+      void import('@/lib/deedTracker').then((m) => m.applyDeedKinds(sheetId, kinds, ref));
+      continue;
+    }
+    if (e.type === 'hero_scar') {
+      chars.addScar(sheetId, { id: `scar-${e.id}`, text: String(p.text ?? ''), date: e.createdAt, session: typeof p.session === 'string' ? p.session : null, by: 'mestre' });
+      chars.markEventApplied(sheetId, e.id);
+      continue;
+    }
     if (e.type === 'hero_hp') {
       const n = Math.abs(Number(p.amount) || 0);
       if (p.kind === 'heal') chars.heal(sheetId, n);
-      else chars.applyDamage(sheetId, n);
+      else chars.applyDamage(sheetId, n, { crit: p.crit === true });
     } else if (e.type === 'hero_condition') {
       const cur = useCharacterStore.getState().characters.find((c) => c.id === sheetId)?.combat.conditions ?? [];
       const cond = String(p.condition ?? '');
@@ -236,21 +294,51 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     rollVisibility: 'public',
     lastTableRoll: null,
     targetId: null,
+    pendingKill: null,
 
     setTarget: (id) => set({ targetId: id }),
 
-    async changeHp(c, delta) {
+    async changeHp(c, delta, opts) {
       if (!delta) return;
-      if (c.type === 'player' && c.sheetId) return get().sendHeroHp(c, delta);
+      if (c.type === 'player' && c.sheetId) return get().sendHeroHp(c, delta, opts);
       const cur = c.hpCurrent ?? c.hpMax ?? 0;
       const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, cur + delta) : cur + delta);
       await get().updateCombatant(c.id, { hp_current: next });
+      // caiu agora: golpe final para quem rolou o dano, ou o mestre escolhe
+      if (cur > 0 && next === 0 && get().me?.isMaster) {
+        set({ pendingKill: { combatantId: c.id, name: c.name, monsterRef: c.monsterRef } });
+        if (opts?.by) await get().creditKill(opts.by.sheetId, opts.by.name, { cantrip: opts.by.cantrip });
+      }
     },
+
+    async creditKill(sheetId, heroName, how) {
+      const { session, campaignId, me, pendingKill } = get();
+      set({ pendingKill: null });
+      if (!sheetId || !pendingKill || !session || !campaignId || !me) return;
+      // bestiário sob demanda (não pesa a primeira tela)
+      const monster = pendingKill.monsterRef ? (await import('@/data/bestiary')).MONSTER_BY_ID[pendingKill.monsterRef] : undefined;
+      // ND acima do nível do herói (ficha compartilhada da mesa) e golpe de truque: feitos secretos
+      const kinds = (await import('@/engine/deeds')).killKindsFor(monster?.type, { cr: monster?.cr, level: tableHero(sheetId)?.level, cantrip: how?.cantrip });
+      await sessionService
+        .log(session.id, campaignId, me.userId, 'hero_deed', { sheetId, name: heroName ?? null, creature: pendingKill.name, monsterRef: pendingKill.monsterRef ?? null, kinds }, 'public')
+        .catch(() => undefined);
+    },
+
+    sendHeroScar: (sheetId, heroName, text) =>
+      act(async () => {
+        const { session, campaignId, me } = get();
+        if (!session || !campaignId || !me) throw new Error('Abra a sessão para gravar cicatrizes.');
+        const t = text.trim().slice(0, 200);
+        if (!t) return;
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_scar', { sheetId, name: heroName, text: t, session: session.name }, 'public');
+      }),
 
     async logStrike(p, secret) {
       const { session, campaignId, me } = get();
       if (!session || !campaignId || !me) return;
-      await sessionService.log(session.id, campaignId, me.userId, 'attack', p, secret ? 'master' : 'public').catch(() => undefined);
+      const round = get().encounter?.status === 'active' ? get().encounter?.round : undefined;
+      const payload = { ...p, round: p.round ?? round };
+      await sessionService.log(session.id, campaignId, me.userId, 'attack', payload, secret ? 'master' : 'public').catch(() => undefined);
       await get().refresh();
     },
 
@@ -263,7 +351,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       set({ rollVisibility: v });
     },
 
-    sendHeroHp: (c, delta) =>
+    sendHeroHp: (c, delta, opts) =>
       act(async () => {
         const { session, campaignId, me } = get();
         if (!session || !campaignId || !me || !c.sheetId || !delta) return;
@@ -272,7 +360,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
           const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, c.hpCurrent + delta) : c.hpCurrent + delta);
           await encounterService.update(c.id, { hp_current: next });
         }
-        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal' }, 'public');
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal', crit: !!opts?.crit }, 'public');
       }),
 
     sendHeroCondition: (c, condition, on) =>
@@ -292,6 +380,19 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (!heroes.length) throw new Error('Nenhum herói no encontro para receber XP.');
         await sessionService.log(session.id, campaignId, me.userId, 'xp_award', {
           amount: Math.round(amount), sheetIds: heroes.map((h) => h.sheetId), names: heroes.map((h) => h.name), note: note ?? null,
+        }, 'public');
+      }),
+
+    giveItem: (sheetId, heroName, item) =>
+      act(async () => {
+        const { session, campaignId, me } = get();
+        if (!session || !campaignId || !me) throw new Error('Abra a sessão para entregar itens.');
+        const name = item.name.trim();
+        if (!name) return;
+        // a ficha do dono aplica o evento (uma vez, mesmo com reload) — como dano e XP
+        await sessionService.log(session.id, campaignId, me.userId, 'hero_item', {
+          sheetId, name: heroName, item: name.slice(0, 80), itemId: item.itemId ?? null,
+          quantity: Math.max(1, Math.round(item.quantity ?? 1)), note: (item.note ?? '').slice(0, 500),
         }, 'public');
       }),
 
@@ -354,6 +455,17 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (seeded) {
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
+          // 20 / 1 natural e teste contra a morte de outro herói: o momento em tela cheia aparece para a mesa toda
+          const epic = fresh
+            .filter((e) => e.type === 'roll' && e.actorId !== me.userId)
+            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string; death?: Record<string, unknown> })
+            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail || p.death))
+            .pop();
+          const d = epic?.death;
+          if (epic && d && isDeathOutcome(d.outcome)) {
+            const n = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.round(Number(v) || 0)));
+            useUiStore.getState().showCinematic({ kind: 'death', sheetId: epic.sheetId!, name: epic.who, label: epic.label, death: { nat: n(d.nat, 20), success: n(d.success, 3), fail: n(d.fail, 3), outcome: d.outcome } });
+          } else if (epic) useUiStore.getState().showCinematic({ kind: epic.crit ? 'crit' : 'fumble', sheetId: epic.sheetId!, name: epic.who, label: epic.label });
         }
         seeded = true;
 
@@ -453,9 +565,19 @@ useUiStore.subscribe((s, prev) => {
   const st = useSessionStore.getState();
   if (!st.session || st.session.status !== 'active' || !st.me || !st.campaignId || st.rollVisibility === 'private') return;
   const who = st.me.isMaster ? 'Mestre' : st.me.characterName ?? st.me.name;
+  // dado conquistado do herói: a mesa vê o dado dele no aviso da rolagem
+  const hero = !r.ally && r.charId ? useCharacterStore.getState().getCharacter(r.charId) : undefined;
+  const dice = heroDice(hero)?.id;
+  // teste contra a morte: a mesa vê o momento com os contadores (calculados antes da ficha gravar)
+  const death = r.deathSave && hero ? { nat: r.rolls[0], ...deathSaveOutcome(hero.combat.deathSaves, r.rolls[0], r.total) } : undefined;
   void sessionService
     .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
+      // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
+      sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
+      ...(r.cantrip && { cantrip: true }),
+      ...(dice && { dice }),
+      ...(death && { death }),
     }, st.rollVisibility)
     .catch(() => undefined);
 });

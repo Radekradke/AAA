@@ -53,7 +53,7 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
           </div>
         </div>
       )}
-      <nav className="fv-mobile-only fv-mobile-nav" aria-label="Abas da ficha">
+      <nav className="fv-mobile-only fv-mobile-nav" aria-label="Abas da ficha" data-tour="tabs">
         {primary.map((tab) => (
           <NavButton key={tab.id} icon={tab.icon} label={tab.short ?? tab.label} active={active === tab.id} onClick={() => select(tab.id)} gold={t.gold} muted={t.muted} />
         ))}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { HoloBadge } from '@/components/ui/holo-badge';
 import type { TabProps } from './tabProps';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
@@ -16,7 +16,8 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, slotForItem, attunedCount, MAX_ATTUNEMENT, containerOf } from '@/engine/inventory';
+import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn, attunementBlock } from '@/engine/inventory';
+import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
 import type { EquipPreview } from '@/engine/equipPreview';
@@ -29,6 +30,23 @@ import type { InventoryItem } from '@/types/character';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { itemLore } from '@/lib/lore';
+import type { LoreInfo } from '@/lib/lore';
+import { PortraitPicker } from '@/components/character/PortraitPicker';
+
+/** Arte do item: menor que um retrato (fica salva na ficha). */
+const ITEM_ART_MAX = { w: 480, h: 600 };
+
+/** Detalhes do item + a carta com a arte (quando o jogador enviou uma). */
+function itemInfo(it: InventoryItem): LoreInfo {
+  const lore = itemLore(it);
+  // categoria e raridade com o nome em português (não o código interno)
+  const tags = lore.tags?.map((t, i) => (i === 0 ? CATEGORY_LABEL[t] ?? t : i === 1 ? RARITY[t]?.label ?? t : t));
+  const art = itemArt(it);
+  return { ...lore, tags, ...(art ? { art: { src: art, rarity: it.rarity } } : {}) };
+}
+import { useInk } from '@/lib/contrast';
+import { itemArt } from '@/lib/itemArt';
+import { chargesLeft, chargesOf } from '@/engine/itemCharges';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
 const GROUP_DEFS: { id: string; label: string; icon: IconName; match: (it: InventoryItem) => boolean }[] = [
@@ -52,7 +70,7 @@ function groupOf(it: InventoryItem): string {
  * "abre" ao toque — e recebe itens arrastados.
  */
 const CONTAINERS: { id: ContainerId; label: string; icon: IconName; openIcon: IconName; color: string; empty: string; hint: string }[] = [
-  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: 'var(--acc)', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura ou escudo para cá — ou toque em Equipar.' },
+  { id: 'equipado', label: 'Equipado', icon: 'equipped', openIcon: 'equipped', color: 'var(--acc)', empty: 'Nada equipado', hint: 'Arraste uma arma, armadura, escudo ou item vestível para cá — ou toque em Equipar/Vestir. Partes do corpo ficam sempre aqui.' },
   { id: 'mochila', label: 'Mochila', icon: 'satchel', openIcon: 'backpackOpen', color: '#FFE08A', empty: 'Mochila vazia', hint: 'Use + Adicionar para o catálogo ou Forjar para criar algo único.' },
   { id: 'bau', label: 'Baú', icon: 'chest', openIcon: 'chestOpen', color: '#E8AA5C', empty: 'Baú vazio', hint: 'Arraste para cá o que você quer guardar fora da mochila.' },
 ];
@@ -82,6 +100,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export function TabInventario({ char, derived }: TabProps) {
+  const ink = useInk();
   const t = useTheme();
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
@@ -124,7 +143,7 @@ export function TabInventario({ char, derived }: TabProps) {
     const r = store.moveItem(char.id, it.uid, target);
     const label = CONTAINERS.find((c) => c.id === target)!.label;
     if (r.ok) {
-      setFlash({ ok: true, text: `${it.name} → ${label}` });
+      setFlash({ ok: true, text: r.note ?? `${it.name} → ${label}` });
       bump(0.8);
     } else setFlash({ ok: false, text: r.reason });
   };
@@ -181,11 +200,11 @@ export function TabInventario({ char, derived }: TabProps) {
         >
           <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span>Carga</span>
-            <span style={{ color: loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' }}>{loadStatus}</span>
+            <span className="fv-tone" style={{ '--c': loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' } as React.CSSProperties}>{loadStatus}</span>
           </div>
         </LoreTooltip>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: "'Chakra Petch', monospace" }}>
-          <span style={{ fontWeight: 700, fontSize: 22, color: loadColor }}>{carried.toFixed(1).replace('.', ',')}</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-num)' }}>
+          <span style={{ fontWeight: 700, fontSize: 22, color: ink(loadColor, 3.2) }}>{carried.toFixed(1).replace('.', ',')}</span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
         </div>
         <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
@@ -216,31 +235,44 @@ export function TabInventario({ char, derived }: TabProps) {
           {COIN_DEFS.map((c) => (
             <span key={c.k} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
               <span aria-hidden style={{ width: 9, height: 9, borderRadius: 999, background: c.color, boxShadow: `0 0 7px ${hexA(c.color, 0.5)}` }} />
-              <b style={{ fontFamily: "'Chakra Petch', monospace" }}>{char.coins[c.k]}</b>&nbsp;{c.code}
+              <b style={{ fontFamily: 'var(--font-num)' }}>{char.coins[c.k]}</b>&nbsp;{c.code}
             </span>
           ))}
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-          Total aproximado <b style={{ color: 'var(--gold)', fontFamily: "'Chakra Petch', monospace" }}>{coinTotalGp(char).toString().replace('.', ',')} po</b>
+          Total aproximado <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{coinTotalGp(char).toString().replace('.', ',')} po</b>
         </div>
       </Panel>
 
       {/* Sintonia */}
       <Panel>
         <div className="fv-label" style={{ marginBottom: 13 }}>
-          Sintonia <span style={{ color: 'var(--gold)' }}>· {attunedCount(char)} de {MAX_ATTUNEMENT}</span>
+          Sintonia <span className="fv-label-count">· {attunedCount(char)} de {MAX_ATTUNEMENT}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {attuneItems.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum item que exija sintonia na mochila.</div>}
           {attuneItems.map((it) => (
-            <LoreTooltip key={it.uid} info={itemLore(it)} anchorStyle={{ display: 'block' }}>
+            <LoreTooltip key={it.uid} info={itemInfo(it)} anchorStyle={{ display: 'block' }}>
               <button
-                onClick={() => store.toggleAttune(char.id, it.uid)}
+                onClick={() => {
+                  if (!it.attuned && attunedCount(char) >= MAX_ATTUNEMENT) {
+                    setFlash({ ok: false, text: `Já tem ${MAX_ATTUNEMENT} itens sintonizados (o máximo) — desfaça uma sintonia antes.` });
+                    return;
+                  }
+                  const blocked = !it.attuned && attunementBlock(char, it);
+                  if (blocked) {
+                    setFlash({ ok: false, text: blocked });
+                    return;
+                  }
+                  store.toggleAttune(char.id, it.uid);
+                }}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
               >
                 <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
                 <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{it.attuned ? 'sintonizado' : 'guardado'}</span>
+                <span style={{ fontSize: 11, color: it.attuned && isWearable(it) && !isWorn(it) ? '#E0A93E' : 'var(--muted)' }}>
+                  {it.attuned ? (isWearable(it) && !isWorn(it) ? 'sintonizado · vista para valer' : 'sintonizado') : attunementBlock(char, it) ? 'não é para a sua classe' : 'sem sintonia'}
+                </span>
               </button>
             </LoreTooltip>
           ))}
@@ -302,10 +334,10 @@ export function TabInventario({ char, derived }: TabProps) {
                 key={c.id}
                 def={c}
                 count={items.reduce((n, it) => n + Math.max(1, it.quantity), 0)}
-                kg={items.reduce((w, it) => w + it.weight * it.quantity, 0)}
+                kg={items.reduce((w, it) => (it.wear === 'body' ? w : w + it.weight * it.quantity), 0)}
                 isOpen={open === c.id}
                 dragging={dragging}
-                accepts={!dragging || c.id !== 'equipado' || slotForItem(dragging) !== null}
+                accepts={!dragging || (dragging.wear === 'body' ? c.id === 'equipado' : c.id !== 'equipado' || canEquip(dragging))}
                 isSource={!!dragging && containerOf(char, dragging) === c.id}
                 onOpen={() => setOpen(c.id)}
               />
@@ -317,7 +349,7 @@ export function TabInventario({ char, derived }: TabProps) {
         </div>
 
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={open}
             id="fv-container-panel"
             initial={{ opacity: 0, y: -10, scale: 0.985 }}
@@ -336,7 +368,7 @@ export function TabInventario({ char, derived }: TabProps) {
               <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
                 {g.label}
               </span>
-              <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
+              <span style={{ fontFamily: 'var(--font-num)', fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
               <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
@@ -348,7 +380,7 @@ export function TabInventario({ char, derived }: TabProps) {
                       <ItemCard
                         item={it}
                         equipped={where === 'equipado'}
-                        equippable={slotForItem(it) !== null}
+                        equippable={canEquip(it)}
                         preview={previews.get(it.uid) ?? null}
                         handle={handle}
                         stashLabel={where === 'bau' ? 'Levar na Mochila' : 'Guardar no Baú'}
@@ -359,6 +391,9 @@ export function TabInventario({ char, derived }: TabProps) {
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
                         onDrink={healOf(it) ? () => drink(it) : undefined}
+                        charges={chargesOf(it) ? { left: chargesLeft(char, it), max: chargesOf(it)!.max, regain: chargesOf(it)!.regain } : undefined}
+                        onCharge={(n) => store.spendItemCharges(char.id, it.uid, n)}
+                        onArt={(img) => store.updateInventoryItem(char.id, it.uid, { image: img })}
                       />
                     )}
                   </DraggableItem>
@@ -367,7 +402,7 @@ export function TabInventario({ char, derived }: TabProps) {
             </div>
           </div>
         ))}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
 
         {/* o item "na mão" enquanto arrasta */}
@@ -419,7 +454,7 @@ function DropDock({ dragging, sourceId }: { dragging: InventoryItem; sourceId: C
   return (
     <div className="fv-dock" role="group" aria-label="Soltar em">
       {CONTAINERS.map((c) => (
-        <DockZone key={c.id} def={c} accepts={c.id !== 'equipado' || slotForItem(dragging) !== null} isSource={c.id === sourceId} />
+        <DockZone key={c.id} def={c} accepts={dragging.wear === 'body' ? c.id === 'equipado' : c.id !== 'equipado' || canEquip(dragging)} isSource={c.id === sourceId} />
       ))}
     </div>
   );
@@ -475,7 +510,7 @@ function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, on
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 'var(--radius-lg)' }}>
           <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} style={{ filter: lit ? `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` : undefined, transition: 'color .25s' }} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
-          <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+          <div style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
             <div>{count} {count === 1 ? 'item' : 'itens'}</div>
             <div>{kg.toFixed(1).replace('.', ',')} kg</div>
           </div>
@@ -522,7 +557,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onArt, charges, onCharge }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -538,16 +573,26 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onRemove: () => void;
   /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
   onDrink?: () => void;
+  /** Item com cargas (cajado, varinha, Anel da Evasão…). */
+  charges?: { left: number; max: number; regain: string };
+  /** Gasta (positivo) ou devolve (negativo) cargas. */
+  onCharge?: (n: number) => void;
+  /** Arte do item (carta ao lado dos detalhes). */
+  onArt: (img: string | null) => void;
 }) {
   const t = useTheme();
+  const ink = useInk();
   const rc = RARITY[it.rarity] ?? RARITY.comum;
   const big = it.rarity !== 'comum';
+  const art = itemArt(it);
   const icon = CATEGORY_ICON[it.category] ?? 'satchel';
   const borderColor = equipped ? t.gold : it.favorite ? hexA(t.gold, 0.55) : hexA(rc.color, big ? 0.5 : 0.18);
 
   return (
-    <LoreTooltip info={itemLore(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
+    <LoreTooltip info={itemInfo(it)} anchorStyle={{ display: 'block' }} disabled={loreDisabled}>
       <div
+        className="fv-inv-card"
+        data-item={it.name}
         style={{
           position: 'relative',
           borderRadius: 'var(--radius-md)',
@@ -561,20 +606,25 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-            {equipped ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, flex: '1 1 auto', overflow: 'hidden', fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            {it.wear === 'body' ? (
               <span className="fv-item-equipped">
-                <Icon name="equipped" size={11} /> Equipado
+                <Icon name="equipped" size={11} /> Corpo
+              </span>
+            ) : equipped ? (
+              <span className="fv-item-equipped">
+                <Icon name="equipped" size={11} /> {isWearable(it) ? 'Vestido' : 'Equipado'}
               </span>
             ) : (
               <Icon name={icon} size={12} />
             )}
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{CATEGORY_LABEL[it.category] ?? it.category}</span>
+            {/* vestível / parte do corpo: o selo já diz o que é */}
+            {!it.wear && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bodySlotOf(it) ? BODY_SLOTS[bodySlotOf(it)!].label : CATEGORY_LABEL[it.category] ?? it.category}</span>}
             {it.homebrew && (
-              <span style={{ flex: 'none', padding: '1px 6px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.1em' }}>HOMEBREW</span>
+              <span style={{ flex: 'none', padding: '1px 5px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.07em' }}>HOMEBREW</span>
             )}
           </span>
-          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: rc.color }}>
+          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: ink(rc.color) }}>
             <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
             {rc.label}
             <button ref={handle.ref} {...handle.props} type="button" aria-label={`Arrastar ${it.name}`} title="Arrastar para outro recipiente" className="fv-drag-handle">
@@ -583,11 +633,17 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? rc.color : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* miniatura da carta (só com foto); sem foto, só o botão discreto de enviar */}
+          <span className={'fv-item-thumb' + (art ? ' has-art' : ' is-empty')} style={art ? { borderColor: hexA(rc.color, big ? 0.7 : 0.35) } : undefined}>
+            {art && <img src={art} alt="" />}
+            <PortraitPicker variant="badge" portrait={it.image} onChange={onArt} max={ITEM_ART_MAX} labels={{ add: `Enviar arte de ${it.name}`, change: `Trocar arte de ${it.name}` }} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
             {it.name}
           </div>
           <button
+            className="fv-item-fav"
             onClick={(e) => { e.stopPropagation(); onFavorite(); }}
             aria-label="Favoritar"
             style={{ cursor: 'pointer', flex: 'none', background: 'none', border: 'none', color: it.favorite ? t.gold : 'var(--muted)', filter: it.favorite ? `drop-shadow(0 0 6px ${hexA(t.gold, 0.7)})` : 'none' }}
@@ -595,23 +651,34 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             <Icon name={it.favorite ? 'starFill' : 'star'} size={15} />
           </button>
         </div>
-        <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {[it.note, it.weight ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
+        <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {[it.note, it.weight && it.wear !== 'body' ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
         </div>
+
+        {charges && (
+          <div className="fv-inv-charges" aria-label={`${charges.left} de ${charges.max} cargas`}>
+            <span className="fv-charge-pips" aria-hidden>
+              {Array.from({ length: charges.max }, (_, i) => <i key={i} className={i < charges.left ? 'is-on' : ''} />)}
+            </span>
+            <span className="fv-inv-charges-n">{charges.left}/{charges.max} cargas</span>
+            <button type="button" disabled={charges.left === 0} onClick={(e) => { e.stopPropagation(); onCharge?.(1); }} aria-label={`Gastar 1 carga de ${it.name}`}>−1</button>
+            <button type="button" disabled={charges.left === charges.max} onClick={(e) => { e.stopPropagation(); onCharge?.(-1); }} aria-label={`Devolver 1 carga a ${it.name}`}>+1</button>
+          </div>
+        )}
 
         {/* comparação estilo BG3: o que muda se equipar */}
         {preview && (preview.deltas.length > 0 || preview.warnings.length > 0) && (
           <div className="fv-compare">
             <div className="fv-compare-head">
-              Ao equipar{preview.replaces ? <span> · troca {preview.replaces.name}</span> : null}
+              {isWearable(it) ? 'Ao vestir' : 'Ao equipar'}{preview.replaces ? <span> · sai {preview.replaces.name}</span> : null}
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {preview.deltas.map((d) => {
                 const c = d.better === true ? '#3FC56B' : d.better === false ? t.danger : t.acc;
                 return (
-                  <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: c }}>
+                  <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: ink(c) }}>
                     <b>{d.label}</b> {d.from} → {d.to}{d.better === true ? ' ▲' : d.better === false ? ' ▼' : ''}
                   </span>
                 );
@@ -626,11 +693,11 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
-              {equipped ? 'Desequipar' : 'Equipar'}
+              {isWearable(it) ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
           {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
-          {!equipped && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
+          {!equipped && it.wear !== 'body' && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
           <button type="button" className="fv-item-remove" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remover ${it.name}`} title="Remover">
             <Icon name="close" size={14} />
@@ -648,7 +715,7 @@ function ItemBtn({ children, onClick, active, danger }: { children: React.ReactN
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       style={{
         cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: 'var(--font-body)',
         fontWeight: 600,
         fontSize: 11.5,
         minHeight: 32,

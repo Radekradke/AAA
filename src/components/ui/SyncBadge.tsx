@@ -1,25 +1,26 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
-import { useAuthStore } from '@/store/authStore';
-import { resolveConflict } from '@/services/offlineSyncService';
-import { Modal } from './Modal';
 import { hexA } from '@/lib/color';
 import { useTheme } from '@/lib/useTheme';
+
+// o modal (com o cálculo de diferença entre versões) só carrega quando há conflito
+const ConflictModal = lazy(() => import('./SyncConflictModal').then((m) => ({ default: m.ConflictModal })));
 
 /**
  * Indicador discreto de salvamento/sincronização no topo:
  * Salvando… · Salvo neste aparelho · Nuvem em dia · Offline (pendências)
- * · Conflito (clique para resolver: manter local ou usar a nuvem).
+ * · Conflito (clique para resolver vendo a diferença; a versão descartada
+ *   vai para o histórico da ficha).
  */
 export function SyncBadge() {
   const t = useTheme();
   const { local, cloud, pendingCount, conflicts, lastError } = useSaveStatusStore();
-  const user = useAuthStore((s) => s.user);
   const [open, setOpen] = useState(false);
 
   const view = (() => {
+    // conflito vem antes do "Salvando…" (passageiro): o selo não pode deixar de ser clicável
+    if (cloud === 'conflict' || conflicts.length) return { dot: t.danger, text: `Conflito (${conflicts.length})`, click: true };
     if (local === 'saving') return { dot: t.acc, text: 'Salvando…', pulse: true };
-    if (cloud === 'conflict') return { dot: t.danger, text: `Conflito (${conflicts.length})`, click: true };
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
     if (cloud === 'syncing') return { dot: t.acc, text: 'Sincronizando…', pulse: true };
@@ -70,40 +71,9 @@ export function SyncBadge() {
       </button>
 
       {open && (
-        <Modal title="Conflito de sincronização" icon="crest" onClose={() => setOpen(false)} maxWidth={480}>
-          <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--muted)', lineHeight: 1.55 }}>
-            Estas fichas mudaram aqui e na nuvem desde a última sincronização. Escolha qual versão manter.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {conflicts.map((c) => (
-              <div key={c.sheetId} style={{ padding: '11px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.4), background: 'var(--sunk)' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>{c.name}</div>
-                <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: "'Chakra Petch', monospace" }}>
-                  local {new Date(c.localUpdatedAt).toLocaleString('pt-BR')} · nuvem {new Date(c.remoteUpdatedAt).toLocaleString('pt-BR')}
-                </div>
-                <div style={{ marginTop: 9, display: 'flex', gap: 8 }}>
-                  <button
-                    className="fv-btn-gold"
-                    style={{ flex: 1, minHeight: 38, fontSize: 12.5 }}
-                    onClick={() => user && void resolveConflict(user.id, c.sheetId, 'local')}
-                  >
-                    Manter esta versão
-                  </button>
-                  <button
-                    className="fv-btn-ghost"
-                    style={{ flex: 1, minHeight: 38, fontSize: 12.5 }}
-                    onClick={() => user && void resolveConflict(user.id, c.sheetId, 'cloud')}
-                  >
-                    Usar a da nuvem
-                  </button>
-                </div>
-              </div>
-            ))}
-            {conflicts.length === 0 && (
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>Tudo resolvido — nenhuma pendência.</p>
-            )}
-          </div>
-        </Modal>
+        <Suspense fallback={null}>
+          <ConflictModal onClose={() => setOpen(false)} />
+        </Suspense>
       )}
     </>
   );

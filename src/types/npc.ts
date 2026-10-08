@@ -11,6 +11,11 @@ export interface CampaignNpc {
   portrait: string | null;
   /** Jogadores veem na galeria e nas menções do diário. */
   revealed: boolean;
+  /**
+   * Criado de improviso nesta sessão (console do mestre). Fica fora da galeria
+   * da campanha até o mestre "Guardar na campanha" (vira null).
+   */
+  improvisedIn: string | null;
   updatedAt: string;
 }
 

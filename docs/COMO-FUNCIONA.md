@@ -66,7 +66,9 @@ Cada arquivo é uma parte do livro:
 - `classFeatures.ts` — o que cada classe ganha por nível (1→20).
 - `spells.ts` — o banco de magias (dano, área, save, condições…).
 - `feats.ts`, `weapons.ts`, `armors.ts`, `items.ts`, `tools.ts` — o resto.
-- `themes.ts` — os climas visuais (frio, brasa, verdejante).
+- `themes.ts` — os temas: cada um é uma identidade (nome, fonte, motivo do
+  fundo) com duas paletas — `THEMES` (a de nascença) e `THEME_ALT` (a outra).
+  `resolveTheme(tema, modo)` devolve o tema pronto no modo claro ou escuro.
 
 ---
 
@@ -80,6 +82,20 @@ Cada arquivo é uma parte do livro:
 - Se você **fizer login na nuvem** (Supabase), o app também **sincroniza**:
   compara a versão local com a da nuvem e decide empurrar, puxar ou avisar de
   conflito (`services/offlineSyncService.ts`).
+  - A comparação é por **versão**, não por horário: cada ficha lembra qual
+    versão da nuvem viu por último (`syncBase`). Assim, um aparelho que editou
+    antes mas só subiu depois não passa batido, e relógio errado não atrapalha.
+  - O envio é **condicional**: só grava se a nuvem ainda estiver na versão que
+    o app leu. Se outro aparelho subiu no meio, nada é sobrescrito e uma nova
+    rodada decide.
+  - Edições feitas **durante** o envio não se perdem (o resultado é aplicado
+    sobre o estado atual).
+  - No conflito, o app mostra as duas versões e o que muda; a escolhida fica e
+    a outra vai para o **histórico da ficha**.
+- **Histórico da ficha** (`services/sheetHistory.ts`, menu da ficha →
+  "Histórico e versões"): versões guardadas no aparelho no começo de cada
+  sessão de edição, antes de subir de nível, num conflito e antes de restaurar.
+  Mostra o que muda (`lib/sheetDiff.ts`) e restaura com um toque.
 
 Sem login, tudo continua funcionando — só não sincroniza entre aparelhos.
 
@@ -91,7 +107,7 @@ Usamos **Zustand** (uma caixinha de memória global). As principais:
 - `characterStore` — a lista de personagens e **todas as ações** (dar dano,
   curar, equipar, subir de nível, preparar magia…).
 - `authStore` — quem está logado.
-- `uiStore` — tema atual, som, histórico de rolagens, o dado em destaque.
+- `uiStore` — tema atual, modo claro/escuro de cada tema (`modes`), som, histórico de rolagens, o dado em destaque.
 - `saveStatusStore` — o status "Salvando/Salvo/Sincronizando".
 
 Quando uma ação muda a memória, o React redesenha só o que precisa.
@@ -114,6 +130,30 @@ Quando uma ação muda a memória, o React redesenha só o que precisa.
 Todas essas abas recebem `char` (a ficha) e `derived` (o resultado do
 `deriveCharacter`) e só **desenham** — o cálculo já veio pronto.
 
+### A mesa ao vivo (`/mesa/:id/jogar`)
+
+`pages/LiveSession.tsx` só faz o **bootstrap**: entra na campanha, liga a
+sessão e o palco (realtime), carrega heróis e NPCs uma vez. Depois escolhe a
+tela:
+
+- **Mestre** → `features/master/MasterWorkspace.tsx`, o console:
+  - `backstage/` — os Bastidores (Sessão, NPCs, Criaturas, Encontro, Cenas,
+    Pistas, Notas). Cada painel é um arquivo.
+  - `inspector/` — o Inspetor: mostra o que está selecionado (combatente,
+    herói, NPC, pista, cena, criatura do bestiário ou peão) e as ações dele.
+  - `initiative/InitiativeDock.tsx` — a faixa de iniciativa.
+  - `quick/` — a barra de improviso e os formulários rápidos.
+  - `masterStore.ts` — o que está selecionado, painel aberto, gaveta
+    (celular), bandeja e notas. `actions.ts` — ações com "Desfazer".
+  - `context.ts` — campanha, heróis e NPCs compartilhados (uma única
+    assinatura de NPCs para a tela toda).
+- **Jogador** → `features/live/PlayerWorkspace.tsx` (a mesa de sempre).
+
+A regra de ouro continua: o banco decide (turno, iniciativa, quem vê o quê).
+O console só chama as RPCs e mostra o resultado. Segredo do mestre (notas
+privadas, sessão preparada, bandeja, segredos de NPC) é protegido por RLS —
+nunca só escondido na tela.
+
 ---
 
 ## 7. A nuvem (`services/`) — opcional
@@ -123,6 +163,8 @@ Todas essas abas recebem `char` (a ficha) e `derived` (o resultado do
 - `characterSheetService.ts` — salvar/ler fichas na nuvem.
 - `campaignService.ts` — modo mestre: criar sala, convite por link, ver as
   fichas dos jogadores ao vivo.
+- `masterService.ts` — console do mestre: sessão preparada, bandeja da
+  sessão e notas privadas (SQL em `supabase/mestre_console.sql`).
 
 A segurança de "cada um só vê o que é seu" é feita pelo **banco** (regras de
 RLS no Supabase — ver `docs/SUPABASE.md`), não pelo app. Isso é o certo: mesmo
@@ -151,7 +193,7 @@ que alguém burle o app, o banco não deixa acessar dados dos outros.
 | Adicionar uma magia | `data/spells.ts` |
 | Adicionar/arrumar uma característica de classe | `data/classFeatures.ts` |
 | Mudar um cálculo (CA, PV, ataque…) | `engine/dndRules.ts` |
-| Criar um tema novo | `data/themes.ts` + `styles/globals.css` |
+| Criar um tema novo | `data/themes.ts` (as duas paletas) + um arquivo em `styles/themes/` (identidade + `[data-mode='light']`); o teste `themeSync` confere se as cores batem |
 | Mudar uma tela da ficha | `components/sheet/Tab*.tsx` |
 | Ajustar login/nuvem | `services/` + `docs/SUPABASE.md` |
 | Trocar os links de doação | `lib/support.ts` |

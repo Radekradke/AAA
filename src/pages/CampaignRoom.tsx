@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -10,18 +10,27 @@ import type { CampaignNote } from '@/services/campaignService';
 import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
 import type { MasterPermission } from '@/types/models';
 import { syncNow } from '@/services/offlineSyncService';
-import { deriveCharacter } from '@/engine/dndRules';
+import { derivedOf } from '@/lib/derivedCache';
 import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
-import type { Campaign, SharedCharacterSheet } from '@/types/models';
+import type { Campaign, InviteLink, SharedCharacterSheet } from '@/types/models';
 import type { Character } from '@/types/character';
 import { useTheme } from '@/lib/useTheme';
+import { useInk } from '@/lib/contrast';
 import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 import { NpcGallery } from '@/components/campaign/NpcGallery';
+import '@/styles/session.css';
+import '@/styles/stage.css';
+import { InviteCard } from '@/components/campaign/InviteCard';
+import { SchemaNotice } from '@/components/campaign/SchemaNotice';
+import { AgendaCard } from '@/components/campaign/AgendaCard';
+
+// bestiário (65 criaturas com ficha e arte): só o mestre vê, baixa sob demanda
+const BestiaryGallery = lazy(() => import('@/components/bestiary/BestiaryGallery').then((m) => ({ default: m.BestiaryGallery })));
 
 /**
  * Sala da campanha: o mestre vê o link de convite e os cards vivos das
@@ -36,9 +45,8 @@ export function CampaignRoom() {
   const t = useTheme();
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [invite, setInvite] = useState<string | null>(null);
+  const [invite, setInvite] = useState<InviteLink | null>(null);
   const [shares, setShares] = useState<{ share: SharedCharacterSheet; snapshot: Character | null }[]>([]);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState<CampaignNote[]>([]);
   const [noteKind, setNoteKind] = useState<CampaignNote['kind']>('nota');
@@ -68,22 +76,12 @@ export function CampaignRoom() {
     return subscribeRoom(id, load);
   }, [id, load]);
 
-  // mestre: garante um convite reutilizável
+  // mestre: garante um convite reutilizável (com código curto e QR)
   useEffect(() => {
     if (campaign && user && isMaster) {
-      campaignService.ensureInvite(campaign, user.id)
-        .then((inv) => setInvite(`${window.location.origin}/sala/${inv.token}`))
-        .catch(() => undefined);
+      campaignService.ensureInvite(campaign, user.id).then(setInvite).catch(() => undefined);
     }
   }, [campaign, user, isMaster]);
-
-  const copy = () => {
-    if (!invite) return;
-    void navigator.clipboard.writeText(invite).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
-  };
 
   const share = async (sheetId: string) => {
     if (!id || !user) return;
@@ -111,17 +109,24 @@ export function CampaignRoom() {
         {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
         {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
 
-        {/* convite (mestre) */}
-        {isMaster && invite && (
-          <div className="fv-panel" style={{ padding: 14, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-              <div className="fv-label" style={{ fontSize: 10.5, marginBottom: 4 }}>Link de convite — envie aos jogadores</div>
-              <div style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12.5, color: 'var(--acc)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{invite}</div>
-            </div>
-            <button onClick={copy} className="fv-btn-gold" style={{ minHeight: 40, padding: '0 18px', fontSize: 13 }}>
-              {copied ? 'Copiado!' : 'Copiar link'}
-            </button>
-          </div>
+        {/* agenda: a próxima sessão marcada e quem vai */}
+        {campaign && user && !user.guest && (
+          <AgendaCard
+            campaignId={campaign.id}
+            campaignName={campaign.name}
+            isMaster={isMaster}
+            userId={user.id}
+            userName={user.name}
+            heroName={mySheets.find((c) => sharedIds.has(c.id))?.name}
+          />
+        )}
+
+        {/* banco desatualizado: o mestre vê qual script falta */}
+        {isMaster && <SchemaNotice />}
+
+        {/* convite (mestre): código, link e QR */}
+        {isMaster && invite && campaign && (
+          <InviteCard invite={invite} campaignName={campaign.name} onNewCode={async () => setInvite(await campaignService.newCode(invite))} />
         )}
 
         {/* jogador: vincular a própria ficha */}
@@ -181,7 +186,7 @@ export function CampaignRoom() {
         {/* fichas da mesa */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
           <div className="fv-label">Heróis da mesa · {shares.length}</div>
-          <button onClick={load} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 12, fontWeight: 600 }}>↺ Atualizar</button>
+          <button type="button" className="fv-textlink" onClick={load} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 12, fontWeight: 600 }}>↺ Atualizar</button>
         </div>
         {shares.length === 0 && (
           <EmptyState icon="crest" title="Nenhuma ficha vinculada ainda" hint={isMaster ? 'Envie o link de convite — quando os jogadores vincularem as fichas, elas aparecem aqui ao vivo.' : 'Vincule sua ficha acima para o mestre acompanhar.'} />
@@ -197,6 +202,13 @@ export function CampaignRoom() {
           <div style={{ marginTop: 22 }}>
             <NpcGallery campaignId={campaign.id} isMaster={isMaster} masterSheets={isMaster ? mySheets : []} />
           </div>
+        )}
+
+        {/* bestiário da mesa: criaturas em cartas, personalizáveis (só o mestre) */}
+        {campaign && user && !user.guest && isMaster && (
+          <Suspense fallback={null}>
+            <BestiaryGallery campaignId={campaign.id} />
+          </Suspense>
         )}
 
         {/* Crônica da Mesa: notas, NPCs e missões (mestre escreve, todos leem) */}
@@ -256,6 +268,7 @@ export function CampaignRoom() {
 /** Card vivo da ficha compartilhada (leitura, estilo aba Mesa). */
 function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boolean }) {
   const t = useTheme();
+  const ink = useInk();
   if (!snapshot) {
     return (
       <div className="fv-surface" style={{ padding: 14, fontSize: 12.5, color: 'var(--muted)' }}>
@@ -263,7 +276,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
       </div>
     );
   }
-  const d = deriveCharacter(snapshot);
+  const d = derivedOf(snapshot);
   const pct = Math.max(0, Math.min(100, Math.round((snapshot.hpCurrent / Math.max(1, d.maxHp)) * 100)));
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
   return (
@@ -279,20 +292,20 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
       </div>
       {/* PV */}
       <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: "'Chakra Petch', monospace", fontWeight: 700, fontSize: 17, color: hpColor }}>
+        <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 17, color: ink(hpColor) }}>
           {snapshot.hpCurrent}<span style={{ fontSize: '.65em', color: 'var(--muted)' }}>/{d.maxHp}</span>
         </span>
         <div style={{ flex: 1, height: 8, borderRadius: 3, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: hpColor, transition: 'width .3s' }} />
         </div>
-        <span style={{ fontFamily: "'Chakra Petch', monospace", fontSize: 12, color: 'var(--muted)' }}>CA <b style={{ color: 'var(--ink)' }}>{d.ac}</b></span>
+        <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>CA <b style={{ color: 'var(--ink)' }}>{d.ac}</b></span>
       </div>
       {/* atributos */}
       <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
         {d.abilityList.map((a) => (
           <div key={a.key} style={{ textAlign: 'center', padding: '3px 0', borderRadius: 4, background: hexA(ABILITY_COLORS[a.key], 0.09) }}>
-            <div style={{ fontSize: 7.5, fontFamily: "'Chakra Petch', monospace", color: ABILITY_COLORS[a.key] }}>{ABILITY_SHORT[a.key]}</div>
-            <div style={{ fontSize: 11.5, fontFamily: "'Chakra Petch', monospace", fontWeight: 700, color: 'var(--ink)' }}>{modStr(a.mod)}</div>
+            <div style={{ fontSize: 7.5, fontFamily: 'var(--font-num)', color: ink(ABILITY_COLORS[a.key]) }}>{ABILITY_SHORT[a.key]}</div>
+            <div style={{ fontSize: 11.5, fontFamily: 'var(--font-num)', fontWeight: 700, color: 'var(--ink)' }}>{modStr(a.mod)}</div>
           </div>
         ))}
       </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { poolAffected } from '@/engine/spellCast';
 import { useUiStore } from '@/store/uiStore';
 
@@ -14,7 +14,7 @@ export function CastNotice() {
   return (
     <AnimatePresence>
       {n && (
-        <motion.div
+        <m.div
           key={n.id}
           className="fv-castnote"
           role="status"
@@ -55,7 +55,7 @@ export function CastNotice() {
             )}
           </span>
           <button type="button" className="fv-castnote-close" onClick={clear} aria-label="Fechar aviso">×</button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

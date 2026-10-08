@@ -69,7 +69,7 @@ export function RollModeToggle() {
   }, [open]);
 
   return (
-    <div ref={ref} className="fv-rollmode">
+    <div ref={ref} className="fv-rollmode" data-tour="rollmode">
       <button
         type="button"
         className={'fv-rollmode-btn' + (on ? ' is-on' : '')}

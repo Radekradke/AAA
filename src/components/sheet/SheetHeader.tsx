@@ -1,40 +1,43 @@
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import { heroSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
-import { PortraitPicker } from '@/components/character/PortraitPicker';
+import { Icon } from '@/components/ui/Icon';
 import { raceOf } from '@/data/races';
 import { modStr } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { OrnateCorners } from '@/components/ui/OrnateCorners';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore, calcLore } from '@/lib/lore';
+import { heroTitle, heroTitleTip } from '@/engine/titles';
 
 interface SheetHeaderProps {
   char: Character;
   derived: DerivedCharacter;
   /** Só identidade (sem os blocos de defesa) — usado na Mesa, que já os mostra. */
   compact?: boolean;
+  /** Abre "compartilhar a ficha" (link ou PDF) — o botão de corrente junto do retrato. */
+  onShare?: () => void;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProps) {
   const race = raceOf(char);
   const setLevel = useCharacterStore((s) => s.setLevel);
-  const updateCharacter = useCharacterStore((s) => s.updateCharacter);
 
   // valores derivados com cálculo rastreável (tooltip mostra cada origem)
   const bd = derived.breakdowns;
   const defense = [
-    { label: 'CA', val: String(derived.ac), info: calcLore('Classe de Armadura', bd.ac, { intro: 'Quanto maior, mais difícil é acertar você.' }) },
-    { label: 'Iniciativa', val: modStr(derived.initiative), info: calcLore('Iniciativa', bd.initiative, { intro: 'Ordem no início do combate.' }) },
-    { label: 'Desloc.', val: `${derived.speed.toString().replace('.', ',')}m`, info: calcLore('Deslocamento', bd.speed, { unit: 'm', intro: 'Metros de movimento por turno.' }) },
-    { label: 'Perc. Pass.', val: String(derived.passivePerception), info: calcLore('Percepção Passiva', bd.passivePerception, { intro: 'Usada pelo mestre para perigos não anunciados.' }) },
-    { label: 'Profic.', val: modStr(derived.proficiency), info: passiveLore('Bônus de Proficiência', modStr(derived.proficiency), `Nível ${char.level} → bônus ${modStr(derived.proficiency)} (2 + ⌊(nível − 1) / 4⌋, PHB 2014). Soma em tudo que você é treinado.`, ['Ver cálculo']) },
+    { label: 'CA', short: 'CA', val: String(derived.ac), info: calcLore('Classe de Armadura', bd.ac, { intro: 'Quanto maior, mais difícil é acertar você.' }) },
+    { label: 'Iniciativa', short: 'Inic.', val: modStr(derived.initiative), info: calcLore('Iniciativa', bd.initiative, { intro: 'Ordem no início do combate.' }) },
+    { label: 'Desloc.', short: 'Desl.', val: `${derived.speed.toString().replace('.', ',')}m`, info: calcLore('Deslocamento', bd.speed, { unit: 'm', intro: 'Metros de movimento por turno.' }) },
+    { label: 'Perc. Pass.', short: 'Perc.', val: String(derived.passivePerception), info: calcLore('Percepção Passiva', bd.passivePerception, { intro: 'Usada pelo mestre para perigos não anunciados.' }) },
+    { label: 'Profic.', short: 'Prof.', val: modStr(derived.proficiency), info: passiveLore('Bônus de Proficiência', modStr(derived.proficiency), `Nível ${char.level} → bônus ${modStr(derived.proficiency)} (2 + ⌊(nível − 1) / 4⌋, PHB 2014). Soma em tudo que você é treinado.`, ['Ver cálculo']) },
   ];
 
   return (
     <div
-      className="fv-panel animate-breathe"
+      className="fv-panel fv-sheet-head animate-breathe"
+      data-tour="sheet-head"
       style={{
         position: 'relative',
         display: 'flex',
@@ -56,8 +59,9 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
       <span className="fv-hide-mobile" aria-hidden>
         <OrnateCorners size={18} inset={10} />
       </span>
-      <div style={{ position: 'relative', width: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', height: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
+      <div className="fv-sh-portrait" style={{ position: 'relative', width: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', height: compact ? 'clamp(56px,6.4vw,70px)' : 'clamp(68px,9vw,96px)', flex: 'none', display: 'grid', placeItems: 'center' }}>
         <div
+          className="fv-sh-portrait-ring"
           style={{
             position: 'absolute',
             inset: 0,
@@ -76,12 +80,22 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
             }}
           />
         </div>
-        <PortraitPicker variant="badge" portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
+        {/* trocar a arte fica em "Editar"; aqui, compartilhar a ficha */}
+        {onShare && (
+          <button type="button" className="fv-sh-share" onClick={onShare} aria-label="Compartilhar a ficha (link, PDF ou JSON)" title="Compartilhar a ficha">
+            <Icon name="link" size={15} />
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
+        <div className="fv-sh-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
           {char.name}
+          {heroTitle(char) && (
+            <span className="fv-sh-title" title={heroTitleTip(char)}>
+              {heroTitle(char)}
+            </span>
+          )}
         </div>
         <div className="fv-sh-sub">
           <span>{heroSubtitle(char)}</span>
@@ -110,7 +124,10 @@ export function SheetHeader({ char, derived, compact }: SheetHeaderProps) {
           >
             <div className="fv-header-stat">
               <div className="fv-header-stat-val">{d.val}</div>
-              <div className="fv-header-stat-label">{d.label}</div>
+              <div className="fv-header-stat-label">
+                <span className="fv-hs-full">{d.label}</span>
+                <span className="fv-hs-short" aria-hidden>{d.short}</span>
+              </div>
             </div>
           </LoreTooltip>
         ))}
