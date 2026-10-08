@@ -1,4 +1,4 @@
-import type { Item, ItemCategory } from '@/types/dnd';
+import type { Item, ItemCategory, WeaponData } from '@/types/dnd';
 
 /**
  * Equipamento de aventura do Livro do Jogador (2014): itens, munição, focos,
@@ -22,6 +22,9 @@ const JO = 'Jogos';
 const MO = 'Montarias';
 const VE = 'Arreios e veículos';
 const CO = 'Consumíveis';
+
+/** Cajado (foco arcano ou druídico) também é um bordão (PHB 2014). */
+const STAFF: WeaponData = { baseId: 'w-quarterstaff', damageDice: 1, damageDie: 6, damageType: 'concussão', type: 'simple', range: 'melee', properties: ['Versátil'], versatileDie: 8 };
 
 export const GEAR: Item[] = [
   // ---- itens que já existiam (ids mantidos) ----
@@ -104,6 +107,15 @@ export const GEAR: Item[] = [
   G('g-waterskin', 'Odre', AV, 2.5, 0.2, '2 L de água'),
   G('g-whetstone', 'Pedra de Amolar', AV, 0.5, 0.01, 'Afia lâminas'),
 
+  // ---- itens que só aparecem dentro dos pacotes (sem preço na tabela do livro) ----
+  G('g-string', 'Barbante (3 m)', AV, 0, 0, 'Vem no Pacote de Assaltante'),
+  G('g-almsbox', 'Caixa de Esmolas', AV, 0.5, 0, 'Vem no Pacote de Sacerdote'),
+  G('g-incense', 'Bloco de Incenso', AV, 0, 0, 'Vem no Pacote de Sacerdote'),
+  G('g-censer', 'Incensário', AV, 0.5, 0, 'Vem no Pacote de Sacerdote'),
+  G('g-vestments', 'Vestes Cerimoniais', RO, 2, 0, 'Vem no Pacote de Sacerdote'),
+  G('g-sandbag', 'Saquinho de Areia', AV, 0.5, 0, 'Seca a tinta · vem no Pacote de Estudioso'),
+  G('g-knife', 'Faca Pequena', AV, 0.25, 0, 'Apontar penas e cortar papel · vem no Pacote de Estudioso'),
+
   // ---- consumíveis ----
   G('g-acid', 'Ácido (frasco)', CO, 0.5, 25, 'Arremesso 6 m: 2d6 de ácido', 'consumable'),
   G('g-alchemistfire', 'Fogo Alquímico (frasco)', CO, 0.5, 50, 'Arremesso 6 m: 1d4 de fogo por turno até apagar (DES CD 10)', 'consumable'),
@@ -120,11 +132,11 @@ export const GEAR: Item[] = [
   G('g-focus-crystal', 'Foco Arcano: Cristal', FO, 0.5, 10, 'Feiticeiro, Bruxo, Mago'),
   G('g-focus-orb', 'Foco Arcano: Orbe', FO, 1.5, 20, 'Feiticeiro, Bruxo, Mago'),
   G('g-focus-rod', 'Foco Arcano: Bastão', FO, 1, 10, 'Feiticeiro, Bruxo, Mago'),
-  G('g-focus-staff', 'Foco Arcano: Cajado', FO, 2, 5, 'Feiticeiro, Bruxo, Mago (também serve de bordão)'),
+  G('g-focus-staff', 'Foco Arcano: Cajado', FO, 2, 5, 'Feiticeiro, Bruxo, Mago · também serve de bordão (1d6, versátil 1d8)', 'gear', { weapon: STAFF }),
   G('g-focus-wand', 'Foco Arcano: Varinha', FO, 0.5, 10, 'Feiticeiro, Bruxo, Mago'),
-  G('g-druidic-mistletoe', 'Foco Druídico: Ramo de Visco', FO, 0, 1, 'Druida, Patrulheiro'),
+  G('g-druidic-mistletoe', 'Foco Druídico: Ramo de Visco', FO, 0, 1, 'Druida'),
   G('g-druidic-totem', 'Foco Druídico: Totem', FO, 0, 1, 'Druida'),
-  G('g-druidic-staff', 'Foco Druídico: Cajado de Madeira', FO, 2, 5, 'Druida'),
+  G('g-druidic-staff', 'Foco Druídico: Cajado de Madeira', FO, 2, 5, 'Druida · também serve de bordão (1d6, versátil 1d8)', 'gear', { weapon: STAFF }),
   G('g-druidic-wand', 'Foco Druídico: Varinha de Teixo', FO, 0.5, 10, 'Druida'),
   G('g-holy-amulet', 'Símbolo Sagrado: Amuleto', FO, 0.5, 5, 'Clérigo, Paladino'),
   G('g-holy-emblem', 'Símbolo Sagrado: Emblema', FO, 0, 5, 'Clérigo, Paladino (no escudo ou na roupa)'),

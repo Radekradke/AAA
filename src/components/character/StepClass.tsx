@@ -40,7 +40,7 @@ export function StepClass({ char, update }: StepProps) {
       // realinha o array padrão e limpa as perícias para as opções da nova classe
       c.baseAbilities = standardArrayFor(id);
       c.skillProfs = [];
-      if (c.inventory.length > 0) applySelection(c, defaultSelection(id));
+      if (c.inventory.length > 0) applySelection(c, defaultSelection(id, c));
     });
   };
 

@@ -23,6 +23,15 @@ test.describe('criação de herói', () => {
     await livres.first().click();
     await livres.first().click();
     await cta.click(); // Equipamento
+
+    // Kit do Livro do Jogador: Guerreiro com cota de malha e pacote aberto
+    await expect(page.getByText('Kit do Livro do Jogador')).toBeVisible();
+    await expect(page.locator('.fv-kit-bag')).toContainText('Pacote de Explorador de Masmorras:');
+    await page.getByRole('button', { name: 'Personalizar kit' }).click();
+    // (b) couro, arco longo e 20 flechas
+    await page.getByRole('radiogroup', { name: 'Armadura' }).getByRole('radio', { name: /Couro, arco longo/ }).click();
+    await expect(page.locator('.fv-kit-list')).toContainText('Arco Longo');
+    await expect(page.getByText('Kit personalizado')).toBeVisible();
     await cta.click(); // Despertar
 
     // Sem nome o botão fica travado e diz o que falta

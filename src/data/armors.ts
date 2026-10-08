@@ -55,7 +55,7 @@ export const ARMORS: Item[] = [
   },
   // ---- Escudos ----
   {
-    id: 's-shield', value: 10, name: 'Escudo de Aço', category: 'shield', rarity: 'comum', weight: 3, note: '+2 CA', acBonus: 2,
+    id: 's-shield', value: 10, name: 'Escudo', category: 'shield', rarity: 'comum', weight: 3, note: '+2 CA (madeira ou metal)', acBonus: 2,
   },
 ];
 

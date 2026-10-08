@@ -13,6 +13,7 @@ import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
+import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
@@ -51,7 +52,10 @@ export function TabMagias({ char, derived }: TabProps) {
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
-  const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  const allItemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.combat.itemCharges, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  // cajados e varinhas (cargas) ficam num bloco próprio; o resto segue como antes
+  const chargeSpells = allItemSpells.filter((s) => s.charges);
+  const itemSpells = allItemSpells.filter((s) => !s.charges);
 
   // magias "do personagem": preparadas (todas as classes) + grimório do mago (nível ≥1)
   const prepared = char.preparedSpells;
@@ -122,7 +126,7 @@ export function TabMagias({ char, derived }: TabProps) {
     return [...map.entries()].sort((a, b) => a[0] - b[0]);
   }, [active]);
 
-  if (kind === 'none' && itemSpells.length === 0) {
+  if (kind === 'none' && allItemSpells.length === 0) {
     return (
       <div className="animate-riseIn">
         <Panel full>
@@ -225,6 +229,14 @@ export function TabMagias({ char, derived }: TabProps) {
         </Panel>
       )}
 
+      {/* Cajados e varinhas: cargas compartilhadas, custo por magia */}
+      {chargeSpells.length > 0 && (
+        <Panel full>
+          <SectionLabel>Cajados e varinhas</SectionLabel>
+          <ItemChargeSpells char={char} derived={derived} castMod={castMod} spells={chargeSpells} />
+        </Panel>
+      )}
+
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
@@ -235,7 +247,7 @@ export function TabMagias({ char, derived }: TabProps) {
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                   <span style={{ cursor: 'help', display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `1×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
                   </span>
                 </LoreTooltip>
                 {is.recharge === 'atwill' ? (

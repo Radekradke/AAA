@@ -2926,6 +2926,36 @@ body.fv-dragging .fv-screen-scroll {
 .fv-kit-attacks b {
   color: var(--acc);
 }
+.fv-kit-bag {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.fv-kit-bag p {
+  margin: 0 0 4px;
+}
+.fv-kit-bag b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.fv-gear-row:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.fv-gear-picks {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+.fv-gear-picks label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
 .fv-kit-actions {
   margin-top: 12px;
   display: flex;
@@ -3688,6 +3718,29 @@ body.fv-dragging .fv-screen-scroll {
 .fv-cast-pop button:hover { background: var(--lift); border-color: var(--line); }
 .fv-cast-pop button small { font-size: 11px; font-weight: 500; color: var(--muted); }
 .fv-cast-pop-empty { padding: 6px 9px; font-size: 12px; color: var(--muted); }
+
+/* ===== Cajados e varinhas: cargas compartilhadas ===== */
+.fv-charge-items { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.fv-charge-item { border: 1px solid color-mix(in srgb, var(--acc), transparent 62%); border-radius: var(--radius-md); background: var(--lift); padding: 10px 12px; }
+.fv-charge-item header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.fv-charge-item header b { font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.fv-charge-count { display: inline-flex; align-items: center; gap: 8px; font: 600 12px var(--font-num); color: var(--gold); }
+.fv-charge-pips { display: inline-flex; gap: 3px; flex-wrap: wrap; max-width: 140px; }
+.fv-charge-pips i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--gold), transparent 30%); }
+.fv-charge-pips i.is-on { background: var(--gold); box-shadow: 0 0 6px color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-charge-item ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.fv-charge-item li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+.fv-charge-item li:first-child { border-top: 0; }
+.fv-charge-item li.is-short .fv-charge-spell > span { color: var(--muted); }
+.fv-charge-spell { display: flex; flex-direction: column; cursor: help; min-width: 0; }
+.fv-charge-spell > span { font-size: 14px; color: var(--ink); }
+.fv-charge-spell small { font-size: 11px; color: var(--muted); }
+.fv-charge-foot { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+.fv-inv-charges { margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fv-inv-charges-n { font: 600 11.5px var(--font-num); color: var(--gold); }
+.fv-inv-charges button { cursor: pointer; min-width: 30px; min-height: 28px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 11px var(--font-num); }
+.fv-inv-charges button:disabled { opacity: 0.4; cursor: not-allowed; }
+.fv-inv-charges button:not(:disabled):hover { border-color: var(--gold); color: var(--gold); }
 .fv-spell-block-reason { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); white-space: normal; }
 .fv-spell-rule-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .fv-spell-rule-text { margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }

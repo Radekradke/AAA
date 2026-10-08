@@ -1,14 +1,28 @@
 import { syncSpellSlots } from '@/engine/spellcasting';
+import { chargesOf } from '@/engine/itemCharges';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 
 /** Magias: conjurar gastando espaço, espaços, magias de itens, esquecer e copiar (grimório). */
-export function spellsActions({ mutate }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot'> {
+export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'spendItemCharges' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot'> {
   return {
     noteCast(id, spellId) {
       mutate(id, (c) => {
         c.combat.castThisTurn = [...(c.combat.castThisTurn ?? []).filter((x) => x !== spellId), spellId];
       });
+    },
+    spendItemCharges(id, uid, n) {
+      const it = get().getCharacter(id)?.inventory.find((i) => i.uid === uid);
+      const ch = it && chargesOf(it);
+      if (!ch) return 0;
+      let left = 0;
+      mutate(id, (c) => {
+        const used = { ...(c.combat.itemCharges ?? {}) };
+        used[uid] = Math.max(0, Math.min(ch.max, (used[uid] ?? 0) + n));
+        c.combat.itemCharges = used;
+        left = ch.max - used[uid];
+      });
+      return left;
     },
     useItemSpell(id, key) {
       mutate(id, (c) => {

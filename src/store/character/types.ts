@@ -60,6 +60,8 @@ export interface CharacterState {
   toggleConcentration: (id: string) => void;
   /** Gasta um uso de uma magia concedida por item (recarga por descanso). */
   useItemSpell: (id: string, key: string) => void;
+  /** Gasta cargas de um item (cajado, varinha…; negativo devolve); devolve quantas sobraram. */
+  spendItemCharges: (id: string, uid: string, n: number) => number;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;

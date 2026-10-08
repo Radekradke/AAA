@@ -412,6 +412,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   }
   // Auxílio: +5 de PV máximo por círculo acima do 1º
   for (const e of spellEffects) if (e.maxHp) hpParts.push(mod('hp', e.maxHp, e.name, 'spell'));
+  // Machado do Berserker: +1 PV máximo por nível enquanto sintonizado
+  for (const m of magicItems) if (m.magic.hpPerLevel) hpParts.push(mod('hp', m.magic.hpPerLevel * char.level, m.name, 'item', { label: 'PV por nível' }));
   // Exaustão 4+ (PHB 2014): PV máximo pela metade
   const exhaustion = char.combat?.exhaustion ?? 0;
   if (exhaustion >= 4) {
@@ -477,11 +479,15 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     return ra >= jack ? { value: ra, label: 'Atleta Notável' } : { value: jack, label: 'Pau pra Toda Obra' };
   };
   const initHalf = halfProfFor('dex');
+  // Pedra da Sorte: + em todo teste de atributo (iniciativa e perícias também)
+  const checkItems = magicItems.filter((m) => m.magic.checks);
+  const checkMagic = checkItems.reduce((n, m) => n + m.magic.checks!, 0);
   const initBd = breakdown([
     mod('initiative', dexMod, 'Destreza', 'ability', { label: 'modificador de DES' }),
     initHalf ? mod('initiative', initHalf.value, initHalf.label, 'class', { label: 'meia proficiência' }) : null,
     ...feats.map((f) => (f.initiativeBonus ? mod('initiative', f.initiativeBonus, f.label, 'feat') : null)),
     subBonus?.initiativeBonus ? mod('initiative', subBonus.initiativeBonus, subclass!.label, 'subclass') : null,
+    ...checkItems.map((m) => mod('initiative', m.magic.checks!, m.name, 'item', { label: 'testes de atributo' })),
   ]);
 
   // ---- Perícias (proficiências: escolhas + antecedente + raça; expertise dobra) ----
@@ -505,7 +511,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     const proficient = skillProfs.has(sk.key);
     const expertise = proficient && expertiseSet.has(sk.key);
     const half = proficient ? null : halfProfFor(sk.ability);
-    const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : half?.value ?? 0);
+    const bonus = abilities[sk.ability].mod + (expertise ? prof * 2 : proficient ? prof : half?.value ?? 0) + checkMagic;
     const disadvantage =
       exhaustion >= 1 ? 'exaustão'
       : checkCondition ? checkCondition.toLowerCase()
@@ -522,6 +528,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       ? mod('pp', perception.expertise ? prof * 2 : prof, perception.expertise ? 'Percepção com expertise (×2)' : 'Percepção proficiente', 'proficiency')
       : null,
     ...feats.map((f) => (f.passivePerceptionBonus ? mod('pp', f.passivePerceptionBonus, f.label, 'feat') : null)),
+    ...checkItems.map((m) => mod('pp', m.magic.checks!, m.name, 'item')),
   ]);
   // Investigação/Intuição passivas (10 + bônus; Observador soma +5 na Investigação também)
   const featPassive = feats.reduce((s, f) => s + (f.passivePerceptionBonus ?? 0), 0);

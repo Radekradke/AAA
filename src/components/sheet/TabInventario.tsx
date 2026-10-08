@@ -16,7 +16,7 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn } from '@/engine/inventory';
+import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn, attunementBlock } from '@/engine/inventory';
 import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
@@ -46,6 +46,7 @@ function itemInfo(it: InventoryItem): LoreInfo {
 }
 import { useInk } from '@/lib/contrast';
 import { itemArt } from '@/lib/itemArt';
+import { chargesLeft, chargesOf } from '@/engine/itemCharges';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
 const GROUP_DEFS: { id: string; label: string; icon: IconName; match: (it: InventoryItem) => boolean }[] = [
@@ -258,6 +259,11 @@ export function TabInventario({ char, derived }: TabProps) {
                     setFlash({ ok: false, text: `Já tem ${MAX_ATTUNEMENT} itens sintonizados (o máximo) — desfaça uma sintonia antes.` });
                     return;
                   }
+                  const blocked = !it.attuned && attunementBlock(char, it);
+                  if (blocked) {
+                    setFlash({ ok: false, text: blocked });
+                    return;
+                  }
                   store.toggleAttune(char.id, it.uid);
                 }}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
@@ -265,7 +271,7 @@ export function TabInventario({ char, derived }: TabProps) {
                 <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
                 <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
                 <span style={{ fontSize: 11, color: it.attuned && isWearable(it) && !isWorn(it) ? '#E0A93E' : 'var(--muted)' }}>
-                  {it.attuned ? (isWearable(it) && !isWorn(it) ? 'sintonizado · vista para valer' : 'sintonizado') : 'sem sintonia'}
+                  {it.attuned ? (isWearable(it) && !isWorn(it) ? 'sintonizado · vista para valer' : 'sintonizado') : attunementBlock(char, it) ? 'não é para a sua classe' : 'sem sintonia'}
                 </span>
               </button>
             </LoreTooltip>
@@ -385,6 +391,8 @@ export function TabInventario({ char, derived }: TabProps) {
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
                         onDrink={healOf(it) ? () => drink(it) : undefined}
+                        charges={chargesOf(it) ? { left: chargesLeft(char, it), max: chargesOf(it)!.max, regain: chargesOf(it)!.regain } : undefined}
+                        onCharge={(n) => store.spendItemCharges(char.id, it.uid, n)}
                         onArt={(img) => store.updateInventoryItem(char.id, it.uid, { image: img })}
                       />
                     )}
@@ -549,7 +557,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onArt }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onArt, charges, onCharge }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -565,6 +573,10 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onRemove: () => void;
   /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
   onDrink?: () => void;
+  /** Item com cargas (cajado, varinha, Anel da Evasão…). */
+  charges?: { left: number; max: number; regain: string };
+  /** Gasta (positivo) ou devolve (negativo) cargas. */
+  onCharge?: (n: number) => void;
   /** Arte do item (carta ao lado dos detalhes). */
   onArt: (img: string | null) => void;
 }) {
@@ -644,6 +656,17 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             .filter(Boolean)
             .join(' · ')}
         </div>
+
+        {charges && (
+          <div className="fv-inv-charges" aria-label={`${charges.left} de ${charges.max} cargas`}>
+            <span className="fv-charge-pips" aria-hidden>
+              {Array.from({ length: charges.max }, (_, i) => <i key={i} className={i < charges.left ? 'is-on' : ''} />)}
+            </span>
+            <span className="fv-inv-charges-n">{charges.left}/{charges.max} cargas</span>
+            <button type="button" disabled={charges.left === 0} onClick={(e) => { e.stopPropagation(); onCharge?.(1); }} aria-label={`Gastar 1 carga de ${it.name}`}>−1</button>
+            <button type="button" disabled={charges.left === charges.max} onClick={(e) => { e.stopPropagation(); onCharge?.(-1); }} aria-label={`Devolver 1 carga a ${it.name}`}>+1</button>
+          </div>
+        )}
 
         {/* comparação estilo BG3: o que muda se equipar */}
         {preview && (preview.deltas.length > 0 || preview.warnings.length > 0) && (

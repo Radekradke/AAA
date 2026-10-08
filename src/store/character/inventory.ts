@@ -1,6 +1,6 @@
 import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
-import { toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
+import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 
@@ -60,7 +60,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
         if (!it) return;
         if (it.attuned) {
           it.attuned = false;
-        } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT) {
+        } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT && !attunementBlock(c, it)) {
           // fixa o "vestido" antes (ficha antiga não tinha): sintonizar não veste sozinho por baixo dos panos
           if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);
           it.attuned = true;

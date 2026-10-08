@@ -410,7 +410,11 @@ describe('antecedentes aplicam ferramentas, equipamento e ouro', () => {
     const draft = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'cleric', raceId: 'human' });
     draft.backgroundId = 'acolyte';
     const c = finalizeCharacter(draft);
-    expect(c.inventory.some((i) => i.name === 'Símbolo sagrado')).toBe(true);
+    // símbolo sagrado do catálogo (o do kit de clérigo já cobre o do antecedente: não duplica)
+    expect(c.inventory.filter((i) => i.itemId?.startsWith('g-holy-'))).toHaveLength(1);
+    expect(c.inventory.filter((i) => i.itemId === 'g-incense').map((i) => i.quantity)).toEqual([7]); // 2 do Pacote de Sacerdote + 5 do antecedente
+    expect(c.inventory.some((i) => i.itemId === 'g-vestments')).toBe(true);
+    expect(c.inventory.some((i) => i.name === 'Livro de preces')).toBe(true); // sem item no catálogo: fica como item simples
     expect(c.coins.gp).toBeGreaterThanOrEqual(15);
   });
 });
