@@ -7,6 +7,8 @@ import { getSpell } from '@/data/spells';
 import { getClass } from '@/data/classes';
 import { multiclassSlots, spellSlotsForClass, thirdCasterSlots } from './progression';
 import { itemIsActive, slotForItem } from './inventory';
+import { chargeOptions, chargesLeft, chargesOf, grantsOf, minCost } from './itemCharges';
+import type { ChargeOption } from './itemCharges';
 
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
@@ -126,6 +128,14 @@ export interface ItemSpell {
   /** Usos por descanso (0 = à vontade). */
   usesMax: number;
   usesLeft: number;
+  /** Item com cargas: total e quanto sobra (compartilhado entre as magias do item). */
+  charges?: { max: number; left: number; regain: string };
+  /** Cargas que a magia gasta no mínimo. */
+  cost?: number;
+  /** Jeitos de conjurar com as cargas que sobram (círculo + custo). */
+  options?: ChargeOption[];
+  /** CD fixa do item (varinhas: 15); sem valor, usa a de quem empunha. */
+  dc?: number;
 }
 
 /**
@@ -138,15 +148,28 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
   const uses = char.combat?.itemSpellUses ?? {};
   const out: ItemSpell[] = [];
   for (const it of char.inventory ?? []) {
-    if (!it.grantsSpells?.length) continue;
+    const grants = grantsOf(it);
+    if (!grants?.length) continue;
     // arma/armadura/escudo: empunhado ou sintonizado; vestível: vestido;
     // varinha, cajado…: sintonizado se pede, senão enquanto está com o herói
     const ok = slotForItem(it) ? equipped.has(it.uid) || it.attuned : itemIsActive(char, it);
     if (!ok) continue;
-    for (const g of it.grantsSpells) {
+    const ch = chargesOf(it);
+    const left = ch ? chargesLeft(char, it) : 0;
+    for (const g of grants) {
       const spell = getSpell(g.spellId);
       if (!spell) continue;
       const key = `${it.uid}:${g.spellId}`;
+      if (ch) {
+        // cargas do item: o "usos" vira quantas vezes ainda dá para pagar o custo mínimo
+        const cost = minCost(g, spell);
+        out.push({
+          key, itemUid: it.uid, itemName: it.name, spell, recharge: 'long',
+          usesMax: Math.floor(ch.max / cost), usesLeft: Math.floor(left / cost),
+          charges: { max: ch.max, left, regain: ch.regain }, cost, options: chargeOptions(g, spell, left), dc: g.dc,
+        });
+        continue;
+      }
       const usesMax = g.recharge === 'atwill' ? 0 : Math.max(1, g.uses ?? 1);
       const used = uses[key] ?? 0;
       out.push({ key, itemUid: it.uid, itemName: it.name, spell, recharge: g.recharge, usesMax, usesLeft: Math.max(0, usesMax - used) });

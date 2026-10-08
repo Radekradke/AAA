@@ -88,7 +88,7 @@ export function CharacterCreator() {
   // pré-preenche o equipamento ao entrar no passo, se ainda vazio
   useEffect(() => {
     if (step === STEP_GEAR && char && char.inventory.length === 0) {
-      update((c) => applySelection(c, defaultSelection(c.classId)));
+      update((c) => applySelection(c, defaultSelection(c.classId, c)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, char?.id]);

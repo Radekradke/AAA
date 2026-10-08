@@ -46,7 +46,7 @@ const WEAR_OPTIONS: { id: WearMode; label: string; desc: string }[] = [
   { id: 'body', label: 'Parte do corpo', desc: 'Olho, braço, implante, marca… Vale sempre e não sai do herói.' },
 ];
 
-const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'gelo', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
+const DAMAGE_TYPES: DamageType[] = ['cortante', 'perfurante', 'concussão', 'fogo', 'frio', 'ácido', 'elétrico', 'radiante', 'necrótico', 'força', 'veneno', 'psíquico', 'trovejante'];
 const DICE = [4, 6, 8, 10, 12];
 
 const label: React.CSSProperties = {

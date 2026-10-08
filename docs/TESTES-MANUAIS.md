@@ -317,5 +317,32 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 46. Brilho das cartas só no hover
 1. Em repouso, as cartas (herói, aliados, caçadas, coleção, relíquias e itens na busca) ficam **limpas**: sem faixa clara parada, só o filete fino da moldura.
 2. Passando o mouse: um **lampejo** atravessa a carta uma vez, de cima/esquerda para baixo/direita, de forma contínua (sem tranco). Ouro e lendária passam um pouco mais rápido.
-3. Nas cartas que inclinam (herói, aliados), a luz **segue o cursor** suavemente; tirar o mouse apaga o brilho devagar.
+3. **Todas** as cartas com brilho (herói, aliados, coleção, caçadas, relíquias e itens na busca) **inclinam em 3D** para o cursor e sobem um pouco; a luz e as raias de metal escovado deslizam junto. Tirar o mouse volta a carta macia ao lugar e apaga o brilho. No celular não inclina (o dedo cobre a carta).
 4. Com "reduzir movimento" no sistema, o brilho aparece no hover sem o lampejo animado.
+
+## 47. Magias, kits e equipamento conferidos com os livros
+**Cargas (cajados e varinhas)**
+1. Aba **Magias → Cajados e varinhas**: cada item mostra as cargas (bolinhas + "7/10 cargas") e cada magia com o seu custo. Cajado do Fogo: Mãos Flamejantes 1, Bola de Fogo 3, Muralha de Fogo 4 — as 10 cargas são compartilhadas.
+2. Cajado da Cura: Curar Ferimentos escolhe o círculo (1 carga por círculo, até o 4º). Varinhas de Bolas de Fogo/Relâmpagos/Mísseis: cada carga extra sobe um círculo. Varinhas mostram **CD 15** fixa; cajados usam a sua CD.
+3. **Descanso longo** recupera as cargas rolando os dados do item (1d6+4 nos cajados, 1d6+1 nas varinhas, 2d8+4 no Cajado do Poder) e mostra quanto voltou. Ao gastar a **última carga**, o app rola o d20: no 1 avisa que o item se perde (com botão para remover da ficha).
+4. No **Inventário**, o cartão de itens com cargas (inclusive Anel da Evasão, Gema da Visão, Varinha da Paralisia) mostra as cargas com −1/+1.
+
+**Cajados**
+5. Foco arcano (cajado), foco druídico (cajado de madeira) e cajados mágicos **equipam como bordão** (1d6, versátil 1d8). Cajado do Poder: +2 no ataque e no dano. Cajado do Gelo agora tem Muralha de Gelo; Cajado do Poder tem as 9 magias (20 cargas).
+
+**Sintonia por classe**
+6. Itens "requer sintonia por…" recusam com o motivo: Cajado da Cura (bardo, clérigo, druida), Cajados do Fogo/Gelo (druida, feiticeiro, bruxo, mago), Cajado do Poder e Manto do Arquimago (feiticeiro, bruxo, mago), Bastão do Pacto (bruxo), varinhas de combate (qualquer conjurador), Vingadora Sagrada (paladino).
+
+**Kits iniciais do Livro do Jogador**
+7. Equipamento da criação mostra o **kit do PHB** da classe; "Personalizar kit" traz as opções (a)/(b) do livro, com escolha de arma quando diz "qualquer arma…". Pacotes chegam **abertos** (10 tochas, 10 rações, corda…). Arco e besta vêm com munição. Mago: grimório + bolsa de componentes ou foco; Ladino: 2 adagas + ferramentas de ladrão; Clérigo/Paladino: símbolo sagrado; Druida: foco druídico; Bardo: instrumento. Martelo de guerra/cota de malha do Clérigo ficam liberados na criação (o domínio é escolhido depois) com o aviso "se o domínio permitir"; com um domínio sem a proficiência (Conhecimento…), ficam bloqueados. (Não vem mais a poção de cura — não está no livro.)
+8. Equipamento do **antecedente** vira item do catálogo (pé de cabra, roupas, kit de herbalismo…), empilhando com o que já veio no pacote.
+8a. A tela mostra o que vem **do antecedente** e a bolsa de ouro dele. A ficha começa só com o ouro do antecedente (Soldado 10 po, Acólito 15 po…) — não há mais 25 po extras.
+8b. **Trocar o kit por ouro (regra do livro)**: mostra a fórmula da classe (Guerreiro 5d4 × 10 po, Mago 4d4 × 10, Monge 5d4…), "Rolar" ou "Usar a média". A ficha nasce sem o kit da classe e com esse ouro + o do antecedente. "Voltar ao kit" restaura a escolha anterior.
+8c. Duas armas leves iguais (Patrulheiro: 2 espadas curtas) já vêm uma em cada mão; "Também leva" não repete as que estão equipadas. Bruxo/Feiticeiro escolhem "arma simples" e o padrão é o bordão (não a maça). Armas sem proficiência aparecem marcadas "— sem proficiência" na lista.
+8d. Armadura pesada sem a FOR pedida mostra o aviso de −3 m; a linha **Carga** mostra o peso do kit contra a capacidade.
+
+**Componentes**
+9. Conjurar magia com componente **M** sem foco nem bolsa de componentes (fora do Baú) mostra aviso. Material com preço (diamante de 300 po…) sempre aparece como lembrete no aviso da conjuração.
+
+**Dados corrigidos**
+10. Raio Ardente 36 m; Cordão de Flechas 1,5 m; Despertar 8 horas; Raio do Enfraquecimento sem dano (metade do dano com armas de FOR); Criar ou Destruir Água sem salvaguarda; materiais com custo em Augúrio, Encontrar o Caminho, Aprisionamento, invocações do Tasha e outras. Anel de Resistência sem sintonia; Pedra da Sorte soma +1 em perícias/iniciativa/passiva; Machado do Berserker +1 PV por nível; dano "gelo" passa a "frio" (resistências batem).

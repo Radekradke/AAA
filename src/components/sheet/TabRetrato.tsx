@@ -16,7 +16,6 @@ import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from '@/components/character/creatorUi';
 import { useDialogFocus } from '@/lib/useDialogFocus';
-import { tiltHandlers } from '@/lib/tilt';
 import { AlliesSection } from './RetratoAllies';
 import { JourneySection } from './RetratoJourney';
 import { CardsGallery, collectCards } from './RetratoCartas';
@@ -105,7 +104,6 @@ function Vitrine({ char, derived }: TabProps) {
   const story = (char.notes ?? '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
   // mesma inclinação + reflexo da carta da criação, um pouco mais funda
-  const tilt = tiltHandlers();
 
   const stats: [string, string][] = [
     ['PV', String(derived.maxHp)],
@@ -120,7 +118,7 @@ function Vitrine({ char, derived }: TabProps) {
   return (
     <section className="fv-vitrine" aria-label="Retrato do herói" style={{ '--race-color': race.jewel, '--class-color': cls.jewel } as CSSProperties}>
       <div className="fv-vitrine-stage">
-        <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} {...tilt} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
+        <button type="button" className={`fv-vitrine-card is-${tier}`} data-tier={tier} onClick={() => setZoom(true)} aria-label={`Ver a arte de ${name} em tela cheia`}>
           <img src={art} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
           <span className={`fv-metal is-${tier}`} aria-hidden />
           <CardScars scars={char.scars} />

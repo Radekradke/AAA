@@ -22,6 +22,8 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Sintonia restrita (copiada do catálogo; itens novos leem do catálogo). */
+  attuneBy?: string[];
   /** Efeitos automáticos de item mágico (ver MagicEffects). */
   magic?: import('./dnd').MagicEffects;
   /** Dados de cura ao beber/usar (poções). */
@@ -34,6 +36,8 @@ export interface InventoryItem {
    * Só valem quando o item está equipado ou sintonizado.
    */
   grantsSpells?: ItemSpellGrant[];
+  /** Cargas do item (cajados, varinhas…). */
+  charges?: ItemCharges;
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
   /**
@@ -82,6 +86,27 @@ export interface ItemSpellGrant {
   recharge: 'atwill' | 'short' | 'long';
   /** Quantos usos por descanso (recharge short/long). Padrão 1. */
   uses?: number;
+  /** Item com cargas: quantas cargas a magia gasta (padrão 1). */
+  cost?: number;
+  /** Cargas por círculo (Cajado da Cura: Curar Ferimentos, 1 carga por círculo até `maxLevel`). */
+  perLevel?: boolean;
+  /** Círculo máximo com `perLevel`. */
+  maxLevel?: number;
+  /** Conjura sempre neste círculo (Cajado do Poder: Bola de Fogo de 5º). */
+  castLevel?: number;
+  /** Cada carga extra sobe 1 círculo (Varinha de Bolas de Fogo, de Mísseis Mágicos). */
+  upcast?: boolean;
+  /** CD fixa do item (varinhas: 15). Sem valor: usa a CD de quem empunha. */
+  dc?: number;
+}
+
+/** Cargas de um item mágico (cajados, varinhas, alguns anéis). */
+export interface ItemCharges {
+  max: number;
+  /** Quanto volta ao amanhecer (no app: no descanso longo) — dados ("1d6+4") ou "all". */
+  regain: string;
+  /** Ao gastar a última carga, rola-se um d20: no 1 acontece isto. */
+  emptyRisk?: { text: string; remove?: boolean };
 }
 
 /** Proficiência com ferramenta (id do catálogo ou rótulo livre). */
@@ -166,6 +191,8 @@ export interface CombatState {
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
   itemSpellUses?: Record<string, number>;
+  /** Cargas gastas de itens com cargas (uid -> gastas). */
+  itemCharges?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
 }
 
@@ -315,6 +342,8 @@ export interface Character {
   hpCurrent: number;
   // recursos / posses
   coins: Coins;
+  /** Kit inicial escolhido na criação (Livro do Jogador: opções "(a) ou (b)"). */
+  startingKit?: Record<string, { option: string; picks?: string[] }>;
   inventory: InventoryItem[];
   equipped: EquippedSlots;
   knownSpells: string[];
