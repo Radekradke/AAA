@@ -313,3 +313,9 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 1. **Busca geral** (Ctrl+K ou a lupa): itens com arte mostram uma miniatura da carta no lugar do ícone na lista. Abrindo o item, a carta aparece **ao lado das informações** (no celular, em cima), com a moldura da raridade.
 2. **Adicionar item** (inventário): cada item com arte mostra a miniatura na linha; passar o mouse (ou segurar no celular) abre os detalhes com a carta ao lado.
 3. Itens sem arte continuam como antes (ícone, sem moldura vazia).
+
+## 46. Brilho das cartas só no hover
+1. Em repouso, as cartas (herói, aliados, caçadas, coleção, relíquias e itens na busca) ficam **limpas**: sem faixa clara parada, só o filete fino da moldura.
+2. Passando o mouse: um **lampejo** atravessa a carta uma vez, de cima/esquerda para baixo/direita, de forma contínua (sem tranco). Ouro e lendária passam um pouco mais rápido.
+3. Nas cartas que inclinam (herói, aliados), a luz **segue o cursor** suavemente; tirar o mouse apaga o brilho devagar.
+4. Com "reduzir movimento" no sistema, o brilho aparece no hover sem o lampejo animado.
