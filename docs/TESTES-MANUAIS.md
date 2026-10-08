@@ -346,3 +346,10 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 
 **Dados corrigidos**
 10. Raio Ardente 36 m; Cordão de Flechas 1,5 m; Despertar 8 horas; Raio do Enfraquecimento sem dano (metade do dano com armas de FOR); Criar ou Destruir Água sem salvaguarda; materiais com custo em Augúrio, Encontrar o Caminho, Aprisionamento, invocações do Tasha e outras. Anel de Resistência sem sintonia; Pedra da Sorte soma +1 em perícias/iniciativa/passiva; Machado do Berserker +1 PV por nível; dano "gelo" passa a "frio" (resistências batem).
+
+## 48. Escolhas do 1º nível dentro da criação
+1. **Caminho → Clérigo, Feiticeiro ou Bruxo**: aparece "Domínio Divino / Origem de Feitiçaria / Patrono Transcendental · escolha do 1º nível" sob as classes. Sem escolher, o painel da classe avisa e o rodapé diz "Falta aqui: …"; o Despertar fica travado.
+2. **Escolhas da classe e da subclasse** no mesmo lugar: Estilo de Luta (Guerreiro), Inimigo Favorito + Terreno (Patrulheiro — Dragões, Gigantes, Corruptores… pedem também o idioma), 3 instrumentos (Bardo), ferramenta ou instrumento (Monge), Ancestral Dragão (Feiticeiro Dracônico), 2 idiomas + 2 perícias (Conhecimento), truque de druida + perícia (Natureza).
+3. **Origem → Anão**: escolha da ferramenta (ferreiro, cervejeiro ou pedreiro) sob a sublinhagem.
+4. Trocar de classe limpa a subclasse e as escolhas antigas; trocar de domínio limpa as do domínio anterior. Domínio sem armadura pesada (Conhecimento, Luz, Enganação) tira a cota de malha do kit se ela estava escolhida.
+5. Ao despertar, ferramentas e instrumentos viram proficiência, o truque da Natureza entra nas magias (sem repetir na sugestão), o Feiticeiro Dracônico fala Dracônico — e a aba **Evoluir** não mostra "Escolhas pendentes" para um herói recém-criado.

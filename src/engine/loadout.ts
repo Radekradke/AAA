@@ -209,7 +209,7 @@ export function kitForClass(classId: string): ClassKit {
 /** A opção está liberada para este personagem (proficiência exigida)? */
 export function optionAllowed(char: Character | null, opt: KitOption): boolean {
   if (!opt.requires || !char) return !opt.requires;
-  // clérigo ainda sem domínio (escolhido depois, em Evoluir): libera, com aviso na tela
+  // clérigo ainda sem domínio (escolhido no Caminho): libera, com aviso na tela
   if (domainPending(char)) return true;
   const p = proficienciesOf(char);
   return opt.requires === 'martial' ? p.weaponTypes.has('martial') || p.weapons.has('w-warhammer') : p.armor.has('pesada');
@@ -343,6 +343,26 @@ export function applySelection(char: Character, sel: KitSelection) {
   char.inventory = inventory;
   char.equipped = equipped;
   char.startingKit = sel;
+}
+
+/**
+ * Depois de trocar o domínio (ou outra fonte de proficiência): opções do kit
+ * que deixaram de valer voltam à primeira liberada. Não mexe em quem trocou o
+ * kit por ouro nem em quem ainda não abriu o equipamento.
+ */
+export function revalidateKit(char: Character) {
+  if (!char.startingKit || kitGold(char.startingKit) !== null) return;
+  const sel = { ...char.startingKit };
+  const def = defaultSelection(char.classId, char);
+  let changed = false;
+  for (const c of kitForClass(char.classId).choices) {
+    const cur = c.options.find((o) => o.id === sel[c.id]?.option);
+    if (cur && !optionAllowed(char, cur)) {
+      sel[c.id] = def[c.id];
+      changed = true;
+    }
+  }
+  if (changed) applySelection(char, sel);
 }
 
 /** O kit escolhido (ou o recomendado, em fichas antigas). */

@@ -8,6 +8,8 @@ import { abilityModifier, racialBonusFor, totalAbilities } from './modifiers';
 import { characterResources } from './classResources';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
+import { creationChoices } from './classChoices';
+import { subclassLevelFor } from './levelUp';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -34,10 +36,24 @@ export const CREATION_STEPS = [
   { id: 'despertar', label: 'Despertar', title: 'Despertar', subtitle: 'Dê nome e alma ao herói.' },
 ] as const;
 
+export const STEP_RACE = 0;
+export const STEP_CLASS = 1;
 export const STEP_BACKGROUND = 2;
 export const STEP_SKILLS = 4;
 export const STEP_GEAR = 5;
 export const STEP_IDENTITY = 6;
+
+/** Nome da subclasse de 1º nível de cada classe (Clérigo, Feiticeiro, Bruxo). */
+export const SUBCLASS_TITLE: Record<string, string> = {
+  cleric: 'Domínio Divino',
+  sorcerer: 'Origem de Feitiçaria',
+  warlock: 'Patrono Transcendental',
+};
+
+/** A classe escolhe a subclasse já no 1º nível (e ela ainda não foi escolhida)? */
+export function subclassAtCreation(char: Character): boolean {
+  return subclassLevelFor(char.classId) <= 1;
+}
 
 /** Um fato concreto que a escolha coloca na ficha ("Na ficha"). */
 export interface Fact {
@@ -113,6 +129,12 @@ export function creationPending(char: Character): PendingItem[] {
   }
   if (char.subraceId === 'high-elf' && !(char.choices?.['race.highElfCantrip'] ?? []).length) {
     pending.push({ label: 'Escolha o truque do Alto Elfo', step: 0 });
+  }
+  if (subclassAtCreation(char) && !char.subclassId) {
+    pending.push({ label: `Escolha o ${SUBCLASS_TITLE[char.classId] ?? 'caminho'} (${cls.label})`, step: STEP_CLASS });
+  }
+  for (const c of creationChoices(char)) {
+    if (c.missing > 0) pending.push({ label: `Escolha: ${c.spec.label}${c.missing > 1 ? ` (faltam ${c.missing})` : ''}`, step: c.spec.classId === 'race' ? STEP_RACE : STEP_CLASS });
   }
   const langs = languagePicks(char);
   if (langs.left > 0) {

@@ -13,6 +13,7 @@ import { buildSpellSlots, buildResources } from './progression';
 import { resourceMaxMap } from './classResources';
 import { buildLoadout, defaultSelection, kitGold } from './loadout';
 import { itemToInventory } from './inventory';
+import { grantChoiceEffects } from './choiceEffects';
 import { getItem } from '@/data/items';
 
 /** Equipamento dos antecedentes que existe no catálogo: [id, quantidade]. */
@@ -234,16 +235,23 @@ export function finalizeCharacter(draft: Character): Character {
   const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};
   const resources = buildResources(draft.classId, draft.level);
   const maxCircle = Math.max(0, ...Object.keys(spellSlots).map(Number));
+  // magias já escolhidas na criação (truque do Acólito da Natureza…) não se repetem na sugestão
+  const pickedIds = new Set(Object.values(draft.choices ?? {}).flat());
+  const nCantrips = cantripsKnown(draft.classId, draft.level);
   const preparedSpells =
     maxCircle > 0 && draft.preparedSpells.length === 0
-      ? defaultPreparedForClass(
-          draft.classId,
-          maxCircle,
-          cantripsKnown(draft.classId, draft.level),
-          // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
-          Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
-        )
-      : draft.preparedSpells;
+      ? (() => {
+          const ids = defaultPreparedForClass(
+            draft.classId,
+            maxCircle,
+            nCantrips + pickedIds.size,
+            // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
+            Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
+          ).filter((id) => !pickedIds.has(id));
+          const isCantrip = (id: string) => (getSpell(id)?.level ?? 0) === 0;
+          return [...ids.filter(isCantrip).slice(0, nCantrips), ...ids.filter((id) => !isCantrip(id))];
+        })()
+      : [...draft.preparedSpells];
   // Mago: grimório inicial com 6 magias de 1º círculo (as preparadas saem dele)
   const knownSpells =
     draft.classId === 'wizard' && maxCircle > 0 && (draft.knownSpells ?? []).length === 0
@@ -275,6 +283,8 @@ export function finalizeCharacter(draft: Character): Character {
     draft: false,
     updatedAt: Date.now(),
   };
+  // escolhas do 1º nível feitas na criação: ferramentas viram proficiência, truques entram na lista
+  grantChoiceEffects(finalized, Object.fromEntries(Object.entries(finalized.choices ?? {}).filter(([k]) => !k.startsWith('feat.'))));
   // recursos calculados com o personagem pronto (nível, atributos, subclasse)
   finalized.combat.resources = resourceMaxMap(finalized);
 

@@ -18,7 +18,7 @@ import { StepGear } from '@/components/character/StepGear';
 import { StepAwaken } from '@/components/character/StepAwaken';
 import { HeroPanel } from '@/components/character/HeroPanel';
 import { Modal } from '@/components/ui/Modal';
-import { creationPending, CREATION_STEPS, STEP_GEAR } from '@/engine/creationSummary';
+import { creationPending, CREATION_STEPS, STEP_GEAR, STEP_IDENTITY } from '@/engine/creationSummary';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
@@ -106,6 +106,8 @@ export function CharacterCreator() {
   const LAST = CREATION_STEPS.length - 1;
   const isLast = step === LAST;
   const pending = creationPending(char);
+  // o que ainda falta decidir nesta etapa (o rodapé avisa antes de seguir)
+  const hereDue = pending.find((p) => p.step === step && p.step !== STEP_IDENTITY);
 
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
   const creatorVideo = CREATOR_VIDEOS ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
@@ -241,7 +243,9 @@ export function CharacterCreator() {
             {pending.length > 0 && <b>{pending.length}</b>}
           </button>
           <span className="fv-foot-next" aria-hidden>
-            {!isLast ? <>Próximo: <b>{CREATION_STEPS[step + 1].label}</b></> : pending.length ? `Falta: ${pending[0].label.toLowerCase()}` : 'Tudo pronto'}
+            {!isLast ? (
+              hereDue ? <>Falta aqui: <b>{hereDue.label.replace(/^Escolha:? /, '').toLowerCase()}</b></> : <>Próximo: <b>{CREATION_STEPS[step + 1].label}</b></>
+            ) : pending.length ? `Falta: ${pending[0].label.toLowerCase()}` : 'Tudo pronto'}
           </span>
 
           <button

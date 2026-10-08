@@ -4,6 +4,7 @@ import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './
 import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { CustomOriginPanel } from './CustomOriginPanel';
+import { LevelOneChoices } from './LevelOneChoices';
 import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
@@ -25,6 +26,7 @@ export function StepRace({ char, update }: StepProps) {
 
   const pickRace = (id: string) =>
     update((c) => {
+      if (c.raceId !== id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
       c.raceId = id;
       c.customRace = null;
       c.customOrigin = null;
@@ -34,6 +36,7 @@ export function StepRace({ char, update }: StepProps) {
 
   const pickHomebrew = (r: Race) =>
     update((c) => {
+      if (c.raceId !== r.id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
       c.raceId = r.id;
       c.customRace = r;
       c.customOrigin = null;
@@ -147,6 +150,7 @@ export function StepRace({ char, update }: StepProps) {
                 </div>
               );
             })()}
+            <LevelOneChoices char={char} update={update} scope="race" />
             {tasha && <CustomOriginPanel char={char} update={update} />}
           </div>
         </div>
