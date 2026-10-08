@@ -99,7 +99,7 @@ export function Home() {
 
   const items: MenuItem[] = [
     { key: 'heroes', label: 'Heróis', hint: 'Abra suas fichas ou importe um personagem', icon: 'crest', run: () => go('/personagens') },
-    { key: 'new', label: 'Nova ficha', hint: 'Forje um herói em 7 capítulos guiados', icon: 'anvil', run: () => go('/criar') },
+    { key: 'new', label: 'Nova ficha', hint: 'Forje um herói em capítulos guiados', icon: 'anvil', run: () => go('/criar') },
     { key: 'tables', label: 'Mesas', hint: 'Jogue com amigos: o mestre cria a sala e convida', icon: 'banner', run: () => go('/mesas') },
     { key: 'config', label: 'Configurações', hint: 'Tema, som, dados 3D e livros', icon: 'gear', run: () => go('/config', false) },
     { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona, em 2 minutos', icon: 'book', run: openTutorial },

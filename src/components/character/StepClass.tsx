@@ -6,6 +6,7 @@ import { standardArrayFor } from '@/engine/characterBuilder';
 import { applySelection, defaultSelection } from '@/engine/loadout';
 import { classFacts, creationPending, STEP_CLASS } from '@/engine/creationSummary';
 import { clearClassChoices } from '@/engine/classChoices';
+import { resetCreationSpells } from '@/engine/creationSpells';
 import { LevelOneChoices } from './LevelOneChoices';
 import { voiceFor, voices, useVoices } from '@/lib/voices';
 
@@ -40,6 +41,7 @@ export function StepClass({ char, update }: StepProps) {
         // subclasse e escolhas do 1º nível eram da classe antiga
         c.subclassId = null;
         clearClassChoices(c);
+        resetCreationSpells(c);
       }
       c.classId = id;
       c.classLevels = [{ classId: id, level: c.level }];
@@ -59,7 +61,7 @@ export function StepClass({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={1} />
+      <StepHeader step={1} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Classes">

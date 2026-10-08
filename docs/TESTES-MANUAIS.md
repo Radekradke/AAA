@@ -353,3 +353,10 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 3. **Origem → Anão**: escolha da ferramenta (ferreiro, cervejeiro ou pedreiro) sob a sublinhagem.
 4. Trocar de classe limpa a subclasse e as escolhas antigas; trocar de domínio limpa as do domínio anterior. Domínio sem armadura pesada (Conhecimento, Luz, Enganação) tira a cota de malha do kit se ela estava escolhida.
 5. Ao despertar, ferramentas e instrumentos viram proficiência, o truque da Natureza entra nas magias (sem repetir na sugestão), o Feiticeiro Dracônico fala Dracônico — e a aba **Evoluir** não mostra "Escolhas pendentes" para um herói recém-criado.
+
+## 49. Etapa "Magias" na criação
+1. Bardo, Clérigo, Druida, Feiticeiro, Bruxo e Mago ganham o capítulo **Magias** entre Perícias e Equipamento; os demais não veem a etapa (a numeração dos capítulos se ajusta).
+2. A etapa chega com a sugestão clássica da classe, já no limite certo: Bardo 2 truques + 4 conhecidas; Feiticeiro 4 + 2; Bruxo 2 + 2 (com a lista do patrono); Clérigo/Druida 3/2 truques + preparadas = mod. + 1; Mago 3 truques, 6 no grimório e prepara INT + 1 delas.
+3. Magias de domínio e o truque do Acólito da Natureza aparecem em "Já vêm prontas" e não ocupam vaga.
+4. Tirar um truque/magia trava o Despertar e o rodapé diz "Falta aqui: escolha 1 truque". Preparar a mais diz "Tire 1…". "Usar a sugestão" volta ao padrão. Trocar de classe zera as magias.
+5. O que foi escolhido é exatamente o que aparece na aba Magias da ficha.

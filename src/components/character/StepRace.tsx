@@ -45,7 +45,7 @@ export function StepRace({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={0} />
+      <StepHeader step={0} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Linhagens">

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { StepProps } from './stepTypes';
+import { STEP_GEAR } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle } from './creatorUi';
 import { getItem } from '@/data/items';
 import { getBackground } from '@/data/backgrounds';
@@ -86,7 +87,7 @@ export function StepGear({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={5} subtitle={gold !== null ? 'Ouro no lugar do kit: compre o equipamento depois, no inventário.' : kit.note || `O arsenal inicial do seu ${cls.label}.`} />
+      <StepHeader step={STEP_GEAR} char={char} subtitle={gold !== null ? 'Ouro no lugar do kit: compre o equipamento depois, no inventário.' : kit.note || `O arsenal inicial do seu ${cls.label}.`} />
 
       <section className="fv-kit">
         <div className="fv-kit-head">

@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { IconName } from '@/components/ui/Icon';
-import { CREATION_STEPS } from '@/engine/creationSummary';
+import { CREATION_STEPS, visibleSteps } from '@/engine/creationSummary';
+import type { Character } from '@/types/character';
 import { GAME_ICONS } from '@/components/ui/gameIcons';
 import { GlyphIcon } from './RaceIcon';
 import type { Fact } from '@/engine/creationSummary';
@@ -11,14 +12,16 @@ import type { Fact } from '@/engine/creationSummary';
  * painel de detalhe que diz o que a escolha coloca na ficha.
  */
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
 /** Cabeçalho da etapa: capítulo, título e uma linha de contexto. */
-export function StepHeader({ step, subtitle }: { step: number; subtitle?: string }) {
+export function StepHeader({ step, subtitle, char }: { step: number; subtitle?: string; char?: Character }) {
   const s = CREATION_STEPS[step];
+  // numeração pelas etapas que este herói percorre ("Magias" some para quem não conjura)
+  const n = char ? Math.max(0, visibleSteps(char).indexOf(step)) : step;
   return (
     <header className="fv-step-head">
-      <div className="fv-step-eyebrow"><span className="fv-step-num" aria-hidden>{String(step + 1).padStart(2, '0')}</span>Capítulo {ROMAN[step]}</div>
+      <div className="fv-step-eyebrow"><span className="fv-step-num" aria-hidden>{String(n + 1).padStart(2, '0')}</span>Capítulo {ROMAN[n]}</div>
       <h2>{s.title}</h2>
       <p>{subtitle ?? s.subtitle}</p>
     </header>

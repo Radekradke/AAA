@@ -117,7 +117,7 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, impor
             <button type="button" className="fv-guild-card is-new" onClick={onNew}>
               <span className="fv-guild-plus" aria-hidden>+</span>
               <b>Novo herói</b>
-              <small>Criação em 7 capítulos</small>
+              <small>Criação capítulo a capítulo</small>
             </button>
             {shown.map((c) => {
               const d = derivedOf(c);

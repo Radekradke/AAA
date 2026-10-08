@@ -168,7 +168,7 @@ export function CharacterSelect() {
             </div>
             <span className="fv-new-hero-text">
               <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>Novo Personagem</span>
-              <span style={{ display: 'block', marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa em 7 capítulos</span>
+              <span style={{ display: 'block', marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa, capítulo a capítulo</span>
             </span>
           </button>
 

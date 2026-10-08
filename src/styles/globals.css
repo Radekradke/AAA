@@ -6925,3 +6925,22 @@ select optgroup {
   color: var(--muted);
 }
 
+
+/* ===== Criação: etapa Magias ===== */
+.fv-spells-step .fv-choice-opt-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fv-spells-step .fv-choice-picker + .fv-choice-picker {
+  margin-top: 22px;
+}
+.fv-spells-free {
+  margin: 0 0 4px;
+}
+@media (max-width: 700px) {
+  .fv-spells-step .fv-choice-opt-desc {
+    -webkit-line-clamp: 2;
+  }
+}

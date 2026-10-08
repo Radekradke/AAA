@@ -69,7 +69,7 @@ export function StepAbilities({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={3} subtitle={`Priorize ${ABILITY_LABELS[cls.prim]} — é o que move o ${cls.label}.`} />
+      <StepHeader step={3} char={char} subtitle={`Priorize ${ABILITY_LABELS[cls.prim]} — é o que move o ${cls.label}.`} />
 
       <div className="fv-abil-toolbar">
         <Segmented label="Método" options={METHODS} value={method} onChange={changeMethod} />

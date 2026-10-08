@@ -33,8 +33,8 @@ const STEPS: Step[] = [
   {
     icon: 'anvil',
     kicker: 'Passo 1',
-    title: 'Crie seu herói em 7 capítulos',
-    lead: 'Origem, Caminho, Passado, Atributos, Perícias, Equipamento e Despertar. Cada capítulo explica as opções e mostra o que muda na ficha.',
+    title: 'Crie seu herói capítulo a capítulo',
+    lead: 'Origem, Caminho, Passado, Atributos, Perícias, Magias (para quem conjura), Equipamento e Despertar. Cada capítulo explica as opções e mostra o que muda na ficha.',
     tips: [
       <>O <b>painel do herói</b> (à direita) mostra o retrato, os atributos e o que ainda falta escolher.</>,
       <>Dá para voltar a qualquer capítulo pela trilha — nada se perde, tudo salva sozinho.</>,

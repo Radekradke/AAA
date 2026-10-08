@@ -31,7 +31,7 @@ export function StepBackground({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={2} />
+      <StepHeader step={2} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Antecedentes" compact>
