@@ -10,6 +10,7 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
 import { subclassLevelFor } from './levelUp';
+import { castsAtCreation, creationSpellPending } from './creationSpells';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -32,6 +33,7 @@ export const CREATION_STEPS = [
   { id: 'passado', label: 'Passado', title: 'Passado', subtitle: 'Quem você era antes da aventura.' },
   { id: 'atributos', label: 'Atributos', title: 'Atributos', subtitle: 'Os seis pilares do herói.' },
   { id: 'pericias', label: 'Perícias', title: 'Perícias', subtitle: 'No que você é treinado.' },
+  { id: 'magias', label: 'Magias', title: 'Magias', subtitle: 'Truques e magias do 1º nível.' },
   { id: 'equipamento', label: 'Equipamento', title: 'Equipamento', subtitle: 'O que você carrega na primeira aventura.' },
   { id: 'despertar', label: 'Despertar', title: 'Despertar', subtitle: 'Dê nome e alma ao herói.' },
 ] as const;
@@ -40,8 +42,14 @@ export const STEP_RACE = 0;
 export const STEP_CLASS = 1;
 export const STEP_BACKGROUND = 2;
 export const STEP_SKILLS = 4;
-export const STEP_GEAR = 5;
-export const STEP_IDENTITY = 6;
+export const STEP_SPELLS = 5;
+export const STEP_GEAR = 6;
+export const STEP_IDENTITY = 7;
+
+/** Etapas que este herói percorre: "Magias" só para quem conjura no 1º nível. */
+export function visibleSteps(char: Character): number[] {
+  return CREATION_STEPS.map((_, i) => i).filter((i) => i !== STEP_SPELLS || castsAtCreation(char));
+}
 
 /** Nome da subclasse de 1º nível de cada classe (Clérigo, Feiticeiro, Bruxo). */
 export const SUBCLASS_TITLE: Record<string, string> = {
@@ -140,6 +148,7 @@ export function creationPending(char: Character): PendingItem[] {
   if (langs.left > 0) {
     pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
   }
+  for (const label of creationSpellPending(char)) pending.push({ label, step: STEP_SPELLS });
 
   return pending;
 }

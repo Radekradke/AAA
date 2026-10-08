@@ -15,10 +15,12 @@ import { StepBackground } from '@/components/character/StepBackground';
 import { StepAbilities } from '@/components/character/StepAbilities';
 import { StepSkills } from '@/components/character/StepSkills';
 import { StepGear } from '@/components/character/StepGear';
+import { StepSpells } from '@/components/character/StepSpells';
 import { StepAwaken } from '@/components/character/StepAwaken';
 import { HeroPanel } from '@/components/character/HeroPanel';
 import { Modal } from '@/components/ui/Modal';
-import { creationPending, CREATION_STEPS, STEP_GEAR, STEP_IDENTITY } from '@/engine/creationSummary';
+import { creationPending, CREATION_STEPS, STEP_GEAR, STEP_IDENTITY, STEP_SPELLS, visibleSteps } from '@/engine/creationSummary';
+import { suggestCreationSpells } from '@/engine/creationSpells';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
@@ -93,6 +95,14 @@ export function CharacterCreator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, char?.id]);
 
+  // magias: chega com a sugestão clássica da classe (o jogador troca ali mesmo)
+  useEffect(() => {
+    if (step === STEP_SPELLS && char && char.preparedSpells.length === 0 && (char.knownSpells ?? []).length === 0) {
+      update((c) => suggestCreationSpells(c));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, char?.id, char?.classId]);
+
   if (!char) {
     return (
       <Screen>
@@ -104,6 +114,10 @@ export function CharacterCreator() {
   }
 
   const LAST = CREATION_STEPS.length - 1;
+  // etapas deste herói ("Magias" só para quem conjura no 1º nível)
+  const steps = visibleSteps(char);
+  const nextOf = (i: number) => steps.find((x) => x > i) ?? LAST;
+  const prevOf = (i: number) => [...steps].reverse().find((x) => x < i) ?? 0;
   const isLast = step === LAST;
   const pending = creationPending(char);
   // o que ainda falta decidir nesta etapa (o rodapé avisa antes de seguir)
@@ -121,11 +135,11 @@ export function CharacterCreator() {
     bump(0.8);
   };
   const next = () => {
-    setStep((s) => Math.min(LAST, s + 1));
+    setStep((s) => nextOf(s));
     bump(0.9);
   };
   const prev = () => {
-    setStep((s) => Math.max(0, s - 1));
+    setStep((s) => prevOf(s));
     bump(0.4);
   };
 
@@ -155,7 +169,8 @@ export function CharacterCreator() {
       case 2: return <StepBackground char={char} update={update} />;
       case 3: return <StepAbilities char={char} update={update} />;
       case 4: return <StepSkills char={char} update={update} />;
-      case 5: return <StepGear char={char} update={update} />;
+      case STEP_SPELLS: return <StepSpells char={char} update={update} />;
+      case STEP_GEAR: return <StepGear char={char} update={update} />;
       default: return <StepAwaken char={char} update={update} onGoStep={goStep} />;
     }
   };
@@ -182,16 +197,16 @@ export function CharacterCreator() {
         <nav className="fv-forge-rail" aria-label="Capítulos da criação">
           <div className="fv-rail-title">Forja do Herói</div>
           <ol>
-            {CREATION_STEPS.map((s, i) => (
-              <li key={s.id}>
+            {steps.map((i, n) => (
+              <li key={CREATION_STEPS[i].id}>
                 <button
                   type="button"
                   aria-current={step === i ? 'step' : undefined}
                   className={step === i ? 'is-current' : i < step ? 'is-done' : ''}
                   onClick={() => goStep(i)}
                 >
-                  <span className="fv-rail-mark" aria-hidden>{i < step ? '✓' : i + 1}</span>
-                  {s.label}
+                  <span className="fv-rail-mark" aria-hidden>{i < step ? '✓' : n + 1}</span>
+                  {CREATION_STEPS[i].label}
                 </button>
               </li>
             ))}
@@ -200,11 +215,11 @@ export function CharacterCreator() {
 
         {/* progresso (celular/tablet): segmentos clicáveis, sem texto repetido */}
         <nav className="fv-forge-progress" aria-label="Capítulos da criação">
-          {CREATION_STEPS.map((s, i) => (
+          {steps.map((i, n) => (
             <button
-              key={s.id}
+              key={CREATION_STEPS[i].id}
               type="button"
-              aria-label={`${i + 1}. ${s.label}`}
+              aria-label={`${n + 1}. ${CREATION_STEPS[i].label}`}
               aria-current={step === i ? 'step' : undefined}
               className={step === i ? 'is-current' : i < step ? 'is-done' : ''}
               onClick={() => goStep(i)}
@@ -244,7 +259,7 @@ export function CharacterCreator() {
           </button>
           <span className="fv-foot-next" aria-hidden>
             {!isLast ? (
-              hereDue ? <>Falta aqui: <b>{hereDue.label.replace(/^Escolha:? /, '').toLowerCase()}</b></> : <>Próximo: <b>{CREATION_STEPS[step + 1].label}</b></>
+              hereDue ? <>Falta aqui: <b>{hereDue.label.replace(/^Escolha:? /, '').toLowerCase()}</b></> : <>Próximo: <b>{CREATION_STEPS[nextOf(step)].label}</b></>
             ) : pending.length ? `Falta: ${pending[0].label.toLowerCase()}` : 'Tudo pronto'}
           </span>
 

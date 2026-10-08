@@ -1,5 +1,6 @@
 import { voices } from '@/lib/voices';
 import type { StepProps } from './stepTypes';
+import { STEP_IDENTITY } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle, FactList } from './creatorUi';
 import { HeroPanel } from './HeroPanel';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -43,7 +44,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
 
   return (
     <div className="fv-step">
-      <StepHeader step={6} />
+      <StepHeader step={STEP_IDENTITY} char={char} />
 
       <div className="fv-awaken">
         <label className="fv-field fv-field-name">

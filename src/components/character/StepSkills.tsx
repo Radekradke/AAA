@@ -74,6 +74,7 @@ export function StepSkills({ char, update }: StepProps) {
     <div className="fv-step">
       <StepHeader
         step={4}
+        char={char}
         subtitle={`Escolha ${cls.skillPicks} de ${cls.label}${extraPicks ? ` e ${extraPicks} livre${extraPicks > 1 ? 's' : ''}` : ''}.`}
       />
 

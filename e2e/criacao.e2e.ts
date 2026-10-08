@@ -37,6 +37,8 @@ test.describe('criação de herói', () => {
     await livres.first().click();
     await cta.click(); // Equipamento
 
+    // Guerreiro não conjura no 1º nível: a etapa Magias nem aparece
+    await expect(page.getByRole('heading', { name: 'Equipamento' })).toBeVisible();
     // Kit do Livro do Jogador: Guerreiro com cota de malha e pacote aberto
     await expect(page.getByText('Kit do Livro do Jogador')).toBeVisible();
     await expect(page.locator('.fv-kit-bag')).toContainText('Pacote de Explorador de Masmorras:');
@@ -97,6 +99,16 @@ test.describe('criação de herói', () => {
     const livres = page.locator('.fv-skill:not(.is-on)');
     await livres.first().click();
     await livres.first().click();
+    await cta.click(); // Magias (o Clérigo conjura no 1º nível)
+
+    // Magias: chega com a sugestão; tirar um truque trava e o rodapé avisa
+    await expect(page.getByRole('heading', { name: 'Magias' })).toBeVisible();
+    const truques = page.getByRole('group', { name: 'Truques' });
+    await expect(truques.locator('button[aria-pressed="true"]')).toHaveCount(3);
+    await truques.locator('button[aria-pressed="true"]').first().click();
+    await expect(page.locator('.fv-foot-next')).toContainText('1 truque');
+    await truques.locator('button[aria-pressed="false"]:not([disabled])').first().click();
+    await expect(truques.locator('button[aria-pressed="true"]')).toHaveCount(3);
     await cta.click(); // Equipamento
     await cta.click(); // Despertar
     await page.getByLabel('Nome', { exact: true }).fill('Thoren Teste');
