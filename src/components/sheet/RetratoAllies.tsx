@@ -11,7 +11,6 @@ import type { RollOptions } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { confirmAction } from '@/store/feedbackStore';
-import { tiltHandlers } from '@/lib/tilt';
 import { Modal } from '@/components/ui/Modal';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
@@ -115,9 +114,8 @@ export function AlliesSection({ char }: { char: Character }) {
 
 /** A carta grande do aliado (mesmos efeitos da carta do herói). */
 function AllyCard({ v }: { v: AllyView }) {
-  const tilt = tiltHandlers(0.8);
   return (
-    <div className={`fv-vitrine-card fv-ally-card is-${v.kind}`} {...tilt}>
+    <div className={`fv-vitrine-card fv-ally-card is-${v.kind}`} data-tilt-depth="0.8">
       <AllyArt v={v} size={120} />
       <span className="fv-metal is-prata" aria-hidden />
       <span className="fv-vitrine-frame" aria-hidden>

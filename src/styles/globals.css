@@ -4242,7 +4242,30 @@ body.fv-dragging .fv-screen-scroll {
   pointer-events: none;
   border-radius: inherit;
 }
-/* luz: ponto no cursor + faixa diagonal que acompanha + lampejo de entrada */
+/*
+ * Inclinação 3D (lib/cardTilt): a carta gira para o cursor e sobe um pouco;
+ * durante o movimento a transição é curta (segue o mouse), ao sair volta
+ * macia. Classe dobrada para ganhar das regras de cada carta.
+ */
+.fv-tilt.fv-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0) scale(var(--tilt-scale, 1));
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, filter 0.45s ease;
+  will-change: transform;
+}
+.fv-tilt.fv-tilt.is-tilting {
+  --tilt-scale: 1.035;
+  transition: transform 0.12s ease-out, box-shadow 0.45s ease, filter 0.45s ease;
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.45));
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-tilt.fv-tilt,
+  .fv-tilt.fv-tilt.is-tilting {
+    transform: none;
+    filter: none;
+  }
+}
+
+/* luz: ponto no cursor + faixa diagonal que acompanha + raias de metal escovado + lampejo de entrada */
 .fv-metal::before {
   content: '';
   position: absolute;
@@ -4254,18 +4277,20 @@ body.fv-dragging .fv-screen-scroll {
   --fv-gy: var(--my, 35%);
   background:
     linear-gradient(118deg, transparent 42%, rgba(var(--m-light), 0.28) 46%, rgba(255, 255, 255, 0.62) 48%, rgba(var(--m-light), 0.28) 50%, rgba(var(--m-deep), 0.12) 52%, transparent 55%),
-    radial-gradient(circle at var(--fv-gx) var(--fv-gy), rgba(var(--m-light), 0.2), transparent 45%),
-    linear-gradient(118deg, transparent 36%, rgba(var(--m-light), 0.05) 42%, rgba(var(--m-light), 0.18) 47.5%, rgba(var(--m-deep), 0.08) 52%, transparent 59%);
-  background-size: 250% 250%, 100% 100%, 250% 250%;
+    radial-gradient(circle at var(--fv-gx) var(--fv-gy), rgba(255, 255, 255, 0.3), rgba(var(--m-light), 0.12) 22%, transparent 48%),
+    linear-gradient(118deg, transparent 34%, rgba(var(--m-light), 0.06) 41%, rgba(var(--m-light), 0.24) 47.5%, rgba(var(--m-deep), 0.1) 52%, transparent 60%),
+    repeating-linear-gradient(112deg, transparent 0 7%, rgba(var(--m-light), 0.08) 9%, rgba(var(--m-deep), 0.07) 11%, transparent 13% 19%);
+  background-size: 250% 250%, 100% 100%, 250% 250%, 220% 220%;
   background-repeat: no-repeat;
   background-position:
     var(--fv-glint) var(--fv-glint),
     center,
-    calc(80% - var(--fv-gx) * 0.67) calc(80% - var(--fv-gy) * 0.67);
+    calc(80% - var(--fv-gx) * 0.67) calc(80% - var(--fv-gy) * 0.67),
+    calc(var(--fv-gx) * 1.2) calc(var(--fv-gy) * 0.6);
   transition:
     opacity 0.5s ease,
-    --fv-gx 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    --fv-gy 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --fv-gx 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --fv-gy 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 /* moldura com brilho do metal (filete interno): discreto, acende no hover */
 .fv-metal::after {
@@ -4280,8 +4305,8 @@ body.fv-dragging .fv-screen-scroll {
   opacity: var(--m-hover);
   transition:
     opacity 0.25s ease,
-    --fv-gx 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    --fv-gy 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --fv-gx 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --fv-gy 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   animation: fv-metal-glint var(--m-glint) cubic-bezier(0.45, 0.05, 0.25, 1) both;
 }
 :hover > .fv-metal::after {

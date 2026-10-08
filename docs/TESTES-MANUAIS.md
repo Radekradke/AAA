@@ -317,7 +317,7 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 46. Brilho das cartas só no hover
 1. Em repouso, as cartas (herói, aliados, caçadas, coleção, relíquias e itens na busca) ficam **limpas**: sem faixa clara parada, só o filete fino da moldura.
 2. Passando o mouse: um **lampejo** atravessa a carta uma vez, de cima/esquerda para baixo/direita, de forma contínua (sem tranco). Ouro e lendária passam um pouco mais rápido.
-3. Nas cartas que inclinam (herói, aliados), a luz **segue o cursor** suavemente; tirar o mouse apaga o brilho devagar.
+3. **Todas** as cartas com brilho (herói, aliados, coleção, caçadas, relíquias e itens na busca) **inclinam em 3D** para o cursor e sobem um pouco; a luz e as raias de metal escovado deslizam junto. Tirar o mouse volta a carta macia ao lugar e apaga o brilho. No celular não inclina (o dedo cobre a carta).
 4. Com "reduzir movimento" no sistema, o brilho aparece no hover sem o lampejo animado.
 
 ## 47. Magias, kits e equipamento conferidos com os livros

@@ -17,7 +17,6 @@ import type { MonsterTypeKey } from '@/lib/monsterArt';
 import { MonsterIcon } from '@/components/bestiary/MonsterPortrait';
 import { HuntLore } from '@/components/bestiary/HuntLore';
 import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
-import { tiltHandlers } from '@/lib/tilt';
 import { useDialogFocus } from '@/lib/useDialogFocus';
 import { Icon } from '@/components/ui/Icon';
 import { cardArt } from '@/lib/itemArt';
@@ -105,9 +104,8 @@ export function collectCards(char: Character): CollectCard[] {
 
 /** A face da carta (galeria e tela cheia): borda de metal pelo nível, cor do tipo/raridade e o reflexo do metal. */
 function CardFace({ c, big }: { c: CollectCard; big?: boolean }) {
-  const tilt = tiltHandlers(big ? 1 : 0.6);
   return (
-    <span className={`fv-cc-card is-m-${c.metal}` + (big ? ' is-big' : '')} style={{ '--cc': c.color } as CSSProperties} {...tilt}>
+    <span className={`fv-cc-card is-m-${c.metal}` + (big ? ' is-big' : '')} style={{ '--cc': c.color } as CSSProperties} data-tilt-depth={big ? 1 : 0.6}>
       {c.art ? (
         <img src={c.art} alt="" style={{ objectPosition: c.position }} />
       ) : c.emblem ? (
