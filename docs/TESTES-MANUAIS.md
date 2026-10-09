@@ -512,3 +512,18 @@ A seção **Pistas** aparece sempre (antes só existia quando o mestre tinha ent
 5. **Busca em todo o diário**: a seção aberta continua filtrando. Abaixo das abas aparece **"Também em: Quadro da Guilda 1 · Pistas 2"** para as outras seções com resultado; clicar vai até lá mantendo a busca.
 6. A opinião e as notas sobre cada pessoa ficam salvas na ficha (recarregue e confira).
 7. No celular, a barra de seções (5 abas) rola sozinha até a aba ativa. O detalhe da pessoa empilha o retrato sobre os campos.
+
+## 59. Diário privado e leve (só você lê; imagens fora da ficha)
+Antes: rode `supabase/diario_privado.sql` no Supabase (docs/SUPABASE.md §12). Sem ele, o app avisa que falta o script e o diário segue como antes.
+1. **O mestre não lê o seu diário**:
+   - escreva um rabisco, uma sessão e uma pista numa ficha compartilhada com uma mesa;
+   - entre como o mestre e abra a ficha do jogador: a ficha aparece normalmente, sem o diário;
+   - no Supabase (Table Editor → `sheets`), o `snapshot` não tem mais `diary`, e `journal`/`notes` estão vazios. O conteúdo está em `sheet_diaries`.
+2. **Link de compartilhamento**: o link da ficha não mostra (nem carrega) o diário.
+3. **Outros aparelhos**:
+   - entre na mesma conta em outro aparelho: o diário aparece igual, e as imagens das pistas são baixadas e guardadas nesse aparelho;
+   - edite o diário num aparelho e espere uns segundos: o outro recebe ao sincronizar.
+4. **Offline**: sem internet, anexe uma imagem numa pista; ela aparece na hora. Ao voltar a conexão, sobe sozinha para a pasta privada (bucket `diario`).
+5. **Imagens antigas**: pistas criadas antes desta mudança, com a imagem dentro da ficha, continuam aparecendo. A imagem passa para o aparelho e para a nuvem privada, e a ficha fica leve.
+6. **Histórico da ficha**: restaurar uma versão volta PV, itens, nível etc., mas **não mexe no Diário** (anotações mais novas ficam).
+7. Convidado (sem conta): tudo funciona no aparelho, como antes.

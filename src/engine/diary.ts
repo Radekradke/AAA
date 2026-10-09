@@ -188,11 +188,11 @@ export const CLUE_STATUS: { id: DiaryClue['status']; label: string; plural: stri
   { id: 'false', label: 'Falsa', plural: 'Falsas', stamp: 'Falsa', verdictLabel: 'Por que é falsa?' },
 ];
 
-/** Quantas pistas podem ter imagem anexada (cada uma vai comprimida para ~150 KB dentro da ficha). */
+/** Quantas pistas podem ter imagem anexada (cada uma comprimida para ~150 KB, guardada no aparelho e na nuvem privada). */
 export const MAX_CLUE_IMAGES = 30;
 
 /** Pistas com imagem anexada (as do mestre não contam: ficam no armazenamento da mesa). */
-export const clueImageCount = (clues: Pick<DiaryClue, 'image'>[]) => clues.filter((c) => !!c.image).length;
+export const clueImageCount = (clues: Pick<DiaryClue, 'image' | 'imageId'>[]) => clues.filter((c) => !!c.image || !!c.imageId).length;
 
 /** Pistas ligadas a uma missão do Quadro da Guilda. */
 export const cluesForQuest = (clues: DiaryClue[], questId: string) => clues.filter((c) => c.questId === questId);

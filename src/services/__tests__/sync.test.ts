@@ -49,4 +49,8 @@ describe('sincronização por versão (syncBase)', () => {
   it('nada mudou desde a base → noop', () => {
     expect(decideSyncAction({ updatedAt: 100, syncBase: 100, lastSyncedAt: 1 }, 100)).toBe('noop');
   });
+
+  it('a mesma versão dos dois lados → nada a fazer (não é conflito)', () => {
+    expect(decideSyncAction({ updatedAt: 300, syncBase: 100 }, 300)).toBe('noop');
+  });
 });

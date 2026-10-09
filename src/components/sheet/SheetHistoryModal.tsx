@@ -16,7 +16,8 @@ const REASON: Record<HistoryReason, string> = {
 };
 
 /** Campos que pertencem à ficha "viva" (identidade e sincronização), não à versão restaurada. */
-const KEEP = ['id', 'ownerId', 'createdAt', 'lastSyncedAt', 'syncBase', 'syncStatus'] as const;
+// o diário segue como está: restaurar a ficha (PV, itens, nível…) não apaga anotações mais novas
+const KEEP = ['id', 'ownerId', 'createdAt', 'lastSyncedAt', 'syncBase', 'syncStatus', 'diary', 'journal', 'notes'] as const;
 
 const when = (at: number) => {
   const d = new Date(at);
@@ -71,7 +72,7 @@ export function SheetHistoryModal({ char, onClose }: { char: Character; onClose:
     <Modal title="Histórico da ficha" icon="book" onClose={onClose} maxWidth={600}>
       <div className="fv-hist">
         <p className="fv-hist-lead">
-          Versões de <b>{char.name || 'esta ficha'}</b> guardadas neste aparelho: no começo de cada sessão de edição, antes de subir de nível e quando um conflito de sincronização descarta uma versão. Ficam as 30 mais recentes.
+          Versões de <b>{char.name || 'esta ficha'}</b> guardadas neste aparelho: no começo de cada sessão de edição, antes de subir de nível e quando um conflito de sincronização descarta uma versão. Ficam as 30 mais recentes. Restaurar não mexe no Diário.
         </p>
         <div className="fv-hist-now">
           <div>
