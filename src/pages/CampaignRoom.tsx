@@ -178,7 +178,7 @@ export function CampaignRoom() {
               );
             })}
             <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>
-              Ao vincular, o mestre passa a ver o snapshot da sua ficha (atributos, PV, CA, recursos). Desvincule quando quiser.
+              Ao vincular, o mestre passa a ver uma cópia da sua ficha (atributos, PV, CA, recursos), atualizada quando você sincroniza. O seu Diário continua só seu. Desvincule quando quiser.
             </p>
           </div>
         )}
@@ -272,7 +272,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
   if (!snapshot) {
     return (
       <div className="fv-surface" style={{ padding: 14, fontSize: 12.5, color: 'var(--muted)' }}>
-        Ficha vinculada — snapshot ainda não sincronizado (peça ao jogador para abrir o app online).
+        Ficha vinculada, mas ainda não chegou à nuvem. Peça ao jogador para abrir o app com internet.
       </div>
     );
   }

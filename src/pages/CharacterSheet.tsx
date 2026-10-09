@@ -139,12 +139,12 @@ export function CharacterSheet() {
       }
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
-        { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
-        { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
-        { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+        { label: 'Ficha ilustrada / imprimir', icon: 'print', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
+        { label: 'Histórico e versões', icon: 'history', onClick: () => setHistory(true) },
+        { label: 'Exportar ficha (JSON)', icon: 'download', onClick: exportJson },
         {
           label: 'Tour pela ficha',
-          icon: 'spark',
+          icon: 'compass',
           onClick: () => {
             setTab('mesa');
             setTimeout(() => startTour('sheet'), 250);

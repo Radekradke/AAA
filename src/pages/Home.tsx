@@ -119,7 +119,7 @@ export function Home() {
   ];
   const extras: MenuItem[] = [
     { key: 'config', label: 'Configurações', hint: 'Tema, som, dados e conta', icon: 'gear', run: () => go('/config', false) },
-    { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona', icon: 'book', run: openTutorial },
+    { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona', icon: 'compass', run: openTutorial },
   ];
 
   // setas movem o foco entre os itens (os de baixo também), como num menu de jogo

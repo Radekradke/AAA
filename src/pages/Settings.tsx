@@ -17,13 +17,13 @@ import { rememberNext } from '@/lib/nextPath';
 import { wakeLockSupported } from '@/lib/wakeLock';
 
 const SECTIONS: { id: string; label: string; icon: IconName }[] = [
-  { id: 'conta', label: 'Conta', icon: 'crest' },
-  { id: 'aparencia', label: 'Aparência', icon: 'image' },
+  { id: 'conta', label: 'Conta', icon: 'user' },
+  { id: 'aparencia', label: 'Aparência', icon: 'palette' },
   { id: 'som', label: 'Som e música', icon: 'volume' },
   { id: 'dados', label: 'Dados e mesa', icon: 'd20' },
-  { id: 'livros', label: 'Livros', icon: 'quill' },
-  { id: 'app', label: 'App e ajuda', icon: 'book' },
-  { id: 'avancado', label: 'Avançado', icon: 'gear' },
+  { id: 'livros', label: 'Livros', icon: 'book' },
+  { id: 'app', label: 'App e ajuda', icon: 'help' },
+  { id: 'avancado', label: 'Avançado', icon: 'sliders' },
 ];
 
 /** Qual seção está na tela agora (para marcar no índice). */

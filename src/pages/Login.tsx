@@ -20,6 +20,7 @@ export function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [busy, setBusy] = useState(false);
   // sessão da nuvem expirou (useCloudSync deslogou): explica em vez de só mostrar a tela
   const [error, setError] = useState<string | null>(() => {
@@ -198,14 +199,21 @@ export function Login() {
               <span className="fv-label" style={{ display: 'block', fontSize: 11.5, marginBottom: 7 }}>
                 Senha
               </span>
-              <input
-                className="fv-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              />
+              {/* sem "••••••" de exemplo: parecia que o campo já estava preenchido */}
+              <span className="fv-pass">
+                <input
+                  className="fv-input"
+                  type={showPass ? 'text' : 'password'}
+                  aria-label="Senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'login' ? 'Sua senha' : 'Crie uma senha'}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                />
+                <button type="button" className="fv-pass-toggle" onClick={() => setShowPass((v) => !v)} aria-pressed={showPass} aria-label={showPass ? 'Esconder senha' : 'Mostrar senha'}>
+                  {showPass ? 'Esconder' : 'Mostrar'}
+                </button>
+              </span>
             </label>
 
             {error && (

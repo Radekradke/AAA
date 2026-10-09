@@ -189,8 +189,8 @@ export function CharacterCreator() {
       }
       // destrutivo fica no menu, longe do polegar
       menu={[
-        { label: 'Tour da criação', icon: 'spark', onClick: () => startTour('creator') },
-        { label: 'Descartar este herói', icon: 'close', onClick: discard, danger: true },
+        { label: 'Tour da criação', icon: 'compass', onClick: () => startTour('creator') },
+        { label: 'Descartar este herói', icon: 'trash', onClick: discard, danger: true },
       ]}
     >
       <RaceAura raceId={char.raceId} />
