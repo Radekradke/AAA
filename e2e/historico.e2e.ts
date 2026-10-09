@@ -13,7 +13,7 @@ test.describe('histórico da ficha', () => {
   test('guarda a versão de antes de mexer e restaura', async ({ page }) => {
     await signIn(page, 'guest', { characters: [WIZARD] });
     await page.goto(`/ficha/${ID}`);
-    await page.locator('.fv-sheet-tab', { hasText: 'Mesa' }).click();
+    await page.locator('.fv-sheet-tab', { hasText: 'Jogar' }).click();
     const pv = String(WIZARD.hpCurrent);
 
     // primeira edição da sessão: a versão anterior vai para o histórico sozinha

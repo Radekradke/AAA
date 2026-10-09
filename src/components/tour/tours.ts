@@ -22,7 +22,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
     {
       target: ['[data-tour="tabs"]'],
       title: 'As abas',
-      body: 'Mesa reúne o que você usa no turno. Ficha, Combate, Inventário, Magias, Evoluir, Descanso e Diário guardam o resto.',
+      body: 'Jogar reúne o que você usa no turno, com atalhos para o detalhe. Ficha, Combate, Inventário, Magias e Diário aprofundam; Evoluir, Descanso, Retrato e Dados ficam por último, para quando precisar.',
     },
     {
       target: ['[data-tour="hp"]'],

@@ -45,7 +45,7 @@ const STEPS: Step[] = [
     icon: 'quill',
     kicker: 'Passo 2',
     title: 'A ficha, aba por aba',
-    lead: 'A aba Mesa reúne o que você usa no turno. As outras guardam o resto: Ficha, Combate, Inventário, Magias, Evoluir, Descanso e Diário.',
+    lead: 'A aba Jogar reúne o que você usa no turno, com atalhos para o detalhe. As outras aprofundam um assunto: Ficha, Combate, Inventário, Magias e Diário; depois vêm as de vez em quando — Evoluir, Descanso, Retrato e Dados.',
     tips: [
       <>Passe o mouse (ou segure o dedo) num número para ver <b>de onde ele vem</b>.</>,
       <>Em <b>Evoluir</b> você sobe de nível: a ficha pede só as escolhas novas.</>,

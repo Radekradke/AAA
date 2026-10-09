@@ -18,8 +18,8 @@ const PRIMARY = ['mesa', 'ficha', 'combate', 'inventario', 'magias'];
 
 /**
  * Navegação inferior (celular). No máximo 6 botões com rótulo inteiro —
- * as abas de uso ocasional (Evoluir, Descanso, Diário, Dados) ficam numa
- * gaveta "Mais". Renderizada num portal em document.body: `position: fixed`
+ * o Diário e as abas de uso ocasional (Evoluir, Descanso, Retrato, Dados)
+ * ficam numa gaveta "Mais", cada uma com uma linha dizendo para que serve. Renderizada num portal em document.body: `position: fixed`
  * dentro de ancestrais com transform/filter "congela" a barra no conteúdo.
  */
 export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
@@ -92,6 +92,7 @@ function MoreItem({ tab, active, onClick }: { tab: SheetTabDef; active: boolean;
     <button role="menuitem" onClick={onClick} className="fv-nav-more-item" style={{ color: active ? 'var(--gold)' : 'var(--ink)', borderColor: active ? 'var(--gold)' : 'var(--line)' }}>
       <Icon name={tab.icon} size={26} color="var(--gold)" />
       <span>{tab.label}</span>
+      <small className="fv-nav-more-hint">{tab.hint}</small>
     </button>
   );
 }

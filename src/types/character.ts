@@ -308,6 +308,11 @@ export interface CampaignSettings {
   hpMode: 'media' | 'rolagem' | 'manual';
   /** Permite edição manual de atributos pelo mestre (modal Editar). */
   dmEdit: boolean;
+  /**
+   * Regra da mesa: Inspiração acumula (até 10 pontos). Fora do PHB 2014,
+   * onde o personagem tem ou não tem. Ausente = regra oficial.
+   */
+  stackingInspiration?: boolean;
 }
 
 export const DEFAULT_CAMPAIGN: CampaignSettings = {
@@ -398,7 +403,7 @@ export interface Character {
   levelHistory: LevelUpRecord[];
   /** Legado (PHB 2014: tem/não tem). Espelha `inspirationPoints > 0`. */
   inspiration: boolean;
-  /** Pontos de Inspiração acumulados (mesas que deixam acumular). */
+  /** Pontos de Inspiração (0/1 na regra 2014; até 10 com `campaign.stackingInspiration`). */
   inspirationPoints?: number;
   campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)

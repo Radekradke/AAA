@@ -26,7 +26,7 @@ import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { CompanionPanel } from './CompanionPanel';
-import { inspirationCount } from '@/engine/inspiration';
+import { inspirationCount, inspirationMax } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
@@ -39,7 +39,7 @@ import { ConditionIcon } from '@/components/ui/RuleIcon';
  * com ações de um toque (dano, cura, recursos, descansos, rolagens e
  * testes contra a morte). Mobile-first, cards grandes e escaneáveis.
  */
-export function TabMesa({ char, derived }: TabProps) {
+export function TabMesa({ char, derived, goTab }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const store = useCharacterStore();
@@ -88,7 +88,7 @@ export function TabMesa({ char, derived }: TabProps) {
           <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span className="fv-mesa-sub"> · {derived.subclassLabel}</span> : null}</div>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
           <div className="fv-hp-insp">
-            <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
+            <InspirationControl charId={char.id} points={inspirationCount(char)} max={inspirationMax(char)} onGain={() => bump(1.6)} />
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
@@ -233,7 +233,10 @@ export function TabMesa({ char, derived }: TabProps) {
               <ActiveEffects char={char} />
             </div>
           )}
-          <div className="fv-label fv-mesa-label">Ataques</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Ataques</div>
+            <GoTab to="combate" label="Combate" goTab={goTab} />
+          </div>
           <ExtraAttackNote char={char} />
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
@@ -248,7 +251,10 @@ export function TabMesa({ char, derived }: TabProps) {
 
         {/* Salvaguardas + perícias-chave */}
         <Panel>
-          <div className="fv-label fv-mesa-label">Salvaguardas</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Salvaguardas</div>
+            <GoTab to="ficha" label="Ficha" goTab={goTab} />
+          </div>
           <div className="fv-mesa-saves">
             {derived.abilityList.map((a) => (
               <button
@@ -362,12 +368,18 @@ export function TabMesa({ char, derived }: TabProps) {
                 {prepared.length > 10 && <span className="fv-mesa-spell-more">+{prepared.length - 10} na aba Magias</span>}
               </div>
             )}
+            <div className="fv-mesa-foot">
+              <GoTab to="magias" label="Magias" goTab={goTab} />
+            </div>
           </Panel>
         )}
 
         {/* Recursos + descansos */}
         <Panel>
-          <div className="fv-label fv-mesa-label">Recursos &amp; Descanso</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Recursos &amp; Descanso</div>
+            <GoTab to="descanso" label="Descanso" goTab={goTab} />
+          </div>
           {resources.length === 0 && <div className="fv-mesa-empty fv-mesa-empty-pad">Nenhum recurso de classe neste nível.</div>}
           {resources.map((res) => {
             const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
@@ -546,3 +558,13 @@ const atkSub: CSSProperties = {
   fontWeight: 600,
   marginTop: 2,
 };
+
+/** Atalho do Jogar para a aba que aprofunda o assunto. */
+function GoTab({ to, label, goTab }: { to: string; label: string; goTab?: (id: string) => void }) {
+  if (!goTab) return null;
+  return (
+    <button type="button" className="fv-goto" onClick={() => goTab(to)} aria-label={`Abrir a aba ${label}`}>
+      {label} <span aria-hidden>›</span>
+    </button>
+  );
+}

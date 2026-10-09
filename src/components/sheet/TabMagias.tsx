@@ -2,6 +2,7 @@ import { spellDamageLabel } from '@/engine/spellCast';
 import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import type { Spell } from '@/types/dnd';
+import { AUTOMATION_CHIP, spellAutomation } from '@/engine/spellAutomation';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -326,6 +327,7 @@ export function TabMagias({ char, derived }: TabProps) {
                             {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
                             {sp.concentration && <Mini c="#C24DFF">conc.</Mini>}
                             {sp.ritual && <Mini c="#4FA37A">ritual</Mini>}
+                            <AutoMini sp={sp} />
                           </span>
                         </span>
                       </LoreTooltip>
@@ -393,6 +395,16 @@ function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
+    </span>
+  );
+}
+
+/** Quanto da magia a ficha resolve (detalhe completo na dica). */
+function AutoMini({ sp }: { sp: Spell }) {
+  const chip = AUTOMATION_CHIP[spellAutomation(sp).level];
+  return (
+    <span title={chip.title}>
+      <Mini c={chip.color}>{chip.text}</Mini>
     </span>
   );
 }

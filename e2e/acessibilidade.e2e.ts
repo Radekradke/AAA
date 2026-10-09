@@ -34,7 +34,7 @@ test.describe('acessibilidade (axe, WCAG 2.1 AA)', () => {
   test('todas as abas da ficha', async ({ page }) => {
     await signIn(page, 'guest', { characters: [WIZARD] });
     await page.goto(`/ficha/${WIZARD.id}`);
-    for (const aba of ['Mesa', 'Combate', 'Inventário', 'Magias', 'Retrato', 'Evoluir', 'Descanso', 'Diário', 'Dados']) {
+    for (const aba of ['Jogar', 'Combate', 'Inventário', 'Magias', 'Retrato', 'Evoluir', 'Descanso', 'Diário', 'Dados']) {
       await page.locator('.fv-sheet-tab', { hasText: aba }).click();
       await expect(page.locator('.fv-sheet-tab', { hasText: aba })).toHaveAttribute('aria-current', 'page');
       expect(await axe(page), `aba ${aba}`).toEqual([]);
@@ -97,7 +97,7 @@ test.describe('teclado', () => {
     await dialog.getByRole('button', { name: 'Guardar versão agora' }).click();
     // a versão guardada é igual à atual: muda a ficha para poder restaurar
     await page.keyboard.press('Escape');
-    await page.locator('.fv-sheet-tab', { hasText: 'Mesa' }).click();
+    await page.locator('.fv-sheet-tab', { hasText: 'Jogar' }).click();
     await page.getByRole('button', { name: '−1' }).first().click();
     await page.getByRole('button', { name: 'Mais opções' }).click();
     await page.getByRole('menuitem', { name: 'Histórico e versões' }).click();

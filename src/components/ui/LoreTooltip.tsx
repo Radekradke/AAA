@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react';
 import type { LoreInfo } from '@/lib/lore';
+import type { AutomationKind, SpellAutomation } from '@/engine/spellAutomation';
+import { AUTOMATION_KIND_LABEL, AUTOMATION_LEVEL_LABEL } from '@/engine/spellAutomation';
 
 interface LoreTooltipProps {
   info: LoreInfo;
@@ -247,6 +249,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
               </ul>
             ) : null}
             {info.body && <div className="fv-lore-body">{info.body}</div>}
+            {info.automation && <AutomationBlock a={info.automation} />}
             {info.tags?.length ? (
               <div className="fv-lore-tags">
                 {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
@@ -265,3 +268,26 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     </>
   );
 }
+
+/** "Na ficha": o que é automático, o que só rola e o que fica com a mesa. */
+export function AutomationBlock({ a }: { a: SpellAutomation }) {
+  return (
+    <div className={`fv-auto is-${a.level}`}>
+      <div className="fv-auto-head">
+        <span>Na ficha</span>
+        <b>{AUTOMATION_LEVEL_LABEL[a.level]}</b>
+      </div>
+      <ul>
+        {a.lines.map((l) => (
+          <li key={l.text} className={`is-${l.kind}`}>
+            <i aria-hidden>{KIND_MARK[l.kind]}</i>
+            <span className="fv-sr-only">{AUTOMATION_KIND_LABEL[l.kind]}: </span>
+            {l.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const KIND_MARK: Record<AutomationKind, string> = { auto: '✓', roll: '⚄', table: '✋' };

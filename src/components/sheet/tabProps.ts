@@ -5,4 +5,6 @@ import type { DerivedCharacter } from '@/engine/dndRules';
 export interface TabProps {
   char: Character;
   derived: DerivedCharacter;
+  /** Troca de aba (atalhos "ver em detalhe" entre as telas). */
+  goTab?: (id: string) => void;
 }

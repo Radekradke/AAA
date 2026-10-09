@@ -3,6 +3,8 @@ import type { Breakdown } from '@/engine/effects';
 import { breakdownBody } from '@/engine/effects';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
 import { getCondition } from '@/data/conditions';
+import type { SpellAutomation } from '@/engine/spellAutomation';
+import { spellAutomation } from '@/engine/spellAutomation';
 
 export interface LoreInfo {
   title: string;
@@ -19,6 +21,8 @@ export interface LoreInfo {
   props?: string[];
   /** Rodapé discreto: peso e preço. */
   footer?: string[];
+  /** Magias: o que a ficha aplica, o que só rola e o que fica com a mesa. */
+  automation?: SpellAutomation;
 }
 
 export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
@@ -141,6 +145,7 @@ export function spellLore(spell: Spell): LoreInfo {
     subtitle: `${circle} · ${spell.school}`,
     body: body || 'Magia sem descrição.',
     tags: [circle, spell.school, ...(spell.tags ?? [])],
+    automation: spellAutomation(spell),
   };
 }
 
