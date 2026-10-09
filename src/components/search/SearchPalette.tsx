@@ -121,7 +121,6 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
       { id: 't-tables', kind: 'tela', title: 'Mesas', keywords: 'campanhas multiplayer convite codigo entrar', boost: 3, ref: { t: 'nav', to: '/mesas' } },
       { id: 't-config', kind: 'tela', title: 'Configurações', keywords: 'tema som musica dados 3d livros conta tutorial', boost: 3, ref: { t: 'nav', to: '/config' } },
       { id: 't-tutorial', kind: 'tela', title: 'Tutorial', keywords: 'ajuda como funciona', boost: 3, ref: { t: 'run', run: openTutorial } },
-      { id: 't-portraits', kind: 'tela', title: 'Oficina de retratos', keywords: 'arte imagem foto', boost: 2, ref: { t: 'nav', to: '/retratos' } },
       { id: 't-diag', kind: 'tela', title: 'Diagnóstico', keywords: 'nuvem sincronizar conexao', boost: 1, ref: { t: 'nav', to: '/diagnostico' } },
     ];
     if (sheetId) {

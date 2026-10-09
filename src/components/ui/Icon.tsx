@@ -3,7 +3,7 @@ import { GAME_ICONS } from './gameIcons';
 
 type GameIconName = keyof typeof GAME_ICONS;
 
-export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout' | 'link' | 'calendar' | 'search' | 'download';
+export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout' | 'link' | 'calendar' | 'search' | 'download' | 'home' | 'contrast';
 
 interface IconProps {
   name: IconName;
@@ -29,6 +29,19 @@ const STROKE_PATHS: Record<Exclude<IconName, GameIconName>, React.ReactNode> = {
     </>
   ),
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  home: (
+    <>
+      <path d="M4 11.5 12 4.5l8 7" />
+      <path d="M6.5 10v9.5h11V10" />
+      <path d="M10.2 19.5v-5h3.6v5" />
+    </>
+  ),
+  contrast: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" />
+    </>
+  ),
   download: <path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" />,
   image: (
     <>

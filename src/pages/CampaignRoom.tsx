@@ -98,7 +98,7 @@ export function CampaignRoom() {
   const sharedIds = new Set(shares.map((s) => s.share.sheetId));
 
   return (
-    <Screen scroll actions={<Button onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>Mesas</Button>}>
+    <Screen scroll actions={<Button className="fv-below-nav" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>‹ Mesas</Button>}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
         <div className="fv-label" style={{ marginBottom: 4 }}>{isMaster ? 'Você comanda esta mesa' : 'Mesa de campanha'}</div>
         <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(21px,3.6vw,28px)', color: 'var(--ink)' }}>
