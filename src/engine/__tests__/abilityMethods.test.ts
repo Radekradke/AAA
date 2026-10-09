@@ -55,3 +55,14 @@ describe('métodos de atributos (PHB 2014)', () => {
     expect(rollsMatch(c)).toBe(false);
   });
 });
+
+describe('Especialização do Ladino na criação', () => {
+  it('sem as 2 escolhas o Despertar fica travado; perícia perdida também avisa', () => {
+    const c = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'rogue' });
+    expect(creationPending(c).some((p) => p.label === 'Escolha 2 especializações')).toBe(true);
+    c.skillExpertise = ['athletics']; // Soldado dá Atletismo
+    expect(creationPending(c).some((p) => p.label === 'Escolha 1 especialização')).toBe(true);
+    c.backgroundId = 'sage'; // não dá mais Atletismo
+    expect(creationPending(c).some((p) => p.label.startsWith('Especialização em Atletismo sem a perícia'))).toBe(true);
+  });
+});

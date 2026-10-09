@@ -66,6 +66,8 @@ export function StepSkills({ char, update }: StepProps) {
       if (granted.has(key)) return;
       if (c.skillProfs.includes(key)) {
         c.skillProfs = c.skillProfs.filter((k) => k !== key);
+        // sem proficiência, sem Especialização
+        c.skillExpertise = (c.skillExpertise ?? []).filter((k) => k !== key);
         return;
       }
       if (budget.canPick(key)) c.skillProfs = [...c.skillProfs, key];
@@ -90,7 +92,7 @@ export function StepSkills({ char, update }: StepProps) {
             </span>
           </LoreTooltip>
         ))}
-        {backgroundTools(char).map((id) => (
+        {[...new Set([...(cls.tools ?? []), ...backgroundTools(char)])].map((id) => (
           <span key={id} className="fv-pill is-static">⚒ {toolLabel(id)}</span>
         ))}
       </div>
@@ -116,7 +118,8 @@ export function StepSkills({ char, update }: StepProps) {
         <>
           <SectionTitle right={<Counter left={slots - used} total={slots} />}>Especialização — bônus em dobro</SectionTitle>
           <div className="fv-pills" style={{ marginBottom: 18 }}>
-            {proficientNow.map((key) => {
+            {/* inclui uma Especialização que perdeu a perícia (trocou o antecedente), para poder tirar */}
+            {[...new Set([...proficientNow, ...(char.skillExpertise ?? [])])].map((key) => {
               const on = (char.skillExpertise ?? []).includes(key);
               const blocked = !on && used >= slots;
               return (

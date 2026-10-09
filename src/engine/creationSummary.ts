@@ -12,7 +12,7 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import { backgroundTools, languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
 import { raceTraitInfo } from '@/data/raceTraits';
-import { subclassLevelFor } from './levelUp';
+import { expertiseSlots, expertiseUsed, subclassLevelFor } from './levelUp';
 import { castsAtCreation, creationSpellPending } from './creationSpells';
 import { abilityPending } from './abilityMethods';
 
@@ -191,6 +191,14 @@ export function creationPending(char: Character): PendingItem[] {
   const langs = languagePicks(char);
   if (langs.left > 0) {
     pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
+  }
+  // Especialização do Ladino (2 no 1º nível): perícias ou Ferramentas de Ladrão
+  const expertLeft = expertiseSlots(char) - expertiseUsed(char);
+  if (expertLeft > 0) pending.push({ label: `Escolha ${expertLeft} especializaç${expertLeft > 1 ? 'ões' : 'ão'}`, step: STEP_SKILLS });
+  // trocou o antecedente/raça depois: Especialização numa perícia que não é mais treinada
+  const trained = new Set([...char.skillProfs, ...budget.granted]);
+  for (const k of char.skillExpertise ?? []) {
+    if (!trained.has(k)) pending.push({ label: `Especialização em ${SKILL_BY_KEY[k].label} sem a perícia — troque`, step: STEP_SKILLS });
   }
   for (const label of abilityPending(char)) pending.push({ label, step: STEP_ABILITIES });
   for (const label of creationSpellPending(char)) pending.push({ label, step: STEP_SPELLS });
