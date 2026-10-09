@@ -28,6 +28,7 @@ import { downloadCharacterJson } from '@/lib/exportCharacter';
 const SheetHistoryModal = lazy(() => import('@/components/sheet/SheetHistoryModal').then((m) => ({ default: m.SheetHistoryModal })));
 const ShareSheetModal = lazy(() => import('@/components/sheet/ShareSheetModal').then((m) => ({ default: m.ShareSheetModal })));
 const TabRetrato = lazy(() => import('@/components/sheet/TabRetrato').then((m) => ({ default: m.TabRetrato })));
+const QuickNote = lazy(() => import('@/components/diary/QuickNote').then((m) => ({ default: m.QuickNote })));
 const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
@@ -173,6 +174,10 @@ export function CharacterSheet() {
       </div>
 
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
+      {/* anotação rápida em qualquer aba: vai para os Rabiscos do Diário */}
+      <Suspense fallback={null}>
+        <QuickNote char={char} />
+      </Suspense>
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
       {sharing && (

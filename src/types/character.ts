@@ -152,12 +152,81 @@ export interface JournalEntry {
   id: string;
   title: string;
   date: string;
+  /** Campos antigos (antes da Crônica de texto livre): lidos só se `body` não existir. */
   summary: string;
   npcs: string;
   locations: string;
   quests: string;
   treasure: string;
   notes: string;
+  /** Número da sessão (1, 2, 3…). */
+  session?: number;
+  /** Texto livre da sessão, com @NPC/@Herói e #Lugar. */
+  body?: string;
+  /** Criada em (ms). */
+  at?: number;
+}
+
+/* ---------------- Diário do jogador (pessoal, fica na ficha) ---------------- */
+
+export type DiaryNoteColor = 'gold' | 'red' | 'green' | 'blue' | 'violet';
+
+/** Rabisco: anotação rápida tipo post-it. */
+export interface DiaryNote {
+  id: string;
+  text: string;
+  color?: DiaryNoteColor;
+  pinned?: boolean;
+  done?: boolean;
+  at: number;
+}
+
+export interface DiaryObjective {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+/** Missão do Quadro da Guilda. */
+export interface DiaryQuest {
+  id: string;
+  title: string;
+  status: 'rumor' | 'active' | 'done' | 'failed';
+  giver?: string;
+  reward?: string;
+  deadline?: string;
+  priority?: 'low' | 'normal' | 'high';
+  objectives: DiaryObjective[];
+  notes?: string;
+  at: number;
+}
+
+/** Pista do mural de investigação. */
+export interface DiaryClue {
+  id: string;
+  title: string;
+  text: string;
+  source?: string;
+  status: 'unverified' | 'confirmed' | 'false';
+  verdict?: string;
+  /** Imagem comprimida (data URL). */
+  image?: string;
+  questId?: string;
+  at: number;
+}
+
+/** O que o jogador acha de alguém citado (página Pessoas). */
+export interface DiaryPersonNote {
+  opinion?: 'ally' | 'neutral' | 'suspect' | 'enemy';
+  note?: string;
+}
+
+export interface Diary {
+  notes: DiaryNote[];
+  quests: DiaryQuest[];
+  clues: DiaryClue[];
+  /** Chave = nome normalizado da pessoa. */
+  people: Record<string, DiaryPersonNote>;
 }
 
 export interface SpellSlotState {
@@ -355,6 +424,8 @@ export interface Character {
   // narrativa
   journal: JournalEntry[];
   notes: string;
+  /** Diário pessoal: rabiscos, missões, pistas e pessoas. */
+  diary?: Diary;
   // estado de jogo
   combat: CombatState;
   createdAt: number;

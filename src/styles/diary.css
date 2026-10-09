@@ -1,0 +1,552 @@
+/* =========================================================================
+   Diário de Campanha — Rabiscos (post-its), Crônica (páginas de sessão),
+   menções (@NPC / @herói / #lugar) e o botão "Anotar" de todas as abas.
+   ========================================================================= */
+
+.fv-diary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-diary-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fv-diary-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fv-diary-title h2 {
+  margin: 0;
+  font: 700 clamp(18px, 2.4vw, 24px) / 1 var(--font-display);
+  color: var(--ink);
+}
+.fv-diary-title small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-diary-search {
+  width: min(100%, 240px);
+  font-size: 13px;
+  padding: 9px 13px;
+}
+.fv-diary-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+}
+.fv-diary-tabs button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  font: 600 14px var(--font-display);
+  color: var(--muted);
+}
+.fv-diary-tabs button.is-on {
+  color: var(--ink);
+  border-bottom-color: var(--gold);
+}
+.fv-diary-tabs small {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--sunk);
+  font: 600 11px var(--font-num);
+  color: var(--muted);
+}
+.fv-diary-empty {
+  margin: 4px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.fv-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 600 12.5px var(--font-body);
+  color: var(--acc);
+}
+.fv-link-btn:hover {
+  text-decoration: underline;
+}
+.fv-link-btn.is-danger {
+  color: var(--danger);
+}
+
+/* ---------- menções ---------- */
+.fv-npc-mention.is-hero {
+  border-color: color-mix(in srgb, var(--acc), transparent 55%);
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+  color: var(--acc);
+}
+.fv-place-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--ink), transparent 65%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.fv-place-chip span {
+  color: var(--muted);
+}
+.fv-place-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--sunk);
+  color: var(--muted);
+}
+.fv-rich {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+}
+.fv-rich .fv-npc-mention,
+.fv-rich .fv-place-chip {
+  margin: 0 1px;
+  line-height: 1.35;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.fv-rich .fv-npc-mention {
+  padding: 1px 8px 1px 2px;
+}
+.fv-rich .fv-npc-avatar {
+  line-height: 1;
+}
+.fv-notes-new-bar .fv-btn-gold {
+  min-height: 38px;
+  padding: 0 20px;
+}
+.fv-mini-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.fv-mini-tag.is-hero {
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+  color: var(--acc);
+}
+.fv-mini-tag.is-place {
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+/* ---------- Rabiscos ---------- */
+.fv-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-notes-new {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.fv-notes-new textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-notes-new-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+}
+.fv-note-colors {
+  display: flex;
+  gap: 6px;
+}
+.fv-note-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: var(--note-c);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.fv-note-swatch.is-on {
+  border-color: var(--ink);
+}
+:is(.fv-note, .fv-note-swatch).is-gold { --note-c: #e2b44f; }
+:is(.fv-note, .fv-note-swatch).is-red { --note-c: #e2605a; }
+:is(.fv-note, .fv-note-swatch).is-green { --note-c: #5fbf7a; }
+:is(.fv-note, .fv-note-swatch).is-blue { --note-c: #5b9be6; }
+:is(.fv-note, .fv-note-swatch).is-violet { --note-c: #a77be8; }
+:is(.fv-note, .fv-note-swatch).is-plain { --note-c: var(--line-strong); }
+
+.fv-note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  padding: 12px 12px 8px;
+  border-radius: 4px 14px 14px 14px;
+  border: 1px solid color-mix(in srgb, var(--note-c), transparent 55%);
+  border-top: 4px solid var(--note-c);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--note-c), transparent 88%), transparent 70%),
+    var(--panel);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.fv-note.is-pinned::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8, transparent 40%), var(--note-c);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.fv-note.is-done {
+  opacity: 0.55;
+}
+.fv-note.is-done .fv-rich {
+  text-decoration: line-through;
+}
+.fv-note-body {
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: text;
+  font: 14px/1.55 var(--font-body);
+  color: var(--ink);
+}
+.fv-note textarea {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.fv-note-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+}
+.fv-note-foot small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-note-actions {
+  display: flex;
+  gap: 2px;
+}
+.fv-note-actions button {
+  min-width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-note-actions button:hover,
+.fv-note-actions button[aria-pressed='true'] {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+/* ---------- Crônica ---------- */
+.fv-chron {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+}
+.fv-chron-new,
+.fv-chron-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.fv-chron-new {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed color-mix(in srgb, var(--gold), transparent 40%);
+  background: color-mix(in srgb, var(--gold), transparent 94%);
+}
+.fv-chron-new b {
+  font: 700 16px var(--font-display);
+  color: var(--gold);
+}
+.fv-chron-new small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-chron-card {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--panel);
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-chron-card:hover {
+  background: var(--lift);
+}
+.fv-chron-card-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+  font: 700 16px var(--font-num);
+  color: var(--gold);
+}
+.fv-chron-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-chron-card-text b {
+  font: 700 16px var(--font-display);
+}
+.fv-chron-card-text small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-chron-card-ex {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-chron-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.fv-chron-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fv-chron-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fv-chron-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .fv-chron-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+  .fv-chron-side {
+    position: sticky;
+    top: 80px;
+  }
+}
+.fv-chron-main {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 31px, color-mix(in srgb, var(--line), transparent 40%) 31px 32px),
+    var(--panel);
+}
+.fv-chron-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.fv-chron-num,
+.fv-chron-date {
+  border: 0;
+  border-bottom: 1px dashed var(--line-strong);
+  background: none;
+  font: 700 12px var(--font-num);
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+.fv-chron-num {
+  width: 3.2em;
+}
+.fv-chron-date {
+  width: 9em;
+  text-transform: none;
+}
+.fv-chron-title {
+  width: 100%;
+  margin: 6px 0 14px;
+  border: 0;
+  background: none;
+  outline: none;
+  font: 700 clamp(22px, 3vw, 30px) / 1.15 var(--font-display);
+  color: var(--ink);
+}
+.fv-chron-title::placeholder {
+  color: color-mix(in srgb, var(--muted), transparent 30%);
+}
+.fv-chron-text {
+  min-height: 360px;
+  resize: vertical;
+  font-size: 15px;
+  line-height: 32px !important;
+  background: transparent;
+}
+.fv-chron-read {
+  font-size: 15.5px;
+  line-height: 32px;
+  color: var(--ink);
+}
+.fv-chron-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.fv-chron-side small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-chron-side-group > span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fv-chron-side-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ---------- botão "Anotar" (todas as abas) ---------- */
+.fv-quicknote {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 60;
+}
+.fv-quicknote-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 16px 0 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
+  background: color-mix(in srgb, var(--panel2), var(--gold) 10%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  color: var(--gold);
+}
+.fv-quicknote-fab span {
+  font-size: 17px;
+}
+.fv-quicknote-fab b {
+  font: 600 13.5px var(--font-display);
+}
+.fv-quicknote-fab.is-open {
+  background: var(--gold);
+  color: var(--on-gold, #140d04);
+}
+.fv-quicknote-box {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: min(360px, calc(100vw - 36px));
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-strong);
+  background: var(--panel2);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
+}
+.fv-quicknote-box textarea {
+  resize: none;
+  line-height: 1.55;
+}
+/* celular: acima da barra de abas, só o ícone */
+@media (max-width: 899px) {
+  .fv-quicknote {
+    left: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .fv-quicknote-fab {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+  .fv-quicknote-fab b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+@media print {
+  .fv-quicknote {
+    display: none;
+  }
+}

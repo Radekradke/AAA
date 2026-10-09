@@ -1,3 +1,4 @@
+import { printableNotes } from '@/engine/diary';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import type { ThemeName } from '@/types/dnd';
@@ -300,7 +301,7 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
 
           <section className="fv-ills-box fv-ills-notes">
             <h2>Notas</h2>
-            {char.notes?.trim() ? <p>{char.notes}</p> : <div className="fv-ills-lines" aria-hidden />}
+            {printableNotes(char) ? <p>{printableNotes(char)}</p> : <div className="fv-ills-lines" aria-hidden />}
           </section>
         </div>
         <p className="fv-ills-credit">Ficha Viva · {new Date(char.updatedAt || Date.now()).toLocaleDateString('pt-BR')}</p>

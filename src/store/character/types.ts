@@ -1,5 +1,5 @@
 import type { StoreApi } from 'zustand';
-import type { ActiveSpellEffect, Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { ActiveSpellEffect, Character, Diary, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import type { ContainerId, MoveResult } from '@/engine/inventory';
@@ -99,7 +99,10 @@ export interface CharacterState {
   setDeathSave: (id: string, type: 'success' | 'fail', n: number) => void;
   shortRest: (id: string) => void;
   longRest: (id: string) => void;
-  addJournalEntry: (id: string) => void;
+  /** Cria uma sessão nova na Crônica e devolve o id dela. */
+  addJournalEntry: (id: string) => string;
+  /** Altera o diário pessoal (rabiscos, missões, pistas, pessoas). */
+  updateDiary: (id: string, recipe: (d: Diary) => void) => void;
   updateJournalEntry: (id: string, entryId: string, patch: Partial<JournalEntry>) => void;
   deleteJournalEntry: (id: string, entryId: string) => void;
   setNotes: (id: string, notes: string) => void;

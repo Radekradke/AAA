@@ -416,3 +416,26 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
    - Gastar um Dado de Vida (Mesa, Combate ou a nova linha "Dados de Vida" da aba Descanso) rola d + CON e **soma a vida sozinho**.
    - O botão fica desativado com a vida cheia ou sem dados.
 5. **Conferidos sem erro**: vida, CA, CD e ataque de magia, espaços (inclusive meio-conjurador e Pacto), preparadas/conhecidas, Inventário (carga = FOR × 7,5 kg), Evoluir (pendências de invocação e pacto, PV médio, XP), Retrato, Diário e Dados.
+
+## 55. Diário de Campanha — fase 1 (Rabiscos, Crônica, Anotar)
+O Diário é **pessoal** (só o jogador vê) e fica salvo **na ficha**: funciona offline e sincroniza com o resto.
+
+1. **Seções**: Rabiscos · Crônica · Pistas da mesa. A aba de Pistas só aparece quando o mestre já entregou handouts. A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
+2. **Rabiscos**:
+   - Escreva e dê **Enter**: vira um post-it. Shift+Enter quebra a linha.
+   - Cores: ouro, perigo, aliado, ideia, mistério.
+   - ☆ fixa no topo; ✓ marca como resolvida (some da lista, "Mostrar N resolvidas" traz de volta); ◐ troca a cor; clicar no texto edita.
+   - As antigas "Anotações rápidas" viraram um rabisco fixado.
+3. **Menções** (rabiscos, crônica e botão Anotar):
+   - **@** abre a lista de NPCs revelados e **heróis dos outros jogadores** das mesmas campanhas.
+   - **#** marca um lugar ("#Porto Sombrio", "#Torre de Vigia"); os lugares já usados viram sugestão.
+   - No texto, a menção vira chip; passar o mouse (ou tocar) mostra retrato e papel. Herói tem cor própria.
+4. **Crônica**:
+   - "+ Nova sessão" já vem com o próximo número e a data de hoje. Cada sessão é uma página com título e **texto livre**, com modos **Escrever / Ler**.
+   - Ao lado, "Nesta sessão" lista quem apareceu e por onde o grupo passou.
+   - Os cartões da lista mostram trecho, citados e lugares.
+   - As sessões antigas (campos Resumo/NPCs/Lugares…) abrem com tudo junto num texto só.
+5. **✎ Anotar** em todas as abas da ficha:
+   - Abre um bilhete; Enter salva nos Rabiscos (aviso "Anotado nos Rabiscos do Diário").
+   - No celular fica acima da barra de abas, só com o ícone.
+6. A ficha impressa mostra os rabiscos em aberto (fixados primeiro) em "Notas".

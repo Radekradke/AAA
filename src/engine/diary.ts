@@ -1,0 +1,169 @@
+import type { Character, Diary, JournalEntry } from '@/types/character';
+
+/**
+ * Diário pessoal do jogador (fica na ficha, funciona offline):
+ * rabiscos, crônica das sessões, Quadro da Guilda, pistas e pessoas.
+ *
+ * Menções no texto: "@Nome" cita um NPC ou um herói da campanha; "#Lugar"
+ * marca um lugar ("#Porto Sombrio", "#Torre de Vigia").
+ */
+
+/** Diário da ficha, migrando as anotações rápidas antigas (char.notes) para um rabisco fixado. */
+export function diaryOf(char: Pick<Character, 'diary' | 'notes'>): Diary {
+  if (char.diary) return char.diary;
+  const legacy = (char.notes ?? '').trim();
+  return {
+    notes: legacy ? [{ id: 'n-legacy', text: legacy, pinned: true, at: 0 }] : [],
+    quests: [],
+    clues: [],
+    people: {},
+  };
+}
+
+const LEGACY_FIELDS: [keyof JournalEntry, string][] = [
+  ['npcs', 'NPCs'],
+  ['locations', 'Lugares'],
+  ['quests', 'Missões'],
+  ['treasure', 'Tesouros'],
+  ['notes', 'Anotações'],
+];
+
+/** Texto da sessão: o livre (novo) ou os campos antigos juntados num texto só. */
+export function entryBody(e: JournalEntry): string {
+  if (e.body !== undefined) return e.body;
+  const parts = [e.summary?.trim()].filter(Boolean) as string[];
+  for (const [key, label] of LEGACY_FIELDS) {
+    const v = String(e[key] ?? '').trim();
+    if (v) parts.push(`${label}: ${v}`);
+  }
+  return parts.join('\n\n');
+}
+
+/** Número da sessão (as antigas eram "Sessão 3" no campo data). */
+export function entrySession(e: JournalEntry, fallback: number): number {
+  if (e.session) return e.session;
+  const m = /sess[aã]o\s*(\d+)/i.exec(e.date ?? '');
+  return m ? Number(m[1]) : fallback;
+}
+
+export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** Alguém ou algum lugar que dá para citar. */
+export interface Mentionable {
+  key: string;
+  kind: 'npc' | 'hero' | 'place';
+  name: string;
+  portrait?: string | null;
+  /** "Taverneira", "Anão · Clérigo 5". */
+  role?: string;
+  summary?: string;
+}
+
+/** Quem da lista aparece no texto: "@Nome", "#Nome" ou o nome inteiro escrito. */
+export function findMentions<T extends Pick<Mentionable, 'name'>>(texts: string[], list: T[]): T[] {
+  const all = norm(texts.join('\n'));
+  return list.filter((m) => {
+    const name = norm(m.name);
+    if (!name) return false;
+    let i = all.indexOf(name);
+    while (i >= 0) {
+      const before = all[i - 1];
+      const after = all[i + name.length];
+      if ((!before || !/[a-z0-9]/.test(before)) && (!after || !/[a-z0-9]/.test(after))) return true;
+      i = all.indexOf(name, i + 1);
+    }
+    return false;
+  });
+}
+
+/**
+ * Lugares marcados com #: palavras com inicial maiúscula, ligadas por
+ * de/da/do/dos/das ("#Torre de Vigia", "#Porto Sombrio", "#Waterdeep").
+ */
+const PLACE_RE = /#([A-ZÀ-Ý][\p{L}'’-]*(?:\s+(?:(?:de|da|do|dos|das|e)\s+)?[A-ZÀ-Ý][\p{L}'’-]*)*)/gu;
+
+/** Mesmo padrão, ancorado no começo (para ler um lugar a partir de uma posição). */
+const PLACE_AT = new RegExp('^' + PLACE_RE.source, 'u');
+
+export function placeTags(text: string): string[] {
+  const out: string[] = [];
+  // regex nova a cada leitura: o lastIndex de uma regex global não vaza entre chamadas
+  for (const m of text.matchAll(new RegExp(PLACE_RE))) if (!out.includes(m[1])) out.push(m[1]);
+  return out;
+}
+
+/** Todos os textos do diário (para lugares conhecidos, busca e Pessoas). */
+export function diaryTexts(char: Pick<Character, 'diary' | 'notes' | 'journal'>): string[] {
+  const d = diaryOf(char);
+  return [
+    ...d.notes.map((n) => n.text),
+    ...char.journal.map((e) => `${e.title}\n${entryBody(e)}`),
+    ...d.quests.map((q) => [q.title, q.giver, q.reward, q.notes, ...q.objectives.map((o) => o.text)].filter(Boolean).join('\n')),
+    ...d.clues.map((c) => [c.title, c.text, c.source, c.verdict].filter(Boolean).join('\n')),
+  ];
+}
+
+/** Lugares já marcados em qualquer parte do diário (sugestões do #). */
+export function knownPlaces(char: Pick<Character, 'diary' | 'notes' | 'journal'>): Mentionable[] {
+  const seen = new Map<string, string>();
+  for (const t of diaryTexts(char)) for (const p of placeTags(t)) if (!seen.has(norm(p))) seen.set(norm(p), p);
+  return [...seen.values()].sort((a, b) => a.localeCompare(b)).map((name) => ({ key: `place:${norm(name)}`, kind: 'place' as const, name }));
+}
+
+/** Pedaços de um texto para exibir: texto puro, menção (@) ou lugar (#). */
+export type TextPiece = { kind: 'text'; text: string } | { kind: 'mention'; text: string; target: Mentionable } | { kind: 'place'; text: string };
+
+export function splitMentions(text: string, people: Mentionable[]): TextPiece[] {
+  // nomes mais longos primeiro ("Mara Pedrafria" antes de "Mara")
+  const names = [...people].sort((a, b) => b.name.length - a.name.length);
+  const out: TextPiece[] = [];
+  let buf = '';
+  let i = 0;
+  const flush = () => {
+    if (buf) out.push({ kind: 'text', text: buf });
+    buf = '';
+  };
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '@') {
+      const rest = norm(text.slice(i + 1, i + 61));
+      const hit = names.find((p) => {
+        const n = norm(p.name);
+        return rest.startsWith(n) && !/[a-z0-9]/.test(rest[n.length] ?? '');
+      });
+      if (hit) {
+        flush();
+        out.push({ kind: 'mention', text: text.slice(i + 1, i + 1 + hit.name.length), target: hit });
+        i += 1 + hit.name.length;
+        continue;
+      }
+    }
+    if (ch === '#') {
+      const m = PLACE_AT.exec(text.slice(i));
+      if (m) {
+        flush();
+        out.push({ kind: 'place', text: m[1] });
+        i += m[0].length;
+        continue;
+      }
+    }
+    buf += ch;
+    i++;
+  }
+  flush();
+  return out;
+}
+
+/** Resumo automático de uma sessão: quem apareceu e por onde o grupo passou. */
+export function sessionDigest(text: string, people: Mentionable[]): { people: Mentionable[]; places: string[] } {
+  return { people: findMentions([text], people), places: placeTags(text) };
+}
+
+/** Rabiscos em aberto (fixados primeiro), para a ficha impressa. */
+export function printableNotes(char: Pick<Character, 'diary' | 'notes'>): string {
+  return diaryOf(char)
+    .notes.filter((n) => !n.done && n.text.trim())
+    .sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.at - a.at)
+    .map((n) => n.text.trim().replace(/[@#](?=\S)/g, ''))
+    .join('\n\n');
+}
