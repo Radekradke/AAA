@@ -1,3 +1,4 @@
+import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
@@ -42,6 +43,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const store = useCharacterStore();
+  const spendHitDie = useSpendHitDie(char, derived);
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check } = useDiceRoller();
   const resources = characterResources(char);
@@ -142,12 +144,8 @@ export function TabMesa({ char, derived }: TabProps) {
           <StatChip
             label="Dados de Vida"
             value={`${char.combat.hitDiceRemaining}/${derived.hitDiceMax}`}
-            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto para curar (dado + CON). Metade recupera no descanso longo.', ['Descanso'])}
-            onRoll={
-              char.combat.hitDiceRemaining > 0
-                ? () => { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); }
-                : undefined
-            }
+            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto: rola o dado + CON e a vida sobe sozinha. Metade volta no descanso longo.', ['Descanso'])}
+            onRoll={spendHitDie}
           />
         </div>
 

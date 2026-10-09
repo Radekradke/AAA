@@ -7466,3 +7466,26 @@ select optgroup {
   vertical-align: middle;
   text-transform: none;
 }
+
+/* Descanso: gastar Dados de Vida sem sair da aba */
+.fv-rest-dice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-rest-dice b {
+  display: block;
+  font: 700 15px var(--font-display);
+  color: var(--ink);
+}
+.fv-rest-dice span {
+  font: 12px var(--font-num);
+  color: var(--muted);
+}
