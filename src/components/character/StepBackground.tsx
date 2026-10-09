@@ -2,7 +2,7 @@ import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { BACKGROUNDS, getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY } from '@/data/skills';
-import { backgroundFacts } from '@/engine/creationSummary';
+import { backgroundFacts, STEP_BACKGROUND } from '@/engine/creationSummary';
 import { useTheme } from '@/lib/useTheme';
 import { LANGUAGE_OPTIONS } from '@/data/classChoices';
 import { languagePicks } from '@/engine/originChoices';
@@ -31,7 +31,7 @@ export function StepBackground({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={2} char={char} />
+      <StepHeader step={STEP_BACKGROUND} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Antecedentes" compact>

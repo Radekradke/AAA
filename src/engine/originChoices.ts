@@ -25,7 +25,9 @@ export function raceSkillProfs(char: Character): SkillKey[] {
 export interface SkillBudget {
   bgSkills: Set<SkillKey>;
   raceSkills: Set<SkillKey>;
-  /** Perícias que já vêm treinadas (antecedente + raça). */
+  /** Perícias escolhidas nos Dons (domínio, talento…). */
+  giftSkills: Set<SkillKey>;
+  /** Perícias que já vêm treinadas (antecedente + raça + Dons). */
   granted: Set<SkillKey>;
   /** Perícias repetidas entre raça e antecedente (cada uma vira 1 livre). */
   overlap: SkillKey[];
@@ -47,7 +49,13 @@ export function skillBudget(char: Character): SkillBudget {
   const bgSkills = new Set<SkillKey>(bg.skills);
   const raceSkills = new Set<SkillKey>(raceSkillProfs(char));
   const overlap = [...raceSkills].filter((k) => bgSkills.has(k));
-  const granted = new Set<SkillKey>([...bgSkills, ...raceSkills]);
+  // perícias que vieram dos Dons (Bênçãos do Conhecimento, Acólito da Natureza…)
+  const giftSkills = new Set<SkillKey>(
+    Object.entries(char.choices ?? {})
+      .filter(([k]) => /\.(knowledgeSkills|natureSkill|loreSkills|squatSkill|prodigySkill|skillExpertSkill)$/.test(k))
+      .flatMap(([, v]) => v) as SkillKey[],
+  );
+  const granted = new Set<SkillKey>([...bgSkills, ...raceSkills, ...giftSkills]);
   const list = new Set(cls.skillChoices);
 
   const chosen = char.skillProfs.filter((k) => !granted.has(k));
@@ -63,6 +71,7 @@ export function skillBudget(char: Character): SkillBudget {
   return {
     bgSkills,
     raceSkills,
+    giftSkills,
     granted,
     overlap,
     classTotal: cls.skillPicks,

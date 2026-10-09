@@ -20,10 +20,16 @@ test.describe('criação de herói', () => {
 
     // Origem → Caminho → Passado (padrões: Humano, Guerreiro, Soldado)
     await expect(page.getByRole('button', { name: /Humano/ })).toHaveAttribute('aria-pressed', 'true');
-    await cta.click();
-    // Caminho: o Guerreiro escolhe o Estilo de Luta já na criação
-    await page.getByRole('group', { name: 'Estilo de Luta' }).getByRole('button', { name: /^Defesa/ }).click();
-    await cta.click();
+    await cta.click(); // Caminho
+    await cta.click(); // Dons
+    // Dons: o Guerreiro escolhe o Estilo de Luta; o painel explica antes de escolher
+    await expect(page.getByRole('heading', { name: 'Dons' })).toBeVisible();
+    const estilos = page.getByRole('group', { name: 'Estilo de Luta' });
+    await estilos.getByRole('button', { name: /^Defesa/ }).hover();
+    await expect(page.locator('.fv-detail h3')).toHaveText('Defesa');
+    await estilos.getByRole('button', { name: /^Defesa/ }).click();
+    await expect(page.locator('.fv-gift-stop.is-done')).toContainText('Defesa');
+    await cta.click(); // Passado
 
     // Passado: o antecedente pede 1 idioma à escolha
     const idiomas = page.getByRole('group', { name: 'Idiomas à escolha' });
@@ -79,20 +85,25 @@ test.describe('criação de herói', () => {
     await page.goto('/criar');
     const cta = page.locator('.fv-foot-cta');
 
-    // Origem: Anão escolhe a ferramenta ali mesmo
+    // Origem: Anão
     await page.getByRole('button', { name: /^Anão/ }).click();
-    await page.getByRole('group', { name: /Ferramentas \(Anão\)/ }).getByRole('button').first().click();
     await cta.click();
 
-    // Caminho: Clérigo escolhe o domínio e as Bênçãos do Conhecimento
+    // Caminho: Clérigo
     await page.getByRole('button', { name: /^Clérigo/ }).click();
-    await page.getByRole('radiogroup', { name: 'Domínio Divino' }).getByRole('radio', { name: 'Domínio do Conhecimento' }).click();
-    for (const name of ['Bênçãos do Conhecimento (idiomas)', 'Bênçãos do Conhecimento (perícias)']) {
+    await expect(page.locator('.fv-detail')).toContainText('Dons (1º nível)');
+    await cta.click();
+
+    // Dons: domínio primeiro; as Bênçãos do Conhecimento surgem na trilha
+    const track = page.getByRole('navigation', { name: 'Decisões do 1º nível' });
+    await page.getByRole('group', { name: 'Domínio Divino' }).getByRole('button', { name: /Domínio do Conhecimento/ }).click();
+    await expect(page.locator('.fv-detail')).toContainText('Magias de domínio');
+    for (const [name, n] of [['Bênçãos do Conhecimento (idiomas)', 2], ['Bênçãos do Conhecimento (perícias)', 2], ['Proficiência com Ferramentas (Anão)', 1]] as const) {
+      await track.getByRole('button', { name: new RegExp(name.replace(/[()]/g, '\\$&')) }).click();
       const g = page.getByRole('group', { name });
-      await g.locator('button[aria-pressed="false"]').first().click();
-      await g.locator('button[aria-pressed="false"]').first().click();
+      for (let i = 0; i < n; i++) await g.locator('button[aria-pressed="false"]').first().click();
     }
-    await expect(page.locator('.fv-lv1 .is-due')).toHaveCount(0);
+    await expect(track.locator('.fv-gift-stop:not(.is-done)')).toHaveCount(0);
     await cta.click(); // Passado
     await cta.click(); // Atributos
     await cta.click(); // Perícias
@@ -121,5 +132,24 @@ test.describe('criação de herói', () => {
     await tab(page, 'Evoluir', 'Evoluir');
     await expect(page.getByText('Subir para o Nível 2')).toBeVisible();
     await expect(page.getByText('Escolhas pendentes')).toHaveCount(0);
+  });
+
+  test('Dons no celular: tocar no cartão abre a gaveta com o que ele faz @celular', async ({ page }) => {
+    test.skip(test.info().project.name !== 'celular');
+    await signIn(page, 'guest');
+    await page.goto('/criar');
+    const cta = page.locator('.fv-foot-cta');
+    await cta.click(); // Caminho
+    await page.getByRole('button', { name: /^Bardo/ }).click();
+    await cta.click(); // Dons
+    const grupo = page.getByRole('group', { name: 'Instrumentos musicais' });
+    await grupo.getByRole('button', { name: /^Alaúde/ }).click();
+    const gaveta = page.getByRole('dialog', { name: 'Alaúde' });
+    await expect(gaveta).toContainText('O que entra na ficha');
+    await expect(grupo.getByRole('button', { name: /^Alaúde/ })).toHaveAttribute('aria-pressed', 'false'); // só mostrou
+    await gaveta.getByRole('button', { name: 'Escolher Alaúde' }).click();
+    await expect(gaveta).toHaveCount(0);
+    await expect(grupo.getByRole('button', { name: /^Alaúde/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.fv-gift-stop')).toContainText('1 de 3');
   });
 });

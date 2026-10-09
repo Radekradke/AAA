@@ -16,10 +16,11 @@ import { StepAbilities } from '@/components/character/StepAbilities';
 import { StepSkills } from '@/components/character/StepSkills';
 import { StepGear } from '@/components/character/StepGear';
 import { StepSpells } from '@/components/character/StepSpells';
+import { StepGifts } from '@/components/character/StepGifts';
 import { StepAwaken } from '@/components/character/StepAwaken';
 import { HeroPanel } from '@/components/character/HeroPanel';
 import { Modal } from '@/components/ui/Modal';
-import { creationPending, CREATION_STEPS, STEP_GEAR, STEP_IDENTITY, STEP_SPELLS, visibleSteps } from '@/engine/creationSummary';
+import { creationPending, CREATION_STEPS, STEP_ABILITIES, STEP_BACKGROUND, STEP_CLASS, STEP_GEAR, STEP_GIFTS, STEP_IDENTITY, STEP_RACE, STEP_SKILLS, STEP_SPELLS, visibleSteps } from '@/engine/creationSummary';
 import { suggestCreationSpells } from '@/engine/creationSpells';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
@@ -164,11 +165,12 @@ export function CharacterCreator() {
 
   const renderStep = () => {
     switch (step) {
-      case 0: return <StepRace char={char} update={update} />;
-      case 1: return <StepClass char={char} update={update} />;
-      case 2: return <StepBackground char={char} update={update} />;
-      case 3: return <StepAbilities char={char} update={update} />;
-      case 4: return <StepSkills char={char} update={update} />;
+      case STEP_RACE: return <StepRace char={char} update={update} />;
+      case STEP_CLASS: return <StepClass char={char} update={update} />;
+      case STEP_GIFTS: return <StepGifts char={char} update={update} />;
+      case STEP_BACKGROUND: return <StepBackground char={char} update={update} />;
+      case STEP_ABILITIES: return <StepAbilities char={char} update={update} />;
+      case STEP_SKILLS: return <StepSkills char={char} update={update} />;
       case STEP_SPELLS: return <StepSpells char={char} update={update} />;
       case STEP_GEAR: return <StepGear char={char} update={update} />;
       default: return <StepAwaken char={char} update={update} onGoStep={goStep} />;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { clearClassChoices, clearSubclassChoices, creationChoices, pendingChoices } from '../classChoices';
-import { creationPending, STEP_CLASS, STEP_RACE, subclassAtCreation } from '../creationSummary';
+import { creationPending, giftsAtCreation, STEP_GIFTS, subclassAtCreation, visibleSteps } from '../creationSummary';
 import { applySelection, defaultSelection, kitForClass, revalidateKit, selectionFromChar } from '../loadout';
 import { deriveCharacter } from '../dndRules';
 import { CLASSES } from '@/data/classes';
@@ -35,9 +35,7 @@ describe('escolhas do 1º nível feitas na criação', () => {
           for (const subrace of getSubraces(race.id).length ? getSubraces(race.id).map((s) => s.id) : [null]) {
             const c = fillAll(draft(cls.id, { raceId: race.id, subraceId: subrace }), sub);
             const label = `${cls.id}/${sub ?? '-'} ${race.id}/${subrace ?? '-'}`;
-            expect(creationPending(c).filter((p) => p.step === STEP_CLASS || p.step === STEP_RACE).map((p) => p.label), label).toEqual(
-              subrace === 'high-elf' ? ['Escolha o truque do Alto Elfo'] : [],
-            );
+            expect(creationPending(c).filter((p) => p.step === STEP_GIFTS).map((p) => p.label), label).toEqual([]);
             const f = finalizeCharacter(c);
             expect(pendingChoices(f).map((p) => p.spec.storeKey), label).toEqual([]);
             expect(!f.subclassId && subclassAtCreation(f), label).toBe(false);
@@ -49,12 +47,18 @@ describe('escolhas do 1º nível feitas na criação', () => {
 
   it('a criação aponta o que falta: subclasse, Estilo de Luta, Inimigo Favorito, ferramenta do Anão', () => {
     expect(creationPending(draft('cleric')).map((p) => p.label)).toContain('Escolha o Domínio Divino (Clérigo)');
-    expect(creationPending(draft('warlock')).some((p) => p.label.includes('Patrono Transcendental') && p.step === STEP_CLASS)).toBe(true);
-    expect(creationPending(draft('fighter')).some((p) => p.label === 'Escolha: Estilo de Luta' && p.step === STEP_CLASS)).toBe(true);
+    expect(creationPending(draft('warlock')).some((p) => p.label.includes('Patrono Transcendental') && p.step === STEP_GIFTS)).toBe(true);
+    expect(creationPending(draft('fighter')).some((p) => p.label === 'Escolha: Estilo de Luta' && p.step === STEP_GIFTS)).toBe(true);
     const ranger = creationPending(draft('ranger')).map((p) => p.label);
     expect(ranger).toEqual(expect.arrayContaining(['Escolha: Inimigo Favorito', 'Escolha: Explorador Nato (terreno)']));
     expect(creationPending(draft('bard')).some((p) => p.label === 'Escolha: Instrumentos musicais (faltam 3)')).toBe(true);
-    expect(creationPending(draft('fighter', { raceId: 'dwarf', subraceId: 'hill-dwarf' })).find((p) => p.label.includes('Anão'))?.step).toBe(STEP_RACE);
+    expect(creationPending(draft('fighter', { raceId: 'dwarf', subraceId: 'hill-dwarf' })).find((p) => p.label.includes('Anão'))?.step).toBe(STEP_GIFTS);
+    // Alto Elfo: o truque de mago também é um Dom
+    expect(creationPending(draft('fighter', { raceId: 'elf', subraceId: 'high-elf' })).some((p) => p.label === 'Escolha: Truque de mago (Alto Elfo)' && p.step === STEP_GIFTS)).toBe(true);
+    // o capítulo Dons só aparece quando há o que decidir
+    expect(giftsAtCreation(draft('barbarian', { raceId: 'human', subraceId: null }))).toBe(false);
+    expect(visibleSteps(draft('barbarian', { raceId: 'human', subraceId: null }))).not.toContain(STEP_GIFTS);
+    expect(visibleSteps(draft('barbarian', { raceId: 'dwarf', subraceId: 'hill-dwarf' }))).toContain(STEP_GIFTS);
     // Feiticeiro Dracônico: Ancestral Dragão aparece só depois de escolher a origem
     const sorc = draft('sorcerer');
     expect(creationChoices(sorc, 'class')).toEqual([]);

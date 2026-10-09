@@ -1,4 +1,5 @@
 import type { StepProps } from './stepTypes';
+import { STEP_SKILLS } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle } from './creatorUi';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
@@ -73,7 +74,7 @@ export function StepSkills({ char, update }: StepProps) {
   return (
     <div className="fv-step">
       <StepHeader
-        step={4}
+        step={STEP_SKILLS}
         char={char}
         subtitle={`Escolha ${cls.skillPicks} de ${cls.label}${extraPicks ? ` e ${extraPicks} livre${extraPicks > 1 ? 's' : ''}` : ''}.`}
       />
@@ -85,7 +86,7 @@ export function StepSkills({ char, update }: StepProps) {
           <LoreTooltip key={k} info={skillLore(k, 0, true)}>
             <span className="fv-pill is-on is-static">
               {SKILL_BY_KEY[k].label}
-              <small>{bgSkills.has(k) && budget.raceSkills.has(k) ? `${bg.label} + ${race.label}` : bgSkills.has(k) ? bg.label : race.label}</small>
+              <small>{bgSkills.has(k) && budget.raceSkills.has(k) ? `${bg.label} + ${race.label}` : bgSkills.has(k) ? bg.label : budget.raceSkills.has(k) ? race.label : 'Dons'}</small>
             </span>
           </LoreTooltip>
         ))}

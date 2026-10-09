@@ -590,3 +590,17 @@ export const RACE_CHOICES: Record<string, ChoiceSpec[]> = {
     },
   ],
 };
+
+/** Escolhas de sub-raça (PHB 2014): também em `choices['race.<chave>']`. */
+export const SUBRACE_CHOICES: Record<string, ChoiceSpec[]> = {
+  'high-elf': [
+    {
+      key: 'highElfCantrip',
+      catalog: 'spell',
+      label: 'Truque de mago (Alto Elfo)',
+      count: 1,
+      spell: { classes: ['wizard'], circle: 0 },
+      hint: 'Um truque da lista do mago, conjurado com Inteligência e à vontade.',
+    },
+  ],
+};

@@ -1,5 +1,5 @@
 import type { Character } from '@/types/character';
-import { CATALOGS, CLASS_CHOICES, FEAT_CHOICES, RACE_CHOICES, SUBCLASS_CHOICES } from '@/data/classChoices';
+import { CATALOGS, CLASS_CHOICES, FEAT_CHOICES, RACE_CHOICES, SUBCLASS_CHOICES, SUBRACE_CHOICES } from '@/data/classChoices';
 import { getFeat } from '@/data/feats';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
 import { getSubclass } from '@/data/subclasses';
@@ -7,7 +7,7 @@ import { getClass } from '@/data/classes';
 import { SPELLS, SPELL_BY_ID, spellVisible } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
-import { raceOf } from '@/data/races';
+import { getSubrace, raceOf } from '@/data/races';
 import { raceSkillProfs } from './originChoices';
 
 /** Uma escolha com contexto: de qual classe/subclasse e nível ela vem. */
@@ -103,7 +103,9 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
 
 /** Escolhas da raça (Anão: ferramenta). */
 export function raceSpecs(char: Character): ResolvedSpec[] {
-  return (RACE_CHOICES[char.raceId] ?? []).map((spec) => ({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: raceOf(char).label }));
+  const list = [...(RACE_CHOICES[char.raceId] ?? []), ...(SUBRACE_CHOICES[char.subraceId ?? ''] ?? [])];
+  const source = getSubrace(char.raceId, char.subraceId)?.label ?? raceOf(char).label;
+  return list.map((spec) => ({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: RACE_CHOICES[char.raceId]?.includes(spec) ? raceOf(char).label : source }));
 }
 
 /**
@@ -251,7 +253,7 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
 /** Rótulo de uma opção escolhida (para listas e linha do tempo). */
 export function optionLabel(storeKey: string, id: string): string {
   const key = storeKey.split('.').slice(1).join('.');
-  for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l }))]) {
+  for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l })), ...Object.values(SUBRACE_CHOICES).map((l) => ({ 0: l }))]) {
     for (const list of Object.values(specs)) {
       const spec = list.find((s) => s.key === key);
       if (spec) return findOption(spec, id)?.label ?? id;
@@ -326,7 +328,7 @@ export function choiceSummary(char: Character): { storeKey: string; label: strin
     if (!ids.length) continue;
     const key = storeKey.split('.').slice(1).join('.');
     let spec: ChoiceSpec | undefined;
-    for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l }))]) {
+    for (const specs of [...Object.values(CLASS_CHOICES), ...Object.values(SUBCLASS_CHOICES), ...Object.values(FEAT_CHOICES).map((l) => ({ 0: l })), ...Object.values(RACE_CHOICES).map((l) => ({ 0: l })), ...Object.values(SUBRACE_CHOICES).map((l) => ({ 0: l }))]) {
       for (const list of Object.values(specs)) {
         spec = spec ?? list.find((s) => s.key === key);
       }
