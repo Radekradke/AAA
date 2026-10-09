@@ -227,3 +227,15 @@ export function poolAffected(total: number, hps: number[]): { affected: number[]
   }
   return { affected, spared: sorted.slice(i), left };
 }
+
+/** Dano do truque no nível do personagem, para o cartão ("2d8 radiante", "2× 1d10 energia"). */
+export function spellDamageLabel(sp: Spell, charLevel: number): string | null {
+  if (!sp.damage) return null;
+  if (sp.level !== 0) return `${sp.damage.dice} ${sp.damage.type}`;
+  const tier = 1 + [5, 11, 17].filter((l) => charLevel >= l).length;
+  const base = parseDice(sp.damage.dice);
+  if (!base || tier === 1) return `${sp.damage.dice} ${sp.damage.type}`;
+  // Rajada Mística: mais feixes, não mais dados
+  if (/feixes?/i.test(sp.higher ?? '')) return `${tier}× ${sp.damage.dice} ${sp.damage.type}`;
+  return `${base.count * tier}d${base.sides}${base.bonus ? `+${base.bonus}` : ''} ${sp.damage.type}`;
+}

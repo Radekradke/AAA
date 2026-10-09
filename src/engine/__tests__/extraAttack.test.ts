@@ -31,3 +31,16 @@ describe('Ataque Extra (PHB 2014)', () => {
     expect(at('fighter', 5, { classLevels: [{ classId: 'fighter', level: 5 }, { classId: 'paladin', level: 5 }], level: 10 }).count).toBe(2);
   });
 });
+
+describe('dano do truque no cartão escala com o nível', () => {
+  it('Chama Sagrada 2d8 no 5º, Rajada Mística 2 feixes', async () => {
+    const { spellDamageLabel } = await import('../spellCast');
+    const { SPELLS } = await import('@/data/spells');
+    const flame = SPELLS.find((s) => s.name === 'Chama Sagrada')!;
+    const eb = SPELLS.find((s) => s.id === 'sp-eldritch')!;
+    expect(spellDamageLabel(flame, 1)).toBe('1d8 radiante');
+    expect(spellDamageLabel(flame, 5)).toBe('2d8 radiante');
+    expect(spellDamageLabel(flame, 17)).toBe('4d8 radiante');
+    expect(spellDamageLabel(eb, 5)).toBe('2× 1d10 energia');
+  });
+});
