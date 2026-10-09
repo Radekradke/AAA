@@ -245,6 +245,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
                 {info.headline.label && <span>{info.headline.label}</span>}
               </div>
             )}
+            {info.flavor && <p className="fv-lore-flavor">{info.flavor}</p>}
             {info.props?.length ? (
               <ul className="fv-lore-props">
                 {info.props.map((p) => <li key={p}>{p}</li>)}

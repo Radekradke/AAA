@@ -5,6 +5,8 @@ import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
 import { getCondition } from '@/data/conditions';
 import type { SpellAutomation } from '@/engine/spellAutomation';
 import { spellAutomation } from '@/engine/spellAutomation';
+import { itemDescription } from '@/data/itemDescriptions';
+import { itemTags } from '@/engine/itemTags';
 
 export interface LoreInfo {
   title: string;
@@ -23,6 +25,8 @@ export interface LoreInfo {
   footer?: string[];
   /** Magias: o que a ficha aplica, o que só rola e o que fica com a mesa. */
   automation?: SpellAutomation;
+  /** Descrição imersiva do item (em itálico, antes das regras). */
+  flavor?: string;
 }
 
 export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
@@ -178,6 +182,10 @@ export function priceLabel(gp: number | undefined): string | null {
  * rodapé, peso e preço.
  */
 export function itemLore(item: {
+  /** Id do catálogo (item do livro) ou `itemId` (instância na mochila): acha a descrição. */
+  id?: string;
+  itemId?: string;
+  group?: string;
   name: string;
   category: string;
   rarity: Rarity | string;
@@ -250,6 +258,9 @@ export function itemLore(item: {
     headline = { value: item.heal, label: 'PV de cura' };
     if (!body) body = 'Beba (ação) para recuperar pontos de vida.';
   }
+  // texto do catálogo: descrição imersiva + para que serve na mesa
+  const desc = itemDescription(item.itemId ?? item.id);
+  if (desc) body = a || item.acBonus ? desc.use : [body, desc.use].filter(Boolean).join(' ');
   props.push(...auto);
   if (item.charges?.max) props.push(`${item.charges.max} cargas (recarregam ao amanhecer)`);
   if (item.attunement) {
@@ -257,6 +268,7 @@ export function itemLore(item: {
   }
 
   const footer = [item.weight ? `${item.weight.toLocaleString('pt-BR')} kg` : '', priceLabel(item.value) ?? ''].filter(Boolean);
+  const tags = itemTags(item, desc?.tags);
   return {
     title: item.name,
     titleColor: rarity.color,
@@ -265,6 +277,8 @@ export function itemLore(item: {
     props,
     body: body || (auto.length ? 'A ficha aplica os efeitos sozinha.' : ''),
     footer,
+    ...(desc && { flavor: desc.desc }),
+    ...(tags.length && { tags }),
   };
 }
 

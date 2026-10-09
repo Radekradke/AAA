@@ -646,6 +646,16 @@ button:active:not(:disabled) {
     font-size: 12.5px;
     color: var(--muted);
   }
+  /* descrição imersiva do item: o que ele é, antes das regras */
+  .fv-lore-flavor {
+    margin: 9px 0 0;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink), var(--muted) 35%);
+    overflow-wrap: break-word;
+  }
   .fv-lore-props {
     margin: 9px 0 0;
     padding: 0;

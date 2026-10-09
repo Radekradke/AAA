@@ -562,3 +562,11 @@ Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estud
 4. Ficha antiga com um pacote fechado no inventário: o card mostra **Abrir pacote**. Tocar abre os itens no mesmo recipiente; o Desfazer devolve o pacote fechado.
 5. O mestre entregando um pacote pela mesa ao vivo: chega aberto na ficha do jogador.
 6. Adicione um **Kit de Disfarce** ou **Kit de Curandeiro**: entra como um item só.
+
+## 62. Descrições e etiquetas de itens (lote 1: armas e armaduras)
+
+1. Inventário → **+ Adicionar** → passe o mouse (no celular: segure) em **Armadura de Couro**: abaixo da CA aparece a descrição em itálico, depois a linha prática ("CA 11 + seu modificador de Destreza, sem atrapalhar a Furtividade") e as etiquetas **Barata · Furtividade**.
+2. **Rapieira**: depois das propriedades, "Ataca com Força ou Destreza (a melhor)." seguido de para que ela serve; etiqueta **Social**.
+3. Etiquetas automáticas: **Adaga** mostra Arremessável; **Arco Longo**, Duas mãos e Precisa de munição; **Armadura de Placas**, Barulhenta.
+4. Uma **Espada Longa +2** usa a descrição da espada longa.
+5. Na mochila, a mesma dica aparece no card do item (inclusive em itens antigos, achados pelo id do catálogo). Itens criados na Forja não têm descrição (ainda).
