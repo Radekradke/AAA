@@ -4,6 +4,7 @@ import type { StepProps } from './stepTypes';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail } from './creatorUi';
 import { GiftVisual, optionLook, subclassLook } from './giftLook';
+import { ItemArtCard } from '@/components/ui/LoreTooltip';
 import type { GiftLook } from './giftLook';
 import { getClass } from '@/data/classes';
 import { subclassesFor } from '@/data/subclasses';
@@ -80,6 +81,8 @@ export function StepGifts({ char, update }: StepProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const [advance, setAdvance] = useState(false);
+  // grupos (ferramentas × instrumentos, idiomas padrão × exóticos): uma aba por grupo
+  const [groupPick, setGroupPick] = useState<Record<string, string>>({});
   const narrow = useNarrow();
   const [sheet, setSheet] = useState(false);
   const active = decisions.find((d) => d.id === activeId) ?? decisions.find((d) => d.id === firstOpen) ?? decisions[0];
@@ -138,8 +141,15 @@ export function StepGifts({ char, update }: StepProps) {
     if (!on && was + 1 === d.total) setAdvance(true);
   };
 
-  const shownId = preview ?? (focus && active.options.some((o) => o.id === focus) ? focus : null) ?? active.chosen[active.chosen.length - 1] ?? active.options[0]?.id;
-  const shown = active.options.find((o) => o.id === shownId) ?? active.options[0];
+  const groups = [...new Set(active.options.map((o) => o.look.group).filter((g): g is string => !!g))];
+  const tabbed = groups.length > 1 && active.options.length > 10;
+  const chosenGroup = active.options.find((o) => active.chosen.includes(o.id))?.look.group;
+  const group = tabbed ? groupPick[active.id] ?? chosenGroup ?? groups[0] : undefined;
+  const shownOptions = group ? active.options.filter((o) => o.look.group === group) : active.options;
+
+  const inView = (id: string | null | undefined) => (id && shownOptions.some((o) => o.id === id) ? id : null);
+  const shownId = inView(preview) ?? inView(focus) ?? [...active.chosen].reverse().find((id) => inView(id)) ?? shownOptions[0]?.id;
+  const shown = shownOptions.find((o) => o.id === shownId) ?? shownOptions[0] ?? active.options[0];
   const isOn = active.chosen.includes(shown.id);
   const done = active.chosen.length >= active.total;
   const color = (look: GiftLook) => look.color ?? cls.jewel;
@@ -147,7 +157,8 @@ export function StepGifts({ char, update }: StepProps) {
   const detail = (
     <ChoiceDetail
       icon={shown.look.icon}
-      visual={shown.look.art || shown.look.school ? <GiftVisual look={shown.look} size={40} /> : undefined}
+      visual={shown.look.school ? <GiftVisual look={shown.look} size={40} /> : undefined}
+      media={shown.look.art ? <ItemArtCard src={shown.look.art} rarity="comum" size="sm" /> : undefined}
       color={color(shown.look)}
       eyebrow={`${active.label} · ${active.source}`}
       title={shown.label}
@@ -155,7 +166,7 @@ export function StepGifts({ char, update }: StepProps) {
       desc={shown.look.desc}
       facts={shown.look.facts}
       factsTitle="O que entra na ficha"
-    >
+      actions={
       <div className="fv-gift-cta">
         <button
           type="button"
@@ -169,7 +180,8 @@ export function StepGifts({ char, update }: StepProps) {
           {isOn ? (active.id === 'subclass' || active.total === 1 ? '✓ Escolhido' : 'Tirar da escolha') : done && active.total > 1 ? `Trocar por ${shown.label}` : `Escolher ${shown.label}`}
         </button>
       </div>
-    </ChoiceDetail>
+      }
+    />
   );
 
   return (
@@ -206,15 +218,40 @@ export function StepGifts({ char, update }: StepProps) {
       <div className="fv-gift-brief">
         <span className="fv-gift-count">{active.total > 1 ? `Escolha ${active.total} · ${active.chosen.length} de ${active.total}` : 'Escolha 1'}</span>
         {active.hint && <p>{active.hint}</p>}
+        <small className="fv-gift-howto">{narrow ? 'Toque num cartão para ver o que ele faz.' : 'Passe o mouse num cartão para ver o que ele faz · clique para escolher.'}</small>
       </div>
+
+      {tabbed && (
+        <div className="fv-seg fv-gift-groups" role="tablist" aria-label={`Tipos de ${active.label.toLowerCase()}`}>
+          {groups.map((g) => {
+            const n = active.options.filter((o) => o.look.group === g).length;
+            const picked = active.options.filter((o) => o.look.group === g && active.chosen.includes(o.id)).length;
+            return (
+              <button
+                key={g}
+                type="button"
+                role="tab"
+                aria-selected={g === group}
+                className={g === group ? 'is-on' : ''}
+                onClick={() => {
+                  setGroupPick((p) => ({ ...p, [active.id]: g }));
+                  setFocus(null);
+                }}
+              >
+                {g} <small>{picked ? `✓ ${picked}` : n}</small>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="fv-choice">
         <OptionGrid label={active.label}>
-          {active.options.map((o) => (
+          {shownOptions.map((o) => (
             <OptionTile
               key={o.id}
               icon={o.look.icon}
-              visual={o.look.art || o.look.school ? <GiftVisual look={o.look} size={26} /> : undefined}
+              visual={o.look.school ? <GiftVisual look={o.look} size={26} /> : undefined}
               label={o.label}
               line={o.look.line}
               color={color(o.look)}

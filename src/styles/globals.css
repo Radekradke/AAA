@@ -7225,3 +7225,30 @@ select optgroup {
 .fv-item-tip:hover {
   color: var(--gold);
 }
+/* Dons: abas por grupo e a dica de uso */
+.fv-gift-groups {
+  margin: 0 0 12px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.fv-gift-groups small {
+  margin-left: 6px;
+  font: 700 10.5px var(--font-num);
+  opacity: 0.75;
+}
+.fv-gift-brief {
+  flex-wrap: wrap;
+}
+.fv-gift-howto {
+  flex-basis: 100%;
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--muted), transparent 20%);
+}
+/* painel dos Dons: a carta do item no lugar da caixinha do ícone */
+.fv-gifts .fv-detail-head > .fv-itemcard.is-sm {
+  width: 92px;
+}
+.fv-gifts .fv-gift-cta {
+  margin: 0 0 14px;
+}

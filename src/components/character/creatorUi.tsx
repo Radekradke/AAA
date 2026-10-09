@@ -83,10 +83,14 @@ export function OptionTile({ icon, visual, label, line, color, selected, onSelec
 }
 
 /** Painel da escolha atual: identidade da opção + o que ela concede. */
-export function ChoiceDetail({ icon, visual, color, eyebrow, title, tag, desc, facts, factsTitle, children }: {
+export function ChoiceDetail({ icon, visual, media, color, eyebrow, title, tag, desc, facts, factsTitle, actions, children }: {
+  /** Ação principal logo abaixo da descrição (antes da lista "Na ficha"). */
+  actions?: ReactNode;
   icon: IconName | string;
-  /** Arte grande no lugar do ícone (ex.: instrumento). */
+  /** Ícone próprio no lugar do glifo (ex.: escola da magia). */
   visual?: ReactNode;
+  /** Arte grande (carta do item) no lugar da caixinha do ícone. */
+  media?: ReactNode;
   factsTitle?: string;
   color: string;
   eyebrow: string;
@@ -99,9 +103,11 @@ export function ChoiceDetail({ icon, visual, color, eyebrow, title, tag, desc, f
   return (
     <section className="fv-detail" style={{ ['--opt-color' as string]: color } as CSSProperties} aria-live="polite">
       <div className="fv-detail-head">
-        <div className={'fv-detail-icon' + (visual ? ' has-visual' : '')}>
-          {visual ?? <GlyphIcon name={icon} size={40} />}
-        </div>
+        {media ?? (
+          <div className="fv-detail-icon">
+            {visual ?? <GlyphIcon name={icon} size={40} />}
+          </div>
+        )}
         <div style={{ minWidth: 0 }}>
           <div className="fv-detail-eyebrow">{eyebrow}</div>
           <h3>{title}</h3>
@@ -109,6 +115,7 @@ export function ChoiceDetail({ icon, visual, color, eyebrow, title, tag, desc, f
         </div>
       </div>
       <p className="fv-detail-desc" title={desc}>{desc}</p>
+      {actions}
       {facts && facts.length > 0 && <FactList facts={facts} title={factsTitle} />}
       {children}
     </section>
