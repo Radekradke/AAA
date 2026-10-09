@@ -113,9 +113,15 @@ export function CharacterSheet() {
     toast('Ficha exportada como arquivo JSON.');
   };
 
+  // regras desta ficha: ficam na aba Evoluir; o selo do cabeçalho leva direto ao painel
+  const openRules = () => {
+    setTab('evoluir');
+    setTimeout(() => document.getElementById('fv-regras')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  };
+
   const renderTab = () => {
     switch (activeTab) {
-      case 'mesa': return <TabMesa char={char} derived={derived} />;
+      case 'mesa': return <TabMesa char={char} derived={derived} goTab={setTab} />;
       case 'evoluir': return <TabEvoluir char={char} derived={derived} />;
       case 'combate': return <TabCombate char={char} derived={derived} />;
       case 'inventario': return <TabInventario char={char} derived={derived} />;
@@ -161,7 +167,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} onRules={openRules} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />

@@ -527,3 +527,27 @@ Antes: rode `supabase/diario_privado.sql` no Supabase (docs/SUPABASE.md §12). S
 5. **Imagens antigas**: pistas criadas antes desta mudança, com a imagem dentro da ficha, continuam aparecendo. A imagem passa para o aparelho e para a nuvem privada, e a ficha fica leve.
 6. **Histórico da ficha**: restaurar uma versão volta PV, itens, nível etc., mas **não mexe no Diário** (anotações mais novas ficam).
 7. Convidado (sem conta): tudo funciona no aparelho, como antes.
+
+## 60. Regra oficial × regra da mesa × automação; aba Jogar
+
+**Inspiração (PHB 2014: tem ou não tem)**
+1. Ficha nova, aba **Jogar**: o selo diz "Sem inspiração". Toque **+**: vira "Inspirado". O **+** fica desligado ("Já tem inspiração (regra 2014: não acumula)").
+2. **Evoluir → Regras desta ficha** → ligue **Inspiração acumulável** (etiqueta "Regra da mesa"). Volte ao Jogar: o selo mostra pontos, losangos e a marca **mesa**; o **+** acumula até 10.
+3. Desligue a regra: os pontos caem para 1 (continua inspirado).
+4. Ficha antiga que já tinha 3 pontos: continua com 3 e a regra aparece ligada (nada se perde).
+
+**Regras desta ficha**
+5. Ficha sem nada fora do livro: o cabeçalho não mostra selo; o painel diz "Nada fora do livro".
+6. Use um item criado na Forja, digite os atributos à mão ou ligue a inspiração acumulável: aparece no cabeçalho **"2014 · N fora do padrão"** (passe o mouse para ver a lista). Tocar leva ao painel em Evoluir.
+7. No painel, cada coisa tem a etiqueta do que é: Opcional do PHB (Talentos, Multiclasse), Regra da mesa, Homebrew, Outro livro (Origem de Tasha) ou Ajuste manual.
+8. O antigo botão "Homebrew" (que não controlava nada) saiu.
+
+**Magias: o que a ficha faz**
+9. Aba **Magias**: cada magia tem um selo — **✓ automática**, **◐ parcial** ou **✋ na mesa**.
+10. Passe o mouse (ou toque) no nome: a dica mostra **Na ficha** com linhas ✓ (a ficha aplica), ⚄ (a ficha rola) e ✋ (fica com a mesa). Ex.: Escudo = aplica +5 CA e sai sozinho; Bola de Fogo = rola o dano, o alvo faz salvaguarda e o mestre aplica; Bênção = fica marcada, mas o 1d4 você soma; Detectar Magia = resolvida na mesa.
+
+**Abas**
+11. A antiga aba **Mesa** agora se chama **Jogar** (as campanhas continuam em **Mesas**, no topo).
+12. No PC: Jogar, Ficha, Combate, Inventário, Magias, Diário | separador | Evoluir, Descanso, Retrato, Dados (menores). Passe o mouse em cada aba: aparece para que ela serve.
+13. No Jogar, os blocos têm atalho para o detalhe: Ataques → **Combate ›**, Salvaguardas → **Ficha ›**, Magia → **Magias ›**, Recursos & Descanso → **Descanso ›**.
+14. No celular, **Mais** abre uma lista com Diário, Evoluir, Descanso, Retrato e Dados, cada uma com uma linha dizendo para que serve.

@@ -2,21 +2,23 @@ import { HoloBadge } from '@/components/ui/holo-badge';
 import { Icon } from '@/components/ui/Icon';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
-import { INSPIRATION_MAX } from '@/engine/inspiration';
 
 interface InspirationControlProps {
   charId: string;
   points: number;
+  /** Máximo pela regra em vigor: 1 no PHB 2014; 10 com a regra da mesa (acumula). */
+  max: number;
   /** Efeito ao ganhar (brilho das partículas). */
   onGain?: () => void;
 }
 
 /**
- * Inspiração na mesa: o selo mostra os pontos e o estado; tocar nele
- * prepara a vantagem para o próximo teste d20 (o ponto só sai da ficha
- * quando o dado rola). + ganha um ponto do mestre, − corrige sem usar.
+ * Inspiração na mesa: o selo mostra o estado; tocar nele prepara a
+ * vantagem para o próximo teste d20 (só sai da ficha quando o dado rola).
+ * Regra 2014: tem ou não tem. Com a regra da mesa, acumula pontos.
  */
-export function InspirationControl({ charId, points, onGain }: InspirationControlProps) {
+export function InspirationControl({ charId, points, max, onGain }: InspirationControlProps) {
+  const stacking = max > 1;
   const gain = useCharacterStore((s) => s.gainInspiration);
   const spend = useCharacterStore((s) => s.spendInspiration);
   const armed = useUiStore((s) => s.inspirationArmed && s.armedCharId === charId);
@@ -35,12 +37,17 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
     else add();
   };
 
-  const title = armed ? 'Vantagem' : points > 0 ? `${points} ${points === 1 ? 'ponto' : 'pontos'}` : 'Sem inspiração';
+  const has = stacking ? `${points} ${points === 1 ? 'ponto' : 'pontos'}` : 'Inspirado';
+  const title = armed ? 'Vantagem' : points > 0 ? has : 'Sem inspiração';
   const hint = armed ? 'No próximo d20' : points > 0 ? 'Toque para usar' : 'Toque ao ganhar';
   const hintLong = armed ? 'O próximo teste d20 sai com vantagem; toque para cancelar' : points > 0 ? 'Toque para usar: vantagem no próximo teste d20' : 'Toque quando o mestre der inspiração';
   const status = armed
     ? 'Inspiração preparada: o próximo teste d20 sai com vantagem.'
-    : `${points} ${points === 1 ? 'ponto' : 'pontos'} de inspiração.`;
+    : stacking
+      ? `${points} ${points === 1 ? 'ponto' : 'pontos'} de inspiração.`
+      : points > 0 ? 'Com inspiração.' : 'Sem inspiração.';
+  const gainLabel = stacking ? 'Ganhar 1 ponto de inspiração' : points >= max ? 'Já tem inspiração (regra 2014: não acumula)' : 'Ganhar inspiração';
+  const dropLabel = stacking ? 'Remover 1 ponto de inspiração (sem usar)' : 'Remover a inspiração (sem usar)';
 
   return (
     <div style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
@@ -48,7 +55,7 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
         tone={lit ? 'gold' : 'steel'}
         active={lit}
         pressed={armed}
-        ariaLabel={`Inspiração: ${title}. ${hintLong}.`}
+        ariaLabel={`Inspiração: ${title}. ${hintLong}.${stacking ? ' Regra da mesa: acumula até 10 pontos.' : ''}`}
         onClick={onBadge}
         className={armed ? 'fv-insp-armed' : undefined}
         style={{ width: 'clamp(178px, 42vw, 240px)' }}
@@ -58,7 +65,12 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
           <div style={{ minWidth: 0, overflow: 'hidden', textAlign: 'left', lineHeight: 1.1 }} title={hintLong}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.16em', opacity: 0.8 }}>INSPIRAÇÃO</span>
-              <Pips points={points} lit={lit} />
+              {stacking && <Pips points={points} lit={lit} />}
+              {stacking && (
+                <span className="fv-house-mark" title="Regra da mesa: acumula até 10 pontos (no PHB 2014 não acumula)">
+                  mesa
+                </span>
+              )}
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 15, lineHeight: 1.1, marginTop: 2, overflowWrap: 'break-word' }}>{title}</div>
             <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.72, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
@@ -67,10 +79,10 @@ export function InspirationControl({ charId, points, onGain }: InspirationContro
       </HoloBadge>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <StepBtn label="Ganhar 1 ponto de inspiração" onClick={add} disabled={points >= INSPIRATION_MAX} accent>
+        <StepBtn label={gainLabel} onClick={add} disabled={points >= max} accent>
           +
         </StepBtn>
-        <StepBtn label="Remover 1 ponto de inspiração (sem usar)" onClick={() => spend(charId)} disabled={points <= 0}>
+        <StepBtn label={dropLabel} onClick={() => spend(charId)} disabled={points <= 0}>
           −
         </StepBtn>
       </div>

@@ -6,6 +6,8 @@ import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
+import { TableRulesPanel } from './TableRulesPanel';
+import { rulesSummary } from '@/engine/tableRules';
 import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useSourceOn } from '@/store/uiStore';
@@ -17,7 +19,7 @@ import { FEATS, getFeat } from '@/data/feats';
 import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
-import type { AsiChoice, LevelUpRecord } from '@/types/character';
+import type { AsiChoice, Character, LevelUpRecord } from '@/types/character';
 import {
   averageHp,
   classLevelOf,
@@ -234,14 +236,8 @@ export function TabEvoluir({ char, derived }: TabProps) {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-            <CampChip label="Talentos" on={campaign.allowFeats} onToggle={() => store.updateCampaign(char.id, { allowFeats: !campaign.allowFeats })} />
-            <CampChip label="Multiclasse" on={campaign.allowMulticlass} onToggle={() => store.updateCampaign(char.id, { allowMulticlass: !campaign.allowMulticlass })} />
-            <CampChip label="Homebrew" on={campaign.allowHomebrew} onToggle={() => store.updateCampaign(char.id, { allowHomebrew: !campaign.allowHomebrew })} />
-            <span style={{ alignSelf: 'center', fontSize: 10.5, letterSpacing: '.1em', color: 'var(--muted)', textTransform: 'uppercase' }}>
-              D&D 5e 2014
-            </span>
-          </div>
+          {/* as regras (opcionais do livro, da mesa, homebrew) ficam no painel próprio, mais abaixo */}
+          <RulesLink char={char} />
         </div>
         <XpBar char={char} />
       </Panel>
@@ -497,6 +493,8 @@ export function TabEvoluir({ char, derived }: TabProps) {
       )}
 
       {/* linha do tempo */}
+      <TableRulesPanel char={char} />
+
       <Panel>
         <SectionLabel>Linha do Tempo da Evolução</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -520,28 +518,17 @@ const microLabel: React.CSSProperties = {
   marginBottom: 8,
 };
 
-function CampChip({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
-  const t = useTheme();
+/** Atalho para o painel de regras: diz de cara se a ficha está no 2014 puro. */
+function RulesLink({ char }: { char: Character }) {
+  const { label, pure } = rulesSummary(char);
   return (
     <button
-      onClick={onToggle}
-      style={{
-        cursor: 'pointer',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        fontSize: 11.5,
-        fontWeight: 600,
-        padding: '6px 12px',
-        borderRadius: 999,
-        border: '1px solid ' + (on ? t.gold : t.line),
-        color: on ? t.gold : 'var(--muted)',
-        background: on ? hexA(t.gold, 0.1) : 'var(--sunk)',
-        transition: '.2s',
-      }}
+      type="button"
+      className={'fv-rules-link' + (pure ? '' : ' is-off')}
+      onClick={() => document.getElementById('fv-regras')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      title="Ver as regras desta ficha"
     >
-      <span style={{ width: 8, height: 8, transform: 'rotate(45deg)', border: '1px solid currentColor', background: on ? 'currentColor' : 'transparent' }} />
-      {label}
+      {label} · regras <span aria-hidden>↓</span>
     </button>
   );
 }

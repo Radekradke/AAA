@@ -7,6 +7,7 @@ import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
+import { AUTOMATION_CHIP, spellAutomation } from '@/engine/spellAutomation';
 
 interface SpellLibraryProps {
   title: string;
@@ -131,6 +132,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                       {sp.area && <MiniChip color="#C24DFF">{sp.area}</MiniChip>}
                       {sp.concentration && <MiniChip color="#C24DFF">conc.</MiniChip>}
                       {sp.ritual && <MiniChip color="#4FA37A">ritual</MiniChip>}
+                      <AutoChip sp={sp} />
                       {!on && costOf && costOf(sp) !== undefined && <MiniChip color="#FFE08A">{costOf(sp)} po</MiniChip>}
                     </span>
                   </span>
@@ -181,6 +183,16 @@ function MiniChip({ children, color }: { children: React.ReactNode; color?: stri
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ? ink(color) : 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
+    </span>
+  );
+}
+
+/** Quanto da magia a ficha resolve (detalhe completo na dica). */
+function AutoChip({ sp }: { sp: Spell }) {
+  const chip = AUTOMATION_CHIP[spellAutomation(sp).level];
+  return (
+    <span title={chip.title}>
+      <MiniChip color={chip.color}>{chip.text}</MiniChip>
     </span>
   );
 }

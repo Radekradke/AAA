@@ -220,6 +220,8 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
       mutate(id, (c) => {
         Object.assign(c, ensureCharacterV2(c));
         c.campaign = { ...c.campaign, ...patch };
+        // voltou à regra 2014: quem tinha vários pontos fica com 1 (tem inspiração)
+        if (patch.stackingInspiration === false) setInspirationCount(c, inspirationCount(c));
       });
     },
     editCharacter(id, patch) {

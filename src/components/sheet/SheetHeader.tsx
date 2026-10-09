@@ -9,6 +9,7 @@ import { OrnateCorners } from '@/components/ui/OrnateCorners';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore, calcLore } from '@/lib/lore';
 import { heroTitle, heroTitleTip } from '@/engine/titles';
+import { RULE_KIND_LABEL, rulesSummary } from '@/engine/tableRules';
 
 interface SheetHeaderProps {
   char: Character;
@@ -17,10 +18,12 @@ interface SheetHeaderProps {
   compact?: boolean;
   /** Abre "compartilhar a ficha" (link ou PDF) — o botão de corrente junto do retrato. */
   onShare?: () => void;
+  /** Leva ao painel "Regras desta ficha" (aba Evoluir). */
+  onRules?: () => void;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact, onShare, onRules }: SheetHeaderProps) {
   const race = raceOf(char);
   const setLevel = useCharacterStore((s) => s.setLevel);
 
@@ -100,6 +103,7 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
         <div className="fv-sh-sub">
           <span>{heroSubtitle(char)}</span>
           {char.alignment && <span className="fv-sh-align">{char.alignment}</span>}
+          <RulesBadge char={char} onClick={onRules} />
         </div>
         <div className="fv-sh-level" style={{ marginTop: compact ? 8 : 12 }}>
           <span className="fv-sh-level-ctrl">
@@ -134,5 +138,17 @@ export function SheetHeader({ char, derived, compact, onShare }: SheetHeaderProp
       </div>
       )}
     </div>
+  );
+}
+
+/** Só aparece quando a ficha foge do 2014 puro (regra da mesa, homebrew, ajuste). */
+function RulesBadge({ char, onClick }: { char: Character; onClick?: () => void }) {
+  const { label, notes, pure } = rulesSummary(char);
+  if (pure) return null;
+  const tip = notes.filter((n) => n.kind !== 'opcional').map((n) => `${RULE_KIND_LABEL[n.kind]}: ${n.text}`).join('\n');
+  return (
+    <button type="button" className="fv-sh-rules" onClick={onClick} title={`${tip}\n\nToque para ver as regras desta ficha`}>
+      {label}
+    </button>
   );
 }

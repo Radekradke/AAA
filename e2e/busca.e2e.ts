@@ -57,7 +57,7 @@ test.describe('busca geral', () => {
     await expect(page).toHaveURL(new RegExp(`/ficha/${ID}$`));
 
     // dentro da ficha, as abas também aparecem
-    await expect(page.locator('.fv-sheet-tab', { hasText: 'Mesa' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.fv-sheet-tab', { hasText: 'Jogar' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('button', { name: 'Buscar (Ctrl+K)' })).toHaveCount(1); // a tela anterior já saiu
     await page.getByRole('button', { name: 'Buscar (Ctrl+K)' }).click();
     await page.getByRole('dialog', { name: 'Buscar' }).getByRole('combobox').fill('magias');
