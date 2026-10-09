@@ -9,6 +9,8 @@ import { newId } from '@/store/character/ids';
 import { toast } from '@/store/feedbackStore';
 import { useMediaUrl } from '@/services/mediaService';
 import { clueImage } from '@/lib/clueImage';
+import { forgetClueImage, saveClueImage, useClueImageUrl } from '@/lib/clueImageStore';
+import { useAuthStore } from '@/store/authStore';
 import { Modal } from '@/components/ui/Modal';
 import { HandoutModal, HandoutThumb } from '@/components/stage/Handouts';
 import { MentionInput } from './MentionInput';
@@ -21,10 +23,14 @@ function excerpt(text: string, max = 120): string {
   return t.length > max ? t.slice(0, max).replace(/\s\S*$/, '') + '…' : t;
 }
 
+const hasPhoto = (c: DiaryClue) => !!(c.image || c.imageId || c.handoutImage);
+
 /** Imagem da pista: anexada (na ficha) ou do handout do mestre (armazenamento da mesa). */
 function ClueImage({ clue, className }: { clue: DiaryClue; className?: string }) {
-  const { url } = useMediaUrl(clue.image ? null : clue.handoutImage);
-  const src = clue.image ?? url;
+  const userId = useAuthStore((s) => s.user?.id);
+  const own = useClueImageUrl(clue.image ? undefined : clue.imageId, userId);
+  const { url } = useMediaUrl(clue.image || clue.imageId ? null : clue.handoutImage);
+  const src = clue.image ?? own ?? url;
   return src ? <img className={className} src={src} alt="" loading="lazy" /> : null;
 }
 
@@ -123,8 +129,8 @@ export function Clues({ char, people, places, query, handouts }: { char: Charact
             const quest = c.questId ? diary.quests.find((x) => x.id === c.questId) : undefined;
             return (
               <li key={c.id}>
-                <button type="button" className={`fv-clue is-${c.status}` + (c.image || c.handoutImage ? ' has-photo' : '')} onClick={() => setOpenId(c.id)}>
-                  {(c.image || c.handoutImage) && (
+                <button type="button" className={`fv-clue is-${c.status}` + (hasPhoto(c) ? ' has-photo' : '')} onClick={() => setOpenId(c.id)}>
+                  {hasPhoto(c) && (
                     <span className="fv-clue-photo">
                       <ClueImage clue={c} />
                     </span>
@@ -164,6 +170,7 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
   const nav = useDiaryNav();
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState(false);
+  const userId = useAuthStore((s) => s.user?.id);
   const set = (p: Partial<DiaryClue>) =>
     store.updateDiary(char.id, (d) => {
       d.clues = d.clues.map((x) => (x.id === clue.id ? { ...x, ...p } : x));
@@ -171,13 +178,16 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
 
   const attach = async (file: File | undefined | null) => {
     if (!file) return;
-    if (!clue.image && clueImageCount(diary.clues) >= MAX_CLUE_IMAGES) {
+    if (!clue.image && !clue.imageId && clueImageCount(diary.clues) >= MAX_CLUE_IMAGES) {
       toast(`Limite de ${MAX_CLUE_IMAGES} pistas com imagem nesta ficha. Tire a imagem de uma pista antiga para liberar espaço.`, { tone: 'danger' });
       return;
     }
     setBusy(true);
     try {
-      set({ image: await clueImage(file) });
+      const id = await saveClueImage(await clueImage(file));
+      const old = clue.imageId;
+      set({ imageId: id, image: undefined });
+      if (old) void forgetClueImage(old, userId);
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Não deu para anexar a imagem.', { tone: 'danger' });
     } finally {
@@ -195,11 +205,18 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
     store.updateDiary(char.id, (d) => {
       d.clues = d.clues.filter((x) => x.id !== clue.id);
     });
+    if (clue.imageId) void forgetClueImage(clue.imageId, userId);
     onClose();
   };
 
   const st = CLUE_STATUS.find((s) => s.id === clue.status)!;
-  const hasImage = !!(clue.image || clue.handoutImage);
+  const hasImage = hasPhoto(clue);
+  const ownImage = !!(clue.image || clue.imageId);
+  const dropImage = () => {
+    const old = clue.imageId;
+    set({ image: undefined, imageId: undefined });
+    if (old) void forgetClueImage(old, userId);
+  };
   return (
     <Modal
       title={clue.title.trim() || 'Nova pista'}
@@ -228,10 +245,10 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
           )}
           <span className="fv-clue-stamp">{st.stamp}</span>
           <input ref={fileRef} type="file" accept="image/*" hidden aria-label="Arquivo de imagem da pista" onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ''; }} />
-          {clue.image && (
+          {ownImage && (
             <span className="fv-clue-figure-actions">
               <button type="button" className="fv-link-btn" onClick={() => fileRef.current?.click()} disabled={busy}>{busy ? 'Comprimindo…' : 'Trocar imagem'}</button>
-              <button type="button" className="fv-link-btn is-danger" onClick={() => set({ image: undefined })}>Tirar imagem</button>
+              <button type="button" className="fv-link-btn is-danger" onClick={dropImage}>Tirar imagem</button>
             </span>
           )}
           {zoom && (

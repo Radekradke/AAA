@@ -5,6 +5,9 @@ import { cloudEnabled } from './supabaseClient';
 import type { Character } from '@/types/character';
 import type { SheetRow, SyncConflict } from '@/types/models';
 import { recordVersion } from './sheetHistory';
+import type { DiaryPart, DiaryRow } from './diaryCloud';
+import { cloudDiaryFor, diaryCloud, diaryPartOf, hasLegacyDiary, isEmptyDiaryPart, sameDiary, withDiary } from './diaryCloud';
+import { flushClueImageUploads } from '@/lib/clueImageStore';
 
 /**
  * Sincronização offline-first. A verdade local vive no IndexedDB; quando
@@ -28,6 +31,7 @@ export function decideSyncAction(
   remoteUpdatedAt: number | null,
 ): SyncAction {
   if (remoteUpdatedAt === null) return 'push'; // nunca subiu
+  if (remoteUpdatedAt === local.updatedAt) return 'noop'; // a mesma versão dos dois lados (ex.: subiu, mas a resposta não voltou)
   let localChanged: boolean;
   let remoteChanged: boolean;
   if (local.syncBase !== undefined) {
@@ -49,7 +53,7 @@ type Outcome =
   | { kind: 'pushed'; version: number }
   | { kind: 'pulled'; seen: number; char: Character }
   | { kind: 'conflict'; remote: SheetRow }
-  | { kind: 'noop'; seen: number; base: number }
+  | { kind: 'noop'; seen: number; base: number; diary?: DiaryPart }
   | { kind: 'raced' };
 
 let syncing = false;
@@ -78,6 +82,44 @@ export function adoptLocalCharacters(userId: string): boolean {
   return true;
 }
 
+/** Diários privados do usuário, ou null se o banco ainda não tem a tabela (aí o diário segue dentro da ficha). */
+async function pullDiaries(userId: string): Promise<Map<string, DiaryRow> | null> {
+  try {
+    return await diaryCloud.pull(userId);
+  } catch {
+    return null; // na dúvida, o jeito antigo: nada some
+  }
+}
+
+/** A ficha como está na nuvem, com o diário certo (privado ou o que o snapshot antigo carrega). */
+function cloudChar(row: SheetRow, userId: string, diaries: Map<string, DiaryRow> | null): Character {
+  const c = fromRow(row, userId);
+  return diaries ? withDiary(c, cloudDiaryFor(row, diaries.get(row.id))) : c;
+}
+
+/**
+ * Ficha já em dia com a nuvem: confere o diário privado.
+ * - mesma versão na nuvem → é ele (traz, se este aparelho tiver outro);
+ * - snapshot antigo com o diário dentro → sobe a ficha sem ele e o diário à parte;
+ * - o envio do diário falhou da outra vez → sobe de novo;
+ * - aqui está vazio e a nuvem tem → traz (nunca apaga o diário da nuvem por engano).
+ * Devolve o diário a aplicar no aparelho, se for o caso.
+ */
+async function settleDiary(local: Character, remote: SheetRow, userId: string, diaries: Map<string, DiaryRow>): Promise<DiaryPart | undefined> {
+  const d = diaries.get(local.id);
+  const mine = diaryPartOf(local);
+  if (d && d.updated_at === remote.updated_at) return sameDiary(d.data, mine) ? undefined : d.data;
+  if (hasLegacyDiary(remote.snapshot)) {
+    if (await characterSheetService.pushSheet(local, userId, remote.updated_at, true)) await diaryCloud.push(local, userId, remote.updated_at);
+    return undefined;
+  }
+  if (!isEmptyDiaryPart(mine)) {
+    await diaryCloud.push(local, userId, remote.updated_at);
+    return undefined;
+  }
+  return d && !sameDiary(d.data, mine) ? d.data : undefined;
+}
+
 /** Sincroniza todas as fichas do usuário logado. Seguro chamar repetidamente. */
 export async function syncNow(userId: string, retry = 0): Promise<void> {
   if (!cloudEnabled() || syncing) return;
@@ -101,6 +143,8 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
     }
 
     const rows = await characterSheetService.pullSheets(userId);
+    const diaries = await pullDiaries(userId);
+    const privateDiary = diaries !== null;
     const remoteById = new Map(rows.map((r) => [r.id, r]));
     const outcomes = new Map<string, Outcome>();
     let raced = false;
@@ -112,15 +156,18 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
       const action = decideSyncAction(local, remote ? remote.updated_at : null);
       if (action === 'push') {
         // condicional: só grava se a nuvem ainda estiver na versão que acabamos de ler
-        const ok = await characterSheetService.pushSheet(local, userId, remote ? remote.updated_at : null);
+        const ok = await characterSheetService.pushSheet(local, userId, remote ? remote.updated_at : null, privateDiary);
+        // diário privado com a mesma versão; se falhar, a próxima rodada vê "mesma versão" e reenvia
+        if (ok && privateDiary) await diaryCloud.push(local, userId, local.updatedAt).catch(() => undefined);
         outcomes.set(local.id, ok ? { kind: 'pushed', version: local.updatedAt } : { kind: 'raced' });
         raced ||= !ok;
       } else if (action === 'pull') {
-        outcomes.set(local.id, { kind: 'pulled', seen: local.updatedAt, char: fromRow(remote!, userId) });
+        outcomes.set(local.id, { kind: 'pulled', seen: local.updatedAt, char: cloudChar(remote!, userId, diaries) });
       } else if (action === 'conflict') {
         outcomes.set(local.id, { kind: 'conflict', remote: remote! });
       } else {
-        outcomes.set(local.id, { kind: 'noop', seen: local.updatedAt, base: remote!.updated_at });
+        const diary = diaries ? await settleDiary(local, remote!, userId, diaries) : undefined;
+        outcomes.set(local.id, { kind: 'noop', seen: local.updatedAt, base: remote!.updated_at, diary });
       }
     }
 
@@ -139,10 +186,11 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
           // editada durante a leitura → fica; a próxima sync vê os dois lados mudados
           return c.updatedAt === o.seen ? { ...o.char, syncBase: o.char.updatedAt, lastSyncedAt: now, syncStatus: 'synced' } : c;
         case 'conflict':
-          conflicts.push({ sheetId: c.id, name: c.name, localUpdatedAt: c.updatedAt, remoteUpdatedAt: o.remote.updated_at, remote: fromRow(o.remote, userId) });
+          conflicts.push({ sheetId: c.id, name: c.name, localUpdatedAt: c.updatedAt, remoteUpdatedAt: o.remote.updated_at, remote: cloudChar(o.remote, userId, diaries) });
           return { ...c, syncStatus: 'conflict' };
         case 'noop':
-          return c.updatedAt === o.seen ? { ...c, syncBase: o.base, lastSyncedAt: c.lastSyncedAt ?? now, syncStatus: 'synced' } : c;
+          if (c.updatedAt !== o.seen) return c;
+          return { ...(o.diary ? withDiary(c, o.diary) : c), syncBase: o.base, lastSyncedAt: c.lastSyncedAt ?? now, syncStatus: 'synced' };
         case 'raced':
           return { ...c, syncStatus: 'pending' };
       }
@@ -152,7 +200,7 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
     const have = new Set(nextChars.map((c) => c.id));
     for (const row of remoteById.values()) {
       if (have.has(row.id) || state.pendingDeletes.includes(row.id)) continue;
-      nextChars.push({ ...fromRow(row, userId), syncBase: row.updated_at, lastSyncedAt: now, syncStatus: 'synced' });
+      nextChars.push({ ...cloudChar(row, userId, diaries), syncBase: row.updated_at, lastSyncedAt: now, syncStatus: 'synced' });
     }
 
     useCharacterStore.setState({ characters: nextChars });
@@ -161,6 +209,8 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
     status.setPending(nextChars.filter((c) => c.ownerId === userId && !c.draft && c.syncStatus === 'pending').length);
     // outro aparelho gravou entre a leitura e o envio: mais uma rodada decide (push, pull ou conflito)
     if (raced && retry < 2) setTimeout(() => void syncNow(userId, retry + 1), 0);
+    // imagens das pistas: cópia privada na nuvem (para os outros aparelhos do jogador)
+    if (privateDiary) await flushClueImageUploads(userId).catch(() => undefined);
   } catch (e) {
     status.setCloud('error', e instanceof Error ? e.message : 'Falha ao sincronizar.');
   } finally {
@@ -177,9 +227,11 @@ export async function resolveConflict(userId: string, sheetId: string, keep: 'lo
   const known = status.conflicts.find((c) => c.sheetId === sheetId);
   try {
     const local = useCharacterStore.getState().characters.find((c) => c.id === sheetId);
+    const diaries = await pullDiaries(userId);
     if (keep === 'local' && local) {
       if (known?.remote) await recordVersion(known.remote, 'conflict', 'Versão da nuvem, descartada num conflito');
-      await characterSheetService.pushSheet(local, userId); // escolha explícita: grava por cima
+      await characterSheetService.pushSheet(local, userId, undefined, diaries !== null); // escolha explícita: grava por cima
+      if (diaries) await diaryCloud.push(local, userId, local.updatedAt);
       const now = Date.now();
       useCharacterStore.setState((s) => ({
         characters: s.characters.map((c) =>
@@ -195,7 +247,7 @@ export async function resolveConflict(userId: string, sheetId: string, keep: 'lo
         const now = Date.now();
         useCharacterStore.setState((s) => ({
           characters: s.characters.map((c) =>
-            c.id === sheetId ? { ...fromRow(remote, userId), syncBase: remote.updated_at, lastSyncedAt: now, syncStatus: 'synced' } : c,
+            c.id === sheetId ? { ...cloudChar(remote, userId, diaries), syncBase: remote.updated_at, lastSyncedAt: now, syncStatus: 'synced' } : c,
           ),
         }));
       }

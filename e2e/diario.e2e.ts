@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/test';
-import { signIn, WIZARD } from './fixtures/supabase';
+import { installSupabase, P, signIn, WIZARD } from './fixtures/supabase';
 
 test('Diário: rabiscos, crônica com @menções e #lugares, e Anotar de outra aba', async ({ page }) => {
   // NPC e herói do grupo que a ficha já conhece (cópia offline)
@@ -251,4 +251,65 @@ test('Diário: Pessoas, busca em todo o diário e ligações entre itens', async
   await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
   await page.getByRole('tab', { name: /Pessoas/ }).click();
   await expect(page.locator('.fv-person', { hasText: 'Mara Pedrafria' })).toContainText('Suspeito');
+});
+
+test('Diário privado: a ficha sobe sem o diário (mestre e link não leem) e o diário vai para a tabela só do dono', async ({ page }) => {
+  const db = await installSupabase(page, 'player');
+  const secret = { notes: [{ id: 'r1', text: 'Desconfio do capitão da guarda', at: 1 }], quests: [], clues: [], people: {} };
+  // ficha antiga já na nuvem com o diário DENTRO do snapshot (gravada antes da mudança), na mesma versão do aparelho
+  const old = { ...WIZARD, id: 'wiz-old', name: 'Velha', ownerId: P, diary: secret, updatedAt: 4000, syncBase: 4000, lastSyncedAt: 4000, syncStatus: 'synced' };
+  db.tables.sheets.push({ id: 'wiz-old', user_id: P, snapshot: old, updated_at: 4000 });
+  // ficha nova, ainda não sincronizada
+  const fresh = { ...WIZARD, id: 'wiz-new', name: 'Nova', ownerId: P, diary: secret, journal: [{ id: 'j1', title: 'A ponte', date: 'hoje', session: 1, body: 'Traídos na ponte', at: 1 }], updatedAt: 5000, syncStatus: 'pending' };
+  await signIn(page, 'player', { characters: [old, fresh] });
+  await page.goto('/personagens');
+
+  const diaryOf = (id: string) => db.tables.sheet_diaries?.find((r) => r.sheet_id === id);
+  await expect.poll(() => !!diaryOf('wiz-new') && !!diaryOf('wiz-old'), { timeout: 15_000 }).toBe(true);
+
+  for (const id of ['wiz-new', 'wiz-old']) {
+    const snap = JSON.stringify(db.tables.sheets.find((r) => r.id === id)!.snapshot);
+    expect(snap).not.toContain('Desconfio do capitão');
+    expect(snap).not.toContain('Traídos na ponte');
+    expect(JSON.stringify(diaryOf(id)!.data)).toContain('Desconfio do capitão');
+  }
+  expect(db.tables.sheets.find((r) => r.id === 'wiz-old')!.updated_at).toBe(4000); // limpar não muda a versão
+  expect(diaryOf('wiz-new')!.updated_at).toBe(5000);
+  expect(JSON.stringify(diaryOf('wiz-new')!.data)).toContain('Traídos na ponte');
+
+  // e no aparelho o diário continua lá
+  await page.goto('/ficha/wiz-new');
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Rabiscos/ }).click();
+  await expect(page.locator('.fv-note')).toContainText('Desconfio do capitão');
+});
+
+test('Diário: imagem antiga de pista (dentro da ficha) sai da ficha e continua aparecendo', async ({ page }) => {
+  const inline = `data:image/png;base64,${PNG.toString('base64')}`;
+  const diary = { notes: [], quests: [], people: {}, clues: [{ id: 'c1', title: 'Mapa antigo', text: '', status: 'unverified', image: inline, at: 1 }] };
+  await signIn(page, 'guest', { characters: [{ ...WIZARD, diary }], ui: { dice3d: false } });
+  await page.goto('/ficha/wiz1');
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Pistas/ }).click();
+  await expect(page.locator('.fv-clue', { hasText: 'Mapa antigo' }).locator('.fv-clue-photo img')).toHaveAttribute('src', /^data:image\/png/);
+
+  // a ficha salva no aparelho não carrega mais a imagem (só o id dela)
+  const saved = () =>
+    page.evaluate(
+      () =>
+        new Promise<string>((res) => {
+          const req = indexedDB.open('ficha-viva', 1);
+          req.onsuccess = () => {
+            const get = req.result.transaction('kv', 'readonly').objectStore('kv').get('fv-characters');
+            get.onsuccess = () => res(String(get.result ?? ''));
+          };
+        }),
+    );
+  await expect.poll(async () => (await saved()).includes('"imageId"'), { timeout: 10_000 }).toBe(true);
+  expect(await saved()).not.toContain('base64');
+
+  await page.reload();
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Pistas/ }).click();
+  await expect(page.locator('.fv-clue', { hasText: 'Mapa antigo' }).locator('.fv-clue-photo img')).toHaveAttribute('src', /^data:image\/png/);
 });

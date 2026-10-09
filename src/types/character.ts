@@ -209,7 +209,9 @@ export interface DiaryClue {
   source?: string;
   status: 'unverified' | 'confirmed' | 'false';
   verdict?: string;
-  /** Imagem comprimida (data URL). */
+  /** Imagem anexada: id no IndexedDB do aparelho + cópia privada na nuvem (lib/clueImageStore). */
+  imageId?: string;
+  /** Formato antigo (data URL dentro da ficha) — migrado para `imageId` ao abrir o app. */
   image?: string;
   questId?: string;
   /** Veio de um handout do mestre (a imagem fica no armazenamento da mesa). */
