@@ -8215,3 +8215,15 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
     grid-column: span 2;
   }
 }
+
+/* efeito ativo com dano depois de conjurar: botão de rolar */
+.fv-spell-effect .fv-spell-effect-roll {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+  color: var(--gold);
+  font: 700 11.5px var(--font-num);
+}
+.fv-spell-effect .fv-spell-effect-roll:hover {
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}

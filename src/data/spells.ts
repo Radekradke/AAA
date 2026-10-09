@@ -293,8 +293,8 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-espiritual', level: 2, name: 'Arma Espiritual', school: 'Evocação',
     castingTime: '1 ação bônus', range: '18 m', components: 'V, S', duration: '1 minuto',
-    classes: ['cleric'], damage: { dice: '1d8 + mod.', type: 'energia' },
-    desc: 'Cria uma arma flutuante que ataca (mod. de conjuração) e pode ser reposicionada como ação bônus.',
+    classes: ['cleric'], damage: { dice: '1d8 + mod.', type: 'energia' }, attack: 'melee',
+    desc: 'Cria uma arma flutuante que faz um ataque corpo a corpo com magia (1d8 + mod. de conjuração) ao surgir e, depois, com uma ação bônus por turno; pode ser reposicionada 6 m.',
     higher: 'O dano aumenta em +1d8 a cada dois círculos acima do 2º.', tags: ['dano'],
   },
   {
