@@ -11,6 +11,7 @@ import { hasMark, rollWeaponDamage, smiteDice, weaponExtras } from '@/engine/dam
 import type { ExtrasChoice, MarkId } from '@/engine/damageExtras';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { calcLore } from '@/lib/lore';
+import { attacksPerAction } from '@/engine/extraAttack';
 
 interface Props {
   char: Character;
@@ -167,4 +168,21 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       )}
     </span>
   );
+}
+
+/** "Ação Atacar: 2 ataques" (Ataque Extra) — sem isso o jogador ataca uma vez só. */
+export function ExtraAttackNote({ char }: { char: Character }) {
+  const { count, source } = attacksPerAction(char);
+  if (count < 2) return null;
+  return (
+    <p className="fv-extra-attack">
+      <b>Ação Atacar: {count} ataques</b> · {source}
+    </p>
+  );
+}
+
+/** Crítico ampliado (Campeão: 19–20; Crítico Superior: 18–20). */
+export function CritBadge({ atk }: { atk: DerivedAttack }) {
+  if (atk.critMin >= 20) return null;
+  return <span className="fv-crit-badge" title="Acerto crítico com este resultado ou mais no d20">crítico {atk.critMin}–20</span>;
 }

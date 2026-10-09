@@ -2,7 +2,7 @@ import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
-import { AttackActions } from './AttackActions';
+import { AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
@@ -236,12 +236,13 @@ export function TabMesa({ char, derived }: TabProps) {
             </div>
           )}
           <div className="fv-label fv-mesa-label">Ataques</div>
+          <ExtraAttackNote char={char} />
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
           )}
           {derived.attacks.map((atk) => (
             <div key={atk.uid} className="fv-mesa-atk">
-              <div className="fv-mesa-atk-name">{atk.name}</div>
+              <div className="fv-mesa-atk-name">{atk.name} <CritBadge atk={atk} /></div>
               <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}
