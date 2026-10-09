@@ -4,7 +4,7 @@ import { StepHeader, SectionTitle } from './creatorUi';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
-import { skillBudget } from '@/engine/originChoices';
+import { backgroundTools, skillBudget } from '@/engine/originChoices';
 import { SKILLS, SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import type { SkillKey } from '@/types/dnd';
@@ -90,7 +90,7 @@ export function StepSkills({ char, update }: StepProps) {
             </span>
           </LoreTooltip>
         ))}
-        {(bg.tools ?? []).map((id) => (
+        {backgroundTools(char).map((id) => (
           <span key={id} className="fv-pill is-static">⚒ {toolLabel(id)}</span>
         ))}
       </div>

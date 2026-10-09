@@ -248,6 +248,11 @@ export interface Background {
   skills: SkillKey[];
   /** Ferramentas concedidas (ids de data/tools ou rótulos livres). */
   tools?: string[];
+  /**
+   * "Um tipo de ferramenta de artesão / instrumento / jogo" (PHB): o jogador
+   * escolhe; `default` (que também está em `tools`) vale até ele trocar.
+   */
+  toolChoice?: { group: 'artesao' | 'instrumento' | 'jogo'; default: string };
   /** Quantos idiomas adicionais o jogador escolhe. */
   languagesCount?: number;
   /** Equipamento inicial concedido (itens de mochila em texto). */

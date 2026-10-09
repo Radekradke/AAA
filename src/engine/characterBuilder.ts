@@ -1,3 +1,4 @@
+import { backgroundTools } from './originChoices';
 import type { AbilityKey, AbilityScores } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, CombatState, InventoryItem, ToolProf } from '@/types/character';
@@ -53,6 +54,10 @@ const ARTISAN_GEAR: Record<string, string> = {
 const INSTRUMENT_GEAR: Record<string, string> = {
   lute: 'g-inst-lute', flute: 'g-inst-flute', drum: 'g-inst-drum', lyre: 'g-inst-lyre', horn: 'g-inst-horn', viol: 'g-inst-viol',
   bagpipes: 'g-inst-bagpipes', 'pan-flute': 'g-inst-panflute', shawm: 'g-inst-shawm', dulcimer: 'g-inst-dulcimer',
+};
+
+const GAME_GEAR: Record<string, string> = {
+  'dice-set': 'g-game-dice', 'card-set': 'g-game-cards', dragonchess: 'g-game-dragonchess', 'three-dragon-ante': 'g-game-threedragon',
 };
 
 /** Valores do Array Padrão de D&D 5e. */
@@ -192,19 +197,21 @@ export function finalizeCharacter(draft: Character): Character {
     toolProfs.push({ id, label: toolLabel(id), source });
   };
   for (const id of cls.tools ?? []) addTool(id, cls.label);
-  for (const id of bg.tools ?? []) addTool(id, bg.label);
+  for (const id of backgroundTools(draft)) addTool(id, bg.label);
   // Gnomo das Rochas (Engenhoqueiro): Ferramentas de Funileiro
   if (draft.subraceId === 'rock-gnome') addTool('tinkers-tools', 'Gnomo das Rochas');
 
   // equipamento do antecedente (PHB 2014): o que existe no catálogo vira item de verdade
   // (peso, preço, arte); lembranças e cartas ficam como item simples
   let bagSeq = 0;
-  const bgTool = (group: Record<string, string>) => toolProfs.find((t) => t.source === bg.label && group[t.id])?.id;
+  const bgTool = (group: Record<string, string>) => backgroundTools(draft).find((id) => group[id]);
   for (const name of bg.equipment ?? []) {
     const mapped = BG_ITEMS[name];
     const id =
       name === 'Ferramentas de artesão' ? ARTISAN_GEAR[bgTool(ARTISAN_GEAR) ?? ''] :
       name === 'Instrumento musical' ? INSTRUMENT_GEAR[bgTool(INSTRUMENT_GEAR) ?? 'lute'] :
+      // Soldado: o jogo escolhido no antecedente no lugar dos dados de osso
+      mapped?.[0]?.startsWith('g-game-') && GAME_GEAR[bgTool(GAME_GEAR) ?? ''] ? GAME_GEAR[bgTool(GAME_GEAR)!] :
       mapped?.[0];
     const catalog = id ? getItem(id) : undefined;
     if (catalog) {

@@ -9,7 +9,7 @@ import { classProficiencySummary } from './proficiencies';
 import { subclassesFor } from '@/data/subclasses';
 import { CLASS_LEVEL1 } from '@/data/classLevel1';
 import { ABILITY_KEYS } from '@/types/dnd';
-import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
+import { backgroundTools, languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
 import { raceTraitInfo } from '@/data/raceTraits';
 import { subclassLevelFor } from './levelUp';
@@ -150,10 +150,16 @@ export function classFeatureFacts(char: Character): Fact[] {
 export function backgroundFacts(char: Character): Fact[] {
   const bg = getBackground(char.backgroundId);
   const facts: Fact[] = [{ label: 'Perícias', value: bg.skills.map((k) => SKILL_BY_KEY[k].label).join(' e ') }];
-  if (bg.tools?.length) facts.push({ label: 'Ferramentas', value: bg.tools.map(toolLabel).join(', ') });
+  const tools = backgroundTools(char);
+  if (tools.length) facts.push({ label: 'Ferramentas', value: tools.map(toolLabel).join(', ') });
   if (bg.languagesCount) facts.push({ label: 'Idiomas', value: `+${bg.languagesCount} à escolha` });
   if (bg.startingGold) facts.push({ label: 'Ouro', value: `${bg.startingGold} po` });
-  if (bg.equipment?.length) facts.push({ label: 'Itens', value: bg.equipment.join(', ') });
+  if (bg.equipment?.length) {
+    // "Ferramentas de artesão", "Instrumento musical", "Jogo de dados de osso": o que foi escolhido
+    const pick = bg.toolChoice ? toolLabel(tools.find((id) => !bg.tools?.includes(id)) ?? bg.toolChoice.default) : '';
+    const generic = /^(Ferramentas de artesão|Instrumento musical|Jogo de dados de osso)$/;
+    facts.push({ label: 'Itens', value: bg.equipment.map((e) => (pick && generic.test(e) ? pick : e)).join(', ') });
+  }
   return facts;
 }
 

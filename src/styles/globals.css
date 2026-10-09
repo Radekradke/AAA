@@ -5455,6 +5455,29 @@ body.fv-dragging .fv-screen-scroll {
   }
 }
 
+/* Passado: o tipo de ferramenta/instrumento/jogo do antecedente */
+/* o painel do antecedente tem altura sobrando: história e característica inteiras */
+.fv-bg-step .fv-detail-desc,
+.fv-bg-step .fv-detail-feature {
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+}
+.fv-bg-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 6px;
+}
+.fv-bg-tool-row select {
+  width: auto;
+  min-width: 220px;
+}
+.fv-bg-tool-row small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* Caminho: as características do 1º nível em cartões sob a grade de classes */
 .fv-class-feats {
   margin-top: 14px;
