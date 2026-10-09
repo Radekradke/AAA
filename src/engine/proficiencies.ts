@@ -152,6 +152,16 @@ export function isArmorProficient(p: Proficiencies, kind: ArmorKind): boolean {
   return p.armor.has(kind);
 }
 
+/** Armaduras e armas que a classe dá no 1º nível (sem raça, subclasse nem talento). */
+export function classProficiencySummary(classId: string): { armor: string; weapons: string } {
+  const p: Proficiencies = { armor: new Set(), weaponTypes: new Set(), weapons: new Set(), lenientWeapons: false, lenientMelee: false };
+  const g = CLASS_PROFS[classId];
+  g?.armor?.forEach((a) => p.armor.add(a));
+  g?.weaponTypes?.forEach((t) => p.weaponTypes.add(t));
+  g?.weapons?.forEach((w) => p.weapons.add(w));
+  return proficiencySummary(p);
+}
+
 /** Texto curto para a ficha ("Armaduras leves e médias, escudos · Armas simples e marciais"). */
 export function proficiencySummary(p: Proficiencies): { armor: string; weapons: string } {
   const a = (['leve', 'média', 'pesada'] as const).filter((k) => p.armor.has(k));

@@ -39,7 +39,7 @@ export const RACES: Race[] = [
     abilityBonus: { con: 2 },
     bonus: '+2 Constituição',
     desc: 'Resistentes e teimosos, forjados na pedra e na tradição milenar das montanhas.',
-    traits: ['Visão no Escuro', 'Resistência a veneno', 'Combate anão'],
+    traits: ['Visão no Escuro', 'Resistência a veneno', 'Combate anão', 'Proficiência com Ferramentas', 'Especialização em Rochas'],
     speed: 7.5,
     darkvision: 18,
     resistances: ['veneno'],
@@ -161,22 +161,22 @@ export const SUBRACES: Record<string, Subrace[]> = {
       hpPerLevel: 1,
       traits: ['Tenacidade Anã'],
     },
-    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR' },
+    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR · armaduras médias', traits: ['Treinamento Anão com Armaduras'] },
   ],
   elf: [
-    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'] },
+    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'], traits: ['Treinamento Élfico com Armas', 'Truque de Mago', 'Idioma adicional'] },
     {
       id: 'wood-elf',
       label: 'Elfo da Floresta',
       abilityBonus: { wis: 1 },
       bonus: '+1 SAB · +1,5 m',
       speedBonus: 1.5,
-      traits: ['Pés Ligeiros'],
+      traits: ['Treinamento Élfico com Armas', 'Pés Ligeiros', 'Máscara da Natureza'],
     },
-    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR', darkvision: 36, traits: ['Visão Superior no Escuro'] },
+    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR', darkvision: 36, traits: ['Visão Superior no Escuro', 'Sensibilidade à Luz Solar', 'Magia Drow', 'Treinamento Drow com Armas'] },
   ],
   halfling: [
-    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR' },
+    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR', traits: ['Furtividade Natural'] },
     { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', resistances: ['veneno'], traits: ['Resiliência Robusta'] },
   ],
   dragonborn: DRAGON_LINES.map(([id, label, type, shape, save]) => ({
@@ -187,8 +187,8 @@ export const SUBRACES: Record<string, Subrace[]> = {
     traits: [`Sopro (${type})`],
   })),
   gnome: [
-    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES' },
-    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON' },
+    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES', traits: ['Ilusionista Nato', 'Falar com Bestas Pequenas'] },
+    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON', traits: ['Conhecimento de Artífice', 'Engenhoqueiro'] },
   ],
 };
 

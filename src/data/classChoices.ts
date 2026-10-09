@@ -372,7 +372,7 @@ const favoredLanguage: ChoiceSpec = {
   requires: { key: 'favoredEnemy', id: '', anyOf: SPEAKING_ENEMIES },
   hint: 'Um idioma falado pelo seu inimigo favorito (Dracônico para dragões, Gigante para gigantes, Abissal ou Infernal para corruptores…).',
 };
-const TERRAIN_HINT = 'No terreno escolhido: proficiência dobrada em testes de INT e SAB ligados a ele, o grupo não é atrasado por terreno difícil, você não se perde, fica alerta e rastreia/forrageia melhor.';
+const TERRAIN_HINT = 'O tipo de terreno em que você é guia e batedor nato: viagem, rastreio e sobrevivência ficam muito melhores ali.';
 const invocationSwap: ChoiceSpec = { key: 'invocation', catalog: 'invocation', label: 'Invocações Místicas', count: 0, canReplace: true, hint: 'Neste nível você não ganha invocação nova, mas pode trocar uma que conhece por outra.' };
 const invocationGain = (count: number): ChoiceSpec => ({ key: 'invocation', catalog: 'invocation', label: count > 1 ? 'Invocações Místicas' : 'Invocação Mística adicional', count, hint: INVOCATION_HINT, canReplace: count === 1 });
 const arcanum = (circle: number): ChoiceSpec => ({

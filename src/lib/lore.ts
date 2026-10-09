@@ -60,6 +60,11 @@ export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
   },
 };
 
+/** O que cada perícia cobre, numa frase. */
+export function skillDescription(key: SkillKey): string {
+  return SKILL_LORE[key];
+}
+
 const SKILL_LORE: Record<SkillKey, string> = {
   acrobatics: 'Usada para equilíbrio, piruetas, escapar de quedas, atravessar superfícies estreitas e movimentos ágeis.',
   animalHandling: 'Ajuda a acalmar, conduzir, entender ou controlar animais e montarias em cenas tensas.',

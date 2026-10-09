@@ -15,6 +15,7 @@ import { modStr } from '@/engine/dice';
 import { expertiseSlots } from '@/engine/levelUp';
 import { calculateToolCheck } from '@/engine/toolCheck';
 import { Icon } from '@/components/ui/Icon';
+import { raceTraitInfo } from '@/data/raceTraits';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
 import { ClassFeaturesPanel } from './ClassFeaturesPanel';
@@ -359,7 +360,7 @@ function RaceTraits({ char }: { char: TabProps['char'] }) {
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {names.map((n) => {
-          const d = details.find((t) => t.name === n)?.desc;
+          const d = details.find((t) => t.name === n)?.desc || raceTraitInfo(n);
           return d ? (
             <LoreTooltip key={n} info={passiveLore(n, race.label, d, [race.homebrew ? 'Homebrew' : 'Traço racial'])}>
               <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>{n}</span>

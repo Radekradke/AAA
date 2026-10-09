@@ -5,10 +5,13 @@ import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import { abilityModifier, racialBonusFor, totalAbilities } from './modifiers';
-import { characterResources } from './classResources';
+import { classProficiencySummary } from './proficiencies';
+import { subclassesFor } from '@/data/subclasses';
+import { CLASS_LEVEL1 } from '@/data/classLevel1';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
+import { raceTraitInfo } from '@/data/raceTraits';
 import { subclassLevelFor } from './levelUp';
 import { castsAtCreation, creationSpellPending } from './creationSpells';
 
@@ -75,6 +78,8 @@ export function subclassAtCreation(char: Character): boolean {
 export interface Fact {
   label: string;
   value: string;
+  /** Detalhe que aparece ao passar o mouse (ex.: a lista de perícias da classe). */
+  title?: string;
 }
 
 export function raceFacts(char: Character): Fact[] {
@@ -94,23 +99,38 @@ export function raceFacts(char: Character): Fact[] {
   if (sub?.hpPerLevel) facts.push({ label: 'Vida extra', value: `+${sub.hpPerLevel} PV por nível` });
   const langs = [...(race.languages ?? []), ...(sub?.languages ?? [])].map((l) => char.customOrigin?.langSwap?.[l] ?? l);
   if (langs.length) facts.push({ label: 'Idiomas', value: langs.join(', ') });
-  const traits = [...race.traits, ...(sub?.traits ?? [])];
-  if (traits.length) facts.push({ label: 'Traços', value: traits.join(', ') });
   return facts;
+}
+
+/** Traços da linhagem com o que cada um faz (homebrew usa a descrição do autor). */
+export function raceTraitFacts(char: Character): Fact[] {
+  const race = raceOf(char);
+  const sub = getSubrace(char.raceId, char.subraceId);
+  const details = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
+  const names = [...race.traits, ...(sub?.traits ?? [])]
+    .filter((n, i, all) => all.indexOf(n) === i)
+    // Drow: a visão superior substitui a comum
+    .filter((n, _, all) => !(n === 'Visão no Escuro' && all.includes('Visão Superior no Escuro')))
+    // Draconato: "Sopro (frio)" da cor escolhida substitui o "Sopro" genérico
+    .filter((n, _, all) => !all.some((o) => o !== n && o.startsWith(`${n} (`)));
+  return names.map((n) => ({ label: n, value: details.find((d) => d.name === n)?.desc || raceTraitInfo(n) || '—' }));
 }
 
 export function classFacts(char: Character): Fact[] {
   const cls = getClass(char.classId);
   const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi).con);
+  const prof = classProficiencySummary(cls.id);
+  const skillList = cls.skillChoices.map((k) => SKILL_BY_KEY[k].label).join(', ');
   const facts: Fact[] = [
     { label: 'Vida', value: `d${cls.hitDie} · ${cls.hitDie + conMod} PV no nível 1` },
     { label: 'Salvaguardas', value: cls.savingThrows.map((k) => ABILITY_SHORT[k]).join(' e ') },
-    { label: 'Perícias', value: `${cls.skillPicks} à escolha` },
+    // druidas não usam armadura nem escudo de metal (PHB, cap. 3)
+    { label: 'Armaduras', value: prof.armor + (cls.id === 'druid' ? ' (nada de metal)' : '') },
+    { label: 'Armas', value: prof.weapons },
+    cls.skillChoices.length >= 18
+      ? { label: 'Perícias', value: `${cls.skillPicks} quaisquer` }
+      : { label: 'Perícias', value: `${cls.skillPicks} de ${cls.skillChoices.length} — ${skillList}`, title: skillList },
   ];
-  // o que a classe tem de verdade no nível atual (Surto de Ação, Ki… só chegam no 2º)
-  const res = characterResources({ ...char, classLevels: [] }).filter((r) => !['breath', 'relentless'].includes(r.id));
-  if (res.length) facts.push({ label: 'Recursos', value: res.map((r) => r.label).join(', ') });
-  if (cls.spellcasting) facts.push({ label: 'Magia', value: `conjura com ${ABILITY_SHORT[cls.spellAbility ?? cls.prim]}` });
   if (cls.tools?.length) facts.push({ label: 'Ferramentas', value: cls.tools.map(toolLabel).join(', ') });
   // o que se decide no capítulo Dons (logo a seguir)
   const gifts = [
@@ -119,6 +139,12 @@ export function classFacts(char: Character): Fact[] {
   ];
   if (gifts.length) facts.push({ label: 'Dons (1º nível)', value: gifts.join(', ') });
   return facts;
+}
+
+/** As características do 1º nível da classe, cada uma com o que faz. */
+export function classFeatureFacts(char: Character): Fact[] {
+  const subs = subclassesFor(char.classId).map((s) => s.label).join(', ');
+  return (CLASS_LEVEL1[char.classId] ?? []).map((f) => ({ label: f.name, value: f.desc.replace('{sub}', subs) }));
 }
 
 export function backgroundFacts(char: Character): Fact[] {

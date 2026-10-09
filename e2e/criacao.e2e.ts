@@ -21,6 +21,9 @@ test.describe('criação de herói', () => {
     // Origem → Caminho → Passado (padrões: Humano, Guerreiro, Soldado)
     await expect(page.getByRole('button', { name: /Humano/ })).toHaveAttribute('aria-pressed', 'true');
     await cta.click(); // Caminho
+    // Caminho: armaduras/armas no painel e as características do 1º nível explicadas
+    await expect(page.locator('.fv-detail')).toContainText('Todas as armaduras, escudos');
+    await expect(page.getByRole('region', { name: 'Guerreiro no 1º nível' })).toContainText('Retomar o Fôlego');
     await cta.click(); // Dons
     // Dons: o Guerreiro escolhe o Estilo de Luta; o painel explica antes de escolher
     await expect(page.getByRole('heading', { name: 'Dons' })).toBeVisible();
