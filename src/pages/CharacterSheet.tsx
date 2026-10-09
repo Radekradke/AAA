@@ -135,12 +135,10 @@ export function CharacterSheet() {
         <>
           <RollModeToggle />
           <Button variant="accent" className="fv-hide-mobile" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
-          <Button className="fv-hide-mobile" onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
         </>
       }
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
-        { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
         { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
         { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
         { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },

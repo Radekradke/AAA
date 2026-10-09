@@ -1,6 +1,6 @@
 import { ThemePickerModal } from './ThemePickerModal';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useThemeMode } from '@/lib/useTheme';
@@ -12,6 +12,15 @@ import { SearchButton } from '@/components/search/SearchButton';
 import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
+import { useAuthStore } from '@/store/authStore';
+
+/** Navegação global: sempre no mesmo lugar, com a tela atual marcada. */
+const NAV: { to: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
+  { to: '/', label: 'Início', icon: 'home', match: (p) => p === '/' },
+  { to: '/personagens', label: 'Heróis', icon: 'crest', match: (p) => p === '/personagens' || p.startsWith('/ficha/') || p === '/criar' },
+  { to: '/mesas', label: 'Mesas', icon: 'banner', match: (p) => p === '/mesas' || p.startsWith('/mesa/') || p.startsWith('/sala/') },
+  { to: '/config', label: 'Configurações', icon: 'gear', match: (p) => p === '/config' || p === '/diagnostico' || p === '/retratos' },
+];
 
 export interface TopBarMenuItem {
   label: string;
@@ -45,6 +54,11 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
   const [themesOpen, setThemesOpen] = useState(false);
   const installer = useInstallPrompt();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const user = useAuthStore((s) => s.user);
+  // a barra de navegação aparece com alguém dentro, fora do menu principal (que já é a navegação)
+  // e fora da Guilda Rubra (que tem a lateral própria)
+  const showNav = !!user && pathname !== '/' && theme !== 'rubra';
   const menuRef = useRef<HTMLDivElement | null>(null);
   const moreRef = useRef<HTMLButtonElement | null>(null);
 
@@ -54,7 +68,7 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
     // teclado: o foco entra no 1º item; setas/Home/End andam; Esc fecha e devolve o foco; Tab sai
-    const itemsOf = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])].filter((n) => n.getClientRects().length > 0);
+    const itemsOf = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemcheckbox"]') ?? [])].filter((n) => n.getClientRects().length > 0);
     itemsOf()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -82,17 +96,36 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
     };
   }, [open]);
 
-  const items: (TopBarMenuItem & { key: string })[] = [
-    ...menu.map((m, i) => ({ ...m, key: `m${i}` })),
-    { key: 'home', label: 'Menu principal', icon: 'spark', onClick: () => navigate('/') },
-    { key: 'config', label: 'Configurações', icon: 'gear', onClick: () => navigate('/config') },
-    { key: 'theme', label: `Escolher tema · ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
-    { key: 'mode', label: mode === 'dark' ? 'Paleta clara' : 'Paleta escura', icon: 'spark', onClick: toggleThemeMode },
+  // menu "⋯" em grupos: o que é desta tela, para onde ir, aparência e o app
+  type Item = TopBarMenuItem & { key: string; current?: boolean; check?: boolean };
+  const groups = ([
+    { key: 'page', title: 'Nesta tela', items: menu.map((m, i) => ({ ...m, key: `m${i}` })) },
+    {
+      key: 'nav',
+      title: 'Ir para',
+      items: NAV.map((n) => ({ key: `nav-${n.to}`, label: n.label, icon: n.icon, current: n.match(pathname), onClick: () => navigate(n.to) })),
+    },
+    {
+      key: 'look',
+      title: 'Aparência',
+      items: [
+        { key: 'theme', label: `Tema: ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
+        { key: 'mode', label: 'Paleta clara', icon: 'contrast', check: mode === 'light', onClick: toggleThemeMode },
+      ] as Item[],
+    },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
-      ? [{ key: 'install', label: 'Instalar app no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }]
+      ? [{ key: 'app', title: 'App', items: [{ key: 'install', label: 'Instalar no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }] }]
       : []),
-  ];
+  ] as { key: string; title: string; items: Item[] }[]).filter((g) => g.items.length);
+
+  const run = (it: Item) => {
+    if (it.check === undefined) {
+      setOpen(false);
+      moreRef.current?.focus(); // o item some com o menu: quem abrir um modal devolve o foco aqui
+    }
+    it.onClick();
+  };
 
   return (
     <div className={'fv-topbar' + (scrolled ? ' is-scrolled' : '')}>
@@ -106,8 +139,22 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
         </span>
       </button>
 
-      <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
-        <SearchButton />
+      {showNav && (
+        <nav className="fv-topnav" aria-label="Navegação principal">
+          {NAV.slice(0, 3).map((n) => {
+            const on = n.match(pathname);
+            return (
+              <button key={n.to} type="button" className={on ? 'is-on' : ''} aria-current={on ? 'page' : undefined} onClick={() => navigate(n.to)}>
+                <Icon name={n.icon} size={15} />
+                {n.label}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      <div className="fv-topbar-tools">
+        {user && <SearchButton />}
         <SyncBadge />
         <MusicControl />
         {actions}
@@ -127,22 +174,35 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
           </button>
           {open && (
             <div role="menu" aria-label="Mais opções" className="fv-topbar-menu fv-panel">
-              {items.map((it) => (
-                <button
-                  key={it.key}
-                  role="menuitem"
-                  tabIndex={-1}
-                  className={'fv-topbar-menu-item' + (it.mobileOnly ? ' fv-mobile-only' : '')}
-                  style={{ color: it.danger ? 'var(--danger)' : undefined }}
-                  onClick={() => {
-                    setOpen(false);
-                    moreRef.current?.focus(); // o item some com o menu: quem abrir um modal devolve o foco aqui
-                    it.onClick();
-                  }}
-                >
-                  {it.icon && <Icon name={it.icon} size={16} color={it.danger ? 'var(--danger)' : 'var(--gold)'} />}
-                  {it.label}
-                </button>
+              {user && (
+                <div className="fv-topbar-menu-user" aria-hidden>
+                  <span className="fv-menu-avatar">{user.name.trim().charAt(0).toUpperCase() || '?'}</span>
+                  <span>
+                    <b>{user.guest ? 'Convidado' : user.name}</b>
+                    <small>{user.guest ? 'Offline · fichas só neste aparelho' : user.email ?? 'Conta na nuvem'}</small>
+                  </span>
+                </div>
+              )}
+              {groups.map((g) => (
+                <div key={g.key} role="group" aria-label={g.title} className={'fv-topbar-menu-group' + (g.key === 'nav' && showNav ? ' is-nav' : '')}>
+                  <span className="fv-topbar-menu-title" aria-hidden>{g.title}</span>
+                  {g.items.map((it) => (
+                    <button
+                      key={it.key}
+                      role={it.check === undefined ? 'menuitem' : 'menuitemcheckbox'}
+                      aria-checked={it.check === undefined ? undefined : it.check}
+                      aria-current={it.current ? 'page' : undefined}
+                      tabIndex={-1}
+                      className={'fv-topbar-menu-item' + (it.mobileOnly ? ' fv-mobile-only' : '') + (it.danger ? ' is-danger' : '') + (it.current ? ' is-current' : '')}
+                      onClick={() => run(it)}
+                    >
+                      {it.icon && <Icon name={it.icon} size={16} />}
+                      <span className="fv-topbar-menu-label">{it.label}</span>
+                      {it.current && <span className="fv-topbar-menu-here">aqui</span>}
+                      {it.check !== undefined && <span className={'fv-topbar-menu-switch' + (it.check ? ' is-on' : '')} aria-hidden />}
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           )}

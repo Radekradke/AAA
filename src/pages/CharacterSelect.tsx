@@ -72,16 +72,6 @@ export function CharacterSelect() {
   return (
     <Screen
       scroll
-      actions={
-        <>
-          <Button variant="accent" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>
-            Mesas
-          </Button>
-          <Button onClick={() => navigate('/')} style={{ fontSize: 12.5 }}>
-            Menu
-          </Button>
-        </>
-      }
     >
       {theme === 'rubra' ? (
         <GuildDashboard

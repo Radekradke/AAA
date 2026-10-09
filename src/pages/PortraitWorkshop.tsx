@@ -104,7 +104,7 @@ export function PortraitWorkshop() {
   };
 
   return (
-    <Screen scroll actions={<Button onClick={() => nav('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>}>
+    <Screen scroll actions={<Button onClick={() => nav('/config')} style={{ fontSize: 12.5 }}>‹ Configurações</Button>}>
       <div className="fv-workshop">
         <Panel>
           <SectionLabel>Oficina de Retratos</SectionLabel>

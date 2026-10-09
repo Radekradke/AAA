@@ -61,7 +61,8 @@ test.describe('teclado', () => {
     const more = page.getByRole('button', { name: 'Mais opções' });
     await more.focus();
     await page.keyboard.press('Enter');
-    const items = page.getByRole('menuitem');
+    // itens do menu (inclui a chave da paleta, que é menuitemcheckbox)
+    const items = page.locator('[role="menuitem"]:visible, [role="menuitemcheckbox"]:visible');
     await expect(items.first()).toBeFocused();
     await page.keyboard.press('ArrowDown');
     await expect(items.nth(1)).toBeFocused();
