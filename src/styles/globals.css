@@ -7421,3 +7421,22 @@ select optgroup {
     grid-column: 2;
   }
 }
+
+/* Ficha: perícias + características de classe à esquerda, proficiências à direita */
+.fv-ficha-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'skills' 'profs' 'feats';
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-ficha-skills { grid-area: skills; }
+.fv-ficha-profs { grid-area: profs; }
+.fv-ficha-feats { grid-area: feats; min-width: 0; }
+@media (min-width: 760px) {
+  .fv-ficha-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'skills profs' 'feats profs';
+    grid-template-rows: auto 1fr;
+  }
+}

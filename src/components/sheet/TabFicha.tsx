@@ -114,9 +114,10 @@ export function TabFicha({ char, derived }: TabProps) {
         </div>
       </Panel>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}>
+      {/* PC: perícias e características à esquerda, proficiências à direita (sem buraco sob as perícias) */}
+      <div className="fv-ficha-grid">
         {/* ===== perícias: treinadas à vista + modal com as 18 ===== */}
-        <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
+        <Panel className="fv-ficha-skills" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
             <div className="fv-label">Perícias</div>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
@@ -166,7 +167,7 @@ export function TabFicha({ char, derived }: TabProps) {
         </Panel>
 
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
-        <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
+        <Panel className="fv-ficha-profs" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
           {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
           <dl className="fv-profs">
@@ -335,10 +336,12 @@ export function TabFicha({ char, derived }: TabProps) {
           )}
           <RaceTraits char={char} />
         </Panel>
-      </div>
 
-      {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
-      <ClassFeaturesPanel char={char} />
+        {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
+        <div className="fv-ficha-feats">
+          <ClassFeaturesPanel char={char} />
+        </div>
+      </div>
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>
