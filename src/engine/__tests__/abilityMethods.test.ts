@@ -66,3 +66,14 @@ describe('Especialização do Ladino na criação', () => {
     expect(creationPending(c).some((p) => p.label.startsWith('Especialização em Atletismo sem a perícia'))).toBe(true);
   });
 });
+
+describe('truques da linhagem na etapa Magias', () => {
+  it('Drow Mago: Globos de Luz já vem pronto e não ocupa vaga de truque', async () => {
+    const { creationSpellPlan } = await import('../creationSpells');
+    const c = createDraftCharacter({ ownerId: 't', name: 'X', classId: 'wizard', raceId: 'elf' });
+    c.subraceId = 'drow';
+    const plan = creationSpellPlan(c)!;
+    expect(plan.free.some((f) => f.id === 'phb-dancing-lights' && f.source === 'Magia Drow')).toBe(true);
+    expect(plan.cantrips.pool.some((s) => s.id === 'phb-dancing-lights')).toBe(false);
+  });
+});
