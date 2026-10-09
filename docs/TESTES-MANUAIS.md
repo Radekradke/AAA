@@ -420,7 +420,7 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 55. Diário de Campanha — fase 1 (Rabiscos, Crônica, Anotar)
 O Diário é **pessoal** (só o jogador vê) e fica salvo **na ficha**: funciona offline e sincroniza com o resto.
 
-1. **Seções**: Rabiscos · Crônica · Pistas da mesa. A aba de Pistas só aparece quando o mestre já entregou handouts. A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
+1. **Seções**: Rabiscos · Crônica · Quadro da Guilda (§56) · Pistas (§57). A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
 2. **Rabiscos**:
    - Escreva e dê **Enter**: vira um post-it. Shift+Enter quebra a linha.
    - Cores: ouro, perigo, aliado, ideia, mistério.
@@ -465,3 +465,32 @@ Seção nova do Diário, entre Crônica e Pistas da mesa. É pessoal (só o joga
 6. **Busca**: a busca do diário filtra os cartões por nome, quem pediu, recompensa, anotações e objetivos.
 7. **Lugares**: lugares marcados com # nas missões entram nas sugestões de # do diário inteiro.
 8. Tudo fica salvo na ficha: recarregue a página e confira.
+
+## 57. Diário — fase 3: Pistas (imagem, verificação, entregas do mestre)
+A seção **Pistas** aparece sempre (antes só existia quando o mestre tinha entregado algo). O número na aba conta as pistas **a verificar**. Tudo é pessoal e salvo na ficha.
+
+1. **Filtro**: Todas · A verificar · Confirmadas · Falsas, cada um com contagem. A busca do diário também filtra (nome, texto, fonte e conclusão).
+2. **Cartão** (ficha de evidência):
+   - foto emoldurada quando tem imagem;
+   - carimbo inclinado com a situação (amarelo / verde / vermelho);
+   - trecho do texto, a fonte e a missão ligada (⚑).
+   - As a verificar vêm primeiro. Pista falsa fica com o nome riscado.
+3. **+ Nova pista** abre o detalhe:
+   - nome e situação (A verificar / Confirmada / Falsa);
+   - "O que diz / o que vimos" e "Quem contou / onde achamos", ambos com @ e #;
+   - **Missão ligada**, escolhida entre as do Quadro da Guilda;
+   - a conclusão só aparece quando a pista é confirmada ("Como confirmamos?") ou falsa ("Por que é falsa?").
+4. **Imagem**:
+   - "Anexar imagem" (arquivo) ou **Ctrl+V** com uma imagem copiada, com o detalhe aberto;
+   - a imagem é reduzida e comprimida (WebP, até ~180 KB) e fica **dentro da ficha**: aparece offline e depois de recarregar;
+   - "Trocar imagem" / "Tirar imagem"; clicar na imagem amplia (clique de novo fecha);
+   - limite de **30 pistas com imagem** por ficha (aviso em vermelho ao passar disso).
+5. **Entregues pelo mestre** (quando há handouts nas mesas desta ficha):
+   - clicar abre a entrega como antes;
+   - **Investigar** cria uma pista com o título e o texto da entrega e a fonte "Entregue pelo mestre". A imagem continua vindo do armazenamento da mesa e não conta no limite;
+   - depois disso o botão vira "✓ nas pistas" e abre a pista.
+6. **Quadro da Guilda**: o detalhe da missão mostra as **Pistas ligadas**, com a situação de cada uma.
+7. No celular:
+   - o detalhe empilha imagem e campos;
+   - a barra de seções do diário mostra as 4 abas e rola sozinha até a aba ativa;
+   - a tela não rola para o lado.

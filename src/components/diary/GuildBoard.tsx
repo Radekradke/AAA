@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Character, DiaryQuest } from '@/types/character';
 import type { Mentionable } from '@/engine/diary';
-import { diaryOf, norm, questProgress, QUEST_COLUMNS } from '@/engine/diary';
+import { CLUE_STATUS, cluesForQuest, diaryOf, norm, questProgress, QUEST_COLUMNS } from '@/engine/diary';
 import { useCharacterStore } from '@/store/characterStore';
 import { newId } from '@/store/character/ids';
 import { Modal } from '@/components/ui/Modal';
@@ -181,6 +181,7 @@ function QuestDetail({ char, quest, people, places, onClose }: { char: Character
   };
 
   const pr = questProgress(quest);
+  const linked = cluesForQuest(diaryOf(char).clues, quest.id);
   const prioNow = quest.priority ?? 'normal';
   return (
     <Modal
@@ -266,6 +267,21 @@ function QuestDetail({ char, quest, people, places, onClose }: { char: Character
             <MentionInput value={quest.notes ?? ''} onChange={(v) => set({ notes: v })} people={people} places={places} rows={5} ariaLabel="Anotações da missão" placeholder="O que sabemos, suspeitas, onde procurar… (@ e # funcionam)" />
           )}
         </section>
+
+        {linked.length > 0 && (
+          <section>
+            <div className="fv-facts-title">Pistas ligadas</div>
+            <ul className="fv-quest-clues">
+              {linked.map((c) => (
+                <li key={c.id} className={`is-${c.status}`}>
+                  <span className="fv-quest-clue-dot" aria-hidden />
+                  <b>{c.title.trim() || 'Pista sem nome'}</b>
+                  <small>{CLUE_STATUS.find((s) => s.id === c.status)?.label}</small>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </Modal>
   );

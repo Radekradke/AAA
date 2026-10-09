@@ -202,7 +202,7 @@ export function HandoutModal({ handout, onClose, fresh }: { handout: Handout; on
   );
 }
 
-function HandoutThumb({ path }: { path: string }) {
+export function HandoutThumb({ path }: { path: string }) {
   const { url } = useMediaUrl(path);
   return <span className="fv-handout-thumb" style={url ? { backgroundImage: `url("${url}")` } : undefined} aria-hidden />;
 }

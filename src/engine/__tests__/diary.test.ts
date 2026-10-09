@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { JournalEntry } from '@/types/character';
-import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, QUEST_COLUMNS, questProgress, sessionDigest, splitMentions } from '../diary';
+import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, QUEST_COLUMNS, questProgress, CLUE_STATUS, clueImageCount, cluesForQuest, diaryTexts, MAX_CLUE_IMAGES, sessionDigest, splitMentions } from '../diary';
 import type { Mentionable } from '../diary';
 
 const people: Mentionable[] = [
@@ -66,6 +66,20 @@ describe('Diário', () => {
 
   it('missões entram na busca e nos lugares conhecidos', () => {
     const char = { notes: '', journal: [], diary: { notes: [], quests: [{ id: 'q', title: 'Resgate', status: 'active' as const, giver: '@Mara', objectives: [{ id: 'o', text: 'entrar na #Mina Funda', done: false }], at: 1 }], clues: [], people: {} } };
+    expect(knownPlaces(char).map((p) => p.name)).toEqual(['Mina Funda']);
+  });
+
+  it('Pistas: situações, limite de imagens e ligação com missões', () => {
+    expect(CLUE_STATUS.map((c) => c.id)).toEqual(['unverified', 'confirmed', 'false']);
+    expect(MAX_CLUE_IMAGES).toBe(30);
+    const clues = [
+      { id: 'a', title: 'Bilhete', text: 'na #Mina Funda', status: 'confirmed' as const, image: 'data:image/webp;base64,AA', questId: 'q', verdict: '@Mara confirmou', at: 1 },
+      { id: 'b', title: 'Boato', text: '', status: 'unverified' as const, handoutImage: 'mesa/x.webp', at: 2 },
+    ];
+    expect(clueImageCount(clues)).toBe(1); // a do mestre não pesa na ficha
+    expect(cluesForQuest(clues, 'q').map((c) => c.id)).toEqual(['a']);
+    const char = { notes: '', journal: [], diary: { notes: [], quests: [], clues, people: {} } };
+    expect(diaryTexts(char).join('\n')).toContain('@Mara confirmou');
     expect(knownPlaces(char).map((p) => p.name)).toEqual(['Mina Funda']);
   });
 });

@@ -719,8 +719,6 @@
   .fv-map-view { height: clamp(320px, 58vh, 620px); }
   .fv-stage { padding: 8px; }
 }
-.fv-diary-clues { display: flex; flex-wrap: wrap; gap: 8px; }
-.fv-diary-clues .fv-handout-open { flex: 0 1 260px; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--lift); }
 .fv-calib { align-items: start; }
 .fv-calib-controls label.fv-bestiary-check { flex-direction: row; align-items: flex-start; gap: 8px; }
 .fv-stage-actions select { flex: 1 1 200px; }

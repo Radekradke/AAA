@@ -212,6 +212,9 @@ export interface DiaryClue {
   /** Imagem comprimida (data URL). */
   image?: string;
   questId?: string;
+  /** Veio de um handout do mestre (a imagem fica no armazenamento da mesa). */
+  handoutId?: string;
+  handoutImage?: string | null;
   at: number;
 }
 
