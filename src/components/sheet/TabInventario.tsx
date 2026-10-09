@@ -20,6 +20,7 @@ import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWear
 import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
+import { isPack } from '@/engine/packs';
 import type { EquipPreview } from '@/engine/equipPreview';
 import { useUiStore } from '@/store/uiStore';
 import {
@@ -390,6 +391,7 @@ export function TabInventario({ char, derived }: TabProps) {
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
                         onDrink={healOf(it) ? () => drink(it) : undefined}
+                        onOpenPack={isPack(it.itemId) ? () => store.openPackItem(char.id, it.uid) : undefined}
                         charges={chargesOf(it) ? { left: chargesLeft(char, it), max: chargesOf(it)!.max, regain: chargesOf(it)!.regain } : undefined}
                         onCharge={(n) => store.spendItemCharges(char.id, it.uid, n)}
                         onArt={(img) => store.updateInventoryItem(char.id, it.uid, { image: img })}
@@ -556,7 +558,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onArt, charges, onCharge }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onOpenPack, onArt, charges, onCharge }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -572,6 +574,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onRemove: () => void;
   /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
   onDrink?: () => void;
+  /** Pacote fechado (ficha antiga): abre nos itens de dentro. */
+  onOpenPack?: () => void;
   /** Item com cargas (cajado, varinha, Anel da Evasão…). */
   charges?: { left: number; max: number; regain: string };
   /** Gasta (positivo) ou devolve (negativo) cargas. */
@@ -696,6 +700,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             </ItemBtn>
           )}
           {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
+          {onOpenPack && <ItemBtn active onClick={onOpenPack}>Abrir pacote</ItemBtn>}
           {!equipped && it.wear !== 'body' && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}
           <ItemBtn onClick={onEdit}>Editar</ItemBtn>
           <button type="button" className="fv-item-remove" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remover ${it.name}`} title="Remover">
