@@ -2648,6 +2648,26 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--ink);
 }
 
+/* lista empilhada (traços, características): nome em cima, o que faz embaixo */
+.fv-facts.is-stacked dl > div {
+  display: block;
+}
+.fv-facts.is-stacked dt {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fv-facts.is-stacked dd {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-facts + .fv-facts {
+  margin-top: 12px;
+}
+
 /* pílulas (sublinhagem, perícias garantidas, sementes de conceito) */
 .fv-pills {
   display: flex;
@@ -5391,6 +5411,79 @@ body.fv-dragging .fv-screen-scroll {
 /* Eclipse em notebooks baixos: a trilha já numera os capítulos */
 
 /* escolhas extras (sublinhagem, idiomas) sob a grade de opções */
+/* Origem: traços em chips com dica (PC); no celular a lista completa fica no painel */
+.fv-trait-chips {
+  display: none;
+  margin-top: 12px;
+}
+.fv-trait-chips .fv-pills {
+  margin-top: 6px;
+}
+.fv-trait-chips .fv-facts-title small {
+  margin-left: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+.fv-trait {
+  min-height: 28px;
+  padding: 3px 9px;
+  font-size: 12px;
+  cursor: help;
+  color: var(--ink);
+}
+.fv-trait::after {
+  content: 'i';
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  font: italic 700 9px/1 var(--font-display);
+  color: var(--muted);
+}
+@media (min-width: 900px) {
+  .fv-trait-chips {
+    display: block;
+  }
+  .fv-race-traits-panel {
+    display: none;
+  }
+}
+
+/* Caminho: as características do 1º nível em cartões sob a grade de classes */
+.fv-class-feats {
+  margin-top: 14px;
+}
+.fv-class-feats ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-class-feats li {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  border-left: 3px solid color-mix(in srgb, var(--opt-color, var(--gold)), transparent 25%);
+  background: color-mix(in srgb, var(--panel), transparent 25%);
+}
+.fv-class-feats b {
+  font: 700 13.5px/1.25 var(--font-display);
+  color: var(--ink);
+}
+.fv-class-feats p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
 .fv-choice-extras > .fv-detail-sub:first-child {
   margin-top: 12px;
 }

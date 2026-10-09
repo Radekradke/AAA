@@ -123,15 +123,15 @@ export function ChoiceDetail({ icon, visual, media, color, eyebrow, title, tag, 
 }
 
 /** "Na ficha": o que a escolha concede, em pares rótulo → valor. */
-export function FactList({ facts, title = 'Na ficha' }: { facts: Fact[]; title?: string }) {
+export function FactList({ facts, title = 'Na ficha', stacked }: { facts: Fact[]; title?: string; stacked?: boolean }) {
   return (
-    <div className="fv-facts">
+    <div className={'fv-facts' + (stacked ? ' is-stacked' : '')}>
       <div className="fv-facts-title">{title}</div>
       <dl>
         {facts.map((f) => (
           <div key={f.label}>
             <dt>{f.label}</dt>
-            <dd>{f.value}</dd>
+            <dd title={f.title}>{f.value}</dd>
           </div>
         ))}
       </dl>
