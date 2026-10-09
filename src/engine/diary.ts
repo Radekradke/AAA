@@ -1,4 +1,4 @@
-import type { Character, Diary, JournalEntry } from '@/types/character';
+import type { Character, Diary, DiaryQuest, JournalEntry } from '@/types/character';
 
 /**
  * Diário pessoal do jogador (fica na ficha, funciona offline):
@@ -166,4 +166,17 @@ export function printableNotes(char: Pick<Character, 'diary' | 'notes'>): string
     .sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.at - a.at)
     .map((n) => n.text.trim().replace(/[@#](?=\S)/g, ''))
     .join('\n\n');
+}
+
+/** Colunas do Quadro da Guilda, na ordem em que a missão anda. */
+export const QUEST_COLUMNS: { id: DiaryQuest['status']; label: string; short: string; hint: string; empty: string }[] = [
+  { id: 'rumor', label: 'Rumores', short: 'Rumor', hint: 'ouvimos falar', empty: 'Boatos de taverna, cartazes, pedidos que ainda não aceitamos.' },
+  { id: 'active', label: 'Ativas', short: 'Ativa', hint: 'estamos nessa', empty: 'Nenhuma missão em andamento.' },
+  { id: 'done', label: 'Concluídas', short: 'Feita', hint: 'cumprimos', empty: 'Nada cumprido ainda.' },
+  { id: 'failed', label: 'Falhas', short: 'Falhou', hint: 'perdemos ou largamos', empty: 'Nenhuma falha — por enquanto.' },
+];
+
+/** Objetivos cumpridos de uma missão. */
+export function questProgress(q: Pick<DiaryQuest, 'objectives'>): { done: number; total: number } {
+  return { done: q.objectives.filter((o) => o.done).length, total: q.objectives.length };
 }

@@ -439,3 +439,29 @@ O Diário é **pessoal** (só o jogador vê) e fica salvo **na ficha**: funciona
    - Abre um bilhete; Enter salva nos Rabiscos (aviso "Anotado nos Rabiscos do Diário").
    - No celular fica acima da barra de abas, só com o ícone.
 6. A ficha impressa mostra os rabiscos em aberto (fixados primeiro) em "Notas".
+
+## 56. Diário — fase 2: Quadro da Guilda (missões)
+Seção nova do Diário, entre Crônica e Pistas da mesa. É pessoal (só o jogador vê). O número na aba conta as missões **Ativas**.
+
+1. **Colunas**: Rumores (ouvimos falar) · Ativas (estamos nessa) · Concluídas · Falhas, cada uma com sua cor e contador.
+   - No PC aparecem as quatro lado a lado.
+   - No celular aparece uma coluna por vez, escolhida no seletor de cima (com a contagem de cada uma); a tela não rola para o lado.
+2. **Nova missão**:
+   - O "+" em Rumores ou Ativas (no celular, em qualquer coluna) cria a missão nessa coluna e já abre o detalhe.
+   - Missão sem nome aparece como "Missão sem nome".
+3. **Cartão** (cartaz pregado com alfinete):
+   - Mostra nome, "pedida por …", 💰 recompensa, ⏳ prazo e barra de objetivos ("1/3").
+   - Missão **Urgente** ganha borda vermelha e o selo "Urgente". Dentro da coluna, as urgentes vêm primeiro.
+   - Em Concluídas e Falhas o nome aparece riscado.
+4. **Mudar de coluna**:
+   - Arraste o cartão para outra coluna (no PC a coluna de destino acende).
+   - Ou use ◀ ▶ no rodapé do cartão (funciona no toque).
+5. **Detalhe** (modal padrão: Esc e ✕ fecham, clique fora não perde nada):
+   - situação (Rumor/Ativa/Feita/Falhou);
+   - nome, **Quem pediu** (com @ para NPC/herói), recompensa, prazo, prioridade (Urgente/Normal/Quando der);
+   - **Objetivos**: Enter adiciona, caixinha marca ✓, ✕ tira; @ e # funcionam;
+   - **Anotações** com @ e #, em modo ler/editar;
+   - "Apagar missão" pede confirmação.
+6. **Busca**: a busca do diário filtra os cartões por nome, quem pediu, recompensa, anotações e objetivos.
+7. **Lugares**: lugares marcados com # nas missões entram nas sugestões de # do diário inteiro.
+8. Tudo fica salvo na ficha: recarregue a página e confira.
