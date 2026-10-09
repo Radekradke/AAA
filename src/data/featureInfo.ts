@@ -336,7 +336,29 @@ export const FEATURE_INFO: Record<string, string> = {
   'Magia de Guerra Aprimorada': 'Ao usar a ação para conjurar uma magia (não só truque), pode fazer um ataque com arma como ação bônus.',
 };
 
+/** Nível de subclasse ainda sem subclasse escolhida: o que ele traz. */
+const SUBCLASS_SLOT: Record<string, string> = {
+  Caminho: 'Caminho Primitivo',
+  Colégio: 'Colégio de Bardo',
+  Domínio: 'Domínio Divino',
+  Círculo: 'Círculo Druídico',
+  Arquétipo: 'arquétipo',
+  Tradição: 'tradição',
+  Juramento: 'Juramento Sagrado',
+  Origem: 'Origem de Feitiçaria',
+  Patrono: 'Patrono Transcendental',
+};
+
 export function featureInfo(name: string): string | undefined {
-  // "Afinidade Elemental (Linhagem Dracônica)" → "Afinidade Elemental"
-  return FEATURE_INFO[name] ?? FEATURE_INFO[name.replace(/ \([^)]*\)$/, '')];
+  const exact = FEATURE_INFO[name];
+  if (exact) return exact;
+  // "Magias de Domínio (+2) (Domínio da Vida)" → "Magias de Domínio (+2)" → "Magias de Domínio"
+  let base = name;
+  while (/ \([^)]*\)$/.test(base)) {
+    base = base.replace(/ \([^)]*\)$/, '');
+    if (FEATURE_INFO[base]) return FEATURE_INFO[base];
+  }
+  const slot = /^Característica de (\S+)/.exec(base)?.[1];
+  if (slot && SUBCLASS_SLOT[slot]) return `Uma característica nova do seu ${SUBCLASS_SLOT[slot]} — aparece com o nome certo assim que a subclasse é escolhida (aba Evoluir).`;
+  return undefined;
 }

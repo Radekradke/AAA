@@ -1,3 +1,4 @@
+import { spellDamageLabel } from '@/engine/spellCast';
 import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import type { Spell } from '@/types/dnd';
@@ -240,7 +241,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
-          <SectionLabel>Magias de Itens e Talentos</SectionLabel>
+          <SectionLabel>Magias de raça, itens e talentos</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
               <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
@@ -267,7 +268,7 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias de itens só valem com o item equipado ou sintonizado. Talentos conjuram sem gastar espaço. Recarregam no descanso (curto/longo).</p>
+          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias da raça e de talentos conjuram sem gastar espaço; as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 
@@ -320,7 +321,7 @@ export function TabMagias({ char, derived }: TabProps) {
                               {sp.school}
                             </Mini>
                             {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
-                            {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
+                            {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
                             {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
                             {sp.concentration && <Mini c="#C24DFF">conc.</Mini>}

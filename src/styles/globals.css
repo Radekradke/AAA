@@ -7421,3 +7421,71 @@ select optgroup {
     grid-column: 2;
   }
 }
+
+/* Ficha: perícias + características de classe à esquerda, proficiências à direita */
+.fv-ficha-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'skills' 'profs' 'feats';
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-ficha-skills { grid-area: skills; }
+.fv-ficha-profs { grid-area: profs; }
+.fv-ficha-feats { grid-area: feats; min-width: 0; }
+@media (min-width: 760px) {
+  .fv-ficha-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'skills profs' 'feats profs';
+    grid-template-rows: auto 1fr;
+  }
+}
+
+/* Ataques: quantos ataques por ação (Ataque Extra) e crítico ampliado */
+.fv-extra-attack {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-extra-attack b {
+  color: var(--gold);
+}
+.fv-crit-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 50%);
+  font: 600 10px/1.5 var(--font-body);
+  letter-spacing: 0.02em;
+  color: var(--danger);
+  vertical-align: middle;
+  text-transform: none;
+}
+
+/* Descanso: gastar Dados de Vida sem sair da aba */
+.fv-rest-dice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-rest-dice b {
+  display: block;
+  font: 700 15px var(--font-display);
+  color: var(--ink);
+}
+.fv-rest-dice span {
+  font: 12px var(--font-num);
+  color: var(--muted);
+}

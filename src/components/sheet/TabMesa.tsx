@@ -1,8 +1,9 @@
+import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
-import { AttackActions } from './AttackActions';
+import { AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
@@ -42,6 +43,7 @@ export function TabMesa({ char, derived }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const store = useCharacterStore();
+  const spendHitDie = useSpendHitDie(char, derived);
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check } = useDiceRoller();
   const resources = characterResources(char);
@@ -142,12 +144,8 @@ export function TabMesa({ char, derived }: TabProps) {
           <StatChip
             label="Dados de Vida"
             value={`${char.combat.hitDiceRemaining}/${derived.hitDiceMax}`}
-            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto para curar (dado + CON). Metade recupera no descanso longo.', ['Descanso'])}
-            onRoll={
-              char.combat.hitDiceRemaining > 0
-                ? () => { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); }
-                : undefined
-            }
+            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto: rola o dado + CON e a vida sobe sozinha. Metade volta no descanso longo.', ['Descanso'])}
+            onRoll={spendHitDie}
           />
         </div>
 
@@ -236,12 +234,13 @@ export function TabMesa({ char, derived }: TabProps) {
             </div>
           )}
           <div className="fv-label fv-mesa-label">Ataques</div>
+          <ExtraAttackNote char={char} />
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
           )}
           {derived.attacks.map((atk) => (
             <div key={atk.uid} className="fv-mesa-atk">
-              <div className="fv-mesa-atk-name">{atk.name}</div>
+              <div className="fv-mesa-atk-name">{atk.name} <CritBadge atk={atk} /></div>
               <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}

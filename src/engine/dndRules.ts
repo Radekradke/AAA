@@ -695,6 +695,9 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       ...feats.flatMap((f) => f.languages ?? []),
       // Feiticeiro Dracônico: Ancestral Dragão ensina Dracônico
       ...(char.subclassId === 'draconic' ? ['Dracônico'] : []),
+      // línguas secretas de classe (PHB): Gíria de Ladrão e Druídico
+      ...((char.classLevels ?? []).some((cl) => cl.classId === 'rogue') || char.classId === 'rogue' ? ['Gíria de Ladrão'] : []),
+      ...((char.classLevels ?? []).some((cl) => cl.classId === 'druid') || char.classId === 'druid' ? ['Druídico'] : []),
       ...(langPicks.left ? [languagesLeftText(langPicks.left)] : []),
     ]),
   );

@@ -1,8 +1,9 @@
+import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
-import { AttackActions } from './AttackActions';
+import { AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -31,8 +32,9 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
   const ink = useInk();
-  const { rollDice, check } = useDiceRoller();
+  const { check } = useDiceRoller();
   const store = useCharacterStore();
+  const spendHitDie = useSpendHitDie(char, derived);
   const [amt, setAmt] = useState('');
   // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
   const [concDC, setConcDC] = useState<number | null>(null);
@@ -189,6 +191,7 @@ export function TabCombate({ char, derived }: TabProps) {
       {/* Ataques */}
       <Panel>
         <div className="fv-label" style={{ marginBottom: 6 }}>Ataques</div>
+        <ExtraAttackNote char={char} />
         {derived.attacks.length === 0 && (
           <EmptyState
             icon="sword"
@@ -199,7 +202,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {derived.attacks.map((atk) => (
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name} <CritBadge atk={atk} /></div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{atk.note}</div>
             </div>
             <AttackActions
@@ -309,7 +312,8 @@ export function TabCombate({ char, derived }: TabProps) {
           <div style={{ display: 'flex', gap: 6 }}>
             <LoreTooltip info={passiveLore('Dado de Vida', `${derived.hitDiceMax}d${derived.hitDie}`, 'Durante um descanso curto, gaste um dado de vida para rolar cura e somar Constituição. Descanso longo recupera parte deles.', ['Descanso', 'Cura'])}>
               <button
-                onClick={() => { if (char.combat.hitDiceRemaining > 0) { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); } }}
+                onClick={() => spendHitDie?.()}
+                disabled={!spendHitDie}
                 style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
               >
                 Gastar
