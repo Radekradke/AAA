@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { StepProps } from './stepTypes';
-import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
+import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, FactList, themedIcon } from './creatorUi';
 import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { CustomOriginPanel } from './CustomOriginPanel';
 import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
-import { raceFacts } from '@/engine/creationSummary';
+import { raceFacts, raceTraitFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
 import type { AbilityKey, Race } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -137,10 +137,11 @@ export function StepRace({ char, update }: StepProps) {
           color={race.jewel}
           eyebrow={race.homebrew ? 'Linhagem · homebrew' : 'Linhagem'}
           title={race.label}
-          tag={race.homebrew ? [race.size, race.author && `por ${race.author}`].filter(Boolean).join(' · ') || undefined : undefined}
+          tag={race.homebrew ? [race.size, race.author && `por ${race.author}`].filter(Boolean).join(' · ') || undefined : subs.find((x) => x.id === char.subraceId)?.label}
           desc={race.desc || 'Sem descrição.'}
           facts={raceFacts(char)}
         >
+          {!race.homebrew && <FactList facts={raceTraitFacts(char)} title="Traços" />}
           {race.homebrew && (
             <>
               {race.source && <div className="fv-hb-source">Base oficial: {race.source}</div>}

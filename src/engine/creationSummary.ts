@@ -9,6 +9,7 @@ import { characterResources } from './classResources';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
+import { raceTraitInfo } from '@/data/raceTraits';
 import { subclassLevelFor } from './levelUp';
 import { castsAtCreation, creationSpellPending } from './creationSpells';
 
@@ -94,9 +95,19 @@ export function raceFacts(char: Character): Fact[] {
   if (sub?.hpPerLevel) facts.push({ label: 'Vida extra', value: `+${sub.hpPerLevel} PV por nível` });
   const langs = [...(race.languages ?? []), ...(sub?.languages ?? [])].map((l) => char.customOrigin?.langSwap?.[l] ?? l);
   if (langs.length) facts.push({ label: 'Idiomas', value: langs.join(', ') });
-  const traits = [...race.traits, ...(sub?.traits ?? [])];
-  if (traits.length) facts.push({ label: 'Traços', value: traits.join(', ') });
   return facts;
+}
+
+/** Traços da linhagem com o que cada um faz (homebrew usa a descrição do autor). */
+export function raceTraitFacts(char: Character): Fact[] {
+  const race = raceOf(char);
+  const sub = getSubrace(char.raceId, char.subraceId);
+  const details = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
+  const names = [...race.traits, ...(sub?.traits ?? [])]
+    .filter((n, i, all) => all.indexOf(n) === i)
+    // Drow: a visão superior substitui a comum
+    .filter((n, _, all) => !(n === 'Visão no Escuro' && all.includes('Visão Superior no Escuro')));
+  return names.map((n) => ({ label: n, value: details.find((d) => d.name === n)?.desc || raceTraitInfo(n) || '—' }));
 }
 
 export function classFacts(char: Character): Fact[] {

@@ -7252,3 +7252,9 @@ select optgroup {
 .fv-gifts .fv-gift-cta {
   margin: 0 0 14px;
 }
+/* "Criar raça" deitado (notebook): a linha fica ao lado do "+" em vez de espremida embaixo */
+@media (min-width: 1180px) and (max-height: 860px) {
+  .fv-hb-new .fv-option-line {
+    grid-column: 2;
+  }
+}
