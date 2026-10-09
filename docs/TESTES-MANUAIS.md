@@ -382,3 +382,21 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
    - Clicar de novo na classe já escolhida não apaga nada.
    - Trocar de classe só refaz os atributos se ainda estiverem no array padrão.
    - A Especialização do Ladino não passa para outra classe.
+
+## 53. Auditoria da criação: Passado, Atributos, Perícias, Magias e Despertar
+1. **Passado**: estes antecedentes deixam escolher o tipo de ferramenta (PHB), num seletor sob a grade que diz para que ela serve:
+   - Herói do Povo e Artesão de Guilda: ferramenta de artesão;
+   - Artista e Forasteiro: instrumento;
+   - Criminoso, Nobre e Soldado: jogo.
+
+   O painel e os itens mostram a escolha. Ao despertar, ela vira proficiência e item na mochila (o Soldado leva o jogo escolhido). Trocar de antecedente zera a escolha; trocar de classe não. A história e a característica do antecedente aparecem inteiras.
+2. **Atributos**:
+   - Novo método **Rolar 4d6**: seis rolagens, o menor dado riscado. Os valores vão para os atributos na ordem da classe e podem ser trocados entre si. "Rolar de novo" refaz tudo.
+   - O método fica salvo: voltar à etapa depois da compra de pontos continua na compra de pontos.
+   - Gastar mais de 27 pontos, ou escolher "Rolar" sem rolar, trava o Despertar.
+3. **Perícias**:
+   - Ladino sem as 2 especializações não desperta (o rodapé diz quantas faltam).
+   - Desmarcar uma perícia tira a ★ dela.
+   - Trocar o antecedente depois de especializar numa perícia dele avisa "Especialização em X sem a perícia — troque".
+4. **Magias**: Taumaturgia (Tiefling), Globos de Luz (Drow), Ilusão Menor (Gnomo da Floresta) e o truque do Alto Elfo aparecem em "Já vêm prontas" e não aparecem na lista de truques da classe.
+5. **Despertar**: "A lenda até aqui" mostra subclasse, Dons, perícias e ferramentas (★ = Especialização), idiomas e magias, como vão entrar na ficha.
