@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { JournalEntry } from '@/types/character';
-import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, sessionDigest, splitMentions } from '../diary';
+import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, QUEST_COLUMNS, questProgress, sessionDigest, splitMentions } from '../diary';
 import type { Mentionable } from '../diary';
 
 const people: Mentionable[] = [
@@ -56,5 +56,16 @@ describe('Diário', () => {
       { id: 'c', text: 'resolvido', at: 3, done: true },
     ], quests: [], clues: [], people: {} } };
     expect(printableNotes(char)).toBe('falar com Mara\n\nvelho');
+  });
+
+  it('Quadro da Guilda: colunas na ordem da missão e progresso dos objetivos', () => {
+    expect(QUEST_COLUMNS.map((c) => c.id)).toEqual(['rumor', 'active', 'done', 'failed']);
+    expect(questProgress({ objectives: [] })).toEqual({ done: 0, total: 0 });
+    expect(questProgress({ objectives: [{ id: 'a', text: 'achar o mapa', done: true }, { id: 'b', text: 'voltar', done: false }] })).toEqual({ done: 1, total: 2 });
+  });
+
+  it('missões entram na busca e nos lugares conhecidos', () => {
+    const char = { notes: '', journal: [], diary: { notes: [], quests: [{ id: 'q', title: 'Resgate', status: 'active' as const, giver: '@Mara', objectives: [{ id: 'o', text: 'entrar na #Mina Funda', done: false }], at: 1 }], clues: [], people: {} } };
+    expect(knownPlaces(char).map((p) => p.name)).toEqual(['Mina Funda']);
   });
 });

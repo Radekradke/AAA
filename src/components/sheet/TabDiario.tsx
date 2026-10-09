@@ -11,6 +11,7 @@ import { diaryOf } from '@/engine/diary';
 import { useMentionables } from '@/components/diary/useMentionables';
 import { DiaryNotes } from '@/components/diary/DiaryNotes';
 import { Chronicle } from '@/components/diary/Chronicle';
+import { GuildBoard } from '@/components/diary/GuildBoard';
 import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/diary.css';
@@ -36,13 +37,14 @@ function useSheetHandouts(sheetId: string): Handout[] {
   return list;
 }
 
-type Section = 'notes' | 'chronicle' | 'clues';
+type Section = 'notes' | 'chronicle' | 'board' | 'clues';
 const SECTION_KEY = 'fv-diary-section';
 
 /**
  * Aba Diário — o caderno de campanha do jogador (pessoal, fica na ficha):
  * Rabiscos (anotação rápida), Crônica (uma página por sessão, com @NPCs,
- * @heróis do grupo e #lugares) e as pistas que o mestre entregou.
+ * @heróis do grupo e #lugares), Quadro da Guilda (missões) e as pistas que
+ * o mestre entregou.
  */
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
@@ -70,6 +72,7 @@ export function TabDiario({ char }: TabProps) {
   const tabs: { id: Section; label: string; count: number }[] = [
     { id: 'notes', label: 'Rabiscos', count: openNotes },
     { id: 'chronicle', label: 'Crônica', count: char.journal.length },
+    { id: 'board', label: 'Quadro da Guilda', count: diary.quests.filter((q) => q.status === 'active').length },
     ...(clues.length ? [{ id: 'clues' as const, label: 'Pistas da mesa', count: clues.length }] : []),
   ];
   const current = tabs.some((x) => x.id === section) ? section : 'notes';
@@ -98,6 +101,7 @@ export function TabDiario({ char }: TabProps) {
 
       {current === 'notes' && <DiaryNotes char={char} people={people} places={places} query={query} />}
       {current === 'chronicle' && <Chronicle char={char} people={people} places={places} query={query} />}
+      {current === 'board' && <GuildBoard char={char} people={people} places={places} query={query} />}
       {current === 'clues' && (
         <div className="fv-diary-clues">
           {clues.map((h) => (
