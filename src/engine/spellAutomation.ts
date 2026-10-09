@@ -1,6 +1,6 @@
 import type { Spell } from '@/types/dnd';
 import { ABILITY_SHORT } from '@/data/skills';
-import { hpPool } from './spellCast';
+import { damageRoll, damageTiming, healRoll, hpPool, isFixedRoll } from './spellCast';
 import { spellOutcome } from './spellEffects';
 
 /**
@@ -58,20 +58,34 @@ export function spellAutomation(sp: Spell): SpellAutomation {
   if (sp.level > 0) lines.push({ kind: 'auto', text: 'Desconta o espaço de magia e marca o uso no turno', generic: true });
   if (sp.concentration) lines.push({ kind: 'auto', text: 'Liga a concentração (e encerra a anterior)', generic: true });
 
-  if (sp.attack && sp.damage) lines.push({ kind: 'roll', text: 'Rola o ataque e, se você confirmar o acerto, o dano' });
+  const dmg = sp.damage ? damageRoll(sp, Math.max(1, sp.level), 1, null, 3) : null;
+  const timing = damageTiming(sp);
+  if (sp.attack && dmg && !isFixedRoll(dmg)) lines.push({ kind: 'roll', text: 'Rola o ataque e, se você confirmar o acerto, o dano' });
   else if (sp.attack) {
     lines.push({ kind: 'roll', text: 'Rola o ataque de magia' });
     lines.push({ kind: 'table', text: 'O efeito no alvo é resolvido com o mestre' });
-  } else if (sp.damage) {
+  } else if (sp.damage && !dmg) {
+    lines.push({ kind: 'table', text: `Dano variável (${sp.damage.dice}): role com o mestre` });
+  } else if (sp.damage && dmg && isFixedRoll(dmg)) {
+    lines.push({ kind: 'auto', text: `Mostra o dano fixo (${dmg.bonus} ${sp.damage.type}), sem rolagem` });
+  } else if (sp.damage && timing === 'rider') {
+    lines.push({ kind: 'roll', text: `Não rola ao conjurar: deixa um botão para rolar ${sp.damage.dice} no acerto (em Efeitos ativos)` });
+    lines.push({ kind: 'table', text: 'Você soma esse dano ao do ataque' });
+  } else if (sp.damage && timing === 'trigger') {
+    lines.push({ kind: 'roll', text: `Não rola ao conjurar: deixa um botão para rolar ${sp.damage.dice} quando alguém entra ou começa o turno na área` });
+  } else if (sp.damage && timing === 'now') {
     lines.push({ kind: 'roll', text: `Rola o dano (${sp.damage.dice} ${sp.damage.type})` });
   }
   if (save) lines.push({ kind: 'table', text: `O alvo faz salvaguarda de ${save} contra a sua CD; o mestre aplica o resultado` });
 
   if (pool) lines.push({ kind: 'roll', text: 'Rola o total de PV afetados; quem cai é decidido na mesa' });
 
-  if (sp.heal) {
-    lines.push({ kind: 'roll', text: 'Rola a cura' });
+  const heal = sp.heal ? healRoll(sp, Math.max(1, sp.level), 3) : null;
+  if (heal) {
+    lines.push(isFixedRoll(heal) ? { kind: 'auto', text: `Cura ${heal.bonus} PV, sem rolagem` } : { kind: 'roll', text: 'Rola a cura' });
     lines.push({ kind: 'auto', text: 'Em você, cura com um toque; em outra criatura, avise a mesa' });
+  } else if (sp.heal && !out) {
+    lines.push({ kind: 'table', text: `Cura descrita no texto (${sp.heal}): aplique com o mestre` });
   }
 
   if (out) {

@@ -77,6 +77,11 @@ export interface ActiveSpellEffect {
   maxHp?: number;
   /** PV temporários renovados no início de cada turno (Heroísmo). */
   tempPerTurn?: number;
+  /**
+   * Dano que acontece depois de conjurar (próximo acerto, quem entra na área):
+   * o efeito mostra um botão para rolar na hora certa, sem gastar outro espaço.
+   */
+  roll?: { count: number; sides: number; bonus: number; label: string; extra?: { count: number; sides: number }[]; when: string };
 }
 
 /** Magia concedida por um item (recarga por descanso ou à vontade). */
