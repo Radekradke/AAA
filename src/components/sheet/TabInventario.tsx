@@ -38,11 +38,9 @@ const ITEM_ART_MAX = { w: 480, h: 600 };
 
 /** Detalhes do item + a carta com a arte (quando o jogador enviou uma). */
 function itemInfo(it: InventoryItem): LoreInfo {
-  const lore = itemLore(it);
-  // categoria e raridade com o nome em português (não o código interno)
-  const tags = lore.tags?.map((t, i) => (i === 0 ? CATEGORY_LABEL[t] ?? t : i === 1 ? RARITY[t]?.label ?? t : t));
+  const lore = itemLore({ ...getItem(it.itemId ?? ''), ...it });
   const art = itemArt(it);
-  return { ...lore, tags, ...(art ? { art: { src: art, rarity: it.rarity } } : {}) };
+  return { ...lore, ...(art ? { art: { src: art, rarity: it.rarity } } : {}) };
 }
 import { useInk } from '@/lib/contrast';
 import { itemArt } from '@/lib/itemArt';

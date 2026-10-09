@@ -15,9 +15,11 @@ import { damageExpr } from '@/engine/combat';
 import { modStr, roll } from '@/engine/dice';
 import { isWeaponProficient, proficienciesOf } from '@/engine/proficiencies';
 import { Icon } from '@/components/ui/Icon';
+import { ItemTip, itemInfo, joinNodes } from '@/components/inventory/ItemTip';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { BG_ITEMS } from '@/engine/characterBuilder';
 
 const nameOf = (id: string) => getItem(id)?.name ?? id;
-const qty = (id: string, n: number) => (n > 1 ? `${nameOf(id)} ×${n}` : nameOf(id));
 const kg = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg`;
 
 /**
@@ -77,11 +79,17 @@ export function StepGear({ char, update }: StepProps) {
   const armor = eq(char.equipped.armor);
   const strReq = armor ? getItem(armor.itemId)?.armor?.strReq : undefined;
   const strShort = strReq && derived.abilities.str.total < strReq && char.raceId !== 'dwarf';
+  // cada item com a dica do BG3 ao passar o mouse
+  const tip = (uid: string | null) => {
+    const it = eq(uid);
+    return it ? <ItemTip id={it.itemId} label={it.name} /> : null;
+  };
+  const hands = [char.equipped.mainHand, char.equipped.offHand].filter(Boolean).map((u) => tip(u));
   const summary = [
-    { icon: 'equipped' as const, label: 'Proteção', value: armor?.name ?? 'Sem armadura' },
-    ...(char.equipped.shield ? [{ icon: 'crest' as const, label: 'Escudo', value: eq(char.equipped.shield)!.name }] : []),
-    { icon: 'sword' as const, label: char.equipped.offHand ? 'Armas' : 'Arma', value: [eq(char.equipped.mainHand)?.name, eq(char.equipped.offHand)?.name].filter(Boolean).join(' + ') || '—' },
-    { icon: 'class-ranger' as const, label: 'Distância', value: eq(char.equipped.ranged)?.name ?? 'Nenhuma' },
+    { icon: 'equipped' as const, label: 'Proteção', value: armor ? tip(char.equipped.armor) : 'Sem armadura' },
+    ...(char.equipped.shield ? [{ icon: 'crest' as const, label: 'Escudo', value: tip(char.equipped.shield) }] : []),
+    { icon: 'sword' as const, label: char.equipped.offHand ? 'Armas' : 'Arma', value: hands.length ? joinNodes(hands, ' + ') : '—' },
+    { icon: 'class-ranger' as const, label: 'Distância', value: char.equipped.ranged ? tip(char.equipped.ranged) : 'Nenhuma' },
   ];
   const domainNote = domainPending(char) && kit.choices.some((c) => c.options.some((o) => o.requires));
 
@@ -136,16 +144,17 @@ export function StepGear({ char, update }: StepProps) {
         <div className="fv-kit-bag" aria-label="Na mochila">
           {gold === null && (
             <>
-              <p><b>Também leva:</b> {loose.map(([id, n]) => qty(id, n)).join(', ') || '—'}</p>
+              <p><b>Também leva:</b> {loose.length ? joinNodes(loose.map(([id, n]) => <ItemTip key={id} id={id} qty={n} />)) : '—'}</p>
               {packs.map(([id]) => (
                 <p key={id}>
-                  <b>{nameOf(id)}:</b> {PACK_CONTENTS[id].map(([cid, n]) => qty(cid, n)).join(', ')}
+                  <b><ItemTip id={id} />:</b> {joinNodes(PACK_CONTENTS[id].map(([cid, n]) => <ItemTip key={cid} id={cid} qty={n} />))}
                 </p>
               ))}
             </>
           )}
           <p>
-            <b>Do antecedente ({bg.label}):</b> {(bg.equipment ?? []).join(', ') || '—'}
+            <b>Do antecedente ({bg.label}):</b>{' '}
+            {(bg.equipment ?? []).length ? joinNodes((bg.equipment ?? []).map((name) => (BG_ITEMS[name] ? <ItemTip key={name} id={BG_ITEMS[name][0]} label={name} /> : name))) : '—'}
             {bg.startingGold ? ` · bolsa com ${bg.startingGold} po` : ''}
           </p>
           {gold === null && <p className="fv-kit-load">Carga: {kg(derived.carriedWeight)} de {kg(derived.carryCapacity)} (sem o antecedente)</p>}
@@ -187,13 +196,16 @@ export function StepGear({ char, update }: StepProps) {
                   {choice.options.map((o, i) => {
                     const allowed = optionAllowed(char, o);
                     const on = cur?.option === o.id;
-                    return (
+                    const row = (
                       <button key={o.id} type="button" role="radio" aria-checked={on} disabled={!allowed} className={'fv-gear-row' + (on ? ' is-on' : '')} onClick={() => pickOption(choice, o.id)}>
                         <span className="fv-gear-dot" aria-hidden />
                         <span className="fv-gear-name">({String.fromCharCode(97 + i)}) {o.label}</span>
                         <span className="fv-gear-note">{!allowed ? 'precisa da proficiência' : o.requires && domainPending(char) ? 'se o domínio permitir' : ''}</span>
                       </button>
                     );
+                    // opção de um item só (cota de malha, maça…): a dica do item ao passar o mouse
+                    const info = !o.pick && o.items?.length === 1 ? itemInfo(o.items[0][0]) : null;
+                    return info ? <LoreTooltip key={o.id} info={info}>{row}</LoreTooltip> : row;
                   })}
                 </div>
                 {opt?.pick && (

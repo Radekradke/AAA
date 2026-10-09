@@ -109,6 +109,22 @@
   border: 1px solid var(--line);
   background: #07090d;
 }
+/* herói: retrato redondo, rosto no terço de cima */
+.fv-search-thumb.is-round {
+  width: 30px;
+  height: 30px;
+  margin: -3px 0;
+  border-radius: 999px;
+  object-position: 50% 22%;
+}
+/* magia/condição: o ícone da regra numa plaquinha do mesmo tamanho */
+.fv-search-thumb.is-glyph {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+  border-color: color-mix(in srgb, var(--gold), transparent 65%);
+}
 .fv-search-item-text {
   flex: 1;
   min-width: 0;

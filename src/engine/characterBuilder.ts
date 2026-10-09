@@ -17,7 +17,8 @@ import { grantChoiceEffects } from './choiceEffects';
 import { getItem } from '@/data/items';
 
 /** Equipamento dos antecedentes que existe no catálogo: [id, quantidade]. */
-const BG_ITEMS: Record<string, [string, number]> = {
+/** Equipamento do antecedente (texto do livro) → item do catálogo e quantidade. */
+export const BG_ITEMS: Record<string, [string, number]> = {
   'Símbolo sagrado': ['g-holy-amulet', 1],
   'Bastões de incenso (5)': ['g-incense', 5],
   'Vestes cerimoniais': ['g-vestments', 1],
