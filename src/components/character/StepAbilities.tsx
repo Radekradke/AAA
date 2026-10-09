@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { StepProps } from './stepTypes';
 import { STEP_ABILITIES } from '@/engine/creationSummary';
 import { StepHeader, Segmented } from './creatorUi';
@@ -10,22 +9,30 @@ import { abilityModifier, racialBonusFor } from '@/engine/modifiers';
 import { standardArrayFor, recommendedAbilities, STANDARD_ARRAY } from '@/engine/characterBuilder';
 import { getClass } from '@/data/classes';
 import { modStr } from '@/engine/dice';
+import type { AbilityMethod } from '@/engine/abilityMethods';
+import { POINT_BUDGET, POINT_COST, abilityMethodOf, assignByPriority, pointBuySpent, rollAbilityDice, rollTotal, rollsMatch } from '@/engine/abilityMethods';
 
-type Method = 'array' | 'pointbuy' | 'manual';
-
-const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
-const POINT_BUDGET = 27;
-
-const METHODS: { id: Method; label: string }[] = [
+const METHODS: { id: AbilityMethod; label: string }[] = [
   { id: 'array', label: 'Valores padrão' },
   { id: 'pointbuy', label: 'Compra de pontos' },
+  { id: 'roll', label: 'Rolar 4d6' },
   { id: 'manual', label: 'Livre' },
 ];
 
+const METHOD_HINT: Record<AbilityMethod, string> = {
+  array: 'Seis valores fixos (15, 14, 13, 12, 10, 8): troque entre os atributos.',
+  pointbuy: '27 pontos para gastar; cada atributo vai de 8 a 15.',
+  roll: 'Seis rolagens de 4d6, descartando o menor dado. Depois troque os valores entre os atributos.',
+  manual: 'Digite os valores combinados com o mestre (3 a 20).',
+};
+
 /** Capítulo IV — Atributos: seis linhas, um controle cada. */
 export function StepAbilities({ char, update }: StepProps) {
-  const [method, setMethod] = useState<Method>('array');
+  const method = abilityMethodOf(char);
   const base = char.baseAbilities;
+  const rolled = method === 'roll' && rollsMatch(char);
+  // valores que os seletores oferecem: o array padrão ou o que saiu nos dados
+  const pool = method === 'roll' ? [...new Set((char.abilityRolls ?? []).map(rollTotal))].sort((a, b) => b - a) : STANDARD_ARRAY;
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
   const recommended = recommendedAbilities(char.classId);
@@ -45,17 +52,28 @@ export function StepAbilities({ char, update }: StepProps) {
       c.baseAbilities = next;
     });
 
-  const pointsLeft = POINT_BUDGET - ABILITY_KEYS.reduce((sum, k) => sum + (POINT_COST[base[k]] ?? 0), 0);
+  const pointsLeft = POINT_BUDGET - pointBuySpent(base);
 
-  const changeMethod = (m: Method) => {
-    setMethod(m);
-    if (m === 'array') update((c) => { c.baseAbilities = standardArrayFor(c.classId); });
-    if (m === 'pointbuy') update((c) => {
-      const reset = {} as typeof c.baseAbilities;
-      for (const k of ABILITY_KEYS) reset[k] = 8;
-      c.baseAbilities = reset;
+  const changeMethod = (m: AbilityMethod) =>
+    update((c) => {
+      c.abilityMethod = m;
+      if (m === 'array') c.baseAbilities = standardArrayFor(c.classId);
+      if (m === 'pointbuy') {
+        const reset = {} as typeof c.baseAbilities;
+        for (const k of ABILITY_KEYS) reset[k] = 8;
+        c.baseAbilities = reset;
+      }
+      // já tinha rolado: volta aos valores dos dados
+      if (m === 'roll' && c.abilityRolls?.length === 6) c.baseAbilities = assignByPriority(c.classId, c.abilityRolls.map(rollTotal));
     });
-  };
+
+  const rollAll = () =>
+    update((c) => {
+      const dice = rollAbilityDice();
+      c.abilityMethod = 'roll';
+      c.abilityRolls = dice;
+      c.baseAbilities = assignByPriority(c.classId, dice.map(rollTotal));
+    });
 
   const step = (key: AbilityKey, dir: 1 | -1) => {
     const v = base[key];
@@ -79,7 +97,29 @@ export function StepAbilities({ char, update }: StepProps) {
             <b>{pointsLeft}</b> pontos
           </span>
         )}
+        {method === 'roll' && (
+          <button type="button" className={rolled ? 'fv-btn-ghost' : 'fv-btn-gold'} onClick={rollAll}>
+            {rolled ? '🎲 Rolar de novo' : '🎲 Rolar os atributos'}
+          </button>
+        )}
+        <small className="fv-abil-hint">{METHOD_HINT[method]}</small>
       </div>
+
+      {rolled && (
+        <ol className="fv-abil-rolls" aria-label="Rolagens de 4d6">
+          {char.abilityRolls!.map((dice, i) => {
+            const low = dice.indexOf(Math.min(...dice));
+            return (
+              <li key={i}>
+                <b>{rollTotal(dice)}</b>
+                <span>
+                  {dice.map((d, j) => (j === low ? <s key={j}>{d}</s> : <i key={j}>{d}</i>))}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
 
       <div className="fv-abil-list">
         {ABILITY_KEYS.map((key) => {
@@ -97,9 +137,9 @@ export function StepAbilities({ char, update }: StepProps) {
               </div>
 
               <div className="fv-abil-ctrl">
-                {method === 'array' ? (
-                  <select aria-label={`Valor de ${ABILITY_LABELS[key]}`} value={baseVal} onChange={(e) => assignArrayValue(key, Number(e.target.value))}>
-                    {STANDARD_ARRAY.map((v) => (
+                {method === 'array' || method === 'roll' ? (
+                  <select aria-label={`Valor de ${ABILITY_LABELS[key]}`} value={baseVal} disabled={method === 'roll' && !rolled} onChange={(e) => assignArrayValue(key, Number(e.target.value))}>
+                    {(method === 'roll' && !rolled ? [baseVal] : pool).map((v) => (
                       <option key={v} value={v}>{v}</option>
                     ))}
                   </select>

@@ -14,6 +14,7 @@ import { creationChoices } from './classChoices';
 import { raceTraitInfo } from '@/data/raceTraits';
 import { subclassLevelFor } from './levelUp';
 import { castsAtCreation, creationSpellPending } from './creationSpells';
+import { abilityPending } from './abilityMethods';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -191,6 +192,7 @@ export function creationPending(char: Character): PendingItem[] {
   if (langs.left > 0) {
     pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
   }
+  for (const label of abilityPending(char)) pending.push({ label, step: STEP_ABILITIES });
   for (const label of creationSpellPending(char)) pending.push({ label, step: STEP_SPELLS });
 
   return pending;
