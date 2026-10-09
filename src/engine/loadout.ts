@@ -303,7 +303,7 @@ export function expandKit(items: KitItem[]): KitItem[] {
  * Armas não empilham (duas adagas = duas, uma em cada mão); dardos e azagaias
  * de arremesso empilham, como munição e consumíveis.
  */
-const STACKS = (id: string) => !id.startsWith('w-') || id === 'w-dart' || id === 'w-javelin';
+export const STACKS = (id: string) => !id.startsWith('w-') || id === 'w-dart' || id === 'w-javelin';
 
 /**
  * Monta a mochila e as mãos a partir do kit: veste a armadura, empunha a

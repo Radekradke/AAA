@@ -59,3 +59,45 @@ test.describe('inventário: anéis e sintonia', () => {
     await expect(ac(page)).toHaveText('12');
   });
 });
+
+test.describe('inventário: pacotes', () => {
+  test('pacote do catálogo entra aberto, soma à tocha e o Desfazer volta @celular', async ({ page }) => {
+    // a ficha de teste já tem 1 tocha
+    await signIn(page, 'guest', { characters: [WIZARD] });
+    await page.goto(`/ficha/${ID}`);
+    await expect(page.getByText(String(WIZARD.name)).first()).toBeVisible();
+    await openItems(page);
+    await page.getByRole('button', { name: /^Mochila:/ }).click();
+    await expect(card(page, 'Tocha')).not.toContainText(/x\d/);
+
+    await page.getByRole('button', { name: '+ Adicionar' }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByPlaceholder(/Buscar entre/).fill('Pacote de Explorador');
+    await picker.getByRole('button', { name: /^Pacote de Explorador\b/ }).first().click();
+    await expect(picker.getByRole('status')).toHaveText(/Pacote de Explorador foi aberto na mochila/);
+    await picker.getByRole('button', { name: 'Fechar' }).click();
+
+    // os itens de dentro existem; o pacote fechado, não
+    await expect(card(page, 'Tocha')).toContainText('x11');
+    await expect(card(page, 'Saco de Dormir')).toBeVisible();
+    await expect(card(page, 'Pacote de Explorador')).toHaveCount(0);
+
+    // Desfazer: volta a 1 tocha e sem saco de dormir
+    await page.getByRole('button', { name: 'Desfazer' }).click();
+    await expect(card(page, 'Tocha')).not.toContainText(/x\d/);
+    await expect(card(page, 'Saco de Dormir')).toHaveCount(0);
+  });
+
+  test('pacote fechado de ficha antiga ganha "Abrir pacote"', async ({ page }) => {
+    const pack = { uid: 'p1', itemId: 'g-pack-dungeoneer', name: 'Pacote de Explorador de Masmorras', category: 'gear', note: '', rarity: 'comum', weight: 30.5, quantity: 1, favorite: false, attuned: false, location: 'mochila' };
+    await signIn(page, 'guest', { characters: [{ ...WIZARD, inventory: [...(WIZARD.inventory as unknown[]), pack] }] });
+    await page.goto(`/ficha/${ID}`);
+    await expect(page.getByText(String(WIZARD.name)).first()).toBeVisible();
+    await openItems(page);
+    await page.getByRole('button', { name: /^Mochila:/ }).click();
+    await card(page, 'Pacote de Explorador de Masmorras').getByRole('button', { name: 'Abrir pacote' }).click();
+    await expect(card(page, 'Pacote de Explorador de Masmorras')).toHaveCount(0);
+    await expect(card(page, 'Pé de Cabra')).toBeVisible();
+    await expect(page.getByText(/Pacote de Explorador de Masmorras aberto: 9 itens na Mochila/)).toBeVisible();
+  });
+});

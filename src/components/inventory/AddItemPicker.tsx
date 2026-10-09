@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { isPack } from '@/engine/packs';
 import { ALL_ITEMS, GEAR, MAGIC_ITEMS } from '@/data/items';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
@@ -68,8 +69,10 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
   const pick = (item: Item) => {
     const final = current.enchant && enchant ? enchantItem(item, enchant) : item;
     onAdd(final);
-    setAdded(final.name);
-    window.setTimeout(() => setAdded((a) => (a === final.name ? null : a)), 1600);
+    // pacote entra aberto: cada item de dentro vai para a mochila
+    const msg = isPack(final.id) ? `${final.name} foi aberto na mochila` : `${final.name} foi para a mochila`;
+    setAdded(msg);
+    window.setTimeout(() => setAdded((a) => (a === msg ? null : a)), 1600);
   };
 
   const pill = (active: boolean) => ({
@@ -124,7 +127,7 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
         </div>
       )}
 
-      {added && <div className="fv-picker-added" role="status">✓ {added} foi para a mochila</div>}
+      {added && <div className="fv-picker-added" role="status">✓ {added}</div>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.map((raw) => {

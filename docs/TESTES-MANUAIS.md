@@ -551,3 +551,14 @@ Antes: rode `supabase/diario_privado.sql` no Supabase (docs/SUPABASE.md §12). S
 12. No PC: Jogar, Ficha, Combate, Inventário, Magias, Diário | separador | Evoluir, Descanso, Retrato, Dados (menores). Passe o mouse em cada aba: aparece para que ela serve.
 13. No Jogar, os blocos têm atalho para o detalhe: Ataques → **Combate ›**, Salvaguardas → **Ficha ›**, Magia → **Magias ›**, Recursos & Descanso → **Descanso ›**.
 14. No celular, **Mais** abre uma lista com Diário, Evoluir, Descanso, Retrato e Dados, cada uma com uma linha dizendo para que serve.
+
+## 61. Pacotes abrem sozinhos
+
+Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estudioso) são só itens vendidos juntos: na ficha eles sempre viram os itens de dentro. Kits (Curandeiro, Disfarce, Ladrão…) continuam uma ferramenta só.
+
+1. Inventário → **+ Adicionar** → busque "Pacote de Explorador" e toque: o catálogo diz "Pacote de Explorador foi aberto na mochila". Feche: aparecem Mochila, Saco de Dormir, Tocha, Rações etc. — e **não** aparece um item "Pacote de Explorador".
+2. Com 1 tocha antes, ficam **x11** (soma à pilha, não cria uma segunda Tocha). Uma pilha guardada no **Baú** não é somada (a nova vai para a Mochila).
+3. O aviso "Pacote de Explorador aberto: 8 itens na Mochila" tem **Desfazer**: volta exatamente ao que era (1 tocha, sem saco de dormir).
+4. Ficha antiga com um pacote fechado no inventário: o card mostra **Abrir pacote**. Tocar abre os itens no mesmo recipiente; o Desfazer devolve o pacote fechado.
+5. O mestre entregando um pacote pela mesa ao vivo: chega aberto na ficha do jogador.
+6. Adicione um **Kit de Disfarce** ou **Kit de Curandeiro**: entra como um item só.

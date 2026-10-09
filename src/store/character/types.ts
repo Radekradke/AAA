@@ -38,6 +38,8 @@ export interface CharacterState {
   addInventoryItem: (id: string, item: Item | InventoryItem) => void;
   updateInventoryItem: (id: string, uid: string, patch: Partial<InventoryItem>) => void;
   removeInventoryItem: (id: string, uid: string) => void;
+  /** Abre um pacote fechado que já está na mochila (fichas antigas). */
+  openPackItem: (id: string, uid: string) => void;
   toggleEquip: (id: string, uid: string) => void;
   /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
   moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
