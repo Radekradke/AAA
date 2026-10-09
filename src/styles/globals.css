@@ -498,6 +498,10 @@ button:active:not(:disabled) {
   /* botão secundário (fantasma) — par do fv-btn-gold */
   .fv-btn-ghost {
     cursor: pointer;
+    /* tamanho base (camada de componentes: quem define o seu, ganha) */
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
     font-family: var(--font-body);
     font-weight: 600;
     color: var(--muted);
@@ -7994,8 +7998,6 @@ select optgroup {
 }
 .fv-rules-head h3 {
   margin: 0;
-  font: 700 19px var(--font-display);
-  color: var(--ink);
 }
 .fv-rules-base {
   padding: 3px 10px;
@@ -8197,4 +8199,19 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-goto span {
   font-size: 15px;
   line-height: 1;
+}
+
+
+/* turno no celular: iniciativa inteira, depois Ação · Bônus · Reação, depois movimento e novo turno */
+@media (max-width: 760px) {
+  .fv-mesa-turn {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fv-mesa-turn > :first-child {
+    grid-column: 1 / -1;
+  }
+  .fv-mesa-turn .fv-mesa-move {
+    grid-column: span 2;
+  }
 }

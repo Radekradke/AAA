@@ -216,7 +216,9 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       onContextMenu={(e) => {
         if (isCoarsePointer()) e.preventDefault(); // long-press não abre menu do sistema
       }}
-      style={anchorStyle}
+      // sem estilo, a âncora some do layout (display: contents); com estilo (flex, grid…),
+      // ela precisa existir como caixa — senão o flex: 1 / gridArea pedidos são ignorados
+      style={anchorStyle ? { display: 'block', ...anchorStyle } : undefined}
     >
       {children}
     </span>

@@ -19,7 +19,7 @@ export function TableRulesPanel({ char }: { char: Character }) {
   return (
     <section id="fv-regras" className="fv-panel fv-rules" aria-labelledby="fv-regras-t">
       <header className="fv-rules-head">
-        <h3 id="fv-regras-t">Regras desta ficha</h3>
+        <h3 id="fv-regras-t" className="fv-label">Regras desta ficha</h3>
         <span className="fv-rules-base">D&amp;D 5e 2014</span>
       </header>
       <p className="fv-rules-intro">A ficha segue o Livro do Jogador 2014. O que a mesa muda aparece aqui, com o nome do que é.</p>

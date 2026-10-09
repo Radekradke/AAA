@@ -99,7 +99,7 @@ export function TabCombate({ char, derived }: TabProps) {
           />
           {/* entalhes de HUD a cada 10% */}
           <div aria-hidden className="fv-hp-notches" />
-          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em' }}>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em' }}>
             <span className="fv-hp-bar-label">{pct}%</span>
           </div>
         </div>

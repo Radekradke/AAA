@@ -249,6 +249,55 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
           ))}
         </Panel>
 
+        {/* Condições: seleção compacta + só as ativas à vista */}
+        <Panel>
+          <div className="fv-label fv-mesa-label">Condições</div>
+          <select
+            value={condPick}
+            aria-label="Adicionar condição"
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
+              setCondPick('');
+            }}
+            className="fv-input fv-mesa-select"
+          >
+            <option value="">Selecionar condição…</option>
+            {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
+              <option key={c.id} value={c.id}>{c.label} — {c.short}</option>
+            ))}
+          </select>
+          <div className="fv-mesa-conds">
+            {char.combat.conditions.map((c) => {
+              const def = getCondition(c);
+              return (
+                <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
+                  <div className="fv-mesa-cond">
+                    <span className="fv-mesa-cond-dot">
+                      <ConditionIcon id={c} size={18} />
+                    </span>
+                    <div className="fv-mesa-cond-body">
+                      <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
+                      {def && <div className="fv-mesa-cond-short">{def.short}</div>}
+                    </div>
+                    <button
+                      type="button"
+                      className="fv-mesa-cond-x"
+                      onClick={() => store.toggleCondition(char.id, c)}
+                      aria-label={`Remover ${c}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </LoreTooltip>
+              );
+            })}
+            {char.combat.conditions.length === 0 && (
+              <div className="fv-mesa-empty">Nenhuma condição ativa — como deve ser.</div>
+            )}
+          </div>
+        </Panel>
+
         {/* Salvaguardas + perícias-chave */}
         <Panel>
           <div className="fv-mesa-head">
@@ -413,54 +462,6 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
           </div>
         </Panel>
 
-        {/* Condições: seleção compacta + só as ativas à vista */}
-        <Panel>
-          <div className="fv-label fv-mesa-label">Condições</div>
-          <select
-            value={condPick}
-            aria-label="Adicionar condição"
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
-              setCondPick('');
-            }}
-            className="fv-input fv-mesa-select"
-          >
-            <option value="">Selecionar condição…</option>
-            {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
-              <option key={c.id} value={c.id}>{c.label} — {c.short}</option>
-            ))}
-          </select>
-          <div className="fv-mesa-conds">
-            {char.combat.conditions.map((c) => {
-              const def = getCondition(c);
-              return (
-                <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
-                  <div className="fv-mesa-cond">
-                    <span className="fv-mesa-cond-dot">
-                      <ConditionIcon id={c} size={18} />
-                    </span>
-                    <div className="fv-mesa-cond-body">
-                      <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
-                      {def && <div className="fv-mesa-cond-short">{def.short}</div>}
-                    </div>
-                    <button
-                      type="button"
-                      className="fv-mesa-cond-x"
-                      onClick={() => store.toggleCondition(char.id, c)}
-                      aria-label={`Remover ${c}`}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </LoreTooltip>
-              );
-            })}
-            {char.combat.conditions.length === 0 && (
-              <div className="fv-mesa-empty">Nenhuma condição ativa — como deve ser.</div>
-            )}
-          </div>
-        </Panel>
       </div>
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}

@@ -192,13 +192,14 @@ export function TabInventario({ char, derived }: TabProps) {
             title: 'Carga',
             subtitle: `${carried.toFixed(1).replace('.', ',')} / ${capacity.toFixed(1).replace('.', ',')} kg`,
             body: 'Capacidade de carga = Força × 7,5 kg (PHB 2014). Acima disso você fica sobrecarregado — a critério do mestre, o deslocamento é penalizado.',
-            tags: ['Força', 'Regra da mesa'],
+            tags: ['Força', 'PHB 2014'],
           }}
           anchorStyle={{ display: 'block' }}
         >
-          <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          {/* o ✦ do rótulo é um item do flex: o status vai para a direita com margem automática */}
+          <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', alignItems: 'baseline' }}>
             <span>Carga</span>
-            <span className="fv-tone" style={{ '--c': loadColor, fontWeight: 700, letterSpacing: 0, textTransform: 'none' } as React.CSSProperties}>{loadStatus}</span>
+            <span className="fv-tone" style={{ '--c': loadColor, marginLeft: 'auto', fontWeight: 700, letterSpacing: 0, textTransform: 'none' } as React.CSSProperties}>{loadStatus}</span>
           </div>
         </LoreTooltip>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-num)' }}>
