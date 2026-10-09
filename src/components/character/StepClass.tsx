@@ -4,10 +4,9 @@ import { CLASSES, getClass } from '@/data/classes';
 import { ABILITY_LABELS } from '@/data/skills';
 import { standardArrayFor } from '@/engine/characterBuilder';
 import { applySelection, defaultSelection } from '@/engine/loadout';
-import { classFacts, creationPending, STEP_CLASS } from '@/engine/creationSummary';
+import { classFacts } from '@/engine/creationSummary';
 import { clearClassChoices } from '@/engine/classChoices';
 import { resetCreationSpells } from '@/engine/creationSpells';
-import { LevelOneChoices } from './LevelOneChoices';
 import { voiceFor, voices, useVoices } from '@/lib/voices';
 
 /** O papel de cada classe em poucas palavras (o card não é lugar de sigla). */
@@ -32,7 +31,6 @@ export function StepClass({ char, update }: StepProps) {
   const voice = useVoices();
   const hasVoice = !!voiceFor(cls.id, char.gender);
   const speaking = voice.speaking === `${cls.id}-${char.gender}`;
-  const due = creationPending(char).filter((p) => p.step === STEP_CLASS);
 
   const pickClass = (id: string) => {
     voices.play(id, char.gender);
@@ -63,25 +61,19 @@ export function StepClass({ char, update }: StepProps) {
     <div className="fv-step">
       <StepHeader step={1} char={char} />
       <div className="fv-choice">
-        <div>
-          <OptionGrid label="Classes">
-            {CLASSES.map((c) => (
-              <OptionTile
-                key={c.id}
-                icon={themedIcon('class', c.id)}
-                label={c.label}
-                line={ROLE[c.id] ?? c.kind}
-                color={c.jewel}
-                selected={char.classId === c.id}
-                onSelect={() => pickClass(c.id)}
-              />
-            ))}
-          </OptionGrid>
-          {/* escolhas do 1º nível ficam sob a grade, como as da linhagem */}
-          <div className="fv-choice-extras">
-            <LevelOneChoices char={char} update={update} scope="class" />
-          </div>
-        </div>
+        <OptionGrid label="Classes">
+          {CLASSES.map((c) => (
+            <OptionTile
+              key={c.id}
+              icon={themedIcon('class', c.id)}
+              label={c.label}
+              line={ROLE[c.id] ?? c.kind}
+              color={c.jewel}
+              selected={char.classId === c.id}
+              onSelect={() => pickClass(c.id)}
+            />
+          ))}
+        </OptionGrid>
 
         <ChoiceDetail
           icon={themedIcon('class', cls.id)}
@@ -91,11 +83,6 @@ export function StepClass({ char, update }: StepProps) {
           desc={cls.blurb}
           facts={classFacts(char)}
         >
-          {due.length > 0 && (
-            <p className="fv-detail-due">
-              No 1º nível você escolhe (abaixo das classes): {due.map((p) => p.label.replace(/^Escolha:? (o )?/, '').replace(/ \(.*\)$/, '')).join(' · ')}
-            </p>
-          )}
           <div className="fv-voice">
             <div className="fv-seg" role="radiogroup" aria-label="Voz e aparência">
               {(['masc', 'fem'] as const).map((g) => (

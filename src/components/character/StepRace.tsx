@@ -4,14 +4,10 @@ import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './
 import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { CustomOriginPanel } from './CustomOriginPanel';
-import { LevelOneChoices } from './LevelOneChoices';
 import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
-import { SPELLS, spellVisible } from '@/data/spells';
-
-const wizardCantrips = () => SPELLS.filter((sp) => spellVisible(sp) && sp.level === 0 && !!sp.classes?.includes('wizard')).sort((a, b) => a.name.localeCompare(b.name));
 import type { AbilityKey, Race } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { ABILITY_LABELS } from '@/data/skills';
@@ -132,25 +128,6 @@ export function StepRace({ char, update }: StepProps) {
                 </div>
               </div>
             )}
-            {char.subraceId === 'high-elf' && (() => {
-              const picked = char.choices?.['race.highElfCantrip']?.[0] ?? '';
-              return (
-                <div className="fv-detail-sub">
-                  <div className="fv-facts-title">Truque de mago (Alto Elfo)</div>
-                  <select
-                    className="fv-input"
-                    value={picked}
-                    aria-label="Truque do Alto Elfo"
-                    onChange={(e) => update((c) => { c.choices = { ...(c.choices ?? {}), 'race.highElfCantrip': e.target.value ? [e.target.value] : [] }; })}
-                  >
-                    <option value="">Escolha um truque…</option>
-                    {wizardCantrips().map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
-                  </select>
-                  <small className="fv-langs-why">Conjura com Inteligência, à vontade.</small>
-                </div>
-              );
-            })()}
-            <LevelOneChoices char={char} update={update} scope="race" />
             {tasha && <CustomOriginPanel char={char} update={update} />}
           </div>
         </div>

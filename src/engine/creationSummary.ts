@@ -30,6 +30,7 @@ export interface PendingItem {
 export const CREATION_STEPS = [
   { id: 'origem', label: 'Origem', title: 'Origem', subtitle: 'Sua linhagem: corpo, sentidos e herança.' },
   { id: 'caminho', label: 'Caminho', title: 'Caminho', subtitle: 'Sua classe: como você enfrenta o perigo.' },
+  { id: 'dons', label: 'Dons', title: 'Dons', subtitle: 'O que torna o seu herói único já no 1º nível.' },
   { id: 'passado', label: 'Passado', title: 'Passado', subtitle: 'Quem você era antes da aventura.' },
   { id: 'atributos', label: 'Atributos', title: 'Atributos', subtitle: 'Os seis pilares do herói.' },
   { id: 'pericias', label: 'Perícias', title: 'Perícias', subtitle: 'No que você é treinado.' },
@@ -40,15 +41,22 @@ export const CREATION_STEPS = [
 
 export const STEP_RACE = 0;
 export const STEP_CLASS = 1;
-export const STEP_BACKGROUND = 2;
-export const STEP_SKILLS = 4;
-export const STEP_SPELLS = 5;
-export const STEP_GEAR = 6;
-export const STEP_IDENTITY = 7;
+export const STEP_GIFTS = 2;
+export const STEP_BACKGROUND = 3;
+export const STEP_ABILITIES = 4;
+export const STEP_SKILLS = 5;
+export const STEP_SPELLS = 6;
+export const STEP_GEAR = 7;
+export const STEP_IDENTITY = 8;
 
 /** Etapas que este herói percorre: "Magias" só para quem conjura no 1º nível. */
 export function visibleSteps(char: Character): number[] {
-  return CREATION_STEPS.map((_, i) => i).filter((i) => i !== STEP_SPELLS || castsAtCreation(char));
+  return CREATION_STEPS.map((_, i) => i).filter((i) => (i !== STEP_SPELLS || castsAtCreation(char)) && (i !== STEP_GIFTS || giftsAtCreation(char)));
+}
+
+/** Há algo a decidir no capítulo Dons (subclasse do 1º nível, escolhas da classe ou da raça)? */
+export function giftsAtCreation(char: Character): boolean {
+  return subclassAtCreation(char) || creationChoices(char).length > 0;
 }
 
 /** Nome da subclasse de 1º nível de cada classe (Clérigo, Feiticeiro, Bruxo). */
@@ -104,6 +112,12 @@ export function classFacts(char: Character): Fact[] {
   if (res.length) facts.push({ label: 'Recursos', value: res.map((r) => r.label).join(', ') });
   if (cls.spellcasting) facts.push({ label: 'Magia', value: `conjura com ${ABILITY_SHORT[cls.spellAbility ?? cls.prim]}` });
   if (cls.tools?.length) facts.push({ label: 'Ferramentas', value: cls.tools.map(toolLabel).join(', ') });
+  // o que se decide no capítulo Dons (logo a seguir)
+  const gifts = [
+    ...(subclassAtCreation(char) ? [SUBCLASS_TITLE[char.classId] ?? 'Subclasse'] : []),
+    ...creationChoices(char, 'class').map((c) => c.spec.label),
+  ];
+  if (gifts.length) facts.push({ label: 'Dons (1º nível)', value: gifts.join(', ') });
   return facts;
 }
 
@@ -135,14 +149,11 @@ export function creationPending(char: Character): PendingItem[] {
   if (ch && picked > 0 && picked < ch.count) {
     pending.push({ label: `Escolha mais ${ch.count - picked} atributo${ch.count - picked > 1 ? 's' : ''} da raça`, step: 0 });
   }
-  if (char.subraceId === 'high-elf' && !(char.choices?.['race.highElfCantrip'] ?? []).length) {
-    pending.push({ label: 'Escolha o truque do Alto Elfo', step: 0 });
-  }
   if (subclassAtCreation(char) && !char.subclassId) {
-    pending.push({ label: `Escolha o ${SUBCLASS_TITLE[char.classId] ?? 'caminho'} (${cls.label})`, step: STEP_CLASS });
+    pending.push({ label: `Escolha o ${SUBCLASS_TITLE[char.classId] ?? 'caminho'} (${cls.label})`, step: STEP_GIFTS });
   }
   for (const c of creationChoices(char)) {
-    if (c.missing > 0) pending.push({ label: `Escolha: ${c.spec.label}${c.missing > 1 ? ` (faltam ${c.missing})` : ''}`, step: c.spec.classId === 'race' ? STEP_RACE : STEP_CLASS });
+    if (c.missing > 0) pending.push({ label: `Escolha: ${c.spec.label}${c.missing > 1 ? ` (faltam ${c.missing})` : ''}`, step: STEP_GIFTS });
   }
   const langs = languagePicks(char);
   if (langs.left > 0) {

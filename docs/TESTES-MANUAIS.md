@@ -360,3 +360,12 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 3. Magias de domínio e o truque do Acólito da Natureza aparecem em "Já vêm prontas" e não ocupam vaga.
 4. Tirar um truque/magia trava o Despertar e o rodapé diz "Falta aqui: escolha 1 truque". Preparar a mais diz "Tire 1…". "Usar a sugestão" volta ao padrão. Trocar de classe zera as magias.
 5. O que foi escolhido é exatamente o que aparece na aba Magias da ficha.
+
+## 50. Capítulo "Dons" (escolhas do 1º nível)
+1. Logo depois do **Caminho**, o capítulo **Dons** reúne as escolhas do 1º nível: subclasse de Clérigo/Feiticeiro/Bruxo, Estilo de Luta, Inimigo Favorito + Terreno (+ idioma), instrumentos do Bardo, ferramenta do Monge, Ancestral Dragão, Bênçãos do Conhecimento, Acólito da Natureza, ferramenta do Anão e truque do Alto Elfo. Quem não tem nada a decidir (ex.: Bárbaro humano) não vê o capítulo. Origem e Caminho voltaram a ter só raça/sublinhagem e classe — o Caminho lista em "Na ficha" os Dons que vêm a seguir.
+2. **Trilha no topo**: uma parada por decisão, com número, ✓ e o que foi escolhido (ou "1 de 3"). Escolher a subclasse acrescenta na trilha as decisões dela (Conhecimento → idiomas e perícias). Ao completar uma decisão, a trilha avança sozinha para a próxima que falta.
+3. **Cartões** com ícone ou arte: instrumentos e ferramentas com a arte do item, inimigos favoritos com criaturas, dragões na cor do ancestral, truques com o ícone da escola.
+4. **Painel "O que entra na ficha"**: passar o mouse mostra sem escolher. Subclasse mostra as características do 1º nível explicadas, magias de domínio/lista do patrono, proficiências e o que vem depois; idiomas mostram quem fala; truques mostram tempo, alcance, duração e dano; ferramentas e estilos explicam o efeito. Botão "Escolher X" / "Trocar por X" / "Tirar da escolha".
+5. **Celular**: tocar no cartão abre uma gaveta de baixo com o painel; a escolha é no botão da gaveta (✕ ou toque fora fecha).
+6. Notebook (altura ≤ 860 px): cartões deitados em 2 colunas, arte no lugar do ícone.
+7. Perícias escolhidas nos Dons aparecem em "Já treinadas" no capítulo Perícias (fonte "Dons") e não podem ser escolhidas de novo.

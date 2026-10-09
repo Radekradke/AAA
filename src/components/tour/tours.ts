@@ -64,7 +64,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
     {
       target: ['.fv-forge-rail', '.fv-forge-progress'],
       title: 'Os capítulos',
-      body: 'Origem, Caminho, Passado, Atributos, Perícias, Magias (para quem conjura), Equipamento e Despertar. Toque num capítulo para ir e voltar quando quiser.',
+      body: 'Origem, Caminho, Dons (as escolhas do 1º nível), Passado, Atributos, Perícias, Magias (para quem conjura), Equipamento e Despertar. Toque num capítulo para ir e voltar quando quiser.',
     },
     {
       target: ['.fv-options'],
