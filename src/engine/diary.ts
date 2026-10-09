@@ -1,4 +1,4 @@
-import type { Character, Diary, DiaryQuest, JournalEntry } from '@/types/character';
+import type { Character, Diary, DiaryClue, DiaryQuest, JournalEntry } from '@/types/character';
 
 /**
  * Diário pessoal do jogador (fica na ficha, funciona offline):
@@ -99,7 +99,7 @@ export function diaryTexts(char: Pick<Character, 'diary' | 'notes' | 'journal'>)
     ...d.notes.map((n) => n.text),
     ...char.journal.map((e) => `${e.title}\n${entryBody(e)}`),
     ...d.quests.map((q) => [q.title, q.giver, q.reward, q.notes, ...q.objectives.map((o) => o.text)].filter(Boolean).join('\n')),
-    ...d.clues.map((c) => [c.title, c.text, c.source, c.verdict].filter(Boolean).join('\n')),
+    ...d.clues.map(clueText),
   ];
 }
 
@@ -180,3 +180,22 @@ export const QUEST_COLUMNS: { id: DiaryQuest['status']; label: string; short: st
 export function questProgress(q: Pick<DiaryQuest, 'objectives'>): { done: number; total: number } {
   return { done: q.objectives.filter((o) => o.done).length, total: q.objectives.length };
 }
+
+/** Situações de uma pista, com o carimbo que aparece no cartão. */
+export const CLUE_STATUS: { id: DiaryClue['status']; label: string; plural: string; stamp: string; verdictLabel: string }[] = [
+  { id: 'unverified', label: 'A verificar', plural: 'A verificar', stamp: 'A verificar', verdictLabel: '' },
+  { id: 'confirmed', label: 'Confirmada', plural: 'Confirmadas', stamp: 'Confirmada', verdictLabel: 'Como confirmamos?' },
+  { id: 'false', label: 'Falsa', plural: 'Falsas', stamp: 'Falsa', verdictLabel: 'Por que é falsa?' },
+];
+
+/** Quantas pistas podem ter imagem anexada (cada uma vai comprimida para ~150 KB dentro da ficha). */
+export const MAX_CLUE_IMAGES = 30;
+
+/** Pistas com imagem anexada (as do mestre não contam: ficam no armazenamento da mesa). */
+export const clueImageCount = (clues: Pick<DiaryClue, 'image'>[]) => clues.filter((c) => !!c.image).length;
+
+/** Pistas ligadas a uma missão do Quadro da Guilda. */
+export const cluesForQuest = (clues: DiaryClue[], questId: string) => clues.filter((c) => c.questId === questId);
+
+/** Texto pesquisável de uma pista. */
+export const clueText = (c: DiaryClue) => [c.title, c.text, c.source, c.verdict].filter(Boolean).join('\n');

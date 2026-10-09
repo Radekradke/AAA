@@ -120,3 +120,61 @@ test('Diário: Quadro da Guilda no celular mostra uma coluna por vez @celular', 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+// PNG 2×2 (pixels vermelhos) para anexar como pista
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==', 'base64');
+
+test('Diário: Pistas — anexar imagem, verificar, ligar à missão e investigar entrega do mestre', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('fv-handouts-wiz1', JSON.stringify([{ id: 'h1', campaignId: 'c', title: 'Carta lacrada', body: 'Encontre-me no moinho à meia-noite.', imagePath: null, recipients: null, shownAt: '2026-10-01T20:00:00Z', createdAt: '2026-10-01T20:00:00Z' }]));
+  });
+  const diary = { notes: [], clues: [], people: {}, quests: [{ id: 'q1', title: 'Resgatar o filho do moleiro', status: 'active', objectives: [], at: 1 }] };
+  await signIn(page, 'guest', { characters: [{ ...WIZARD, diary }], ui: { dice3d: false } });
+  await page.goto('/ficha/wiz1');
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Pistas/ }).click();
+
+  // nova pista com imagem anexada (comprimida e guardada na ficha)
+  await page.getByRole('button', { name: '+ Nova pista' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('textbox', { name: 'Nome da pista' }).fill('Símbolo da mão vermelha');
+  await dialog.getByRole('textbox', { name: 'O que a pista diz' }).fill('Pintado na porta da #Torre de Vigia');
+  await dialog.locator('input[type=file]').setInputFiles({ name: 'simbolo.png', mimeType: 'image/png', buffer: PNG });
+  await expect(dialog.locator('.fv-clue-figure-img img')).toHaveAttribute('src', /^data:image\/(webp|jpeg)/);
+  await dialog.getByRole('combobox', { name: 'Missão ligada' }).selectOption({ label: 'Resgatar o filho do moleiro' });
+  await dialog.getByRole('radio', { name: 'Confirmada' }).click();
+  await dialog.getByRole('textbox', { name: 'Conclusão da pista' }).fill('Vimos os goblins entrando lá');
+  await dialog.getByRole('button', { name: 'Pronto' }).click();
+
+  const card = page.locator('.fv-clue', { hasText: 'Símbolo da mão vermelha' });
+  await expect(card.locator('.fv-clue-stamp')).toHaveText('Confirmada');
+  await expect(card.locator('.fv-clue-photo img')).toBeVisible();
+  await expect(card).toContainText('Resgatar o filho do moleiro');
+
+  // entrega do mestre vira pista para investigar
+  await page.getByRole('button', { name: 'Investigar: Carta lacrada' }).click();
+  await expect(dialog.getByRole('textbox', { name: 'Nome da pista' })).toHaveValue('Carta lacrada');
+  await expect(dialog.getByRole('textbox', { name: 'Fonte da pista' })).toHaveValue('Entregue pelo mestre');
+  await dialog.getByRole('button', { name: 'Pronto' }).click();
+  await expect(page.getByRole('button', { name: 'Abrir pista: Carta lacrada' })).toContainText('✓ nas pistas');
+  await expect(page.getByRole('tab', { name: /Pistas/ })).toContainText('1'); // uma a verificar
+
+  // filtro por situação
+  await page.getByRole('radio', { name: /A verificar/ }).click();
+  await expect(page.locator('.fv-clue')).toHaveCount(1);
+  await expect(page.locator('.fv-clue')).toContainText('Carta lacrada');
+  await page.getByRole('radio', { name: /Todas/ }).click();
+
+  // a missão mostra a pista ligada
+  await page.getByRole('tab', { name: /Quadro da Guilda/ }).click();
+  await page.locator('.fv-quest-open', { hasText: 'Resgatar' }).click();
+  await expect(page.getByRole('dialog').locator('.fv-quest-clues')).toContainText('Símbolo da mão vermelha');
+  await page.getByRole('dialog').getByRole('button', { name: 'Pronto' }).click();
+
+  // fica salvo (com a imagem)
+  await page.waitForTimeout(1200);
+  await page.reload();
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Pistas/ }).click();
+  await expect(page.locator('.fv-clue', { hasText: 'Símbolo da mão vermelha' }).locator('.fv-clue-photo img')).toBeVisible();
+});

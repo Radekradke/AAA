@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Icon } from '@/components/ui/Icon';
 import { useTheme } from '@/lib/useTheme';
-import { HandoutModal } from '@/components/stage/Handouts';
 import { stageService } from '@/services/stageService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
@@ -12,6 +11,7 @@ import { useMentionables } from '@/components/diary/useMentionables';
 import { DiaryNotes } from '@/components/diary/DiaryNotes';
 import { Chronicle } from '@/components/diary/Chronicle';
 import { GuildBoard } from '@/components/diary/GuildBoard';
+import { Clues } from '@/components/diary/Clues';
 import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/diary.css';
@@ -37,21 +37,27 @@ function useSheetHandouts(sheetId: string): Handout[] {
   return list;
 }
 
+/** Aba ativa visível na barra (rola só a barra, nunca a página). */
+function centerTab(el: HTMLButtonElement | null) {
+  const nav = el?.parentElement;
+  if (!el || !nav || nav.scrollWidth <= nav.clientWidth) return;
+  nav.scrollLeft = el.offsetLeft - nav.offsetLeft - (nav.clientWidth - el.offsetWidth) / 2;
+}
+
 type Section = 'notes' | 'chronicle' | 'board' | 'clues';
 const SECTION_KEY = 'fv-diary-section';
 
 /**
  * Aba Diário — o caderno de campanha do jogador (pessoal, fica na ficha):
  * Rabiscos (anotação rápida), Crônica (uma página por sessão, com @NPCs,
- * @heróis do grupo e #lugares), Quadro da Guilda (missões) e as pistas que
- * o mestre entregou.
+ * @heróis do grupo e #lugares), Quadro da Guilda (missões) e Pistas (com
+ * imagem, verificação e as entregas do mestre).
  */
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
   const [query, setQuery] = useState('');
   const { people, places } = useMentionables(char);
-  const clues = useSheetHandouts(char.id);
-  const [clue, setClue] = useState<Handout | null>(null);
+  const handouts = useSheetHandouts(char.id);
   const [section, setSection] = useState<Section>(() => {
     try {
       return (localStorage.getItem(SECTION_KEY) as Section) || 'notes';
@@ -73,7 +79,7 @@ export function TabDiario({ char }: TabProps) {
     { id: 'notes', label: 'Rabiscos', count: openNotes },
     { id: 'chronicle', label: 'Crônica', count: char.journal.length },
     { id: 'board', label: 'Quadro da Guilda', count: diary.quests.filter((q) => q.status === 'active').length },
-    ...(clues.length ? [{ id: 'clues' as const, label: 'Pistas da mesa', count: clues.length }] : []),
+    { id: 'clues', label: 'Pistas', count: diary.clues.filter((c) => c.status === 'unverified').length },
   ];
   const current = tabs.some((x) => x.id === section) ? section : 'notes';
 
@@ -92,7 +98,15 @@ export function TabDiario({ char }: TabProps) {
 
       <nav className="fv-diary-tabs" role="tablist" aria-label="Seções do diário">
         {tabs.map((x) => (
-          <button key={x.id} type="button" role="tab" aria-selected={current === x.id} className={current === x.id ? 'is-on' : ''} onClick={() => go(x.id)}>
+          <button
+            key={x.id}
+            type="button"
+            role="tab"
+            aria-selected={current === x.id}
+            className={current === x.id ? 'is-on' : ''}
+            ref={current === x.id ? centerTab : undefined}
+            onClick={() => go(x.id)}
+          >
             {x.label}
             {x.count > 0 && <small>{x.count}</small>}
           </button>
@@ -102,20 +116,7 @@ export function TabDiario({ char }: TabProps) {
       {current === 'notes' && <DiaryNotes char={char} people={people} places={places} query={query} />}
       {current === 'chronicle' && <Chronicle char={char} people={people} places={places} query={query} />}
       {current === 'board' && <GuildBoard char={char} people={people} places={places} query={query} />}
-      {current === 'clues' && (
-        <div className="fv-diary-clues">
-          {clues.map((h) => (
-            <button key={h.id} type="button" className="fv-handout-open" onClick={() => setClue(h)}>
-              <span className="fv-handout-seal" aria-hidden>✉</span>
-              <span>
-                <b>{h.title}</b>
-                <small>{h.shownAt ? new Date(h.shownAt).toLocaleDateString('pt-BR') : ''}{h.recipients ? ' · só para você' : ''}</small>
-              </span>
-            </button>
-          ))}
-          {clue && <HandoutModal handout={clue} onClose={() => setClue(null)} />}
-        </div>
-      )}
+      {current === 'clues' && <Clues char={char} people={people} places={places} query={query} handouts={handouts} />}
     </div>
   );
 }
