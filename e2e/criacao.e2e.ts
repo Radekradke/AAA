@@ -48,6 +48,13 @@ test.describe('criação de herói', () => {
     // Kit do Livro do Jogador: Guerreiro com cota de malha e pacote aberto
     await expect(page.getByText('Kit do Livro do Jogador')).toBeVisible();
     await expect(page.locator('.fv-kit-bag')).toContainText('Pacote de Explorador de Masmorras:');
+    // dica de item (BG3): passar o mouse no nome mostra CA, exigências, peso e preço
+    await page.locator('.fv-kit-list .fv-item-tip', { hasText: 'Cota de Malha' }).hover();
+    const dica = page.getByRole('tooltip');
+    await expect(dica).toContainText('CA 16');
+    await expect(dica).toContainText('Exige FOR 13');
+    await expect(dica).toContainText('75 po');
+    await page.mouse.move(5, 5);
     await page.getByRole('button', { name: 'Personalizar kit' }).click();
     // (b) couro, arco longo e 20 flechas
     await page.getByRole('radiogroup', { name: 'Armadura' }).getByRole('radio', { name: /Couro, arco longo/ }).click();

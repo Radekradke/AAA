@@ -18,6 +18,22 @@ test.describe('busca geral', () => {
     await expect(page.getByRole('button', { name: 'Buscar (Ctrl+K)' })).toBeVisible();
   });
 
+  test('miniaturas: herói com retrato, criatura com arte, magia e condição com o ícone da regra', async ({ page }) => {
+    await page.goto('/personagens');
+    await expect(page.getByText(NAME).first()).toBeVisible();
+    await page.keyboard.press('Control+k');
+    const busca = page.getByRole('dialog', { name: 'Buscar' });
+    const campo = busca.getByRole('combobox');
+    await campo.fill(NAME.split(' ')[0]);
+    await expect(busca.getByRole('option', { name: new RegExp(NAME) }).locator('img.fv-search-thumb.is-round')).toHaveCount(1);
+    await campo.fill('goblin');
+    await expect(busca.getByRole('option', { name: /^Goblin/ }).locator('img.fv-search-thumb')).toHaveCount(1);
+    await campo.fill('sono');
+    await expect(busca.getByRole('option', { name: /^Sono/ }).locator('.fv-search-thumb.is-glyph svg')).toHaveCount(1);
+    await campo.fill('agarrado');
+    await expect(busca.getByRole('option', { name: /^Agarrado/ }).locator('.fv-search-thumb.is-glyph svg')).toHaveCount(1);
+  });
+
   test('regra abre o resumo ali mesmo; herói leva à ficha; aba leva à aba', async ({ page }) => {
     await page.goto('/personagens');
     await expect(page.getByText(NAME).first()).toBeVisible();

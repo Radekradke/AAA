@@ -233,12 +233,28 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
         >
           {info.art && <ItemArtCard src={info.art.src} rarity={info.art.rarity} />}
           <div className="fv-lore-text">
-            <div className="fv-lore-title">{info.title}</div>
+            <div className="fv-lore-title" style={info.titleColor ? { color: info.titleColor } : undefined}>{info.title}</div>
             {info.subtitle && <div className="fv-lore-subtitle">{info.subtitle}</div>}
-            <div className="fv-lore-body">{info.body}</div>
+            {info.headline && (
+              <div className="fv-lore-headline">
+                <b>{info.headline.value}</b>
+                {info.headline.label && <span>{info.headline.label}</span>}
+              </div>
+            )}
+            {info.props?.length ? (
+              <ul className="fv-lore-props">
+                {info.props.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+            ) : null}
+            {info.body && <div className="fv-lore-body">{info.body}</div>}
             {info.tags?.length ? (
               <div className="fv-lore-tags">
                 {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              </div>
+            ) : null}
+            {info.footer?.length ? (
+              <div className="fv-lore-footer">
+                {info.footer.map((f) => <span key={f}>{f}</span>)}
               </div>
             ) : null}
             {touchMode && <div className="fv-lore-mobile">Toque fora para fechar · toque simples executa a ação.</div>}

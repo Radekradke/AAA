@@ -369,3 +369,7 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 5. **Celular**: tocar no cartão abre uma gaveta de baixo com o painel; a escolha é no botão da gaveta (✕ ou toque fora fecha).
 6. Notebook (altura ≤ 860 px): cartões deitados em 2 colunas, arte no lugar do ícone.
 7. Perícias escolhidas nos Dons aparecem em "Já treinadas" no capítulo Perícias (fonte "Dons") e não podem ser escolhidas de novo.
+
+## 51. Dica de item (estilo BG3) e miniaturas na busca
+1. Passar o mouse num item (inventário, catálogo "Adicionar item", e agora no capítulo **Equipamento** da criação: kit, opções (a)/(b) de um item só, pacotes, "Também leva" e itens do antecedente) mostra a dica: nome na cor da raridade, "Comum · Arma marcial corpo a corpo", o número em destaque (1d8 cortante, CA 16, 2d4+2 de cura), propriedades (Versátil (1d10 com as duas mãos), Exige FOR 13, Desvantagem em Furtividade, sintonia, cargas), uma frase curta e, no rodapé, peso e preço. Com arte, a carta do item aparece ao lado. No celular: segurar o dedo no nome.
+2. **Busca (Ctrl+K)**: heróis com o retrato redondo, criaturas com a arte do bestiário, itens com a arte, magias com o ícone da escola e condições com o ícone da condição.
