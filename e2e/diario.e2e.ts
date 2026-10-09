@@ -178,3 +178,77 @@ test('Diário: Pistas — anexar imagem, verificar, ligar à missão e investiga
   await page.getByRole('tab', { name: /Pistas/ }).click();
   await expect(page.locator('.fv-clue', { hasText: 'Símbolo da mão vermelha' }).locator('.fv-clue-photo img')).toBeVisible();
 });
+
+test('Diário: Pessoas, busca em todo o diário e ligações entre itens', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('fv-npcs-wiz1', JSON.stringify([
+      { id: 'n1', campaignId: 'c', name: 'Mara Pedrafria', role: 'Taverneira', summary: 'Dona da Caneca Rachada.', portrait: null, revealed: true },
+      { id: 'n2', campaignId: 'c', name: 'Velho Tomás', role: 'Moleiro', summary: '', portrait: null, revealed: true },
+    ]));
+    localStorage.setItem('fv-heroes-wiz1', JSON.stringify([{ key: 'hero:x', kind: 'hero', name: 'Thoren Pedrafé', role: 'Anão · Clérigo 5', portrait: null }]));
+  });
+  const diary = {
+    notes: [{ id: 'r1', text: 'Perguntar à @Mara Pedrafria sobre o selo', at: 2 }],
+    quests: [{ id: 'q1', title: 'Achar o selo', status: 'active', giver: '@Mara Pedrafria', objectives: [], at: 1 }],
+    clues: [{ id: 'c1', title: 'Selo partido', text: 'Achado na ponte', status: 'unverified', questId: 'q1', at: 1 }],
+    people: {},
+  };
+  await signIn(page, 'guest', { characters: [{ ...WIZARD, diary }], ui: { dice3d: false } });
+  await page.goto('/ficha/wiz1');
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Rabiscos/ }).click();
+
+  // a busca vale para o diário todo: mostra onde mais tem resultado
+  await page.getByRole('textbox', { name: 'Buscar no diário' }).fill('selo');
+  const also = page.getByRole('status').filter({ hasText: 'Também em' });
+  await expect(also).toContainText('Quadro da Guilda');
+  await expect(also).toContainText('Pistas');
+  await also.getByRole('button', { name: /Pistas/ }).click();
+  await expect(page.locator('.fv-clue')).toContainText('Selo partido');
+  await page.getByRole('textbox', { name: 'Buscar no diário' }).fill('');
+
+  // pista → missão ligada
+  await page.locator('.fv-clue', { hasText: 'Selo partido' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'abrir missão →' }).click();
+  await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Nome da missão' })).toHaveValue('Achar o selo');
+  // missão → pista ligada
+  await page.getByRole('dialog').locator('.fv-quest-clues').getByRole('button', { name: /Selo partido/ }).click();
+  await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Nome da pista' })).toHaveValue('Selo partido');
+  await page.getByRole('dialog').getByRole('button', { name: 'Pronto' }).click();
+
+  // tocar numa menção abre a pessoa
+  await page.getByRole('tab', { name: /Rabiscos/ }).click();
+  await page.locator('.fv-note').getByRole('link', { name: 'Ver Mara Pedrafria em Pessoas' }).click();
+  const person = page.getByRole('dialog');
+  await expect(person).toContainText('O que o mestre revelou');
+  await expect(person).toContainText('Dona da Caneca Rachada.');
+  await expect(person.locator('.fv-backlinks li')).toHaveCount(2); // rabisco + missão
+  await person.getByRole('radio', { name: 'Suspeito' }).click();
+  await person.getByRole('textbox', { name: 'Minhas notas sobre Mara Pedrafria' }).fill('Mentiu sobre a noite do sumiço');
+  await person.getByRole('button', { name: 'Pronto' }).click();
+
+  // página Pessoas: NPCs e heróis, quem é mais citado primeiro, opinião no cartão
+  await expect(page.getByRole('tab', { name: /Pessoas/ })).toHaveAttribute('aria-selected', 'true');
+  const first = page.locator('.fv-person').first();
+  await expect(first).toContainText('Mara Pedrafria');
+  await expect(first).toContainText('Suspeito');
+  await expect(first).toContainText('citado em 2');
+  await expect(page.locator('.fv-person')).toHaveCount(3);
+  await page.getByRole('radio', { name: /Heróis/ }).click();
+  await expect(page.locator('.fv-person')).toHaveCount(1);
+  await expect(page.locator('.fv-person')).toContainText('Thoren Pedrafé');
+  await page.getByRole('radio', { name: /Todos/ }).click();
+
+  // "Onde aparece" leva ao rabisco
+  await page.locator('.fv-person', { hasText: 'Mara Pedrafria' }).click();
+  await page.getByRole('dialog').locator('.fv-backlinks').getByRole('button', { name: /Rabisco/ }).click();
+  await expect(page.getByRole('tab', { name: /Rabiscos/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('.fv-note.is-flash')).toContainText('Perguntar à');
+
+  // a opinião fica salva
+  await page.waitForTimeout(1200);
+  await page.reload();
+  await page.locator('.fv-sheet-tab', { hasText: 'Diário' }).click();
+  await page.getByRole('tab', { name: /Pessoas/ }).click();
+  await expect(page.locator('.fv-person', { hasText: 'Mara Pedrafria' })).toContainText('Suspeito');
+});

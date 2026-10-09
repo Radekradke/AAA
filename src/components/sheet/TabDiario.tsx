@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Icon } from '@/components/ui/Icon';
 import { useTheme } from '@/lib/useTheme';
@@ -6,12 +6,16 @@ import { stageService } from '@/services/stageService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 import type { Handout } from '@/types/stage';
-import { diaryOf } from '@/engine/diary';
+import type { DiarySection } from '@/engine/diary';
+import { diaryOf, sectionHits } from '@/engine/diary';
 import { useMentionables } from '@/components/diary/useMentionables';
 import { DiaryNotes } from '@/components/diary/DiaryNotes';
 import { Chronicle } from '@/components/diary/Chronicle';
 import { GuildBoard } from '@/components/diary/GuildBoard';
 import { Clues } from '@/components/diary/Clues';
+import { People } from '@/components/diary/People';
+import { DiaryNavContext } from '@/components/diary/DiaryNav';
+import type { DiaryNavApi } from '@/components/diary/DiaryNav';
 import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/diary.css';
@@ -44,7 +48,7 @@ function centerTab(el: HTMLButtonElement | null) {
   nav.scrollLeft = el.offsetLeft - nav.offsetLeft - (nav.clientWidth - el.offsetWidth) / 2;
 }
 
-type Section = 'notes' | 'chronicle' | 'board' | 'clues';
+type Section = DiarySection;
 const SECTION_KEY = 'fv-diary-section';
 
 /**
@@ -80,10 +84,33 @@ export function TabDiario({ char }: TabProps) {
     { id: 'chronicle', label: 'Crônica', count: char.journal.length },
     { id: 'board', label: 'Quadro da Guilda', count: diary.quests.filter((q) => q.status === 'active').length },
     { id: 'clues', label: 'Pistas', count: diary.clues.filter((c) => c.status === 'unverified').length },
+    { id: 'people', label: 'Pessoas', count: 0 },
   ];
   const current = tabs.some((x) => x.id === section) ? section : 'notes';
 
+  // ligações: qualquer item pode abrir outro (menção → pessoa, pista → missão…)
+  const [focus, setFocus] = useState<DiaryNavApi['focus']>(null);
+  const nav = useMemo<DiaryNavApi>(
+    () => ({
+      go: (s, id) => {
+        go(s);
+        if (id) {
+          setQuery('');
+          setFocus({ section: s, id });
+        }
+      },
+      focus,
+      clearFocus: () => setFocus(null),
+    }),
+    [focus],
+  );
+
+  // a busca vale para o diário inteiro: mostra onde mais há resultado
+  const hits = useMemo(() => sectionHits(char, query), [char, query]);
+  const elsewhere = query.trim() ? tabs.filter((x) => x.id !== current && x.id !== 'people' && hits[x.id as keyof typeof hits] > 0) : [];
+
   return (
+    <DiaryNavContext.Provider value={nav}>
     <div className="animate-riseIn fv-diary">
       <header className="fv-diary-head">
         <div className="fv-diary-title">
@@ -113,10 +140,23 @@ export function TabDiario({ char }: TabProps) {
         ))}
       </nav>
 
+      {elsewhere.length > 0 && (
+        <p className="fv-diary-elsewhere" role="status">
+          Também em:
+          {elsewhere.map((x) => (
+            <button key={x.id} type="button" className="fv-mini-tag" onClick={() => go(x.id)}>
+              {x.label} <b>{hits[x.id as keyof typeof hits]}</b>
+            </button>
+          ))}
+        </p>
+      )}
+
       {current === 'notes' && <DiaryNotes char={char} people={people} places={places} query={query} />}
       {current === 'chronicle' && <Chronicle char={char} people={people} places={places} query={query} />}
       {current === 'board' && <GuildBoard char={char} people={people} places={places} query={query} />}
       {current === 'clues' && <Clues char={char} people={people} places={places} query={query} handouts={handouts} />}
+      {current === 'people' && <People char={char} people={people} places={places} query={query} />}
     </div>
+    </DiaryNavContext.Provider>
   );
 }

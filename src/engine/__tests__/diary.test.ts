@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { JournalEntry } from '@/types/character';
-import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, QUEST_COLUMNS, questProgress, CLUE_STATUS, clueImageCount, cluesForQuest, diaryTexts, MAX_CLUE_IMAGES, sessionDigest, splitMentions } from '../diary';
+import { diaryOf, entryBody, entrySession, findMentions, knownPlaces, placeTags, printableNotes, QUEST_COLUMNS, questProgress, CLUE_STATUS, clueImageCount, cluesForQuest, diaryTexts, MAX_CLUE_IMAGES, diaryItems, sectionHits, whereMentioned, personKey, sessionDigest, splitMentions } from '../diary';
 import type { Mentionable } from '../diary';
 
 const people: Mentionable[] = [
@@ -81,5 +81,34 @@ describe('Diário', () => {
     const char = { notes: '', journal: [], diary: { notes: [], quests: [], clues, people: {} } };
     expect(diaryTexts(char).join('\n')).toContain('@Mara confirmou');
     expect(knownPlaces(char).map((p) => p.name)).toEqual(['Mina Funda']);
+  });
+
+  describe('Pessoas, busca e ligações', () => {
+    const char = {
+      notes: '',
+      journal: [{ ...legacy, id: 's1', title: 'A ponte', body: '@Mara Pedrafria nos traiu na ponte.', session: 3 }],
+      diary: {
+        notes: [{ id: 'n1', text: 'Perguntar à @Mara Pedrafria sobre o selo', at: 1 }],
+        quests: [{ id: 'q1', title: 'Achar o selo', status: 'active' as const, giver: '@Brenna Aço', objectives: [{ id: 'o', text: 'falar com Mara Pedrafria', done: false }], at: 1 }],
+        clues: [{ id: 'c1', title: 'Selo partido', text: 'Achado na ponte', status: 'unverified' as const, at: 1 }],
+        people: {},
+      },
+    };
+
+    it('todos os itens do diário, com seção e título', () => {
+      expect(diaryItems(char).map((i) => `${i.section}:${i.id}:${i.title}`)).toEqual(['notes:n1:Perguntar à @Mara Pedrafria sobre o selo', 'chronicle:s1:A ponte', 'board:q1:Achar o selo', 'clues:c1:Selo partido']);
+    });
+
+    it('a busca conta resultados em todas as seções', () => {
+      expect(sectionHits(char, 'selo')).toEqual({ notes: 1, chronicle: 0, board: 1, clues: 1 });
+      expect(sectionHits(char, 'ponte')).toEqual({ notes: 0, chronicle: 1, board: 0, clues: 1 });
+      expect(sectionHits(char, '  ')).toEqual({ notes: 0, chronicle: 0, board: 0, clues: 0 });
+    });
+
+    it('onde alguém aparece (com @ ou o nome inteiro)', () => {
+      expect(whereMentioned(char, { name: 'Mara Pedrafria' }).map((i) => i.id)).toEqual(['n1', 's1', 'q1']);
+      expect(whereMentioned(char, { name: 'Brenna Aço' }).map((i) => i.id)).toEqual(['q1']);
+      expect(personKey('Mára  Pedrafria ')).toBe(personKey('mara  pedrafria'));
+    });
   });
 });

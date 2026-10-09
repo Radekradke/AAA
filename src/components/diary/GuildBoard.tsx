@@ -6,6 +6,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { newId } from '@/store/character/ids';
 import { Modal } from '@/components/ui/Modal';
 import { MentionInput, RichText } from './MentionInput';
+import { useDiaryFocus, useDiaryNav } from './DiaryNav';
 
 const PRIORITY_LABEL: Record<NonNullable<DiaryQuest['priority']>, string> = { high: 'Urgente', normal: 'Normal', low: 'Quando der' };
 
@@ -35,6 +36,12 @@ export function GuildBoard({ char, people, places, query }: { char: Character; p
   const [over, setOver] = useState<DiaryQuest['status'] | null>(null);
   const narrow = useNarrow();
   const [col, setCol] = useState<DiaryQuest['status']>('active');
+  useDiaryFocus('board', (id) => {
+    const hit = quests.find((x) => x.id === id);
+    if (!hit) return;
+    setCol(hit.status);
+    setOpenId(id);
+  });
   const q = norm(query);
 
   const visible = useMemo(
@@ -182,6 +189,7 @@ function QuestDetail({ char, quest, people, places, onClose }: { char: Character
 
   const pr = questProgress(quest);
   const linked = cluesForQuest(diaryOf(char).clues, quest.id);
+  const nav = useDiaryNav();
   const prioNow = quest.priority ?? 'normal';
   return (
     <Modal
@@ -274,9 +282,11 @@ function QuestDetail({ char, quest, people, places, onClose }: { char: Character
             <ul className="fv-quest-clues">
               {linked.map((c) => (
                 <li key={c.id} className={`is-${c.status}`}>
-                  <span className="fv-quest-clue-dot" aria-hidden />
-                  <b>{c.title.trim() || 'Pista sem nome'}</b>
-                  <small>{CLUE_STATUS.find((s) => s.id === c.status)?.label}</small>
+                  <button type="button" onClick={() => nav?.go('clues', c.id)} disabled={!nav}>
+                    <span className="fv-quest-clue-dot" aria-hidden />
+                    <b>{c.title.trim() || 'Pista sem nome'}</b>
+                    <small>{CLUE_STATUS.find((s) => s.id === c.status)?.label}</small>
+                  </button>
                 </li>
               ))}
             </ul>

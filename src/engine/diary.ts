@@ -1,4 +1,4 @@
-import type { Character, Diary, DiaryClue, DiaryQuest, JournalEntry } from '@/types/character';
+import type { Character, Diary, DiaryClue, DiaryPersonNote, DiaryQuest, JournalEntry } from '@/types/character';
 
 /**
  * Diário pessoal do jogador (fica na ficha, funciona offline):
@@ -98,7 +98,7 @@ export function diaryTexts(char: Pick<Character, 'diary' | 'notes' | 'journal'>)
   return [
     ...d.notes.map((n) => n.text),
     ...char.journal.map((e) => `${e.title}\n${entryBody(e)}`),
-    ...d.quests.map((q) => [q.title, q.giver, q.reward, q.notes, ...q.objectives.map((o) => o.text)].filter(Boolean).join('\n')),
+    ...d.quests.map(questText),
     ...d.clues.map(clueText),
   ];
 }
@@ -199,3 +199,56 @@ export const cluesForQuest = (clues: DiaryClue[], questId: string) => clues.filt
 
 /** Texto pesquisável de uma pista. */
 export const clueText = (c: DiaryClue) => [c.title, c.text, c.source, c.verdict].filter(Boolean).join('\n');
+
+/** Seções do diário (a ordem das abas). */
+export type DiarySection = 'notes' | 'chronicle' | 'board' | 'clues' | 'people';
+
+/** O que o herói acha de alguém (página Pessoas). */
+export const PERSON_OPINION: { id: NonNullable<DiaryPersonNote['opinion']>; label: string }[] = [
+  { id: 'ally', label: 'Aliado' },
+  { id: 'neutral', label: 'Neutro' },
+  { id: 'suspect', label: 'Suspeito' },
+  { id: 'enemy', label: 'Inimigo' },
+];
+
+/** Um item do diário, com o texto que a busca e as menções leem. */
+export interface DiaryItem {
+  section: Exclude<DiarySection, 'people'>;
+  id: string;
+  title: string;
+  text: string;
+}
+
+const questText = (q: DiaryQuest) => [q.title, q.giver, q.reward, q.notes, ...q.objectives.map((o) => o.text)].filter(Boolean).join('\n');
+
+/** Todos os itens do diário, cada um com o texto que pode ser buscado. */
+export function diaryItems(char: Pick<Character, 'diary' | 'notes' | 'journal'>): DiaryItem[] {
+  const d = diaryOf(char);
+  const total = char.journal.length;
+  return [
+    ...d.notes.map((n) => ({ section: 'notes' as const, id: n.id, title: n.text.split('\n')[0].slice(0, 60), text: n.text })),
+    ...char.journal.map((e, i) => {
+      const n = entrySession(e, total - i);
+      return { section: 'chronicle' as const, id: e.id, title: e.title.trim() || `Sessão ${n}`, text: `${e.title}\n${entryBody(e)}` };
+    }),
+    ...d.quests.map((q) => ({ section: 'board' as const, id: q.id, title: q.title.trim() || 'Missão sem nome', text: questText(q) })),
+    ...d.clues.map((c) => ({ section: 'clues' as const, id: c.id, title: c.title.trim() || 'Pista sem nome', text: clueText(c) })),
+  ];
+}
+
+/** Quantos itens de cada seção batem com a busca (a busca do diário vale para todas). */
+export function sectionHits(char: Pick<Character, 'diary' | 'notes' | 'journal'>, query: string): Record<Exclude<DiarySection, 'people'>, number> {
+  const out = { notes: 0, chronicle: 0, board: 0, clues: 0 };
+  const q = norm(query);
+  if (!q) return out;
+  for (const it of diaryItems(char)) if (norm(it.text).includes(q)) out[it.section]++;
+  return out;
+}
+
+/** Onde alguém aparece no diário (rabiscos, sessões, missões e pistas). */
+export function whereMentioned(char: Pick<Character, 'diary' | 'notes' | 'journal'>, who: Pick<Mentionable, 'name'>): DiaryItem[] {
+  return diaryItems(char).filter((it) => findMentions([it.text], [who]).length > 0);
+}
+
+/** Anotação pessoal sobre alguém (chave = nome normalizado). */
+export const personKey = (name: string) => norm(name);

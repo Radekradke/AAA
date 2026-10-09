@@ -3,6 +3,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import type { Mentionable } from '@/engine/diary';
 import { norm, splitMentions } from '@/engine/diary';
 import { NpcAvatar } from '@/components/campaign/NpcGallery';
+import { useDiaryNav } from './DiaryNav';
 import '@/styles/session.css';
 import '@/styles/diary.css';
 
@@ -111,8 +112,24 @@ export function MentionInput({ value, onChange, people, places, rows, placeholde
 
 /** Chip de quem foi citado: passa o mouse (ou toca) e aparece o retrato. */
 export function MentionChip({ who, label }: { who: Mentionable; label?: string }) {
+  // dentro do Diário, tocar no nome abre a página da pessoa (tudo o que se sabe dela)
+  const nav = useDiaryNav();
+  const open = nav
+    ? (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        nav.go('people', who.name);
+      }
+    : undefined;
   return (
-    <span className={'fv-npc-mention' + (who.kind === 'hero' ? ' is-hero' : '')} tabIndex={0}>
+    <span
+      className={'fv-npc-mention' + (who.kind === 'hero' ? ' is-hero' : '') + (open ? ' is-link' : '')}
+      tabIndex={0}
+      role={open ? 'link' : undefined}
+      aria-label={open ? `Ver ${who.name} em Pessoas` : undefined}
+      onClick={open}
+      onKeyDown={open ? (e) => (e.key === 'Enter' || e.key === ' ') && open(e) : undefined}
+    >
       <NpcAvatar npc={{ name: who.name, portrait: who.portrait ?? null }} size={20} />
       <span>{label ?? who.name}</span>
       <span className="fv-npc-hover" role="tooltip">
