@@ -12,6 +12,7 @@ import { clueImage } from '@/lib/clueImage';
 import { Modal } from '@/components/ui/Modal';
 import { HandoutModal, HandoutThumb } from '@/components/stage/Handouts';
 import { MentionInput } from './MentionInput';
+import { useDiaryFocus, useDiaryNav } from './DiaryNav';
 
 type Filter = 'all' | DiaryClue['status'];
 
@@ -40,6 +41,10 @@ export function Clues({ char, people, places, query, handouts }: { char: Charact
   const [filter, setFilter] = useState<Filter>('all');
   const [openId, setOpenId] = useState<string | null>(null);
   const [handout, setHandout] = useState<Handout | null>(null);
+  useDiaryFocus('clues', (id) => {
+    setFilter('all');
+    setOpenId(id);
+  });
   const q = norm(query);
 
   const shown = useMemo(
@@ -156,6 +161,7 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
   const store = useCharacterStore();
   const diary = diaryOf(char);
   const fileRef = useRef<HTMLInputElement>(null);
+  const nav = useDiaryNav();
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState(false);
   const set = (p: Partial<DiaryClue>) =>
@@ -256,15 +262,22 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
               <span>Quem contou / onde achamos</span>
               <MentionInput value={clue.source ?? ''} onChange={(v) => set({ source: v })} people={people} places={places} ariaLabel="Fonte da pista" placeholder="@NPC, #Lugar…" />
             </label>
-            <label>
-              <span>Missão ligada</span>
-              <select className="fv-input" value={clue.questId ?? ''} onChange={(e) => set({ questId: e.target.value || undefined })} aria-label="Missão ligada">
+            <div className="fv-quest-field">
+              <span className="fv-clue-quest-head">
+                <label htmlFor={`clue-quest-${clue.id}`}>Missão ligada</label>
+                {clue.questId && nav && diary.quests.some((x) => x.id === clue.questId) && (
+                  <button type="button" className="fv-link-btn fv-clue-goto" onClick={() => nav.go('board', clue.questId!)}>
+                    abrir missão →
+                  </button>
+                )}
+              </span>
+              <select id={`clue-quest-${clue.id}`} className="fv-input" value={clue.questId ?? ''} onChange={(e) => set({ questId: e.target.value || undefined })}>
                 <option value="">— nenhuma —</option>
                 {diary.quests.map((x) => (
                   <option key={x.id} value={x.id}>{x.title.trim() || 'Missão sem nome'}</option>
                 ))}
               </select>
-            </label>
+            </div>
           </div>
 
           {clue.status !== 'unverified' && (

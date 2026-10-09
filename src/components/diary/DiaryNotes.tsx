@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useDiaryFocus } from './DiaryNav';
 import type { Character, DiaryNote, DiaryNoteColor } from '@/types/character';
 import type { Mentionable } from '@/engine/diary';
 import { diaryOf, norm } from '@/engine/diary';
@@ -46,7 +47,15 @@ export function DiaryNotes({ char, people, places, query }: { char: Character; p
   const [color, setColor] = useState<DiaryNoteColor | undefined>();
   const [editing, setEditing] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
+  const [flash, setFlash] = useState<string | null>(null);
   const notes = diaryOf(char).notes;
+  // veio de uma ligação (ex.: "Onde aparece" em Pessoas): mostra e destaca o rabisco
+  useDiaryFocus('notes', (id) => {
+    if (notes.find((n) => n.id === id)?.done) setShowDone(true);
+    setFlash(id);
+    requestAnimationFrame(() => document.querySelector(`[data-note-id="${id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+    window.setTimeout(() => setFlash((f) => (f === id ? null : f)), 2200);
+  });
 
   const patch = (id: string, p: Partial<DiaryNote>) =>
     store.updateDiary(char.id, (d) => {
@@ -108,7 +117,7 @@ export function DiaryNotes({ char, people, places, query }: { char: Character; p
       {shown.length > 0 ? (
         <ul className="fv-note-grid">
           {shown.map((n) => (
-            <li key={n.id} className={`fv-note is-${n.color ?? 'plain'}` + (n.done ? ' is-done' : '') + (n.pinned ? ' is-pinned' : '')}>
+            <li key={n.id} data-note-id={n.id} className={`fv-note is-${n.color ?? 'plain'}` + (n.done ? ' is-done' : '') + (n.pinned ? ' is-pinned' : '') + (flash === n.id ? ' is-flash' : '')}>
               {editing === n.id ? (
                 <MentionInput
                   value={n.text}

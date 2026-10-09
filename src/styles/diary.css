@@ -1174,6 +1174,273 @@
   }
 }
 
+/* ---------- Pessoas, busca em todo o diário e ligações ---------- */
+.fv-npc-mention.is-link {
+  cursor: pointer;
+}
+.fv-npc-mention.is-link:hover > span:not(.fv-npc-hover),
+.fv-npc-mention.is-link:focus-visible > span:not(.fv-npc-hover) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fv-diary-elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-diary-elsewhere .fv-mini-tag {
+  cursor: pointer;
+  min-height: 28px;
+}
+.fv-diary-elsewhere .fv-mini-tag b {
+  margin-left: 3px;
+  color: var(--gold);
+}
+.fv-note.is-flash {
+  animation: fv-note-flash 2s ease-out;
+}
+@keyframes fv-note-flash {
+  0%, 30% { box-shadow: 0 0 0 3px var(--gold), 0 8px 20px rgba(0, 0, 0, 0.25); }
+  100% { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); }
+}
+.fv-quest-clues li > button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-quest-clues li > button:hover:not(:disabled) {
+  background: var(--lift);
+}
+.fv-quest-clues li > button:disabled {
+  cursor: default;
+}
+.fv-clue-quest-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fv-people {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-people-kind {
+  align-self: flex-start;
+}
+.fv-people-kind small {
+  margin-left: 3px;
+  opacity: 0.75;
+}
+.fv-people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-person {
+  --op-c: var(--line-strong);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--op-c);
+  background: var(--panel);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fv-person:hover {
+  background: var(--lift);
+}
+.fv-person .fv-npc-avatar {
+  flex: none;
+}
+.fv-person.is-hero .fv-npc-avatar {
+  box-shadow: 0 0 0 2px color-mix(in srgb, #5b9be6, transparent 30%);
+}
+.fv-person-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fv-person-text b {
+  font: 700 15px/1.25 var(--font-display);
+}
+.fv-person-text small {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fv-person-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.fv-person-count {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-ally { --op-c: #5fbf7a; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-neutral { --op-c: #9aa3b5; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-suspect { --op-c: #e2b44f; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-enemy { --op-c: var(--danger); }
+.fv-opinion {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--op-c), transparent 45%);
+  background: color-mix(in srgb, var(--op-c), transparent 88%);
+  color: var(--op-c);
+  font-size: 11px;
+  font-weight: 700;
+}
+.fv-person-opinion {
+  margin-bottom: 10px;
+  overflow-x: auto;
+}
+.fv-person-opinion button.is-on {
+  background: color-mix(in srgb, var(--op-c), transparent 84%);
+  color: var(--op-c);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--op-c), transparent 45%);
+}
+.fv-person-detail {
+  display: grid;
+  gap: 18px;
+}
+@media (min-width: 640px) {
+  .fv-person-detail {
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.fv-person-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.fv-person-portrait img {
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+}
+.fv-person-portrait small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-person-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.fv-person-body textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-person-summary {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.fv-person-cited-n {
+  margin-left: 6px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.fv-backlinks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-backlinks button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-backlinks button:hover {
+  border-color: var(--gold);
+}
+.fv-backlinks b {
+  overflow: hidden;
+  font-size: 13.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fv-backlinks b.is-note {
+  font-weight: 500;
+  white-space: normal;
+}
+.fv-backlinks small {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-backlink-kind {
+  grid-row: span 2;
+  align-self: start;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--lift);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-backlink-kind.is-board { color: var(--gold); }
+.fv-backlink-kind.is-clues { color: #e2b44f; }
+.fv-backlink-kind.is-chronicle { color: #5b9be6; }
+@media (prefers-reduced-motion: reduce) {
+  .fv-note.is-flash {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--gold);
+  }
+}
+
 /* ---------- botão "Anotar" (todas as abas) ---------- */
 .fv-quicknote {
   position: fixed;

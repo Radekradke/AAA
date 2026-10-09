@@ -420,7 +420,7 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 55. Diário de Campanha — fase 1 (Rabiscos, Crônica, Anotar)
 O Diário é **pessoal** (só o jogador vê) e fica salvo **na ficha**: funciona offline e sincroniza com o resto.
 
-1. **Seções**: Rabiscos · Crônica · Quadro da Guilda (§56) · Pistas (§57). A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
+1. **Seções**: Rabiscos · Crônica · Quadro da Guilda (§56) · Pistas (§57) · Pessoas (§58). A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
 2. **Rabiscos**:
    - Escreva e dê **Enter**: vira um post-it. Shift+Enter quebra a linha.
    - Cores: ouro, perigo, aliado, ideia, mistério.
@@ -494,3 +494,21 @@ A seção **Pistas** aparece sempre (antes só existia quando o mestre tinha ent
    - o detalhe empilha imagem e campos;
    - a barra de seções do diário mostra as 4 abas e rola sozinha até a aba ativa;
    - a tela não rola para o lado.
+
+## 58. Diário — fase 4: Pessoas, busca em todo o diário e ligações
+1. **Pessoas** (nova seção):
+   - lista os NPCs revelados e os heróis dos outros jogadores das mesas desta ficha;
+   - filtro Todos · NPCs · Heróis, com contagem;
+   - cada cartão mostra o retrato (ou a inicial), o papel, a opinião e "citado em N". Os mais citados vêm primeiro.
+2. **Detalhe da pessoa**:
+   - retrato grande;
+   - "O que o mestre revelou" (resumo do NPC) ou "Da ficha" (herói);
+   - **O que eu acho**: Aliado / Neutro / Suspeito / Inimigo (clicar de novo tira), mais notas livres com @ e #;
+   - **Onde aparece**: cada rabisco, sessão, missão e pista que cita a pessoa (com @ ou com o nome inteiro), com um trecho. Clicar leva até o item: abre a sessão, a missão ou a pista, ou destaca o rabisco com um brilho.
+3. **Menções clicáveis**: dentro do Diário, tocar num nome citado (@) abre a pessoa. No botão Anotar das outras abas continua só o retrato ao passar o mouse.
+4. **Pista ↔ missão**:
+   - no detalhe da pista, "abrir missão →" abre a missão ligada;
+   - no detalhe da missão, cada pista em "Pistas ligadas" abre a pista.
+5. **Busca em todo o diário**: a seção aberta continua filtrando. Abaixo das abas aparece **"Também em: Quadro da Guilda 1 · Pistas 2"** para as outras seções com resultado; clicar vai até lá mantendo a busca.
+6. A opinião e as notas sobre cada pessoa ficam salvas na ficha (recarregue e confira).
+7. No celular, a barra de seções (5 abas) rola sozinha até a aba ativa. O detalhe da pessoa empilha o retrato sobre os campos.

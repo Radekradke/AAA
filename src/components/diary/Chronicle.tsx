@@ -4,6 +4,7 @@ import type { Mentionable } from '@/engine/diary';
 import { entryBody, entrySession, norm, sessionDigest } from '@/engine/diary';
 import { useCharacterStore } from '@/store/characterStore';
 import { MentionChip, MentionInput, PlaceChip, RichText } from './MentionInput';
+import { useDiaryFocus } from './DiaryNav';
 
 function excerpt(text: string, max = 150): string {
   const t = text.replace(/\s+/g, ' ').trim();
@@ -19,6 +20,10 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
   const store = useCharacterStore();
   const [openId, setOpenId] = useState<string | null>(null);
   const [mode, setMode] = useState<'write' | 'read'>('read');
+  useDiaryFocus('chronicle', (id) => {
+    setOpenId(id);
+    setMode('read');
+  });
   const total = char.journal.length;
   const sessions = useMemo(
     () => char.journal.map((e, i) => ({ e, n: entrySession(e, total - i), body: entryBody(e) })),
