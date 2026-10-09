@@ -373,3 +373,12 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 51. Dica de item (estilo BG3) e miniaturas na busca
 1. Passar o mouse num item (inventário, catálogo "Adicionar item", e agora no capítulo **Equipamento** da criação: kit, opções (a)/(b) de um item só, pacotes, "Também leva" e itens do antecedente) mostra a dica: nome na cor da raridade, "Comum · Arma marcial corpo a corpo", o número em destaque (1d8 cortante, CA 16, 2d4+2 de cura), propriedades (Versátil (1d10 com as duas mãos), Exige FOR 13, Desvantagem em Furtividade, sintonia, cargas), uma frase curta e, no rodapé, peso e preço. Com arte, a carta do item aparece ao lado. No celular: segurar o dedo no nome.
 2. **Busca (Ctrl+K)**: heróis com o retrato redondo, criaturas com a arte do bestiário, itens com a arte, magias com o ícone da escola e condições com o ícone da condição.
+
+## 52. Dons explicados e auditoria da criação (Origem, Caminho)
+1. **Dons**: cada opção diz o que faz. Ferramentas e instrumentos mostram para que servem, o atributo usado e exemplos; idiomas mostram quem fala e a escrita; inimigos favoritos, exemplos de criaturas e o idioma; terrenos, lugares e benefícios. Opções em grupos (Monge: **Ferramentas de artesão × Instrumentos musicais**; idiomas **padrão × exóticos**) ganham abas. Os cartões têm só ícone; a arte do item aparece grande no painel da direita.
+2. **Origem**: o painel lista os traços da raça e da sublinhagem. No PC são chips: passar o mouse mostra o que cada um faz. No celular a lista vem completa. Anão: ferramentas e Especialização em Rochas; Anão da Montanha: armaduras leves e médias; elfos, halflings e gnomos com os traços da sublinhagem. Drow não repete Visão no Escuro; Draconato não repete "Sopro".
+3. **Caminho**: o painel mostra vida, salvaguardas, **armaduras**, **armas** e as perícias da classe (com a lista). O druida aparece com "nada de metal". Sob a grade, "**<Classe> no 1º nível**" traz cartões com cada característica e o que ela faz.
+4. **Trocar de classe**:
+   - Clicar de novo na classe já escolhida não apaga nada.
+   - Trocar de classe só refaz os atributos se ainda estiverem no array padrão.
+   - A Especialização do Ladino não passa para outra classe.
