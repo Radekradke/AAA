@@ -400,3 +400,19 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
    - Trocar o antecedente depois de especializar numa perícia dele avisa "Especialização em X sem a perícia — troque".
 4. **Magias**: Taumaturgia (Tiefling), Globos de Luz (Drow), Ilusão Menor (Gnomo da Floresta) e o truque do Alto Elfo aparecem em "Já vêm prontas" e não aparecem na lista de truques da classe.
 5. **Despertar**: "A lenda até aqui" mostra subclasse, Dons, perícias e ferramentas (★ = Especialização), idiomas e magias, como vão entrar na ficha.
+
+## 54. Auditoria das abas da ficha
+1. **Mesa / Combate**:
+   - "Ação Atacar: 2 ataques · Ataque Extra" sobre os ataques: Guerreiro 5 (3 no 11º, 4 no 20º); Bárbaro, Monge, Paladino e Patrulheiro 5; Bardo da Bravura 6; Bruxo com Lâmina Sedenta.
+   - As armas do Campeão mostram o selo "crítico 19–20".
+2. **Ficha**:
+   - No PC, Perícias e Características de Classe ficam na coluna da esquerda e Proficiências na da direita, sem o vão de antes.
+   - Toda característica de classe (1–20, com ou sem subclasse) mostra o que faz ao passar o mouse, inclusive "Magias de Domínio (+2)…" e "Característica de Arquétipo".
+   - Ladino tem **Gíria de Ladrão** e Druida tem **Druídico** em Idiomas.
+3. **Magias**:
+   - O cartão do truque mostra o dano do nível atual: Chama Sagrada 2d8 no 5º; Rajada Mística "2× 1d10".
+   - A seção das magias raciais chama "Magias de raça, itens e talentos".
+4. **Descanso / Dados de Vida**:
+   - Gastar um Dado de Vida (Mesa, Combate ou a nova linha "Dados de Vida" da aba Descanso) rola d + CON e **soma a vida sozinho**.
+   - O botão fica desativado com a vida cheia ou sem dados.
+5. **Conferidos sem erro**: vida, CA, CD e ataque de magia, espaços (inclusive meio-conjurador e Pacto), preparadas/conhecidas, Inventário (carga = FOR × 7,5 kg), Evoluir (pendências de invocação e pacto, PV médio, XP), Retrato, Diário e Dados.
