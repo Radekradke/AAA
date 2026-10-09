@@ -159,10 +159,10 @@ export function TabFicha({ char, derived }: TabProps) {
           </div>
           <button
             onClick={() => setSkillsOpen(true)}
-            className="fv-btn-gold"
-            style={{ marginTop: 13, width: '100%', minHeight: 42, fontSize: 13.5 }}
+            className="fv-btn-ghost"
+            style={{ marginTop: 13, width: '100%', minHeight: 40, fontSize: 13 }}
           >
-            Ver todas as 18 perícias
+            Ver todas as 18 perícias ›
           </button>
         </Panel>
 

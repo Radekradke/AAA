@@ -112,5 +112,6 @@ describe('SQL do diário privado', () => {
 
     expect(failures).toEqual([]);
     expect(ok).toBeGreaterThan(20);
-  });
+    // Postgres em memória (PGlite): ~3 s sozinho, mais com a suíte toda em paralelo
+  }, 60_000);
 });
