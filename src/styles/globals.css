@@ -7812,3 +7812,103 @@ select optgroup {
   font: 12px var(--font-num);
   color: var(--muted);
 }
+
+/* Heróis: ações do cartão (abrir em destaque, excluir afastado) */
+.fv-hero-card-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px 16px;
+}
+.fv-hero-open {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  background: var(--panel);
+  color: var(--gold);
+  font: 700 12.5px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.fv-hero-open:hover {
+  background: color-mix(in srgb, var(--gold) 14%, var(--panel));
+}
+.fv-hero-open span {
+  font-size: 16px;
+  line-height: 1;
+}
+.fv-hero-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  /* fundo sólido: o cartão fica sobre a arte do herói */
+  background: var(--panel);
+  color: var(--muted);
+  font: 600 11.5px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.fv-hero-act:hover {
+  color: var(--ink);
+}
+.fv-hero-act.is-danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.fv-hero-card-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--line);
+}
+@media (max-width: 420px) {
+  .fv-hero-act span {
+    display: none;
+  }
+  .fv-hero-act {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Entrar: campo de senha com "Mostrar" */
+.fv-pass {
+  position: relative;
+  display: block;
+}
+.fv-pass .fv-input {
+  width: 100%;
+  padding-right: 84px;
+}
+.fv-pass-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+.fv-pass-toggle:hover,
+.fv-pass-toggle[aria-pressed='true'] {
+  color: var(--gold);
+}

@@ -3,7 +3,7 @@ import { GAME_ICONS } from './gameIcons';
 
 type GameIconName = keyof typeof GAME_ICONS;
 
-export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout' | 'link' | 'calendar' | 'search' | 'download' | 'home' | 'contrast';
+export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout' | 'link' | 'calendar' | 'search' | 'download' | 'home' | 'contrast' | 'user' | 'print' | 'history' | 'compass' | 'help' | 'sliders' | 'palette' | 'device' | 'trash' | 'copy';
 
 interface IconProps {
   name: IconName;
@@ -40,6 +40,73 @@ const STROKE_PATHS: Record<Exclude<IconName, GameIconName>, React.ReactNode> = {
     <>
       <circle cx="12" cy="12" r="8" />
       <path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8.5" r="3.8" />
+      <path d="M4.8 20c.8-3.8 3.6-5.8 7.2-5.8s6.4 2 7.2 5.8" />
+    </>
+  ),
+  print: (
+    <>
+      <path d="M7 8.5V4h10v4.5" />
+      <rect x="3.5" y="8.5" width="17" height="8" rx="2" />
+      <path d="M7 14h10v6H7z" />
+    </>
+  ),
+  history: (
+    <>
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+      <path d="M4 4.5v3.8h3.8" />
+      <path d="M12 8v4.3l2.8 1.7" />
+    </>
+  ),
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" />
+    </>
+  ),
+  help: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.6 9.6a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1.1.9-1.1 1.6v.4" />
+      <circle cx="12" cy="16.8" r=".9" fill="currentColor" />
+    </>
+  ),
+  sliders: (
+    <>
+      <path d="M5 6.5h8M17 6.5h2M5 12h2M11 12h8M5 17.5h10" />
+      <circle cx="15" cy="6.5" r="2" />
+      <circle cx="9" cy="12" r="2" />
+      <circle cx="17" cy="17.5" r="2" />
+    </>
+  ),
+  palette: (
+    <>
+      <path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.3 0 1.9-.9 1.6-2-.3-1.2.4-2.3 1.7-2.3h1.8a3.4 3.4 0 0 0 3.4-3.4C20.5 7.6 16.7 3.5 12 3.5Z" />
+      <circle cx="8" cy="11" r="1.1" fill="currentColor" />
+      <circle cx="10.5" cy="7.5" r="1.1" fill="currentColor" />
+      <circle cx="14.8" cy="7.8" r="1.1" fill="currentColor" />
+    </>
+  ),
+  device: (
+    <>
+      <rect x="6.5" y="3" width="11" height="18" rx="2.5" />
+      <path d="M10.5 18h3" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4.5 7h15M9.5 7V4.5h5V7" />
+      <path d="M6.5 7l.9 12.5h9.2L17.5 7M10.2 10.5v6M13.8 10.5v6" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="8.5" y="8.5" width="11" height="11" rx="2" />
+      <path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" />
     </>
   ),
   download: <path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" />,

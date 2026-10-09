@@ -109,13 +109,13 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
       key: 'look',
       title: 'Aparência',
       items: [
-        { key: 'theme', label: `Tema: ${THEMES[theme].label}`, icon: 'image', onClick: () => setThemesOpen(true) },
+        { key: 'theme', label: `Tema: ${THEMES[theme].label}`, icon: 'palette', onClick: () => setThemesOpen(true) },
         { key: 'mode', label: 'Paleta clara', icon: 'contrast', check: mode === 'light', onClick: toggleThemeMode },
       ] as Item[],
     },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)
     ...(installer.canPrompt || installer.needsIOSGuide
-      ? [{ key: 'app', title: 'App', items: [{ key: 'install', label: 'Instalar no aparelho', icon: 'chestOpen' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }] }]
+      ? [{ key: 'app', title: 'App', items: [{ key: 'install', label: 'Instalar no aparelho', icon: 'device' as const, onClick: () => (installer.canPrompt ? void installer.install() : setIosGuide(true)) }] }]
       : []),
   ] as { key: string; title: string; items: Item[] }[]).filter((g) => g.items.length);
 

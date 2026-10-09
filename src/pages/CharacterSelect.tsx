@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
@@ -263,19 +265,14 @@ export function CharacterSelect() {
                   </div>
                 </button>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    padding: '0 18px 16px',
-                    justifyContent: 'flex-end',
-                    position: 'relative',
-                    zIndex: 1,
-                  }}
-                >
-                  <CardAction label="Duplicar" onClick={() => duplicateHero(c.id)} />
-                  {/* exclui na hora; o aviso traz "Desfazer" */}
-                  <CardAction label="Excluir" danger onClick={() => deleteHeroWithUndo(c.id)} />
+                {/* abrir em destaque; duplicar perto; excluir afastado (e com Desfazer no aviso) */}
+                <div className="fv-hero-card-actions">
+                  <button type="button" className="fv-hero-open" onClick={() => open(c)} aria-label={`Abrir a ficha de ${c.name}`}>
+                    Abrir ficha <span aria-hidden>›</span>
+                  </button>
+                  <CardAction icon="copy" label="Duplicar" name={c.name} onClick={() => duplicateHero(c.id)} />
+                  <span className="fv-hero-card-sep" aria-hidden />
+                  <CardAction icon="trash" label="Excluir" name={c.name} danger onClick={() => deleteHeroWithUndo(c.id)} />
                 </div>
               </div>
             );
@@ -312,25 +309,11 @@ export function CharacterSelect() {
   );
 }
 
-function CardAction({ label, onClick, danger }: { label: string; onClick: () => void; danger?: boolean }) {
+function CardAction({ icon, label, name, onClick, danger }: { icon: IconName; label: string; name: string; onClick: () => void; danger?: boolean }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        fontFamily: 'var(--font-body)',
-        fontWeight: 600,
-        fontSize: 11.5,
-        padding: '6px 12px',
-        borderRadius: 999,
-        border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : 'var(--line)'),
-        color: danger ? 'var(--danger)' : 'var(--muted)',
-        // fundo sólido: o card fica sobre a arte do herói (translúcido apagava o texto)
-        background: 'var(--panel)',
-        transition: '.2s',
-      }}
-    >
-      {label}
+    <button type="button" className={'fv-hero-act' + (danger ? ' is-danger' : '')} onClick={onClick} title={`${label} ${name}`} aria-label={`${label} ${name}`}>
+      <Icon name={icon} size={15} />
+      <span>{label}</span>
     </button>
   );
 }
