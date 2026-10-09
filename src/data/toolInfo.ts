@@ -16,6 +16,8 @@ export interface ToolInfo {
 
 const INSTRUMENT_USES = 'Tocar, compor e entreter. Com proficiência, soma o bônus nos testes de Atuação (CAR) feitos com o instrumento — e dá para ganhar a vida tocando nas tavernas.';
 
+const GAME_USES = 'Jogar bem — e perceber quem trapaceia. Com proficiência, soma o bônus nos testes do jogo.';
+
 export const TOOL_INFO: Record<string, ToolInfo> = {
   /* ---------- ferramentas de artesão ---------- */
   'alchemists-supplies': {
@@ -120,6 +122,12 @@ export const TOOL_INFO: Record<string, ToolInfo> = {
     ability: 'DES · INT',
     examples: ['Fazer e consertar flechas, arcos e cajados', 'Entalhar figuras, símbolos e ferramentas', 'Identificar o tipo e a origem de uma madeira'],
   },
+
+  /* ---------- jogos ---------- */
+  'dice-set': { short: 'apostas, blefes, trapaças', uses: GAME_USES, ability: 'SAB · CAR', examples: ['Ganhar uns trocados na taverna', 'Perceber dados viciados'] },
+  'card-set': { short: 'cartas, apostas, leitura de rostos', uses: GAME_USES, ability: 'SAB · CAR', examples: ['Fazer amizade (ou inimigos) numa mesa de jogo', 'Perceber cartas marcadas'] },
+  dragonchess: { short: 'estratégia de nobres e generais', uses: GAME_USES, ability: 'INT · SAB', examples: ['Impressionar a corte', 'Pensar como um estrategista'] },
+  'three-dragon-ante': { short: 'cartas e apostas altas', uses: GAME_USES, ability: 'SAB · CAR', examples: ['O jogo das tavernas finas', 'Ler o blefe do adversário'] },
 
   /* ---------- instrumentos musicais ---------- */
   lute: { short: 'cordas · o clássico dos bardos', uses: INSTRUMENT_USES, ability: 'CAR', examples: ['Cordas dedilhadas, leve de carregar', 'O instrumento preferido dos bardos'] },

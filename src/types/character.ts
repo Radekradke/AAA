@@ -329,6 +329,10 @@ export interface Character {
   campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)
   baseAbilities: AbilityScores;
+  /** Como os atributos foram gerados na criação (lembrado ao voltar à etapa). */
+  abilityMethod?: 'array' | 'pointbuy' | 'roll' | 'manual';
+  /** 4d6 de cada uma das 6 rolagens (o menor é descartado) — para o mestre conferir. */
+  abilityRolls?: number[][];
   // proficiências
   skillProfs: SkillKey[];
   /** Perícias com expertise (bônus de proficiência em dobro). */

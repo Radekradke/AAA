@@ -367,5 +367,5 @@ export function clearSubclassChoices(c: Character): void {
 /** Troca de classe na criação: só ficam as escolhas da raça e dos talentos. */
 export function clearClassChoices(c: Character): void {
   if (!c.choices) return;
-  c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => k.startsWith('race.') || k.startsWith('feat.')));
+  c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => k.startsWith('race.') || k.startsWith('feat.') || k.startsWith('bg.')));
 }

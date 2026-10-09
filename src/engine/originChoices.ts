@@ -14,6 +14,18 @@ import type { SkillKey } from '@/types/dnd';
  *   antecedente viram escolhas reais (guardadas em `extraLanguages`).
  */
 
+/* ---------------- Ferramentas do antecedente ---------------- */
+
+/** Onde fica a ferramenta/instrumento/jogo escolhido do antecedente. */
+export const BG_TOOL_KEY = 'bg.tool';
+
+/** Ferramentas do antecedente, com o tipo escolhido no lugar do padrão. */
+export function backgroundTools(char: Character): string[] {
+  const bg = getBackground(char.backgroundId);
+  const pick = bg.toolChoice ? char.choices?.[BG_TOOL_KEY]?.[0] : undefined;
+  return (bg.tools ?? []).map((id) => (pick && id === bg.toolChoice?.default ? pick : id));
+}
+
 /* ---------------- Perícias ---------------- */
 
 /** Perícias da raça, com as trocas da origem personalizada (Tasha). */

@@ -2761,6 +2761,53 @@ body.fv-dragging .fv-screen-scroll {
   border-color: var(--danger);
   color: var(--danger);
 }
+/* método dos atributos: o que ele faz + as rolagens de 4d6 (o menor dado riscado) */
+.fv-abil-hint {
+  flex: 1 1 220px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.fv-abil-rolls {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: -4px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.fv-abil-rolls li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--well);
+}
+.fv-abil-rolls b {
+  font: 700 18px/1 var(--font-num);
+  color: var(--gold);
+}
+.fv-abil-rolls span {
+  display: flex;
+  gap: 4px;
+  font: 11px var(--font-num);
+  color: var(--ink);
+}
+.fv-abil-rolls i {
+  font-style: normal;
+}
+.fv-abil-rolls s {
+  color: var(--muted);
+  opacity: 0.7;
+}
+@media (max-width: 560px) {
+  .fv-abil-rolls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .fv-abil-list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -5453,6 +5500,29 @@ body.fv-dragging .fv-screen-scroll {
   .fv-race-traits-panel {
     display: none;
   }
+}
+
+/* Passado: o tipo de ferramenta/instrumento/jogo do antecedente */
+/* o painel do antecedente tem altura sobrando: história e característica inteiras */
+.fv-bg-step .fv-detail-desc,
+.fv-bg-step .fv-detail-feature {
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+}
+.fv-bg-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 6px;
+}
+.fv-bg-tool-row select {
+  width: auto;
+  min-width: 220px;
+}
+.fv-bg-tool-row small {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 /* Caminho: as características do 1º nível em cartões sob a grade de classes */

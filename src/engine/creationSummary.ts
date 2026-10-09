@@ -9,11 +9,12 @@ import { classProficiencySummary } from './proficiencies';
 import { subclassesFor } from '@/data/subclasses';
 import { CLASS_LEVEL1 } from '@/data/classLevel1';
 import { ABILITY_KEYS } from '@/types/dnd';
-import { languagePicks, raceSkillProfs, skillBudget } from './originChoices';
+import { backgroundTools, languagePicks, raceSkillProfs, skillBudget } from './originChoices';
 import { creationChoices } from './classChoices';
 import { raceTraitInfo } from '@/data/raceTraits';
-import { subclassLevelFor } from './levelUp';
+import { expertiseSlots, expertiseUsed, subclassLevelFor } from './levelUp';
 import { castsAtCreation, creationSpellPending } from './creationSpells';
+import { abilityPending } from './abilityMethods';
 
 /**
  * Resumo vivo da criação: o que cada escolha coloca na ficha ("Na ficha")
@@ -150,10 +151,16 @@ export function classFeatureFacts(char: Character): Fact[] {
 export function backgroundFacts(char: Character): Fact[] {
   const bg = getBackground(char.backgroundId);
   const facts: Fact[] = [{ label: 'Perícias', value: bg.skills.map((k) => SKILL_BY_KEY[k].label).join(' e ') }];
-  if (bg.tools?.length) facts.push({ label: 'Ferramentas', value: bg.tools.map(toolLabel).join(', ') });
+  const tools = backgroundTools(char);
+  if (tools.length) facts.push({ label: 'Ferramentas', value: tools.map(toolLabel).join(', ') });
   if (bg.languagesCount) facts.push({ label: 'Idiomas', value: `+${bg.languagesCount} à escolha` });
   if (bg.startingGold) facts.push({ label: 'Ouro', value: `${bg.startingGold} po` });
-  if (bg.equipment?.length) facts.push({ label: 'Itens', value: bg.equipment.join(', ') });
+  if (bg.equipment?.length) {
+    // "Ferramentas de artesão", "Instrumento musical", "Jogo de dados de osso": o que foi escolhido
+    const pick = bg.toolChoice ? toolLabel(tools.find((id) => !bg.tools?.includes(id)) ?? bg.toolChoice.default) : '';
+    const generic = /^(Ferramentas de artesão|Instrumento musical|Jogo de dados de osso)$/;
+    facts.push({ label: 'Itens', value: bg.equipment.map((e) => (pick && generic.test(e) ? pick : e)).join(', ') });
+  }
   return facts;
 }
 
@@ -185,6 +192,15 @@ export function creationPending(char: Character): PendingItem[] {
   if (langs.left > 0) {
     pending.push({ label: `Escolha ${langs.left} idioma${langs.left > 1 ? 's' : ''}`, step: STEP_BACKGROUND });
   }
+  // Especialização do Ladino (2 no 1º nível): perícias ou Ferramentas de Ladrão
+  const expertLeft = expertiseSlots(char) - expertiseUsed(char);
+  if (expertLeft > 0) pending.push({ label: `Escolha ${expertLeft} especializaç${expertLeft > 1 ? 'ões' : 'ão'}`, step: STEP_SKILLS });
+  // trocou o antecedente/raça depois: Especialização numa perícia que não é mais treinada
+  const trained = new Set([...char.skillProfs, ...budget.granted]);
+  for (const k of char.skillExpertise ?? []) {
+    if (!trained.has(k)) pending.push({ label: `Especialização em ${SKILL_BY_KEY[k].label} sem a perícia — troque`, step: STEP_SKILLS });
+  }
+  for (const label of abilityPending(char)) pending.push({ label, step: STEP_ABILITIES });
   for (const label of creationSpellPending(char)) pending.push({ label, step: STEP_SPELLS });
 
   return pending;

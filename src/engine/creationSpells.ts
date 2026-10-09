@@ -3,7 +3,7 @@ import type { Spell } from '@/types/dnd';
 import { SPELLS, defaultPreparedForClass, getSpell, spellVisible } from '@/data/spells';
 import { abilityModifier } from './modifiers';
 import { effectiveAbilities } from './levelUp';
-import { casterOf, grantedSpells } from './spellcasting';
+import { casterOf, grantedSpells, racialSpells } from './spellcasting';
 import { spellLearnState } from './spellRules';
 import { bonusSpellIds } from './classChoices';
 
@@ -56,7 +56,9 @@ export function creationSpellPlan(char: Character): CreationSpellPlan | null {
   const mod = castModAtCreation(char);
   const st = spellLearnState(char, mod);
   if (!st || st.caster.kind === 'none') return null;
-  const free = st.freeIds;
+  // truques da linhagem (Taumaturgia, Globos de Luz, Ilusão Menor, truque do Alto Elfo): já vêm prontos
+  const racial = racialSpells(char).filter((r) => r.recharge === 'atwill');
+  const free = new Set([...st.freeIds, ...racial.map((r) => r.spellId)]);
   const pool = SPELLS.filter((s) => spellVisible(s) && st.listIds.has(s.id) && s.level <= Math.max(0, st.maxCircle) && !free.has(s.id)).sort(byName);
   const level = (id: string) => getSpell(id)?.level ?? -1;
   const mine = char.preparedSpells.filter((id) => !free.has(id) && level(id) >= 0);
@@ -65,6 +67,7 @@ export function creationSpellPlan(char: Character): CreationSpellPlan | null {
   const bonus = bonusSpellIds(char);
   const freeList = [
     ...grantedSpells(char).map((g) => ({ id: g.id, source: g.source })),
+    ...racial.map((r) => ({ id: r.spellId, source: r.source })),
     ...Object.entries(char.choices ?? {}).flatMap(([k, ids]) => ids.filter((id) => bonus.has(id)).map((id) => ({ id, source: BONUS_SOURCE[k.split('.').slice(1).join('.')] ?? 'Escolha de classe' }))),
   ].filter((f, i, all) => getSpell(f.id) && all.findIndex((x) => x.id === f.id) === i);
 
