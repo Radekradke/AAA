@@ -7,6 +7,7 @@ import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
+import { SpellThumb } from './SpellThumb';
 import { AUTOMATION_CHIP, spellAutomation } from '@/engine/spellAutomation';
 
 interface SpellLibraryProps {
@@ -114,9 +115,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
             <div key={sp.id} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'var(--sunk)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
                 <button onClick={() => setOpen(expanded ? null : sp.id)} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'none', border: 'none', minWidth: 0 }}>
-                  <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12.5, color: sp.level === 0 ? 'var(--muted)' : 'var(--acc)', border: '1px solid var(--line)', background: 'var(--sunk)' }}>
-                    {sp.level === 0 ? 'T' : sp.level}
-                  </span>
+                  <SpellThumb spell={sp} size={34} showLevel />
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                     {reasonOf(sp) && <span className="fv-spell-block-reason">🔒 {reasonOf(sp)}</span>}

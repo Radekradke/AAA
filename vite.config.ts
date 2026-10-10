@@ -30,13 +30,33 @@ function preconnectSupabase(): Plugin {
 
 /** Versão do build para os relatórios de erro: commit na Vercel/CI, senão a data. */
 const APP_VERSION = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || '').slice(0, 7) || new Date().toISOString().slice(0, 10);
+/** Quando este build foi feito (mostrado no menu como a "versão" legível). */
+const APP_BUILT_AT = new Date().toISOString();
+
+/**
+ * Publica /version.json com a versão deste build. O app aberto compara com a
+ * dele para dizer no menu se está atualizado (fora do precache: sempre vem da rede).
+ */
+function versionFile(): Plugin {
+  return {
+    name: 'fv-version-file',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: APP_VERSION, builtAt: APP_BUILT_AT }) });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  define: { 'import.meta.env.VITE_APP_VERSION': JSON.stringify(APP_VERSION) },
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(APP_VERSION),
+    'import.meta.env.VITE_APP_BUILT_AT': JSON.stringify(APP_BUILT_AT),
+  },
   plugins: [
     react(),
     preconnectSupabase(),
+    versionFile(),
     // App instalável e offline (mesa de RPG costuma ter sinal ruim).
     // O service worker guarda o app inteiro; as fichas já vivem no IndexedDB.
     VitePWA({

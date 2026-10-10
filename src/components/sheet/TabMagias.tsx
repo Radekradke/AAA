@@ -24,6 +24,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
+import { SpellThumb } from '@/components/spells/SpellThumb';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -312,6 +313,7 @@ export function TabMagias({ char, derived }: TabProps) {
                   const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
                   return (
                     <div key={sp.id} className="fv-spell-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
+                      <SpellThumb spell={sp} size={34} />
                       <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                         <span style={{ cursor: 'help', display: 'block' }}>
                           <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>

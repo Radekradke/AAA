@@ -238,3 +238,5 @@
     grid-template-columns: 100px 1fr;
   }
 }
+/* magia: miniatura com moldura do círculo (arte quando houver) */
+.fv-search-item .fv-spell-thumb { margin: -3px 0; }

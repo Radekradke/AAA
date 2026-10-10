@@ -6015,6 +6015,32 @@ body.fv-dragging .fv-screen-scroll {
   font-size: 12.5px;
   color: var(--muted);
 }
+.fv-app-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 10px 0 0;
+  font: 500 11px/1.5 var(--font-num);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  opacity: 0.85;
+}
+.fv-app-version-sha { opacity: 0.75; }
+.fv-app-version-state { color: var(--gold); }
+.fv-app-version.is-unknown .fv-app-version-state { color: var(--muted); }
+.fv-app-version-update {
+  padding: 3px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 35%);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--gold);
+  font: 600 11px/1.5 var(--font-body);
+  cursor: pointer;
+}
+.fv-app-version-update:hover, .fv-app-version-update:focus-visible { background: color-mix(in srgb, var(--gold) 24%, transparent); }
+.fv-app-version-update:disabled { cursor: progress; opacity: 0.7; }
 .fv-menu-user {
   display: inline-flex;
   align-items: center;
@@ -7337,6 +7363,39 @@ select optgroup {
   background: radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--rc), transparent 70%), transparent 75%), #07090d;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 0 0 4px rgba(7, 9, 13, 0.85), inset 0 0 0 5px color-mix(in srgb, var(--rc), transparent 55%);
 }
+/* Miniatura de magia: arte ou símbolo da escola, moldura na cor do círculo */
+.fv-spell-thumb {
+  --rc: var(--gold);
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--rc), transparent 35%);
+  background: radial-gradient(90% 80% at 50% 30%, color-mix(in srgb, var(--rc), transparent 78%), transparent 80%), var(--sunk);
+  color: var(--rc);
+  box-shadow: inset 0 0 0 2px rgba(7, 9, 13, 0.55);
+}
+.fv-spell-thumb.is-comum { --rc: var(--muted); }
+.fv-spell-thumb.is-incomum { --rc: #3fc56b; }
+.fv-spell-thumb.is-raro { --rc: #4d9bff; }
+.fv-spell-thumb.is-muito-raro { --rc: #b061ff; }
+.fv-spell-thumb.is-lendario { --rc: #ffa033; }
+.fv-spell-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fv-spell-thumb-lv {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 13px;
+  padding: 0 3px;
+  border-top-left-radius: 5px;
+  background: rgba(7, 9, 13, 0.85);
+  font: 700 9px/13px var(--font-num);
+  color: #f3ead8;
+  text-align: center;
+}
+
 .fv-itemcard.is-incomum {
   --rc: #3fc56b;
 }
