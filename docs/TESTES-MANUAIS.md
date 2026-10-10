@@ -563,7 +563,7 @@ Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estud
 5. O mestre entregando um pacote pela mesa ao vivo: chega aberto na ficha do jogador.
 6. Adicione um **Kit de Disfarce** ou **Kit de Curandeiro**: entra como um item só.
 
-## 62. Descrições e etiquetas de itens (armas, armaduras e equipamento)
+## 62. Descrições e etiquetas de itens (todo o catálogo)
 
 1. Inventário → **+ Adicionar** → passe o mouse (no celular: segure) em **Armadura de Couro**: abaixo da CA aparece a descrição em itálico, depois a linha prática ("CA 11 + seu modificador de Destreza, sem atrapalhar a Furtividade") e as etiquetas **Barata · Furtividade**.
 2. **Rapieira**: depois das propriedades, "Ataca com Força ou Destreza (a melhor)." seguido de para que ela serve; etiqueta **Social**.
@@ -572,3 +572,6 @@ Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estud
 5. Na mochila, a mesma dica aparece no card do item (inclusive em itens antigos, achados pelo id do catálogo). Itens criados na Forja não têm descrição (ainda).
 6. Equipamento: **Tocha** (Fonte de luz · Inflamável · Gasta ao usar), **Corda de Cânhamo** (Exploração · Barata), **Ácido** (Gasta ao usar, automática por ser consumível), **Ferramentas de Ferreiro** (Ferramenta), **Alaúde** (sem "Ferramenta"; Social), **Foco Arcano: Varinha** (Foco de conjuração · Discreta), **Cavalo de Guerra** (Montado · Defesa).
 7. Pacotes (ex.: Pacote de Explorador) dizem na dica que entram abertos na mochila.
+8. Itens mágicos: a dica mostra a regra exata do catálogo e, na linha de baixo, uma dica de uso. **Varinha de Bolas de Fogo**: "7 cargas: Bola de Fogo (CD 15)…" e depois "Cuidado com aliados na área…". **Poção de Cura**: "Recupera 2d4+2 PV" e "Beber é uma ação…".
+9. Equipamento comum (ex.: **Tocha**) não repete a nota: a linha prática já diz o que ela faz.
+10. Armaduras e escudos mágicos (**Armadura de Placas de Adamante**, **Escudo Sentinela**) dizem o efeito especial na linha prática.

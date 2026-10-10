@@ -5,8 +5,16 @@ import { ADVENTURE_DESCRIPTIONS } from './adventure';
 import { SUPPLY_DESCRIPTIONS } from './supplies';
 import { CRAFT_DESCRIPTIONS } from './crafts';
 import { TRAVEL_DESCRIPTIONS } from './travel';
+import { POTION_DESCRIPTIONS } from './potions';
+import { WONDROUS_DESCRIPTIONS } from './wondrous';
+import { ARCANE_DESCRIPTIONS } from './arcane';
 
 export type { ItemDescription };
+
+/** Itens mágicos: a linha "na mesa" é dica, e a regra exata fica na nota do catálogo. */
+function asTips(map: Record<string, ItemDescription>): Record<string, ItemDescription> {
+  return Object.fromEntries(Object.entries(map).map(([id, d]) => [id, { ...d, complementsNote: true }]));
+}
 
 /** Descrições de todo o catálogo, por id de item. */
 export const ITEM_DESCRIPTIONS: Record<string, ItemDescription> = {
@@ -16,6 +24,9 @@ export const ITEM_DESCRIPTIONS: Record<string, ItemDescription> = {
   ...SUPPLY_DESCRIPTIONS,
   ...CRAFT_DESCRIPTIONS,
   ...TRAVEL_DESCRIPTIONS,
+  ...asTips(POTION_DESCRIPTIONS),
+  ...asTips(WONDROUS_DESCRIPTIONS),
+  ...asTips(ARCANE_DESCRIPTIONS),
 };
 
 /**
