@@ -639,3 +639,14 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 5. Aba Magias e aba Jogar: cada linha com arte tem a ilustração como fundo, bem transparente (acende um pouco ao passar o mouse); sem miniatura recortada. O ícone da escola fica ao lado do nome.
 6. Modal da magia: a arte aparece **inteira** (sem corte) no topo, sobre um fundo desfocado da própria imagem, com os detalhes embaixo.
 7. Lista: nome inteiro (sem "…"), duas colunas no PC, um botão (Conjurar). Mago: o "+"/"✓" à esquerda prepara/desprepara; magia não preparada fica apagada. ★ fixa a magia em **Favoritas** no topo (e primeiro na aba Jogar); ✕ esquece — os dois aparecem ao passar o mouse. Título de cada círculo mostra os espaços livres. Filtro por círculo e busca (com mais de 8 magias). CD e ataque num chip só; regras em "Como funciona". Magia de concentração ativa ganha brilho roxo. Sem tag "automática"
+
+## 69. Aprender / preparar magias: filtros
+
+1. Aba Magias → **+ Aprender** (ou **+ Preparar**). No topo: busca (com ✕ para limpar) e o botão **Filtros**.
+2. Abas **Disponíveis · Escolhidas · Todas**, cada uma com a contagem. Abre em Disponíveis; "Escolhidas" mostra só as que o herói já tem; em "Todas" as bloqueadas aparecem apagadas com o motivo (🔒).
+3. Círculos: **Todos · T · 1 … 9** numa linha só, também no celular (nada cortado, nada rolando de lado). Tocar de novo no círculo ativo volta para Todos.
+4. **Filtros** abre um painel com Efeito (bolinha da cor), Escola (ícone) e Propriedades (Concentração, Ritual), tudo quebrando linha. O botão mostra quantos filtros estão ligados.
+5. Cada filtro ligado vira uma etiqueta com ✕ embaixo da barra; **Limpar tudo** zera filtros, círculo e busca.
+6. Lista separada por círculo (Truques, 1º círculo…) com a contagem de cada grupo; com um círculo escolhido, sem cabeçalho.
+7. Sem resultado: mensagem com atalho (**Limpar filtros** ou **Ver todas e o motivo**).
+8. PC: a barra de busca/filtros fica presa no topo ao rolar a lista. Celular: rola junto (para não tomar a tela).
