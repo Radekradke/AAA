@@ -15,7 +15,7 @@
   color-scheme: dark;
 }
 [data-mode='light'] .fv-class-icon,
-[data-mode='light'] .fv-hero-sigil {
+[data-mode='light'] :is(.fv-hero-sigil, .fv-hero-race-seal) {
   background: color-mix(in srgb, var(--panel), transparent 8%);
 }
 /* brilhos de texto e "bloom" pensados para o escuro ficam sujos no claro */

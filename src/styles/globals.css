@@ -3531,6 +3531,21 @@ body.fv-dragging .fv-screen-scroll {
   border: 1px solid color-mix(in srgb, var(--class-color), transparent 45%);
   box-shadow: 0 0 16px color-mix(in srgb, var(--class-color), transparent 55%);
 }
+.fv-hero-race-seal {
+  position: absolute;
+  top: 58px;
+  right: 14px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--race-color);
+  background: rgba(5, 7, 10, 0.72);
+  border: 1px solid color-mix(in srgb, var(--race-color), transparent 45%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--race-color), transparent 65%);
+}
 .fv-hero-caption {
   position: absolute;
   left: 14px;
