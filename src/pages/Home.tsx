@@ -12,6 +12,7 @@ import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore
 import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
 import { SupportModal } from '@/components/SupportModal';
+import { AppVersion } from '@/components/AppVersion';
 import { hasSupport } from '@/lib/support';
 import { rememberNext } from '@/lib/nextPath';
 import { heroAvatar, heroFace, shortSubtitle } from '@/lib/summary';
@@ -226,6 +227,7 @@ export function Home() {
             </button>
           )}
         </footer>
+        <AppVersion />
       </div>
 
       {support && <SupportModal onClose={() => setSupport(false)} />}

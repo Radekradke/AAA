@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { SPELLS } from '@/data/spells';
 import { Icon } from '@/components/ui/Icon';
+import { SpellThumb } from '@/components/spells/SpellThumb';
 
 const MAX_SHOWN = 60;
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -129,6 +130,7 @@ export function SpellPicker({ value, onChange, label = 'Magia', labelStyle }: { 
               onMouseEnter={() => setActive(i)}
               onClick={() => pick(s.id)}
             >
+              <SpellThumb spell={s} size={24} />
               <span className="fv-spellpick-lv">{s.level === 0 ? 'T' : `${s.level}º`}</span>
               <b>{s.name}</b>
               <small>{s.school}</small>

@@ -30,6 +30,8 @@ import { monsterLook } from '@/lib/monsterArt';
 import type { Item, Spell } from '@/types/dnd';
 import { itemArt } from '@/lib/itemArt';
 import { ItemArtCard } from '@/components/ui/LoreTooltip';
+import { SpellThumb } from '@/components/spells/SpellThumb';
+import { spellArt, spellRarity } from '@/lib/spellArt';
 import { ConditionIcon, SchoolIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import '@/styles/search.css';
 
@@ -43,7 +45,7 @@ type Ref =
   | { t: 'monster'; v: (typeof MONSTERS)[number] };
 
 /** Miniatura do resultado: foto (herói, item, criatura) ou o ícone da regra (escola da magia, condição). */
-type Thumb = { src?: string | null; round?: boolean; school?: string; cond?: string };
+type Thumb = { src?: string | null; round?: boolean; school?: string; cond?: string; spell?: Spell };
 type Entry = SearchEntry & { ref: Ref; thumb?: Thumb };
 
 const KIND_ICON: Record<SearchKind, IconName> = {
@@ -65,6 +67,7 @@ const dmg = (i: Item) => (i.weapon ? `${i.weapon.damageDice}d${i.weapon.damageDi
 function ResultThumb({ e }: { e: Entry }) {
   const t = e.thumb;
   if (t?.src) return <img className={'fv-search-thumb' + (t.round ? ' is-round' : '')} src={t.src} alt="" loading="lazy" decoding="async" />;
+  if (t?.spell) return <SpellThumb spell={t.spell} size={30} />;
   if (t?.school) return <span className="fv-search-thumb is-glyph" aria-hidden><SchoolIcon school={t.school} size={16} /></span>;
   if (t?.cond) return <span className="fv-search-thumb is-glyph" aria-hidden><ConditionIcon id={t.cond} size={16} /></span>;
   return <Icon name={KIND_ICON[e.kind]} size={15} />;
@@ -132,7 +135,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
       list.push({ id: `h-${c.id}`, kind: 'heroi', title: c.name || 'Sem nome', subtitle: shortSubtitle(c), boost: 5, ref: { t: 'nav', to: `/ficha/${c.id}` }, thumb: { src: heroAvatar(c), round: true } });
     }
     for (const m of campaigns) list.push({ id: `m-${m.id}`, kind: 'mesa', title: m.name, subtitle: m.master ? 'Você é o mestre' : 'Você joga', boost: 5, ref: { t: 'nav', to: `/mesa/${m.id}` } });
-    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s }, thumb: { school: s.school } });
+    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s }, thumb: { spell: s } });
     for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), keywords: i.group, ref: { t: 'item', v: i }, thumb: { src: itemArt({ itemId: i.id }) } });
     for (const c of CONDITIONS) list.push({ id: `c-${c.id}`, kind: 'condicao', title: c.label, subtitle: c.short, boost: 1, ref: { t: 'cond', v: c }, thumb: hasConditionIcon(c.id) ? { cond: c.id } : undefined });
     for (const f of FEATS) list.push({ id: `f-${f.id}`, kind: 'talento', title: f.label, subtitle: f.prereq ? `Pré-requisito: ${f.prereq}` : f.source, ref: { t: 'feat', v: f } });
@@ -268,18 +271,21 @@ function Detail({ e, onBack, master, hunted }: { e: Entry; onBack: () => void; m
       <h2>{e.title}</h2>
       {e.subtitle && <div className="fv-search-detail-sub">{e.subtitle}</div>}
       {r.t === 'spell' && (
-        <>
-          <dl>
-            <Row k="Conjuração" v={r.v.castingTime} />
-            <Row k="Alcance" v={r.v.range} />
-            <Row k="Componentes" v={r.v.components && (r.v.material ? `${r.v.components} (${r.v.material})` : r.v.components)} />
-            <Row k="Duração" v={r.v.duration} />
-            <Row k="Classes" v={(r.v.classes ?? []).map((c) => getClass(c).label).join(', ')} />
-            <Row k="Ritual" v={r.v.ritual && 'sim'} />
-          </dl>
-          {r.v.desc && <p>{r.v.desc}</p>}
-          {r.v.higher && <p><b>Em círculos superiores:</b> {r.v.higher}</p>}
-        </>
+        <div className={'fv-search-itemdetail' + (spellArt(r.v.id) ? ' has-art' : '')}>
+          <ItemArtCard src={spellArt(r.v.id)} rarity={spellRarity(r.v.level)} />
+          <div className="fv-search-itemdetail-text">
+            <dl>
+              <Row k="Conjuração" v={r.v.castingTime} />
+              <Row k="Alcance" v={r.v.range} />
+              <Row k="Componentes" v={r.v.components && (r.v.material ? `${r.v.components} (${r.v.material})` : r.v.components)} />
+              <Row k="Duração" v={r.v.duration} />
+              <Row k="Classes" v={(r.v.classes ?? []).map((c) => getClass(c).label).join(', ')} />
+              <Row k="Ritual" v={r.v.ritual && 'sim'} />
+            </dl>
+            {r.v.desc && <p>{r.v.desc}</p>}
+            {r.v.higher && <p><b>Em círculos superiores:</b> {r.v.higher}</p>}
+          </div>
+        </div>
       )}
       {r.t === 'item' && (
         <div className={'fv-search-itemdetail' + (itemArt({ itemId: r.v.id }) ? ' has-art' : '')}>

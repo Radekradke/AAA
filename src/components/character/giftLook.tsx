@@ -3,6 +3,8 @@ import type { Fact } from '@/engine/creationSummary';
 import type { Subclass } from '@/types/dnd';
 import { GlyphIcon } from './RaceIcon';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
+import { SpellThumb } from '@/components/spells/SpellThumb';
+import { spellArt } from '@/lib/spellArt';
 import { itemArt } from '@/lib/itemArt';
 import { getSpell } from '@/data/spells';
 import { FEATURE_INFO } from '@/data/featureInfo';
@@ -24,6 +26,8 @@ export interface GiftLook {
   art?: string;
   /** Escola de magia (truques). */
   school?: string;
+  /** Magia: miniatura com arte (quando houver) e moldura do círculo. */
+  spell?: { id: string; level: number; school: string };
   color?: string;
   /** Grupo para separar a lista em abas (ex.: ferramentas × instrumentos). */
   group?: string;
@@ -239,6 +243,7 @@ export function optionLook(spec: ChoiceSpec, o: ChoiceOption): GiftLook {
         ...base,
         icon: 'spark',
         school: sp.school,
+        spell: { id: sp.id, level: sp.level, school: sp.school },
         line: sp.damage ? `${sp.damage.dice} ${sp.damage.type}` : sp.school.toLowerCase(),
         desc: sp.desc ?? o.desc,
         facts,
@@ -251,6 +256,7 @@ export function optionLook(spec: ChoiceSpec, o: ChoiceOption): GiftLook {
 
 /** Ícone da opção (glifo; a arte do item só aparece grande no painel). */
 export function GiftVisual({ look, size }: { look: GiftLook; size: number }) {
+  if (look.spell && spellArt(look.spell.id)) return <SpellThumb spell={look.spell} size={Math.round(size * 1.6)} />;
   if (look.school) return <SchoolIcon school={look.school} size={size} />;
   return <GlyphIcon name={look.icon} size={size} />;
 }
