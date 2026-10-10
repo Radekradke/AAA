@@ -1329,6 +1329,22 @@ button:active:not(:disabled) {
   border-color: color-mix(in srgb, var(--danger), transparent 55%);
   background: color-mix(in srgb, var(--danger), transparent 90%);
 }
+/* avatar do card do herói com o selo da raça no canto */
+.fv-hero-card-face { position: relative; flex: none; display: block; }
+.fv-hero-card-race {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgba(7, 9, 13, 0.88);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  opacity: 0.9;
+}
 .fv-hero-card-art {
   position: absolute;
   inset: 0 0 0 46%;
@@ -7441,6 +7457,47 @@ select optgroup {
   .fv-lore-tooltip.has-art .fv-lore-text {
     align-self: stretch;
   }
+}
+
+/* Magia com arte: faixa no topo do painel, esmaecendo para dentro (estilo do card do herói) */
+.fv-lore-banner {
+  --rc: var(--gold);
+  position: relative;
+  height: 168px;
+  margin: -14px -15px 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--rc), transparent 35%);
+}
+.fv-lore-banner.is-comum { --rc: #9ba7b5; }
+.fv-lore-banner.is-incomum { --rc: #3fc56b; }
+.fv-lore-banner.is-raro { --rc: #4d9bff; }
+.fv-lore-banner.is-muito-raro { --rc: #b061ff; }
+.fv-lore-banner.is-lendario { --rc: #ffa033; }
+.fv-lore-banner img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+}
+/* brilho da raridade por cima, e o pé da faixa vira o próprio painel */
+.fv-lore-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--rc), transparent 82%), transparent 60%);
+}
+.fv-lore-tooltip.has-banner .fv-lore-text {
+  position: relative;
+  margin-top: -30px;
+}
+.fv-lore-tooltip.has-banner .fv-lore-title {
+  font-size: 1.12em;
+  text-shadow: 0 1px 10px var(--panel), 0 0 2px var(--panel);
 }
 
 /* miniatura no card do inventário (com o botão de enviar arte) */

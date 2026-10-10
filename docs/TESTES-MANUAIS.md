@@ -629,3 +629,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Tocar numa categoria: mostra a pasta e o guia, a divisão (magias por círculo, itens mágicos por raridade, criaturas por tipo…) e **Faltam N** com a lista de ids e nomes.
 3. **Copiar ids** copia a lista do que falta (id e nome, um por linha), pronta para colar no gerador de imagens ou numa planilha.
 4. Soltar uma arte nova na pasta e publicar: o número sobe sozinho na próxima versão.
+
+## 68. Selo da raça no card e arte da magia no modal
+
+1. Heróis: no canto do avatar de cada card aparece um selinho redondo com o ícone da raça, na cor da raça (passe o mouse para ver o nome). É mais discreto que a arte da classe.
+2. Aba Magias: passe o mouse (ou toque) numa magia com arte (ex.: Armadura Arcana, Luz, Sono). O modal abre com a arte numa faixa no topo, de ponta a ponta, esmaecendo para dentro do painel; o nome da magia entra sobre a parte esmaecida. Brilho no topo na cor do círculo (verde 1º–2º, azul 3º–5º…).
+3. Itens com arte continuam com a carta ao lado do texto.
+4. Conferir no tema claro e no escuro: a arte some suave na cor do painel, sem faixa escura.
