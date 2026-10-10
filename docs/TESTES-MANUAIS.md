@@ -317,5 +317,294 @@ Regras do D&D 5e 2014 (Livro do Jogador e Guia do Mestre, "Vestindo e empunhando
 ## 46. Brilho das cartas só no hover
 1. Em repouso, as cartas (herói, aliados, caçadas, coleção, relíquias e itens na busca) ficam **limpas**: sem faixa clara parada, só o filete fino da moldura.
 2. Passando o mouse: um **lampejo** atravessa a carta uma vez, de cima/esquerda para baixo/direita, de forma contínua (sem tranco). Ouro e lendária passam um pouco mais rápido.
-3. Nas cartas que inclinam (herói, aliados), a luz **segue o cursor** suavemente; tirar o mouse apaga o brilho devagar.
+3. **Todas** as cartas com brilho (herói, aliados, coleção, caçadas, relíquias e itens na busca) **inclinam em 3D** para o cursor e sobem um pouco; a luz e as raias de metal escovado deslizam junto. Tirar o mouse volta a carta macia ao lugar e apaga o brilho. No celular não inclina (o dedo cobre a carta).
 4. Com "reduzir movimento" no sistema, o brilho aparece no hover sem o lampejo animado.
+
+## 47. Magias, kits e equipamento conferidos com os livros
+**Cargas (cajados e varinhas)**
+1. Aba **Magias → Cajados e varinhas**: cada item mostra as cargas (bolinhas + "7/10 cargas") e cada magia com o seu custo. Cajado do Fogo: Mãos Flamejantes 1, Bola de Fogo 3, Muralha de Fogo 4 — as 10 cargas são compartilhadas.
+2. Cajado da Cura: Curar Ferimentos escolhe o círculo (1 carga por círculo, até o 4º). Varinhas de Bolas de Fogo/Relâmpagos/Mísseis: cada carga extra sobe um círculo. Varinhas mostram **CD 15** fixa; cajados usam a sua CD.
+3. **Descanso longo** recupera as cargas rolando os dados do item (1d6+4 nos cajados, 1d6+1 nas varinhas, 2d8+4 no Cajado do Poder) e mostra quanto voltou. Ao gastar a **última carga**, o app rola o d20: no 1 avisa que o item se perde (com botão para remover da ficha).
+4. No **Inventário**, o cartão de itens com cargas (inclusive Anel da Evasão, Gema da Visão, Varinha da Paralisia) mostra as cargas com −1/+1.
+
+**Cajados**
+5. Foco arcano (cajado), foco druídico (cajado de madeira) e cajados mágicos **equipam como bordão** (1d6, versátil 1d8). Cajado do Poder: +2 no ataque e no dano. Cajado do Gelo agora tem Muralha de Gelo; Cajado do Poder tem as 9 magias (20 cargas).
+
+**Sintonia por classe**
+6. Itens "requer sintonia por…" recusam com o motivo: Cajado da Cura (bardo, clérigo, druida), Cajados do Fogo/Gelo (druida, feiticeiro, bruxo, mago), Cajado do Poder e Manto do Arquimago (feiticeiro, bruxo, mago), Bastão do Pacto (bruxo), varinhas de combate (qualquer conjurador), Vingadora Sagrada (paladino).
+
+**Kits iniciais do Livro do Jogador**
+7. Equipamento da criação mostra o **kit do PHB** da classe; "Personalizar kit" traz as opções (a)/(b) do livro, com escolha de arma quando diz "qualquer arma…". Pacotes chegam **abertos** (10 tochas, 10 rações, corda…). Arco e besta vêm com munição. Mago: grimório + bolsa de componentes ou foco; Ladino: 2 adagas + ferramentas de ladrão; Clérigo/Paladino: símbolo sagrado; Druida: foco druídico; Bardo: instrumento. Martelo de guerra/cota de malha do Clérigo ficam liberados na criação (o domínio é escolhido depois) com o aviso "se o domínio permitir"; com um domínio sem a proficiência (Conhecimento…), ficam bloqueados. (Não vem mais a poção de cura — não está no livro.)
+8. Equipamento do **antecedente** vira item do catálogo (pé de cabra, roupas, kit de herbalismo…), empilhando com o que já veio no pacote.
+8a. A tela mostra o que vem **do antecedente** e a bolsa de ouro dele. A ficha começa só com o ouro do antecedente (Soldado 10 po, Acólito 15 po…) — não há mais 25 po extras.
+8b. **Trocar o kit por ouro (regra do livro)**: mostra a fórmula da classe (Guerreiro 5d4 × 10 po, Mago 4d4 × 10, Monge 5d4…), "Rolar" ou "Usar a média". A ficha nasce sem o kit da classe e com esse ouro + o do antecedente. "Voltar ao kit" restaura a escolha anterior.
+8c. Duas armas leves iguais (Patrulheiro: 2 espadas curtas) já vêm uma em cada mão; "Também leva" não repete as que estão equipadas. Bruxo/Feiticeiro escolhem "arma simples" e o padrão é o bordão (não a maça). Armas sem proficiência aparecem marcadas "— sem proficiência" na lista.
+8d. Armadura pesada sem a FOR pedida mostra o aviso de −3 m; a linha **Carga** mostra o peso do kit contra a capacidade.
+
+**Componentes**
+9. Conjurar magia com componente **M** sem foco nem bolsa de componentes (fora do Baú) mostra aviso. Material com preço (diamante de 300 po…) sempre aparece como lembrete no aviso da conjuração.
+
+**Dados corrigidos**
+10. Raio Ardente 36 m; Cordão de Flechas 1,5 m; Despertar 8 horas; Raio do Enfraquecimento sem dano (metade do dano com armas de FOR); Criar ou Destruir Água sem salvaguarda; materiais com custo em Augúrio, Encontrar o Caminho, Aprisionamento, invocações do Tasha e outras. Anel de Resistência sem sintonia; Pedra da Sorte soma +1 em perícias/iniciativa/passiva; Machado do Berserker +1 PV por nível; dano "gelo" passa a "frio" (resistências batem).
+
+## 48. Escolhas do 1º nível dentro da criação
+1. **Caminho → Clérigo, Feiticeiro ou Bruxo**: aparece "Domínio Divino / Origem de Feitiçaria / Patrono Transcendental · escolha do 1º nível" sob as classes. Sem escolher, o painel da classe avisa e o rodapé diz "Falta aqui: …"; o Despertar fica travado.
+2. **Escolhas da classe e da subclasse** no mesmo lugar: Estilo de Luta (Guerreiro), Inimigo Favorito + Terreno (Patrulheiro — Dragões, Gigantes, Corruptores… pedem também o idioma), 3 instrumentos (Bardo), ferramenta ou instrumento (Monge), Ancestral Dragão (Feiticeiro Dracônico), 2 idiomas + 2 perícias (Conhecimento), truque de druida + perícia (Natureza).
+3. **Origem → Anão**: escolha da ferramenta (ferreiro, cervejeiro ou pedreiro) sob a sublinhagem.
+4. Trocar de classe limpa a subclasse e as escolhas antigas; trocar de domínio limpa as do domínio anterior. Domínio sem armadura pesada (Conhecimento, Luz, Enganação) tira a cota de malha do kit se ela estava escolhida.
+5. Ao despertar, ferramentas e instrumentos viram proficiência, o truque da Natureza entra nas magias (sem repetir na sugestão), o Feiticeiro Dracônico fala Dracônico — e a aba **Evoluir** não mostra "Escolhas pendentes" para um herói recém-criado.
+
+## 49. Etapa "Magias" na criação
+1. Bardo, Clérigo, Druida, Feiticeiro, Bruxo e Mago ganham o capítulo **Magias** entre Perícias e Equipamento; os demais não veem a etapa (a numeração dos capítulos se ajusta).
+2. A etapa chega com a sugestão clássica da classe, já no limite certo: Bardo 2 truques + 4 conhecidas; Feiticeiro 4 + 2; Bruxo 2 + 2 (com a lista do patrono); Clérigo/Druida 3/2 truques + preparadas = mod. + 1; Mago 3 truques, 6 no grimório e prepara INT + 1 delas.
+3. Magias de domínio e o truque do Acólito da Natureza aparecem em "Já vêm prontas" e não ocupam vaga.
+4. Tirar um truque/magia trava o Despertar e o rodapé diz "Falta aqui: escolha 1 truque". Preparar a mais diz "Tire 1…". "Usar a sugestão" volta ao padrão. Trocar de classe zera as magias.
+5. O que foi escolhido é exatamente o que aparece na aba Magias da ficha.
+
+## 50. Capítulo "Dons" (escolhas do 1º nível)
+1. Logo depois do **Caminho**, o capítulo **Dons** reúne as escolhas do 1º nível: subclasse de Clérigo/Feiticeiro/Bruxo, Estilo de Luta, Inimigo Favorito + Terreno (+ idioma), instrumentos do Bardo, ferramenta do Monge, Ancestral Dragão, Bênçãos do Conhecimento, Acólito da Natureza, ferramenta do Anão e truque do Alto Elfo. Quem não tem nada a decidir (ex.: Bárbaro humano) não vê o capítulo. Origem e Caminho voltaram a ter só raça/sublinhagem e classe — o Caminho lista em "Na ficha" os Dons que vêm a seguir.
+2. **Trilha no topo**: uma parada por decisão, com número, ✓ e o que foi escolhido (ou "1 de 3"). Escolher a subclasse acrescenta na trilha as decisões dela (Conhecimento → idiomas e perícias). Ao completar uma decisão, a trilha avança sozinha para a próxima que falta.
+3. **Cartões** com ícone ou arte: instrumentos e ferramentas com a arte do item, inimigos favoritos com criaturas, dragões na cor do ancestral, truques com o ícone da escola.
+4. **Painel "O que entra na ficha"**: passar o mouse mostra sem escolher. Subclasse mostra as características do 1º nível explicadas, magias de domínio/lista do patrono, proficiências e o que vem depois; idiomas mostram quem fala; truques mostram tempo, alcance, duração e dano; ferramentas e estilos explicam o efeito. Botão "Escolher X" / "Trocar por X" / "Tirar da escolha".
+5. **Celular**: tocar no cartão abre uma gaveta de baixo com o painel; a escolha é no botão da gaveta (✕ ou toque fora fecha).
+6. Notebook (altura ≤ 860 px): cartões deitados em 2 colunas, arte no lugar do ícone.
+7. Perícias escolhidas nos Dons aparecem em "Já treinadas" no capítulo Perícias (fonte "Dons") e não podem ser escolhidas de novo.
+
+## 51. Dica de item (estilo BG3) e miniaturas na busca
+1. Passar o mouse num item (inventário, catálogo "Adicionar item", e agora no capítulo **Equipamento** da criação: kit, opções (a)/(b) de um item só, pacotes, "Também leva" e itens do antecedente) mostra a dica: nome na cor da raridade, "Comum · Arma marcial corpo a corpo", o número em destaque (1d8 cortante, CA 16, 2d4+2 de cura), propriedades (Versátil (1d10 com as duas mãos), Exige FOR 13, Desvantagem em Furtividade, sintonia, cargas), uma frase curta e, no rodapé, peso e preço. Com arte, a carta do item aparece ao lado. No celular: segurar o dedo no nome.
+2. **Busca (Ctrl+K)**: heróis com o retrato redondo, criaturas com a arte do bestiário, itens com a arte, magias com o ícone da escola e condições com o ícone da condição.
+
+## 52. Dons explicados e auditoria da criação (Origem, Caminho)
+1. **Dons**: cada opção diz o que faz. Ferramentas e instrumentos mostram para que servem, o atributo usado e exemplos; idiomas mostram quem fala e a escrita; inimigos favoritos, exemplos de criaturas e o idioma; terrenos, lugares e benefícios. Opções em grupos (Monge: **Ferramentas de artesão × Instrumentos musicais**; idiomas **padrão × exóticos**) ganham abas. Os cartões têm só ícone; a arte do item aparece grande no painel da direita.
+2. **Origem**: o painel lista os traços da raça e da sublinhagem. No PC são chips: passar o mouse mostra o que cada um faz. No celular a lista vem completa. Anão: ferramentas e Especialização em Rochas; Anão da Montanha: armaduras leves e médias; elfos, halflings e gnomos com os traços da sublinhagem. Drow não repete Visão no Escuro; Draconato não repete "Sopro".
+3. **Caminho**: o painel mostra vida, salvaguardas, **armaduras**, **armas** e as perícias da classe (com a lista). O druida aparece com "nada de metal". Sob a grade, "**<Classe> no 1º nível**" traz cartões com cada característica e o que ela faz.
+4. **Trocar de classe**:
+   - Clicar de novo na classe já escolhida não apaga nada.
+   - Trocar de classe só refaz os atributos se ainda estiverem no array padrão.
+   - A Especialização do Ladino não passa para outra classe.
+
+## 53. Auditoria da criação: Passado, Atributos, Perícias, Magias e Despertar
+1. **Passado**: estes antecedentes deixam escolher o tipo de ferramenta (PHB), num seletor sob a grade que diz para que ela serve:
+   - Herói do Povo e Artesão de Guilda: ferramenta de artesão;
+   - Artista e Forasteiro: instrumento;
+   - Criminoso, Nobre e Soldado: jogo.
+
+   O painel e os itens mostram a escolha. Ao despertar, ela vira proficiência e item na mochila (o Soldado leva o jogo escolhido). Trocar de antecedente zera a escolha; trocar de classe não. A história e a característica do antecedente aparecem inteiras.
+2. **Atributos**:
+   - Novo método **Rolar 4d6**: seis rolagens, o menor dado riscado. Os valores vão para os atributos na ordem da classe e podem ser trocados entre si. "Rolar de novo" refaz tudo.
+   - O método fica salvo: voltar à etapa depois da compra de pontos continua na compra de pontos.
+   - Gastar mais de 27 pontos, ou escolher "Rolar" sem rolar, trava o Despertar.
+3. **Perícias**:
+   - Ladino sem as 2 especializações não desperta (o rodapé diz quantas faltam).
+   - Desmarcar uma perícia tira a ★ dela.
+   - Trocar o antecedente depois de especializar numa perícia dele avisa "Especialização em X sem a perícia — troque".
+4. **Magias**: Taumaturgia (Tiefling), Globos de Luz (Drow), Ilusão Menor (Gnomo da Floresta) e o truque do Alto Elfo aparecem em "Já vêm prontas" e não aparecem na lista de truques da classe.
+5. **Despertar**: "A lenda até aqui" mostra subclasse, Dons, perícias e ferramentas (★ = Especialização), idiomas e magias, como vão entrar na ficha.
+
+## 54. Auditoria das abas da ficha
+1. **Mesa / Combate**:
+   - "Ação Atacar: 2 ataques · Ataque Extra" sobre os ataques: Guerreiro 5 (3 no 11º, 4 no 20º); Bárbaro, Monge, Paladino e Patrulheiro 5; Bardo da Bravura 6; Bruxo com Lâmina Sedenta.
+   - As armas do Campeão mostram o selo "crítico 19–20".
+2. **Ficha**:
+   - No PC, Perícias e Características de Classe ficam na coluna da esquerda e Proficiências na da direita, sem o vão de antes.
+   - Toda característica de classe (1–20, com ou sem subclasse) mostra o que faz ao passar o mouse, inclusive "Magias de Domínio (+2)…" e "Característica de Arquétipo".
+   - Ladino tem **Gíria de Ladrão** e Druida tem **Druídico** em Idiomas.
+3. **Magias**:
+   - O cartão do truque mostra o dano do nível atual: Chama Sagrada 2d8 no 5º; Rajada Mística "2× 1d10".
+   - A seção das magias raciais chama "Magias de raça, itens e talentos".
+4. **Descanso / Dados de Vida**:
+   - Gastar um Dado de Vida (Mesa, Combate ou a nova linha "Dados de Vida" da aba Descanso) rola d + CON e **soma a vida sozinho**.
+   - O botão fica desativado com a vida cheia ou sem dados.
+5. **Conferidos sem erro**: vida, CA, CD e ataque de magia, espaços (inclusive meio-conjurador e Pacto), preparadas/conhecidas, Inventário (carga = FOR × 7,5 kg), Evoluir (pendências de invocação e pacto, PV médio, XP), Retrato, Diário e Dados.
+
+## 55. Diário de Campanha — fase 1 (Rabiscos, Crônica, Anotar)
+O Diário é **pessoal** (só o jogador vê) e fica salvo **na ficha**: funciona offline e sincroniza com o resto.
+
+1. **Seções**: Rabiscos · Crônica · Quadro da Guilda (§56) · Pistas (§57) · Pessoas (§58). A busca no topo vale para a seção aberta, e o diário lembra a última seção usada.
+2. **Rabiscos**:
+   - Escreva e dê **Enter**: vira um post-it. Shift+Enter quebra a linha.
+   - Cores: ouro, perigo, aliado, ideia, mistério.
+   - ☆ fixa no topo; ✓ marca como resolvida (some da lista, "Mostrar N resolvidas" traz de volta); ◐ troca a cor; clicar no texto edita.
+   - As antigas "Anotações rápidas" viraram um rabisco fixado.
+3. **Menções** (rabiscos, crônica e botão Anotar):
+   - **@** abre a lista de NPCs revelados e **heróis dos outros jogadores** das mesmas campanhas.
+   - **#** marca um lugar ("#Porto Sombrio", "#Torre de Vigia"); os lugares já usados viram sugestão.
+   - No texto, a menção vira chip; passar o mouse (ou tocar) mostra retrato e papel. Herói tem cor própria.
+4. **Crônica**:
+   - "+ Nova sessão" já vem com o próximo número e a data de hoje. Cada sessão é uma página com título e **texto livre**, com modos **Escrever / Ler**.
+   - Ao lado, "Nesta sessão" lista quem apareceu e por onde o grupo passou.
+   - Os cartões da lista mostram trecho, citados e lugares.
+   - As sessões antigas (campos Resumo/NPCs/Lugares…) abrem com tudo junto num texto só.
+5. **✎ Anotar** em todas as abas da ficha:
+   - Abre um bilhete; Enter salva nos Rabiscos (aviso "Anotado nos Rabiscos do Diário").
+   - No celular fica acima da barra de abas, só com o ícone.
+6. A ficha impressa mostra os rabiscos em aberto (fixados primeiro) em "Notas".
+
+## 56. Diário — fase 2: Quadro da Guilda (missões)
+Seção nova do Diário, entre Crônica e Pistas da mesa. É pessoal (só o jogador vê). O número na aba conta as missões **Ativas**.
+
+1. **Colunas**: Rumores (ouvimos falar) · Ativas (estamos nessa) · Concluídas · Falhas, cada uma com sua cor e contador.
+   - No PC aparecem as quatro lado a lado.
+   - No celular aparece uma coluna por vez, escolhida no seletor de cima (com a contagem de cada uma); a tela não rola para o lado.
+2. **Nova missão**:
+   - O "+" em Rumores ou Ativas (no celular, em qualquer coluna) cria a missão nessa coluna e já abre o detalhe.
+   - Missão sem nome aparece como "Missão sem nome".
+3. **Cartão** (cartaz pregado com alfinete):
+   - Mostra nome, "pedida por …", 💰 recompensa, ⏳ prazo e barra de objetivos ("1/3").
+   - Missão **Urgente** ganha borda vermelha e o selo "Urgente". Dentro da coluna, as urgentes vêm primeiro.
+   - Em Concluídas e Falhas o nome aparece riscado.
+4. **Mudar de coluna**:
+   - Arraste o cartão para outra coluna (no PC a coluna de destino acende).
+   - Ou use ◀ ▶ no rodapé do cartão (funciona no toque).
+5. **Detalhe** (modal padrão: Esc e ✕ fecham, clique fora não perde nada):
+   - situação (Rumor/Ativa/Feita/Falhou);
+   - nome, **Quem pediu** (com @ para NPC/herói), recompensa, prazo, prioridade (Urgente/Normal/Quando der);
+   - **Objetivos**: Enter adiciona, caixinha marca ✓, ✕ tira; @ e # funcionam;
+   - **Anotações** com @ e #, em modo ler/editar;
+   - "Apagar missão" pede confirmação.
+6. **Busca**: a busca do diário filtra os cartões por nome, quem pediu, recompensa, anotações e objetivos.
+7. **Lugares**: lugares marcados com # nas missões entram nas sugestões de # do diário inteiro.
+8. Tudo fica salvo na ficha: recarregue a página e confira.
+
+## 57. Diário — fase 3: Pistas (imagem, verificação, entregas do mestre)
+A seção **Pistas** aparece sempre (antes só existia quando o mestre tinha entregado algo). O número na aba conta as pistas **a verificar**. Tudo é pessoal e salvo na ficha.
+
+1. **Filtro**: Todas · A verificar · Confirmadas · Falsas, cada um com contagem. A busca do diário também filtra (nome, texto, fonte e conclusão).
+2. **Cartão** (ficha de evidência):
+   - foto emoldurada quando tem imagem;
+   - carimbo inclinado com a situação (amarelo / verde / vermelho);
+   - trecho do texto, a fonte e a missão ligada (⚑).
+   - As a verificar vêm primeiro. Pista falsa fica com o nome riscado.
+3. **+ Nova pista** abre o detalhe:
+   - nome e situação (A verificar / Confirmada / Falsa);
+   - "O que diz / o que vimos" e "Quem contou / onde achamos", ambos com @ e #;
+   - **Missão ligada**, escolhida entre as do Quadro da Guilda;
+   - a conclusão só aparece quando a pista é confirmada ("Como confirmamos?") ou falsa ("Por que é falsa?").
+4. **Imagem**:
+   - "Anexar imagem" (arquivo) ou **Ctrl+V** com uma imagem copiada, com o detalhe aberto;
+   - a imagem é reduzida e comprimida (WebP, até ~180 KB) e fica **dentro da ficha**: aparece offline e depois de recarregar;
+   - "Trocar imagem" / "Tirar imagem"; clicar na imagem amplia (clique de novo fecha);
+   - limite de **30 pistas com imagem** por ficha (aviso em vermelho ao passar disso).
+5. **Entregues pelo mestre** (quando há handouts nas mesas desta ficha):
+   - clicar abre a entrega como antes;
+   - **Investigar** cria uma pista com o título e o texto da entrega e a fonte "Entregue pelo mestre". A imagem continua vindo do armazenamento da mesa e não conta no limite;
+   - depois disso o botão vira "✓ nas pistas" e abre a pista.
+6. **Quadro da Guilda**: o detalhe da missão mostra as **Pistas ligadas**, com a situação de cada uma.
+7. No celular:
+   - o detalhe empilha imagem e campos;
+   - a barra de seções do diário mostra as 4 abas e rola sozinha até a aba ativa;
+   - a tela não rola para o lado.
+
+## 58. Diário — fase 4: Pessoas, busca em todo o diário e ligações
+1. **Pessoas** (nova seção):
+   - lista os NPCs revelados e os heróis dos outros jogadores das mesas desta ficha;
+   - filtro Todos · NPCs · Heróis, com contagem;
+   - cada cartão mostra o retrato (ou a inicial), o papel, a opinião e "citado em N". Os mais citados vêm primeiro.
+2. **Detalhe da pessoa**:
+   - retrato grande;
+   - "O que o mestre revelou" (resumo do NPC) ou "Da ficha" (herói);
+   - **O que eu acho**: Aliado / Neutro / Suspeito / Inimigo (clicar de novo tira), mais notas livres com @ e #;
+   - **Onde aparece**: cada rabisco, sessão, missão e pista que cita a pessoa (com @ ou com o nome inteiro), com um trecho. Clicar leva até o item: abre a sessão, a missão ou a pista, ou destaca o rabisco com um brilho.
+3. **Menções clicáveis**: dentro do Diário, tocar num nome citado (@) abre a pessoa. No botão Anotar das outras abas continua só o retrato ao passar o mouse.
+4. **Pista ↔ missão**:
+   - no detalhe da pista, "abrir missão →" abre a missão ligada;
+   - no detalhe da missão, cada pista em "Pistas ligadas" abre a pista.
+5. **Busca em todo o diário**: a seção aberta continua filtrando. Abaixo das abas aparece **"Também em: Quadro da Guilda 1 · Pistas 2"** para as outras seções com resultado; clicar vai até lá mantendo a busca.
+6. A opinião e as notas sobre cada pessoa ficam salvas na ficha (recarregue e confira).
+7. No celular, a barra de seções (5 abas) rola sozinha até a aba ativa. O detalhe da pessoa empilha o retrato sobre os campos.
+
+## 59. Diário privado e leve (só você lê; imagens fora da ficha)
+Antes: rode `supabase/diario_privado.sql` no Supabase (docs/SUPABASE.md §12). Sem ele, o app avisa que falta o script e o diário segue como antes.
+1. **O mestre não lê o seu diário**:
+   - escreva um rabisco, uma sessão e uma pista numa ficha compartilhada com uma mesa;
+   - entre como o mestre e abra a ficha do jogador: a ficha aparece normalmente, sem o diário;
+   - no Supabase (Table Editor → `sheets`), o `snapshot` não tem mais `diary`, e `journal`/`notes` estão vazios. O conteúdo está em `sheet_diaries`.
+2. **Link de compartilhamento**: o link da ficha não mostra (nem carrega) o diário.
+3. **Outros aparelhos**:
+   - entre na mesma conta em outro aparelho: o diário aparece igual, e as imagens das pistas são baixadas e guardadas nesse aparelho;
+   - edite o diário num aparelho e espere uns segundos: o outro recebe ao sincronizar.
+4. **Offline**: sem internet, anexe uma imagem numa pista; ela aparece na hora. Ao voltar a conexão, sobe sozinha para a pasta privada (bucket `diario`).
+5. **Imagens antigas**: pistas criadas antes desta mudança, com a imagem dentro da ficha, continuam aparecendo. A imagem passa para o aparelho e para a nuvem privada, e a ficha fica leve.
+6. **Histórico da ficha**: restaurar uma versão volta PV, itens, nível etc., mas **não mexe no Diário** (anotações mais novas ficam).
+7. Convidado (sem conta): tudo funciona no aparelho, como antes.
+
+## 60. Regra oficial × regra da mesa × automação; aba Jogar
+
+**Inspiração (PHB 2014: tem ou não tem)**
+1. Ficha nova, aba **Jogar**: o selo diz "Sem inspiração". Toque **+**: vira "Inspirado". O **+** fica desligado ("Já tem inspiração (regra 2014: não acumula)").
+2. **Evoluir → Regras desta ficha** → ligue **Inspiração acumulável** (etiqueta "Regra da mesa"). Volte ao Jogar: o selo mostra pontos, losangos e a marca **mesa**; o **+** acumula até 10.
+3. Desligue a regra: os pontos caem para 1 (continua inspirado).
+4. Ficha antiga que já tinha 3 pontos: continua com 3 e a regra aparece ligada (nada se perde).
+
+**Regras desta ficha**
+5. Ficha sem nada fora do livro: o cabeçalho não mostra selo; o painel diz "Nada fora do livro".
+6. Use um item criado na Forja, digite os atributos à mão ou ligue a inspiração acumulável: aparece no cabeçalho **"2014 · N fora do padrão"** (passe o mouse para ver a lista). Tocar leva ao painel em Evoluir.
+7. No painel, cada coisa tem a etiqueta do que é: Opcional do PHB (Talentos, Multiclasse), Regra da mesa, Homebrew, Outro livro (Origem de Tasha) ou Ajuste manual.
+8. O antigo botão "Homebrew" (que não controlava nada) saiu.
+
+**Magias: o que a ficha faz**
+9. Aba **Magias**: cada magia tem um selo — **✓ automática**, **◐ parcial** ou **✋ na mesa**.
+10. Passe o mouse (ou toque) no nome: a dica mostra **Na ficha** com linhas ✓ (a ficha aplica), ⚄ (a ficha rola) e ✋ (fica com a mesa). Ex.: Escudo = aplica +5 CA e sai sozinho; Bola de Fogo = rola o dano, o alvo faz salvaguarda e o mestre aplica; Bênção = fica marcada, mas o 1d4 você soma; Detectar Magia = resolvida na mesa.
+
+**Abas**
+11. A antiga aba **Mesa** agora se chama **Jogar** (as campanhas continuam em **Mesas**, no topo).
+12. No PC: Jogar, Ficha, Combate, Inventário, Magias, Diário | separador | Evoluir, Descanso, Retrato, Dados (menores). Passe o mouse em cada aba: aparece para que ela serve.
+13. No Jogar, os blocos têm atalho para o detalhe: Ataques → **Combate ›**, Salvaguardas → **Ficha ›**, Magia → **Magias ›**, Recursos & Descanso → **Descanso ›**.
+14. No celular, **Mais** abre uma lista com Diário, Evoluir, Descanso, Retrato e Dados, cada uma com uma linha dizendo para que serve.
+
+## 61. Pacotes abrem sozinhos
+
+Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estudioso) são só itens vendidos juntos: na ficha eles sempre viram os itens de dentro. Kits (Curandeiro, Disfarce, Ladrão…) continuam uma ferramenta só.
+
+1. Inventário → **+ Adicionar** → busque "Pacote de Explorador" e toque: o catálogo diz "Pacote de Explorador foi aberto na mochila". Feche: aparecem Mochila, Saco de Dormir, Tocha, Rações etc. — e **não** aparece um item "Pacote de Explorador".
+2. Com 1 tocha antes, ficam **x11** (soma à pilha, não cria uma segunda Tocha). Uma pilha guardada no **Baú** não é somada (a nova vai para a Mochila).
+3. O aviso "Pacote de Explorador aberto: 8 itens na Mochila" tem **Desfazer**: volta exatamente ao que era (1 tocha, sem saco de dormir).
+4. Ficha antiga com um pacote fechado no inventário: o card mostra **Abrir pacote**. Tocar abre os itens no mesmo recipiente; o Desfazer devolve o pacote fechado.
+5. O mestre entregando um pacote pela mesa ao vivo: chega aberto na ficha do jogador.
+6. Adicione um **Kit de Disfarce** ou **Kit de Curandeiro**: entra como um item só.
+
+## 62. Descrições e etiquetas de itens (todo o catálogo)
+
+1. Inventário → **+ Adicionar** → passe o mouse (no celular: segure) em **Armadura de Couro**: abaixo da CA aparece a descrição em itálico, depois a linha prática ("CA 11 + seu modificador de Destreza, sem atrapalhar a Furtividade") e as etiquetas **Barata · Furtividade**.
+2. **Rapieira**: depois das propriedades, "Ataca com Força ou Destreza (a melhor)." seguido de para que ela serve; etiqueta **Social**.
+3. Etiquetas automáticas: **Adaga** mostra Arremessável; **Arco Longo**, Duas mãos e Precisa de munição; **Armadura de Placas**, Barulhenta.
+4. Uma **Espada Longa +2** usa a descrição da espada longa.
+5. Na mochila, a mesma dica aparece no card do item (inclusive em itens antigos, achados pelo id do catálogo). Itens criados na Forja não têm descrição (ainda).
+6. Equipamento: **Tocha** (Fonte de luz · Inflamável · Gasta ao usar), **Corda de Cânhamo** (Exploração · Barata), **Ácido** (Gasta ao usar, automática por ser consumível), **Ferramentas de Ferreiro** (Ferramenta), **Alaúde** (sem "Ferramenta"; Social), **Foco Arcano: Varinha** (Foco de conjuração · Discreta), **Cavalo de Guerra** (Montado · Defesa).
+7. Pacotes (ex.: Pacote de Explorador) dizem na dica que entram abertos na mochila.
+8. Itens mágicos: a dica mostra a regra exata do catálogo e, na linha de baixo, uma dica de uso. **Varinha de Bolas de Fogo**: "7 cargas: Bola de Fogo (CD 15)…" e depois "Cuidado com aliados na área…". **Poção de Cura**: "Recupera 2d4+2 PV" e "Beber é uma ação…".
+9. Equipamento comum (ex.: **Tocha**) não repete a nota: a linha prática já diz o que ela faz.
+10. Armaduras e escudos mágicos (**Armadura de Placas de Adamante**, **Escudo Sentinela**) dizem o efeito especial na linha prática.
+
+## 63. Mesa ao vivo: ordens do mestre, PV do herói e telas
+
+Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
+
+**Ordens do mestre nunca se perdem**
+1. Com a sessão aberta, o jogador bloqueia o celular. O mestre faz várias rolagens (mais de 40 no registro) e aplica dano no herói. Ao desbloquear, o dano está na ficha.
+2. O mestre dá XP e **encerra a sessão** antes de o jogador abrir o app. Quando o jogador abre a sala da mesa, o XP entra na ficha. Abrir de novo não dá o XP duas vezes.
+
+**PV do herói igual para os dois**
+3. O jogador bebe uma Poção de Cura pela ficha: em ~1 s, a linha do herói no encontro do mestre mostra o PV novo.
+4. O herói tem 5 de PV temporário e o mestre aplica 7 de dano: a ficha fica com 2 a menos, e a linha do mestre também (não 7).
+5. O jogador marca "Caído" na ficha: a condição aparece no encontro para o mestre.
+6. Sem o `mesa_vida.sql`: o mestre vê o aviso de SQL faltando; o resto funciona como antes.
+
+**Telas**
+7. Console do mestre → Bastidores → **Criaturas**: retrato ao lado do nome, linhas alinhadas.
+8. Abrir a mesa ao vivo: enquanto carrega, aparece o desenho da tela (blocos apagados). O mestre não vê mais a tela do jogador piscando antes do console.
+9. Celular do jogador, com mapa no ar: o card do turno tem **Ver mapa ↓**, que rola até o mapa. No PC o botão não aparece.
+10. Bastidores: **Biblioteca de cenas** (texto curto; o detalhe fica ao passar o mouse) e **Todas as pistas** no lugar de "Gaveta completa".
+11. Sala da mesa → Crônica: o campo diz "Título (obrigatório)", e o **Registrar** explica ao passar o mouse por que está apagado.
+
+## 64. Munição: cada disparo gasta uma peça
+
+1. Herói com **Arco Curto** equipado e **Flechas (20)** na Mochila. Aba Combate (ou Jogar): ao lado do nome do arco aparece **20 flechas**.
+2. Clicar em **ACERTO** do arco: o "Acertou o alvo?" mostra **−1 flecha · sobram 19**, e o selo vira **19 flechas**. Na Mochila, o pacote mostra **19 flechas** no lugar de "x1".
+3. **Desfazer** no "acertou?": a flecha volta (selo em 20).
+4. Com **Besta Leve** e **Virotes (20)**: a besta gasta virote; as flechas não mudam. Funda gasta bala, zarabatana gasta agulha.
+5. Dois pacotes de flechas (x2 = 40): depois de 21 disparos, sobra 1 pacote com 19.
+6. A última flecha: o "acertou?" avisa **era a última!**, o pacote some da Mochila e o selo fica vermelho, **sem flechas**. O próximo ACERTO não rola: o aviso diz "Sem flechas na Mochila." e oferece **Atirar assim**.
+7. Flechas guardadas no Baú não servem: o aviso diz que estão no Baú (o selo mostra quantas há lá ao passar o mouse).
+8. Depois da luta, com 2 ou mais flechas disparadas aparece **Recolher +N** (metade do disparado, para baixo). Clicar devolve as flechas e o botão some. O descanso longo zera a conta do que dá para recolher.
+9. Espada, adaga e azagaia não mostram selo e não gastam nada.

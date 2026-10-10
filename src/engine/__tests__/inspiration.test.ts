@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
-import { inspirationCount, setInspirationCount, INSPIRATION_MAX } from '../inspiration';
+import { inspirationCount, inspirationMax, setInspirationCount, stacksInspiration, INSPIRATION_MAX } from '../inspiration';
 import { rollCheck } from '../dice';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
@@ -14,17 +14,37 @@ describe('pontos de inspiração', () => {
   it('ficha antiga: booleano vira 0 ou 1 ponto', () => {
     expect(inspirationCount({ inspiration: true })).toBe(1);
     expect(inspirationCount({ inspiration: false })).toBe(0);
+    // já acumulava antes da opção existir: continua acumulando
     expect(inspirationCount({ inspiration: false, inspirationPoints: 3 })).toBe(3);
   });
 
-  it('limites e booleano legado espelhado', () => {
+  it('regra 2014 por padrão: tem ou não tem (não acumula)', () => {
     const c = makeChar();
+    expect(stacksInspiration(c)).toBe(false);
+    expect(inspirationMax(c)).toBe(1);
+    setInspirationCount(c, 5);
+    expect(c.inspirationPoints).toBe(1);
+    expect(c.inspiration).toBe(true);
+  });
+
+  it('regra da mesa: acumula até 10', () => {
+    const c = makeChar();
+    c.campaign = { ...c.campaign, stackingInspiration: true };
     setInspirationCount(c, 99);
     expect(c.inspirationPoints).toBe(INSPIRATION_MAX);
     expect(c.inspiration).toBe(true);
     setInspirationCount(c, -4);
     expect(c.inspirationPoints).toBe(0);
     expect(c.inspiration).toBe(false);
+  });
+
+  it('ficha que já acumulava grava a opção ao mexer: não "desliga" ao cair para 1', () => {
+    const c = makeChar();
+    c.inspirationPoints = 3;
+    setInspirationCount(c, 1);
+    expect(c.campaign.stackingInspiration).toBe(true);
+    setInspirationCount(c, 4);
+    expect(c.inspirationPoints).toBe(4);
   });
 });
 
@@ -38,13 +58,23 @@ describe('usar inspiração na jogatina', () => {
   });
   const points = () => inspirationCount(useCharacterStore.getState().characters[0]);
 
-  it('ganhar acumula pontos', () => {
+  it('regra 2014: ganhar de novo não passa de 1', () => {
+    useCharacterStore.getState().gainInspiration(id);
+    useCharacterStore.getState().gainInspiration(id);
+    expect(points()).toBe(1);
+  });
+
+  it('com a regra da mesa, ganhar acumula; desligar a regra deixa 1', () => {
+    useCharacterStore.getState().updateCampaign(id, { stackingInspiration: true });
     useCharacterStore.getState().gainInspiration(id);
     useCharacterStore.getState().gainInspiration(id);
     expect(points()).toBe(2);
+    useCharacterStore.getState().updateCampaign(id, { stackingInspiration: false });
+    expect(points()).toBe(1);
   });
 
   it('preparar dá vantagem; o ponto só sai quando o d20 rola', () => {
+    useCharacterStore.getState().updateCampaign(id, { stackingInspiration: true });
     useCharacterStore.getState().setInspiration(id, 2);
     useUiStore.getState().armInspiration(id);
     expect(useUiStore.getState().rollMode).toBe('advantage');

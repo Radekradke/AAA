@@ -233,7 +233,7 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-criaragua', level: 1, name: 'Criar ou Destruir Água', school: 'Transmutação',
     castingTime: '1 ação', range: '9 m', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['cleric', 'druid'], save: 'con',
+    classes: ['cleric', 'druid'],
     desc: 'Cria até 40 L de água (ou chuva numa área) ou destrói água/névoa equivalente.', tags: ['utilidade'],
   },
   {
@@ -266,9 +266,9 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-aterrorizar', level: 2, name: 'Raio do Enfraquecimento', school: 'Necromancia',
     castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Concentração, até 1 min', concentration: true,
-    classes: ['warlock', 'wizard'], attack: 'ranged', damage: { dice: '2d8', type: 'necrótico' },
-    desc: 'Um feixe drena a força: o alvo causa metade do dano com ataques corpo a corpo baseados em Força.',
-    higher: 'O dano aumenta em +1d8 por círculo acima do 2º.', tags: ['dano', 'debuff'],
+    classes: ['warlock', 'wizard'], attack: 'ranged', save: 'con',
+    desc: 'Um feixe negro drena a força (ataque de magia à distância, sem dano): o alvo causa metade do dano com ataques de arma baseados em Força. No fim de cada turno dele, faz salvaguarda de CON para encerrar.',
+    tags: ['debuff'],
   },
   {
     id: 'sp-passos', level: 2, name: 'Passo Enevoado', school: 'Conjuração',
@@ -293,8 +293,8 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-espiritual', level: 2, name: 'Arma Espiritual', school: 'Evocação',
     castingTime: '1 ação bônus', range: '18 m', components: 'V, S', duration: '1 minuto',
-    classes: ['cleric'], damage: { dice: '1d8 + mod.', type: 'energia' },
-    desc: 'Cria uma arma flutuante que ataca (mod. de conjuração) e pode ser reposicionada como ação bônus.',
+    classes: ['cleric'], damage: { dice: '1d8 + mod.', type: 'energia' }, attack: 'melee',
+    desc: 'Cria uma arma flutuante que faz um ataque corpo a corpo com magia (1d8 + mod. de conjuração) ao surgir e, depois, com uma ação bônus por turno; pode ser reposicionada 6 m.',
     higher: 'O dano aumenta em +1d8 a cada dois círculos acima do 2º.', tags: ['dano'],
   },
   {
@@ -305,7 +305,7 @@ const BASE_SPELLS: Spell[] = [
   },
   {
     id: 'sp-calorabrasante', level: 2, name: 'Raio Ardente', school: 'Evocação',
-    castingTime: '1 ação', range: '18 m', components: 'V, S', duration: 'Instantânea',
+    castingTime: '1 ação', range: '36 m', components: 'V, S', duration: 'Instantânea',
     classes: ['sorcerer', 'wizard'], attack: 'ranged', damage: { dice: '3× 2d6', type: 'fogo' },
     desc: 'Dispara três raios de fogo; cada um é um ataque à distância separado de 2d6.',
     higher: 'Dispara +1 raio por círculo acima do 2º.', tags: ['dano'],
@@ -396,7 +396,7 @@ const BASE_SPELLS: Spell[] = [
   {
     id: 'sp-tempestade', level: 4, name: 'Tempestade de Gelo', school: 'Evocação',
     castingTime: '1 ação', range: '90 m', components: 'V, S, M', duration: 'Instantânea',
-    classes: ['druid', 'sorcerer', 'wizard'], save: 'dex', damage: { dice: '2d8 + 4d6', type: 'concussão/gelo' }, area: 'cilindro de 6 m',
+    classes: ['druid', 'sorcerer', 'wizard'], save: 'dex', damage: { dice: '2d8 + 4d6', type: 'concussão/frio' }, area: 'cilindro de 6 m',
     desc: 'Granizo e frio castigam a área; salvaguarda de DES reduz à metade. Vira terreno difícil.',
     higher: 'O dano concussão aumenta em +1d8 por círculo acima do 4º.', tags: ['dano', 'controle'],
   },

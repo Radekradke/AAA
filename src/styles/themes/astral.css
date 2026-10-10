@@ -250,11 +250,12 @@
 /* vitais: corpos celestes (círculos com anel tracejado) */
 [data-theme='astral'] .fv-vitals {
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  justify-items: center;
   gap: 10px 6px;
 }
+/* todos os corpos celestes do mesmo tamanho (a âncora da dica ocupa a célula inteira) */
 [data-theme='astral'] .fv-stat-chip {
-  width: min(100%, 96px);
+  width: min(100%, 92px);
+  margin-inline: auto;
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
@@ -274,6 +275,8 @@
 [data-theme='astral'] .fv-stat-chip-label {
   letter-spacing: 0.06em;
   font-weight: 700;
+  font-size: 8.5px;
+  white-space: nowrap;
 }
 [data-theme='astral'] .fv-stat-chip-die {
   top: auto;

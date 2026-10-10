@@ -15,6 +15,7 @@ import type { InventoryItem } from '@/types/character';
 import { tableHero } from '@/lib/tableHeroes';
 import { heroDice } from '@/data/diceTrophies';
 import { deathSaveOutcome, isDeathOutcome } from '@/engine/deathSave';
+import { deriveCharacter } from '@/engine/dndRules';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -189,6 +190,68 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
       if (cond && cur.includes(cond) !== Boolean(p.on)) chars.toggleCondition(sheetId, cond);
     }
     chars.markEventApplied(sheetId, e.id);
+  }
+}
+
+/**
+ * PV e condições do MEU herói → linha do encontro. A ficha é a verdade sobre
+ * o herói: poção, descanso ou dano tomado na própria ficha chegam ao mestre
+ * (antes o número dele só mudava quando ele mesmo aplicava o dano).
+ */
+let vitalsTimer: ReturnType<typeof setTimeout> | null = null;
+/** Banco sem o supabase/mesa_vida.sql: para de tentar até recarregar. */
+let vitalsUnsupported = false;
+const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+
+export function scheduleVitalsSync(delay = 700) {
+  if (vitalsTimer) clearTimeout(vitalsTimer);
+  vitalsTimer = setTimeout(() => void syncMyVitals(), delay);
+}
+
+export async function syncMyVitals(): Promise<void> {
+  const s = useSessionStore.getState();
+  if (vitalsUnsupported || !s.me || s.me.isMaster || !s.encounter || s.encounter.status === 'finished') return;
+  const chars = useCharacterStore.getState().characters;
+  for (const c of s.combatants) {
+    if (c.type !== 'player' || !c.sheetId || c.ownerId !== s.me.userId) continue;
+    const ch = chars.find((x) => x.id === c.sheetId);
+    if (!ch) continue;
+    const hpMax = deriveCharacter(ch).maxHp;
+    const hp = Math.max(0, Math.min(hpMax, ch.hpCurrent));
+    const conditions = ch.combat.conditions ?? [];
+    if (c.hpCurrent === hp && c.hpMax === hpMax && sameSet(c.conditions, conditions)) continue;
+    try {
+      await encounterService.updateOwn(c.id, { hp_current: hp, hp_max: hpMax, conditions });
+    } catch (e) {
+      // função ainda não criada no banco: o aviso de SQL faltando já orienta o mestre
+      if (/update_own_combatant|could not find the function|does not exist/i.test((e as Error).message)) vitalsUnsupported = true;
+      return;
+    }
+  }
+}
+
+/** Última recuperação de ordens do mestre por campanha (não consulta a cada rolagem). */
+const lastCatchUp = new Map<string, number>();
+const CATCH_UP_EVERY = 60_000;
+
+/**
+ * Busca e aplica as ordens do mestre que estas fichas ainda não receberam:
+ * de qualquer sessão recente da campanha, inclusive encerrada. Cada ordem é
+ * aplicada uma vez só (o id do evento fica gravado na ficha), então chamar
+ * de novo é seguro. `force` ignora o intervalo mínimo.
+ */
+export async function catchUpHeroEvents(campaignId: string, masterId: string | null, force = false): Promise<void> {
+  if (!masterId) return;
+  const last = lastCatchUp.get(campaignId) ?? 0;
+  if (!force && Date.now() - last < CATCH_UP_EVERY) return;
+  lastCatchUp.set(campaignId, Date.now());
+  // só interessa se alguma ficha deste aparelho pode receber
+  if (!useCharacterStore.getState().characters.length) return;
+  try {
+    const events = await sessionService.heroEvents(campaignId, HERO_EVENTS);
+    applyHeroEvents(events, masterId);
+  } catch {
+    lastCatchUp.delete(campaignId); // tenta de novo na próxima
   }
 }
 
@@ -447,11 +510,14 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         const events = session ? await sessionService.events(session.id) : [];
         if (seq !== refreshSeq || get().campaignId !== campaignId) return; // resposta velha
         set({ session, encounter: open?.encounter ?? null, combatants: open?.combatants ?? [], events });
+        if (!me.isMaster) scheduleVitalsSync();
 
         // eventos novos: rolagens da mesa (aviso) e ordens do mestre para a ficha
         const fresh = events.filter((e) => !seenEvents.has(e.id));
         fresh.forEach((e) => seenEvents.add(e.id));
         applyHeroEvents(seeded ? fresh : events, session?.createdBy ?? null);
+        // ordens que ficaram fora das últimas 40 (aparelho dormindo, muitas rolagens) ou de sessões encerradas
+        if (!me.isMaster) void catchUpHeroEvents(campaignId, session?.createdBy ?? null, !seeded);
         if (seeded) {
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
@@ -525,6 +591,11 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       return !get().error;
     },
   };
+});
+
+// a ficha mudou (dano, cura, poção, descanso, condição): o encontro acompanha
+useCharacterStore.subscribe?.((st, prev) => {
+  if (st.characters !== prev.characters && useSessionStore.getState().encounter) scheduleVitalsSync();
 });
 
 /**

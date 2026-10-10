@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
-import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { campaignService } from '@/services/campaignService';
@@ -47,7 +46,7 @@ export function Campaigns() {
   };
 
   return (
-    <Screen scroll actions={<Button onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>}>
+    <Screen scroll>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
         <h1 style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
           Mesas de Campanha

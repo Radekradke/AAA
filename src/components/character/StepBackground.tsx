@@ -2,11 +2,19 @@ import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { BACKGROUNDS, getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY } from '@/data/skills';
-import { backgroundFacts } from '@/engine/creationSummary';
+import { backgroundFacts, STEP_BACKGROUND } from '@/engine/creationSummary';
 import { useTheme } from '@/lib/useTheme';
 import { LANGUAGE_OPTIONS } from '@/data/classChoices';
-import { languagePicks } from '@/engine/originChoices';
+import { BG_TOOL_KEY, backgroundTools, languagePicks } from '@/engine/originChoices';
+import { TOOLS } from '@/data/tools';
+import { TOOL_INFO } from '@/data/toolInfo';
 import { useState } from 'react';
+
+const TOOL_CHOICE_TITLE = {
+  artesao: 'Ferramenta de artesão à escolha',
+  instrumento: 'Instrumento musical à escolha',
+  jogo: 'Jogo à escolha',
+} as const;
 
 /** Capítulo III — Passado: o antecedente (perícias, ferramentas, gancho de história). */
 export function StepBackground({ char, update }: StepProps) {
@@ -30,8 +38,8 @@ export function StepBackground({ char, update }: StepProps) {
   const bgColor = 'var(--opt-accent, ' + t.gold + ')';
 
   return (
-    <div className="fv-step">
-      <StepHeader step={2} />
+    <div className="fv-step fv-bg-step">
+      <StepHeader step={STEP_BACKGROUND} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Antecedentes" compact>
@@ -43,12 +51,43 @@ export function StepBackground({ char, update }: StepProps) {
                 line={b.skills.map((k) => SKILL_BY_KEY[k].label).join(' · ')}
                 color={bgColor}
                 selected={char.backgroundId === b.id}
-                onSelect={() => update((c) => { c.backgroundId = b.id; })}
+                onSelect={() =>
+                  update((c) => {
+                    if (c.backgroundId !== b.id && c.choices?.[BG_TOOL_KEY]) {
+                      // a ferramenta escolhida era do antecedente antigo
+                      const { [BG_TOOL_KEY]: _old, ...rest } = c.choices;
+                      c.choices = rest;
+                    }
+                    c.backgroundId = b.id;
+                  })
+                }
               />
             ))}
           </OptionGrid>
           {/* idiomas à escolha sob a grade, onde sobra espaço */}
           <div className="fv-choice-extras">
+            {bg.toolChoice && (() => {
+              const options = TOOLS.filter((o) => o.group === bg.toolChoice!.group);
+              const current = backgroundTools(char).find((id) => options.some((o) => o.id === id)) ?? bg.toolChoice.default;
+              return (
+                <div className="fv-detail-sub fv-bg-tool">
+                  <div className="fv-facts-title">{TOOL_CHOICE_TITLE[bg.toolChoice.group]}</div>
+                  <div className="fv-bg-tool-row">
+                    <select
+                      className="fv-input"
+                      aria-label={TOOL_CHOICE_TITLE[bg.toolChoice.group]}
+                      value={current}
+                      onChange={(e) => update((c) => { c.choices = { ...(c.choices ?? {}), [BG_TOOL_KEY]: [e.target.value] }; })}
+                    >
+                      {options.map((o) => (
+                        <option key={o.id} value={o.id}>{o.label}</option>
+                      ))}
+                    </select>
+                    {TOOL_INFO[current] && <small>{TOOL_INFO[current].short} · {TOOL_INFO[current].ability}</small>}
+                  </div>
+                </div>
+              );
+            })()}
             {langs.total > 0 && (
               <div className="fv-detail-sub fv-langs">
                 <div className="fv-facts-title">

@@ -498,6 +498,10 @@ button:active:not(:disabled) {
   /* botão secundário (fantasma) — par do fv-btn-gold */
   .fv-btn-ghost {
     cursor: pointer;
+    /* tamanho base (camada de componentes: quem define o seu, ganha) */
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
     font-family: var(--font-body);
     font-weight: 600;
     color: var(--muted);
@@ -623,6 +627,69 @@ button:active:not(:disabled) {
     font-size: 13px;
     line-height: 1.5;
     color: var(--ink);
+  }
+  /* dica de item (BG3): dano/CA em destaque, propriedades e rodapé com peso e preço */
+  .fv-lore-headline {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 0 7px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .fv-lore-headline b {
+    font: 800 22px / 1 var(--font-num);
+    color: var(--ink);
+  }
+  .fv-lore-headline span {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  /* descrição imersiva do item: o que ele é, antes das regras */
+  .fv-lore-flavor {
+    margin: 9px 0 0;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink), var(--muted) 35%);
+    overflow-wrap: break-word;
+  }
+  .fv-lore-props {
+    margin: 9px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 3px;
+  }
+  .fv-lore-props li {
+    position: relative;
+    padding-left: 13px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .fv-lore-props li::before {
+    content: '◆';
+    position: absolute;
+    left: 0;
+    top: 1px;
+    font-size: 8px;
+    color: var(--gold);
+  }
+  .fv-lore-props + .fv-lore-body {
+    color: var(--muted);
+  }
+  .fv-lore-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+    font: 700 11.5px var(--font-num);
+    color: var(--muted);
   }
   .fv-lore-tags {
     display: flex;
@@ -1045,6 +1112,187 @@ button:active:not(:disabled) {
 .fv-topbar-menu-item:hover,
 .fv-topbar-menu-item:focus-visible {
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* ----- ferramentas da direita ----- */
+.fv-topbar-tools {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* ----- navegação global (PC): sempre no mesmo lugar, a tela atual marcada ----- */
+.fv-topnav {
+  display: none;
+  pointer-events: auto;
+  align-items: center;
+  gap: 2px;
+  margin: 0 auto 0 14px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+}
+@media (min-width: 1100px) {
+  .fv-topnav {
+    display: inline-flex;
+  }
+}
+.fv-topnav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12.5px var(--font-body);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.fv-topnav button:hover {
+  color: var(--ink);
+  background: var(--lift);
+}
+.fv-topnav button.is-on {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 86%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold), transparent 55%);
+}
+.fv-topnav button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+/* ----- menu "⋯" em grupos ----- */
+.fv-topbar-menu {
+  min-width: 268px;
+  max-height: calc(100dvh - var(--topbar-h) - 16px);
+  overflow-y: auto;
+}
+.fv-topbar-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 12px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--line);
+}
+.fv-topbar-menu-user > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fv-topbar-menu-user b {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.fv-topbar-menu-user small {
+  overflow: hidden;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fv-topbar-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+}
+.fv-topbar-menu-group + .fv-topbar-menu-group {
+  border-top: 1px solid var(--line);
+}
+.fv-topbar-menu-title {
+  padding: 6px 12px 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-topbar-menu-item > svg {
+  color: var(--gold);
+}
+.fv-topbar-menu-item.is-danger,
+.fv-topbar-menu-item.is-danger > svg {
+  color: var(--danger);
+}
+.fv-topbar-menu-label {
+  flex: 1;
+  min-width: 0;
+}
+.fv-topbar-menu-item.is-current {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 92%);
+}
+.fv-topbar-menu-here {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-topbar-menu-switch {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  transition: background 0.2s;
+}
+.fv-topbar-menu-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: left 0.2s, background 0.2s;
+}
+.fv-topbar-menu-switch.is-on {
+  background: color-mix(in srgb, var(--gold), transparent 70%);
+  border-color: color-mix(in srgb, var(--gold), transparent 40%);
+}
+.fv-topbar-menu-switch.is-on::after {
+  left: 16px;
+  background: var(--gold);
+}
+
+/* atalho de "voltar" que só aparece enquanto a navegação global está escondida */
+@media (min-width: 1100px) {
+  .fv-below-nav {
+    display: none !important;
+  }
+}
+
+/* ----- salvamento: rótulo curto só onde cabe ----- */
+.fv-sync-calm {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .fv-sync-calm {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-topbar-menu-switch,
+  .fv-topbar-menu-switch::after,
+  .fv-topnav button {
+    transition: none;
+  }
 }
 
 /* ===== cabeçalho da ficha: blocos de defesa ===== */
@@ -2595,6 +2843,26 @@ body.fv-dragging .fv-screen-scroll {
   color: var(--ink);
 }
 
+/* lista empilhada (traços, características): nome em cima, o que faz embaixo */
+.fv-facts.is-stacked dl > div {
+  display: block;
+}
+.fv-facts.is-stacked dt {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fv-facts.is-stacked dd {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-facts + .fv-facts {
+  margin-top: 12px;
+}
+
 /* pílulas (sublinhagem, perícias garantidas, sementes de conceito) */
 .fv-pills {
   display: flex;
@@ -2687,6 +2955,53 @@ body.fv-dragging .fv-screen-scroll {
 .fv-points.is-over {
   border-color: var(--danger);
   color: var(--danger);
+}
+/* método dos atributos: o que ele faz + as rolagens de 4d6 (o menor dado riscado) */
+.fv-abil-hint {
+  flex: 1 1 220px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.fv-abil-rolls {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: -4px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.fv-abil-rolls li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--well);
+}
+.fv-abil-rolls b {
+  font: 700 18px/1 var(--font-num);
+  color: var(--gold);
+}
+.fv-abil-rolls span {
+  display: flex;
+  gap: 4px;
+  font: 11px var(--font-num);
+  color: var(--ink);
+}
+.fv-abil-rolls i {
+  font-style: normal;
+}
+.fv-abil-rolls s {
+  color: var(--muted);
+  opacity: 0.7;
+}
+@media (max-width: 560px) {
+  .fv-abil-rolls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 .fv-abil-list {
   display: grid;
@@ -2925,6 +3240,70 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-kit-attacks b {
   color: var(--acc);
+}
+.fv-kit-bag {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.fv-kit-bag p {
+  margin: 0 0 4px;
+}
+.fv-kit-bag b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.fv-gear-row:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.fv-gear-picks {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+.fv-kit-warn {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #e0a93e;
+}
+.fv-gear-wide {
+  grid-column: 1 / -1;
+}
+.fv-kit-load {
+  font-family: var(--font-num);
+}
+.fv-kit-gold {
+  margin-top: 4px;
+}
+.fv-kit-gold-n {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fv-kit-gold-n b {
+  font: 700 30px var(--font-display);
+  color: var(--gold);
+}
+.fv-kit-gold-n small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.fv-kit-gold-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.fv-gear-picks label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
 }
 .fv-kit-actions {
   margin-top: 12px;
@@ -3688,6 +4067,29 @@ body.fv-dragging .fv-screen-scroll {
 .fv-cast-pop button:hover { background: var(--lift); border-color: var(--line); }
 .fv-cast-pop button small { font-size: 11px; font-weight: 500; color: var(--muted); }
 .fv-cast-pop-empty { padding: 6px 9px; font-size: 12px; color: var(--muted); }
+
+/* ===== Cajados e varinhas: cargas compartilhadas ===== */
+.fv-charge-items { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.fv-charge-item { border: 1px solid color-mix(in srgb, var(--acc), transparent 62%); border-radius: var(--radius-md); background: var(--lift); padding: 10px 12px; }
+.fv-charge-item header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.fv-charge-item header b { font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.fv-charge-count { display: inline-flex; align-items: center; gap: 8px; font: 600 12px var(--font-num); color: var(--gold); }
+.fv-charge-pips { display: inline-flex; gap: 3px; flex-wrap: wrap; max-width: 140px; }
+.fv-charge-pips i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--gold), transparent 30%); }
+.fv-charge-pips i.is-on { background: var(--gold); box-shadow: 0 0 6px color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-charge-item ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.fv-charge-item li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+.fv-charge-item li:first-child { border-top: 0; }
+.fv-charge-item li.is-short .fv-charge-spell > span { color: var(--muted); }
+.fv-charge-spell { display: flex; flex-direction: column; cursor: help; min-width: 0; }
+.fv-charge-spell > span { font-size: 14px; color: var(--ink); }
+.fv-charge-spell small { font-size: 11px; color: var(--muted); }
+.fv-charge-foot { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+.fv-inv-charges { margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fv-inv-charges-n { font: 600 11.5px var(--font-num); color: var(--gold); }
+.fv-inv-charges button { cursor: pointer; min-width: 30px; min-height: 28px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 11px var(--font-num); }
+.fv-inv-charges button:disabled { opacity: 0.4; cursor: not-allowed; }
+.fv-inv-charges button:not(:disabled):hover { border-color: var(--gold); color: var(--gold); }
 .fv-spell-block-reason { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); white-space: normal; }
 .fv-spell-rule-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .fv-spell-rule-text { margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
@@ -4020,6 +4422,16 @@ body.fv-dragging .fv-screen-scroll {
 /* ===== Idiomas à escolha (passo Passado) ===== */
 .fv-langs .fv-facts-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .fv-langs-why { display: block; margin: 2px 0 8px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.fv-detail-due {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--acc);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
 .fv-langs .fv-pill:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ===== Proficiências com armas e armaduras (ficha) ===== */
@@ -4189,7 +4601,30 @@ body.fv-dragging .fv-screen-scroll {
   pointer-events: none;
   border-radius: inherit;
 }
-/* luz: ponto no cursor + faixa diagonal que acompanha + lampejo de entrada */
+/*
+ * Inclinação 3D (lib/cardTilt): a carta gira para o cursor e sobe um pouco;
+ * durante o movimento a transição é curta (segue o mouse), ao sair volta
+ * macia. Classe dobrada para ganhar das regras de cada carta.
+ */
+.fv-tilt.fv-tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0) scale(var(--tilt-scale, 1));
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, filter 0.45s ease;
+  will-change: transform;
+}
+.fv-tilt.fv-tilt.is-tilting {
+  --tilt-scale: 1.035;
+  transition: transform 0.12s ease-out, box-shadow 0.45s ease, filter 0.45s ease;
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.45));
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-tilt.fv-tilt,
+  .fv-tilt.fv-tilt.is-tilting {
+    transform: none;
+    filter: none;
+  }
+}
+
+/* luz: ponto no cursor + faixa diagonal que acompanha + raias de metal escovado + lampejo de entrada */
 .fv-metal::before {
   content: '';
   position: absolute;
@@ -4201,18 +4636,20 @@ body.fv-dragging .fv-screen-scroll {
   --fv-gy: var(--my, 35%);
   background:
     linear-gradient(118deg, transparent 42%, rgba(var(--m-light), 0.28) 46%, rgba(255, 255, 255, 0.62) 48%, rgba(var(--m-light), 0.28) 50%, rgba(var(--m-deep), 0.12) 52%, transparent 55%),
-    radial-gradient(circle at var(--fv-gx) var(--fv-gy), rgba(var(--m-light), 0.2), transparent 45%),
-    linear-gradient(118deg, transparent 36%, rgba(var(--m-light), 0.05) 42%, rgba(var(--m-light), 0.18) 47.5%, rgba(var(--m-deep), 0.08) 52%, transparent 59%);
-  background-size: 250% 250%, 100% 100%, 250% 250%;
+    radial-gradient(circle at var(--fv-gx) var(--fv-gy), rgba(255, 255, 255, 0.3), rgba(var(--m-light), 0.12) 22%, transparent 48%),
+    linear-gradient(118deg, transparent 34%, rgba(var(--m-light), 0.06) 41%, rgba(var(--m-light), 0.24) 47.5%, rgba(var(--m-deep), 0.1) 52%, transparent 60%),
+    repeating-linear-gradient(112deg, transparent 0 7%, rgba(var(--m-light), 0.08) 9%, rgba(var(--m-deep), 0.07) 11%, transparent 13% 19%);
+  background-size: 250% 250%, 100% 100%, 250% 250%, 220% 220%;
   background-repeat: no-repeat;
   background-position:
     var(--fv-glint) var(--fv-glint),
     center,
-    calc(80% - var(--fv-gx) * 0.67) calc(80% - var(--fv-gy) * 0.67);
+    calc(80% - var(--fv-gx) * 0.67) calc(80% - var(--fv-gy) * 0.67),
+    calc(var(--fv-gx) * 1.2) calc(var(--fv-gy) * 0.6);
   transition:
     opacity 0.5s ease,
-    --fv-gx 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    --fv-gy 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --fv-gx 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --fv-gy 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 /* moldura com brilho do metal (filete interno): discreto, acende no hover */
 .fv-metal::after {
@@ -4227,8 +4664,8 @@ body.fv-dragging .fv-screen-scroll {
   opacity: var(--m-hover);
   transition:
     opacity 0.25s ease,
-    --fv-gx 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    --fv-gy 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --fv-gx 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --fv-gy 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   animation: fv-metal-glint var(--m-glint) cubic-bezier(0.45, 0.05, 0.25, 1) both;
 }
 :hover > .fv-metal::after {
@@ -5216,6 +5653,102 @@ body.fv-dragging .fv-screen-scroll {
 /* Eclipse em notebooks baixos: a trilha já numera os capítulos */
 
 /* escolhas extras (sublinhagem, idiomas) sob a grade de opções */
+/* Origem: traços em chips com dica (PC); no celular a lista completa fica no painel */
+.fv-trait-chips {
+  display: none;
+  margin-top: 12px;
+}
+.fv-trait-chips .fv-pills {
+  margin-top: 6px;
+}
+.fv-trait-chips .fv-facts-title small {
+  margin-left: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+.fv-trait {
+  min-height: 28px;
+  padding: 3px 9px;
+  font-size: 12px;
+  cursor: help;
+  color: var(--ink);
+}
+.fv-trait::after {
+  content: 'i';
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  font: italic 700 9px/1 var(--font-display);
+  color: var(--muted);
+}
+@media (min-width: 900px) {
+  .fv-trait-chips {
+    display: block;
+  }
+  .fv-race-traits-panel {
+    display: none;
+  }
+}
+
+/* Passado: o tipo de ferramenta/instrumento/jogo do antecedente */
+/* o painel do antecedente tem altura sobrando: história e característica inteiras */
+.fv-bg-step .fv-detail-desc,
+.fv-bg-step .fv-detail-feature {
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+}
+.fv-bg-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 6px;
+}
+.fv-bg-tool-row select {
+  width: auto;
+  min-width: 220px;
+}
+.fv-bg-tool-row small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Caminho: as características do 1º nível em cartões sob a grade de classes */
+.fv-class-feats {
+  margin-top: 14px;
+}
+.fv-class-feats ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-class-feats li {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  border-left: 3px solid color-mix(in srgb, var(--opt-color, var(--gold)), transparent 25%);
+  background: color-mix(in srgb, var(--panel), transparent 25%);
+}
+.fv-class-feats b {
+  font: 700 13.5px/1.25 var(--font-display);
+  color: var(--ink);
+}
+.fv-class-feats p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
 .fv-choice-extras > .fv-detail-sub:first-child {
   margin-top: 12px;
 }
@@ -5441,6 +5974,38 @@ body.fv-dragging .fv-screen-scroll {
 .fv-menu-rsvp.is-ask {
   color: var(--acc);
 }
+/* linha de baixo: ajustes e ajuda, sem competir com jogar */
+.fv-menu-sub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.fv-menu-sub button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel), transparent 25%);
+  backdrop-filter: blur(8px);
+  color: var(--ink);
+  font: 600 13px var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.fv-menu-sub button svg {
+  color: var(--gold);
+}
+.fv-menu-sub button:hover,
+.fv-menu-sub button:focus-visible {
+  outline: 0;
+  border-color: color-mix(in srgb, var(--gold), transparent 30%);
+  background: var(--panel);
+}
 .fv-menu-foot {
   display: flex;
   flex-wrap: wrap;
@@ -5512,12 +6077,131 @@ body.fv-dragging .fv-screen-scroll {
    Configurações
    ============================================================ */
 .fv-settings {
-  max-width: 920px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: calc(var(--topbar-h) + 8px) var(--page-x) 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.fv-settings-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+}
+/* índice das seções: barra fixa no celular, coluna fixa no PC — a seção na tela fica marcada */
+.fv-settings-index {
+  position: sticky;
+  top: calc(var(--topbar-h) - 6px);
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  margin: 0 calc(var(--page-x) * -1);
+  padding: 8px var(--page-x);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: color-mix(in srgb, var(--bg), transparent 12%);
+  backdrop-filter: blur(10px);
+}
+.fv-settings-index button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font: 600 12.5px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.fv-settings-index button:hover {
+  color: var(--ink);
+}
+.fv-settings-index button.is-on {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold), transparent 45%);
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+}
+@media (min-width: 980px) {
+  .fv-settings {
+    grid-template-columns: 210px minmax(0, 1fr);
+    column-gap: 28px;
+    align-items: start;
+  }
+  .fv-settings-head {
+    grid-column: 1 / -1;
+  }
+  .fv-settings-index {
+    top: calc(var(--topbar-h) + 12px);
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--panel), transparent 10%);
+  }
+  .fv-settings-index button {
+    justify-content: flex-start;
+    border-color: transparent;
+    background: transparent;
+    border-radius: 10px;
+  }
+  .fv-settings-index button.is-on {
+    border-color: color-mix(in srgb, var(--gold), transparent 55%);
+  }
+}
+/* conta: quem está aqui e para onde vão as fichas */
+.fv-set-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.fv-set-avatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font: 700 20px var(--font-display);
+  color: var(--on-gold, #1a1206);
+  background: linear-gradient(180deg, var(--goldB), var(--gold));
+  box-shadow: 0 0 18px var(--bloom);
+}
+.fv-set-account-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-set-account-text b {
+  font: 700 17px var(--font-display);
+  color: var(--ink);
+}
+.fv-set-account-text small {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .fv-set-account {
+    flex-wrap: wrap;
+  }
+  .fv-set-account-text {
+    flex-basis: calc(100% - 62px);
+  }
+  .fv-set-account .fv-set-btn {
+    margin-left: 62px;
+  }
 }
 .fv-settings-head p {
   margin: 4px 0 0;
@@ -5529,17 +6213,8 @@ body.fv-dragging .fv-screen-scroll {
   font: 700 clamp(28px, 4vw, 40px) / 1.05 var(--font-display);
   color: var(--ink);
 }
-.fv-settings-jump {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 14px;
-}
-.fv-settings-jump .fv-pill {
-  gap: 6px;
-}
 .fv-set-card {
-  scroll-margin-top: calc(var(--topbar-h) + 8px);
+  scroll-margin-top: calc(var(--topbar-h) + 64px);
   padding: clamp(16px, 2.4vw, 24px);
 }
 .fv-set-card h2 {
@@ -6800,3 +7475,796 @@ select optgroup {
   color: var(--muted);
 }
 
+
+/* ===== Criação: etapa Magias ===== */
+.fv-spells-step .fv-choice-opt-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fv-spells-step .fv-choice-picker + .fv-choice-picker {
+  margin-top: 22px;
+}
+.fv-spells-free {
+  margin: 0 0 4px;
+}
+@media (max-width: 700px) {
+  .fv-spells-step .fv-choice-opt-desc {
+    -webkit-line-clamp: 2;
+  }
+}
+
+/* ===== Criação: capítulo Dons (uma decisão por vez) ===== */
+.fv-gift-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  margin: 2px 0 10px;
+  scrollbar-width: thin;
+}
+.fv-gift-stop {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 260px;
+  min-height: 52px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, var(--panel), var(--panel2));
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.fv-gift-stop:hover {
+  border-color: var(--line-strong);
+}
+.fv-gift-stop.is-current {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 22px color-mix(in srgb, var(--gold), transparent 76%);
+}
+.fv-gift-stop:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.fv-gift-mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font: 700 12px var(--font-num);
+  color: var(--muted);
+}
+.fv-gift-stop.is-current:not(.is-done) .fv-gift-mark {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+.fv-gift-stop.is-done .fv-gift-mark {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: var(--on-gold, #140d04);
+}
+.fv-gift-stop-text {
+  display: grid;
+  min-width: 0;
+}
+.fv-gift-stop-text b {
+  font: 700 13px / 1.25 var(--font-display);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-gift-stop-text small {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-gift-stop.is-done small {
+  color: color-mix(in srgb, var(--gold), var(--ink) 35%);
+}
+.fv-gift-brief {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.fv-gift-count {
+  flex: none;
+  font: 700 10.5px var(--font-num);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.fv-gift-brief p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-option-visual {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  margin-bottom: 4px;
+  color: var(--opt-color);
+}
+.fv-gift-art {
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+.fv-detail-icon.has-visual .fv-gift-art {
+  width: 58px !important;
+  height: 58px !important;
+}
+.fv-gifts .fv-detail-tag {
+  color: var(--gold);
+  font-weight: 700;
+}
+.fv-gifts .fv-facts dl > div {
+  grid-template-columns: minmax(104px, 32%) minmax(0, 1fr);
+}
+.fv-gifts .fv-facts dt {
+  color: var(--ink);
+  font-weight: 600;
+}
+.fv-gifts .fv-facts dd {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.fv-gift-cta {
+  margin-top: 14px;
+}
+.fv-gift-cta button {
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 13.5px;
+}
+@media (max-width: 700px) {
+  .fv-gift-brief {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+.fv-gifts .fv-option-name {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+.fv-gifts .fv-option {
+  min-height: 92px;
+}
+/* telas baixas: cartão deitado — a arte ocupa o lugar do ícone */
+@media (min-width: 1180px) and (max-height: 860px) {
+  .fv-option-visual {
+    grid-row: span 2;
+    width: 30px;
+    min-height: 0;
+    margin: 0;
+  }
+  .fv-option-visual .fv-gift-art {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .fv-gift-stop {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+}
+/* celular: o detalhe da opção sobe numa gaveta, com o botão de escolher */
+.fv-gift-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(6, 4, 14, 0.58);
+  backdrop-filter: blur(2px);
+  animation: fv-gift-fade 0.18s ease-out;
+}
+.fv-gift-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-height: 84vh;
+  overflow-y: auto;
+  padding: 8px 10px calc(12px + env(safe-area-inset-bottom));
+  animation: fv-gift-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-gift-sheet-panel .fv-detail {
+  border-radius: 22px 22px 16px 16px;
+}
+.fv-gift-sheet .fv-detail-head {
+  padding-right: 40px;
+}
+.fv-gift-sheet-close {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+  font-size: 14px;
+}
+@keyframes fv-gift-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fv-gift-up {
+  from { transform: translateY(48px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-gift-sheet,
+  .fv-gift-sheet-panel {
+    animation: none;
+  }
+}
+/* notebook baixo: cartão deitado também nos Dons */
+@media (min-width: 1180px) and (max-height: 860px) {
+  .fv-gifts .fv-option {
+    min-height: 0;
+  }
+}
+/* nome de item com dica (BG3): sublinhado pontilhado discreto */
+.fv-item-tip {
+  border-bottom: 1px dotted color-mix(in srgb, var(--gold), transparent 45%);
+  cursor: help;
+}
+.fv-item-tip:hover {
+  color: var(--gold);
+}
+/* Dons: abas por grupo e a dica de uso */
+.fv-gift-groups {
+  margin: 0 0 12px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.fv-gift-groups small {
+  margin-left: 6px;
+  font: 700 10.5px var(--font-num);
+  opacity: 0.75;
+}
+.fv-gift-brief {
+  flex-wrap: wrap;
+}
+.fv-gift-howto {
+  flex-basis: 100%;
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--muted), transparent 20%);
+}
+/* painel dos Dons: a carta do item no lugar da caixinha do ícone */
+.fv-gifts .fv-detail-head > .fv-itemcard.is-sm {
+  width: 92px;
+}
+.fv-gifts .fv-gift-cta {
+  margin: 0 0 14px;
+}
+/* "Criar raça" deitado (notebook): a linha fica ao lado do "+" em vez de espremida embaixo */
+@media (min-width: 1180px) and (max-height: 860px) {
+  .fv-hb-new .fv-option-line {
+    grid-column: 2;
+  }
+}
+
+/* Ficha: perícias + características de classe à esquerda, proficiências à direita */
+.fv-ficha-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'skills' 'profs' 'feats';
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-ficha-skills { grid-area: skills; }
+.fv-ficha-profs { grid-area: profs; }
+.fv-ficha-feats { grid-area: feats; min-width: 0; }
+@media (min-width: 760px) {
+  .fv-ficha-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'skills profs' 'feats profs';
+    grid-template-rows: auto 1fr;
+  }
+}
+
+/* Ataques: quantos ataques por ação (Ataque Extra) e crítico ampliado */
+.fv-extra-attack {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-extra-attack b {
+  color: var(--gold);
+}
+.fv-crit-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger), transparent 50%);
+  font: 600 10px/1.5 var(--font-body);
+  letter-spacing: 0.02em;
+  color: var(--danger);
+  vertical-align: middle;
+  text-transform: none;
+}
+
+.fv-ammo-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font: 600 10px/1.5 var(--font-num);
+  color: var(--muted);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.fv-ammo-badge.is-low { color: var(--gold); border-color: color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-ammo-badge.is-empty { color: var(--danger); border-color: color-mix(in srgb, var(--danger), transparent 50%); }
+.fv-ammo-recover {
+  margin-left: 4px;
+  padding: 1px 8px;
+  min-height: 0;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--gold), transparent 40%);
+  background: transparent;
+  font: 600 10px/1.5 var(--font-body);
+  color: var(--gold);
+  vertical-align: middle;
+  cursor: pointer;
+}
+.fv-ammo-recover:hover, .fv-ammo-recover:focus-visible { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+/* "−1 flecha · sobram 19" no acertou? */
+.fv-ammo-shot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; font-size: 11px; color: var(--muted); }
+.fv-ammo-shot b { color: var(--danger); font-weight: 700; }
+.fv-cast-pop .fv-ammo-shot button { flex-direction: row; padding: 2px 8px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+
+/* Descanso: gastar Dados de Vida sem sair da aba */
+.fv-rest-dice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-rest-dice b {
+  display: block;
+  font: 700 15px var(--font-display);
+  color: var(--ink);
+}
+.fv-rest-dice span {
+  font: 12px var(--font-num);
+  color: var(--muted);
+}
+
+/* Heróis: ações do cartão (abrir em destaque, excluir afastado) */
+.fv-hero-card-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px 16px;
+}
+.fv-hero-open {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  background: var(--panel);
+  color: var(--gold);
+  font: 700 12.5px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.fv-hero-open:hover {
+  background: color-mix(in srgb, var(--gold) 14%, var(--panel));
+}
+.fv-hero-open span {
+  font-size: 16px;
+  line-height: 1;
+}
+.fv-hero-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  /* fundo sólido: o cartão fica sobre a arte do herói */
+  background: var(--panel);
+  color: var(--muted);
+  font: 600 11.5px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.fv-hero-act:hover {
+  color: var(--ink);
+}
+.fv-hero-act.is-danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.fv-hero-card-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--line);
+}
+@media (max-width: 420px) {
+  .fv-hero-act span {
+    display: none;
+  }
+  .fv-hero-act {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Entrar: campo de senha com "Mostrar" */
+.fv-pass {
+  position: relative;
+  display: block;
+}
+.fv-pass .fv-input {
+  width: 100%;
+  padding-right: 84px;
+}
+.fv-pass-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+.fv-pass-toggle:hover,
+.fv-pass-toggle[aria-pressed='true'] {
+  color: var(--gold);
+}
+
+/* Magias: o que a ficha faz (automático / rola / mesa) */
+.fv-auto {
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.fv-auto-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fv-auto-head span {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-auto-head b {
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.fv-auto.is-full .fv-auto-head b { color: var(--ok, #3fc56b); }
+.fv-auto.is-partial .fv-auto-head b { color: var(--gold); }
+.fv-auto.is-manual .fv-auto-head b { color: var(--muted); }
+.fv-auto ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.fv-auto li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.fv-auto li i {
+  font-style: normal;
+  text-align: center;
+  font-weight: 700;
+}
+.fv-auto li.is-auto i { color: var(--ok, #3fc56b); }
+.fv-auto li.is-roll i { color: var(--gold); }
+.fv-auto li.is-table i { color: var(--muted); }
+.fv-auto li.is-table { color: var(--muted); }
+
+/* marca discreta de regra da mesa (fora do PHB 2014) */
+.fv-house-mark {
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px dashed currentColor;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* Regras desta ficha: oficial × opcional × mesa × homebrew × ajuste */
+.fv-rules {
+  padding: clamp(14px, 1.8vw, 20px);
+  scroll-margin-top: calc(var(--topbar-h, 64px) + 20px);
+}
+.fv-rules-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fv-rules-head h3 {
+  margin: 0;
+}
+.fv-rules-base {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong, var(--line));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.fv-rules-intro {
+  margin: 6px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-rules-group {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.fv-rules-group h4 {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-rule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+}
+.fv-rule-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-rule-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fv-rule-name b {
+  font-size: 14px;
+  color: var(--ink);
+}
+.fv-rule-text small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-rule-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.fv-rule-tag.is-oficial,
+.fv-rule-tag.is-opcional { color: var(--muted); }
+.fv-rule-tag.is-livro { color: var(--acc); }
+.fv-rule-tag.is-mesa { color: var(--gold); border-style: dashed; }
+.fv-rule-tag.is-homebrew { color: #c77dff; border-style: dashed; }
+.fv-rule-tag.is-ajuste { color: #ff9f5a; border-style: dashed; }
+html[data-mode='light'] .fv-rule-tag.is-homebrew { color: #7b2fbf; }
+html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
+.fv-rules-notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+.fv-rules-notes li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--ink);
+}
+.fv-rules-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-rules-link,
+.fv-sh-rules {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+  font: 700 11px var(--font-body);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fv-rules-link.is-off,
+.fv-sh-rules {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  color: var(--gold);
+}
+.fv-rules-link:hover,
+.fv-sh-rules:hover {
+  background: color-mix(in srgb, var(--gold) 12%, var(--sunk));
+}
+.fv-sh-rules {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10.5px;
+}
+
+/* Abas: as de jogo primeiro; as ocasionais depois do separador, com menos peso */
+.fv-sheet-tabs-sep {
+  align-self: center;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--line);
+}
+/* seletor mais forte que o dos temas: as ocasionais ficam menores em todos */
+.fv-sheet-tabs .fv-sheet-tab.is-occasional {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 12px;
+}
+.fv-sheet-tabs .fv-sheet-tab.is-occasional:not(.is-on) {
+  opacity: 0.8;
+}
+
+/* "Mais" do celular: uma aba por linha, com o que ela faz */
+.fv-nav-more {
+  grid-template-columns: minmax(0, 1fr);
+}
+.fv-nav-more-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 1px;
+  text-align: left;
+}
+.fv-nav-more-item > svg {
+  grid-row: span 2;
+}
+.fv-nav-more-hint {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* Jogar: atalhos para a aba que aprofunda o assunto */
+.fv-mesa-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fv-mesa-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.fv-goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 11.5px var(--font-body);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.fv-goto:hover,
+.fv-goto:focus-visible {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+}
+.fv-goto span {
+  font-size: 15px;
+  line-height: 1;
+}
+
+
+/* turno no celular: iniciativa inteira, depois Ação · Bônus · Reação, depois movimento e novo turno */
+@media (max-width: 760px) {
+  .fv-mesa-turn {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fv-mesa-turn > :first-child {
+    grid-column: 1 / -1;
+  }
+  .fv-mesa-turn .fv-mesa-move {
+    grid-column: span 2;
+  }
+}
+
+/* efeito ativo com dano depois de conjurar: botão de rolar */
+.fv-spell-effect .fv-spell-effect-roll {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+  color: var(--gold);
+  font: 700 11.5px var(--font-num);
+}
+.fv-spell-effect .fv-spell-effect-roll:hover {
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}

@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import type { StepProps } from './stepTypes';
-import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
+import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, FactList, themedIcon } from './creatorUi';
 import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { passiveLore } from '@/lib/lore';
 import { CustomOriginPanel } from './CustomOriginPanel';
 import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
-import { raceFacts } from '@/engine/creationSummary';
+import { raceFacts, raceTraitFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
-import { SPELLS, spellVisible } from '@/data/spells';
-
-const wizardCantrips = () => SPELLS.filter((sp) => spellVisible(sp) && sp.level === 0 && !!sp.classes?.includes('wizard')).sort((a, b) => a.name.localeCompare(b.name));
 import type { AbilityKey, Race } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { ABILITY_LABELS } from '@/data/skills';
@@ -25,6 +24,7 @@ export function StepRace({ char, update }: StepProps) {
 
   const pickRace = (id: string) =>
     update((c) => {
+      if (c.raceId !== id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
       c.raceId = id;
       c.customRace = null;
       c.customOrigin = null;
@@ -34,6 +34,7 @@ export function StepRace({ char, update }: StepProps) {
 
   const pickHomebrew = (r: Race) =>
     update((c) => {
+      if (c.raceId !== r.id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
       c.raceId = r.id;
       c.customRace = r;
       c.customOrigin = null;
@@ -42,7 +43,7 @@ export function StepRace({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={0} />
+      <StepHeader step={0} char={char} />
       <div className="fv-choice">
         <div>
           <OptionGrid label="Linhagens">
@@ -129,24 +130,6 @@ export function StepRace({ char, update }: StepProps) {
                 </div>
               </div>
             )}
-            {char.subraceId === 'high-elf' && (() => {
-              const picked = char.choices?.['race.highElfCantrip']?.[0] ?? '';
-              return (
-                <div className="fv-detail-sub">
-                  <div className="fv-facts-title">Truque de mago (Alto Elfo)</div>
-                  <select
-                    className="fv-input"
-                    value={picked}
-                    aria-label="Truque do Alto Elfo"
-                    onChange={(e) => update((c) => { c.choices = { ...(c.choices ?? {}), 'race.highElfCantrip': e.target.value ? [e.target.value] : [] }; })}
-                  >
-                    <option value="">Escolha um truque…</option>
-                    {wizardCantrips().map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
-                  </select>
-                  <small className="fv-langs-why">Conjura com Inteligência, à vontade.</small>
-                </div>
-              );
-            })()}
             {tasha && <CustomOriginPanel char={char} update={update} />}
           </div>
         </div>
@@ -156,10 +139,28 @@ export function StepRace({ char, update }: StepProps) {
           color={race.jewel}
           eyebrow={race.homebrew ? 'Linhagem · homebrew' : 'Linhagem'}
           title={race.label}
-          tag={race.homebrew ? [race.size, race.author && `por ${race.author}`].filter(Boolean).join(' · ') || undefined : undefined}
+          tag={race.homebrew ? [race.size, race.author && `por ${race.author}`].filter(Boolean).join(' · ') || undefined : subs.find((x) => x.id === char.subraceId)?.label}
           desc={race.desc || 'Sem descrição.'}
           facts={raceFacts(char)}
         >
+          {/* traços: no PC, chips com o que fazem ao passar o mouse; no celular, a lista completa */}
+          {!race.homebrew && (
+            <div className="fv-trait-chips">
+              <div className="fv-facts-title">Traços <small>passe o mouse para ver o que cada um faz</small></div>
+              <div className="fv-pills">
+                {raceTraitFacts(char).map((f) => (
+                  <LoreTooltip key={f.label} info={passiveLore(f.label, subs.find((x) => x.id === char.subraceId)?.label ?? race.label, f.value, ['Traço racial'])}>
+                    <span className="fv-pill fv-trait">{f.label}</span>
+                  </LoreTooltip>
+                ))}
+              </div>
+            </div>
+          )}
+          {!race.homebrew && (
+            <div className="fv-race-traits-panel">
+              <FactList facts={raceTraitFacts(char)} title="Traços" stacked />
+            </div>
+          )}
           {race.homebrew && (
             <>
               {race.source && <div className="fv-hb-source">Base oficial: {race.source}</div>}

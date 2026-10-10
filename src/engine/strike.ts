@@ -33,7 +33,8 @@ export function defenseFor(
   magical = false,
 ): DefenseMode {
   if (!type) return 'normal';
-  const t = norm(type).split(/\s+/)[0];
+  // 'gelo' era o nome antigo do dano de frio (fichas salvas)
+  const t = norm(type).split(/\s+/)[0].replace(/^gelo$/, 'frio');
   // cláusulas separadas por ";" — com ataque mágico, ignora as "de ataques não mágicos"
   const has = (text?: string) =>
     !!text &&

@@ -1,3 +1,4 @@
+import { raceTraitInfo } from '@/data/raceTraits';
 import { useUiStore } from '@/store/uiStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { useMemo, useState } from 'react';
@@ -32,7 +33,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
   const packs = useUiStore((st) => st.packs);
   const author = useAuthStore((s) => (s.user && !s.user.guest ? s.user.name : undefined));
   const inUse = useCharacterStore((s) => (race ? s.characters.filter((c) => c.raceId === race.id).length : 0));
-  const [r, setR] = useState<Race>(() => (race ? { ...race, traitDetails: race.traitDetails ?? race.traits.map((t) => ({ name: t, desc: '' })) } : blankRace()));
+  const [r, setR] = useState<Race>(() => (race ? { ...race, traitDetails: race.traitDetails ?? race.traits.map((t) => ({ name: t, desc: raceTraitInfo(t) ?? '' })) } : blankRace()));
   const [lang, setLang] = useState('');
   const warnings = useMemo(() => validateRace(finalizeRace(r)), [r]);
   const blocking = !r.label.trim();
@@ -64,7 +65,7 @@ export function HomebrewRaceEditor({ race, onClose, onSaved }: { race: Race | nu
         label: `${base.label} (variante)`,
         icon: `race-${base.id}`,
         homebrew: true,
-        traitDetails: base.traits.map((name) => ({ name, desc: '' })),
+        traitDetails: base.traits.map((name) => ({ name, desc: raceTraitInfo(name) ?? '' })),
         size: base.id === 'halfling' || base.id === 'gnome' ? 'Pequeno' : 'Médio',
       });
   };

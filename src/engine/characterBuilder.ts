@@ -1,3 +1,4 @@
+import { backgroundTools } from './originChoices';
 import type { AbilityKey, AbilityScores } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import type { Character, CombatState, InventoryItem, ToolProf } from '@/types/character';
@@ -11,7 +12,53 @@ import { defaultPreparedForClass, getSpell } from '@/data/spells';
 import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
 import { resourceMaxMap } from './classResources';
-import { buildLoadout, defaultSelection } from './loadout';
+import { buildLoadout, defaultSelection, kitGold } from './loadout';
+import { itemToInventory } from './inventory';
+import { grantChoiceEffects } from './choiceEffects';
+import { getItem } from '@/data/items';
+
+/** Equipamento dos antecedentes que existe no catálogo: [id, quantidade]. */
+/** Equipamento do antecedente (texto do livro) → item do catálogo e quantidade. */
+export const BG_ITEMS: Record<string, [string, number]> = {
+  'Símbolo sagrado': ['g-holy-amulet', 1],
+  'Bastões de incenso (5)': ['g-incense', 5],
+  'Vestes cerimoniais': ['g-vestments', 1],
+  'Roupas comuns': ['g-clothes-common', 1],
+  'Roupas finas': ['g-clothes-fine', 1],
+  'Roupas de viagem': ['g-clothes-traveler', 1],
+  'Traje de apresentação': ['g-clothes-costume', 1],
+  'Kit de disfarce': ['g-disguise', 1],
+  'Pé de cabra': ['g-crowbar', 1],
+  'Pá': ['g-shovel', 1],
+  'Panela de ferro': ['g-pot', 1],
+  'Estojo de pergaminhos com anotações': ['g-casemap', 1],
+  'Cobertor de inverno': ['g-blanket', 1],
+  'Kit de herbalismo': ['g-herbalism', 1],
+  'Anel de sinete': ['g-signet', 1],
+  'Cajado': ['w-quarterstaff', 1],
+  'Armadilha de caça': ['g-huntingtrap', 1],
+  'Vidro de tinta preta': ['g-ink', 1],
+  'Pena': ['g-inkpen', 1],
+  'Faca pequena': ['g-knife', 1],
+  'Cinturão de amarras (belaying pin)': ['w-club', 1],
+  'Corda de seda (15 m)': ['g-ropesilk', 1],
+  'Jogo de dados de osso': ['g-game-dice', 1],
+};
+const ARTISAN_GEAR: Record<string, string> = {
+  'smiths-tools': 'g-tool-smith', 'alchemists-supplies': 'g-tool-alchemist', 'brewers-supplies': 'g-tool-brewer', 'carpenters-tools': 'g-tool-carpenter',
+  'cooks-utensils': 'g-tool-cook', 'leatherworkers-tools': 'g-tool-leatherworker', 'masons-tools': 'g-tool-mason', 'painters-supplies': 'g-tool-painter',
+  'jewelers-tools': 'g-tool-jeweler', 'tinkers-tools': 'g-tool-tinker', 'weavers-tools': 'g-tool-weaver', 'woodcarvers-tools': 'g-tool-woodcarver',
+  'cartographers-tools': 'g-tool-cartographer', 'cobblers-tools': 'g-tool-cobbler', 'glassblowers-tools': 'g-tool-glassblower', 'potters-tools': 'g-tool-potter',
+  'calligraphers-supplies': 'g-tool-calligrapher',
+};
+const INSTRUMENT_GEAR: Record<string, string> = {
+  lute: 'g-inst-lute', flute: 'g-inst-flute', drum: 'g-inst-drum', lyre: 'g-inst-lyre', horn: 'g-inst-horn', viol: 'g-inst-viol',
+  bagpipes: 'g-inst-bagpipes', 'pan-flute': 'g-inst-panflute', shawm: 'g-inst-shawm', dulcimer: 'g-inst-dulcimer',
+};
+
+const GAME_GEAR: Record<string, string> = {
+  'dice-set': 'g-game-dice', 'card-set': 'g-game-cards', dragonchess: 'g-game-dragonchess', 'three-dragon-ante': 'g-game-threedragon',
+};
 
 /** Valores do Array Padrão de D&D 5e. */
 export const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
@@ -113,7 +160,7 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
     toolProfs: [],
     extraLanguages: [],
     hpCurrent: 0,
-    coins: { pp: 0, gp: 25, ep: 0, sp: 0, cp: 0 },
+    coins: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
     inventory: [],
     equipped: { armor: null, shield: null, mainHand: null, offHand: null, ranged: null },
     knownSpells: [],
@@ -136,13 +183,46 @@ export function finalizeCharacter(draft: Character): Character {
   const bg = getBackground(draft.backgroundId);
 
   // monta a mochila inicial (não sobrescreve se o usuário já adicionou itens)
-  const loadout = draft.inventory.length > 0 ? null : buildLoadout(defaultSelection(draft.classId));
+  const loadout = draft.inventory.length > 0 ? null : buildLoadout(draft.classId, draft.startingKit ?? defaultSelection(draft.classId, draft), draft);
   const inventory = loadout ? [...loadout.inventory] : [...draft.inventory];
   const equipped = loadout ? loadout.equipped : draft.equipped;
 
-  // equipamento do antecedente (PHB 2014) — itens simples de mochila
+  // proficiências de perícia: antecedente + escolhas (garante ao menos as do background)
+  const skillProfs = Array.from(new Set([...draft.skillProfs, ...bg.skills]));
+
+  // ferramentas: classe (ex.: Ladino → Ferramentas de Ladrão) + antecedente
+  const toolProfs: ToolProf[] = [...(draft.toolProfs ?? [])];
+  const addTool = (id: string, source: string) => {
+    if (toolProfs.some((t) => t.id === id)) return;
+    toolProfs.push({ id, label: toolLabel(id), source });
+  };
+  for (const id of cls.tools ?? []) addTool(id, cls.label);
+  for (const id of backgroundTools(draft)) addTool(id, bg.label);
+  // Gnomo das Rochas (Engenhoqueiro): Ferramentas de Funileiro
+  if (draft.subraceId === 'rock-gnome') addTool('tinkers-tools', 'Gnomo das Rochas');
+
+  // equipamento do antecedente (PHB 2014): o que existe no catálogo vira item de verdade
+  // (peso, preço, arte); lembranças e cartas ficam como item simples
   let bagSeq = 0;
+  const bgTool = (group: Record<string, string>) => backgroundTools(draft).find((id) => group[id]);
   for (const name of bg.equipment ?? []) {
+    const mapped = BG_ITEMS[name];
+    const id =
+      name === 'Ferramentas de artesão' ? ARTISAN_GEAR[bgTool(ARTISAN_GEAR) ?? ''] :
+      name === 'Instrumento musical' ? INSTRUMENT_GEAR[bgTool(INSTRUMENT_GEAR) ?? 'lute'] :
+      // Soldado: o jogo escolhido no antecedente no lugar dos dados de osso
+      mapped?.[0]?.startsWith('g-game-') && GAME_GEAR[bgTool(GAME_GEAR) ?? ''] ? GAME_GEAR[bgTool(GAME_GEAR)!] :
+      mapped?.[0];
+    const catalog = id ? getItem(id) : undefined;
+    if (catalog) {
+      // o clérigo já trouxe símbolo sagrado no kit: não duplica
+      if (id!.startsWith('g-holy-') && inventory.some((i) => i.itemId?.startsWith('g-holy-'))) continue;
+      // item igual já veio no pacote (incenso, roupas…): empilha em vez de repetir
+      const same = !catalog.weapon ? inventory.find((i) => i.itemId === id) : undefined;
+      if (same) same.quantity += mapped?.[1] ?? 1;
+      else inventory.push(itemToInventory(catalog, mapped?.[1] ?? 1));
+      continue;
+    }
     if (inventory.some((i) => i.name === name)) continue;
     bagSeq += 1;
     const item: InventoryItem = {
@@ -159,34 +239,27 @@ export function finalizeCharacter(draft: Character): Character {
     inventory.push(item);
   }
 
-  // proficiências de perícia: antecedente + escolhas (garante ao menos as do background)
-  const skillProfs = Array.from(new Set([...draft.skillProfs, ...bg.skills]));
-
-  // ferramentas: classe (ex.: Ladino → Ferramentas de Ladrão) + antecedente
-  const toolProfs: ToolProf[] = [...(draft.toolProfs ?? [])];
-  const addTool = (id: string, source: string) => {
-    if (toolProfs.some((t) => t.id === id)) return;
-    toolProfs.push({ id, label: toolLabel(id), source });
-  };
-  for (const id of cls.tools ?? []) addTool(id, cls.label);
-  for (const id of bg.tools ?? []) addTool(id, bg.label);
-  // Gnomo das Rochas (Engenhoqueiro): Ferramentas de Funileiro
-  if (draft.subraceId === 'rock-gnome') addTool('tinkers-tools', 'Gnomo das Rochas');
-
   // espaços de magia e recursos conforme classe/nível
   const spellSlots = cls.spellcasting ? buildSpellSlots(draft.classId, draft.level) : {};
   const resources = buildResources(draft.classId, draft.level);
   const maxCircle = Math.max(0, ...Object.keys(spellSlots).map(Number));
+  // magias já escolhidas na criação (truque do Acólito da Natureza…) não se repetem na sugestão
+  const pickedIds = new Set(Object.values(draft.choices ?? {}).flat());
+  const nCantrips = cantripsKnown(draft.classId, draft.level);
   const preparedSpells =
     maxCircle > 0 && draft.preparedSpells.length === 0
-      ? defaultPreparedForClass(
-          draft.classId,
-          maxCircle,
-          cantripsKnown(draft.classId, draft.level),
-          // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
-          Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
-        )
-      : draft.preparedSpells;
+      ? (() => {
+          const ids = defaultPreparedForClass(
+            draft.classId,
+            maxCircle,
+            nCantrips + pickedIds.size,
+            // conjuradores que preparam: sugestão modesta (o jogador ajusta na aba Magias)
+            Math.min(4, spellsKnownOrPrepared(draft.classId, draft.level, 1).count),
+          ).filter((id) => !pickedIds.has(id));
+          const isCantrip = (id: string) => (getSpell(id)?.level ?? 0) === 0;
+          return [...ids.filter(isCantrip).slice(0, nCantrips), ...ids.filter((id) => !isCantrip(id))];
+        })()
+      : [...draft.preparedSpells];
   // Mago: grimório inicial com 6 magias de 1º círculo (as preparadas saem dele)
   const knownSpells =
     draft.classId === 'wizard' && maxCircle > 0 && (draft.knownSpells ?? []).length === 0
@@ -205,7 +278,8 @@ export function finalizeCharacter(draft: Character): Character {
     equipped,
     skillProfs,
     toolProfs,
-    coins: bg.startingGold ? { ...draft.coins, gp: Math.max(draft.coins.gp, bg.startingGold) } : draft.coins,
+    // ouro: bolsa do antecedente (PHB) + riqueza inicial, se trocou o kit da classe por ouro
+    coins: { ...draft.coins, gp: draft.coins.gp + (bg.startingGold ?? 0) + (kitGold(draft.startingKit) ?? 0) },
     preparedSpells,
     knownSpells,
     combat: {
@@ -217,6 +291,8 @@ export function finalizeCharacter(draft: Character): Character {
     draft: false,
     updatedAt: Date.now(),
   };
+  // escolhas do 1º nível feitas na criação: ferramentas viram proficiência, truques entram na lista
+  grantChoiceEffects(finalized, Object.fromEntries(Object.entries(finalized.choices ?? {}).filter(([k]) => !k.startsWith('feat.'))));
   // recursos calculados com o personagem pronto (nível, atributos, subclasse)
   finalized.combat.resources = resourceMaxMap(finalized);
 

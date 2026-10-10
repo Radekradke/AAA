@@ -11,6 +11,10 @@ import { hasMark, rollWeaponDamage, smiteDice, weaponExtras } from '@/engine/dam
 import type { ExtrasChoice, MarkId } from '@/engine/damageExtras';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { calcLore } from '@/lib/lore';
+import { attacksPerAction } from '@/engine/extraAttack';
+import { ammoStatus } from '@/engine/ammo';
+import type { AmmoKind } from '@/engine/ammo';
+import { toast } from '@/store/feedbackStore';
 
 interface Props {
   char: Character;
@@ -21,12 +25,15 @@ interface Props {
   dmgSub: ReactNode;
 }
 
-type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean } | { kind: 'damage' } | null;
+/** Disparo que gastou munição (o "acertou?" mostra e deixa desfazer). */
+type Shot = { kind: AmmoKind; left: number };
+type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot?: Shot } | { kind: 'damage' } | null;
 
 /**
  * Botões ACERTO / DANO da arma. O ataque abre o "acertou?"; o dano junta
  * tudo que soma no acerto — crítico, versátil, Ataque Furtivo (1×/turno),
  * Destruição Divina (gasta espaço), Bruxaria, Marca do Caçador e Fúria.
+ * Arco, besta, funda e zarabatana gastam 1 peça de munição por disparo.
  */
 export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub }: Props) {
   const { attack } = useDiceRoller();
@@ -44,9 +51,25 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     setStage({ kind: 'damage' });
   };
 
-  const onAttack = () => {
+  const roll = (shot?: Shot) => {
     const r = attack(atk);
-    setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail });
+    setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
+  };
+
+  const onAttack = () => {
+    const res = store.fireAmmo(char.id, atk.uid);
+    if (!res) return roll();
+    if (res.ok) return roll({ kind: res.kind, left: res.left });
+    // sem munição à mão: avisa, e o jogador decide (o mestre pode ter dado flechas fora da ficha)
+    toast(`Sem ${res.kind.many} ${res.reason === 'stored' ? 'à mão — estão no Baú' : 'na Mochila'}.`, {
+      tone: 'danger',
+      action: { label: 'Atirar assim', run: () => roll() },
+    });
+  };
+
+  const undoShot = (shot: Shot) => {
+    store.refundAmmo(char.id, shot.kind);
+    setStage((st) => (st?.kind === 'attack' ? { ...st, shot: undefined } : st));
   };
 
   const rollIt = (c: ExtrasChoice) => {
@@ -98,6 +121,14 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
               {stage.fail && <em>1 natural · erra</em>}
             </span>
           </span>
+          {stage.shot && (
+            <span className="fv-ammo-shot">
+              <span>
+                −1 {stage.shot.kind.one} · {stage.shot.left === 0 ? <b>era a última!</b> : `sobram ${stage.shot.left}`}
+              </span>
+              <button type="button" onClick={() => undoShot(stage.shot!)}>Desfazer</button>
+            </span>
+          )}
           {stage.fail ? (
             <button type="button" className="fv-cast-hit-go" onClick={() => setStage(null)}>Errou — fechar</button>
           ) : (
@@ -167,4 +198,57 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       )}
     </span>
   );
+}
+
+/** "Ação Atacar: 2 ataques" (Ataque Extra) — sem isso o jogador ataca uma vez só. */
+export function ExtraAttackNote({ char }: { char: Character }) {
+  const { count, source } = attacksPerAction(char);
+  if (count < 2) return null;
+  return (
+    <p className="fv-extra-attack">
+      <b>Ação Atacar: {count} ataques</b> · {source}
+    </p>
+  );
+}
+
+/**
+ * Munição da arma de disparo ao lado do nome: quantas peças sobram e, depois
+ * da luta, "Recolher" devolve metade do que foi disparado (PHB 2014).
+ */
+export function AmmoBadge({ char, atk }: { char: Character; atk: DerivedAttack }) {
+  const recover = useCharacterStore((s) => s.recoverAmmo);
+  const st = ammoStatus(char, atk.uid);
+  if (!st) return null;
+  const back = Math.floor(st.spent / 2);
+  const label = st.count === 1 ? `1 ${st.kind.one}` : `${st.count} ${st.kind.many}`;
+  const onRecover = () => {
+    const n = recover(char.id, atk.uid);
+    if (n) toast(`${n} ${n === 1 ? st.kind.one : st.kind.many} recolhida${n === 1 ? '' : 's'} depois da luta.`, { tone: 'ok' });
+  };
+  return (
+    <>
+      <span
+        className={'fv-ammo-badge' + (st.count === 0 ? ' is-empty' : st.count <= 5 ? ' is-low' : '')}
+        title={st.stored ? `Mais ${st.stored} no Baú (passe para a Mochila para usar)` : 'Cada disparo gasta uma'}
+      >
+        {st.count === 0 ? `sem ${st.kind.many}` : label}
+      </span>
+      {back > 0 && (
+        <button
+          type="button"
+          className="fv-ammo-recover"
+          onClick={onRecover}
+          title={`Depois da luta, um minuto de busca recupera metade do que foi disparado (${st.spent})`}
+        >
+          Recolher +{back}
+        </button>
+      )}
+    </>
+  );
+}
+
+/** Crítico ampliado (Campeão: 19–20; Crítico Superior: 18–20). */
+export function CritBadge({ atk }: { atk: DerivedAttack }) {
+  if (atk.critMin >= 20) return null;
+  return <span className="fv-crit-badge" title="Acerto crítico com este resultado ou mais no d20">crítico {atk.critMin}–20</span>;
 }

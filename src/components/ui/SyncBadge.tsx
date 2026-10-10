@@ -24,10 +24,10 @@ export function SyncBadge() {
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
     if (cloud === 'syncing') return { dot: t.acc, text: 'Sincronizando…', pulse: true };
-    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia', calm: true };
+    if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia', short: 'Na nuvem', calm: true };
     if (cloud === 'pending') return { dot: t.acc, text: 'Aguardando nuvem' };
     // nuvem desativada (sem Supabase ou convidado): só o estado local
-    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: 'Salvo neste aparelho', calm: true };
+    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: 'Salvo neste aparelho', short: 'Salvo', calm: true };
   })();
 
   return (
@@ -66,8 +66,8 @@ export function SyncBadge() {
             animation: view.pulse ? 'glowPulse 1.1s ease-in-out infinite' : 'none',
           }}
         />
-        {/* tudo certo → só o ponto (texto no title/aria-label); atenção → texto visível no desktop */}
-        {!('calm' in view && view.calm) && <span className="fv-hide-mobile">{view.text}</span>}
+        {/* atenção → texto visível no desktop; tudo certo → rótulo curto só em telas largas (no resto, o ponto e o title) */}
+        {'calm' in view && view.calm ? <span className="fv-sync-calm">{view.short}</span> : <span className="fv-hide-mobile">{view.text}</span>}
       </button>
 
       {open && (

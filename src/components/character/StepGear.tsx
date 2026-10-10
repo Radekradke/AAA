@@ -1,142 +1,236 @@
 import { useMemo, useState } from 'react';
 import type { StepProps } from './stepTypes';
+import { STEP_GEAR } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle } from './creatorUi';
-import { WEAPONS } from '@/data/weapons';
-import { ARMORS } from '@/data/armors';
 import { getItem } from '@/data/items';
-import { applySelection, defaultSelection, gearOptionsForClass, selectionFromChar } from '@/engine/loadout';
-import type { GearSelection } from '@/engine/loadout';
+import { getBackground } from '@/data/backgrounds';
+import {
+  applySelection, defaultPicks, defaultSelection, domainPending, expandKit, GOLD_KEY, kitForClass, kitGold, kitItems,
+  optionAllowed, PACK_CONTENTS, selectionFromChar, wealthOf,
+} from '@/engine/loadout';
+import type { KitChoice, KitSelection } from '@/engine/loadout';
 import { getClass } from '@/data/classes';
 import { deriveCharacter } from '@/engine/dndRules';
 import { damageExpr } from '@/engine/combat';
-import { modStr } from '@/engine/dice';
+import { modStr, roll } from '@/engine/dice';
+import { isWeaponProficient, proficienciesOf } from '@/engine/proficiencies';
 import { Icon } from '@/components/ui/Icon';
+import { ItemTip, itemInfo, joinNodes } from '@/components/inventory/ItemTip';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { BG_ITEMS } from '@/engine/characterBuilder';
+
+const nameOf = (id: string) => getItem(id)?.name ?? id;
+const kg = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg`;
 
 /**
- * Capítulo VI — Equipamento. O kit recomendado da classe já vem escolhido
- * num cartão só (com CA e ataques calculados); personalizar é opcional e
- * fica recolhido em listas compactas.
+ * Capítulo VI — Equipamento. O kit inicial do Livro do Jogador já vem
+ * escolhido (com CA e ataques calculados); personalizar mostra as opções
+ * "(a) ou (b)" da classe, do jeito que estão no livro. Também dá para trocar
+ * o kit pelo ouro inicial da classe (regra do livro) e comprar depois.
  */
 export function StepGear({ char, update }: StepProps) {
   const [custom, setCustom] = useState(false);
   const cls = getClass(char.classId);
-  const options = gearOptionsForClass(char.classId);
+  const bg = getBackground(char.backgroundId);
+  const kit = kitForClass(char.classId);
   const sel = selectionFromChar(char);
-  const rec = defaultSelection(char.classId);
-  const isRecommended = sel.armorId === rec.armorId && sel.weaponId === rec.weaponId && sel.rangedId === rec.rangedId && sel.shield === rec.shield;
+  const rec = defaultSelection(char.classId, char);
+  const gold = kitGold(sel);
+  const wealth = wealthOf(char.classId);
+  const isRecommended = JSON.stringify(sel) === JSON.stringify(rec);
   const derived = useMemo(() => deriveCharacter(char), [char]);
+  const profs = useMemo(() => proficienciesOf(char), [char]);
 
-  const melee = WEAPONS.filter((w) => w.weapon?.range === 'melee' && options.weapons.includes(w.id));
-  const ranged = WEAPONS.filter((w) => w.weapon?.range === 'ranged' && options.ranged.includes(w.id));
-  const armors = ARMORS.filter((a) => a.category === 'armor' && options.armors.includes(a.id));
+  const apply = (next: KitSelection) => update((c) => applySelection(c, next));
+  const pickOption = (choice: KitChoice, optionId: string) => {
+    const opt = choice.options.find((o) => o.id === optionId)!;
+    const prev = sel[choice.id];
+    const picks = opt.pick ? (prev?.option === optionId && prev.picks?.length ? prev.picks : defaultPicks(opt.pick)) : undefined;
+    apply({ ...sel, [choice.id]: { option: optionId, picks } });
+  };
+  const setPick = (choice: KitChoice, index: number, id: string) => {
+    const cur = sel[choice.id];
+    const opt = choice.options.find((o) => o.id === cur?.option);
+    const picks = [...(cur?.picks?.length ? cur.picks : opt?.pick ? defaultPicks(opt.pick) : [])];
+    picks[index] = id;
+    apply({ ...sel, [choice.id]: { option: cur.option, picks } });
+  };
+  const setGold = (amount: number | null) => {
+    if (amount === null) {
+      const { [GOLD_KEY]: _drop, ...rest } = sel;
+      void _drop;
+      return apply(Object.keys(rest).length ? rest : rec);
+    }
+    apply({ ...sel, [GOLD_KEY]: { option: 'gold', picks: [String(amount)] } });
+  };
+  const rollGold = () => setGold(roll(4, { count: wealth.dice }).total * wealth.mult);
 
-  const apply = (patch: Partial<GearSelection>) =>
-    update((c) => applySelection(c, { ...sel, ...patch, shield: options.canUseShield ? (patch.shield ?? sel.shield) : false }));
+  // o que chega: itens soltos + pacotes (mostrados com o conteúdo)
+  const items = kitItems(char.classId, sel, char);
+  const packs = items.filter(([id]) => PACK_CONTENTS[id]);
+  const eq = (uid: string | null) => (uid ? char.inventory.find((i) => i.uid === uid) : undefined);
+  const equippedUids = Object.values(char.equipped).filter(Boolean) as string[];
+  // "também leva": o que não está nas mãos/no corpo (a segunda espada curta aparece aqui)
+  const equippedCount = (id: string) => equippedUids.filter((u) => char.inventory.find((i) => i.uid === u)?.itemId === id).length;
+  const loose = expandKit(items.filter(([id]) => !PACK_CONTENTS[id]))
+    .map(([id, n]) => [id, n - (getItem(id)?.weapon || getItem(id)?.armor || getItem(id)?.category === 'shield' ? equippedCount(id) : 0)] as [string, number])
+    .filter(([, n]) => n > 0);
 
-  const kit = [
-    { icon: 'equipped' as const, label: 'Proteção', value: sel.armorId ? getItem(sel.armorId)?.name ?? '—' : 'Roupas de viajante' },
-    ...(options.canUseShield ? [{ icon: 'crest' as const, label: 'Escudo', value: sel.shield ? 'Escudo de Aço' : 'Sem escudo' }] : []),
-    { icon: 'sword' as const, label: 'Arma', value: sel.weaponId ? getItem(sel.weaponId)?.name ?? '—' : '—' },
-    { icon: 'class-ranger' as const, label: 'Distância', value: sel.rangedId ? getItem(sel.rangedId)?.name ?? '—' : 'Nenhuma' },
+  const armor = eq(char.equipped.armor);
+  const strReq = armor ? getItem(armor.itemId)?.armor?.strReq : undefined;
+  const strShort = strReq && derived.abilities.str.total < strReq && char.raceId !== 'dwarf';
+  // cada item com a dica do BG3 ao passar o mouse
+  const tip = (uid: string | null) => {
+    const it = eq(uid);
+    return it ? <ItemTip id={it.itemId} label={it.name} /> : null;
+  };
+  const hands = [char.equipped.mainHand, char.equipped.offHand].filter(Boolean).map((u) => tip(u));
+  const summary = [
+    { icon: 'equipped' as const, label: 'Proteção', value: armor ? tip(char.equipped.armor) : 'Sem armadura' },
+    ...(char.equipped.shield ? [{ icon: 'crest' as const, label: 'Escudo', value: tip(char.equipped.shield) }] : []),
+    { icon: 'sword' as const, label: char.equipped.offHand ? 'Armas' : 'Arma', value: hands.length ? joinNodes(hands, ' + ') : '—' },
+    { icon: 'class-ranger' as const, label: 'Distância', value: char.equipped.ranged ? tip(char.equipped.ranged) : 'Nenhuma' },
   ];
+  const domainNote = domainPending(char) && kit.choices.some((c) => c.options.some((o) => o.requires));
 
   return (
     <div className="fv-step">
-      <StepHeader step={5} subtitle={options.note || `O arsenal inicial do seu ${cls.label}.`} />
+      <StepHeader step={STEP_GEAR} char={char} subtitle={gold !== null ? 'Ouro no lugar do kit: compre o equipamento depois, no inventário.' : kit.note || `O arsenal inicial do seu ${cls.label}.`} />
 
       <section className="fv-kit">
         <div className="fv-kit-head">
           <div>
-            <div className="fv-detail-eyebrow">{isRecommended ? 'Kit recomendado' : 'Kit personalizado'}</div>
-            <h3>Arsenal do {cls.label}</h3>
+            <div className="fv-detail-eyebrow">{gold !== null ? 'Ouro inicial (regra do livro)' : isRecommended ? 'Kit do Livro do Jogador' : 'Kit personalizado'}</div>
+            <h3>{gold !== null ? `Bolsa do ${cls.label}` : `Arsenal do ${cls.label}`}</h3>
           </div>
           <div className="fv-kit-ac" title="Classe de Armadura com este kit">
             <b>{derived.ac}</b>
             <span>CA</span>
           </div>
         </div>
-        <dl className="fv-kit-list">
-          {kit.map((k) => (
-            <div key={k.label}>
-              <dt><Icon name={k.icon} size={16} /> {k.label}</dt>
-              <dd>{k.value}</dd>
+
+        {gold !== null ? (
+          <div className="fv-kit-gold">
+            <p className="fv-kit-gold-n"><b>{gold.toLocaleString('pt-BR')} po</b> <small>{wealth.formula} · média {wealth.average} po</small></p>
+            <div className="fv-kit-gold-actions">
+              <button type="button" className="fv-link-btn" onClick={rollGold}>Rolar {wealth.formula.replace(' po', '')}</button>
+              <button type="button" className="fv-link-btn" onClick={() => setGold(wealth.average)}>Usar a média</button>
+              <button type="button" className="fv-link-btn is-muted" onClick={() => setGold(null)}>Voltar ao kit</button>
             </div>
-          ))}
-        </dl>
-        {derived.attacks.length > 0 && (
-          <div className="fv-kit-attacks">
-            {derived.attacks.map((a) => (
-              <span key={a.uid}>
-                {a.name} <b>{modStr(a.attackBonus)}</b> · {damageExpr(a)}
-              </span>
-            ))}
           </div>
+        ) : (
+          <>
+            <dl className="fv-kit-list">
+              {summary.map((k) => (
+                <div key={k.label}>
+                  <dt><Icon name={k.icon} size={16} /> {k.label}</dt>
+                  <dd>{k.value}</dd>
+                </div>
+              ))}
+            </dl>
+            {derived.attacks.length > 0 && (
+              <div className="fv-kit-attacks">
+                {derived.attacks.map((a) => (
+                  <span key={a.uid}>
+                    {a.name} <b>{modStr(a.attackBonus)}</b> · {damageExpr(a)}
+                  </span>
+                ))}
+              </div>
+            )}
+            {strShort && <p className="fv-kit-warn">⚠ {armor!.name} pede FOR {strReq}: com FOR {derived.abilities.str.total} o deslocamento cai 3 m.</p>}
+          </>
         )}
+
+        <div className="fv-kit-bag" aria-label="Na mochila">
+          {gold === null && (
+            <>
+              <p><b>Também leva:</b> {loose.length ? joinNodes(loose.map(([id, n]) => <ItemTip key={id} id={id} qty={n} />)) : '—'}</p>
+              {packs.map(([id]) => (
+                <p key={id}>
+                  <b><ItemTip id={id} />:</b> {joinNodes(PACK_CONTENTS[id].map(([cid, n]) => <ItemTip key={cid} id={cid} qty={n} />))}
+                </p>
+              ))}
+            </>
+          )}
+          <p>
+            <b>Do antecedente ({bg.label}):</b>{' '}
+            {(bg.equipment ?? []).length ? joinNodes((bg.equipment ?? []).map((name) => (BG_ITEMS[name] ? <ItemTip key={name} id={BG_ITEMS[name][0]} label={name} /> : name))) : '—'}
+            {bg.startingGold ? ` · bolsa com ${bg.startingGold} po` : ''}
+          </p>
+          {gold === null && <p className="fv-kit-load">Carga: {kg(derived.carriedWeight)} de {kg(derived.carryCapacity)} (sem o antecedente)</p>}
+        </div>
+
         <div className="fv-kit-actions">
-          <button type="button" className="fv-link-btn" aria-expanded={custom} onClick={() => setCustom((v) => !v)}>
-            {custom ? 'Fechar personalização' : 'Personalizar kit'}
-          </button>
-          {!isRecommended && (
-            <button type="button" className="fv-link-btn is-muted" onClick={() => update((c) => applySelection(c, rec))}>
+          {gold === null && (
+            <button type="button" className="fv-link-btn" aria-expanded={custom} onClick={() => setCustom((v) => !v)}>
+              {custom ? 'Fechar personalização' : 'Personalizar kit'}
+            </button>
+          )}
+          {gold === null && (
+            <button type="button" className="fv-link-btn" onClick={() => setGold(wealth.average)} title="Regra do Livro do Jogador: começar com ouro e comprar o equipamento">
+              Trocar o kit por ouro ({wealth.formula})
+            </button>
+          )}
+          {!isRecommended && gold === null && (
+            <button type="button" className="fv-link-btn is-muted" onClick={() => apply(rec)}>
               Voltar ao recomendado
             </button>
           )}
         </div>
-        <p className="fv-step-note" style={{ margin: '10px 0 0' }}>Mochila básica (corda, tochas, rações e poção de cura) incluída. Tudo muda depois no inventário.</p>
+        <p className="fv-step-note" style={{ margin: '10px 0 0' }}>
+          {gold !== null ? 'O equipamento do antecedente vem do mesmo jeito. ' : 'Os pacotes chegam abertos na mochila. '}Tudo muda depois no inventário.
+        </p>
       </section>
 
-      {custom && (
+      {custom && gold === null && (
         <div className="fv-gear-custom">
-          <GearList
-            title="Proteção"
-            value={sel.armorId}
-            onPick={(id) => apply({ armorId: id })}
-            items={[{ id: null, name: 'Roupas de viajante', note: 'CA 10 + DES' }, ...armors.map((a) => ({ id: a.id, name: a.name, note: a.note }))]}
-          />
-          <GearList title="Arma principal" value={sel.weaponId} onPick={(id) => apply({ weaponId: id })} items={melee.map((w) => ({ id: w.id, name: w.name, note: w.note }))} />
-          <GearList
-            title="À distância"
-            value={sel.rangedId}
-            onPick={(id) => apply({ rangedId: id })}
-            items={[{ id: null, name: 'Nenhuma', note: '' }, ...ranged.map((w) => ({ id: w.id, name: w.name, note: w.note }))]}
-          />
-          {options.canUseShield && (
-            <div>
-              <SectionTitle>Escudo</SectionTitle>
-              <button type="button" role="switch" aria-checked={sel.shield} className={'fv-gear-row' + (sel.shield ? ' is-on' : '')} onClick={() => apply({ shield: !sel.shield })}>
-                <span className="fv-gear-dot is-square" aria-hidden />
-                <span className="fv-gear-name">Escudo de Aço</span>
-                <span className="fv-gear-note">+2 CA</span>
-              </button>
-            </div>
-          )}
+          {domainNote && <p className="fv-kit-warn fv-gear-wide">Você ainda não escolheu o domínio (no Caminho): martelo de guerra e cota de malha só valem se o domínio der a proficiência (Vida, Natureza, Tempestade, Guerra…).</p>}
+          {kit.choices.map((choice) => {
+            const cur = sel[choice.id];
+            const opt = choice.options.find((o) => o.id === cur?.option);
+            const picks = opt?.pick ? (cur?.picks?.length ? cur.picks : defaultPicks(opt.pick)) : [];
+            return (
+              <div key={choice.id}>
+                <SectionTitle>{choice.label}</SectionTitle>
+                <div role="radiogroup" aria-label={choice.label} className="fv-gear-list">
+                  {choice.options.map((o, i) => {
+                    const allowed = optionAllowed(char, o);
+                    const on = cur?.option === o.id;
+                    const row = (
+                      <button key={o.id} type="button" role="radio" aria-checked={on} disabled={!allowed} className={'fv-gear-row' + (on ? ' is-on' : '')} onClick={() => pickOption(choice, o.id)}>
+                        <span className="fv-gear-dot" aria-hidden />
+                        <span className="fv-gear-name">({String.fromCharCode(97 + i)}) {o.label}</span>
+                        <span className="fv-gear-note">{!allowed ? 'precisa da proficiência' : o.requires && domainPending(char) ? 'se o domínio permitir' : ''}</span>
+                      </button>
+                    );
+                    // opção de um item só (cota de malha, maça…): a dica do item ao passar o mouse
+                    const info = !o.pick && o.items?.length === 1 ? itemInfo(o.items[0][0]) : null;
+                    return info ? <LoreTooltip key={o.id} info={info}>{row}</LoreTooltip> : row;
+                  })}
+                </div>
+                {opt?.pick && (
+                  <div className="fv-gear-picks">
+                    {Array.from({ length: opt.pick.count ?? 1 }, (_, i) => (
+                      <label key={i}>
+                        <span>{opt.pick!.label}{(opt.pick!.count ?? 1) > 1 ? ` ${i + 1}` : ''}</span>
+                        <select className="fv-input" value={picks[i] ?? picks[0]} onChange={(e) => setPick(choice, i, e.target.value)}>
+                          {opt.pick!.from.map((id) => {
+                            const w = getItem(id)?.weapon;
+                            const noProf = w && !isWeaponProficient(profs, { itemId: id, name: nameOf(id) }, w.type, w.range);
+                            return (
+                              <option key={id} value={id}>{nameOf(id)}{noProf ? ' — sem proficiência' : ''}</option>
+                            );
+                          })}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
-    </div>
-  );
-}
-
-function GearList({ title, items, value, onPick }: {
-  title: string;
-  items: { id: string | null; name: string; note: string }[];
-  value: string | null;
-  onPick: (id: string | null) => void;
-}) {
-  return (
-    <div>
-      <SectionTitle>{title}</SectionTitle>
-      <div role="radiogroup" aria-label={title} className="fv-gear-list">
-        {items.map((it) => {
-          const on = value === it.id;
-          return (
-            <button key={it.id ?? 'none'} type="button" role="radio" aria-checked={on} className={'fv-gear-row' + (on ? ' is-on' : '')} onClick={() => onPick(it.id)}>
-              <span className="fv-gear-dot" aria-hidden />
-              <span className="fv-gear-name">{it.name}</span>
-              <span className="fv-gear-note">{it.note}</span>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

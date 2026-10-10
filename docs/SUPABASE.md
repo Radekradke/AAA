@@ -116,6 +116,9 @@ create index sheets_user_idx on public.sheets (user_id, updated_at desc);
     na próxima sincronização.
 - O indicador no topo mostra: Salvando… · Salvo neste aparelho ·
   Sincronizando… · Nuvem em dia · Offline (pendências) · Conflito.
+- **Diário privado** (com `supabase/diario_privado.sql`, seção 12): o diário
+  NÃO vai no `snapshot` da ficha — vai para `sheet_diaries`, com a mesma
+  versão (`updated_at`) da ficha; a decisão acima vale para os dois juntos.
 
 ## 4. Futuro: Modo Mestre / Sala (fundação)
 
@@ -588,3 +591,36 @@ Rode `supabase/bestiario.sql` (depois do SQL base da seção 5). Pode rodar de n
 No app: a sala da mesa mostra ao mestre o **Bestiário da mesa** (cartas com arte, filtros por tipo e ND, ficha completa e **Personalizar**). A arte padrão vem de `src/assets/bestiario/<id>.webp` (guia com um prompt por criatura em `docs/ARTE-BESTIARIO.md`); sem arquivo, aparece o emblema do tipo. Sem esse SQL, as cartas e a arte funcionam, só o **Personalizar** pede para rodar o script.
 
 `npm test` roda `supabase/__tests__/bestiario.sql.test.ts` num Postgres em memória (PGlite) com as permissões de mestre, jogador e estranho.
+
+## 12. Diário privado — só o jogador lê
+
+Rode `supabase/diario_privado.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+**Por quê:** o mestre lê o `snapshot` das fichas compartilhadas com a mesa (`sheets_master_read_shared`) e o link de compartilhamento entrega o `snapshot` inteiro. Com o diário dentro dele, o mestre e quem tivesse o link conseguiam ler rabiscos, crônica, pistas e opiniões sobre NPCs — mesmo sem a tela mostrar.
+
+- **`sheet_diaries`** — uma linha por ficha: `data` (diário, crônica e notas) e `updated_at` (a mesma versão da ficha). RLS: **só o dono** lê e grava, e só em ficha dele. O mestre e o link continuam lendo a ficha, sem o diário.
+- **Bucket `diario`** (privado, até 2 MB por arquivo): imagens das pistas, na pasta `<id do jogador>/`. Cada um só lê e grava na própria pasta. No aparelho, as imagens ficam no IndexedDB (funcionam offline); a nuvem é a cópia para os outros aparelhos do jogador.
+- **Migração no próprio script:** copia o diário que já estava dentro das fichas para `sheet_diaries` (com a mesma versão) e limpa o `snapshot`, **sem mudar `updated_at`** — nenhum aparelho vê "mudança", não há conflito.
+
+No app (`services/diaryCloud.ts`, `services/offlineSyncService.ts`):
+- a ficha sobe sem o diário (`withoutDiary`) e, logo depois, o diário vai para `sheet_diaries` com a mesma versão;
+- ao baixar, o diário certo é o da linha privada da mesma versão; uma ficha antiga (diário ainda no `snapshot`, gravada por um app desatualizado) é limpa na próxima sincronização;
+- se o envio do diário falhar depois do da ficha, a próxima rodada vê "mesma versão dos dois lados" e reenvia — sem conflito;
+- um aparelho com o diário vazio nunca apaga o da nuvem: traz de volta;
+- **sem este SQL**, nada muda: o diário segue dentro da ficha (como antes) e as imagens das pistas ficam só no aparelho.
+
+`npm test` roda `supabase/__tests__/diario.sql.test.ts` num Postgres em memória (PGlite): migração, mestre sem acesso ao diário, estranho/anônimo sem acesso e pastas de imagem por jogador.
+
+## 13. Mesa ao vivo — PV do herói igual para mestre e jogador
+
+Rode `supabase/mesa_vida.sql` (depois de `multiplayer_session.sql`). Pode rodar de novo sem problema.
+
+**Por quê:** o PV que o mestre vê na linha do encontro só mudava quando **ele** aplicava o dano. Poção, descanso ou dano tomado na própria ficha deixavam o número dele velho — e o PV temporário nunca entrava na conta.
+
+- **`update_own_combatant(p_combatant, p_patch)`** — o **dono** do combatente (o jogador do herói) atualiza `hp_current`, `hp_max` e `conditions`. Nome, CA, ordem e visibilidade continuam só do mestre. PV fica entre 0 e o máximo. Avisa a mesa pelo encontro (mesmo caminho do `update_combatant`).
+
+No app (`store/sessionStore.ts`, `syncMyVitals`): quando a ficha do jogador muda durante um encontro, PV atual, PV máximo e condições vão para o próprio combatente (em ~0,7 s, uma vez por mudança). O dano do mestre continua chegando como evento e o PV temporário é descontado na ficha; o número que fica na linha é o da ficha. **Sem este SQL**, tudo segue como antes (o número do mestre só muda quando ele aplica) e o aviso de SQL faltando aponta este arquivo.
+
+**Ordens do mestre não se perdem mais** (não precisa de SQL): dano, cura, condição, XP, item, feito e cicatriz são buscados à parte das últimas 40 do registro, inclusive de sessões já encerradas — ao abrir a sala da mesa ou a mesa ao vivo, e a cada minuto durante a sessão. Cada ordem continua aplicada uma vez só (o id fica gravado na ficha).
+
+`npm test` roda `supabase/__tests__/mesavida.sql.test.ts` num Postgres em memória (PGlite): só o dono atualiza, campos do mestre ignorados, PV limitado.

@@ -1,6 +1,8 @@
+import { spellDamageLabel } from '@/engine/spellCast';
 import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import type { Spell } from '@/types/dnd';
+import { AUTOMATION_CHIP, spellAutomation } from '@/engine/spellAutomation';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
@@ -13,6 +15,7 @@ import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
+import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import { Icon } from '@/components/ui/Icon';
@@ -51,7 +54,10 @@ export function TabMagias({ char, derived }: TabProps) {
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
-  const itemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  const allItemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.combat.itemCharges, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  // cajados e varinhas (cargas) ficam num bloco próprio; o resto segue como antes
+  const chargeSpells = allItemSpells.filter((s) => s.charges);
+  const itemSpells = allItemSpells.filter((s) => !s.charges);
 
   // magias "do personagem": preparadas (todas as classes) + grimório do mago (nível ≥1)
   const prepared = char.preparedSpells;
@@ -122,7 +128,7 @@ export function TabMagias({ char, derived }: TabProps) {
     return [...map.entries()].sort((a, b) => a[0] - b[0]);
   }, [active]);
 
-  if (kind === 'none' && itemSpells.length === 0) {
+  if (kind === 'none' && allItemSpells.length === 0) {
     return (
       <div className="animate-riseIn">
         <Panel full>
@@ -225,17 +231,25 @@ export function TabMagias({ char, derived }: TabProps) {
         </Panel>
       )}
 
+      {/* Cajados e varinhas: cargas compartilhadas, custo por magia */}
+      {chargeSpells.length > 0 && (
+        <Panel full>
+          <SectionLabel>Cajados e varinhas</SectionLabel>
+          <ItemChargeSpells char={char} derived={derived} castMod={castMod} spells={chargeSpells} />
+        </Panel>
+      )}
+
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
-          <SectionLabel>Magias de Itens e Talentos</SectionLabel>
+          <SectionLabel>Magias de raça, itens e talentos</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
               <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                   <span style={{ cursor: 'help', display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `1×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
                   </span>
                 </LoreTooltip>
                 {is.recharge === 'atwill' ? (
@@ -255,7 +269,7 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias de itens só valem com o item equipado ou sintonizado. Talentos conjuram sem gastar espaço. Recarregam no descanso (curto/longo).</p>
+          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias da raça e de talentos conjuram sem gastar espaço; as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 
@@ -308,11 +322,12 @@ export function TabMagias({ char, derived }: TabProps) {
                               {sp.school}
                             </Mini>
                             {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
-                            {sp.damage && <Mini c="#FF6A3D">{sp.damage.dice} {sp.damage.type}</Mini>}
+                            {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
                             {sp.heal && <Mini c="#3FC56B">cura</Mini>}
                             {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
                             {sp.concentration && <Mini c="#C24DFF">conc.</Mini>}
                             {sp.ritual && <Mini c="#4FA37A">ritual</Mini>}
+                            <AutoMini sp={sp} />
                           </span>
                         </span>
                       </LoreTooltip>
@@ -380,6 +395,16 @@ function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
+    </span>
+  );
+}
+
+/** Quanto da magia a ficha resolve (detalhe completo na dica). */
+function AutoMini({ sp }: { sp: Spell }) {
+  const chip = AUTOMATION_CHIP[spellAutomation(sp).level];
+  return (
+    <span title={chip.title}>
+      <Mini c={chip.color}>{chip.text}</Mini>
     </span>
   );
 }

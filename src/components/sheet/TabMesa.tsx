@@ -1,8 +1,9 @@
+import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
-import { AttackActions } from './AttackActions';
+import { AmmoBadge, AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
@@ -25,7 +26,7 @@ import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { CompanionPanel } from './CompanionPanel';
-import { inspirationCount } from '@/engine/inspiration';
+import { inspirationCount, inspirationMax } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
 import { RollTimeline } from '@/components/dice/RollTimeline';
 import { RollAdvisor } from '@/components/dice/RollAdvisor';
@@ -38,10 +39,11 @@ import { ConditionIcon } from '@/components/ui/RuleIcon';
  * com ações de um toque (dano, cura, recursos, descansos, rolagens e
  * testes contra a morte). Mobile-first, cards grandes e escaneáveis.
  */
-export function TabMesa({ char, derived }: TabProps) {
+export function TabMesa({ char, derived, goTab }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const store = useCharacterStore();
+  const spendHitDie = useSpendHitDie(char, derived);
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check } = useDiceRoller();
   const resources = characterResources(char);
@@ -86,7 +88,7 @@ export function TabMesa({ char, derived }: TabProps) {
           <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span className="fv-mesa-sub"> · {derived.subclassLabel}</span> : null}</div>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
           <div className="fv-hp-insp">
-            <InspirationControl charId={char.id} points={inspirationCount(char)} onGain={() => bump(1.6)} />
+            <InspirationControl charId={char.id} points={inspirationCount(char)} max={inspirationMax(char)} onGain={() => bump(1.6)} />
           </div>
 
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
@@ -142,12 +144,8 @@ export function TabMesa({ char, derived }: TabProps) {
           <StatChip
             label="Dados de Vida"
             value={`${char.combat.hitDiceRemaining}/${derived.hitDiceMax}`}
-            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto para curar (dado + CON). Metade recupera no descanso longo.', ['Descanso'])}
-            onRoll={
-              char.combat.hitDiceRemaining > 0
-                ? () => { rollDice(derived.hitDie, { label: 'Dado de Vida', modifier: derived.abilities.con.mod }); store.spendHitDie(char.id); }
-                : undefined
-            }
+            info={passiveLore('Dados de Vida', `d${derived.hitDie}`, 'Gaste em descanso curto: rola o dado + CON e a vida sobe sozinha. Metade volta no descanso longo.', ['Descanso'])}
+            onRoll={spendHitDie}
           />
         </div>
 
@@ -235,21 +233,77 @@ export function TabMesa({ char, derived }: TabProps) {
               <ActiveEffects char={char} />
             </div>
           )}
-          <div className="fv-label fv-mesa-label">Ataques</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Ataques</div>
+            <GoTab to="combate" label="Combate" goTab={goTab} />
+          </div>
+          <ExtraAttackNote char={char} />
           {derived.attacks.length === 0 && (
             <EmptyState icon="sword" title="Sem arma equipada" hint="Equipe uma arma no Inventário para atacar daqui." />
           )}
           {derived.attacks.map((atk) => (
             <div key={atk.uid} className="fv-mesa-atk">
-              <div className="fv-mesa-atk-name">{atk.name}</div>
+              <div className="fv-mesa-atk-name">{atk.name} <CritBadge atk={atk} /> <AmmoBadge char={char} atk={atk} /></div>
               <AttackActions char={char} atk={atk} hitStyle={atkBtn(t.gold)} dmgStyle={atkBtn(t.danger)} subStyle={atkSub} dmgSub="DANO" />
             </div>
           ))}
         </Panel>
 
+        {/* Condições: seleção compacta + só as ativas à vista */}
+        <Panel>
+          <div className="fv-label fv-mesa-label">Condições</div>
+          <select
+            value={condPick}
+            aria-label="Adicionar condição"
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
+              setCondPick('');
+            }}
+            className="fv-input fv-mesa-select"
+          >
+            <option value="">Selecionar condição…</option>
+            {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
+              <option key={c.id} value={c.id}>{c.label} — {c.short}</option>
+            ))}
+          </select>
+          <div className="fv-mesa-conds">
+            {char.combat.conditions.map((c) => {
+              const def = getCondition(c);
+              return (
+                <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
+                  <div className="fv-mesa-cond">
+                    <span className="fv-mesa-cond-dot">
+                      <ConditionIcon id={c} size={18} />
+                    </span>
+                    <div className="fv-mesa-cond-body">
+                      <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
+                      {def && <div className="fv-mesa-cond-short">{def.short}</div>}
+                    </div>
+                    <button
+                      type="button"
+                      className="fv-mesa-cond-x"
+                      onClick={() => store.toggleCondition(char.id, c)}
+                      aria-label={`Remover ${c}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </LoreTooltip>
+              );
+            })}
+            {char.combat.conditions.length === 0 && (
+              <div className="fv-mesa-empty">Nenhuma condição ativa — como deve ser.</div>
+            )}
+          </div>
+        </Panel>
+
         {/* Salvaguardas + perícias-chave */}
         <Panel>
-          <div className="fv-label fv-mesa-label">Salvaguardas</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Salvaguardas</div>
+            <GoTab to="ficha" label="Ficha" goTab={goTab} />
+          </div>
           <div className="fv-mesa-saves">
             {derived.abilityList.map((a) => (
               <button
@@ -363,12 +417,18 @@ export function TabMesa({ char, derived }: TabProps) {
                 {prepared.length > 10 && <span className="fv-mesa-spell-more">+{prepared.length - 10} na aba Magias</span>}
               </div>
             )}
+            <div className="fv-mesa-foot">
+              <GoTab to="magias" label="Magias" goTab={goTab} />
+            </div>
           </Panel>
         )}
 
         {/* Recursos + descansos */}
         <Panel>
-          <div className="fv-label fv-mesa-label">Recursos &amp; Descanso</div>
+          <div className="fv-mesa-head">
+            <div className="fv-label">Recursos &amp; Descanso</div>
+            <GoTab to="descanso" label="Descanso" goTab={goTab} />
+          </div>
           {resources.length === 0 && <div className="fv-mesa-empty fv-mesa-empty-pad">Nenhum recurso de classe neste nível.</div>}
           {resources.map((res) => {
             const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
@@ -402,54 +462,6 @@ export function TabMesa({ char, derived }: TabProps) {
           </div>
         </Panel>
 
-        {/* Condições: seleção compacta + só as ativas à vista */}
-        <Panel>
-          <div className="fv-label fv-mesa-label">Condições</div>
-          <select
-            value={condPick}
-            aria-label="Adicionar condição"
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v && !char.combat.conditions.includes(v)) store.toggleCondition(char.id, v);
-              setCondPick('');
-            }}
-            className="fv-input fv-mesa-select"
-          >
-            <option value="">Selecionar condição…</option>
-            {CONDITIONS.filter((c) => !char.combat.conditions.includes(c.id)).map((c) => (
-              <option key={c.id} value={c.id}>{c.label} — {c.short}</option>
-            ))}
-          </select>
-          <div className="fv-mesa-conds">
-            {char.combat.conditions.map((c) => {
-              const def = getCondition(c);
-              return (
-                <LoreTooltip key={c} info={conditionLore(c)} anchorStyle={{ display: 'block' }}>
-                  <div className="fv-mesa-cond">
-                    <span className="fv-mesa-cond-dot">
-                      <ConditionIcon id={c} size={18} />
-                    </span>
-                    <div className="fv-mesa-cond-body">
-                      <div className="fv-mesa-cond-name">{def?.label ?? c}</div>
-                      {def && <div className="fv-mesa-cond-short">{def.short}</div>}
-                    </div>
-                    <button
-                      type="button"
-                      className="fv-mesa-cond-x"
-                      onClick={() => store.toggleCondition(char.id, c)}
-                      aria-label={`Remover ${c}`}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </LoreTooltip>
-              );
-            })}
-            {char.combat.conditions.length === 0 && (
-              <div className="fv-mesa-empty">Nenhuma condição ativa — como deve ser.</div>
-            )}
-          </div>
-        </Panel>
       </div>
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
@@ -547,3 +559,13 @@ const atkSub: CSSProperties = {
   fontWeight: 600,
   marginTop: 2,
 };
+
+/** Atalho do Jogar para a aba que aprofunda o assunto. */
+function GoTab({ to, label, goTab }: { to: string; label: string; goTab?: (id: string) => void }) {
+  if (!goTab) return null;
+  return (
+    <button type="button" className="fv-goto" onClick={() => goTab(to)} aria-label={`Abrir a aba ${label}`}>
+      {label} <span aria-hidden>›</span>
+    </button>
+  );
+}

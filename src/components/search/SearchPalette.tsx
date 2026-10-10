@@ -10,7 +10,7 @@ import type { SearchEntry, SearchKind } from '@/lib/globalSearch';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
-import { shortSubtitle } from '@/lib/summary';
+import { heroAvatar, shortSubtitle } from '@/lib/summary';
 import { SPELLS } from '@/data/spells';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
@@ -30,6 +30,7 @@ import { monsterLook } from '@/lib/monsterArt';
 import type { Item, Spell } from '@/types/dnd';
 import { itemArt } from '@/lib/itemArt';
 import { ItemArtCard } from '@/components/ui/LoreTooltip';
+import { ConditionIcon, SchoolIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import '@/styles/search.css';
 
 type Ref =
@@ -41,7 +42,9 @@ type Ref =
   | { t: 'feat'; v: (typeof FEATS)[number] }
   | { t: 'monster'; v: (typeof MONSTERS)[number] };
 
-type Entry = SearchEntry & { ref: Ref };
+/** Miniatura do resultado: foto (herói, item, criatura) ou o ícone da regra (escola da magia, condição). */
+type Thumb = { src?: string | null; round?: boolean; school?: string; cond?: string };
+type Entry = SearchEntry & { ref: Ref; thumb?: Thumb };
 
 const KIND_ICON: Record<SearchKind, IconName> = {
   tela: 'spark',
@@ -58,6 +61,14 @@ const KIND_ICON: Record<SearchKind, IconName> = {
 const RARITY: Record<Item['rarity'], string> = { comum: 'comum', incomum: 'incomum', raro: 'raro', 'muito-raro': 'muito raro', lendario: 'lendário' };
 const spellLevel = (s: Spell) => (s.level === 0 ? 'Truque' : `${s.level}º círculo`);
 const dmg = (i: Item) => (i.weapon ? `${i.weapon.damageDice}d${i.weapon.damageDie} ${i.weapon.damageType}` : '');
+
+function ResultThumb({ e }: { e: Entry }) {
+  const t = e.thumb;
+  if (t?.src) return <img className={'fv-search-thumb' + (t.round ? ' is-round' : '')} src={t.src} alt="" loading="lazy" decoding="async" />;
+  if (t?.school) return <span className="fv-search-thumb is-glyph" aria-hidden><SchoolIcon school={t.school} size={16} /></span>;
+  if (t?.cond) return <span className="fv-search-thumb is-glyph" aria-hidden><ConditionIcon id={t.cond} size={16} /></span>;
+  return <Icon name={KIND_ICON[e.kind]} size={15} />;
+}
 
 /**
  * Busca geral (Ctrl+K ou "/"): telas, abas da ficha aberta, seus heróis e
@@ -110,7 +121,6 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
       { id: 't-tables', kind: 'tela', title: 'Mesas', keywords: 'campanhas multiplayer convite codigo entrar', boost: 3, ref: { t: 'nav', to: '/mesas' } },
       { id: 't-config', kind: 'tela', title: 'Configurações', keywords: 'tema som musica dados 3d livros conta tutorial', boost: 3, ref: { t: 'nav', to: '/config' } },
       { id: 't-tutorial', kind: 'tela', title: 'Tutorial', keywords: 'ajuda como funciona', boost: 3, ref: { t: 'run', run: openTutorial } },
-      { id: 't-portraits', kind: 'tela', title: 'Oficina de retratos', keywords: 'arte imagem foto', boost: 2, ref: { t: 'nav', to: '/retratos' } },
       { id: 't-diag', kind: 'tela', title: 'Diagnóstico', keywords: 'nuvem sincronizar conexao', boost: 1, ref: { t: 'nav', to: '/diagnostico' } },
     ];
     if (sheetId) {
@@ -119,17 +129,17 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
     }
     for (const c of characters) {
       if (!user || c.ownerId !== user.id || c.draft) continue;
-      list.push({ id: `h-${c.id}`, kind: 'heroi', title: c.name || 'Sem nome', subtitle: shortSubtitle(c), boost: 5, ref: { t: 'nav', to: `/ficha/${c.id}` } });
+      list.push({ id: `h-${c.id}`, kind: 'heroi', title: c.name || 'Sem nome', subtitle: shortSubtitle(c), boost: 5, ref: { t: 'nav', to: `/ficha/${c.id}` }, thumb: { src: heroAvatar(c), round: true } });
     }
     for (const m of campaigns) list.push({ id: `m-${m.id}`, kind: 'mesa', title: m.name, subtitle: m.master ? 'Você é o mestre' : 'Você joga', boost: 5, ref: { t: 'nav', to: `/mesa/${m.id}` } });
-    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s } });
-    for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), keywords: i.group, ref: { t: 'item', v: i } });
-    for (const c of CONDITIONS) list.push({ id: `c-${c.id}`, kind: 'condicao', title: c.label, subtitle: c.short, boost: 1, ref: { t: 'cond', v: c } });
+    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s }, thumb: { school: s.school } });
+    for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), keywords: i.group, ref: { t: 'item', v: i }, thumb: { src: itemArt({ itemId: i.id }) } });
+    for (const c of CONDITIONS) list.push({ id: `c-${c.id}`, kind: 'condicao', title: c.label, subtitle: c.short, boost: 1, ref: { t: 'cond', v: c }, thumb: hasConditionIcon(c.id) ? { cond: c.id } : undefined });
     for (const f of FEATS) list.push({ id: `f-${f.id}`, kind: 'talento', title: f.label, subtitle: f.prereq ? `Pré-requisito: ${f.prereq}` : f.source, ref: { t: 'feat', v: f } });
     for (const m of MONSTERS) {
       const n = master ? 0 : bestHunt(myHeroes, m.id);
       const subtitle = master ? `ND ${m.cr} · ${m.type}` : n ? `ND ${m.cr} · ${m.type} · ${n} ${n === 1 ? 'abate' : 'abates'}` : 'Criatura ainda não caçada';
-      list.push({ id: `x-${m.id}`, kind: 'criatura', title: m.name, subtitle, keywords: m.en, ref: { t: 'monster', v: m } });
+      list.push({ id: `x-${m.id}`, kind: 'criatura', title: m.name, subtitle, keywords: m.en, ref: { t: 'monster', v: m }, thumb: { src: monsterLook(m).art } });
     }
     return list;
   }, [characters, user, campaigns, sheetId, openTutorial, master, myHeroes]);
@@ -205,7 +215,6 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                   {(g.items as Entry[]).map((e) => {
                     n++;
                     const i = n;
-                    const art = e.ref.t === 'item' ? itemArt({ itemId: e.ref.v.id }) : null;
                     return (
                       <div
                         key={e.id}
@@ -216,7 +225,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                         onMouseMove={() => setActive(i)}
                         onClick={() => choose(e)}
                       >
-                        {art ? <img className="fv-search-thumb" src={art} alt="" loading="lazy" decoding="async" /> : <Icon name={KIND_ICON[e.kind]} size={15} />}
+                        <ResultThumb e={e} />
                         <span className="fv-search-item-text">
                           <b>{e.title}</b>
                           {e.subtitle && <small>{e.subtitle}</small>}

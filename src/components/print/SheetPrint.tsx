@@ -1,3 +1,4 @@
+import { printableNotes } from '@/engine/diary';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import { modStr } from '@/engine/dice';
@@ -227,10 +228,10 @@ export function SheetPrint({ char }: { char: Character }) {
           </section>
         )}
 
-        {char.notes?.trim() && (
+        {printableNotes(char) && (
           <section className="fv-print-box">
             <h2>Notas</h2>
-            <p className="fv-print-notes">{char.notes}</p>
+            <p className="fv-print-notes">{printableNotes(char)}</p>
           </section>
         )}
       </div>

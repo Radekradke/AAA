@@ -1,0 +1,1513 @@
+/* =========================================================================
+   Diário de Campanha — Rabiscos (post-its), Crônica (páginas de sessão),
+   menções (@NPC / @herói / #lugar) e o botão "Anotar" de todas as abas.
+   ========================================================================= */
+
+.fv-diary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-diary-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fv-diary-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fv-diary-title h2 {
+  margin: 0;
+  font: 700 clamp(18px, 2.4vw, 24px) / 1 var(--font-display);
+  color: var(--ink);
+}
+.fv-diary-title small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-diary-search {
+  width: min(100%, 240px);
+  font-size: 13px;
+  padding: 9px 13px;
+}
+.fv-diary-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+}
+.fv-diary-tabs button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  font: 600 14px var(--font-display);
+  color: var(--muted);
+}
+.fv-diary-tabs button.is-on {
+  color: var(--ink);
+  border-bottom-color: var(--gold);
+}
+.fv-diary-tabs small {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--sunk);
+  font: 600 11px var(--font-num);
+  color: var(--muted);
+}
+.fv-diary-empty {
+  margin: 4px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.fv-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 600 12.5px var(--font-body);
+  color: var(--acc);
+}
+.fv-link-btn:hover {
+  text-decoration: underline;
+}
+.fv-link-btn.is-danger {
+  color: var(--danger);
+}
+
+/* ---------- menções ---------- */
+.fv-npc-mention.is-hero {
+  border-color: color-mix(in srgb, var(--acc), transparent 55%);
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+  color: var(--acc);
+}
+.fv-place-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--ink), transparent 65%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.fv-place-chip span {
+  color: var(--muted);
+}
+.fv-place-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--sunk);
+  color: var(--muted);
+}
+.fv-rich {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+}
+.fv-rich .fv-npc-mention,
+.fv-rich .fv-place-chip {
+  margin: 0 1px;
+  line-height: 1.35;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.fv-rich .fv-npc-mention {
+  padding: 1px 8px 1px 2px;
+}
+.fv-rich .fv-npc-avatar {
+  line-height: 1;
+}
+.fv-notes-new-bar .fv-btn-gold {
+  min-height: 38px;
+  padding: 0 20px;
+}
+.fv-mini-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold), transparent 88%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.fv-mini-tag.is-hero {
+  background: color-mix(in srgb, var(--acc), transparent 88%);
+  color: var(--acc);
+}
+.fv-mini-tag.is-place {
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+/* ---------- Rabiscos ---------- */
+.fv-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-notes-new {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.fv-notes-new textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-notes-new-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+}
+.fv-note-colors {
+  display: flex;
+  gap: 6px;
+}
+.fv-note-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: var(--note-c);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.fv-note-swatch.is-on {
+  border-color: var(--ink);
+}
+:is(.fv-note, .fv-note-swatch).is-gold { --note-c: #e2b44f; }
+:is(.fv-note, .fv-note-swatch).is-red { --note-c: #e2605a; }
+:is(.fv-note, .fv-note-swatch).is-green { --note-c: #5fbf7a; }
+:is(.fv-note, .fv-note-swatch).is-blue { --note-c: #5b9be6; }
+:is(.fv-note, .fv-note-swatch).is-violet { --note-c: #a77be8; }
+:is(.fv-note, .fv-note-swatch).is-plain { --note-c: var(--line-strong); }
+
+.fv-note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  padding: 12px 12px 8px;
+  border-radius: 4px 14px 14px 14px;
+  border: 1px solid color-mix(in srgb, var(--note-c), transparent 55%);
+  border-top: 4px solid var(--note-c);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--note-c), transparent 88%), transparent 70%),
+    var(--panel);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.fv-note.is-pinned::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8, transparent 40%), var(--note-c);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.fv-note.is-done {
+  opacity: 0.55;
+}
+.fv-note.is-done .fv-rich {
+  text-decoration: line-through;
+}
+.fv-note-body {
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: text;
+  font: 14px/1.55 var(--font-body);
+  color: var(--ink);
+}
+.fv-note textarea {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.fv-note-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+}
+.fv-note-foot small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-note-actions {
+  display: flex;
+  gap: 2px;
+}
+.fv-note-actions button {
+  min-width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-note-actions button:hover,
+.fv-note-actions button[aria-pressed='true'] {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+/* ---------- Crônica ---------- */
+.fv-chron {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+}
+.fv-chron-new,
+.fv-chron-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.fv-chron-new {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed color-mix(in srgb, var(--gold), transparent 40%);
+  background: color-mix(in srgb, var(--gold), transparent 94%);
+}
+.fv-chron-new b {
+  font: 700 16px var(--font-display);
+  color: var(--gold);
+}
+.fv-chron-new small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-chron-card {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--panel);
+  transition: border-color 0.2s, background 0.2s;
+}
+.fv-chron-card:hover {
+  background: var(--lift);
+}
+.fv-chron-card-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 50%);
+  font: 700 16px var(--font-num);
+  color: var(--gold);
+}
+.fv-chron-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.fv-chron-card-text b {
+  font: 700 16px var(--font-display);
+}
+.fv-chron-card-text small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-chron-card-ex {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-chron-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.fv-chron-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fv-chron-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fv-chron-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .fv-chron-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+  .fv-chron-side {
+    position: sticky;
+    top: 80px;
+  }
+}
+.fv-chron-main {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 31px, color-mix(in srgb, var(--line), transparent 40%) 31px 32px),
+    var(--panel);
+}
+.fv-chron-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.fv-chron-num,
+.fv-chron-date {
+  border: 0;
+  border-bottom: 1px dashed var(--line-strong);
+  background: none;
+  font: 700 12px var(--font-num);
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+.fv-chron-num {
+  width: 3.2em;
+}
+.fv-chron-date {
+  width: 9em;
+  text-transform: none;
+}
+.fv-chron-title {
+  width: 100%;
+  margin: 6px 0 14px;
+  border: 0;
+  background: none;
+  outline: none;
+  font: 700 clamp(22px, 3vw, 30px) / 1.15 var(--font-display);
+  color: var(--ink);
+}
+.fv-chron-title::placeholder {
+  color: color-mix(in srgb, var(--muted), transparent 30%);
+}
+.fv-chron-text {
+  min-height: 360px;
+  resize: vertical;
+  font-size: 15px;
+  line-height: 32px !important;
+  background: transparent;
+}
+.fv-chron-read {
+  font-size: 15.5px;
+  line-height: 32px;
+  color: var(--ink);
+}
+.fv-chron-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.fv-chron-side small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-chron-side-group > span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fv-chron-side-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ---------- Quadro da Guilda ---------- */
+.fv-board-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fv-board-pick {
+  align-self: stretch;
+  overflow-x: auto;
+}
+.fv-board-pick button {
+  flex: 1;
+  padding: 8px 10px;
+}
+.fv-board-pick small {
+  margin-left: 3px;
+  opacity: 0.75;
+}
+.fv-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.fv-board.is-single {
+  grid-template-columns: 1fr;
+}
+.fv-board-col {
+  --col-c: var(--line-strong);
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--col-c);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, color-mix(in srgb, var(--line), transparent 70%) 46px 47px),
+    var(--sunk);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.fv-board-col.is-rumor { --col-c: #5b9be6; }
+.fv-board-col.is-active { --col-c: var(--gold); }
+.fv-board-col.is-done { --col-c: #5fbf7a; }
+.fv-board-col.is-failed { --col-c: var(--danger); }
+.fv-board-col.is-over {
+  border-color: var(--col-c);
+  background-color: color-mix(in srgb, var(--col-c), var(--sunk) 90%);
+}
+.fv-board.is-single .fv-board-col {
+  min-height: 0;
+}
+.fv-board-col > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 2px 2px 0;
+}
+.fv-board-col > header b {
+  font: 700 15px var(--font-display);
+  color: var(--ink);
+}
+.fv-board-col > header small {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--col-c), transparent 82%);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.fv-board-add {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--col-c), transparent 30%);
+  background: transparent;
+  color: var(--col-c);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.fv-board-add:hover {
+  background: color-mix(in srgb, var(--col-c), transparent 85%);
+}
+.fv-board-hint {
+  margin: 0 2px 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.fv-board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fv-board-empty {
+  margin: 4px 2px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+/* cartaz pregado no quadro */
+.fv-quest {
+  position: relative;
+  border-radius: 4px 12px 12px 12px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--col-c), transparent 90%), transparent 60%),
+    var(--panel);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  cursor: grab;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+.fv-quest::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8, transparent 45%), var(--col-c);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+.fv-quest:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
+}
+.fv-quest.is-dragging {
+  opacity: 0.4;
+}
+.fv-quest.is-urgent {
+  border-color: color-mix(in srgb, var(--danger), transparent 45%);
+}
+.fv-board-col.is-done .fv-quest-open b,
+.fv-board-col.is-failed .fv-quest-open b {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ink), transparent 55%);
+}
+.fv-quest-open {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 12px 6px;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fv-quest-open b {
+  font: 700 14.5px/1.3 var(--font-display);
+}
+.fv-quest-open > small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-quest-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: var(--ink);
+}
+.fv-quest-progress {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--sunk);
+  overflow: hidden;
+}
+.fv-quest-progress > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--col-c), transparent 45%);
+}
+.fv-quest-progress em {
+  position: relative;
+  display: block;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  color: var(--ink);
+}
+.fv-quest-move {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 6px 6px;
+}
+.fv-quest-move button {
+  width: 34px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+.fv-quest-move button:hover:not(:disabled) {
+  background: var(--lift);
+  color: var(--ink);
+}
+.fv-quest-move button:disabled {
+  visibility: hidden;
+}
+.fv-quest-flag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger), transparent 85%);
+  color: var(--danger);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* detalhe da missão */
+.fv-quest-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fv-quest-status {
+  align-self: flex-start;
+  overflow-x: auto;
+}
+.fv-quest-title {
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  font: 700 clamp(19px, 3vw, 23px) var(--font-display);
+  color: var(--ink);
+}
+.fv-quest-title:focus {
+  outline: none;
+  border-bottom-color: var(--gold);
+}
+.fv-quest-title::placeholder {
+  color: var(--muted);
+  font-weight: 500;
+}
+.fv-quest-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+}
+.fv-quest-fields > label,
+.fv-quest-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.fv-quest-fields > label > span,
+.fv-quest-field > span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fv-quest-fields .fv-mention input {
+  width: 100%;
+}
+.fv-quest-objs ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.fv-quest-objs li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 8px;
+}
+.fv-quest-objs li:hover {
+  background: var(--lift);
+}
+.fv-quest-objs li label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  cursor: pointer;
+}
+.fv-quest-objs li input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+}
+.fv-quest-objs li.is-done .fv-rich {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.fv-quest-objs li > button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fv-quest-objs li > button:hover {
+  color: var(--danger);
+}
+.fv-quest-objs .fv-facts-title small,
+.fv-quest-notes-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fv-quest-objs .fv-facts-title small {
+  display: inline;
+  margin-left: 6px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.fv-quest-notes-title .fv-link-btn {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.fv-quest-notes-read {
+  font-size: 14.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.fv-quest-detail textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-quest-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+.fv-quest-foot .fv-btn-gold {
+  min-height: 40px;
+  padding: 0 22px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-quest,
+  .fv-quest:hover {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ---------- Pistas ---------- */
+.fv-clues {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-clues-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fv-clues-bar .fv-seg {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fv-clues-bar .fv-seg small {
+  margin-left: 3px;
+  opacity: 0.75;
+}
+.fv-clues-new {
+  min-height: 40px;
+  padding: 0 18px;
+}
+.fv-clues-master {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed color-mix(in srgb, var(--gold), transparent 55%);
+  background: color-mix(in srgb, var(--gold), transparent 95%);
+}
+.fv-clues-master-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+.fv-clues-handout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.fv-clues-handout .fv-handout-open {
+  flex: 1;
+}
+.fv-clues-handout .fv-link-btn {
+  flex: none;
+}
+.fv-clue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  align-items: start;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-clue,
+.fv-clue-figure {
+  --clue-c: #e2b44f;
+}
+:is(.fv-clue, .fv-clue-figure, .fv-quest-clues li).is-confirmed {
+  --clue-c: #5fbf7a;
+}
+:is(.fv-clue, .fv-clue-figure, .fv-quest-clues li).is-false {
+  --clue-c: var(--danger);
+}
+/* ficha de evidência */
+.fv-clue {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px 6px 14px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--clue-c);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, color-mix(in srgb, var(--line), transparent 55%) 25px 26px),
+    var(--panel);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.26);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fv-clue:hover {
+  transform: translateY(-2px) rotate(-0.3deg);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+}
+.fv-clue > b {
+  font: 700 15px/1.3 var(--font-display);
+}
+.fv-clue.is-false > b {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--danger), transparent 30%);
+}
+.fv-clue-photo {
+  display: block;
+  margin: -2px -2px 4px;
+  padding: 6px 6px 14px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink), transparent 90%);
+  transform: rotate(-1.2deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.fv-clue-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 2px;
+  background: #05060a;
+}
+.fv-clue-stamp {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  padding: 2px 7px;
+  border: 2px solid var(--clue-c);
+  border-radius: 4px;
+  color: var(--clue-c);
+  font: 800 10.5px/1.3 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(8deg);
+  opacity: 0.92;
+  background: color-mix(in srgb, var(--panel), transparent 15%);
+  pointer-events: none;
+}
+/* sem foto: o carimbo fica no canto, acima do título */
+.fv-clue:not(.has-photo) .fv-clue-stamp {
+  position: static;
+  align-self: flex-end;
+  margin: -2px 0 -2px;
+}
+.fv-clue.has-photo .fv-clue-stamp {
+  top: 20px;
+  right: 14px;
+}
+.fv-clue-ex {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.fv-clue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.fv-clue-meta small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-mini-tag.is-quest {
+  border-color: color-mix(in srgb, var(--gold), transparent 60%);
+  color: var(--gold);
+}
+/* detalhe da pista */
+.fv-clue-detail {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .fv-clue-detail {
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.fv-clue-figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fv-clue-figure .fv-clue-stamp {
+  top: 10px;
+  right: 8px;
+  font-size: 12px;
+}
+.fv-clue-figure-img {
+  display: block;
+  padding: 7px 7px 18px;
+  border: 0;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink), transparent 90%);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  transform: rotate(-1.5deg);
+  cursor: zoom-in;
+}
+.fv-clue-figure-img img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  background: #05060a;
+}
+.fv-clue-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 150px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--line-strong);
+  background: var(--sunk);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+@media (max-width: 639px) {
+  .fv-clue-drop {
+    min-height: 92px;
+  }
+  .fv-diary-tabs button {
+    padding: 8px 9px;
+    font-size: 13px;
+  }
+}
+.fv-clue-drop:hover {
+  border-color: var(--gold);
+}
+.fv-clue-drop span {
+  font-size: 24px;
+}
+.fv-clue-drop small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fv-clue-figure-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fv-clue-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: 0;
+  background: rgba(0, 0, 0, 0.88);
+  cursor: zoom-out;
+}
+.fv-clue-zoom img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.fv-clue-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.fv-clue-status {
+  align-self: flex-start;
+  overflow-x: auto;
+}
+.fv-clue-status button.is-on.is-confirmed {
+  background: color-mix(in srgb, #5fbf7a, transparent 82%);
+  color: #5fbf7a;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #5fbf7a, transparent 45%);
+}
+.fv-clue-status button.is-on.is-false {
+  background: color-mix(in srgb, var(--danger), transparent 85%);
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger), transparent 45%);
+}
+.fv-clue-fields textarea,
+.fv-clue-fields .fv-mention input,
+.fv-clue-fields select {
+  width: 100%;
+}
+.fv-clue-fields textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-quest-clues {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-quest-clues li {
+  --clue-c: #e2b44f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.fv-quest-clue-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--clue-c);
+}
+.fv-quest-clues small {
+  margin-left: auto;
+  color: var(--clue-c);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-clue,
+  .fv-clue:hover {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ---------- Pessoas, busca em todo o diário e ligações ---------- */
+.fv-npc-mention.is-link {
+  cursor: pointer;
+}
+.fv-npc-mention.is-link:hover > span:not(.fv-npc-hover),
+.fv-npc-mention.is-link:focus-visible > span:not(.fv-npc-hover) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fv-diary-elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.fv-diary-elsewhere .fv-mini-tag {
+  cursor: pointer;
+  min-height: 28px;
+}
+.fv-diary-elsewhere .fv-mini-tag b {
+  margin-left: 3px;
+  color: var(--gold);
+}
+.fv-note.is-flash {
+  animation: fv-note-flash 2s ease-out;
+}
+@keyframes fv-note-flash {
+  0%, 30% { box-shadow: 0 0 0 3px var(--gold), 0 8px 20px rgba(0, 0, 0, 0.25); }
+  100% { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); }
+}
+.fv-quest-clues li > button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-quest-clues li > button:hover:not(:disabled) {
+  background: var(--lift);
+}
+.fv-quest-clues li > button:disabled {
+  cursor: default;
+}
+.fv-clue-quest-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fv-people {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fv-people-kind {
+  align-self: flex-start;
+}
+.fv-people-kind small {
+  margin-left: 3px;
+  opacity: 0.75;
+}
+.fv-people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-person {
+  --op-c: var(--line-strong);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--op-c);
+  background: var(--panel);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fv-person:hover {
+  background: var(--lift);
+}
+.fv-person .fv-npc-avatar {
+  flex: none;
+}
+.fv-person.is-hero .fv-npc-avatar {
+  box-shadow: 0 0 0 2px color-mix(in srgb, #5b9be6, transparent 30%);
+}
+.fv-person-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.fv-person-text b {
+  font: 700 15px/1.25 var(--font-display);
+}
+.fv-person-text small {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fv-person-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.fv-person-count {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-ally { --op-c: #5fbf7a; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-neutral { --op-c: #9aa3b5; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-suspect { --op-c: #e2b44f; }
+:is(.fv-person, .fv-opinion, .fv-person-opinion button).is-enemy { --op-c: var(--danger); }
+.fv-opinion {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--op-c), transparent 45%);
+  background: color-mix(in srgb, var(--op-c), transparent 88%);
+  color: var(--op-c);
+  font-size: 11px;
+  font-weight: 700;
+}
+.fv-person-opinion {
+  margin-bottom: 10px;
+  overflow-x: auto;
+}
+.fv-person-opinion button.is-on {
+  background: color-mix(in srgb, var(--op-c), transparent 84%);
+  color: var(--op-c);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--op-c), transparent 45%);
+}
+.fv-person-detail {
+  display: grid;
+  gap: 18px;
+}
+@media (min-width: 640px) {
+  .fv-person-detail {
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.fv-person-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.fv-person-portrait img {
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+}
+.fv-person-portrait small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fv-person-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.fv-person-body textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.55;
+}
+.fv-person-summary {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.fv-person-cited-n {
+  margin-left: 6px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.fv-backlinks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fv-backlinks button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-backlinks button:hover {
+  border-color: var(--gold);
+}
+.fv-backlinks b {
+  overflow: hidden;
+  font-size: 13.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fv-backlinks b.is-note {
+  font-weight: 500;
+  white-space: normal;
+}
+.fv-backlinks small {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.fv-backlink-kind {
+  grid-row: span 2;
+  align-self: start;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--lift);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-backlink-kind.is-board { color: var(--gold); }
+.fv-backlink-kind.is-clues { color: #e2b44f; }
+.fv-backlink-kind.is-chronicle { color: #5b9be6; }
+@media (prefers-reduced-motion: reduce) {
+  .fv-note.is-flash {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--gold);
+  }
+}
+
+/* ---------- botão "Anotar" (todas as abas) ---------- */
+.fv-quicknote {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 60;
+}
+.fv-quicknote-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 16px 0 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 40%);
+  background: color-mix(in srgb, var(--panel2), var(--gold) 10%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  color: var(--gold);
+}
+.fv-quicknote-fab span {
+  font-size: 17px;
+}
+.fv-quicknote-fab b {
+  font: 600 13.5px var(--font-display);
+}
+.fv-quicknote-fab.is-open {
+  background: var(--gold);
+  color: var(--on-gold, #140d04);
+}
+.fv-quicknote-box {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: min(360px, calc(100vw - 36px));
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-strong);
+  background: var(--panel2);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
+}
+.fv-quicknote-box textarea {
+  resize: none;
+  line-height: 1.55;
+}
+/* celular: acima da barra de abas, só o ícone */
+@media (max-width: 899px) {
+  .fv-quicknote {
+    left: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .fv-quicknote-fab {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+  .fv-quicknote-fab b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+@media print {
+  .fv-quicknote {
+    display: none;
+  }
+}

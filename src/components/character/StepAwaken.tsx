@@ -1,5 +1,6 @@
 import { voices } from '@/lib/voices';
 import type { StepProps } from './stepTypes';
+import { STEP_IDENTITY } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle, FactList } from './creatorUi';
 import { HeroPanel } from './HeroPanel';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -11,6 +12,11 @@ import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { deriveCharacter } from '@/engine/dndRules';
+import { finalizeCharacter } from '@/engine/characterBuilder';
+import { getSubclass } from '@/data/subclasses';
+import { getSpell } from '@/data/spells';
+import { creationChoices } from '@/engine/classChoices';
+import { useMemo } from 'react';
 import { Icon } from '@/components/ui/Icon';
 
 const ALIGNMENTS = [
@@ -30,10 +36,15 @@ const ALIGN_LORE = passiveLore(
 
 /** Capítulo VII — Despertar: nome e alma do herói + a lenda revisada. */
 export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: (step: number) => void }) {
-  const d = deriveCharacter(char);
+  // a ficha como vai nascer: ferramentas, idiomas e magias exatamente como entram
+  const born = useMemo(() => finalizeCharacter(structuredClone(char)), [char]);
+  const d = deriveCharacter(born);
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
-  const skills = d.skills.filter((s) => s.proficient).map((s) => SKILL_BY_KEY[s.key].label);
+  const sub = getSubclass(char.subclassId);
+  const skills = d.skills.filter((s) => s.proficient).map((s) => SKILL_BY_KEY[s.key].label + (s.expertise ? ' ★' : ''));
+  const gifts = creationChoices(char).flatMap((c) => c.options.filter((o) => c.chosen.includes(o.id)).map((o) => o.label));
+  const spellNames = [...new Set([...born.preparedSpells, ...(born.knownSpells ?? [])])].map((id) => getSpell(id)?.name).filter(Boolean);
 
   const addSeed = (seed: string) =>
     update((c) => {
@@ -43,7 +54,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
 
   return (
     <div className="fv-step">
-      <StepHeader step={6} />
+      <StepHeader step={STEP_IDENTITY} char={char} />
 
       <div className="fv-awaken">
         <label className="fv-field fv-field-name">
@@ -122,10 +133,14 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
               title=""
               facts={[
                 { label: 'Origem', value: raceLine(char) },
-                { label: 'Caminho', value: `${cls.label} · nível ${char.level}` },
+                { label: 'Caminho', value: `${cls.label}${sub ? ` (${sub.label})` : ''} · nível ${char.level}` },
+                ...(gifts.length ? [{ label: 'Dons', value: gifts.join(', ') }] : []),
                 { label: 'Passado', value: bg.label },
                 { label: 'Atributos', value: ABILITY_KEYS.map((k) => `${ABILITY_SHORT[k]} ${d.abilities[k].total}`).join(' · ') },
                 { label: 'Perícias', value: skills.join(', ') || '—' },
+                ...((born.toolProfs ?? []).length ? [{ label: 'Ferramentas', value: born.toolProfs.map((t) => t.label + (t.expertise ? ' ★' : '')).join(', ') }] : []),
+                { label: 'Idiomas', value: d.languages.join(', ') || '—' },
+                ...(spellNames.length ? [{ label: 'Magias', value: spellNames.join(', ') }] : []),
               ]}
             />
           </div>

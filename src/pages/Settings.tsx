@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
-import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { ThemeGrid } from '@/components/layout/ThemePickerModal';
@@ -18,12 +17,40 @@ import { rememberNext } from '@/lib/nextPath';
 import { wakeLockSupported } from '@/lib/wakeLock';
 
 const SECTIONS: { id: string; label: string; icon: IconName }[] = [
-  { id: 'aparencia', label: 'Aparência', icon: 'image' },
+  { id: 'conta', label: 'Conta', icon: 'user' },
+  { id: 'aparencia', label: 'Aparência', icon: 'palette' },
   { id: 'som', label: 'Som e música', icon: 'volume' },
-  { id: 'dados', label: 'Dados', icon: 'd20' },
-  { id: 'livros', label: 'Livros', icon: 'quill' },
-  { id: 'app', label: 'App e conta', icon: 'gear' },
+  { id: 'dados', label: 'Dados e mesa', icon: 'd20' },
+  { id: 'livros', label: 'Livros', icon: 'book' },
+  { id: 'app', label: 'App e ajuda', icon: 'help' },
+  { id: 'avancado', label: 'Avançado', icon: 'sliders' },
 ];
+
+/** Qual seção está na tela agora (para marcar no índice). */
+function useActiveSection(ids: string[]): string {
+  const [active, setActive] = useState(ids[0]);
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const seen = new Map<string, boolean>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) seen.set(e.target.id.replace('cfg-', ''), e.isIntersecting);
+        const first = ids.find((id) => seen.get(id));
+        if (first) setActive(first);
+      },
+      // a faixa "lida" fica logo abaixo da barra do topo
+      { rootMargin: '-20% 0px -65% 0px' },
+    );
+    ids.forEach((id) => {
+      const el = document.getElementById(`cfg-${id}`);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [ids]);
+  return active;
+}
+
+const SECTION_IDS = SECTIONS.map((s) => s.id);
 
 /** Uma linha de ajuste: título + explicação à esquerda, controle à direita. */
 function Row({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
@@ -76,22 +103,62 @@ export function Settings() {
   const [iosGuide, setIosGuide] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
+  const active = useActiveSection(SECTION_IDS);
   const jump = (id: string) => document.getElementById(`cfg-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const enter = () => {
+    if (user) logout();
+    rememberNext('/config');
+    navigate('/entrar');
+  };
 
   return (
-    <Screen scroll actions={<Button onClick={() => navigate('/')} style={{ fontSize: 12.5 }}>Menu</Button>}>
+    <Screen scroll>
       <div className="fv-settings">
         <header className="fv-settings-head">
           <h1 className="fv-page-title">Configurações</h1>
           <p>Ajustes deste aparelho. Mudou, já vale — não precisa salvar.</p>
-          <nav className="fv-settings-jump" aria-label="Seções">
-            {SECTIONS.map((s) => (
-              <button key={s.id} type="button" className="fv-pill" onClick={() => jump(s.id)}>
-                <Icon name={s.icon} size={15} /> {s.label}
-              </button>
-            ))}
-          </nav>
         </header>
+
+        <nav className="fv-settings-index" aria-label="Seções das configurações">
+          {SECTIONS.map((sec) => (
+            <button key={sec.id} type="button" className={active === sec.id ? 'is-on' : ''} aria-current={active === sec.id ? 'true' : undefined} onClick={() => jump(sec.id)}>
+              <Icon name={sec.icon} size={15} />
+              {sec.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="fv-settings-body">
+        <section id="cfg-conta" className="fv-panel fv-set-card fv-set-account" aria-labelledby="cfg-conta-t">
+          <h2 id="cfg-conta-t" className="fv-sr-only">Conta</h2>
+          <span className="fv-set-avatar" aria-hidden>{(user?.name.trim().charAt(0) || '?').toUpperCase()}</span>
+          <div className="fv-set-account-text">
+            <b>{!user ? 'Você ainda não entrou' : user.guest ? 'Jogando offline' : user.name}</b>
+            <small>
+              {!user
+                ? 'Entre para guardar seus heróis na nuvem — ou continue offline.'
+                : user.guest
+                  ? 'As fichas ficam só neste aparelho. Entre com uma conta para sincronizar entre aparelhos.'
+                  : `${user.email ?? 'Conta na nuvem'} · fichas e diário sincronizam entre os seus aparelhos.`}
+            </small>
+          </div>
+          {user && !user.guest ? (
+            <button
+              type="button"
+              className="fv-btn-ghost fv-set-btn"
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
+            >
+              Sair
+            </button>
+          ) : (
+            <button type="button" className="fv-btn-gold fv-set-btn" onClick={enter}>
+              Entrar
+            </button>
+          )}
+        </section>
 
         <section id="cfg-aparencia" className="fv-panel fv-set-card" aria-labelledby="cfg-aparencia-t">
           <h2 id="cfg-aparencia-t">Aparência</h2>
@@ -138,7 +205,7 @@ export function Settings() {
         </section>
 
         <section id="cfg-dados" className="fv-panel fv-set-card" aria-labelledby="cfg-dados-t">
-          <h2 id="cfg-dados-t">Dados</h2>
+          <h2 id="cfg-dados-t">Dados e mesa</h2>
           <Row title="Dados 3D" hint="Dados com física rolando pela tela. Desligado, aparece um dado 2D mais leve (bom para celulares antigos).">
             <Switch on={dice3d} label="Dados 3D" onToggle={toggleDice3d} />
           </Row>
@@ -171,7 +238,7 @@ export function Settings() {
         </section>
 
         <section id="cfg-app" className="fv-panel fv-set-card" aria-labelledby="cfg-app-t">
-          <h2 id="cfg-app-t">App e conta</h2>
+          <h2 id="cfg-app-t">App e ajuda</h2>
           <Row
             title="Tutorial e tours automáticos"
             hint={
@@ -204,46 +271,23 @@ export function Settings() {
               </button>
             </Row>
           )}
-          <Row title="Oficina de retratos" hint="Gere e troque a arte dos heróis.">
-            <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
-              Abrir
-            </button>
-          </Row>
-          <Row title="Diagnóstico" hint="Teste a conexão com a nuvem se algo não sincronizar.">
+        </section>
+
+        <section id="cfg-avancado" className="fv-panel fv-set-card" aria-labelledby="cfg-avancado-t">
+          <h2 id="cfg-avancado-t">Avançado</h2>
+          <p className="fv-set-lead">Ferramentas para quando algo não funciona — ou para quem cuida do app.</p>
+          <Row title="Diagnóstico da nuvem" hint="Testa a conexão e o login. Use se a nuvem não sincronizar ou o login falhar.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/diagnostico')}>
               Abrir
             </button>
           </Row>
-          <Row
-            title="Conta"
-            hint={user ? (user.guest ? 'Offline: as fichas ficam só neste aparelho. Entre para sincronizar na nuvem.' : `${user.name}${user.email ? ` · ${user.email}` : ''}`) : 'Você ainda não entrou.'}
-          >
-            {user && !user.guest ? (
-              <button
-                type="button"
-                className="fv-btn-ghost fv-set-btn"
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-              >
-                Sair
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="fv-btn-ghost fv-set-btn"
-                onClick={() => {
-                  if (user) logout();
-                  rememberNext('/config');
-                  navigate('/entrar');
-                }}
-              >
-                Entrar
-              </button>
-            )}
+          <Row title="Oficina de retratos" hint="Para quem mantém o app: prepara a arte padrão das classes (as imagens que aparecem quando o herói não tem retrato próprio). Para trocar o retrato do SEU herói, use a aba Retrato da ficha.">
+            <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
+              Abrir
+            </button>
           </Row>
         </section>
+        </div>
       </div>
 
       {iosGuide && (

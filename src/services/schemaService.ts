@@ -21,6 +21,8 @@ export const SCHEMA_STEPS: SchemaStep[] = [
   { step: 'agenda', file: 'supabase/agenda.sql', what: 'agenda: marcar a próxima sessão e confirmar presença' },
   { step: 'bestiario', file: 'supabase/bestiario.sql', what: 'bestiário da mesa: foto, nome e notas das criaturas' },
   { step: 'recursos_extras', file: 'supabase/recursos_extras.sql', what: 'convite por código/QR, ficha compartilhada e registro de erros' },
+  { step: 'diario_privado', file: 'supabase/diario_privado.sql', what: 'diário privado: só o jogador lê (nem o mestre nem o link), imagens das pistas na nuvem' },
+  { step: 'mesa_vida', file: 'supabase/mesa_vida.sql', what: 'mesa ao vivo: PV e condições do herói iguais para mestre e jogador' },
 ];
 
 export interface SchemaStatus {

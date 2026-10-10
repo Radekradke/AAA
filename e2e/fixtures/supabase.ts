@@ -76,7 +76,7 @@ function seed(who: Who): Record<string, Row[]> {
     campaign_rsvps: [{ event_id: EV, user_id: M, campaign_id: C, status: 'yes', display_name: 'Rui', hero_name: null, updated_at: now }],
     campaign_monsters: [],
     campaign_monster_notes: [],
-    app_schema_steps: ['base', 'multiplayer', 'npcs_bestiario', 'palco', 'mestre_console', 'agenda', 'bestiario', 'recursos_extras'].map((step) => ({ step })),
+    app_schema_steps: ['base', 'multiplayer', 'npcs_bestiario', 'palco', 'mestre_console', 'agenda', 'bestiario', 'recursos_extras', 'diario_privado', 'mesa_vida'].map((step) => ({ step })),
     invite_links: [{ id: 'inv1', campaign_id: C, token: 'abcdefghijklm', created_by: M, expires_at: null, max_uses: null, uses: 0, code: INVITE_CODE }],
     sheets: [{ id: 'k', user_id: P, snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: 1000 }],
     shared_sheets: [{ id: 'sh1', campaign_id: C, sheet_id: 'k', owner_id: P, permissions: {}, shared_at: 1 }],

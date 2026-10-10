@@ -2,6 +2,7 @@ import type { Character, InventoryItem } from '@/types/character';
 import type { WeaponType } from '@/types/dnd';
 import { getSubrace } from '@/data/races';
 import { WEAPONS } from '@/data/weapons';
+import { getItem } from '@/data/items';
 
 /**
  * Proficiência com armas e armaduras — PHB 2014.
@@ -135,7 +136,9 @@ const WEAPON_BY_NAME = new Map(WEAPONS.map((w) => [norm(w.name), w.id]));
 export function baseWeaponId(it: Pick<InventoryItem, 'itemId' | 'name'>): string | null {
   const id = it.itemId?.replace(/-plus[123]$/, '');
   if (id && id.startsWith('w-')) return id;
-  return WEAPON_BY_NAME.get(norm(it.name)) ?? null;
+  // item mágico/foco que é uma arma do livro (Cajado do Poder → bordão)
+  const viaCatalog = id ? getItem(id)?.weapon?.baseId : undefined;
+  return viaCatalog ?? WEAPON_BY_NAME.get(norm(it.name)) ?? null;
 }
 
 export function isWeaponProficient(p: Proficiencies, it: Pick<InventoryItem, 'itemId' | 'name'>, type: WeaponType, range: 'melee' | 'ranged'): boolean {
@@ -147,6 +150,16 @@ export function isWeaponProficient(p: Proficiencies, it: Pick<InventoryItem, 'it
 
 export function isArmorProficient(p: Proficiencies, kind: ArmorKind): boolean {
   return p.armor.has(kind);
+}
+
+/** Armaduras e armas que a classe dá no 1º nível (sem raça, subclasse nem talento). */
+export function classProficiencySummary(classId: string): { armor: string; weapons: string } {
+  const p: Proficiencies = { armor: new Set(), weaponTypes: new Set(), weapons: new Set(), lenientWeapons: false, lenientMelee: false };
+  const g = CLASS_PROFS[classId];
+  g?.armor?.forEach((a) => p.armor.add(a));
+  g?.weaponTypes?.forEach((t) => p.weaponTypes.add(t));
+  g?.weapons?.forEach((w) => p.weapons.add(w));
+  return proficiencySummary(p);
 }
 
 /** Texto curto para a ficha ("Armaduras leves e médias, escudos · Armas simples e marciais"). */

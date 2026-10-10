@@ -1,3 +1,4 @@
+import { diaryOf, entrySession } from '@/engine/diary';
 import { toolLabel } from '@/data/tools';
 import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import type { JournalEntry } from '@/types/character';
@@ -15,7 +16,7 @@ import type { CharacterState, StoreCtx } from './types';
 import { newId } from './ids';
 
 /** Evolução e registro: nível, subir de nível guiado, escolhas de classe, XP, Inspiração, diário, notas, campanha e edição. */
-export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addXp' | 'addJournalEntry' | 'updateJournalEntry' | 'deleteJournalEntry' | 'setNotes' | 'setLevel' | 'levelUp' | 'setClassChoices' | 'toggleInspiration' | 'gainInspiration' | 'spendInspiration' | 'setInspiration' | 'updateCampaign' | 'editCharacter'> {
+export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addXp' | 'addJournalEntry' | 'updateDiary' | 'updateJournalEntry' | 'deleteJournalEntry' | 'setNotes' | 'setLevel' | 'levelUp' | 'setClassChoices' | 'toggleInspiration' | 'gainInspiration' | 'spendInspiration' | 'setInspiration' | 'updateCampaign' | 'editCharacter'> {
   return {
     addXp(id, amount) {
       mutate(id, (c) => {
@@ -23,19 +24,33 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
       });
     },
     addJournalEntry(id) {
+      let created = '';
       mutate(id, (c) => {
+        const next = Math.max(0, ...c.journal.map((e, i) => entrySession(e, c.journal.length - i))) + 1;
         const entry: JournalEntry = {
           id: newId('j'),
-          title: 'Nova sessão',
-          date: `Sessão ${c.journal.length + 1}`,
+          title: '',
+          date: new Date().toLocaleDateString('pt-BR'),
           summary: '',
           npcs: '',
           locations: '',
           quests: '',
           treasure: '',
           notes: '',
+          session: next,
+          body: '',
+          at: Date.now(),
         };
+        created = entry.id;
         c.journal = [entry, ...c.journal];
+      });
+      return created;
+    },
+    updateDiary(id, recipe) {
+      mutate(id, (c) => {
+        const d = structuredClone(diaryOf(c));
+        recipe(d);
+        c.diary = d;
       });
     },
     updateJournalEntry(id, entryId, patch) {
@@ -205,6 +220,8 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
       mutate(id, (c) => {
         Object.assign(c, ensureCharacterV2(c));
         c.campaign = { ...c.campaign, ...patch };
+        // voltou à regra 2014: quem tinha vários pontos fica com 1 (tem inspiração)
+        if (patch.stackingInspiration === false) setInspirationCount(c, inspirationCount(c));
       });
     },
     editCharacter(id, patch) {

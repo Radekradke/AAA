@@ -1,5 +1,5 @@
 import type { StoreApi } from 'zustand';
-import type { ActiveSpellEffect, Character, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { ActiveSpellEffect, Character, Diary, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import type { ContainerId, MoveResult } from '@/engine/inventory';
@@ -38,6 +38,14 @@ export interface CharacterState {
   addInventoryItem: (id: string, item: Item | InventoryItem) => void;
   updateInventoryItem: (id: string, uid: string, patch: Partial<InventoryItem>) => void;
   removeInventoryItem: (id: string, uid: string) => void;
+  /** Abre um pacote fechado que já está na mochila (fichas antigas). */
+  openPackItem: (id: string, uid: string) => void;
+  /** Disparo com arco/besta/funda/zarabatana: gasta 1 peça de munição (null = arma sem munição). */
+  fireAmmo: (id: string, weaponUid: string) => import('@/engine/ammo').SpendResult;
+  /** Desfaz o último disparo: a peça volta. */
+  refundAmmo: (id: string, kind: import('@/engine/ammo').AmmoKind) => void;
+  /** Depois da luta: recolhe metade da munição disparada. Devolve quantas voltaram. */
+  recoverAmmo: (id: string, weaponUid: string) => number;
   toggleEquip: (id: string, uid: string) => void;
   /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
   moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
@@ -60,6 +68,8 @@ export interface CharacterState {
   toggleConcentration: (id: string) => void;
   /** Gasta um uso de uma magia concedida por item (recarga por descanso). */
   useItemSpell: (id: string, key: string) => void;
+  /** Gasta cargas de um item (cajado, varinha…; negativo devolve); devolve quantas sobraram. */
+  spendItemCharges: (id: string, uid: string, n: number) => number;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
@@ -97,7 +107,10 @@ export interface CharacterState {
   setDeathSave: (id: string, type: 'success' | 'fail', n: number) => void;
   shortRest: (id: string) => void;
   longRest: (id: string) => void;
-  addJournalEntry: (id: string) => void;
+  /** Cria uma sessão nova na Crônica e devolve o id dela. */
+  addJournalEntry: (id: string) => string;
+  /** Altera o diário pessoal (rabiscos, missões, pistas, pessoas). */
+  updateDiary: (id: string, recipe: (d: Diary) => void) => void;
   updateJournalEntry: (id: string, entryId: string, patch: Partial<JournalEntry>) => void;
   deleteJournalEntry: (id: string, entryId: string) => void;
   setNotes: (id: string, notes: string) => void;

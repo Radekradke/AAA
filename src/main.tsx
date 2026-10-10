@@ -5,6 +5,7 @@ import { LazyMotion, domAnimation } from 'framer-motion';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { installGlobalErrorHandlers } from './lib/errorReporter';
+import { installCardTilt } from './lib/cardTilt';
 import './store/homebrewStore';
 import './styles/fonts';
 import './styles/globals.css';
@@ -17,6 +18,7 @@ import { loadFixesCss, loadThemeCss, savedTheme } from './lib/themeCss';
 
 // erros fora do React (eventos, promessas) e código antigo após atualização
 installGlobalErrorHandlers();
+installCardTilt();
 
 function render() {
   createRoot(document.getElementById('root')!).render(

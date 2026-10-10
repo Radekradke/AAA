@@ -7,10 +7,12 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { conditionLore, passiveLore } from '@/lib/lore';
 import { CONDITIONS } from '@/data/conditions';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
+import { useSpendHitDie } from './useSpendHitDie';
 
 export function TabDescanso({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
+  const spendHitDie = useSpendHitDie(char, derived);
 
   const restHint = char.combat.conditions.length
     ? `Atenção: ${char.combat.conditions.length} condição(ões) ativa(s) — um descanso longo as remove.`
@@ -28,7 +30,7 @@ export function TabDescanso({ char, derived }: TabProps) {
             <button onClick={() => store.shortRest(char.id)} style={{ cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--line)', background: 'var(--sunk)', transition: '.25s' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--acc)' }}>Descanso Curto</div>
               <div style={{ marginTop: 5, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
-                1 hora · gaste Dados de Vida para curar e recupere recursos de descanso curto.
+                1 hora · recupera os recursos de descanso curto. Gaste Dados de Vida abaixo para curar.
               </div>
             </button>
           </LoreTooltip>
@@ -40,6 +42,24 @@ export function TabDescanso({ char, derived }: TabProps) {
               </div>
             </button>
           </LoreTooltip>
+        </div>
+        {/* descanso curto: gastar Dados de Vida aqui mesmo (rola dado + CON e cura) */}
+        <div className="fv-rest-dice">
+          <div>
+            <b>Dados de Vida</b>
+            <span>
+              {char.combat.hitDiceRemaining}/{derived.hitDiceMax} · d{derived.hitDie} {derived.abilities.con.mod >= 0 ? '+' : '−'} {Math.abs(derived.abilities.con.mod)} CON por dado
+            </span>
+          </div>
+          <button
+            type="button"
+            className="fv-btn-ghost"
+            disabled={!spendHitDie || char.hpCurrent >= derived.maxHp}
+            title={char.hpCurrent >= derived.maxHp ? 'Vida já está cheia' : !spendHitDie ? 'Sem Dados de Vida — metade volta no descanso longo' : undefined}
+            onClick={() => spendHitDie?.()}
+          >
+            Gastar 1 dado
+          </button>
         </div>
         <div style={{ marginTop: 13, fontSize: 12, color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{restHint}</div>
       </Panel>

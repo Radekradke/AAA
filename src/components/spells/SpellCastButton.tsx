@@ -5,14 +5,16 @@ import type { DerivedCharacter } from '@/engine/dndRules';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { roll as rollEngine } from '@/engine/dice';
 import { syncSpellSlots } from '@/engine/spellcasting';
-import { canRitual, damageRoll, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
+import { canRitual, damageRoll, damageTiming, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, isFixedRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
+import { castDiceLabel, rollCastDice } from './castRoll';
 import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
 import { castTurnKey, rollTempHp, spellOutcome } from '@/engine/spellEffects';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCast';
 import { ABILITY_SHORT } from '@/data/skills';
+import type { ChargeOption } from '@/engine/itemCharges';
+import { materialWarning } from '@/engine/spellFocus';
 
 interface Props {
   char: Character;
@@ -22,6 +24,8 @@ interface Props {
   /** Magia que não gasta espaço (item, talento, arcano místico): só rola. */
   free?: boolean;
   compact?: boolean;
+  /** Magia de item com cargas: escolhe quantas gastar (círculo) e usa a CD do item, se ele tiver. */
+  itemCast?: { itemName: string; options: ChargeOption[]; dc?: number; onSpend: (cost: number) => void };
 }
 
 /** Jogadas de ataque feitas, esperando o "acertou?". */
@@ -56,7 +60,7 @@ function saveType(spellId: string, type: string) {
  * Magia de ataque rola o d20 primeiro — o dano só sai nos acertos (crítico
  * dobra os dados); cada raio/feixe é uma jogada separada.
  */
-export function SpellCastButton({ char, derived, spell, castMod, free, compact }: Props) {
+export function SpellCastButton({ char, derived, spell, castMod, free, compact, itemCast }: Props) {
   const store = useCharacterStore();
   const pushRoll = useUiStore((s) => s.pushRoll);
   const pushCastNotice = useUiStore((s) => s.pushCastNotice);
@@ -75,18 +79,23 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     .sort((a, b) => a.lv - b.lv);
   const ritual = spell.level > 0 && canRitual(char.classId, spell);
   const isCantrip = spell.level === 0;
-  const noSlot = !isCantrip && !free && options.length === 0;
+  const noSlot = itemCast ? itemCast.options.length === 0 : !isCantrip && !free && options.length === 0;
+  const spellDC = itemCast?.dc ?? derived.spellDC;
 
   const roll = (r: CastRoll | null, suffix = '', isDamage = true) => {
     if (!r) return null;
-    return rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: isDamage, cantrip: isDamage && isCantrip });
+    // um tipo de dado só: a rolagem normal (com os dados 3D)
+    if (!r.extra?.length) return rollDice(r.sides, { count: r.count, modifier: r.bonus, label: r.label + suffix, damage: isDamage, cantrip: isDamage && isCantrip });
+    const res = rollCastDice(r, { suffix, damage: isDamage, cantrip: isDamage && isCantrip });
+    if (res) pushRoll(res);
+    return res;
   };
 
   /**
    * Toda conjuração deixa rastro: marca a ação no turno, registra "usado",
    * aplica PV temporários/efeitos e mostra o aviso (até truque sem rolagem).
    */
-  const announce = (slotLevel: number, how: 'slot' | 'ritual' | 'free', healed: number | null, pool?: { total: number; effect: string; immune: string }) => {
+  const announce = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', healed: number | null, pool?: { total: number; effect: string; immune: string }, cost = 0, later?: CastRoll | null, fixedDamage?: number | null) => {
     const turnKey = castTurnKey(spell.castingTime);
     const before = char.combat.castThisTurn ?? [];
     let warn: string | undefined;
@@ -135,13 +144,43 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
       actions.push({ label: 'Em outra criatura', run: () => undefined });
     }
     if (out?.reminder) lines.push(out.reminder);
+    const typeLabel = damageTypeLabel(spell, dmgType);
+    const saveText = spell.save ? ` (salvaguarda de ${ABILITY_SHORT[spell.save]}, CD ${spellDC ?? '—'})` : '';
+    if (fixedDamage != null) lines.push(`${fixedDamage} de dano ${typeLabel}${saveText} — valor fixo, sem rolagem`);
+    // dano que vem depois (próximo acerto, quem entra na área): botão agora e no efeito ativo
+    if (later) {
+      const when = damageTiming(spell) === 'rider' ? 'no acerto (some ao dano do ataque)' : 'quando alguém entra, começa ou termina o turno na área';
+      const fixed = isFixedRoll(later);
+      lines.push(`Dano ${when}: ${castDiceLabel(later)} ${typeLabel}${saveText}`);
+      if (!fixed) {
+        actions.push({ label: `Rolar ${castDiceLabel(later)} agora`, run: () => { const r = rollCastDice(later); if (r) pushRoll(r); } });
+        const lasting = !/instant/i.test(spell.duration ?? '');
+        if (lasting) {
+          const until = spell.concentration ? 'concentration' : /rodada/i.test(spell.duration ?? '') ? 'turn' : 'rest';
+          const current = useCharacterStore.getState().characters.find((c) => c.id === char.id)?.combat.spellEffects?.find((e) => e.spellId === spell.id);
+          store.applySpellEffect(char.id, {
+            ...(current ?? { spellId: spell.id, name: spell.name, until, label: damageTiming(spell) === 'rider' ? `no acerto · ${typeLabel}` : `na área · ${typeLabel}` }),
+            roll: { ...later, when: `Dano ${when}` },
+          });
+          lines.push('O botão de rolar fica em Efeitos ativos, na aba Jogar, enquanto a magia durar.');
+        }
+      }
+    }
     if (healed !== null) {
       lines.push(`Cura rolada: ${healed} PV`);
       actions.unshift({ label: `Curar em mim (+${healed})`, primary: true, run: () => store.heal(char.id, healed) });
       if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
     }
     if (spell.concentration) lines.push('Concentração ligada');
-    const spent = isCantrip ? 'Truque (não gasta espaço)' : how === 'ritual' ? 'Ritual (+10 min, sem espaço)' : how === 'free' ? 'Sem gastar espaço' : `Espaço de ${slotLevel}º círculo`;
+    // componentes: magia de item não pede; espaço/ritual pedem material (ou foco/bolsa)
+    if (how === 'slot' || how === 'ritual' || (how === 'free' && isCantrip)) {
+      const m = materialWarning(char, spell);
+      if (m.line) lines.push(m.line);
+      if (m.warn && !warn) warn = m.warn;
+    }
+    const spent =
+      how === 'item' ? `${cost} carga${cost === 1 ? '' : 's'} · ${itemCast?.itemName ?? 'item'}${itemCast?.dc ? ` · CD ${itemCast.dc}` : ''}`
+      : isCantrip ? 'Truque (não gasta espaço)' : how === 'ritual' ? 'Ritual (+10 min, sem espaço)' : how === 'free' ? 'Sem gastar espaço' : `Espaço de ${slotLevel}º círculo`;
     pushCastNotice({
       title: `${spell.name}${!isCantrip && slotLevel > spell.level ? ` (${slotLevel}º)` : ''}`,
       sub: [spent, turnKey ? `${TURN_LABEL[turnKey]} usada` : spell.castingTime, spell.duration].filter(Boolean).join(' · '),
@@ -157,8 +196,9 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     saveType(spell.id, t);
   };
 
-  const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free') => {
+  const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0) => {
     setOpen(false);
+    if (how === 'item') itemCast?.onSpend(cost);
     if (spell.concentration) {
       // nova concentração encerra Bruxaria/Marca/efeitos anteriores; estas duas já ficam ligadas
       store.setMark(char.id, 'hex', spell.id === 'phb-hex');
@@ -170,9 +210,9 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
       if (!char.combat.concentration) store.toggleConcentration(char.id);
     }
     const lvl = isCantrip ? 0 : slotLevel;
-    const save = spell.save ? ` · CD ${derived.spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
+    const save = spell.save ? ` · CD ${spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
     const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
-    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing }) : null;
+    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod }) : null;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
@@ -180,27 +220,33 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
         return { total: r.total, crit: r.crit, fail: r.fail, pick: null };
       });
       setPending({ plan, attacks });
-      announce(slotLevel, how, null);
+      announce(slotLevel, how, null, undefined, cost);
       return;
     }
     if (spell.attack && derived.spellAttack !== null) {
       check(`${spell.name} · ataque de magia`, derived.spellAttack);
-      announce(slotLevel, how, null);
+      announce(slotLevel, how, null, undefined, cost);
       return;
     }
-    const dmg = damageRoll(spell, lvl, char.level, dmgType);
+    const dmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
+    const timing = damageTiming(spell);
     const heal = healRoll(spell, lvl, castMod);
     // Sono / Leque Cromático: rola o total de PV afetados (não é dano)
     const pool = hpPool(spell, isCantrip ? 0 : slotLevel);
     if (pool) {
       const r = roll(pool, '', false);
-      announce(slotLevel, how, null, r ? { total: r.total, effect: pool.effect, immune: pool.immune } : undefined);
+      announce(slotLevel, how, null, r ? { total: r.total, effect: pool.effect, immune: pool.immune } : undefined, cost);
       return;
     }
     let healed: number | null = null;
-    if (dmg) roll(dmg, save);
-    else if (heal) healed = roll(heal, '', false)?.total ?? null;
-    announce(slotLevel, how, healed);
+    // Bruxaria/Marca: a ficha soma nos seus ataques; Destruição/Raio Lunar: o dano vem depois
+    const later = dmg && (timing === 'rider' || timing === 'trigger') ? dmg : null;
+    let fixedDamage: number | null = null;
+    if (dmg && timing === 'now') {
+      if (isFixedRoll(dmg)) fixedDamage = dmg.bonus;
+      else roll(dmg, save);
+    } else if (!dmg && heal) healed = isFixedRoll(heal) ? heal.bonus : roll(heal, '', false)?.total ?? null;
+    announce(slotLevel, how, healed, undefined, cost, later, fixedDamage);
   };
 
   const ac = targetAc.trim() === '' ? null : Number(targetAc);
@@ -216,9 +262,15 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     if (!pending) return;
     const outcomes = pending.attacks.map((a) => outcomeOf(a) ?? 'miss');
     const dmg = spellHitDamage(pending.plan, outcomes);
+    const area = pending.plan.area;
     setPending(null);
+    // Faca de Gelo: a explosão sai acertando ou não
+    if (area) {
+      const ar = rollCastDice(area);
+      if (ar) pushRoll(ar);
+    }
     if (!dmg) return;
-    const r = rollEngine(dmg.sides, { count: dmg.count, modifier: dmg.bonus, label: dmg.label, damage: true, cantrip: isCantrip });
+    const r = rollCastDice(dmg, { cantrip: isCantrip })!;
     if (dmg.half) return pushRoll({ ...r, total: Math.floor(r.total / 2), expr: `(${r.expr}) ÷ 2` });
     // Bruxaria: +1d6 necrótico por acerto (dobra no crítico)
     const hits = outcomes.filter((o) => o !== 'miss').length;
@@ -233,6 +285,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
     if (pending) return setPending(null);
     // tipo à escolha: abre o menu mesmo quando só há um jeito de conjurar
     if (!typeOptions) {
+      if (itemCast) {
+        if (itemCast.options.length === 1) return fire(itemCast.options[0].level, 'item', itemCast.options[0].cost);
+        return setOpen((o) => !o);
+      }
       if (isCantrip || free) return fire(spell.level, 'free');
       if (options.length === 1 && !ritual) return fire(options[0].lv, 'slot');
     }
@@ -253,10 +309,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
         className={'fv-cast-btn' + (compact ? ' is-compact' : '') + (pending ? ' is-pending' : '') + (flash ? ' is-cast' : '') + ((char.combat.castThisTurn ?? []).includes(spell.id) && !pending ? ' is-used' : '')}
         onClick={onMain}
         disabled={noSlot && !ritual && !pending}
-        title={noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}
+        title={itemCast ? (noSlot ? `Sem cargas suficientes em ${itemCast.itemName}` : `Usar cargas de ${itemCast.itemName}`) : noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}
         aria-expanded={open || !!pending}
       >
-        ✦ {pending ? 'Acertou?' : isCantrip || free ? 'Usar' : 'Conjurar'}
+        ✦ {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
       </button>
 
       {open && !pending && (
@@ -273,7 +329,17 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
               </span>
             </>
           )}
-          {isCantrip || free ? (
+          {itemCast ? (
+            <>
+              <span className="fv-cast-pop-title">Gastar cargas de {itemCast.itemName}</span>
+              {itemCast.options.map((o) => (
+                <button key={o.level} type="button" role="menuitem" onClick={() => fire(o.level, 'item', o.cost)}>
+                  {o.level}º círculo <small>{o.cost} carga{o.cost === 1 ? '' : 's'}{o.level > spell.level ? ' · círculo maior' : ''}</small>
+                </button>
+              ))}
+              {itemCast.options.length === 0 && <span className="fv-cast-pop-empty">Sem cargas suficientes.</span>}
+            </>
+          ) : isCantrip || free ? (
             <button type="button" role="menuitem" onClick={() => fire(spell.level, 'free')}>
               {isCantrip ? 'Conjurar' : 'Usar'} <small>{damageTypeLabel(spell, dmgType)}</small>
             </button>
@@ -340,9 +406,11 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact }
                 ? `Rolar dano${pending.plan.beams > 1 ? ` (${hits} acerto${hits > 1 ? 's' : ''})` : ''}`
                 : pending.plan.missHalf
                   ? 'Errou — rolar metade do dano'
-                  : 'Errou — sem dano'}
+                  : pending.plan.area
+                    ? 'Errou — rolar só a explosão'
+                    : 'Errou — sem dano'}
           </button>
-          {pending.plan.note && hits > 0 && <span className="fv-cast-hit-note">{pending.plan.note}</span>}
+          {pending.plan.note && (hits > 0 || pending.plan.area) && <span className="fv-cast-hit-note">{pending.plan.note}</span>}
         </span>
       )}
     </span>

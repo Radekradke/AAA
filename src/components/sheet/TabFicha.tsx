@@ -15,6 +15,7 @@ import { modStr } from '@/engine/dice';
 import { expertiseSlots } from '@/engine/levelUp';
 import { calculateToolCheck } from '@/engine/toolCheck';
 import { Icon } from '@/components/ui/Icon';
+import { raceTraitInfo } from '@/data/raceTraits';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
 import { ClassFeaturesPanel } from './ClassFeaturesPanel';
@@ -113,9 +114,10 @@ export function TabFicha({ char, derived }: TabProps) {
         </div>
       </Panel>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}>
+      {/* PC: perícias e características à esquerda, proficiências à direita (sem buraco sob as perícias) */}
+      <div className="fv-ficha-grid">
         {/* ===== perícias: treinadas à vista + modal com as 18 ===== */}
-        <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
+        <Panel className="fv-ficha-skills" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
             <div className="fv-label">Perícias</div>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
@@ -157,15 +159,15 @@ export function TabFicha({ char, derived }: TabProps) {
           </div>
           <button
             onClick={() => setSkillsOpen(true)}
-            className="fv-btn-gold"
-            style={{ marginTop: 13, width: '100%', minHeight: 42, fontSize: 13.5 }}
+            className="fv-btn-ghost"
+            style={{ marginTop: 13, width: '100%', minHeight: 40, fontSize: 13 }}
           >
-            Ver todas as 18 perícias
+            Ver todas as 18 perícias ›
           </button>
         </Panel>
 
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
-        <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
+        <Panel className="fv-ficha-profs" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
           <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
           {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
           <dl className="fv-profs">
@@ -334,10 +336,12 @@ export function TabFicha({ char, derived }: TabProps) {
           )}
           <RaceTraits char={char} />
         </Panel>
-      </div>
 
-      {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
-      <ClassFeaturesPanel char={char} />
+        {/* características de classe nível a nível + escolhas (Metamagia, Estilo de Luta…) */}
+        <div className="fv-ficha-feats">
+          <ClassFeaturesPanel char={char} />
+        </div>
+      </div>
 
       {skillsOpen && <SkillsModal char={char} derived={derived} onClose={() => setSkillsOpen(false)} />}
     </div>
@@ -359,7 +363,7 @@ function RaceTraits({ char }: { char: TabProps['char'] }) {
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {names.map((n) => {
-          const d = details.find((t) => t.name === n)?.desc;
+          const d = details.find((t) => t.name === n)?.desc || raceTraitInfo(n);
           return d ? (
             <LoreTooltip key={n} info={passiveLore(n, race.label, d, [race.homebrew ? 'Homebrew' : 'Traço racial'])}>
               <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>{n}</span>

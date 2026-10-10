@@ -129,7 +129,7 @@ Leal e Bom, Neutro e Bom, Caótico e Bom, Leal e Neutro, Neutro, Caótico e Neut
 |---|---|---|---|
 | Humano | +1 em tudo | — | Comum, 1 idioma à escolha |
 | Elfo | +2 Destreza | Alto Elfo (+1 INT) · Elfo da Floresta (+1 SAB · +1,5 m) · Drow (+1 CAR) | Comum, Élfico |
-| Anão | +2 Constituição | Anão da Colina (+1 SAB · +1 PV/nível) · Anão da Montanha (+2 FOR) | Comum, Anão |
+| Anão | +2 Constituição | Anão da Colina (+1 SAB · +1 PV/nível) · Anão da Montanha (+2 FOR · armaduras médias) | Comum, Anão |
 | Halfling | +2 Destreza | Pés Leves (+1 CAR) · Robusto (+1 CON) | Comum, Halfling |
 | Meio-Elfo | +2 CAR · +1 / +1 à escolha — os 2 atributos à escolha (não CAR) vão em `bonusRacialEscolhido` | — | Comum, Élfico, 1 idioma à escolha |
 | Meio-Orc | +2 FOR · +1 CON | — | Comum, Orc |

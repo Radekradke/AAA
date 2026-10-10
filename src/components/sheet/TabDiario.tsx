@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
-import { Panel } from '@/components/ui/Panel';
-import { useCharacterStore } from '@/store/characterStore';
-import { JournalCard } from '@/components/diary/JournalCard';
-import { hexA } from '@/lib/color';
-import { useTheme } from '@/lib/useTheme';
 import { Icon } from '@/components/ui/Icon';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { useSheetNpcs, MentionField, NpcMentionChip, mentionedNpcs } from '@/components/diary/NpcMentions';
-import { HandoutModal } from '@/components/stage/Handouts';
+import { useTheme } from '@/lib/useTheme';
 import { stageService } from '@/services/stageService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 import type { Handout } from '@/types/stage';
+import type { DiarySection } from '@/engine/diary';
+import { diaryOf, sectionHits } from '@/engine/diary';
+import { useMentionables } from '@/components/diary/useMentionables';
+import { DiaryNotes } from '@/components/diary/DiaryNotes';
+import { Chronicle } from '@/components/diary/Chronicle';
+import { GuildBoard } from '@/components/diary/GuildBoard';
+import { Clues } from '@/components/diary/Clues';
+import { People } from '@/components/diary/People';
+import { DiaryNavContext } from '@/components/diary/DiaryNav';
+import type { DiaryNavApi } from '@/components/diary/DiaryNav';
 import '@/styles/session.css';
 import '@/styles/stage.css';
+import '@/styles/diary.css';
 
 /** Pistas (handouts) que o mestre entregou nas mesas desta ficha — com cópia offline. */
 function useSheetHandouts(sheetId: string): Handout[] {
@@ -37,113 +41,122 @@ function useSheetHandouts(sheetId: string): Handout[] {
   return list;
 }
 
+/** Aba ativa visível na barra (rola só a barra, nunca a página). */
+function centerTab(el: HTMLButtonElement | null) {
+  const nav = el?.parentElement;
+  if (!el || !nav || nav.scrollWidth <= nav.clientWidth) return;
+  nav.scrollLeft = el.offsetLeft - nav.offsetLeft - (nav.clientWidth - el.offsetWidth) / 2;
+}
+
+type Section = DiarySection;
+const SECTION_KEY = 'fv-diary-section';
+
+/**
+ * Aba Diário — o caderno de campanha do jogador (pessoal, fica na ficha):
+ * Rabiscos (anotação rápida), Crônica (uma página por sessão, com @NPCs,
+ * @heróis do grupo e #lugares), Quadro da Guilda (missões) e Pistas (com
+ * imagem, verificação e as entregas do mestre).
+ */
 export function TabDiario({ char }: TabProps) {
   const t = useTheme();
-  const store = useCharacterStore();
   const [query, setQuery] = useState('');
-  // NPCs das mesas desta ficha: @ para citar, retrato ao passar o mouse
-  const npcs = useSheetNpcs(char.id);
-  const clues = useSheetHandouts(char.id);
-  const [clue, setClue] = useState<Handout | null>(null);
+  const { people, places } = useMentionables(char);
+  const handouts = useSheetHandouts(char.id);
+  const [section, setSection] = useState<Section>(() => {
+    try {
+      return (localStorage.getItem(SECTION_KEY) as Section) || 'notes';
+    } catch {
+      return 'notes';
+    }
+  });
+  const go = (s: Section) => {
+    setSection(s);
+    try {
+      localStorage.setItem(SECTION_KEY, s);
+    } catch {
+      /* sem armazenamento: só não lembra */
+    }
+  };
+  const diary = diaryOf(char);
+  const openNotes = diary.notes.filter((n) => !n.done).length;
+  const tabs: { id: Section; label: string; count: number }[] = [
+    { id: 'notes', label: 'Rabiscos', count: openNotes },
+    { id: 'chronicle', label: 'Crônica', count: char.journal.length },
+    { id: 'board', label: 'Quadro da Guilda', count: diary.quests.filter((q) => q.status === 'active').length },
+    { id: 'clues', label: 'Pistas', count: diary.clues.filter((c) => c.status === 'unverified').length },
+    { id: 'people', label: 'Pessoas', count: 0 },
+  ];
+  const current = tabs.some((x) => x.id === section) ? section : 'notes';
 
-  const entries = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return char.journal;
-    return char.journal.filter((j) =>
-      [j.title, j.date, j.summary, j.npcs, j.locations, j.quests, j.treasure, j.notes]
-        .join(' ')
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [char.journal, query]);
+  // ligações: qualquer item pode abrir outro (menção → pessoa, pista → missão…)
+  const [focus, setFocus] = useState<DiaryNavApi['focus']>(null);
+  const nav = useMemo<DiaryNavApi>(
+    () => ({
+      go: (s, id) => {
+        go(s);
+        if (id) {
+          setQuery('');
+          setFocus({ section: s, id });
+        }
+      },
+      focus,
+      clearFocus: () => setFocus(null),
+    }),
+    [focus],
+  );
+
+  // a busca vale para o diário inteiro: mostra onde mais há resultado
+  const hits = useMemo(() => sectionHits(char, query), [char, query]);
+  const elsewhere = query.trim() ? tabs.filter((x) => x.id !== current && x.id !== 'people' && hits[x.id as keyof typeof hits] > 0) : [];
 
   return (
-    <div className="animate-riseIn">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <DiaryNavContext.Provider value={nav}>
+    <div className="animate-riseIn fv-diary">
+      <header className="fv-diary-head">
+        <div className="fv-diary-title">
           <Icon name="quill" size={22} color={t.gold} />
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--ink)', lineHeight: 1 }}>Crônica da Aventura</div>
-            <div style={{ marginTop: 3, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-              {char.journal.length} sessão(ões) registradas
-            </div>
+            <h2>Diário de Campanha</h2>
+            <small>pessoal · só você vê</small>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            className="fv-input"
-            placeholder="Buscar no diário…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ width: 200, fontSize: 13, padding: '9px 13px' }}
-          />
-          <button onClick={() => store.addJournalEntry(char.id)} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: 'var(--gold)', padding: '9px 18px', borderRadius: 999, border: '1px solid var(--gold)', background: hexA(t.gold, 0.08) }}>
-            + Nova sessão
+        <input className="fv-input fv-diary-search" placeholder="Buscar no diário…" aria-label="Buscar no diário" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </header>
+
+      <nav className="fv-diary-tabs" role="tablist" aria-label="Seções do diário">
+        {tabs.map((x) => (
+          <button
+            key={x.id}
+            type="button"
+            role="tab"
+            aria-selected={current === x.id}
+            className={current === x.id ? 'is-on' : ''}
+            ref={current === x.id ? centerTab : undefined}
+            onClick={() => go(x.id)}
+          >
+            {x.label}
+            {x.count > 0 && <small>{x.count}</small>}
           </button>
-        </div>
-      </div>
-
-      {/* Anotações rápidas */}
-      <Panel style={{ marginBottom: 14 }}>
-        <div className="fv-label" style={{ marginBottom: 10 }}>Anotações rápidas</div>
-        <MentionField
-          value={char.notes}
-          onChange={(v) => store.setNotes(char.id, v)}
-          npcs={npcs}
-          placeholder={`Ideias, lembretes, segredos do mestre que você descobriu…${npcs.length ? ' (@ cita um NPC)' : ''}`}
-          rows={3}
-          className="fv-input"
-          style={{ resize: 'vertical', lineHeight: 1.6 }}
-        />
-        {mentionedNpcs([char.notes], npcs).length > 0 && (
-          <div className="fv-npc-cited">
-            <span>Citados</span>
-            {mentionedNpcs([char.notes], npcs).map((n) => <NpcMentionChip key={n.id} npc={n} />)}
-          </div>
-        )}
-      </Panel>
-
-      {/* Pistas entregues pelo mestre na mesa */}
-      {clues.length > 0 && (
-        <Panel style={{ marginBottom: 14 }}>
-          <div className="fv-label" style={{ marginBottom: 10 }}>Pistas da mesa · {clues.length}</div>
-          <div className="fv-diary-clues">
-            {clues.map((h) => (
-              <button key={h.id} type="button" className="fv-handout-open" onClick={() => setClue(h)}>
-                <span className="fv-handout-seal" aria-hidden>✉</span>
-                <span>
-                  <b>{h.title}</b>
-                  <small>{h.shownAt ? new Date(h.shownAt).toLocaleDateString('pt-BR') : ''}{h.recipients ? ' · só para você' : ''}</small>
-                </span>
-              </button>
-            ))}
-          </div>
-          {clue && <HandoutModal handout={clue} onClose={() => setClue(null)} />}
-        </Panel>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 14 }}>
-        {entries.map((entry) => (
-          <JournalCard
-            key={entry.id}
-            entry={entry}
-            onChange={(patch) => store.updateJournalEntry(char.id, entry.id, patch)}
-            onDelete={() => store.deleteJournalEntry(char.id, entry.id)}
-            npcs={npcs}
-          />
         ))}
-      </div>
+      </nav>
 
-      {char.journal.length === 0 && (
-        <EmptyState
-          icon="quill"
-          title="O diário está em branco"
-          hint={<>Clique em <b style={{ color: 'var(--gold)' }}>Nova sessão</b> para registrar sua primeira aventura — NPCs, lugares, missões e tesouros.</>}
-        />
+      {elsewhere.length > 0 && (
+        <p className="fv-diary-elsewhere" role="status">
+          Também em:
+          {elsewhere.map((x) => (
+            <button key={x.id} type="button" className="fv-mini-tag" onClick={() => go(x.id)}>
+              {x.label} <b>{hits[x.id as keyof typeof hits]}</b>
+            </button>
+          ))}
+        </p>
       )}
-      {char.journal.length > 0 && entries.length === 0 && (
-        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Nenhuma sessão corresponde à busca.</p>
-      )}
+
+      {current === 'notes' && <DiaryNotes char={char} people={people} places={places} query={query} />}
+      {current === 'chronicle' && <Chronicle char={char} people={people} places={places} query={query} />}
+      {current === 'board' && <GuildBoard char={char} people={people} places={places} query={query} />}
+      {current === 'clues' && <Clues char={char} people={people} places={places} query={query} handouts={handouts} />}
+      {current === 'people' && <People char={char} people={people} places={places} query={query} />}
     </div>
+    </DiaryNavContext.Provider>
   );
 }

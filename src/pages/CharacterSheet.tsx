@@ -28,6 +28,7 @@ import { downloadCharacterJson } from '@/lib/exportCharacter';
 const SheetHistoryModal = lazy(() => import('@/components/sheet/SheetHistoryModal').then((m) => ({ default: m.SheetHistoryModal })));
 const ShareSheetModal = lazy(() => import('@/components/sheet/ShareSheetModal').then((m) => ({ default: m.ShareSheetModal })));
 const TabRetrato = lazy(() => import('@/components/sheet/TabRetrato').then((m) => ({ default: m.TabRetrato })));
+const QuickNote = lazy(() => import('@/components/diary/QuickNote').then((m) => ({ default: m.QuickNote })));
 const TabDiario = lazy(() => import('@/components/sheet/TabDiario').then((m) => ({ default: m.TabDiario })));
 
 export function CharacterSheet() {
@@ -112,9 +113,15 @@ export function CharacterSheet() {
     toast('Ficha exportada como arquivo JSON.');
   };
 
+  // regras desta ficha: ficam na aba Evoluir; o selo do cabeçalho leva direto ao painel
+  const openRules = () => {
+    setTab('evoluir');
+    setTimeout(() => document.getElementById('fv-regras')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  };
+
   const renderTab = () => {
     switch (activeTab) {
-      case 'mesa': return <TabMesa char={char} derived={derived} />;
+      case 'mesa': return <TabMesa char={char} derived={derived} goTab={setTab} />;
       case 'evoluir': return <TabEvoluir char={char} derived={derived} />;
       case 'combate': return <TabCombate char={char} derived={derived} />;
       case 'inventario': return <TabInventario char={char} derived={derived} />;
@@ -134,18 +141,16 @@ export function CharacterSheet() {
         <>
           <RollModeToggle />
           <Button variant="accent" className="fv-hide-mobile" onClick={() => setEditing(true)} style={{ fontSize: 12.5 }}>Editar</Button>
-          <Button className="fv-hide-mobile" onClick={() => navigate('/personagens')} style={{ fontSize: 12.5 }}>Heróis</Button>
         </>
       }
       menu={[
         { label: 'Editar personagem', icon: 'edit', onClick: () => setEditing(true), mobileOnly: true },
-        { label: 'Voltar aos heróis', icon: 'banner', onClick: () => navigate('/personagens'), mobileOnly: true },
-        { label: 'Ficha ilustrada / imprimir', icon: 'book', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
-        { label: 'Histórico e versões', icon: 'book', onClick: () => setHistory(true) },
-        { label: 'Exportar ficha (JSON)', icon: 'quill', onClick: exportJson },
+        { label: 'Ficha ilustrada / imprimir', icon: 'print', onClick: () => navigate(`/ficha/${char.id}/imprimir`) },
+        { label: 'Histórico e versões', icon: 'history', onClick: () => setHistory(true) },
+        { label: 'Exportar ficha (JSON)', icon: 'download', onClick: exportJson },
         {
           label: 'Tour pela ficha',
-          icon: 'spark',
+          icon: 'compass',
           onClick: () => {
             setTab('mesa');
             setTimeout(() => startTour('sheet'), 250);
@@ -162,7 +167,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} onRules={openRules} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />
@@ -173,6 +178,10 @@ export function CharacterSheet() {
       </div>
 
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
+      {/* anotação rápida em qualquer aba: vai para os Rabiscos do Diário */}
+      <Suspense fallback={null}>
+        <QuickNote char={char} />
+      </Suspense>
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
       {sharing && (

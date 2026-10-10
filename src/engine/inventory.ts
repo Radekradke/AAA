@@ -2,6 +2,7 @@ import type { Item, WeaponData } from '@/types/dnd';
 import type { Character, EquippedSlots, InventoryItem } from '@/types/character';
 import { getItem } from '@/data/items';
 import { BODY_SLOTS, bodySlotOf } from './bodySlots';
+import { getClass } from '@/data/classes';
 
 let _seq = 0;
 function invUid(): string {
@@ -26,10 +27,12 @@ export function itemToInventory(item: Item, quantity = 1): InventoryItem {
     armor: item.armor,
     acBonus: item.acBonus,
     attunement: item.attunement,
+    attuneBy: item.attuneBy,
     value: item.value,
     magic: item.magic,
     heal: item.heal,
     grantsSpells: item.grantsSpells,
+    charges: item.charges,
     // anel, capa, botas…: chega guardado (vestir é escolha do jogador)
     worn: bodySlotOf({ name: item.name, category: item.category }) ? false : undefined,
   };
@@ -101,14 +104,16 @@ export function itemIsActive(char: Character, it: InventoryItem, needsAttunement
 }
 
 /** Qual slot um item ocupa quando equipado. */
+const weaponOf = (it: InventoryItem | undefined): WeaponData | undefined => (it ? it.weapon ?? getItem(it.itemId)?.weapon : undefined);
+
 export function slotForItem(it: InventoryItem): keyof EquippedSlots | null {
   if (it.category === 'armor') return 'armor';
   if (it.category === 'shield') return 'shield';
-  if (it.weapon) return it.weapon.range === 'ranged' ? 'ranged' : 'mainHand';
+  // arma — ou item que serve de arma (cajado = bordão), mesmo em cópias antigas da mochila
+  const w = weaponOf(it);
+  if (w) return w.range === 'ranged' ? 'ranged' : 'mainHand';
   return null;
 }
-
-const weaponOf = (it: InventoryItem | undefined): WeaponData | undefined => (it ? it.weapon ?? getItem(it.itemId)?.weapon : undefined);
 const hasProp = (w: WeaponData | undefined, re: RegExp) => !!w?.properties.some((p) => re.test(p));
 export const isTwoHanded = (w: WeaponData | undefined) => hasProp(w, /duas m[ãa]os/i);
 export const isLightWeapon = (w: WeaponData | undefined) => hasProp(w, /^leve$/i);
@@ -267,3 +272,33 @@ export function moveItemTo(char: Character, uid: string, target: ContainerId): M
   return { ok: true };
 }
 
+const CLASS_PLURAL: Record<string, string> = {
+  bard: 'bardos', cleric: 'clérigos', druid: 'druidas', paladin: 'paladinos', ranger: 'patrulheiros',
+  sorcerer: 'feiticeiros', warlock: 'bruxos', wizard: 'magos', fighter: 'guerreiros', rogue: 'ladinos', monk: 'monges', barbarian: 'bárbaros',
+};
+/** Subclasses que conjuram (Cavaleiro Arcano, Trapaceiro Arcano) contam como conjuradoras. */
+const THIRD_CASTER_SUBS = new Set(['eldritch', 'trickster']);
+
+/** Classes do personagem (multiclasse incluída). */
+function classesOf(char: Character): string[] {
+  const ids = (char.classLevels ?? []).filter((c) => c.level > 0).map((c) => c.classId);
+  return ids.length ? ids : [char.classId];
+}
+
+/**
+ * Sintonia restrita (Guia do Mestre): "requer sintonia por um mago", "por
+ * um conjurador"… Devolve o motivo do bloqueio, ou null se pode sintonizar.
+ */
+export function attunementBlock(char: Character, it: InventoryItem): string | null {
+  const by = it.homebrew ? it.attuneBy : getItem(it.itemId)?.attuneBy ?? it.attuneBy;
+  if (!by?.length) return null;
+  const classes = classesOf(char);
+  if (by.some((b) => classes.includes(b))) return null;
+  if (by.includes('spellcaster')) {
+    const caster = classes.some((c) => getClass(c)?.spellcasting) || (!!char.subclassId && THIRD_CASTER_SUBS.has(char.subclassId));
+    if (caster) return null;
+  }
+  const who = by.map((b) => (b === 'spellcaster' ? 'conjuradores' : CLASS_PLURAL[b] ?? b));
+  const list = who.length > 1 ? `${who.slice(0, -1).join(', ')} ou ${who[who.length - 1]}` : who[0];
+  return `${it.name} só aceita sintonia de ${list}.`;
+}

@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { IconName } from '@/components/ui/Icon';
-import { CREATION_STEPS } from '@/engine/creationSummary';
+import { CREATION_STEPS, visibleSteps } from '@/engine/creationSummary';
+import type { Character } from '@/types/character';
 import { GAME_ICONS } from '@/components/ui/gameIcons';
 import { GlyphIcon } from './RaceIcon';
 import type { Fact } from '@/engine/creationSummary';
@@ -11,14 +12,16 @@ import type { Fact } from '@/engine/creationSummary';
  * painel de detalhe que diz o que a escolha coloca na ficha.
  */
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
 
 /** Cabeçalho da etapa: capítulo, título e uma linha de contexto. */
-export function StepHeader({ step, subtitle }: { step: number; subtitle?: string }) {
+export function StepHeader({ step, subtitle, char }: { step: number; subtitle?: string; char?: Character }) {
   const s = CREATION_STEPS[step];
+  // numeração pelas etapas que este herói percorre ("Magias" some para quem não conjura)
+  const n = char ? Math.max(0, visibleSteps(char).indexOf(step)) : step;
   return (
     <header className="fv-step-head">
-      <div className="fv-step-eyebrow"><span className="fv-step-num" aria-hidden>{String(step + 1).padStart(2, '0')}</span>Capítulo {ROMAN[step]}</div>
+      <div className="fv-step-eyebrow"><span className="fv-step-num" aria-hidden>{String(n + 1).padStart(2, '0')}</span>Capítulo {ROMAN[n]}</div>
       <h2>{s.title}</h2>
       <p>{subtitle ?? s.subtitle}</p>
     </header>
@@ -45,24 +48,34 @@ export function OptionGrid({ label, children, compact }: { label: string; childr
 }
 
 /** Placa de opção: ícone, nome e uma linha que diz para que serve. */
-export function OptionTile({ icon, label, line, color, selected, onSelect }: {
+export function OptionTile({ icon, visual, label, line, color, selected, onSelect, onPreview, disabled }: {
   /** Ícone do app ou de raça (inclui os extras das raças homebrew). */
   icon: IconName | string;
+  /** Arte ou ícone próprio no lugar do glifo (ex.: a arte do instrumento). */
+  visual?: ReactNode;
   label: string;
   line: string;
   color: string;
   selected: boolean;
   onSelect: () => void;
+  /** Passar o mouse/focar mostra a opção no painel sem escolher. */
+  onPreview?: (on: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className={'fv-option' + (selected ? ' is-selected' : '')}
+      onMouseEnter={onPreview && (() => onPreview(true))}
+      onMouseLeave={onPreview && (() => onPreview(false))}
+      onFocus={onPreview && (() => onPreview(true))}
+      onBlur={onPreview && (() => onPreview(false))}
+      disabled={disabled}
+      className={'fv-option' + (selected ? ' is-selected' : '') + (visual ? ' has-visual' : '')}
       style={{ ['--opt-color' as string]: color } as CSSProperties}
     >
-      <GlyphIcon name={icon} size={30} className="fv-option-icon" />
+      {visual ? <span className="fv-option-visual" aria-hidden>{visual}</span> : <GlyphIcon name={icon} size={30} className="fv-option-icon" />}
       <span className="fv-option-name">{label}</span>
       <span className="fv-option-line">{line}</span>
     </button>
@@ -70,8 +83,15 @@ export function OptionTile({ icon, label, line, color, selected, onSelect }: {
 }
 
 /** Painel da escolha atual: identidade da opção + o que ela concede. */
-export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, children }: {
+export function ChoiceDetail({ icon, visual, media, color, eyebrow, title, tag, desc, facts, factsTitle, actions, children }: {
+  /** Ação principal logo abaixo da descrição (antes da lista "Na ficha"). */
+  actions?: ReactNode;
   icon: IconName | string;
+  /** Ícone próprio no lugar do glifo (ex.: escola da magia). */
+  visual?: ReactNode;
+  /** Arte grande (carta do item) no lugar da caixinha do ícone. */
+  media?: ReactNode;
+  factsTitle?: string;
   color: string;
   eyebrow: string;
   title: string;
@@ -83,9 +103,11 @@ export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, ch
   return (
     <section className="fv-detail" style={{ ['--opt-color' as string]: color } as CSSProperties} aria-live="polite">
       <div className="fv-detail-head">
-        <div className="fv-detail-icon">
-          <GlyphIcon name={icon} size={40} />
-        </div>
+        {media ?? (
+          <div className="fv-detail-icon">
+            {visual ?? <GlyphIcon name={icon} size={40} />}
+          </div>
+        )}
         <div style={{ minWidth: 0 }}>
           <div className="fv-detail-eyebrow">{eyebrow}</div>
           <h3>{title}</h3>
@@ -93,22 +115,23 @@ export function ChoiceDetail({ icon, color, eyebrow, title, tag, desc, facts, ch
         </div>
       </div>
       <p className="fv-detail-desc" title={desc}>{desc}</p>
-      {facts && facts.length > 0 && <FactList facts={facts} />}
+      {actions}
+      {facts && facts.length > 0 && <FactList facts={facts} title={factsTitle} />}
       {children}
     </section>
   );
 }
 
 /** "Na ficha": o que a escolha concede, em pares rótulo → valor. */
-export function FactList({ facts, title = 'Na ficha' }: { facts: Fact[]; title?: string }) {
+export function FactList({ facts, title = 'Na ficha', stacked }: { facts: Fact[]; title?: string; stacked?: boolean }) {
   return (
-    <div className="fv-facts">
+    <div className={'fv-facts' + (stacked ? ' is-stacked' : '')}>
       <div className="fv-facts-title">{title}</div>
       <dl>
         {facts.map((f) => (
           <div key={f.label}>
             <dt>{f.label}</dt>
-            <dd>{f.value}</dd>
+            <dd title={f.title}>{f.value}</dd>
           </div>
         ))}
       </dl>

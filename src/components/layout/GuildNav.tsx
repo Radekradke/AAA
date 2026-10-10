@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 /** Telas "de hub", onde a barra inferior aparece no celular. */
-const MOBILE_HUBS = ['/', '/personagens', '/mesas', '/retratos', '/config'];
+const MOBILE_HUBS = ['/', '/personagens', '/mesas', '/config'];
 
 /**
  * Navegação do tema Guilda Rubra: barra lateral compacta no PC (ícone com
@@ -30,12 +30,11 @@ export function GuildNav() {
   if (!user || pathname.endsWith('/jogar')) return null;
 
   const items: NavItem[] = [
-    { label: 'Início', icon: 'spark', to: '/', match: (p) => p === '/' },
+    { label: 'Início', icon: 'home', to: '/', match: (p) => p === '/' },
     { label: 'Heróis', icon: 'crest', to: '/personagens', match: (p) => p === '/personagens' },
     ...(hasCurrent ? [{ label: 'Ficha', icon: 'quill' as IconName, to: `/ficha/${currentId}`, match: (p: string) => p.startsWith('/ficha/') }] : []),
     { label: 'Mesas', icon: 'banner', to: '/mesas', match: (p) => p === '/mesas' || p.startsWith('/mesa/') },
-    { label: 'Retratos', icon: 'image', to: '/retratos', match: (p) => p === '/retratos' },
-    { label: 'Ajustes', icon: 'gear', to: '/config', match: (p) => p === '/config' },
+    { label: 'Ajustes', icon: 'gear', to: '/config', match: (p) => p === '/config' || p === '/retratos' || p === '/diagnostico' },
   ];
   const onHub = MOBILE_HUBS.includes(pathname);
 

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { catchUpHeroEvents } from '@/store/sessionStore';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -76,6 +77,11 @@ export function CampaignRoom() {
     return subscribeRoom(id, load);
   }, [id, load]);
 
+  // jogador: dano, cura, XP e itens que o mestre mandou enquanto o app estava fechado
+  useEffect(() => {
+    if (campaign && user && !user.guest && campaign.masterId !== user.id) void catchUpHeroEvents(campaign.id, campaign.masterId, true);
+  }, [campaign, user]);
+
   // mestre: garante um convite reutilizável (com código curto e QR)
   useEffect(() => {
     if (campaign && user && isMaster) {
@@ -98,7 +104,7 @@ export function CampaignRoom() {
   const sharedIds = new Set(shares.map((s) => s.share.sheetId));
 
   return (
-    <Screen scroll actions={<Button onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>Mesas</Button>}>
+    <Screen scroll actions={<Button className="fv-below-nav" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>‹ Mesas</Button>}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
         <div className="fv-label" style={{ marginBottom: 4 }}>{isMaster ? 'Você comanda esta mesa' : 'Mesa de campanha'}</div>
         <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(21px,3.6vw,28px)', color: 'var(--ink)' }}>
@@ -178,7 +184,7 @@ export function CampaignRoom() {
               );
             })}
             <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>
-              Ao vincular, o mestre passa a ver o snapshot da sua ficha (atributos, PV, CA, recursos). Desvincule quando quiser.
+              Ao vincular, o mestre passa a ver uma cópia da sua ficha (atributos, PV, CA, recursos), atualizada quando você sincroniza. O seu Diário continua só seu. Desvincule quando quiser.
             </p>
           </div>
         )}
@@ -223,7 +229,7 @@ export function CampaignRoom() {
                       {k === 'nota' ? 'Nota' : k === 'npc' ? 'NPC' : 'Missão'}
                     </button>
                   ))}
-                  <input className="fv-input" placeholder="Título" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                  <input className="fv-input" placeholder="Título (obrigatório)" aria-label="Título da nota" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <input className="fv-input" placeholder="Detalhes (opcional)" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} style={{ flex: '1 1 220px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
@@ -233,6 +239,7 @@ export function CampaignRoom() {
                       void campaignNotes.add(campaign.id, user.id, noteKind, noteTitle, noteBody).then(() => { setNoteTitle(''); setNoteBody(''); load(); });
                     }}
                     disabled={!noteTitle.trim()}
+                    title={noteTitle.trim() ? 'Registrar na crônica da mesa' : 'Escreva um título para registrar'}
                     className="fv-btn-gold"
                     style={{ minHeight: 38, padding: '0 18px', fontSize: 13, opacity: noteTitle.trim() ? 1 : 0.5 }}
                   >
@@ -272,7 +279,7 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
   if (!snapshot) {
     return (
       <div className="fv-surface" style={{ padding: 14, fontSize: 12.5, color: 'var(--muted)' }}>
-        Ficha vinculada — snapshot ainda não sincronizado (peça ao jogador para abrir o app online).
+        Ficha vinculada, mas ainda não chegou à nuvem. Peça ao jogador para abrir o app com internet.
       </div>
     );
   }

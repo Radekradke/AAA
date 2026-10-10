@@ -3,6 +3,11 @@ import type { Breakdown } from '@/engine/effects';
 import { breakdownBody } from '@/engine/effects';
 import { ABILITY_LABELS, ABILITY_SHORT, SKILL_BY_KEY } from '@/data/skills';
 import { getCondition } from '@/data/conditions';
+import type { SpellAutomation } from '@/engine/spellAutomation';
+import { spellAutomation } from '@/engine/spellAutomation';
+import { itemDescription } from '@/data/itemDescriptions';
+import { itemTags } from '@/engine/itemTags';
+import { spellArt, spellRarity } from './spellArt';
 
 export interface LoreInfo {
   title: string;
@@ -11,6 +16,18 @@ export interface LoreInfo {
   tags?: string[];
   /** Arte (item com imagem): aparece como carta ao lado do texto. */
   art?: { src: string; rarity: string };
+  /** Cor do nome (raridade do item, como no BG3). */
+  titleColor?: string;
+  /** Número em destaque: dano da arma, CA da armadura, cura da poção. */
+  headline?: { value: string; label?: string };
+  /** Propriedades e efeitos, uma por linha (Versátil, Acuidade, +1 CA…). */
+  props?: string[];
+  /** Rodapé discreto: peso e preço. */
+  footer?: string[];
+  /** Magias: o que a ficha aplica, o que só rola e o que fica com a mesa. */
+  automation?: SpellAutomation;
+  /** Descrição imersiva do item (em itálico, antes das regras). */
+  flavor?: string;
 }
 
 export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
@@ -51,6 +68,11 @@ export const ABILITY_LORE: Record<AbilityKey, LoreInfo> = {
     tags: ['CAR', 'Social', 'Conjuração'],
   },
 };
+
+/** O que cada perícia cobre, numa frase. */
+export function skillDescription(key: SkillKey): string {
+  return SKILL_LORE[key];
+}
 
 const SKILL_LORE: Record<SkillKey, string> = {
   acrobatics: 'Usada para equilíbrio, piruetas, escapar de quedas, atravessar superfícies estreitas e movimentos ágeis.',
@@ -123,64 +145,152 @@ export function spellLore(spell: Spell): LoreInfo {
   const body = [spell.desc, lines.join('\n'), spell.higher ? `Em círculos superiores: ${spell.higher}` : '']
     .filter(Boolean)
     .join('\n\n');
+  const art = spellArt(spell.id);
   return {
+    ...(art && { art: { src: art, rarity: spellRarity(spell.level) } }),
     title: spell.name,
     subtitle: `${circle} · ${spell.school}`,
     body: body || 'Magia sem descrição.',
     tags: [circle, spell.school, ...(spell.tags ?? [])],
+    automation: spellAutomation(spell),
   };
 }
 
+export const ITEM_CATEGORY_LABEL: Record<string, string> = {
+  weapon: 'Arma', armor: 'Armadura', shield: 'Escudo', gear: 'Equipamento', tool: 'Ferramenta',
+  consumable: 'Consumível', wondrous: 'Item maravilhoso', ring: 'Anel', treasure: 'Tesouro', other: 'Outro',
+};
+const RARITY_LORE: Record<string, { label: string; color: string }> = {
+  comum: { label: 'Comum', color: '#C9D2DC' },
+  incomum: { label: 'Incomum', color: '#3FC56B' },
+  raro: { label: 'Raro', color: '#4D9BFF' },
+  'muito-raro': { label: 'Muito raro', color: '#B061FF' },
+  lendario: { label: 'Lendário', color: '#FFA033' },
+};
+const ATTUNE_WHO: Record<string, string> = {
+  spellcaster: 'conjurador', bard: 'bardo', cleric: 'clérigo', druid: 'druida', paladin: 'paladino', sorcerer: 'feiticeiro', warlock: 'bruxo', wizard: 'mago',
+};
+
+/** Preço do livro em po/pp/pc ("15 po", "5 pp", "1 pc"). */
+export function priceLabel(gp: number | undefined): string | null {
+  if (!gp) return null;
+  if (gp >= 1) return `${gp.toLocaleString('pt-BR')} po`;
+  if (gp >= 0.1) return `${Math.round(gp * 10)} pp`;
+  return `${Math.max(1, Math.round(gp * 100))} pc`;
+}
+
+/**
+ * Dica de item no estilo BG3: nome na cor da raridade, tipo, o número que
+ * importa (dano, CA, cura), propriedades, uma descrição curta e, no
+ * rodapé, peso e preço.
+ */
 export function itemLore(item: {
+  /** Id do catálogo (item do livro) ou `itemId` (instância na mochila): acha a descrição. */
+  id?: string;
+  itemId?: string;
+  group?: string;
   name: string;
   category: string;
   rarity: Rarity | string;
   note: string;
   weight: number;
+  value?: number;
   weapon?: WeaponData;
   armor?: ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  attuneBy?: string[];
   magic?: MagicEffects;
   heal?: string;
+  charges?: { max: number };
 }): LoreInfo {
-  const tags = [item.category, item.rarity];
+  const rarity = RARITY_LORE[item.rarity] ?? RARITY_LORE.comum;
   const m = item.magic;
+  const w = item.weapon;
+  const a = item.armor;
   const auto = m
     ? [
-        m.ac ? `+${m.ac} CA${m.unarmoredOnly ? ' (sem armadura/escudo)' : ''}` : '',
-        m.saves ? `+${m.saves} salvaguardas` : '',
-        ...Object.entries(m.setAbility ?? {}).map(([k, v]) => `${k.toUpperCase()} ${v}`),
+        m.ac ? `+${m.ac} CA${m.unarmoredOnly ? ' (sem armadura e sem escudo)' : ''}` : '',
+        m.saves ? `+${m.saves} em salvaguardas` : '',
+        m.checks ? `+${m.checks} em testes de atributo` : '',
+        m.hpPerLevel ? `+${m.hpPerLevel} PV por nível` : '',
+        ...Object.entries(m.setAbility ?? {}).map(([k, v]) => `${k.toUpperCase()} vira ${v}`),
         ...Object.entries(m.addAbility ?? {}).map(([k, v]) => `+${v!.bonus} ${k.toUpperCase()} (máx. ${v!.max})`),
         m.unarmoredAC ? `CA ${m.unarmoredAC.base} + ${m.unarmoredAC.ability.toUpperCase()} sem armadura` : '',
-        m.spellAttack ? `+${m.spellAttack} ataque de magia` : '',
-        m.spellDC ? `+${m.spellDC} CD de magia` : '',
-        m.speed ? `+${m.speed} m deslocamento` : '',
-        ...(m.resistances ?? []).map((r) => `resistência: ${r}`),
+        m.spellAttack ? `+${m.spellAttack} no ataque de magia` : '',
+        m.spellDC ? `+${m.spellDC} na CD de magia` : '',
+        m.speed ? `+${m.speed} m de deslocamento` : '',
+        ...(m.resistances ?? []).map((r) => `Resistência a ${r}`),
       ].filter(Boolean)
     : [];
-  if (item.heal) tags.push(`cura ${item.heal}`);
-  if (item.attunement) tags.push('Sintonia');
-  if (item.weight) tags.push(`${item.weight} kg`);
-  if (item.weapon) tags.push(`${item.weapon.damageDice}d${item.weapon.damageDie} ${item.weapon.damageType}`);
-  if (item.armor) tags.push(`CA ${item.armor.baseAC}`);
-  if (item.acBonus) tags.push(`+${item.acBonus} CA`);
 
+  // tipo, como no BG3: "Raro · Arma marcial corpo a corpo"
+  const kind = w
+    ? `Arma ${w.type === 'martial' ? 'marcial' : 'simples'} ${w.range === 'ranged' ? 'à distância' : 'corpo a corpo'}`
+    : a
+      ? `Armadura ${a.category}`
+      : ITEM_CATEGORY_LABEL[item.category] ?? item.category;
+
+  let headline: LoreInfo['headline'];
+  const props: string[] = [];
+  let body = item.note;
+  if (w) {
+    const plus = w.magicBonus ? ` +${w.magicBonus}` : '';
+    const extra = w.bonusDamage ? ` + ${w.bonusDamage.dice}d${w.bonusDamage.die} ${w.bonusDamage.type}` : '';
+    headline = { value: w.damageDie === 1 ? `${w.damageDice}${plus}` : `${w.damageDice}d${w.damageDie}${plus}`, label: `${w.damageType}${extra}` };
+    props.push(...w.properties.map((p) => (p === 'Versátil' && w.versatileDie ? `Versátil (1d${w.versatileDie} com as duas mãos)` : p)));
+    if (w.rangeLabel && !w.properties.some((p) => p.includes(w.rangeLabel!))) props.push(`Distância ${w.rangeLabel}`);
+    if (w.magicBonus) props.push(`+${w.magicBonus} no ataque e no dano`);
+    body = w.finesse
+      ? 'Ataca com Força ou Destreza (a melhor).'
+      : w.range === 'ranged'
+        ? 'Ataca com Destreza.'
+        : 'Ataca com Força.';
+    // item mágico: a nota é o que ele faz de especial
+    if (item.rarity !== 'comum' && item.note && !/^\d/.test(item.note)) body = item.note;
+  } else if (a) {
+    const ac = a.baseAC + (a.magicBonus ?? 0);
+    headline = { value: `CA ${ac}`, label: a.addDex ? (a.maxDexBonus !== undefined ? `+ DES (máx. ${a.maxDexBonus})` : '+ DES') : 'sem DES' };
+    if (a.strReq) props.push(`Exige FOR ${a.strReq} (senão −3 m de deslocamento)`);
+    if (a.stealthDisadvantage) props.push('Desvantagem em Furtividade');
+    if (a.magicBonus) props.push(`+${a.magicBonus} na CA`);
+    body = item.rarity !== 'comum' && item.note && !/^CA /.test(item.note) ? item.note : 'Vestida, define a sua Classe de Armadura.';
+  } else if (item.acBonus) {
+    headline = { value: `+${item.acBonus} CA`, label: item.category === 'shield' ? 'escudo numa das mãos' : undefined };
+  } else if (item.heal) {
+    headline = { value: item.heal, label: 'PV de cura' };
+    if (!body) body = 'Beba (ação) para recuperar pontos de vida.';
+  }
+  // texto do catálogo: descrição imersiva + para que serve na mesa
+  const desc = itemDescription(item.itemId ?? item.id);
+  if (desc) {
+    // armadura/escudo: a linha prática já diz a CA e o efeito
+    if (a || item.acBonus) body = desc.use;
+    // mágico: regra exata do catálogo, e a dica embaixo
+    else if (desc.complementsNote) body = body ? `${body}\n${desc.use}` : desc.use;
+    // arma comum: "Ataca com Força." e para que ela serve
+    else if (w) body = `${body} ${desc.use}`;
+    // equipamento comum: a linha prática substitui a nota curta
+    else body = desc.use;
+  }
+  props.push(...auto);
+  if (item.charges?.max) props.push(`${item.charges.max} cargas (recarregam ao amanhecer)`);
+  if (item.attunement) {
+    props.push(item.attuneBy?.length ? `Exige sintonia (${item.attuneBy.map((b) => ATTUNE_WHO[b] ?? b).join(', ')})` : 'Exige sintonia');
+  }
+
+  const footer = [item.weight ? `${item.weight.toLocaleString('pt-BR')} kg` : '', priceLabel(item.value) ?? ''].filter(Boolean);
+  const tags = itemTags(item, desc?.tags);
   return {
     title: item.name,
-    subtitle: item.note,
-    body: item.weapon
-      ? 'Arma equipada gera ataques automáticos na aba Combate. O bônus usa proficiência e o melhor atributo aplicável pelas propriedades da arma.'
-      : item.armor
-        ? 'Armadura equipada recalcula sua Classe de Armadura. Armaduras médias limitam Destreza e armaduras pesadas não somam Destreza.'
-        : auto.length
-          ? `A ficha aplica sozinha${item.attunement ? ' (quando sintonizado — máximo de 3)' : ''}: ${auto.join(', ')}.`
-          : item.heal
-            ? 'Toque em “Beber” no inventário: rola a cura, soma nos seus PV e gasta uma poção.'
-            : item.attunement
-          ? 'Item mágico que exige sintonia. Um personagem só mantém até três itens sintonizados ao mesmo tempo.'
-          : 'Item de inventário. Use a nota para entender o efeito rápido, peso e papel narrativo durante a aventura.',
-    tags,
+    titleColor: rarity.color,
+    subtitle: `${rarity.label} · ${kind}`,
+    headline,
+    props,
+    body: body || (auto.length ? 'A ficha aplica os efeitos sozinha.' : ''),
+    footer,
+    ...(desc && { flavor: desc.desc }),
+    ...(tags.length && { tags }),
   };
 }
 

@@ -1,18 +1,86 @@
 import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
-import { toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
+import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
+import { isPack, openPack, undoPack } from '@/engine/packs';
+import type { PackChange } from '@/engine/packs';
+import { toast } from '@/store/feedbackStore';
+import { ammoStatus, recoverAmmo, refundAmmo, spendAmmo } from '@/engine/ammo';
+import type { SpendResult } from '@/engine/ammo';
+
+/** Aviso "Pacote aberto" com Desfazer (que volta exatamente o que mudou). */
+function announceOpened(mutate: StoreCtx['mutate'], id: string, name: string, changes: PackChange[], closed?: InventoryItem) {
+  if (!changes.length) return;
+  const n = new Set(changes.map((c) => c.uid)).size;
+  toast(`${name} aberto: ${n} ${n === 1 ? 'item' : 'itens'} ${closed?.location === 'bau' ? 'no Baú' : 'na Mochila'}`, {
+    tone: 'ok',
+    action: {
+      label: 'Desfazer',
+      run: () =>
+        mutate(id, (c) => {
+          undoPack(c, changes);
+          if (closed) c.inventory.push(closed);
+        }),
+    },
+  });
+}
 
 /** Mochila e moedas: itens, equipar, mover entre recipientes, favoritos, sintonização. */
-export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
+export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'openPackItem' | 'fireAmmo' | 'refundAmmo' | 'recoverAmmo' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
   return {
     addInventoryItem(id, item) {
       playSample('mochila');
+      const inst = 'uid' in item ? (item as InventoryItem) : null;
+      const itemId = inst ? inst.itemId : (item as Item).id;
+      // pacote do catálogo: entra aberto (cada tocha e ração vira item de verdade)
+      if (isPack(itemId) && !inst?.homebrew) {
+        let changes: PackChange[] = [];
+        mutate(id, (c) => {
+          changes = openPack(c, itemId!, inst?.quantity ?? 1, inst?.location);
+        });
+        announceOpened(mutate, id, item.name, changes);
+        return;
+      }
       mutate(id, (c) => {
-        const inst = 'uid' in item ? (item as InventoryItem) : itemToInventory(item as Item);
-        c.inventory.push(inst);
+        c.inventory.push(inst ?? itemToInventory(item as Item));
       });
+    },
+    openPackItem(id, uid) {
+      const pack = get().getCharacter(id)?.inventory.find((i) => i.uid === uid);
+      if (!pack || !isPack(pack.itemId)) return;
+      playSample('mochila');
+      let changes: PackChange[] = [];
+      mutate(id, (c) => {
+        c.inventory = c.inventory.filter((i) => i.uid !== uid);
+        c.equipped = removeFromSlots(c.equipped, uid);
+        changes = openPack(c, pack.itemId!, pack.quantity, pack.location);
+      });
+      // Desfazer devolve o pacote fechado
+      announceOpened(mutate, id, pack.name, changes, pack);
+    },
+    fireAmmo(id, weaponUid) {
+      const char = get().getCharacter(id);
+      if (!char || !ammoStatus(char, weaponUid)) return null;
+      let res: SpendResult = null;
+      mutate(id, (c) => {
+        res = spendAmmo(c, weaponUid);
+      });
+      return res;
+    },
+    refundAmmo(id, kind) {
+      mutate(id, (c) => refundAmmo(c, kind));
+    },
+    recoverAmmo(id, weaponUid) {
+      const char = get().getCharacter(id);
+      const st = char && ammoStatus(char, weaponUid);
+      if (!st || !st.spent) return 0;
+      playSample('mochila');
+      let back = 0;
+      mutate(id, (c) => {
+        back = recoverAmmo(c, st.kind);
+      });
+      return back;
     },
     updateInventoryItem(id, uid, patch) {
       mutate(id, (c) => {
@@ -60,7 +128,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
         if (!it) return;
         if (it.attuned) {
           it.attuned = false;
-        } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT) {
+        } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT && !attunementBlock(c, it)) {
           // fixa o "vestido" antes (ficha antiga não tinha): sintonizar não veste sozinho por baixo dos panos
           if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);
           it.attuned = true;

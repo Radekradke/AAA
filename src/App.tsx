@@ -43,6 +43,7 @@ function Page({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoading />}>{children}</Suspense>;
 }
 import { useCloudSync } from '@/hooks/useCloudSync';
+import { useClueImageMigration } from '@/hooks/useClueImageMigration';
 import { PwaStatus } from '@/components/PwaStatus';
 import { FeedbackHost } from '@/components/feedback/FeedbackHost';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -99,6 +100,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 export function App() {
   const location = useLocation();
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
+  useClueImageMigration(); // imagens de pistas antigas saem de dentro da ficha
   useEffect(() => watchCharacters(useCharacterStore.subscribe), []); // histórico da ficha (versões no aparelho)
   useEffect(() => void import('@/lib/deedTracker').then((m) => m.startDeedTracker()), []); // feitos da carta (críticos, 0 PV e volta), sob demanda
   useEffect(startOnboardingSync, []); // tutorial visto vale para a conta, em qualquer aparelho

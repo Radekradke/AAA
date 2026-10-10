@@ -22,7 +22,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
     {
       target: ['[data-tour="tabs"]'],
       title: 'As abas',
-      body: 'Mesa reúne o que você usa no turno. Ficha, Combate, Inventário, Magias, Evoluir, Descanso e Diário guardam o resto.',
+      body: 'Jogar reúne o que você usa no turno, com atalhos para o detalhe. Ficha, Combate, Inventário, Magias e Diário aprofundam; Evoluir, Descanso, Retrato e Dados ficam por último, para quando precisar.',
     },
     {
       target: ['[data-tour="hp"]'],
@@ -63,8 +63,8 @@ export const TOURS: Record<TourId, TourStep[]> = {
   creator: [
     {
       target: ['.fv-forge-rail', '.fv-forge-progress'],
-      title: 'Os 7 capítulos',
-      body: 'Origem, Caminho, Passado, Atributos, Perícias, Equipamento e Despertar. Toque num capítulo para ir e voltar quando quiser.',
+      title: 'Os capítulos',
+      body: 'Origem, Caminho, Dons (as escolhas do 1º nível), Passado, Atributos, Perícias, Magias (para quem conjura), Equipamento e Despertar. Toque num capítulo para ir e voltar quando quiser.',
     },
     {
       target: ['.fv-options'],

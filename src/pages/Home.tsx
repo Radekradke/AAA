@@ -47,7 +47,6 @@ export function Home() {
   const hydrated = useCharactersHydrated();
   const [support, setSupport] = useState(false);
   const [nextSession, setNextSession] = useState<UpcomingForMe | null>(null);
-  const listRef = useRef<HTMLUListElement | null>(null);
 
   // o herói para "Continuar": o aberto por último (ou o mais recente)
   const lastHero = useMemo(() => {
@@ -97,18 +96,37 @@ export function Home() {
     navigate(path);
   };
 
+  // quantos heróis a pessoa tem (para dizer no menu e decidir o que vem primeiro)
+  const heroCount = useMemo(() => (user && hydrated ? characters.filter((c) => c.ownerId === user.id && !c.draft).length : 0), [characters, user, hydrated]);
+  const newHero: MenuItem = {
+    key: 'new',
+    label: 'Nova ficha',
+    hint: heroCount ? 'Forje outro herói em capítulos guiados' : 'Forje seu primeiro herói, capítulo a capítulo',
+    icon: 'anvil',
+    run: () => go('/criar'),
+  };
+  const heroes: MenuItem = {
+    key: 'heroes',
+    label: 'Heróis',
+    hint: heroCount ? `${heroCount} ${heroCount === 1 ? 'herói' : 'heróis'} · abrir, duplicar ou importar` : 'Importe uma ficha (arquivo ou ChatGPT)',
+    icon: 'crest',
+    run: () => go('/personagens'),
+  };
+  // jogar primeiro; ajustes e ajuda descem para a linha de baixo
   const items: MenuItem[] = [
-    { key: 'heroes', label: 'Heróis', hint: 'Abra suas fichas ou importe um personagem', icon: 'crest', run: () => go('/personagens') },
-    { key: 'new', label: 'Nova ficha', hint: 'Forje um herói em 7 capítulos guiados', icon: 'anvil', run: () => go('/criar') },
-    { key: 'tables', label: 'Mesas', hint: 'Jogue com amigos: o mestre cria a sala e convida', icon: 'banner', run: () => go('/mesas') },
-    { key: 'config', label: 'Configurações', hint: 'Tema, som, dados 3D e livros', icon: 'gear', run: () => go('/config', false) },
-    { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona, em 2 minutos', icon: 'book', run: openTutorial },
+    ...(heroCount ? [heroes, newHero] : [newHero, heroes]),
+    { key: 'tables', label: 'Mesas', hint: 'Jogue com amigos: crie ou entre numa sala', icon: 'banner', run: () => go('/mesas') },
+  ];
+  const extras: MenuItem[] = [
+    { key: 'config', label: 'Configurações', hint: 'Tema, som, dados e conta', icon: 'gear', run: () => go('/config', false) },
+    { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona', icon: 'compass', run: openTutorial },
   ];
 
-  // setas movem o foco entre os itens, como num menu de jogo
-  const onKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
+  // setas movem o foco entre os itens (os de baixo também), como num menu de jogo
+  const navRef = useRef<HTMLElement | null>(null);
+  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    const buttons = Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
+    const buttons = Array.from(navRef.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
     const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
     const next = e.key === 'ArrowDown' ? (i + 1) % buttons.length : (i - 1 + buttons.length) % buttons.length;
     buttons[next]?.focus();
@@ -126,8 +144,8 @@ export function Home() {
           <p className="fv-menu-tag">Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue</p>
         </header>
 
-        <nav className="fv-menu-nav" aria-label="Menu principal">
-          <ul ref={listRef} onKeyDown={onKeyDown}>
+        <nav className="fv-menu-nav" aria-label="Menu principal" ref={navRef} onKeyDown={onKeyDown}>
+          <ul>
             {lastHero && (
               <li>
                 <button
@@ -169,6 +187,19 @@ export function Home() {
               </li>
             ))}
           </ul>
+          <div className="fv-menu-sub">
+            {extras.map((it) => (
+              <button key={it.key} type="button" onClick={it.run} title={it.hint}>
+                <Icon name={it.icon} size={16} />
+                {it.label}
+              </button>
+            ))}
+            {hasSupport() && (
+              <button type="button" onClick={() => setSupport(true)}>
+                <span aria-hidden>❤</span> Apoiar
+              </button>
+            )}
+          </div>
         </nav>
 
         <footer className="fv-menu-foot">
@@ -192,11 +223,6 @@ export function Home() {
           ) : (
             <button type="button" className="fv-menu-link" onClick={() => go('/entrar', false)}>
               Entrar ou criar conta (ou continuar offline)
-            </button>
-          )}
-          {hasSupport() && (
-            <button type="button" className="fv-menu-link" onClick={() => setSupport(true)}>
-              <span aria-hidden>❤</span> Apoiar o projeto
             </button>
           )}
         </footer>

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react';
 import type { LoreInfo } from '@/lib/lore';
+import type { AutomationKind, SpellAutomation } from '@/engine/spellAutomation';
+import { AUTOMATION_KIND_LABEL, AUTOMATION_LEVEL_LABEL } from '@/engine/spellAutomation';
 
 interface LoreTooltipProps {
   info: LoreInfo;
@@ -214,7 +216,9 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       onContextMenu={(e) => {
         if (isCoarsePointer()) e.preventDefault(); // long-press não abre menu do sistema
       }}
-      style={anchorStyle}
+      // sem estilo, a âncora some do layout (display: contents); com estilo (flex, grid…),
+      // ela precisa existir como caixa — senão o flex: 1 / gridArea pedidos são ignorados
+      style={anchorStyle ? { display: 'block', ...anchorStyle } : undefined}
     >
       {children}
     </span>
@@ -233,12 +237,30 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
         >
           {info.art && <ItemArtCard src={info.art.src} rarity={info.art.rarity} />}
           <div className="fv-lore-text">
-            <div className="fv-lore-title">{info.title}</div>
+            <div className="fv-lore-title" style={info.titleColor ? { color: info.titleColor } : undefined}>{info.title}</div>
             {info.subtitle && <div className="fv-lore-subtitle">{info.subtitle}</div>}
-            <div className="fv-lore-body">{info.body}</div>
+            {info.headline && (
+              <div className="fv-lore-headline">
+                <b>{info.headline.value}</b>
+                {info.headline.label && <span>{info.headline.label}</span>}
+              </div>
+            )}
+            {info.flavor && <p className="fv-lore-flavor">{info.flavor}</p>}
+            {info.props?.length ? (
+              <ul className="fv-lore-props">
+                {info.props.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+            ) : null}
+            {info.body && <div className="fv-lore-body">{info.body}</div>}
+            {info.automation && <AutomationBlock a={info.automation} />}
             {info.tags?.length ? (
               <div className="fv-lore-tags">
                 {info.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              </div>
+            ) : null}
+            {info.footer?.length ? (
+              <div className="fv-lore-footer">
+                {info.footer.map((f) => <span key={f}>{f}</span>)}
               </div>
             ) : null}
             {touchMode && <div className="fv-lore-mobile">Toque fora para fechar · toque simples executa a ação.</div>}
@@ -249,3 +271,26 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     </>
   );
 }
+
+/** "Na ficha": o que é automático, o que só rola e o que fica com a mesa. */
+export function AutomationBlock({ a }: { a: SpellAutomation }) {
+  return (
+    <div className={`fv-auto is-${a.level}`}>
+      <div className="fv-auto-head">
+        <span>Na ficha</span>
+        <b>{AUTOMATION_LEVEL_LABEL[a.level]}</b>
+      </div>
+      <ul>
+        {a.lines.map((l) => (
+          <li key={l.text} className={`is-${l.kind}`}>
+            <i aria-hidden>{KIND_MARK[l.kind]}</i>
+            <span className="fv-sr-only">{AUTOMATION_KIND_LABEL[l.kind]}: </span>
+            {l.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const KIND_MARK: Record<AutomationKind, string> = { auto: '✓', roll: '⚄', table: '✋' };

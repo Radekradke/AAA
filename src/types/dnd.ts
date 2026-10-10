@@ -248,6 +248,11 @@ export interface Background {
   skills: SkillKey[];
   /** Ferramentas concedidas (ids de data/tools ou rótulos livres). */
   tools?: string[];
+  /**
+   * "Um tipo de ferramenta de artesão / instrumento / jogo" (PHB): o jogador
+   * escolhe; `default` (que também está em `tools`) vale até ele trocar.
+   */
+  toolChoice?: { group: 'artesao' | 'instrumento' | 'jogo'; default: string };
   /** Quantos idiomas adicionais o jogador escolhe. */
   languagesCount?: number;
   /** Equipamento inicial concedido (itens de mochila em texto). */
@@ -280,7 +285,7 @@ export type DamageType =
   | 'perfurante'
   | 'concussão'
   | 'fogo'
-  | 'gelo'
+  | 'frio'
   | 'ácido'
   | 'elétrico'
   | 'radiante'
@@ -309,6 +314,8 @@ export interface WeaponData {
   bonusDamage?: { dice: number; die: number; type: DamageType };
   /** Bônus mágico estruturado (+1/+2/+3) somado em acerto e dano. */
   magicBonus?: number;
+  /** Arma do Livro do Jogador que este item é (proficiência): cajados → bordão, Língua de Fogo → espada longa. */
+  baseId?: string;
   /** Usa Destreza no ataque/dano (acuidade ou arma à distância). */
   finesse?: boolean;
   thrown?: boolean;
@@ -341,6 +348,10 @@ export interface MagicEffects {
   unarmoredOnly?: boolean;
   /** Bônus em todas as salvaguardas. */
   saves?: number;
+  /** Bônus em testes de atributo — perícias, iniciativa e passivas (Pedra da Sorte). */
+  checks?: number;
+  /** PV máximos extras por nível do personagem (Machado do Berserker). */
+  hpPerLevel?: number;
   /** O atributo passa a valer X (se o seu for menor): Manoplas de Força do Ogro, Amuleto da Saúde… */
   setAbility?: Partial<Record<AbilityKey, number>>;
   /** Soma ao atributo até um teto (Cinto Anão: CON +2, máx. 20; Pedras Ioun de atributo). */
@@ -364,6 +375,8 @@ export interface Item {
   weight: number;
   /** Pode receber sintonia (attunement). */
   attunement?: boolean;
+  /** Sintonia restrita (Guia do Mestre): ids de classe ou 'spellcaster' (qualquer conjurador). */
+  attuneBy?: string[];
   weapon?: WeaponData;
   armor?: ArmorData;
   /** Bônus de CA fixo (escudos, anéis de proteção). */
@@ -378,6 +391,7 @@ export interface Item {
   heal?: string;
   /** Magias que o item concede (varinhas, cajados). */
   grantsSpells?: import('./character').ItemSpellGrant[];
+  charges?: import('./character').ItemCharges;
 }
 
 /** Classes conjuradoras que podem ter uma magia na lista. */

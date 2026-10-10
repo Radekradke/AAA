@@ -1,9 +1,10 @@
 import type { StepProps } from './stepTypes';
+import { STEP_SKILLS } from '@/engine/creationSummary';
 import { StepHeader, SectionTitle } from './creatorUi';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { raceOf } from '@/data/races';
-import { skillBudget } from '@/engine/originChoices';
+import { backgroundTools, skillBudget } from '@/engine/originChoices';
 import { SKILLS, SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import type { SkillKey } from '@/types/dnd';
@@ -65,6 +66,8 @@ export function StepSkills({ char, update }: StepProps) {
       if (granted.has(key)) return;
       if (c.skillProfs.includes(key)) {
         c.skillProfs = c.skillProfs.filter((k) => k !== key);
+        // sem proficiência, sem Especialização
+        c.skillExpertise = (c.skillExpertise ?? []).filter((k) => k !== key);
         return;
       }
       if (budget.canPick(key)) c.skillProfs = [...c.skillProfs, key];
@@ -73,7 +76,8 @@ export function StepSkills({ char, update }: StepProps) {
   return (
     <div className="fv-step">
       <StepHeader
-        step={4}
+        step={STEP_SKILLS}
+        char={char}
         subtitle={`Escolha ${cls.skillPicks} de ${cls.label}${extraPicks ? ` e ${extraPicks} livre${extraPicks > 1 ? 's' : ''}` : ''}.`}
       />
 
@@ -84,11 +88,11 @@ export function StepSkills({ char, update }: StepProps) {
           <LoreTooltip key={k} info={skillLore(k, 0, true)}>
             <span className="fv-pill is-on is-static">
               {SKILL_BY_KEY[k].label}
-              <small>{bgSkills.has(k) && budget.raceSkills.has(k) ? `${bg.label} + ${race.label}` : bgSkills.has(k) ? bg.label : race.label}</small>
+              <small>{bgSkills.has(k) && budget.raceSkills.has(k) ? `${bg.label} + ${race.label}` : bgSkills.has(k) ? bg.label : budget.raceSkills.has(k) ? race.label : 'Dons'}</small>
             </span>
           </LoreTooltip>
         ))}
-        {(bg.tools ?? []).map((id) => (
+        {[...new Set([...(cls.tools ?? []), ...backgroundTools(char)])].map((id) => (
           <span key={id} className="fv-pill is-static">⚒ {toolLabel(id)}</span>
         ))}
       </div>
@@ -114,7 +118,8 @@ export function StepSkills({ char, update }: StepProps) {
         <>
           <SectionTitle right={<Counter left={slots - used} total={slots} />}>Especialização — bônus em dobro</SectionTitle>
           <div className="fv-pills" style={{ marginBottom: 18 }}>
-            {proficientNow.map((key) => {
+            {/* inclui uma Especialização que perdeu a perícia (trocou o antecedente), para poder tirar */}
+            {[...new Set([...proficientNow, ...(char.skillExpertise ?? [])])].map((key) => {
               const on = (char.skillExpertise ?? []).includes(key);
               const blocked = !on && used >= slots;
               return (

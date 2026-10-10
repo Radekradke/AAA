@@ -44,7 +44,7 @@ for (const s of SIZES) {
       await signIn(page, 'guest', { characters: [WIZARD] });
       await page.goto(`/ficha/${ID}`);
       await expect(page.getByText(String(WIZARD.name)).first()).toBeVisible();
-      for (const t of ['Ficha', 'Combate', 'Itens', 'Magias', 'Retrato', 'Mesa']) {
+      for (const t of ['Ficha', 'Combate', 'Itens', 'Magias', 'Retrato', 'Jogar']) {
         await openTab(page, t);
         await page.locator('.fv-screen-scroll').evaluate((el) => el.scrollTo(0, 0));
         expect(await overflow(page), `rolagem lateral na aba ${t}`).toBeLessThanOrEqual(1);

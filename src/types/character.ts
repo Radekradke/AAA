@@ -22,6 +22,8 @@ export interface InventoryItem {
   armor?: import('./dnd').ArmorData;
   acBonus?: number;
   attunement?: boolean;
+  /** Sintonia restrita (copiada do catálogo; itens novos leem do catálogo). */
+  attuneBy?: string[];
   /** Efeitos automáticos de item mágico (ver MagicEffects). */
   magic?: import('./dnd').MagicEffects;
   /** Dados de cura ao beber/usar (poções). */
@@ -34,6 +36,8 @@ export interface InventoryItem {
    * Só valem quando o item está equipado ou sintonizado.
    */
   grantsSpells?: ItemSpellGrant[];
+  /** Cargas do item (cajados, varinhas…). */
+  charges?: ItemCharges;
   /** Item criado/alterado pelo usuário (Forja) — marcado visualmente. */
   homebrew?: boolean;
   /**
@@ -52,6 +56,8 @@ export interface InventoryItem {
    * o resto à Mochila.
    */
   location?: 'mochila' | 'bau';
+  /** Munição: peças que sobram no pacote aberto ("Flechas (20)" com 13 = 13). Sem valor: pacote cheio. */
+  ammoLeft?: number;
 }
 
 /** Efeito de magia ativo no personagem — somado pela ficha até acabar. */
@@ -73,6 +79,11 @@ export interface ActiveSpellEffect {
   maxHp?: number;
   /** PV temporários renovados no início de cada turno (Heroísmo). */
   tempPerTurn?: number;
+  /**
+   * Dano que acontece depois de conjurar (próximo acerto, quem entra na área):
+   * o efeito mostra um botão para rolar na hora certa, sem gastar outro espaço.
+   */
+  roll?: { count: number; sides: number; bonus: number; label: string; extra?: { count: number; sides: number }[]; when: string };
 }
 
 /** Magia concedida por um item (recarga por descanso ou à vontade). */
@@ -82,6 +93,27 @@ export interface ItemSpellGrant {
   recharge: 'atwill' | 'short' | 'long';
   /** Quantos usos por descanso (recharge short/long). Padrão 1. */
   uses?: number;
+  /** Item com cargas: quantas cargas a magia gasta (padrão 1). */
+  cost?: number;
+  /** Cargas por círculo (Cajado da Cura: Curar Ferimentos, 1 carga por círculo até `maxLevel`). */
+  perLevel?: boolean;
+  /** Círculo máximo com `perLevel`. */
+  maxLevel?: number;
+  /** Conjura sempre neste círculo (Cajado do Poder: Bola de Fogo de 5º). */
+  castLevel?: number;
+  /** Cada carga extra sobe 1 círculo (Varinha de Bolas de Fogo, de Mísseis Mágicos). */
+  upcast?: boolean;
+  /** CD fixa do item (varinhas: 15). Sem valor: usa a CD de quem empunha. */
+  dc?: number;
+}
+
+/** Cargas de um item mágico (cajados, varinhas, alguns anéis). */
+export interface ItemCharges {
+  max: number;
+  /** Quanto volta ao amanhecer (no app: no descanso longo) — dados ("1d6+4") ou "all". */
+  regain: string;
+  /** Ao gastar a última carga, rola-se um d20: no 1 acontece isto. */
+  emptyRisk?: { text: string; remove?: boolean };
 }
 
 /** Proficiência com ferramenta (id do catálogo ou rótulo livre). */
@@ -127,12 +159,86 @@ export interface JournalEntry {
   id: string;
   title: string;
   date: string;
+  /** Campos antigos (antes da Crônica de texto livre): lidos só se `body` não existir. */
   summary: string;
   npcs: string;
   locations: string;
   quests: string;
   treasure: string;
   notes: string;
+  /** Número da sessão (1, 2, 3…). */
+  session?: number;
+  /** Texto livre da sessão, com @NPC/@Herói e #Lugar. */
+  body?: string;
+  /** Criada em (ms). */
+  at?: number;
+}
+
+/* ---------------- Diário do jogador (pessoal, fica na ficha) ---------------- */
+
+export type DiaryNoteColor = 'gold' | 'red' | 'green' | 'blue' | 'violet';
+
+/** Rabisco: anotação rápida tipo post-it. */
+export interface DiaryNote {
+  id: string;
+  text: string;
+  color?: DiaryNoteColor;
+  pinned?: boolean;
+  done?: boolean;
+  at: number;
+}
+
+export interface DiaryObjective {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+/** Missão do Quadro da Guilda. */
+export interface DiaryQuest {
+  id: string;
+  title: string;
+  status: 'rumor' | 'active' | 'done' | 'failed';
+  giver?: string;
+  reward?: string;
+  deadline?: string;
+  priority?: 'low' | 'normal' | 'high';
+  objectives: DiaryObjective[];
+  notes?: string;
+  at: number;
+}
+
+/** Pista do mural de investigação. */
+export interface DiaryClue {
+  id: string;
+  title: string;
+  text: string;
+  source?: string;
+  status: 'unverified' | 'confirmed' | 'false';
+  verdict?: string;
+  /** Imagem anexada: id no IndexedDB do aparelho + cópia privada na nuvem (lib/clueImageStore). */
+  imageId?: string;
+  /** Formato antigo (data URL dentro da ficha) — migrado para `imageId` ao abrir o app. */
+  image?: string;
+  questId?: string;
+  /** Veio de um handout do mestre (a imagem fica no armazenamento da mesa). */
+  handoutId?: string;
+  handoutImage?: string | null;
+  at: number;
+}
+
+/** O que o jogador acha de alguém citado (página Pessoas). */
+export interface DiaryPersonNote {
+  opinion?: 'ally' | 'neutral' | 'suspect' | 'enemy';
+  note?: string;
+}
+
+export interface Diary {
+  notes: DiaryNote[];
+  quests: DiaryQuest[];
+  clues: DiaryClue[];
+  /** Chave = nome normalizado da pessoa. */
+  people: Record<string, DiaryPersonNote>;
 }
 
 export interface SpellSlotState {
@@ -166,6 +272,10 @@ export interface CombatState {
   resources: Record<string, number>;
   /** Usos gastos de magias concedidas por itens (chave `uid:spellId` -> usados). */
   itemSpellUses?: Record<string, number>;
+  /** Cargas gastas de itens com cargas (uid -> gastas). */
+  itemCharges?: Record<string, number>;
+  /** Munição disparada desde o último "Recolher" (id da munição -> peças); metade volta. */
+  ammoSpent?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
 }
 
@@ -207,6 +317,11 @@ export interface CampaignSettings {
   hpMode: 'media' | 'rolagem' | 'manual';
   /** Permite edição manual de atributos pelo mestre (modal Editar). */
   dmEdit: boolean;
+  /**
+   * Regra da mesa: Inspiração acumula (até 10 pontos). Fora do PHB 2014,
+   * onde o personagem tem ou não tem. Ausente = regra oficial.
+   */
+  stackingInspiration?: boolean;
 }
 
 export const DEFAULT_CAMPAIGN: CampaignSettings = {
@@ -297,11 +412,15 @@ export interface Character {
   levelHistory: LevelUpRecord[];
   /** Legado (PHB 2014: tem/não tem). Espelha `inspirationPoints > 0`. */
   inspiration: boolean;
-  /** Pontos de Inspiração acumulados (mesas que deixam acumular). */
+  /** Pontos de Inspiração (0/1 na regra 2014; até 10 com `campaign.stackingInspiration`). */
   inspirationPoints?: number;
   campaign: CampaignSettings;
   // atributos base (antes dos bônus raciais)
   baseAbilities: AbilityScores;
+  /** Como os atributos foram gerados na criação (lembrado ao voltar à etapa). */
+  abilityMethod?: 'array' | 'pointbuy' | 'roll' | 'manual';
+  /** 4d6 de cada uma das 6 rolagens (o menor é descartado) — para o mestre conferir. */
+  abilityRolls?: number[][];
   // proficiências
   skillProfs: SkillKey[];
   /** Perícias com expertise (bônus de proficiência em dobro). */
@@ -315,6 +434,8 @@ export interface Character {
   hpCurrent: number;
   // recursos / posses
   coins: Coins;
+  /** Kit inicial escolhido na criação (Livro do Jogador: opções "(a) ou (b)"). */
+  startingKit?: Record<string, { option: string; picks?: string[] }>;
   inventory: InventoryItem[];
   equipped: EquippedSlots;
   knownSpells: string[];
@@ -322,6 +443,8 @@ export interface Character {
   // narrativa
   journal: JournalEntry[];
   notes: string;
+  /** Diário pessoal: rabiscos, missões, pistas e pessoas. */
+  diary?: Diary;
   // estado de jogo
   combat: CombatState;
   createdAt: number;

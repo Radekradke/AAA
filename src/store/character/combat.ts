@@ -5,6 +5,8 @@ import { characterResources, syncResources } from '@/engine/classResources';
 import { getFeat } from '@/data/feats';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
+import { rechargeAll } from '@/engine/itemCharges';
+import { toast } from '@/store/feedbackStore';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
 export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
@@ -213,7 +215,10 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       const char = get().getCharacter(id);
       if (!char) return;
       const derived = deriveCharacter(char);
+      // amanhecer: cajados e varinhas recuperam parte das cargas
+      const recharge = rechargeAll(char);
       mutate(id, (c) => {
+        c.combat.itemCharges = recharge.used;
         c.hpCurrent = derived.maxHp;
         c.combat.hpTemp = 0;
         c.combat.deathSaves = { success: 0, fail: 0 };
@@ -228,6 +233,8 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
         // todas as magias de item recarregam no descanso longo
         c.combat.itemSpellUses = {};
+        // munição que não foi recolhida depois da luta ficou para trás
+        c.combat.ammoSpent = {};
         // recupera metade dos dados de vida
         c.combat.hitDiceRemaining = Math.min(
           derived.hitDiceMax,
@@ -238,6 +245,9 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         // companheiro de patrulheiro volta com PV cheio
         if (c.companion) c.companion = { ...c.companion, hpCurrent: undefined };
       });
+      if (recharge.report.length) {
+        toast(recharge.report.map((r) => `${r.name}: +${r.regained} carga${r.regained === 1 ? '' : 's'} (${r.left}/${r.max})`).join(' · '), { tone: 'info' });
+      }
     },
   };
 }

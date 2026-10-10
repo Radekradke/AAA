@@ -1,10 +1,14 @@
+import type { CSSProperties } from 'react';
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
 import { CLASSES, getClass } from '@/data/classes';
 import { ABILITY_LABELS } from '@/data/skills';
+import { ABILITY_KEYS } from '@/types/dnd';
 import { standardArrayFor } from '@/engine/characterBuilder';
 import { applySelection, defaultSelection } from '@/engine/loadout';
-import { classFacts } from '@/engine/creationSummary';
+import { classFacts, classFeatureFacts } from '@/engine/creationSummary';
+import { clearClassChoices } from '@/engine/classChoices';
+import { resetCreationSpells } from '@/engine/creationSpells';
 import { voiceFor, voices, useVoices } from '@/lib/voices';
 
 /** O papel de cada classe em poucas palavras (o card não é lugar de sigla). */
@@ -32,15 +36,24 @@ export function StepClass({ char, update }: StepProps) {
 
   const pickClass = (id: string) => {
     voices.play(id, char.gender);
+    if (char.classId === id) return; // mesma classe: nada a refazer
     update((c) => {
+      const oldCls = getClass(c.classId);
+      // subclasse, escolhas do 1º nível e magias eram da classe antiga
+      c.subclassId = null;
+      clearClassChoices(c);
+      resetCreationSpells(c);
+      // atributos: só realinha o array padrão se o jogador ainda não mexeu neles
+      const untouched = ABILITY_KEYS.every((k) => c.baseAbilities[k] === standardArrayFor(c.classId)[k]);
       c.classId = id;
       c.classLevels = [{ classId: id, level: c.level }];
-      const newCls = getClass(id);
-      c.savingThrowProfs = newCls.savingThrows;
-      // realinha o array padrão e limpa as perícias para as opções da nova classe
-      c.baseAbilities = standardArrayFor(id);
+      c.savingThrowProfs = getClass(id).savingThrows;
+      if (untouched) c.baseAbilities = standardArrayFor(id);
+      // perícias e Especialização eram da lista da classe antiga
       c.skillProfs = [];
-      if (c.inventory.length > 0) applySelection(c, defaultSelection(id));
+      c.skillExpertise = [];
+      c.toolProfs = (c.toolProfs ?? []).filter((t) => t.source !== oldCls.label).map((t) => (t.expertise ? { ...t, expertise: false } : t));
+      if (c.inventory.length > 0) applySelection(c, defaultSelection(id, c));
     });
   };
 
@@ -51,21 +64,35 @@ export function StepClass({ char, update }: StepProps) {
 
   return (
     <div className="fv-step">
-      <StepHeader step={1} />
+      <StepHeader step={1} char={char} />
       <div className="fv-choice">
-        <OptionGrid label="Classes">
-          {CLASSES.map((c) => (
-            <OptionTile
-              key={c.id}
-              icon={themedIcon('class', c.id)}
-              label={c.label}
-              line={ROLE[c.id] ?? c.kind}
-              color={c.jewel}
-              selected={char.classId === c.id}
-              onSelect={() => pickClass(c.id)}
-            />
-          ))}
-        </OptionGrid>
+        <div>
+          <OptionGrid label="Classes">
+            {CLASSES.map((c) => (
+              <OptionTile
+                key={c.id}
+                icon={themedIcon('class', c.id)}
+                label={c.label}
+                line={ROLE[c.id] ?? c.kind}
+                color={c.jewel}
+                selected={char.classId === c.id}
+                onSelect={() => pickClass(c.id)}
+              />
+            ))}
+          </OptionGrid>
+          {/* o que a classe ganha já no 1º nível, cada característica com o que faz */}
+          <section className="fv-choice-extras fv-class-feats" aria-label={`${cls.label} no 1º nível`} style={{ '--opt-color': cls.jewel } as CSSProperties}>
+            <div className="fv-facts-title">{cls.label} no 1º nível</div>
+            <ul>
+              {classFeatureFacts(char).map((f) => (
+                <li key={f.label}>
+                  <b>{f.label}</b>
+                  <p>{f.value}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
 
         <ChoiceDetail
           icon={themedIcon('class', cls.id)}
