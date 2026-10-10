@@ -24,28 +24,3 @@ export function SpellThumb({ spell, size = 32, showLevel = false }: Props) {
   );
 }
 
-/** Cor da moldura de cada raridade (a mesma das cartas). */
-export const RARITY_COLOR: Record<string, string> = {
-  comum: '#9ba7b5',
-  incomum: '#3fc56b',
-  raro: '#4d9bff',
-  'muito-raro': '#b061ff',
-  lendario: '#ffa033',
-};
-
-/**
- * Arte da magia no fundo do card (lista da aba Magias e da aba Jogar), no
- * estilo do card do herói: ocupa a direita e esmaece para o lado do texto.
- * Sem arte, não desenha nada — o card fica como antes.
- */
-export function SpellArtBackdrop({ spell }: { spell: { id: string } }) {
-  const art = spellArt(spell.id);
-  if (!art) return null;
-  return <span className="fv-spellart-bg" style={{ backgroundImage: `url("${art}")` }} aria-hidden />;
-}
-
-/** Props do card para quem tem arte: classe `has-art` e a cor do círculo. */
-export function spellCardArt(spell: { id: string; level: number }): { className: string; style?: Record<string, string> } {
-  if (!spellArt(spell.id)) return { className: '' };
-  return { className: ' has-art', style: { '--rc': RARITY_COLOR[spellRarity(spell.level)] } };
-}

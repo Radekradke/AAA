@@ -25,7 +25,6 @@ import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
-import { SpellArtBackdrop, spellCardArt } from '@/components/spells/SpellThumb';
 import { CompanionPanel } from './CompanionPanel';
 import { inspirationCount, inspirationMax } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
@@ -407,8 +406,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             {prepared.length > 0 && (
               <div className="fv-mesa-spells">
                 {prepared.slice(0, 10).map((sp) => (
-                  <div key={sp.id} className={'fv-mesa-spell' + spellCardArt(sp).className} style={spellCardArt(sp).style}>
-                    <SpellArtBackdrop spell={sp} />
+                  <div key={sp.id} className="fv-mesa-spell">
                     <span className="fv-mesa-spell-lv">{sp.level === 0 ? 'T' : sp.level}</span>
                     <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                       <span className="fv-mesa-spell-name">{sp.name}</span>

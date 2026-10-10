@@ -24,7 +24,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
-import { SpellArtBackdrop, SpellThumb, spellCardArt } from '@/components/spells/SpellThumb';
+import { SpellThumb } from '@/components/spells/SpellThumb';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -312,12 +312,11 @@ export function TabMagias({ char, derived }: TabProps) {
                   const isPrepared = prepared.includes(sp.id);
                   const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
                   return (
-                    <div key={sp.id} className={'fv-spell-row' + spellCardArt(sp).className} style={{ ...spellCardArt(sp).style, display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
-                      <SpellArtBackdrop spell={sp} />
+                    <div key={sp.id} className="fv-spell-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
                       <SpellThumb spell={sp} size={34} />
                       <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                         <span style={{ cursor: 'help', display: 'block' }}>
-                          <span className="fv-spell-row-name" style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
+                          <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
                           <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
                             {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
                             <Mini>
@@ -396,7 +395,7 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
 function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
   const ink = useInk();
   return (
-    <span className="fv-spell-mini" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
       {children}
     </span>
   );

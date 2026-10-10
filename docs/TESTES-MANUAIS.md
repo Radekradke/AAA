@@ -636,4 +636,4 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Aba Magias: passe o mouse (ou toque) numa magia com arte (ex.: Armadura Arcana, Luz, Sono). O modal abre com a arte numa faixa no topo, de ponta a ponta, esmaecendo para dentro do painel; o nome da magia entra sobre a parte esmaecida. Brilho no topo na cor do círculo (verde 1º–2º, azul 3º–5º…).
 3. Itens com arte continuam com a carta ao lado do texto.
 4. Conferir no tema claro e no escuro: a arte some suave na cor do painel, sem faixa escura.
-5. Aba Magias e aba Jogar: o **card** de cada magia com arte mostra a arte no fundo, ocupando a direita e esmaecendo para o lado do nome (como o card do herói), com um filete na cor do círculo à esquerda. Passar o mouse acende e aproxima a arte. Nome, chips e botões continuam legíveis (fundo desfocado) no claro e no escuro, no PC e no celular.
+5. Aba Magias e aba Jogar: a lista continua simples, com a miniatura da magia (arte ou símbolo da escola) ao lado do nome. A tag "✓ automática" não aparece mais; só magias com observação mostram ◐ parcial ou ✋ na mesa.
