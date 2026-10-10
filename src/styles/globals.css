@@ -7804,6 +7804,37 @@ select optgroup {
   text-transform: none;
 }
 
+.fv-ammo-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font: 600 10px/1.5 var(--font-num);
+  color: var(--muted);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.fv-ammo-badge.is-low { color: var(--gold); border-color: color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-ammo-badge.is-empty { color: var(--danger); border-color: color-mix(in srgb, var(--danger), transparent 50%); }
+.fv-ammo-recover {
+  margin-left: 4px;
+  padding: 1px 8px;
+  min-height: 0;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--gold), transparent 40%);
+  background: transparent;
+  font: 600 10px/1.5 var(--font-body);
+  color: var(--gold);
+  vertical-align: middle;
+  cursor: pointer;
+}
+.fv-ammo-recover:hover, .fv-ammo-recover:focus-visible { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+/* "−1 flecha · sobram 19" no acertou? */
+.fv-ammo-shot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; font-size: 11px; color: var(--muted); }
+.fv-ammo-shot b { color: var(--danger); font-weight: 700; }
+.fv-cast-pop .fv-ammo-shot button { flex-direction: row; padding: 2px 8px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+
 /* Descanso: gastar Dados de Vida sem sair da aba */
 .fv-rest-dice {
   display: flex;

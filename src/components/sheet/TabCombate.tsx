@@ -3,7 +3,7 @@ import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
 import { CompanionPanel } from './CompanionPanel';
 import { InitiativeButton } from './InitiativeButton';
-import { AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
+import { AmmoBadge, AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
@@ -202,7 +202,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {derived.attacks.map((atk) => (
           <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name} <CritBadge atk={atk} /></div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name} <CritBadge atk={atk} /> <AmmoBadge char={char} atk={atk} /></div>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{atk.note}</div>
             </div>
             <AttackActions

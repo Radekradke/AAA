@@ -40,6 +40,12 @@ export interface CharacterState {
   removeInventoryItem: (id: string, uid: string) => void;
   /** Abre um pacote fechado que já está na mochila (fichas antigas). */
   openPackItem: (id: string, uid: string) => void;
+  /** Disparo com arco/besta/funda/zarabatana: gasta 1 peça de munição (null = arma sem munição). */
+  fireAmmo: (id: string, weaponUid: string) => import('@/engine/ammo').SpendResult;
+  /** Desfaz o último disparo: a peça volta. */
+  refundAmmo: (id: string, kind: import('@/engine/ammo').AmmoKind) => void;
+  /** Depois da luta: recolhe metade da munição disparada. Devolve quantas voltaram. */
+  recoverAmmo: (id: string, weaponUid: string) => number;
   toggleEquip: (id: string, uid: string) => void;
   /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
   moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;

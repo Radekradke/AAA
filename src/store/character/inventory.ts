@@ -6,6 +6,8 @@ import { playSample } from '@/lib/sfx';
 import { isPack, openPack, undoPack } from '@/engine/packs';
 import type { PackChange } from '@/engine/packs';
 import { toast } from '@/store/feedbackStore';
+import { ammoStatus, recoverAmmo, refundAmmo, spendAmmo } from '@/engine/ammo';
+import type { SpendResult } from '@/engine/ammo';
 
 /** Aviso "Pacote aberto" com Desfazer (que volta exatamente o que mudou). */
 function announceOpened(mutate: StoreCtx['mutate'], id: string, name: string, changes: PackChange[], closed?: InventoryItem) {
@@ -25,7 +27,7 @@ function announceOpened(mutate: StoreCtx['mutate'], id: string, name: string, ch
 }
 
 /** Mochila e moedas: itens, equipar, mover entre recipientes, favoritos, sintonização. */
-export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'openPackItem' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
+export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'openPackItem' | 'fireAmmo' | 'refundAmmo' | 'recoverAmmo' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
   return {
     addInventoryItem(id, item) {
       playSample('mochila');
@@ -56,6 +58,29 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       });
       // Desfazer devolve o pacote fechado
       announceOpened(mutate, id, pack.name, changes, pack);
+    },
+    fireAmmo(id, weaponUid) {
+      const char = get().getCharacter(id);
+      if (!char || !ammoStatus(char, weaponUid)) return null;
+      let res: SpendResult = null;
+      mutate(id, (c) => {
+        res = spendAmmo(c, weaponUid);
+      });
+      return res;
+    },
+    refundAmmo(id, kind) {
+      mutate(id, (c) => refundAmmo(c, kind));
+    },
+    recoverAmmo(id, weaponUid) {
+      const char = get().getCharacter(id);
+      const st = char && ammoStatus(char, weaponUid);
+      if (!st || !st.spent) return 0;
+      playSample('mochila');
+      let back = 0;
+      mutate(id, (c) => {
+        back = recoverAmmo(c, st.kind);
+      });
+      return back;
     },
     updateInventoryItem(id, uid, patch) {
       mutate(id, (c) => {

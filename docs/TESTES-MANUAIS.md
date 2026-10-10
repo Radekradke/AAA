@@ -596,3 +596,15 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 9. Celular do jogador, com mapa no ar: o card do turno tem **Ver mapa ↓**, que rola até o mapa. No PC o botão não aparece.
 10. Bastidores: **Biblioteca de cenas** (texto curto; o detalhe fica ao passar o mouse) e **Todas as pistas** no lugar de "Gaveta completa".
 11. Sala da mesa → Crônica: o campo diz "Título (obrigatório)", e o **Registrar** explica ao passar o mouse por que está apagado.
+
+## 64. Munição: cada disparo gasta uma peça
+
+1. Herói com **Arco Curto** equipado e **Flechas (20)** na Mochila. Aba Combate (ou Jogar): ao lado do nome do arco aparece **20 flechas**.
+2. Clicar em **ACERTO** do arco: o "Acertou o alvo?" mostra **−1 flecha · sobram 19**, e o selo vira **19 flechas**. Na Mochila, o pacote mostra **19 flechas** no lugar de "x1".
+3. **Desfazer** no "acertou?": a flecha volta (selo em 20).
+4. Com **Besta Leve** e **Virotes (20)**: a besta gasta virote; as flechas não mudam. Funda gasta bala, zarabatana gasta agulha.
+5. Dois pacotes de flechas (x2 = 40): depois de 21 disparos, sobra 1 pacote com 19.
+6. A última flecha: o "acertou?" avisa **era a última!**, o pacote some da Mochila e o selo fica vermelho, **sem flechas**. O próximo ACERTO não rola: o aviso diz "Sem flechas na Mochila." e oferece **Atirar assim**.
+7. Flechas guardadas no Baú não servem: o aviso diz que estão no Baú (o selo mostra quantas há lá ao passar o mouse).
+8. Depois da luta, com 2 ou mais flechas disparadas aparece **Recolher +N** (metade do disparado, para baixo). Clicar devolve as flechas e o botão some. O descanso longo zera a conta do que dá para recolher.
+9. Espada, adaga e azagaia não mostram selo e não gastam nada.

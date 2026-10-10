@@ -56,6 +56,8 @@ export interface InventoryItem {
    * o resto à Mochila.
    */
   location?: 'mochila' | 'bau';
+  /** Munição: peças que sobram no pacote aberto ("Flechas (20)" com 13 = 13). Sem valor: pacote cheio. */
+  ammoLeft?: number;
 }
 
 /** Efeito de magia ativo no personagem — somado pela ficha até acabar. */
@@ -272,6 +274,8 @@ export interface CombatState {
   itemSpellUses?: Record<string, number>;
   /** Cargas gastas de itens com cargas (uid -> gastas). */
   itemCharges?: Record<string, number>;
+  /** Munição disparada desde o último "Recolher" (id da munição -> peças); metade volta. */
+  ammoSpent?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
 }
 
