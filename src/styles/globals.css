@@ -8430,3 +8430,53 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 }
 .fv-artcount-missing ul { margin-top: 6px; max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 3px; padding-right: 4px; }
 .fv-artcount-done { margin: 0; color: var(--ink); }
+
+/* Card de magia com arte (abas Magias e Jogar): a arte no fundo, à direita,
+   esmaecendo para o texto — como o card do herói */
+:is(.fv-spell-row, .fv-mesa-spell).has-art {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--rc), transparent 55%) !important;
+  box-shadow: inset 3px 0 0 var(--rc);
+}
+.fv-spell-row.has-art { min-height: 72px; }
+.fv-spellart-bg {
+  position: absolute;
+  inset: 0 0 0 22%;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-position: 50% 32%;
+  background-repeat: no-repeat;
+  opacity: 0.62;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+  transition: opacity 0.3s, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fv-mesa-spell .fv-spellart-bg { inset: 0 0 0 30%; opacity: 0.5; }
+[data-mode='light'] .fv-spellart-bg { opacity: 0.5; }
+:is(.fv-spell-row, .fv-mesa-spell).has-art:hover > .fv-spellart-bg,
+:is(.fv-spell-row, .fv-mesa-spell).has-art:focus-within > .fv-spellart-bg {
+  opacity: 0.85;
+  transform: scale(1.04);
+}
+/* botões e nome legíveis por cima da arte */
+:is(.fv-spell-row, .fv-mesa-spell).has-art :is(button, .fv-cast > button) {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+:is(.fv-spell-row, .fv-mesa-spell).has-art .fv-spell-mini {
+  background-color: color-mix(in srgb, var(--panel), transparent 25%) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+:is(.fv-spell-row, .fv-mesa-spell).has-art :is(.fv-mesa-spell-name, .fv-spell-row-name) {
+  text-shadow: 0 0 6px var(--panel), 0 0 2px var(--panel);
+}
+:is(.fv-spell-row, .fv-mesa-spell).has-art .fv-spell-thumb {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc), transparent 40%), 0 0 14px color-mix(in srgb, var(--rc), transparent 65%);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.fv-spell-row, .fv-mesa-spell).has-art:hover > .fv-spellart-bg { transform: none; }
+}
