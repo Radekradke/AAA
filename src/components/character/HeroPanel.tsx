@@ -13,6 +13,7 @@ import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from './creatorUi';
 import { PortraitPicker } from './PortraitPicker';
+import { GlyphIcon, raceIconKey } from './RaceIcon';
 
 interface HeroPanelProps {
   char: Character;
@@ -63,6 +64,10 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
         {onPortrait && <PortraitPicker portrait={char.portrait} onChange={onPortrait} />}
         <div className="fv-hero-sigil" title={cls.label}>
           <Icon name={themedIcon('class', cls.id)} size={22} />
+        </div>
+        {/* selo da raça: menor e redondo, abaixo do sigilo da classe */}
+        <div className="fv-hero-race-seal" title={race.label} aria-label={`Raça: ${race.label}`} role="img">
+          <GlyphIcon name={raceIconKey(race)} size={19} />
         </div>
         <div className="fv-hero-caption">
           <div className={'fv-hero-name' + (named ? '' : ' is-empty')}>{named || 'Herói sem nome'}</div>

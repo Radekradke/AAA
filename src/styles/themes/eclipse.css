@@ -332,7 +332,7 @@
 [data-theme='eclipse'] .fv-hero-vitals b {
   color: var(--ink);
 }
-[data-theme='eclipse'] .fv-hero-sigil {
+[data-theme='eclipse'] :is(.fv-hero-sigil, .fv-hero-race-seal) {
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.7);
   box-shadow: none;
