@@ -622,3 +622,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. A mesma miniatura aparece na aba Magias (ao lado de cada magia), na biblioteca de "+ Aprender" (com o círculo no cantinho) e no seletor de magias da Forja.
 3. Com a arte em `src/assets/magias/<id>.webp`, a miniatura passa a mostrar a arte; os detalhes da magia na busca mostram a carta grande, e a criação (Dons/Magias) também usa a arte.
 4. No celular (até 420 px), a miniatura fica ao lado do nome e os botões descem para a linha de baixo.
+
+## 67. Contador de artes (Configurações → Avançado)
+
+1. Configurações → Avançado → **Contador de artes** → Abrir. Aparece o total ("486 de 939 artes · 52%") e uma barra por categoria: Magias, Armas, Armaduras e escudos, Equipamento, Itens mágicos, Criaturas, Retratos das classes, Vozes das classes. Categoria completa fica verde com ✓.
+2. Tocar numa categoria: mostra a pasta e o guia, a divisão (magias por círculo, itens mágicos por raridade, criaturas por tipo…) e **Faltam N** com a lista de ids e nomes.
+3. **Copiar ids** copia a lista do que falta (id e nome, um por linha), pronta para colar no gerador de imagens ou numa planilha.
+4. Soltar uma arte nova na pasta e publicar: o número sobe sozinho na próxima versão.

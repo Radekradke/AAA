@@ -8327,3 +8327,49 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-spell-effect .fv-spell-effect-roll:hover {
   background: color-mix(in srgb, var(--gold) 14%, transparent);
 }
+
+/* Configurações → Avançado → Contador de artes */
+.fv-artcount { margin-top: 6px; display: flex; flex-direction: column; gap: 10px; }
+.fv-artcount-total { margin: 0; font-size: 13px; color: var(--muted); }
+.fv-artcount-total b { color: var(--gold); font-family: var(--font-num); }
+.fv-artcount-list, .fv-artcount-groups, .fv-artcount-missing ul { list-style: none; margin: 0; padding: 0; }
+.fv-artcount-list { display: flex; flex-direction: column; gap: 6px; }
+.fv-artcount-cat { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--sunk); }
+.fv-artcount-cat.is-open { border-color: color-mix(in srgb, var(--gold), transparent 55%); }
+.fv-artcount-head {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 600 13px/1.3 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.fv-artcount-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-artcount-num { min-width: 5.5em; font: 600 12px/1 var(--font-num); color: var(--muted); white-space: nowrap; text-align: right; }
+.fv-artcount-bar { position: relative; height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line), transparent 20%); overflow: hidden; }
+.fv-artcount-bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--gold); }
+.fv-artcount-bar.is-full i { background: #3fc56b; }
+.fv-artcount-body { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 12px; font-size: 12px; color: var(--muted); }
+.fv-artcount-where { margin: 0; }
+.fv-artcount-where code, .fv-artcount-missing code { font-size: 11px; color: var(--ink); }
+.fv-artcount-groups { display: flex; flex-direction: column; gap: 5px; }
+.fv-artcount-groups li { display: grid; grid-template-columns: minmax(0, 11em) 1fr auto; align-items: center; gap: 10px; }
+.fv-artcount-groups li > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-artcount-missing summary { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--ink); font-weight: 600; }
+.fv-artcount-missing summary button {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--gold);
+  font: 600 11px/1.4 var(--font-body);
+  cursor: pointer;
+}
+.fv-artcount-missing ul { margin-top: 6px; max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 3px; padding-right: 4px; }
+.fv-artcount-done { margin: 0; color: var(--ink); }
