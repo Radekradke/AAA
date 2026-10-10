@@ -636,4 +636,6 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Aba Magias: passe o mouse (ou toque) numa magia com arte (ex.: Armadura Arcana, Luz, Sono). O modal abre com a arte numa faixa no topo, de ponta a ponta, esmaecendo para dentro do painel; o nome da magia entra sobre a parte esmaecida. Brilho no topo na cor do círculo (verde 1º–2º, azul 3º–5º…).
 3. Itens com arte continuam com a carta ao lado do texto.
 4. Conferir no tema claro e no escuro: a arte some suave na cor do painel, sem faixa escura.
-5. Aba Magias e aba Jogar: a lista continua simples, com a miniatura da magia (arte ou símbolo da escola) ao lado do nome. A tag "✓ automática" não aparece mais; só magias com observação mostram ◐ parcial ou ✋ na mesa.
+5. Aba Magias e aba Jogar: cada linha com arte tem a ilustração como fundo, bem transparente (acende um pouco ao passar o mouse); sem miniatura recortada. O ícone da escola fica ao lado do nome.
+6. Modal da magia: a arte aparece **inteira** (sem corte) no topo, sobre um fundo desfocado da própria imagem, com os detalhes embaixo.
+7. Lista: nome inteiro (sem "…"), duas colunas no PC, um botão (Conjurar). Mago: o "+"/"✓" à esquerda prepara/desprepara; magia não preparada fica apagada. ★ fixa a magia em **Favoritas** no topo (e primeiro na aba Jogar); ✕ esquece — os dois aparecem ao passar o mouse. Título de cada círculo mostra os espaços livres. Filtro por círculo e busca (com mais de 8 magias). CD e ataque num chip só; regras em "Como funciona". Magia de concentração ativa ganha brilho roxo. Sem tag "automática"

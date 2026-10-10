@@ -10,7 +10,6 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
 import { useUiStore } from '@/store/uiStore';
-import { SOURCE_SHORT } from '@/data/contentPacks';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
@@ -24,7 +23,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
-import { SpellThumb } from '@/components/spells/SpellThumb';
+import { spellArt } from '@/lib/spellArt';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -49,6 +48,9 @@ export function TabMagias({ char, derived }: TabProps) {
   // pacotes de conteúdo ligados mudam as listas (Xanathar, Tasha)
   const packs = useUiStore((s) => s.packs);
   const [freeMode, setFreeMode] = useState(false);
+  // filtro por círculo e busca na lista
+  const [circle, setCircle] = useState<'all' | number>('all');
+  const [q, setQ] = useState('');
   const blockFor = (sp: Spell, mode: 'class' | 'copy') => (freeMode || !st ? null : learnBlock(char, st, sp, mode));
 
   // máximos vêm das regras (classe + subclasse); o gasto vem da ficha
@@ -141,6 +143,114 @@ export function TabMagias({ char, derived }: TabProps) {
 
   const learnLabel = kind === 'prepared' ? 'Preparar' : isWizard ? 'Aprender' : 'Aprender';
 
+  // filtro por círculo, busca e favoritas (fixadas no topo)
+  const favorites = char.favoriteSpells ?? [];
+  const query = q.trim().toLocaleLowerCase('pt-BR');
+  const matches = (sp: Spell) => !query || sp.name.toLocaleLowerCase('pt-BR').includes(query) || sp.school.toLocaleLowerCase('pt-BR').includes(query);
+  const inFilter = (sp: Spell) => (circle === 'all' || sp.level === circle) && matches(sp);
+  const favSpells = active.filter((sp) => favorites.includes(sp.id) && inFilter(sp));
+  const groups: { key: string; label: string; spells: Spell[]; slot?: { max: number; used: number }; note?: string }[] = [
+    ...(favSpells.length ? [{ key: 'fav', label: '★ Favoritas', spells: favSpells }] : []),
+    ...byCircle
+      .map(([lv, spells]) => ({
+        key: String(lv),
+        label: lv === 0 ? 'Truques' : `${lv}º círculo`,
+        spells: spells.filter((sp) => inFilter(sp) && !favorites.includes(sp.id)),
+        slot: lv > 0 && slotView[lv] ? { max: slotView[lv].max, used: slotView[lv].used } : undefined,
+        note: lv === 0 ? 'à vontade' : undefined,
+      }))
+      .filter((g) => g.spells.length > 0),
+  ];
+  // concentração ativa: a magia que está sustentando ganha um brilho
+  const concentratingOn = char.combat.concentration ? (char.combat.spellEffects ?? []).find((e) => e.until === 'concentration')?.spellId : undefined;
+  const toggleFavorite = (id: string) =>
+    update((c) => {
+      const fav = c.favoriteSpells ?? [];
+      c.favoriteSpells = fav.includes(id) ? fav.filter((x) => x !== id) : [...fav, id];
+    });
+
+  /** Uma magia: miniatura (com o preparar), nome inteiro, o essencial e Conjurar. */
+  const renderRow = (sp: Spell) => {
+    const grantSource = grantedFrom.get(sp.id);
+    const learned = prepared.includes(sp.id) || spellbook.includes(sp.id);
+    const isPrepared = prepared.includes(sp.id);
+    const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
+    const canCast = sp.level === 0 || !isWizard || isPrepared || !!grantSource || (sp.ritual && isWizard);
+    const forget = learned ? forgetInfo(sp) : null;
+    const fav = favorites.includes(sp.id);
+    const art = spellArt(sp.id);
+    return (
+      <div
+        key={sp.id}
+        className={'fv-spell-row' + (art ? ' has-art' : '') + (canPrepare && !isPrepared ? ' is-dormant' : '') + (concentratingOn === sp.id ? ' is-conc' : '') + (fav ? ' is-fav' : '')}
+      >
+        {art && <span className="fv-spell-bg" style={{ backgroundImage: `url("${art}")` }} aria-hidden />}
+        {canPrepare && (
+          <button
+            type="button"
+            className={'fv-spell-prep' + (isPrepared ? ' is-on' : '')}
+            aria-pressed={isPrepared}
+            aria-label={isPrepared ? `Despreparar ${sp.name}` : `Preparar ${sp.name}`}
+            title={isPrepared ? 'Preparada hoje (toque para despreparar)' : 'Preparar para hoje'}
+            onClick={() => togglePrepared(sp.id)}
+          >
+            {isPrepared ? '✓' : '+'}
+          </button>
+        )}
+        <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
+          <span className="fv-spell-text">
+            <span className="fv-spell-name">
+              <SchoolIcon school={sp.school} size={13} className="fv-spell-school" />
+              {sp.name}
+            </span>
+            <span className="fv-spell-meta">
+              {grantSource && <span className="fv-spell-granted">sempre preparada · {grantSource}</span>}
+              {canPrepare && !isPrepared && <span className="fv-spell-granted is-muted">não preparada</span>}
+              {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
+              {sp.heal && <Mini c="#3FC56B">cura</Mini>}
+              {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
+              {sp.concentration && (
+                <span className="fv-spell-ico is-conc" title="Concentração">
+                  ◎<span className="fv-sr-only">concentração</span>
+                </span>
+              )}
+              {sp.ritual && (
+                <span className="fv-spell-ico is-ritual" title="Pode ser conjurada como ritual">
+                  ❖<span className="fv-sr-only">ritual</span>
+                </span>
+              )}
+              <AutoMini sp={sp} />
+            </span>
+          </span>
+        </LoreTooltip>
+        {canCast && <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />}
+        <span className="fv-spell-tools">
+          <button
+            type="button"
+            className={'fv-spell-tool' + (fav ? ' is-on' : '')}
+            aria-pressed={fav}
+            aria-label={fav ? `Tirar ${sp.name} das favoritas` : `Fixar ${sp.name} nas favoritas`}
+            title={fav ? 'Tirar das favoritas' : 'Fixar no topo (favorita)'}
+            onClick={() => toggleFavorite(sp.id)}
+          >
+            <Icon name={fav ? 'starFill' : 'star'} size={14} />
+          </button>
+          {forget && !forget.block && (
+            <button
+              type="button"
+              className="fv-spell-tool is-danger"
+              onClick={() => removeSpell(sp.id)}
+              aria-label={`Esquecer ${sp.name}`}
+              title={forget.usesSwap ? 'Esquecer (usa sua troca de nível)' : kind === 'prepared' ? 'Despreparar' : 'Esquecer magia'}
+            >
+              <Icon name="close" size={14} />
+            </button>
+          )}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="animate-riseIn" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}>
       {/* Espaços de magia + guia */}
@@ -149,10 +259,12 @@ export function TabMagias({ char, derived }: TabProps) {
           <SectionLabel
             style={{ marginBottom: 6 }}
             right={
-              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-                CD <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{derived.spellDC}</b> · ataque{' '}
-                <b style={{ color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
-                {' '}· {ABILITY_SHORT[castAbility]}
+              <span className="fv-spell-dc" title="CD das salvaguardas contra suas magias · bônus de ataque com magia · atributo de conjuração">
+                CD <b className="is-gold">{derived.spellDC}</b>
+                <i aria-hidden>·</i>
+                <b className="is-acc">{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
+                <i aria-hidden>·</i>
+                {ABILITY_SHORT[castAbility]}
               </span>
             }
           >
@@ -176,13 +288,16 @@ export function TabMagias({ char, derived }: TabProps) {
               {freeMode ? '🔓 Modo mestre ligado' : '🔒 Regras do PHB'}
             </button>
           </div>
-          <p className="fv-spell-rule-text">
-            {kind === 'known'
-              ? 'Você conhece um número fixo de magias da lista da sua classe. Ao subir de nível, aprende as novas e pode trocar UMA que já conhece.'
-              : isWizard
-                ? 'Seu grimório ganha 2 magias grátis por nível (de círculos que você conjura). Outras podem ser copiadas de pergaminhos: 50 po por círculo. Prepare até INT + nível por dia.'
-                : 'Você conhece a lista inteira da classe e prepara magias todo dia (troca após descanso longo), até o limite.'}
-          </p>
+          <details className="fv-spell-rules">
+            <summary>Como funciona</summary>
+            <p className="fv-spell-rule-text">
+              {kind === 'known'
+                ? 'Você conhece um número fixo de magias da lista da sua classe. Ao subir de nível, aprende as novas e pode trocar UMA que já conhece.'
+                : isWizard
+                  ? 'Seu grimório ganha 2 magias grátis por nível (de círculos que você conjura). Outras podem ser copiadas de pergaminhos: 50 po por círculo. Prepare até INT + nível por dia.'
+                  : 'Você conhece a lista inteira da classe e prepara magias todo dia (troca após descanso longo), até o limite.'}
+            </p>
+          </details>
           {!freeMode && st && st.swaps > 0 && kind === 'known' && (
             <div role="note" className="fv-spell-warn" style={{ borderColor: 'var(--acc)' }}>
               <b style={{ color: 'var(--acc)' }}>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
@@ -298,70 +413,50 @@ export function TabMagias({ char, derived }: TabProps) {
             <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para escolher da lista da sua classe — só aparecem liberadas as magias que você pode pegar agora.</>} />
           )}
 
-          {byCircle.map(([lv, spells]) => (
-            <div key={lv} style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 7px' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{lv === 0 ? 'Truques' : `${lv}º círculo`}</span>
-                <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
-                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{spells.length}</span>
+          {active.length > 0 && (
+            <div className="fv-spell-toolbar">
+              <div className="fv-spell-filter" role="group" aria-label="Filtrar por círculo">
+                <button type="button" className={circle === 'all' ? 'is-on' : ''} aria-pressed={circle === 'all'} onClick={() => setCircle('all')}>
+                  Todas <small>{active.length}</small>
+                </button>
+                {byCircle.map(([lv, spells]) => (
+                  <button key={lv} type="button" className={circle === lv ? 'is-on' : ''} aria-pressed={circle === lv} onClick={() => setCircle(circle === lv ? 'all' : lv)}>
+                    {lv === 0 ? 'Truques' : `${lv}º`} <small>{spells.length}</small>
+                  </button>
+                ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 6 }}>
-                {spells.map((sp) => {
-                  const grantSource = grantedFrom.get(sp.id);
-                  const learned = prepared.includes(sp.id) || spellbook.includes(sp.id);
-                  const isPrepared = prepared.includes(sp.id);
-                  const canPrepare = isWizard && sp.level >= 1 && !grantSource; // truques do mago sempre ativos
-                  return (
-                    <div key={sp.id} className="fv-spell-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (canPrepare && isPrepared ? hexA(t.gold, 0.5) : 'var(--line)'), background: canPrepare && isPrepared ? hexA(t.gold, 0.06) : 'var(--sunk)' }}>
-                      <SpellThumb spell={sp} size={34} />
-                      <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ cursor: 'help', display: 'block' }}>
-                          <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
-                          <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
-                            {grantSource && <Mini c="var(--gold)">sempre preparada · {grantSource}</Mini>}
-                            <Mini>
-                              <SchoolIcon school={sp.school} size={10} />
-                              {sp.school}
-                            </Mini>
-                            {sp.source && <Mini c="var(--acc)">{SOURCE_SHORT[sp.source]}</Mini>}
-                            {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
-                            {sp.heal && <Mini c="#3FC56B">cura</Mini>}
-                            {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
-                            {sp.concentration && <Mini c="#C24DFF">conc.</Mini>}
-                            {sp.ritual && <Mini c="#4FA37A">ritual</Mini>}
-                            <AutoMini sp={sp} />
-                          </span>
-                        </span>
-                      </LoreTooltip>
-                      {canPrepare && (
-                        <button
-                          onClick={() => togglePrepared(sp.id)}
-                          title={isPrepared ? 'Preparada' : 'Preparar'}
-                          style={{ cursor: 'pointer', flex: 'none', minHeight: 30, padding: '4px 11px', borderRadius: 999, border: '1px solid ' + (isPrepared ? t.gold : t.line), color: isPrepared ? t.gold : 'var(--muted)', background: isPrepared ? hexA(t.gold, 0.14) : 'transparent', fontWeight: 700, fontSize: 11.5 }}
-                        >
-                          {isPrepared ? '★ Preparada' : '☆ Preparar'}
-                        </button>
-                      )}
-                      {(sp.level === 0 || !isWizard || isPrepared || grantSource || (sp.ritual && isWizard)) && (
-                        <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />
-                      )}
-                      {learned && !forgetInfo(sp).block && (
-                        <button
-                          type="button"
-                          className="fv-item-remove"
-                          onClick={() => removeSpell(sp.id)}
-                          aria-label={`Esquecer ${sp.name}`}
-                          title={forgetInfo(sp).usesSwap ? 'Esquecer (usa sua troca de nível)' : kind === 'prepared' ? 'Despreparar' : 'Esquecer magia'}
-                        >
-                          <Icon name="close" size={14} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              {active.length > 8 && (
+                <label className="fv-spell-search">
+                  <Icon name="search" size={14} />
+                  <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar magia…" aria-label="Buscar magia" />
+                </label>
+              )}
             </div>
+          )}
+
+          {groups.map((g) => (
+            <section key={g.key} className="fv-spell-group" aria-label={g.label}>
+              <header className="fv-spell-group-head">
+                <h3>{g.label}</h3>
+                {g.slot ? (
+                  <span className="fv-spell-group-slots" title={`${g.slot.max - g.slot.used} de ${g.slot.max} espaços livres`}>
+                    {Array.from({ length: g.slot.max }, (_, i) => (
+                      <i key={i} className={i >= g.slot!.used ? 'is-on' : ''} aria-hidden />
+                    ))}
+                    <span>
+                      {g.slot.max - g.slot.used} livre{g.slot.max - g.slot.used === 1 ? '' : 's'}
+                    </span>
+                  </span>
+                ) : g.note ? (
+                  <span className="fv-spell-group-slots">{g.note}</span>
+                ) : null}
+                <span className="fv-spell-group-line" aria-hidden />
+                <b>{g.spells.length}</b>
+              </header>
+              <div className="fv-spell-list">{g.spells.map(renderRow)}</div>
+            </section>
           ))}
+          {active.length > 0 && groups.length === 0 && <p className="fv-spell-empty">Nenhuma magia com “{q}”.</p>}
         </Panel>
       )}
 

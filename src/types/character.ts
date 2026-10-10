@@ -440,6 +440,8 @@ export interface Character {
   equipped: EquippedSlots;
   knownSpells: string[];
   preparedSpells: string[];
+  /** Magias fixadas no topo da lista (favoritas). */
+  favoriteSpells?: string[];
   // narrativa
   journal: JournalEntry[];
   notes: string;
