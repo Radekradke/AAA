@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { ITEM_DESCRIPTIONS, itemDescription } from '@/data/itemDescriptions';
-import { getItem, GEAR } from '@/data/items';
+import { getItem, GEAR, MAGIC_ITEMS } from '@/data/items';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
 import { ITEM_TAGS, autoTags, itemTags } from '../itemTags';
 import { itemLore } from '@/lib/lore';
 
 /** Lotes já escritos: cada item do catálogo neles precisa de texto. */
-const COVERED = [...WEAPONS, ...ARMORS, ...GEAR];
+const COVERED = [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS];
 
 describe('descrições de itens', () => {
-  it('toda arma, armadura, escudo e equipamento do livro tem descrição e linha "na mesa"', () => {
+  it('todo item do catálogo (armas, armaduras, equipamento e mágicos) tem descrição e linha "na mesa"', () => {
     const missing = COVERED.filter((i) => !itemDescription(i.id)).map((i) => i.id);
     expect(missing).toEqual([]);
   });
@@ -76,6 +76,22 @@ describe('dica do item', () => {
   it('arma: diz o atributo do ataque e depois para que serve', () => {
     const lore = itemLore(getItem('w-rapier')!);
     expect(lore.body).toMatch(/^Ataca com Força ou Destreza.*Acuidade com 1d8/);
+  });
+
+  it('equipamento comum: a linha prática substitui a nota (sem repetir)', () => {
+    const torch = itemLore(getItem('g-torch')!);
+    expect(torch.body).toBe(ITEM_DESCRIPTIONS['g-torch'].use);
+  });
+
+  it('item mágico: regra exata do catálogo e a dica numa linha embaixo', () => {
+    const wand = itemLore(getItem('m-wand-fireballs')!);
+    const [rule, tip] = wand.body.split('\n');
+    expect(rule).toMatch(/CD 15/);
+    expect(tip).toBe(ITEM_DESCRIPTIONS['m-wand-fireballs'].use);
+  });
+
+  it('armadura mágica: a linha prática traz o efeito especial', () => {
+    expect(itemLore(getItem('ma-adamantine')!).body).toMatch(/críticos/);
   });
 
   it('instância na mochila acha o texto pelo itemId', () => {

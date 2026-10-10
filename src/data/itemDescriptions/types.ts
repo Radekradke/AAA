@@ -8,4 +8,10 @@ export interface ItemDescription {
   use: string;
   /** Etiquetas escritas à mão (as automáticas saem dos dados do item). */
   tags?: ItemTag[];
+  /**
+   * Itens mágicos: a nota do catálogo já traz a regra exata (CD, cargas,
+   * recarga) e `use` é uma dica que a complementa. Nos outros, `use`
+   * substitui a nota.
+   */
+  complementsNote?: boolean;
 }

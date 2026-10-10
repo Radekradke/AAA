@@ -260,7 +260,16 @@ export function itemLore(item: {
   }
   // texto do catálogo: descrição imersiva + para que serve na mesa
   const desc = itemDescription(item.itemId ?? item.id);
-  if (desc) body = a || item.acBonus ? desc.use : [body, desc.use].filter(Boolean).join(' ');
+  if (desc) {
+    // armadura/escudo: a linha prática já diz a CA e o efeito
+    if (a || item.acBonus) body = desc.use;
+    // mágico: regra exata do catálogo, e a dica embaixo
+    else if (desc.complementsNote) body = body ? `${body}\n${desc.use}` : desc.use;
+    // arma comum: "Ataca com Força." e para que ela serve
+    else if (w) body = `${body} ${desc.use}`;
+    // equipamento comum: a linha prática substitui a nota curta
+    else body = desc.use;
+  }
   props.push(...auto);
   if (item.charges?.max) props.push(`${item.charges.max} cargas (recarregam ao amanhecer)`);
   if (item.attunement) {
