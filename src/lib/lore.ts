@@ -7,6 +7,7 @@ import type { SpellAutomation } from '@/engine/spellAutomation';
 import { spellAutomation } from '@/engine/spellAutomation';
 import { itemDescription } from '@/data/itemDescriptions';
 import { itemTags } from '@/engine/itemTags';
+import { spellArt, spellRarity } from './spellArt';
 
 export interface LoreInfo {
   title: string;
@@ -144,7 +145,9 @@ export function spellLore(spell: Spell): LoreInfo {
   const body = [spell.desc, lines.join('\n'), spell.higher ? `Em círculos superiores: ${spell.higher}` : '']
     .filter(Boolean)
     .join('\n\n');
+  const art = spellArt(spell.id);
   return {
+    ...(art && { art: { src: art, rarity: spellRarity(spell.level) } }),
     title: spell.name,
     subtitle: `${circle} · ${spell.school}`,
     body: body || 'Magia sem descrição.',
