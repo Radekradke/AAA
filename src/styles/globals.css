@@ -8609,3 +8609,127 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
   .fv-spell-search { width: 100%; }
   .fv-spell-search input { width: 100%; }
 }
+
+/* ── Biblioteca de magias (Aprender/Preparar): busca + círculo à mão, resto no painel ── */
+.fv-lib-bar {
+  --lib-pad: 16px;
+  position: sticky; top: calc(-1 * var(--lib-pad)); z-index: 3;
+  margin: calc(-1 * var(--lib-pad)) calc(-1 * var(--lib-pad)) 12px;
+  padding: var(--lib-pad) var(--lib-pad) 10px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+/* no celular a barra não gruda: com o painel aberto ela tomaria a tela */
+@media (max-width: 640px) { .fv-lib-bar { --lib-pad: 13px; position: static; backdrop-filter: none; } }
+.fv-lib-searchrow { display: flex; gap: 8px; }
+.fv-lib-search {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  min-height: 42px; padding: 0 6px 0 14px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--muted);
+  transition: border-color .15s, box-shadow .15s;
+}
+.fv-lib-search:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent); }
+.fv-lib-search > svg { flex: none; }
+.fv-lib-search input {
+  flex: 1; min-width: 0; height: 40px; border: 0; outline: none; background: transparent;
+  color: var(--ink); font: inherit; font-size: 14px;
+}
+.fv-lib-search input::-webkit-search-cancel-button { display: none; }
+.fv-lib-search button {
+  flex: none; width: 30px; height: 30px; border-radius: 8px; border: 0; cursor: pointer;
+  background: transparent; color: var(--muted); font-size: 13px;
+}
+.fv-lib-search button:hover { background: var(--lift); color: var(--ink); }
+.fv-lib-filterbtn {
+  flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 0 14px;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--sunk); color: var(--muted);
+  font-weight: 700; font-size: 13px; cursor: pointer; transition: .15s;
+}
+.fv-lib-filterbtn:hover, .fv-lib-filterbtn.is-on { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); }
+.fv-lib-filterbtn b {
+  min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; display: inline-grid; place-items: center;
+  background: var(--gold); color: var(--panel); font-size: 11px;
+}
+/* abas Disponíveis / Escolhidas / Todas */
+.fv-lib-views {
+  display: flex; padding: 3px; gap: 3px; border-radius: 11px;
+  background: var(--sunk); border: 1px solid var(--line);
+}
+.fv-lib-views button {
+  flex: 1; min-height: 34px; border: 0; border-radius: 8px; cursor: pointer;
+  background: transparent; color: var(--muted); font-weight: 600; font-size: 12.5px; transition: .15s;
+}
+.fv-lib-views button span { margin-left: 4px; font-family: var(--font-num); font-size: 11.5px; opacity: .75; }
+.fv-lib-views button:hover { color: var(--ink); }
+.fv-lib-views button.is-on {
+  background: var(--lift); color: var(--ink);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--gold) 45%, transparent) inset, 0 2px 8px rgba(0, 0, 0, .18);
+}
+.fv-lib-views button.is-on span { color: var(--gold); opacity: 1; }
+/* círculos: quadradinhos compactos que quebram linha (nunca cortam) */
+.fv-lib-circles { display: flex; gap: 5px; }
+.fv-lib-circles button {
+  flex: 1 1 0; min-width: 0; max-width: 46px; height: 32px; padding: 0; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--line); background: transparent; color: var(--muted);
+  font-family: var(--font-num); font-weight: 700; font-size: 13px; transition: .15s;
+}
+.fv-lib-circles button:first-child { flex: 1.7 1 0; max-width: 64px; font-family: inherit; font-size: 12px; }
+.fv-lib-circles button:hover { color: var(--ink); border-color: color-mix(in srgb, var(--acc) 50%, var(--line)); }
+.fv-lib-circles button.is-on { color: var(--acc); border-color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, transparent); }
+/* painel Filtros */
+.fv-lib-panel {
+  display: flex; flex-direction: column; gap: 10px; padding: 12px;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--sunk);
+  animation: fvLibIn .18s ease-out;
+}
+@keyframes fvLibIn { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .fv-lib-panel { animation: none; } }
+.fv-lib-fgroup { display: grid; grid-template-columns: 112px 1fr; gap: 8px; align-items: start; }
+.fv-lib-flabel { padding-top: 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.fv-lib-fchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.fv-lib-fchips button {
+  --c: var(--gold);
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 11px;
+  border-radius: 999px; border: 1px solid var(--line); background: transparent; cursor: pointer;
+  color: var(--muted); font-weight: 600; font-size: 12px; transition: .15s;
+}
+.fv-lib-fchips button i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); opacity: .75; }
+.fv-lib-fchips button:hover { color: var(--ink); border-color: color-mix(in srgb, var(--c) 55%, var(--line)); }
+.fv-lib-fchips button.is-on {
+  color: var(--ink); border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+}
+.fv-lib-fchips button.is-on i { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
+/* filtros ligados */
+.fv-lib-active { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.fv-lib-active button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--ink); font-size: 11.5px; font-weight: 600; cursor: pointer;
+}
+.fv-lib-active button span { font-size: 10px; color: var(--muted); }
+.fv-lib-active .fv-lib-clear { border-color: transparent; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+/* lista em grupos por círculo */
+.fv-lib-group + .fv-lib-group { margin-top: 14px; }
+.fv-lib-group-head {
+  display: flex; align-items: center; gap: 8px; margin: 0 2px 8px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold);
+}
+.fv-lib-group-head::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.fv-lib-group-head span { order: 2; font-family: var(--font-num); font-size: 11px; color: var(--muted); letter-spacing: 0; }
+.fv-lib-list { display: flex; flex-direction: column; gap: 8px; }
+.fv-lib-row.is-locked { opacity: .7; }
+.fv-lib-empty { padding: 22px 8px; text-align: center; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.fv-lib-empty button {
+  border: 0; background: none; padding: 0; cursor: pointer; color: var(--acc); font: inherit; font-weight: 700;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+@media (max-width: 520px) {
+  .fv-lib-circles { gap: 4px; }
+  .fv-lib-fgroup { grid-template-columns: 1fr; gap: 6px; }
+  .fv-lib-flabel { padding-top: 0; }
+  .fv-lib-filterbtn { padding: 0 12px; }
+}

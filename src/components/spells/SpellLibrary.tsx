@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
+import { Icon } from '@/components/ui/Icon';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
 import { SpellThumb } from './SpellThumb';
@@ -38,7 +39,14 @@ const TAG_COLOR: Record<SpellTag, string> = {
   buff: '#E0A93E', debuff: '#B43A5E', invocação: '#4FA37A', movimento: '#46C8FF', defesa: '#9BB0CC',
 };
 
-/** Biblioteca de magias (estilo app de celular): busca + filtros + cartas detalhadas. */
+type View = 'available' | 'chosen' | 'all';
+const circleLabel = (lv: number) => (lv === 0 ? 'Truques' : `${lv}º círculo`);
+
+/**
+ * Biblioteca de magias: busca + círculo sempre à mão; efeito, escola e
+ * propriedades num painel "Filtros" que dobra. Os filtros ligados viram
+ * etiquetas removíveis, e a lista vem separada por círculo.
+ */
 export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar', costOf, blockedAdd, blockReason }: SpellLibraryProps) {
   const t = useTheme();
   const [query, setQuery] = useState('');
@@ -46,15 +54,17 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
   const [school, setSchool] = useState<string | null>(null);
   const [tag, setTag] = useState<SpellTag | null>(null);
   const [flags, setFlags] = useState<{ conc: boolean; ritual: boolean }>({ conc: false, ritual: false });
+  const [panel, setPanel] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   // com regras: por padrão mostra só o que dá para pegar agora (+ o que já tem)
-  const [onlyAvailable, setOnlyAvailable] = useState(!!blockReason);
+  const [view, setView] = useState<View>(blockReason ? 'available' : 'all');
   const sel = new Set(selected);
   const reasonOf = (s: Spell) => (sel.has(s.id) || !blockReason ? null : blockReason(s));
 
   const levels = useMemo(() => Array.from(new Set(spells.map((s) => s.level))).sort((a, b) => a - b), [spells]);
 
-  const list = useMemo(() => {
+  // tudo menos a aba (Disponíveis/Escolhidas/Todas), para contar cada aba
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return spells.filter((s) => {
       if (level !== null && s.level !== level) return false;
@@ -62,59 +72,143 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
       if (tag && !(s.tags ?? []).includes(tag)) return false;
       if (flags.conc && !s.concentration) return false;
       if (flags.ritual && !s.ritual) return false;
-      if (onlyAvailable && reasonOf(s)) return false;
       if (q && !(s.name.toLowerCase().includes(q) || (s.desc ?? '').toLowerCase().includes(q) || (s.damage?.type ?? '').toLowerCase().includes(q))) return false;
       return true;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spells, query, level, school, tag, flags, onlyAvailable, selected, blockReason]);
+  }, [spells, query, level, school, tag, flags]);
 
-  const chip = (active: boolean, color = t.gold): React.CSSProperties => ({
-    cursor: 'pointer', fontSize: 11.5, fontWeight: 600, minHeight: 30, padding: '5px 11px', borderRadius: 999,
-    border: '1px solid ' + (active ? color : t.line), color: active ? color : 'var(--muted)',
-    background: active ? hexA(color, 0.12) : 'transparent', whiteSpace: 'nowrap', transition: '.15s',
-  });
+  const counts = useMemo(
+    () => ({
+      available: filtered.filter((s) => !reasonOf(s)).length,
+      chosen: filtered.filter((s) => sel.has(s.id)).length,
+      all: filtered.length,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, selected, blockReason],
+  );
+  const list = view === 'all' ? filtered : filtered.filter((s) => (view === 'chosen' ? sel.has(s.id) : !reasonOf(s)));
+  const groups = levels.map((lv) => ({ lv, spells: list.filter((s) => s.level === lv) })).filter((g) => g.spells.length);
+
+  // filtros do painel que estão ligados, como etiquetas removíveis
+  const active: { key: string; label: React.ReactNode; clear: () => void }[] = [];
+  if (tag) active.push({ key: 'tag', label: TAG_LABELS[tag], clear: () => setTag(null) });
+  if (school) active.push({ key: 'school', label: school, clear: () => setSchool(null) });
+  if (flags.conc) active.push({ key: 'conc', label: 'Concentração', clear: () => setFlags((f) => ({ ...f, conc: false })) });
+  if (flags.ritual) active.push({ key: 'ritual', label: 'Ritual', clear: () => setFlags((f) => ({ ...f, ritual: false })) });
+  const clearAll = () => {
+    setTag(null);
+    setSchool(null);
+    setFlags({ conc: false, ritual: false });
+    setLevel(null);
+    setQuery('');
+  };
+
+  const views: { id: View; label: string }[] = blockReason
+    ? [
+        { id: 'available', label: 'Disponíveis' },
+        { id: 'chosen', label: 'Escolhidas' },
+        { id: 'all', label: 'Todas' },
+      ]
+    : [
+        { id: 'all', label: 'Todas' },
+        { id: 'chosen', label: 'Escolhidas' },
+      ];
 
   return (
     <Modal title={title} icon="spark" onClose={onClose} maxWidth={640}>
-      <input className="fv-input" placeholder="Buscar por nome, efeito ou tipo de dano…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 10 }} />
-
-      {/* filtros */}
-      <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6, marginBottom: 4 }}>
-        <button onClick={() => setLevel(null)} style={chip(level === null)}>Todos</button>
-        {levels.map((lv) => (
-          <button key={lv} onClick={() => setLevel(level === lv ? null : lv)} style={chip(level === lv, t.acc)}>{lv === 0 ? 'Truque' : `${lv}º`}</button>
-        ))}
-        <span style={{ width: 1, background: t.line, flex: 'none', margin: '0 2px' }} />
-        {blockReason && (
-          <button onClick={() => setOnlyAvailable((v) => !v)} style={chip(onlyAvailable, t.acc)} title="Mostrar só as magias que você pode pegar agora">
-            {onlyAvailable ? '✓ Só disponíveis' : 'Mostrar todas'}
+      <div className="fv-lib-bar">
+        <div className="fv-lib-searchrow">
+          <label className="fv-lib-search">
+            <Icon name="search" size={16} />
+            <input type="search" placeholder="Buscar por nome, efeito ou dano…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar magia" />
+            {query && (
+              <button type="button" onClick={() => setQuery('')} aria-label="Limpar busca">
+                ✕
+              </button>
+            )}
+          </label>
+          <button type="button" className={'fv-lib-filterbtn' + (panel || active.length ? ' is-on' : '')} onClick={() => setPanel((v) => !v)} aria-expanded={panel} aria-controls="fv-lib-panel">
+            <span aria-hidden>☰</span> Filtros{active.length > 0 && <b>{active.length}</b>}
           </button>
+        </div>
+
+        <div className="fv-lib-views" role="group" aria-label="Mostrar">
+          {views.map((v) => (
+            <button key={v.id} type="button" aria-pressed={view === v.id} className={view === v.id ? 'is-on' : ''} onClick={() => setView(v.id)}>
+              {v.label} <span>{counts[v.id]}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="fv-lib-circles" role="group" aria-label="Círculo">
+          <button type="button" aria-pressed={level === null} className={level === null ? 'is-on' : ''} onClick={() => setLevel(null)}>
+            Todos
+          </button>
+          {levels.map((lv) => (
+            <button key={lv} type="button" aria-pressed={level === lv} aria-label={circleLabel(lv)} title={circleLabel(lv)} className={level === lv ? 'is-on' : ''} onClick={() => setLevel(level === lv ? null : lv)}>
+              {lv === 0 ? 'T' : lv}
+            </button>
+          ))}
+        </div>
+
+        {panel && (
+          <div id="fv-lib-panel" className="fv-lib-panel">
+            <FilterGroup label="Efeito">
+              {(Object.keys(TAG_LABELS) as SpellTag[]).map((tg) => (
+                <button key={tg} type="button" aria-pressed={tag === tg} className={tag === tg ? 'is-on' : ''} style={{ '--c': TAG_COLOR[tg] } as React.CSSProperties} onClick={() => setTag(tag === tg ? null : tg)}>
+                  <i aria-hidden />
+                  {TAG_LABELS[tg]}
+                </button>
+              ))}
+            </FilterGroup>
+            <FilterGroup label="Escola">
+              {SCHOOLS.map((sc) => (
+                <button key={sc} type="button" aria-pressed={school === sc} className={school === sc ? 'is-on' : ''} style={{ '--c': t.gold } as React.CSSProperties} onClick={() => setSchool(school === sc ? null : sc)}>
+                  <SchoolIcon school={sc} size={13} />
+                  {sc}
+                </button>
+              ))}
+            </FilterGroup>
+            <FilterGroup label="Propriedades">
+              <button type="button" aria-pressed={flags.conc} className={flags.conc ? 'is-on' : ''} style={{ '--c': '#C24DFF' } as React.CSSProperties} onClick={() => setFlags((f) => ({ ...f, conc: !f.conc }))}>
+                ◎ Concentração
+              </button>
+              <button type="button" aria-pressed={flags.ritual} className={flags.ritual ? 'is-on' : ''} style={{ '--c': '#4FA37A' } as React.CSSProperties} onClick={() => setFlags((f) => ({ ...f, ritual: !f.ritual }))}>
+                ❖ Ritual
+              </button>
+            </FilterGroup>
+          </div>
         )}
-        <button onClick={() => setFlags((f) => ({ ...f, conc: !f.conc }))} style={chip(flags.conc, '#C24DFF')}>Concentração</button>
-        <button onClick={() => setFlags((f) => ({ ...f, ritual: !f.ritual }))} style={chip(flags.ritual, '#4FA37A')}>Ritual</button>
-      </div>
-      <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 4 }}>
-        {(Object.keys(TAG_LABELS) as SpellTag[]).map((tg) => (
-          <button key={tg} onClick={() => setTag(tag === tg ? null : tg)} style={chip(tag === tg, TAG_COLOR[tg])}>{TAG_LABELS[tg]}</button>
-        ))}
-      </div>
-      <div className="fv-no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
-        {SCHOOLS.map((sc) => (
-          <button key={sc} onClick={() => setSchool(school === sc ? null : sc)} style={{ ...chip(school === sc, t.gold), display: 'inline-flex', alignItems: 'center', gap: 5 }}><SchoolIcon school={sc} size={13} />{sc}</button>
-        ))}
+
+        {active.length > 0 && (
+          <div className="fv-lib-active">
+            {active.map((a) => (
+              <button key={a.key} type="button" onClick={a.clear} aria-label={`Tirar filtro ${typeof a.label === 'string' ? a.label : ''}`}>
+                {a.label} <span aria-hidden>✕</span>
+              </button>
+            ))}
+            <button type="button" className="fv-lib-clear" onClick={clearAll}>
+              Limpar tudo
+            </button>
+          </div>
+        )}
       </div>
 
-      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>{list.length} magia(s)</div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {list.map((sp) => {
+      {groups.map((g) => (
+        <section key={g.lv} className="fv-lib-group" aria-label={circleLabel(g.lv)}>
+          {level === null && (
+            <h3 className="fv-lib-group-head">
+              {circleLabel(g.lv)} <span>{g.spells.length}</span>
+            </h3>
+          )}
+          <div className="fv-lib-list">
+        {g.spells.map((sp) => {
           const on = sel.has(sp.id);
           const expanded = open === sp.id;
           return (
-            <div key={sp.id} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'var(--sunk)', overflow: 'hidden' }}>
+            <div key={sp.id} className={'fv-lib-row' + (reasonOf(sp) ? ' is-locked' : '')} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'var(--sunk)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
-                <button onClick={() => setOpen(expanded ? null : sp.id)} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'none', border: 'none', minWidth: 0 }}>
+                <button onClick={() => setOpen(expanded ? null : sp.id)} aria-expanded={expanded} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'none', border: 'none', minWidth: 0 }}>
                   <SpellThumb spell={sp} size={34} showLevel />
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
@@ -144,6 +238,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                       onClick={() => { if (!blocked) onToggle(sp.id); }}
                       disabled={blocked}
                       title={on ? 'Remover' : reason ?? (blocked ? 'Ouro insuficiente' : actionLabel)}
+                      aria-label={`${on ? 'Remover' : actionLabel} ${sp.name}`}
                       style={{ cursor: blocked ? 'not-allowed' : 'pointer', flex: 'none', minHeight: 34, padding: '5px 12px', borderRadius: 999, border: '1px solid ' + (on ? t.gold : blocked ? t.line : t.acc), color: on ? t.gold : blocked ? 'var(--muted)' : t.acc, background: on ? hexA(t.gold, 0.14) : blocked ? 'transparent' : 'var(--lift)', opacity: blocked ? 0.5 : 1, fontWeight: 700, fontSize: 12.5 }}
                     >
                       {on ? '✓' : '+'}
@@ -167,13 +262,40 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
             </div>
           );
         })}
-        {list.length === 0 && (
-          <div style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', padding: '18px 0' }}>
-            {onlyAvailable ? 'Nenhuma magia disponível agora (limite atingido ou círculo alto). Toque em "Mostrar todas" para ver o motivo de cada uma.' : 'Nenhuma magia com esses filtros.'}
           </div>
-        )}
-      </div>
+        </section>
+      ))}
+      {list.length === 0 && (
+        <div className="fv-lib-empty">
+          {view === 'available' && counts.all > 0 ? (
+            <>
+              Nada disponível agora com esses filtros (limite atingido ou círculo alto).{' '}
+              <button type="button" onClick={() => setView('all')}>
+                Ver todas e o motivo
+              </button>
+            </>
+          ) : view === 'chosen' && counts.all > 0 ? (
+            'Nenhuma escolhida com esses filtros.'
+          ) : (
+            <>
+              Nenhuma magia com esses filtros.{' '}
+              <button type="button" onClick={clearAll}>
+                Limpar filtros
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </Modal>
+  );
+}
+
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="fv-lib-fgroup" role="group" aria-label={label}>
+      <span className="fv-lib-flabel">{label}</span>
+      <div className="fv-lib-fchips">{children}</div>
+    </div>
   );
 }
 
