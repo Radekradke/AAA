@@ -238,7 +238,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
         >
           {info.art &&
             (banner ? (
-              <div className={`fv-lore-banner is-${info.art.rarity}`} aria-hidden>
+              <div className={`fv-lore-banner is-${info.art.rarity}`} style={{ backgroundImage: `url("${info.art.src}")` }} aria-hidden>
                 <img src={info.art.src} alt="" decoding="async" />
               </div>
             ) : (

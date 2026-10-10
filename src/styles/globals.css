@@ -7459,14 +7459,17 @@ select optgroup {
   }
 }
 
-/* Magia com arte: faixa no topo do painel, esmaecendo para dentro (estilo do card do herói) */
+/* Magia com arte: a arte inteira no topo do modal (sem corte), sobre uma cópia
+   desfocada dela mesma que preenche as laterais; os detalhes vêm embaixo */
 .fv-lore-banner {
   --rc: var(--gold);
   position: relative;
-  height: 168px;
+  height: clamp(210px, 42vh, 320px);
   margin: -14px -15px 0;
   overflow: hidden;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background-size: cover;
+  background-position: center;
   box-shadow: inset 0 2px 0 color-mix(in srgb, var(--rc), transparent 35%);
 }
 .fv-lore-banner.is-comum { --rc: #9ba7b5; }
@@ -7474,30 +7477,41 @@ select optgroup {
 .fv-lore-banner.is-raro { --rc: #4d9bff; }
 .fv-lore-banner.is-muito-raro { --rc: #b061ff; }
 .fv-lore-banner.is-lendario { --rc: #ffa033; }
-.fv-lore-banner img {
+/* o fundo é a própria arte, desfocada e escurecida */
+.fv-lore-banner::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 38%;
-  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+  inset: -24px;
+  background: inherit;
+  filter: blur(18px) brightness(0.7) saturate(1.25);
 }
-/* brilho da raridade por cima, e o pé da faixa vira o próprio painel */
+.fv-lore-banner img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  object-fit: contain;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+/* o pé da arte se dissolve no painel */
 .fv-lore-banner::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--rc), transparent 82%), transparent 60%);
+  z-index: 2;
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--rc), transparent 85%), transparent 60%),
+    linear-gradient(180deg, transparent 70%, var(--panel) 100%);
 }
 .fv-lore-tooltip.has-banner .fv-lore-text {
   position: relative;
-  margin-top: -30px;
+  margin-top: 10px;
 }
 .fv-lore-tooltip.has-banner .fv-lore-title {
   font-size: 1.12em;
-  text-shadow: 0 1px 10px var(--panel), 0 0 2px var(--panel);
 }
 
 /* miniatura no card do inventário (com o botão de enviar arte) */
@@ -8430,3 +8444,168 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 }
 .fv-artcount-missing ul { margin-top: 6px; max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 3px; padding-right: 4px; }
 .fv-artcount-done { margin: 0; color: var(--ink); }
+
+/* =====================================================================
+   Aba Magias — lista enxuta
+   miniatura maior (com o preparar no canto), nome inteiro, só o essencial,
+   um botão (Conjurar); favoritar/esquecer aparecem ao passar o mouse
+   ===================================================================== */
+.fv-spell-dc {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  font: 600 12px/1.2 var(--font-body);
+  color: var(--muted);
+}
+.fv-spell-dc b { font-family: var(--font-num); font-size: 13.5px; }
+.fv-spell-dc b.is-gold { color: var(--gold); }
+.fv-spell-dc b.is-acc { color: var(--acc); }
+.fv-spell-dc i { font-style: normal; opacity: 0.6; }
+.fv-spell-rules { margin: 2px 0 10px; font-size: 12px; color: var(--muted); }
+.fv-spell-rules summary { cursor: pointer; width: fit-content; font-weight: 600; color: var(--ink); }
+.fv-spell-rules .fv-spell-rule-text { margin: 6px 0 0; }
+
+.fv-spell-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 4px; }
+.fv-spell-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.fv-spell-filter button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px/1.3 var(--font-body);
+}
+.fv-spell-filter button small { font: 700 10.5px/1 var(--font-num); opacity: 0.8; }
+.fv-spell-filter button.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 88%); }
+.fv-spell-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  color: var(--muted);
+}
+.fv-spell-search input { width: 170px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; outline: none; }
+.fv-spell-search:focus-within { border-color: var(--gold); }
+.fv-spell-empty { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+
+.fv-spell-group { margin-top: 14px; }
+.fv-spell-group-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.fv-spell-group-head h3 { margin: 0; font: 600 12px/1 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.fv-spell-group-slots { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+.fv-spell-group-slots i { width: 8px; height: 8px; border-radius: 2px; transform: rotate(45deg); border: 1px solid var(--line); }
+.fv-spell-group-slots i.is-on { border-color: var(--acc); background: var(--acc); box-shadow: 0 0 6px color-mix(in srgb, var(--acc), transparent 50%); }
+.fv-spell-group-slots span { margin-left: 4px; }
+.fv-spell-group-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.fv-spell-group-head > b { font: 700 11px/1 var(--font-num); color: var(--muted); }
+
+/* duas colunas largas no PC; uma no celular */
+.fv-spell-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: 6px; }
+
+/* a linha (sobrescreve a versão antiga, que era só inline) */
+.fv-spell-list .fv-spell-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+.fv-spell-list .fv-spell-row:is(:hover, :focus-within) { border-color: color-mix(in srgb, var(--gold), transparent 55%); z-index: 2; }
+.fv-spell-prep {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font: 800 12px/1 var(--font-body);
+  cursor: pointer;
+}
+.fv-spell-prep.is-on { border-color: var(--gold); background: var(--gold); color: var(--panel); }
+.fv-spell-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; cursor: help; }
+.fv-spell-name { font-size: 14.5px; font-weight: 600; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
+.fv-spell-list .fv-spell-name { display: flex; align-items: center; gap: 6px; }
+.fv-spell-name .fv-spell-school { flex: none; color: var(--muted); }
+/* arte da magia como fundo da linha, bem transparente */
+:is(.fv-spell-row, .fv-mesa-spell).has-art { position: relative; isolation: isolate; }
+:is(.fv-spell-row, .fv-mesa-spell).has-art:is(:hover, :focus-within) { z-index: 5; }
+.fv-spell-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: 50% 30%;
+  opacity: 0.2;
+  transition: opacity 0.25s;
+}
+[data-mode='light'] .fv-spell-bg { opacity: 0.16; }
+:is(.fv-spell-row, .fv-mesa-spell):is(:hover, :focus-within) > .fv-spell-bg { opacity: 0.32; }
+.fv-spell-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.fv-spell-meta:empty { display: none; }
+.fv-spell-granted { font-size: 10.5px; font-weight: 700; color: var(--gold); }
+.fv-spell-granted.is-muted { color: var(--muted); font-weight: 600; }
+.fv-spell-ico { display: inline-grid; place-items: center; width: 20px; height: 18px; border-radius: 5px; border: 1px solid var(--line); font-size: 11px; line-height: 1; color: var(--muted); }
+.fv-spell-ico.is-conc { color: #c24dff; border-color: color-mix(in srgb, #c24dff, transparent 55%); }
+.fv-spell-ico.is-ritual { color: #4fa37a; border-color: color-mix(in srgb, #4fa37a, transparent 55%); }
+[data-mode='light'] .fv-spell-ico.is-conc { color: #8a2fbf; }
+[data-mode='light'] .fv-spell-ico.is-ritual { color: #2f7a55; }
+
+/* favoritar / esquecer: só ao passar o mouse (no toque, sempre à vista, discretos) */
+.fv-spell-tools { display: inline-flex; gap: 2px; flex: none; }
+.fv-spell-tool {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fv-spell-tool:hover, .fv-spell-tool:focus-visible { border-color: var(--line); color: var(--ink); }
+.fv-spell-tool.is-on { color: var(--gold); }
+.fv-spell-tool.is-danger:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger), transparent 50%); }
+@media (hover: hover) {
+  .fv-spell-row .fv-spell-tool { opacity: 0; transition: opacity 0.15s; }
+  .fv-spell-row .fv-spell-tool.is-on,
+  .fv-spell-row:is(:hover, :focus-within) .fv-spell-tool { opacity: 1; }
+}
+
+/* estados */
+.fv-spell-list .fv-spell-row.is-dormant { opacity: 0.62; }
+.fv-spell-list .fv-spell-row.is-dormant .fv-spell-bg { filter: grayscale(0.8); }
+.fv-spell-list .fv-spell-row.is-dormant:is(:hover, :focus-within) { opacity: 1; }
+.fv-spell-list .fv-spell-row.is-conc {
+  border-color: color-mix(in srgb, #c24dff, transparent 40%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #c24dff, transparent 70%), 0 0 16px color-mix(in srgb, #c24dff, transparent 78%);
+}
+.fv-spell-list .fv-spell-row.is-fav { border-color: color-mix(in srgb, var(--gold), transparent 60%); }
+
+@media (max-width: 520px) {
+  .fv-spell-list .fv-spell-row { gap: 10px; padding: 8px; }
+  .fv-spell-search { width: 100%; }
+  .fv-spell-search input { width: 100%; }
+}

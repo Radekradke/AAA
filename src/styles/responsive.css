@@ -19,10 +19,13 @@ html[data-theme] :is(.fv-mabil-key, .fv-mesa-chip-ab) {
   .fv-spell-row {
     flex-wrap: wrap;
   }
-  /* o texto ocupa a linha; a miniatura fica ao lado dele */
-  .fv-spell-row > :first-child:not(.fv-spell-thumb),
-  .fv-spell-row > .fv-spell-thumb + * {
-    flex: 1 1 calc(100% - 46px) !important;
+  /* nome na primeira linha; Conjurar e as ferramentas embaixo, à direita */
+  .fv-spell-row > .fv-lore-anchor {
+    flex: 1 1 calc(100% - 40px) !important;
+  }
+  .fv-spell-row > .fv-cast,
+  .fv-spell-row > .fv-lore-anchor + .fv-spell-tools {
+    margin-left: auto;
   }
 }
 
