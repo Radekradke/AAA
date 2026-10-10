@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { ITEM_DESCRIPTIONS, itemDescription } from '@/data/itemDescriptions';
-import { getItem } from '@/data/items';
+import { getItem, GEAR } from '@/data/items';
 import { WEAPONS } from '@/data/weapons';
 import { ARMORS } from '@/data/armors';
 import { ITEM_TAGS, autoTags, itemTags } from '../itemTags';
 import { itemLore } from '@/lib/lore';
 
 /** Lotes já escritos: cada item do catálogo neles precisa de texto. */
-const COVERED = [...WEAPONS, ...ARMORS];
+const COVERED = [...WEAPONS, ...ARMORS, ...GEAR];
 
 describe('descrições de itens', () => {
-  it('toda arma, armadura e escudo do livro tem descrição e linha "na mesa"', () => {
+  it('toda arma, armadura, escudo e equipamento do livro tem descrição e linha "na mesa"', () => {
     const missing = COVERED.filter((i) => !itemDescription(i.id)).map((i) => i.id);
     expect(missing).toEqual([]);
   });
@@ -58,6 +58,10 @@ describe('etiquetas automáticas', () => {
     expect(itemTags(getItem('w-longbow')!)).toEqual(expect.arrayContaining(['Duas mãos', 'Precisa de munição']));
     expect(itemTags(getItem('a-plate')!)).toContain('Barulhenta');
     expect(itemTags(getItem('a-leather')!)).not.toContain('Barulhenta');
+    expect(itemTags(getItem('g-tool-smith')!)).toContain('Ferramenta');
+    expect(itemTags(getItem('g-inst-lute')!)).not.toContain('Ferramenta');
+    expect(itemTags(getItem('g-focus-wand')!)).toContain('Foco de conjuração');
+    expect(itemTags(getItem('g-acid')!)).toContain('Gasta ao usar');
   });
 });
 

@@ -59,7 +59,8 @@ export function autoTags(item: TaggableItem): ItemTag[] {
   if (item.attunement) tags.push('Sintonia');
   if (item.charges?.max) tags.push('Cargas');
   if (item.group === 'Focos de conjuração') tags.push('Foco de conjuração');
-  if (item.category === 'tool') tags.push('Ferramenta');
+  // instrumentos e jogos são "ferramentas" nas regras, mas ninguém chama um alaúde assim
+  if (item.category === 'tool' && item.group !== 'Instrumentos musicais' && item.group !== 'Jogos') tags.push('Ferramenta');
   return tags;
 }
 
