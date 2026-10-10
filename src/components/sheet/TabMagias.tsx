@@ -403,7 +403,10 @@ function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
 
 /** Quanto da magia a ficha resolve (detalhe completo na dica). */
 function AutoMini({ sp }: { sp: Spell }) {
-  const chip = AUTOMATION_CHIP[spellAutomation(sp).level];
+  const level = spellAutomation(sp).level;
+  // totalmente automática não precisa de aviso: só as que ainda pedem algo da mesa
+  if (level === 'full') return null;
+  const chip = AUTOMATION_CHIP[level];
   return (
     <span title={chip.title}>
       <Mini c={chip.color}>{chip.text}</Mini>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
@@ -15,6 +15,9 @@ import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
 import { rememberNext } from '@/lib/nextPath';
 import { wakeLockSupported } from '@/lib/wakeLock';
+
+/** Contador de artes: só baixa (catálogo de magias, itens e criaturas) quando abrir. */
+const ArtCounter = lazy(() => import('@/components/ArtCounter'));
 
 const SECTIONS: { id: string; label: string; icon: IconName }[] = [
   { id: 'conta', label: 'Conta', icon: 'user' },
@@ -102,6 +105,7 @@ export function Settings() {
   const installer = useInstallPrompt();
   const [iosGuide, setIosGuide] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [artCount, setArtCount] = useState(false);
 
   const active = useActiveSection(SECTION_IDS);
   const jump = (id: string) => document.getElementById(`cfg-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -281,6 +285,16 @@ export function Settings() {
               Abrir
             </button>
           </Row>
+          <Row title="Contador de artes" hint="Para quem faz as artes: quantas imagens já existem de magias, itens, criaturas, retratos e vozes, e o que ainda falta. Conta sozinho a cada versão.">
+            <button type="button" className="fv-btn-ghost fv-set-btn" aria-expanded={artCount} aria-label={artCount ? 'Fechar contador de artes' : 'Abrir contador de artes'} onClick={() => setArtCount((v) => !v)}>
+              {artCount ? 'Fechar' : 'Abrir'}
+            </button>
+          </Row>
+          {artCount && (
+            <Suspense fallback={<p className="fv-set-lead">Contando…</p>}>
+              <ArtCounter />
+            </Suspense>
+          )}
           <Row title="Oficina de retratos" hint="Para quem mantém o app: prepara a arte padrão das classes (as imagens que aparecem quando o herói não tem retrato próprio). Para trocar o retrato do SEU herói, use a aba Retrato da ficha.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
               Abrir

@@ -188,7 +188,10 @@ function MiniChip({ children, color }: { children: React.ReactNode; color?: stri
 
 /** Quanto da magia a ficha resolve (detalhe completo na dica). */
 function AutoChip({ sp }: { sp: Spell }) {
-  const chip = AUTOMATION_CHIP[spellAutomation(sp).level];
+  const level = spellAutomation(sp).level;
+  // totalmente automática não precisa de aviso: só as que ainda pedem algo da mesa
+  if (level === 'full') return null;
+  const chip = AUTOMATION_CHIP[level];
   return (
     <span title={chip.title}>
       <MiniChip color={chip.color}>{chip.text}</MiniChip>

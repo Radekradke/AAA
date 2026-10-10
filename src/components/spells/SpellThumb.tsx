@@ -23,3 +23,4 @@ export function SpellThumb({ spell, size = 32, showLevel = false }: Props) {
     </span>
   );
 }
+
