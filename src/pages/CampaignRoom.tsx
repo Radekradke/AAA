@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { catchUpHeroEvents } from '@/store/sessionStore';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -75,6 +76,11 @@ export function CampaignRoom() {
     if (!id) return;
     return subscribeRoom(id, load);
   }, [id, load]);
+
+  // jogador: dano, cura, XP e itens que o mestre mandou enquanto o app estava fechado
+  useEffect(() => {
+    if (campaign && user && !user.guest && campaign.masterId !== user.id) void catchUpHeroEvents(campaign.id, campaign.masterId, true);
+  }, [campaign, user]);
 
   // mestre: garante um convite reutilizável (com código curto e QR)
   useEffect(() => {
@@ -223,7 +229,7 @@ export function CampaignRoom() {
                       {k === 'nota' ? 'Nota' : k === 'npc' ? 'NPC' : 'Missão'}
                     </button>
                   ))}
-                  <input className="fv-input" placeholder="Título" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                  <input className="fv-input" placeholder="Título (obrigatório)" aria-label="Título da nota" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <input className="fv-input" placeholder="Detalhes (opcional)" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} style={{ flex: '1 1 220px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
@@ -233,6 +239,7 @@ export function CampaignRoom() {
                       void campaignNotes.add(campaign.id, user.id, noteKind, noteTitle, noteBody).then(() => { setNoteTitle(''); setNoteBody(''); load(); });
                     }}
                     disabled={!noteTitle.trim()}
+                    title={noteTitle.trim() ? 'Registrar na crônica da mesa' : 'Escreva um título para registrar'}
                     className="fv-btn-gold"
                     style={{ minHeight: 38, padding: '0 18px', fontSize: 13, opacity: noteTitle.trim() ? 1 : 0.5 }}
                   >

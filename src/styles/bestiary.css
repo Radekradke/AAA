@@ -381,8 +381,10 @@
   flex: none;
   align-self: center;
 }
+/* retrato ao lado do nome (a base .fv-bs-item empilha em coluna) */
 .fv-bs-item.fv-bs-item-face {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
 }
