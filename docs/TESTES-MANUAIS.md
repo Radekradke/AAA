@@ -650,3 +650,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 6. Lista separada por círculo (Truques, 1º círculo…) com a contagem de cada grupo; com um círculo escolhido, sem cabeçalho.
 7. Sem resultado: mensagem com atalho (**Limpar filtros** ou **Ver todas e o motivo**).
 8. PC: a barra de busca/filtros fica presa no topo ao rolar a lista. Celular: rola junto (para não tomar a tela).
+
+## 70. Origem: sub-raças explicadas e balão das raças homebrew
+
+1. Criação → Origem → escolha uma raça com sublinhagem (Anão, Elfo, Halfling, Gnomo, Draconato). Embaixo dos botões da sublinhagem aparece uma frase curta explicando a escolhida (ex.: Anão da Colina "ganham 1 PV a mais a cada nível"). Trocar a sublinhagem troca a frase.
+2. Draconato: a frase diz o sopro (forma e salvaguarda) e a resistência da cor escolhida.
+3. Raças homebrew (ex.: Aasimar, Tabaxi, Golias): passe o mouse no card (no celular, toque longo). O balão mostra a descrição, os traços em uma linha cada e, em "Sub-raças (o que muda)", o bônus, a frase e o traço de cada sub-raça. A base oficial aparece como etiqueta.
+4. Escolhida uma raça homebrew com sub-raças, a sub-raça escolhida também ganha a frase curta embaixo dos botões.

@@ -160,11 +160,12 @@ export const SUBRACES: Record<string, Subrace[]> = {
       bonus: '+1 SAB · +1 PV/nível',
       hpPerLevel: 1,
       traits: ['Tenacidade Anã'],
+      desc: 'Sentidos aguçados e uma resistência fora do comum: ganham 1 PV a mais a cada nível.',
     },
-    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR · armaduras médias', traits: ['Treinamento Anão com Armaduras'] },
+    { id: 'mountain-dwarf', label: 'Anão da Montanha', abilityBonus: { str: 2 }, bonus: '+2 FOR · armaduras médias', traits: ['Treinamento Anão com Armaduras'], desc: 'Fortes e acostumados à vida dura das montanhas: usam armaduras leves e médias sem treino.' },
   ],
   elf: [
-    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'], traits: ['Treinamento Élfico com Armas', 'Truque de Mago', 'Idioma adicional'] },
+    { id: 'high-elf', label: 'Alto Elfo', abilityBonus: { int: 1 }, bonus: '+1 INT', languages: ['1 idioma à escolha'], traits: ['Treinamento Élfico com Armas', 'Truque de Mago', 'Idioma adicional'], desc: 'Herdeiros da magia élfica: sabem um truque de mago e falam um idioma a mais.' },
     {
       id: 'wood-elf',
       label: 'Elfo da Floresta',
@@ -172,12 +173,13 @@ export const SUBRACES: Record<string, Subrace[]> = {
       bonus: '+1 SAB · +1,5 m',
       speedBonus: 1.5,
       traits: ['Treinamento Élfico com Armas', 'Pés Ligeiros', 'Máscara da Natureza'],
+      desc: 'Rápidos e furtivos na mata: andam mais e conseguem se esconder até sob folhagem leve.',
     },
-    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR', darkvision: 36, traits: ['Visão Superior no Escuro', 'Sensibilidade à Luz Solar', 'Magia Drow', 'Treinamento Drow com Armas'] },
+    { id: 'drow', label: 'Drow', abilityBonus: { cha: 1 }, bonus: '+1 CAR', darkvision: 36, traits: ['Visão Superior no Escuro', 'Sensibilidade à Luz Solar', 'Magia Drow', 'Treinamento Drow com Armas'], desc: 'Elfos do Subterrâneo: enxergam longe no escuro e têm magia inata, mas sofrem sob a luz do sol.' },
   ],
   halfling: [
-    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR', traits: ['Furtividade Natural'] },
-    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', resistances: ['veneno'], traits: ['Resiliência Robusta'] },
+    { id: 'lightfoot', label: 'Pés Leves', abilityBonus: { cha: 1 }, bonus: '+1 CAR', traits: ['Furtividade Natural'], desc: 'Discretos e sociáveis: conseguem se esconder atrás de criaturas maiores que eles.' },
+    { id: 'stout', label: 'Robusto', abilityBonus: { con: 1 }, bonus: '+1 CON', resistances: ['veneno'], traits: ['Resiliência Robusta'], desc: 'Dizem ter sangue anão: vantagem nas salvaguardas e resistência contra veneno.' },
   ],
   dragonborn: DRAGON_LINES.map(([id, label, type, shape, save]) => ({
     id: `dragon-${id}`,
@@ -185,10 +187,11 @@ export const SUBRACES: Record<string, Subrace[]> = {
     bonus: `${type} · ${shape} · ${save}`,
     resistances: [type],
     traits: [`Sopro (${type})`],
+    desc: `Sopro de ${type} em ${shape === 'linha' ? 'linha de 1,5 × 9 m' : 'cone de 4,5 m'} (salvaguarda de ${save}) e resistência a dano de ${type}.`,
   })),
   gnome: [
-    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES', traits: ['Ilusionista Nato', 'Falar com Bestas Pequenas'] },
-    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON', traits: ['Conhecimento de Artífice', 'Engenhoqueiro'] },
+    { id: 'forest-gnome', label: 'Gnomo da Floresta', abilityBonus: { dex: 1 }, bonus: '+1 DES', traits: ['Ilusionista Nato', 'Falar com Bestas Pequenas'], desc: 'Ilusionistas natos que conversam com os pequenos animais da floresta.' },
+    { id: 'rock-gnome', label: 'Gnomo das Rochas', abilityBonus: { con: 1 }, bonus: '+1 CON', traits: ['Conhecimento de Artífice', 'Engenhoqueiro'], desc: 'Inventores e artífices: entendem de itens mágicos e montam pequenas engenhocas.' },
   ],
 };
 
