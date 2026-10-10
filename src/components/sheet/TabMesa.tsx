@@ -25,6 +25,7 @@ import { SkillsModal } from './SkillsModal';
 import { InspirationControl } from './InspirationControl';
 import { InitiativeButton } from './InitiativeButton';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
+import { spellArt } from '@/lib/spellArt';
 import { CompanionPanel } from './CompanionPanel';
 import { inspirationCount, inspirationMax } from '@/engine/inspiration';
 import { useUiStore } from '@/store/uiStore';
@@ -59,10 +60,12 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
 
   const proficientSkills = derived.skills.filter((s) => s.proficient);
   const castModMesa = derived.abilities[casterOf(char)?.ability ?? 'int'].mod;
+  const fav = char.favoriteSpells ?? [];
   const prepared = [...new Set([...char.preparedSpells, ...grantedSpells(char).map((g) => g.id)])]
     .map((id) => SPELL_BY_ID[id])
     .filter(Boolean)
-    .sort((a, b) => a.level - b.level);
+    // favoritas (fixadas na aba Magias) primeiro, depois por círculo
+    .sort((a, b) => Number(fav.includes(b.id)) - Number(fav.includes(a.id)) || a.level - b.level);
   const slotView = syncSpellSlots(char);
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
@@ -406,7 +409,8 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             {prepared.length > 0 && (
               <div className="fv-mesa-spells">
                 {prepared.slice(0, 10).map((sp) => (
-                  <div key={sp.id} className="fv-mesa-spell">
+                  <div key={sp.id} className={'fv-mesa-spell' + (spellArt(sp.id) ? ' has-art' : '')}>
+                    {spellArt(sp.id) && <span className="fv-spell-bg" style={{ backgroundImage: `url("${spellArt(sp.id)}")` }} aria-hidden />}
                     <span className="fv-mesa-spell-lv">{sp.level === 0 ? 'T' : sp.level}</span>
                     <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
                       <span className="fv-mesa-spell-name">{sp.name}</span>
