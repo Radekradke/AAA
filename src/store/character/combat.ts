@@ -233,6 +233,8 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
         // todas as magias de item recarregam no descanso longo
         c.combat.itemSpellUses = {};
+        // munição que não foi recolhida depois da luta ficou para trás
+        c.combat.ammoSpent = {};
         // recupera metade dos dados de vida
         c.combat.hitDiceRemaining = Math.min(
           derived.hitDiceMax,

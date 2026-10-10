@@ -46,6 +46,7 @@ function itemInfo(it: InventoryItem): LoreInfo {
 import { useInk } from '@/lib/contrast';
 import { itemArt } from '@/lib/itemArt';
 import { chargesLeft, chargesOf } from '@/engine/itemCharges';
+import { ammoCount, ammoKindOfItem, perBundle } from '@/engine/ammo';
 
 /** Agrupamento de mochila por categoria — inventário de RPG, não planilha. */
 const GROUP_DEFS: { id: string; label: string; icon: IconName; match: (it: InventoryItem) => boolean }[] = [
@@ -655,7 +656,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </button>
         </div>
         <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {[it.note, it.weight && it.wear !== 'body' ? `${String(it.weight).replace(".", ",")} kg` : null, it.quantity > 1 ? `x${it.quantity}` : null, it.value ? `${it.value} po` : null]
+          {[it.note, it.weight && it.wear !== 'body' ? `${String(it.weight).replace(".", ",")} kg` : null, qtyLabel(it), it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
         </div>
@@ -734,4 +735,14 @@ function ItemBtn({ children, onClick, active, danger }: { children: React.ReactN
       {children}
     </button>
   );
+}
+
+/** "x3", ou a contagem de munição ("33 flechas") quando o pacote já foi aberto por disparos. */
+function qtyLabel(it: InventoryItem): string | null {
+  const kind = ammoKindOfItem(it);
+  if (kind && (perBundle(it) > 1 || it.ammoLeft !== undefined)) {
+    const n = ammoCount(it);
+    return `${n} ${n === 1 ? kind.one : kind.many}`;
+  }
+  return it.quantity > 1 ? `x${it.quantity}` : null;
 }
