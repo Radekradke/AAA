@@ -20,6 +20,11 @@ for (const [path, url] of Object.entries(FILES)) {
   if (key) VOICES[key] = url;
 }
 
+/** Chaves `<classe>-<sexo>` que já têm fala (para o contador de artes). */
+export function voiceKeys(): Record<string, string> {
+  return VOICES;
+}
+
 export function voiceFor(classId: string, gender: 'masc' | 'fem'): string | null {
   return VOICES[`${classId}-${gender}`] ?? null;
 }

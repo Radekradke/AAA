@@ -14,8 +14,11 @@ export interface LoreInfo {
   subtitle?: string;
   body: string;
   tags?: string[];
-  /** Arte (item com imagem): aparece como carta ao lado do texto. */
-  art?: { src: string; rarity: string };
+  /**
+   * Arte: `card` (padrão, itens) é a carta ao lado do texto; `banner`
+   * (magias) é uma faixa no topo que esmaece para dentro do painel.
+   */
+  art?: { src: string; rarity: string; style?: 'card' | 'banner' };
   /** Cor do nome (raridade do item, como no BG3). */
   titleColor?: string;
   /** Número em destaque: dano da arma, CA da armadura, cura da poção. */
@@ -147,7 +150,7 @@ export function spellLore(spell: Spell): LoreInfo {
     .join('\n\n');
   const art = spellArt(spell.id);
   return {
-    ...(art && { art: { src: art, rarity: spellRarity(spell.level) } }),
+    ...(art && { art: { src: art, rarity: spellRarity(spell.level), style: 'banner' as const } }),
     title: spell.name,
     subtitle: `${circle} · ${spell.school}`,
     body: body || 'Magia sem descrição.',

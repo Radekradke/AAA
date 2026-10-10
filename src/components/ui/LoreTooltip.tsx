@@ -50,7 +50,8 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
   const [pos, setPos] = useState({ top: 0, left: 0, placement: 'right' as Placement });
 
   // com arte, a carta vai ao lado (PC) ou em cima (celular): o balão alarga
-  const tipWidth = () => Math.min(info.art && window.innerWidth > 560 ? 540 : 340, window.innerWidth - 24);
+  const banner = info.art?.style === 'banner';
+  const tipWidth = () => Math.min(banner ? 380 : info.art && window.innerWidth > 560 ? 540 : 340, window.innerWidth - 24);
 
   const place = () => {
     const width = tipWidth();
@@ -230,12 +231,19 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       {open && createPortal(
         <div
           ref={tipRef}
-          className={'fv-lore-tooltip' + (info.art ? ' has-art' : '')}
+          className={'fv-lore-tooltip' + (banner ? ' has-banner' : info.art ? ' has-art' : '')}
           data-placement={pos.placement}
           style={{ top: pos.top, left: pos.left, width: tipWidth() }}
           role="tooltip"
         >
-          {info.art && <ItemArtCard src={info.art.src} rarity={info.art.rarity} />}
+          {info.art &&
+            (banner ? (
+              <div className={`fv-lore-banner is-${info.art.rarity}`} aria-hidden>
+                <img src={info.art.src} alt="" decoding="async" />
+              </div>
+            ) : (
+              <ItemArtCard src={info.art.src} rarity={info.art.rarity} />
+            ))}
           <div className="fv-lore-text">
             <div className="fv-lore-title" style={info.titleColor ? { color: info.titleColor } : undefined}>{info.title}</div>
             {info.subtitle && <div className="fv-lore-subtitle">{info.subtitle}</div>}

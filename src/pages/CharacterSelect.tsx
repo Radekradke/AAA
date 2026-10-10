@@ -6,6 +6,7 @@ import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { GAME_ICONS } from '@/components/ui/gameIcons';
 import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
@@ -196,6 +197,7 @@ export function CharacterSelect() {
                   style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18, position: 'relative', zIndex: 1 }}
                 >
                   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                    <span className="fv-hero-card-face">
                     <div
                       style={{
                         position: 'relative',
@@ -217,6 +219,11 @@ export function CharacterSelect() {
                         }}
                       />
                     </div>
+                      {/* selo discreto da raça (a classe já aparece na arte) */}
+                      <span className="fv-hero-card-race" style={{ color: race.jewel }} title={race.label} aria-hidden>
+                        <Icon name={raceIcon(race)} size={13} />
+                      </span>
+                    </span>
                     <div style={{ minWidth: 0 }}>
                       <div
                         style={{
@@ -316,4 +323,11 @@ function CardAction({ icon, label, name, onClick, danger }: { icon: IconName; la
       <span>{label}</span>
     </button>
   );
+}
+
+/** Ícone da raça (o do livro, o escolhido na raça homebrew, ou o brasão). */
+function raceIcon(race: { id: string; icon?: string }): IconName {
+  if (race.icon && race.icon in GAME_ICONS) return race.icon as IconName;
+  const own = `race-${race.id}`;
+  return (own in GAME_ICONS ? own : 'crest') as IconName;
 }
