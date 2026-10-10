@@ -10,7 +10,6 @@ import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
 import { useUiStore } from '@/store/uiStore';
-import { SOURCE_SHORT } from '@/data/contentPacks';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
