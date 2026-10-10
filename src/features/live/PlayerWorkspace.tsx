@@ -77,6 +77,16 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
                             {enc.status === 'paused' && 'Combate pausado'}
                           </strong>
                         </div>
+                        {/* celular: o mapa fica depois do turno e do herói — um toque leva até ele */}
+                        {stageLive && (
+                          <button
+                            type="button"
+                            className="fv-live-tomap"
+                            onClick={() => document.querySelector('.fv-live > .fv-stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                          >
+                            Ver mapa ↓
+                          </button>
+                        )}
                       </div>
                       <InitiativeTrack encounter={enc} combatants={s.combatants} isMaster={false} userId={user.id} />
                     </>

@@ -26,8 +26,8 @@ export function ScenesPanel() {
 
   return (
     <div className="fv-bs-stack">
-      <button type="button" className="fv-btn-gold fv-bs-btn" onClick={() => setLibrary(true)}>
-        Biblioteca de cenas (criar, imagens, cutscenes)
+      <button type="button" className="fv-btn-gold fv-bs-btn" onClick={() => setLibrary(true)} title="Criar cenas, enviar imagens de mapa e montar cutscenes">
+        Biblioteca de cenas
       </button>
       <BlankMapButton compact onDone={() => useMasterStore.getState().setDrawer(null)} />
       {!scenes.length && <p className="fv-bs-hint">Nenhuma cena ainda. Crie mapas, ambientes e cutscenes na biblioteca — ou comece num mapa em branco.</p>}

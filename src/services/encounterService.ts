@@ -146,6 +146,15 @@ export const encounterService = {
     fail(error);
   },
 
+  /**
+   * Jogador: manda PV e condições do PRÓPRIO herói (a ficha é a verdade).
+   * O banco só deixa o dono, e só esses campos (supabase/mesa_vida.sql).
+   */
+  async updateOwn(combatantId: string, patch: Pick<CombatantPatch, 'hp_current' | 'hp_max' | 'conditions'>): Promise<void> {
+    const { error } = await sb().rpc('update_own_combatant', { p_combatant: combatantId, p_patch: patch });
+    fail(error);
+  },
+
   async update(combatantId: string, patch: CombatantPatch): Promise<void> {
     const { error } = await sb().rpc('update_combatant', { p_combatant: combatantId, p_patch: patch });
     fail(error);

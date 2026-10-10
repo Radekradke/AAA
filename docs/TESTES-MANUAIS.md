@@ -575,3 +575,24 @@ Pacotes (Explorador, Masmorras, Assaltante, Diplomata, Artista, Sacerdote, Estud
 8. Itens mágicos: a dica mostra a regra exata do catálogo e, na linha de baixo, uma dica de uso. **Varinha de Bolas de Fogo**: "7 cargas: Bola de Fogo (CD 15)…" e depois "Cuidado com aliados na área…". **Poção de Cura**: "Recupera 2d4+2 PV" e "Beber é uma ação…".
 9. Equipamento comum (ex.: **Tocha**) não repete a nota: a linha prática já diz o que ela faz.
 10. Armaduras e escudos mágicos (**Armadura de Placas de Adamante**, **Escudo Sentinela**) dizem o efeito especial na linha prática.
+
+## 63. Mesa ao vivo: ordens do mestre, PV do herói e telas
+
+Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
+
+**Ordens do mestre nunca se perdem**
+1. Com a sessão aberta, o jogador bloqueia o celular. O mestre faz várias rolagens (mais de 40 no registro) e aplica dano no herói. Ao desbloquear, o dano está na ficha.
+2. O mestre dá XP e **encerra a sessão** antes de o jogador abrir o app. Quando o jogador abre a sala da mesa, o XP entra na ficha. Abrir de novo não dá o XP duas vezes.
+
+**PV do herói igual para os dois**
+3. O jogador bebe uma Poção de Cura pela ficha: em ~1 s, a linha do herói no encontro do mestre mostra o PV novo.
+4. O herói tem 5 de PV temporário e o mestre aplica 7 de dano: a ficha fica com 2 a menos, e a linha do mestre também (não 7).
+5. O jogador marca "Caído" na ficha: a condição aparece no encontro para o mestre.
+6. Sem o `mesa_vida.sql`: o mestre vê o aviso de SQL faltando; o resto funciona como antes.
+
+**Telas**
+7. Console do mestre → Bastidores → **Criaturas**: retrato ao lado do nome, linhas alinhadas.
+8. Abrir a mesa ao vivo: enquanto carrega, aparece o desenho da tela (blocos apagados). O mestre não vê mais a tela do jogador piscando antes do console.
+9. Celular do jogador, com mapa no ar: o card do turno tem **Ver mapa ↓**, que rola até o mapa. No PC o botão não aparece.
+10. Bastidores: **Biblioteca de cenas** (texto curto; o detalhe fica ao passar o mouse) e **Todas as pistas** no lugar de "Gaveta completa".
+11. Sala da mesa → Crônica: o campo diz "Título (obrigatório)", e o **Registrar** explica ao passar o mouse por que está apagado.

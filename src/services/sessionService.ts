@@ -101,6 +101,23 @@ export const sessionService = {
     return (data ?? []).map(mapEvent).reverse();
   },
 
+  /**
+   * Ordens do mestre para as fichas (dano, cura, condição, XP, item, feito,
+   * cicatriz) de TODAS as sessões recentes da campanha — inclusive as já
+   * encerradas. Separado de `events` (as últimas 40 de tudo), para uma ordem
+   * não se perder no meio de muitas rolagens nem quando o mestre fecha a
+   * sessão antes de o jogador abrir o app.
+   */
+  async heroEvents(campaignId: string, types: readonly string[], limit = 200): Promise<SessionEvent[]> {
+    const { data, error } = await sb().from('session_events').select('*').eq('campaign_id', campaignId)
+      .in('type', [...types]).order('created_at', { ascending: false }).limit(limit);
+    if (error) {
+      if (/relation .* does not exist|Could not find the table/i.test(error.message)) return [];
+      throw new Error(error.message);
+    }
+    return (data ?? []).map(mapEvent).reverse();
+  },
+
   /** Registra um evento do próprio usuário (ex.: rolagem). O banco confere autor e sessão. */
   async log(sessionId: string, campaignId: string, actorId: string, type: string, payload: Record<string, unknown>, visibility: SessionEvent['visibility'] = 'public'): Promise<void> {
     const { error } = await sb().from('session_events').insert({

@@ -47,6 +47,21 @@ test.describe('mesa (campanha)', () => {
     await expect(page.locator('.fv-stage')).toHaveClass(/is-full/);
     await expect(page.locator('.fv-stage-next')).toHaveCount(0);
   });
+
+  test('jogador no celular: "Ver mapa" no card do turno leva até o mapa @celular', async ({ page }, info) => {
+    await signIn(page, 'player');
+    await installSupabase(page, 'player');
+    await page.goto(`/mesa/${C}/jogar`);
+    const toMap = page.getByRole('button', { name: 'Ver mapa ↓' });
+    if (info.project.name !== 'celular') {
+      // no PC o mapa já está em cima: o atalho não aparece
+      await expect(page.locator('.fv-map-view')).toBeVisible();
+      await expect(toMap).toBeHidden();
+      return;
+    }
+    await toMap.click();
+    await expect(page.locator('.fv-live > .fv-stage')).toBeInViewport();
+  });
 });
 
 test.describe('ficha compartilhada por link', () => {

@@ -22,8 +22,11 @@ vi.mock('@/lib/deedTracker', () => ({ applyDeedKinds: (id: string, kinds: string
 vi.mock('@/services/realtimeService', () => ({ joinLiveChannel: () => ({ leave: vi.fn(), track: vi.fn(), broadcast: vi.fn(), isPrivate: () => true }) }));
 
 let events: SessionEvent[] = [];
+/** Ordens do mestre de toda a campanha (consulta separada, sem o limite das últimas 40). */
+let heroEvents: SessionEvent[] = [];
 vi.mock('@/services/sessionService', () => ({
   sessionService: {
+    heroEvents: async () => heroEvents,
     live: async () => ({ id: 'sess', campaignId: 'camp', name: 'S', status: 'active', startedAt: null, endedAt: null, createdBy: 'gm', createdAt: '', updatedAt: '' }),
     events: async () => events,
     log: vi.fn(async () => undefined),
@@ -36,7 +39,7 @@ const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: str
 vi.stubGlobal('localStorage', storage);
 vi.stubGlobal('sessionStorage', storage);
 
-const { useSessionStore } = await import('../sessionStore');
+const { useSessionStore, catchUpHeroEvents } = await import('../sessionStore');
 const ev = (id: string, type: string, actorId: string, payload: Record<string, unknown>, t = '2026-01-01T00:00:00Z'): SessionEvent =>
   ({ id, sessionId: 'sess', type, actorId, targetId: null, payload, visibility: 'public', createdAt: t });
 
@@ -45,7 +48,30 @@ describe('ordens do mestre chegam na ficha do jogador', () => {
     calls.length = 0;
     hero.appliedEvents = [];
     hero.combat.conditions = [];
+    heroEvents = [];
     useSessionStore.getState().leave();
+  });
+
+  it('ordem que ficou fora das últimas 40 (muitas rolagens, celular dormindo) chega mesmo assim', async () => {
+    const rolls = Array.from({ length: 40 }, (_, i) => ev(`r${i}`, 'roll', 'p2', { who: 'Bia', total: 10 }, `2026-01-01T00:01:${String(i).padStart(2, '0')}Z`));
+    events = rolls; // a consulta normal só traz as rolagens
+    heroEvents = [ev('lost', 'hero_hp', 'gm', { sheetId: 'sheet-kael', amount: 9, kind: 'damage' }, '2026-01-01T00:00:30Z')];
+    await useSessionStore.getState().join('camp', { userId: 'p1', name: 'Ana', isMaster: false, characterId: 'sheet-kael', characterName: 'Kael' });
+    await vi.waitFor(() => expect(calls).toEqual(['dano sheet-kael 9']));
+  });
+
+  it('XP dado numa sessão já encerrada chega quando o jogador abre a sala — uma vez só', async () => {
+    heroEvents = [ev('xp-old', 'xp_award', 'gm', { sheetIds: ['sheet-kael'], amount: 300 }, '2025-12-20T22:00:00Z')];
+    await catchUpHeroEvents('camp-encerrada', 'gm', true);
+    expect(calls).toEqual(['xp sheet-kael 300']);
+    await catchUpHeroEvents('camp-encerrada', 'gm', true);
+    expect(calls).toEqual(['xp sheet-kael 300']);
+  });
+
+  it('recuperação ignora ordem de quem não é o mestre da campanha', async () => {
+    heroEvents = [ev('fake', 'xp_award', 'p2', { sheetIds: ['sheet-kael'], amount: 9999 })];
+    await catchUpHeroEvents('camp-outra', 'gm', true);
+    expect(calls).toEqual([]);
   });
 
   it('aplica dano, cura, condição e XP do mestre — uma vez só', async () => {

@@ -45,8 +45,8 @@ export function HandoutsPanel() {
         <button type="button" className="fv-btn-gold fv-bs-btn" onClick={() => openQuick('pista')}>
           + Pista agora
         </button>
-        <button type="button" className="fv-btn-ghost fv-bs-btn" onClick={() => setDesk(true)}>
-          Gaveta completa
+        <button type="button" className="fv-btn-ghost fv-bs-btn" onClick={() => setDesk(true)} title="Todas as pistas preparadas: cartas, mapas e bilhetes para entregar">
+          Todas as pistas
         </button>
       </div>
       {!handouts.length && <p className="fv-bs-hint">Nenhuma pista ainda. Cartas, mapas e bilhetes entram aqui.</p>}

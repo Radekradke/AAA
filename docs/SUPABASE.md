@@ -610,3 +610,17 @@ No app (`services/diaryCloud.ts`, `services/offlineSyncService.ts`):
 - **sem este SQL**, nada muda: o diário segue dentro da ficha (como antes) e as imagens das pistas ficam só no aparelho.
 
 `npm test` roda `supabase/__tests__/diario.sql.test.ts` num Postgres em memória (PGlite): migração, mestre sem acesso ao diário, estranho/anônimo sem acesso e pastas de imagem por jogador.
+
+## 13. Mesa ao vivo — PV do herói igual para mestre e jogador
+
+Rode `supabase/mesa_vida.sql` (depois de `multiplayer_session.sql`). Pode rodar de novo sem problema.
+
+**Por quê:** o PV que o mestre vê na linha do encontro só mudava quando **ele** aplicava o dano. Poção, descanso ou dano tomado na própria ficha deixavam o número dele velho — e o PV temporário nunca entrava na conta.
+
+- **`update_own_combatant(p_combatant, p_patch)`** — o **dono** do combatente (o jogador do herói) atualiza `hp_current`, `hp_max` e `conditions`. Nome, CA, ordem e visibilidade continuam só do mestre. PV fica entre 0 e o máximo. Avisa a mesa pelo encontro (mesmo caminho do `update_combatant`).
+
+No app (`store/sessionStore.ts`, `syncMyVitals`): quando a ficha do jogador muda durante um encontro, PV atual, PV máximo e condições vão para o próprio combatente (em ~0,7 s, uma vez por mudança). O dano do mestre continua chegando como evento e o PV temporário é descontado na ficha; o número que fica na linha é o da ficha. **Sem este SQL**, tudo segue como antes (o número do mestre só muda quando ele aplica) e o aviso de SQL faltando aponta este arquivo.
+
+**Ordens do mestre não se perdem mais** (não precisa de SQL): dano, cura, condição, XP, item, feito e cicatriz são buscados à parte das últimas 40 do registro, inclusive de sessões já encerradas — ao abrir a sala da mesa ou a mesa ao vivo, e a cada minuto durante a sessão. Cada ordem continua aplicada uma vez só (o id fica gravado na ficha).
+
+`npm test` roda `supabase/__tests__/mesavida.sql.test.ts` num Postgres em memória (PGlite): só o dono atualiza, campos do mestre ignorados, PV limitado.

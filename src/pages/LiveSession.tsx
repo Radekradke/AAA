@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LiveSkeleton } from '@/features/live/LiveSkeleton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -6,7 +7,7 @@ import type { SharedHero } from '@/components/session/MasterDeck';
 import { useAuthStore } from '@/store/authStore';
 import { setTableHeroes } from '@/lib/tableHeroes';
 import { useCharacterStore } from '@/store/characterStore';
-import { useSessionStore } from '@/store/sessionStore';
+import { catchUpHeroEvents, useSessionStore } from '@/store/sessionStore';
 import { useCampaignBestiary } from '@/services/bestiaryService';
 import { campaignService } from '@/services/campaignService';
 import { cloudEnabled } from '@/services/supabaseClient';
@@ -60,6 +61,8 @@ export function LiveSession() {
         if (!alive) return;
         if (!c) return setLoadError('Mesa não encontrada — você faz parte dela?');
         setCampaign(c);
+        // ordens do mestre de sessões já encerradas (ou sem sessão aberta agora)
+        if (c.masterId !== user.id) void catchUpHeroEvents(c.id, c.masterId, true);
         const cur = useSessionStore.getState().me;
         useStageStore.getState().open(c.id, {
           isMaster: c.masterId === user.id,
@@ -126,6 +129,16 @@ export function LiveSession() {
             <p className="fv-live-hint">A sessão ao vivo precisa da nuvem e de uma conta (não funciona como convidado). Sua ficha continua funcionando offline normalmente.</p>
           </section>
         </div>
+      </Screen>
+    );
+  }
+
+  // ainda não sabe se é o mestre (ou a primeira leitura não voltou): desenho da tela,
+  // e não a mesa do jogador piscando para o mestre
+  if (!loadError && (!campaign || (s.loading && !s.session))) {
+    return (
+      <Screen scroll actions={backToRoom}>
+        <LiveSkeleton />
       </Screen>
     );
   }
