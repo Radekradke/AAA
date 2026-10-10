@@ -17,7 +17,7 @@ test.describe('celular (jogador)', () => {
       expect(box.right).toBeLessThanOrEqual(360);
     }
     // nível: botões de dedo
-    const lvl = await page.getByRole('button', { name: 'Aumentar nível' }).boundingBox();
+    const lvl = await page.getByRole('button', { name: /Subir de nível/ }).boundingBox();
     expect(lvl!.height).toBeGreaterThanOrEqual(34);
     // o cabeçalho não passa de ~1/3 da tela
     const head = await page.locator('.fv-sheet-head').boundingBox();

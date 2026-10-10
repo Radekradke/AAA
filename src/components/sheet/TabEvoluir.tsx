@@ -242,8 +242,9 @@ export function TabEvoluir({ char, derived }: TabProps) {
         <XpBar char={char} />
       </Panel>
 
-      {/* plano do próximo nível */}
+      {/* plano do próximo nível (o "+" do cabeçalho rola até aqui) */}
       {!atCap && (
+        <div id="fv-subir" style={{ scrollMarginTop: 90 }}>
         <Panel>
           <SectionLabel
             right={
@@ -482,6 +483,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
             Confirmar Evolução para o Nível {newLevel}
           </button>
         </Panel>
+        </div>
       )}
 
       {atCap && (

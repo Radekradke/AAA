@@ -681,9 +681,12 @@ export function deriveCharacter(char: Character): DerivedCharacter {
 
   // ---- Sentidos, idiomas, resistências (origem rastreável) ----
   const darkRange = Math.max(subrace?.darkvision ?? 0, race.darkvision ?? 0);
-  const darkvision = darkRange
+  const racialDark = darkRange
     ? { range: darkRange, source: subrace?.darkvision && subrace.darkvision >= (race.darkvision ?? 0) ? subrace.label : race.label }
     : null;
+  // Visão do Diabo (invocação): enxerga normalmente no escuro, mágico ou não, até 36 m
+  const devilsSight = (char.choices?.['warlock.invocation'] ?? []).includes('devilsSight');
+  const darkvision = devilsSight && (racialDark?.range ?? 0) <= 36 ? { range: 36, source: 'Visão do Diabo (inclui escuridão mágica)' } : racialDark;
   // "1 idioma à escolha" (raça/sub-raça) e os do antecedente viram escolhas reais
   const langPicks = languagePicks(char);
   const languages = Array.from(

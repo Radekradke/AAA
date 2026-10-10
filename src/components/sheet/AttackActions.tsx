@@ -43,11 +43,11 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   const [choice, setChoice] = useState<ExtrasChoice>({});
   const avail = weaponExtras(char, atk);
   const hasOptions =
-    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage;
+    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker;
 
   const openDamage = (crit: boolean) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
-    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used });
+    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, lifedrinker: !!avail.lifedrinker });
     setStage({ kind: 'damage' });
   };
 
@@ -179,7 +179,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
             </span>
           )}
 
-          {(avail.hex || avail.huntersMark || avail.rage || avail.improvedSmite) && (
+          {(avail.hex || avail.huntersMark || avail.rage || avail.improvedSmite || avail.lifedrinker) && (
             <span className="fv-atk-group">
               <small>Ligados (valem em todo acerto)</small>
               <span className="fv-atk-chips">
@@ -187,6 +187,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
                 {avail.hex && chip(hasMark(char, 'hex'), 'Bruxaria +1d6 necrótico', () => mark('hex'))}
                 {avail.huntersMark && chip(hasMark(char, 'huntersMark'), 'Marca do Caçador +1d6', () => mark('huntersMark'))}
                 {avail.improvedSmite && <span className="fv-atk-fixed">Destruição Aprimorada +1d8 radiante</span>}
+                {avail.lifedrinker &&
+                  chip(!!choice.lifedrinker, `Bebedor de Vida +${avail.lifedrinker.bonus} necrótico`, () => setChoice((c) => ({ ...c, lifedrinker: !c.lifedrinker })), {
+                    title: 'Invocação: soma CAR de dano necrótico quando acerta com a arma de pacto. Desligue se este ataque não é com ela.',
+                  })}
               </span>
             </span>
           )}
