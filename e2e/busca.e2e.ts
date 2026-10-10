@@ -29,7 +29,7 @@ test.describe('busca geral', () => {
     await campo.fill('goblin');
     await expect(busca.getByRole('option', { name: /^Goblin/ }).locator('img.fv-search-thumb')).toHaveCount(1);
     await campo.fill('sono');
-    await expect(busca.getByRole('option', { name: /^Sono/ }).locator('.fv-search-thumb.is-glyph svg')).toHaveCount(1);
+    await expect(busca.getByRole('option', { name: /^Sono/ }).locator('.fv-spell-thumb.is-incomum svg')).toHaveCount(1);
     await campo.fill('agarrado');
     await expect(busca.getByRole('option', { name: /^Agarrado/ }).locator('.fv-search-thumb.is-glyph svg')).toHaveCount(1);
   });

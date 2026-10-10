@@ -7363,6 +7363,39 @@ select optgroup {
   background: radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--rc), transparent 70%), transparent 75%), #07090d;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 0 0 4px rgba(7, 9, 13, 0.85), inset 0 0 0 5px color-mix(in srgb, var(--rc), transparent 55%);
 }
+/* Miniatura de magia: arte ou símbolo da escola, moldura na cor do círculo */
+.fv-spell-thumb {
+  --rc: var(--gold);
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--rc), transparent 35%);
+  background: radial-gradient(90% 80% at 50% 30%, color-mix(in srgb, var(--rc), transparent 78%), transparent 80%), var(--sunk);
+  color: var(--rc);
+  box-shadow: inset 0 0 0 2px rgba(7, 9, 13, 0.55);
+}
+.fv-spell-thumb.is-comum { --rc: var(--muted); }
+.fv-spell-thumb.is-incomum { --rc: #3fc56b; }
+.fv-spell-thumb.is-raro { --rc: #4d9bff; }
+.fv-spell-thumb.is-muito-raro { --rc: #b061ff; }
+.fv-spell-thumb.is-lendario { --rc: #ffa033; }
+.fv-spell-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fv-spell-thumb-lv {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 13px;
+  padding: 0 3px;
+  border-top-left-radius: 5px;
+  background: rgba(7, 9, 13, 0.85);
+  font: 700 9px/13px var(--font-num);
+  color: #f3ead8;
+  text-align: center;
+}
+
 .fv-itemcard.is-incomum {
   --rc: #3fc56b;
 }

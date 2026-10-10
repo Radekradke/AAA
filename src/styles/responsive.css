@@ -19,8 +19,10 @@ html[data-theme] :is(.fv-mabil-key, .fv-mesa-chip-ab) {
   .fv-spell-row {
     flex-wrap: wrap;
   }
-  .fv-spell-row > :first-child {
-    flex: 1 1 100% !important;
+  /* o texto ocupa a linha; a miniatura fica ao lado dele */
+  .fv-spell-row > :first-child:not(.fv-spell-thumb),
+  .fv-spell-row > .fv-spell-thumb + * {
+    flex: 1 1 calc(100% - 46px) !important;
   }
 }
 

@@ -615,3 +615,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Com a versão mais nova aberta, ao lado aparece **✓ atualizada**.
 3. Com o app instalado (ou uma aba antiga aberta) e um deploy novo no ar: ao abrir o menu (ou voltar para o app), aparece **Nova versão disponível · atualizar**. Tocar atualiza e recarrega na versão nova, que passa a mostrar ✓ atualizada.
 4. Sem internet: aparece "sem internet para conferir". O app nunca diz "desatualizado" sem conseguir conferir.
+
+## 66. Miniatura das magias
+
+1. Busca (Ctrl+K) → "sono": a magia aparece com uma plaquinha quadrada com o símbolo da escola e moldura na cor do círculo (truque cinza, 1º–2º verde, 3º–5º azul, 6º–8º roxo, 9º laranja).
+2. A mesma miniatura aparece na aba Magias (ao lado de cada magia), na biblioteca de "+ Aprender" (com o círculo no cantinho) e no seletor de magias da Forja.
+3. Com a arte em `src/assets/magias/<id>.webp`, a miniatura passa a mostrar a arte; os detalhes da magia na busca mostram a carta grande, e a criação (Dons/Magias) também usa a arte.
+4. No celular (até 420 px), a miniatura fica ao lado do nome e os botões descem para a linha de baixo.
