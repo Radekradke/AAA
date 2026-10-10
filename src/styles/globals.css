@@ -6015,6 +6015,32 @@ body.fv-dragging .fv-screen-scroll {
   font-size: 12.5px;
   color: var(--muted);
 }
+.fv-app-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 10px 0 0;
+  font: 500 11px/1.5 var(--font-num);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  opacity: 0.85;
+}
+.fv-app-version-sha { opacity: 0.75; }
+.fv-app-version-state { color: var(--gold); }
+.fv-app-version.is-unknown .fv-app-version-state { color: var(--muted); }
+.fv-app-version-update {
+  padding: 3px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 35%);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  color: var(--gold);
+  font: 600 11px/1.5 var(--font-body);
+  cursor: pointer;
+}
+.fv-app-version-update:hover, .fv-app-version-update:focus-visible { background: color-mix(in srgb, var(--gold) 24%, transparent); }
+.fv-app-version-update:disabled { cursor: progress; opacity: 0.7; }
 .fv-menu-user {
   display: inline-flex;
   align-items: center;

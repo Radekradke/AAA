@@ -608,3 +608,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 7. Flechas guardadas no Baú não servem: o aviso diz que estão no Baú (o selo mostra quantas há lá ao passar o mouse).
 8. Depois da luta, com 2 ou mais flechas disparadas aparece **Recolher +N** (metade do disparado, para baixo). Clicar devolve as flechas e o botão some. O descanso longo zera a conta do que dá para recolher.
 9. Espada, adaga e azagaia não mostram selo e não gastam nada.
+
+## 65. Versão do app no menu principal
+
+1. Abrir o menu principal: embaixo de tudo aparece **Versão 10/10/2026 12:49 · 4c034aa** (data e hora do build e o commit).
+2. Com a versão mais nova aberta, ao lado aparece **✓ atualizada**.
+3. Com o app instalado (ou uma aba antiga aberta) e um deploy novo no ar: ao abrir o menu (ou voltar para o app), aparece **Nova versão disponível · atualizar**. Tocar atualiza e recarrega na versão nova, que passa a mostrar ✓ atualizada.
+4. Sem internet: aparece "sem internet para conferir". O app nunca diz "desatualizado" sem conseguir conferir.
