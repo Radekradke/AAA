@@ -7,6 +7,7 @@ import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 import { rechargeAll } from '@/engine/itemCharges';
 import { toast } from '@/store/feedbackStore';
+import { conditionImmunity } from '@/engine/conditionImmunity';
 import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
 
@@ -88,7 +89,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.moveUsed = 0;
         c.combat.castThisTurn = [];
         // Ataque Imprudente vale até o início do seu próximo turno; Assassinar só no turno marcado
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'reckless' && m !== 'assassinate');
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'reckless' && m !== 'assassinate' && m !== 'dodge');
         // Escudo Arcano acaba no início do seu turno; Heroísmo renova os PV temporários
         const effects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'turn');
         c.combat.spellEffects = effects;
@@ -110,6 +111,12 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       const barb = ch ? barbarianState(ch) : null;
       if (ch && barb?.raging && barb.berserker && barb.level >= 6 && MINDLESS_RAGE_BLOCKS.includes(cond) && !ch.combat.conditions.includes(cond)) {
         toast(`Fúria Inconsciente: você não pode ficar ${cond.toLowerCase()} enquanto está em Fúria.`, { tone: 'info' });
+        return;
+      }
+      // imunidades de classe (Pureza do Corpo, Aura de Coragem, Aura de Devoção)
+      const immune = ch && !ch.combat.conditions.includes(cond) ? conditionImmunity(ch, cond) : null;
+      if (immune) {
+        toast(`${immune}: você não pode ficar ${cond.toLowerCase()}.`, { tone: 'info' });
         return;
       }
       mutate(id, (c) => {
@@ -258,7 +265,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         }
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy' && m !== 'reckless' && m !== 'assassinate');
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow'].includes(m));
         // Fúria Implacável: a CD volta a 10 depois de um descanso
         delete c.combat.resources.relentless;
       });

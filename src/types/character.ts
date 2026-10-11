@@ -263,7 +263,7 @@ export interface CombatState {
    * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
-  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate'>;
+  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow'>;
   /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
   spellEffects?: ActiveSpellEffect[];
   /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */

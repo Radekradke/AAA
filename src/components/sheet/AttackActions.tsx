@@ -16,6 +16,7 @@ import { ammoStatus } from '@/engine/ammo';
 import type { AmmoKind } from '@/engine/ammo';
 import { toast } from '@/store/feedbackStore';
 import { deriveCharacter } from '@/engine/dndRules';
+import { monkState } from '@/engine/monk';
 import { battleMasterState } from '@/engine/fighter';
 import { ABILITY_SHORT } from '@/data/skills';
 
@@ -52,20 +53,28 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     return battleMasterState(char, d.proficiency, d.abilities.str.mod, d.abilities.dex.mod);
   }, [char, atk.weapon]);
   const maneuvers = bm && bm.left > 0 ? bm.damage : [];
+  // Monge 5º: Golpe Atordoante (1 ki num acerto corpo a corpo)
+  const monk = useMemo(() => {
+    const d = deriveCharacter(char);
+    return monkState(char, d.proficiency, d.abilities.wis.mod, d.abilities.dex.mod);
+  }, [char]);
+  const stunOk = !!monk?.stunning && (atk.range ?? 'melee') === 'melee' && monk.kiLeft > 0;
+  const [stun, setStun] = useState(false);
   const hasOptions =
-    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0;
+    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
 
   const openDamage = (crit: boolean) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
     setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, lifedrinker: !!avail.lifedrinker });
+    setStun(false);
     setStage({ kind: 'damage' });
   };
 
   const roll = (shot?: Shot) => {
     // Ataque Imprudente (Bárbaro 2º): vantagem nos ataques corpo a corpo com FOR neste turno
     const reckless = hasMark(char, 'reckless') && (atk.range ?? 'melee') === 'melee' && atk.ability === 'str';
-    // Assassinar (Assassino 3º): vantagem contra quem ainda não agiu no combate
-    const assassin = hasMark(char, 'assassinate');
+    // Assassinar (Assassino 3º) e Voto de Inimizade (Vingança 3º): vantagem no ataque
+    const assassin = hasMark(char, 'assassinate') || hasMark(char, 'vow');
     const dis = useUiStore.getState().rollMode === 'disadvantage';
     const r = attack(atk, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
     setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
@@ -96,6 +105,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       store.setResource(char.id, 'superiority', bm.left - 1);
       const m = bm.damage.find((x) => x.id === c.maneuver!.id);
       if (m) toast(`${m.label}: ${m.save ? `salvaguarda de ${ABILITY_SHORT[m.save]} CD ${bm.dc} ou ` : ''}${m.effect}.`, { tone: 'info' });
+    }
+    if (stun && stunOk && monk) {
+      store.setResource(char.id, 'ki', monk.kiLeft - 1);
+      toast(`Golpe Atordoante: salvaguarda de CON CD ${monk.dc} ou o alvo fica Atordoado até o fim do seu próximo turno.`, { tone: 'info' });
     }
     setStage(null);
   };
@@ -226,6 +239,17 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
                     title: `${m.save ? `Salvaguarda de ${ABILITY_SHORT[m.save]} CD ${bm.dc}: ` : ''}${m.effect}`,
                   }),
                 )}
+              </span>
+            </span>
+          )}
+
+          {stunOk && monk && (
+            <span className="fv-atk-group">
+              <small>Monge · {monk.kiLeft}/{monk.kiMax} ki</small>
+              <span className="fv-atk-chips">
+                {chip(stun, `Golpe Atordoante (1 ki · CON CD ${monk.dc})`, () => setStun((v) => !v), {
+                  title: 'Ao acertar corpo a corpo: gaste 1 ki; o alvo faz salvaguarda de CON ou fica Atordoado até o fim do seu próximo turno.',
+                })}
               </span>
             </span>
           )}

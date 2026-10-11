@@ -575,6 +575,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       weaponProf ? mod('attack', prof, 'Bônus de proficiência', 'proficiency') : null,
       magic ? mod('attack', magic, it.name, srcType, { label: `Mágica +${magic}` }) : null,
       styles.has('archery') && w.range === 'ranged' ? mod('attack', 2, 'Estilo de Luta: Arquearia', 'class') : null,
+      // Arma Sagrada (Canalizar Divindade, Devoção): + CAR (mín. 1) no ataque por 1 minuto
+      (char.combat?.marks ?? []).includes('sacredWeapon') ? mod('attack', Math.max(1, abilities.cha.mod), 'Arma Sagrada', 'class') : null,
     ]);
     const bonusDamage = w.bonusDamage && w.bonusDamage.dice > 0
       ? { dice: w.bonusDamage.dice, die: w.bonusDamage.die, type: w.bonusDamage.type }
@@ -718,6 +720,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     ...magicItems.flatMap((m) => (m.magic.resistances ?? []).map((value) => ({ value, source: m.name }))),
     // Acostumado à Morte-Vida (Necromante 10º) e Avatar da Batalha (Guerra 17º)
     ...(char.subclassId === 'necromancy' && levelIn('wizard') >= 10 ? [{ value: 'necrótico', source: 'Acostumado à Morte-Vida' }] : []),
+    // Saúde Divina (Paladino 3º): imune a doenças; Aura de Proteção dos Anciões (7º): resistência a dano de magias
+    ...(levelIn('paladin') >= 3 ? [{ value: 'doenças (imune)', source: 'Saúde Divina' }] : []),
+    ...(char.subclassId === 'ancients' && levelIn('paladin') >= 7 ? [{ value: 'dano de magias', source: 'Aura de Proteção (Anciões)' }] : []),
+    // Pureza do Corpo (Monge 10º): imune a doenças e veneno
+    ...(levelIn('monk') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Pureza do Corpo' }] : []),
     ...(char.subclassId === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),
   ];
   const grantedProficiencies = subBonus?.proficiencies ?? [];

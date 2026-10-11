@@ -17,6 +17,10 @@ import { barbarianState } from '@/engine/barbarian';
 import { RagePanel } from './RagePanel';
 import { FighterPanel } from './FighterPanel';
 import { RoguePanel } from './RoguePanel';
+import { MonkPanel } from './MonkPanel';
+import { monkState } from '@/engine/monk';
+import { PaladinPanel } from './PaladinPanel';
+import { paladinState } from '@/engine/paladin';
 import { hasEvasion, hasUncannyDodge, reduceDamage } from '@/engine/rogue';
 import { toast } from '@/store/feedbackStore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -38,7 +42,7 @@ const EXHAUSTION_EFFECT: Record<number, string> = {
 export function TabCombate({ char, derived }: TabProps) {
   const t = useTheme();
   const ink = useInk();
-  const { check } = useDiceRoller();
+  const { check, rollDice } = useDiceRoller();
   const store = useCharacterStore();
   const spendHitDie = useSpendHitDie(char, derived);
   const [amt, setAmt] = useState('');
@@ -54,6 +58,10 @@ export function TabCombate({ char, derived }: TabProps) {
   const evasionOk = hasEvasion(char);
   const [uncanny, setUncanny] = useState(false);
   const [evasion, setEvasion] = useState<'pass' | 'fail' | null>(null);
+  // Monge: Defletir Projéteis (reduz 1d10 + DES + nível) e Queda Lenta (reduz 5 × nível), ambos reação
+  const monk = monkState(char, derived.proficiency, derived.abilities.wis.mod, derived.abilities.dex.mod);
+  const [monkReduce, setMonkReduce] = useState<'deflect' | 'fall' | null>(null);
+  const pal = paladinState(char, derived.proficiency, derived.abilities.cha.mod);
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
@@ -73,12 +81,21 @@ export function TabCombate({ char, derived }: TabProps) {
   // aplica dano e, se concentrando, calcula a CD da salvaguarda de CON (10 ou metade)
   const dealDamage = (raw: number) => {
     if (raw <= 0) return;
-    // Evasão / Esquiva Sobrenatural primeiro; depois a resistência da Fúria (metade, para baixo)
+    // reações do Monge tiram um valor fixo antes de tudo
+    let base = raw;
+    if (monkReduce && monk && !char.combat.turn.reaction) {
+      const cut = monkReduce === 'deflect' ? rollDice(10, { modifier: monk.deflectBonus ?? 0, label: 'Defletir Projéteis' }).total : monk.slowFall ?? 0;
+      base = Math.max(0, raw - cut);
+      store.useTurn(char.id, 'reaction');
+      toast(`${monkReduce === 'deflect' ? 'Defletir Projéteis' : 'Queda Lenta'}: −${cut} (${raw} → ${base}).${monkReduce === 'deflect' && base === 0 ? ' Dano zerado: dá para arremessar o projétil de volta (1 ki).' : ''}`, { tone: 'ok' });
+      setMonkReduce(null);
+    }
+    // Evasão / Esquiva Sobrenatural; depois a resistência da Fúria (metade, para baixo)
     const useUncanny = uncanny && !char.combat.turn.reaction;
-    const reduced = reduceDamage(raw, { evasion, uncanny: useUncanny });
+    const reduced = reduceDamage(base, { evasion, uncanny: useUncanny });
     if (useUncanny) store.useTurn(char.id, 'reaction');
     if (evasion || useUncanny) {
-      toast(`${[evasion ? `Evasão (${evasion === 'pass' ? 'passou: nenhum dano' : 'falhou: metade'})` : '', useUncanny ? 'Esquiva Sobrenatural (metade, reação)' : ''].filter(Boolean).join(' + ')}: ${raw} → ${reduced}.`, { tone: 'ok' });
+      toast(`${[evasion ? `Evasão (${evasion === 'pass' ? 'passou: nenhum dano' : 'falhou: metade'})` : '', useUncanny ? 'Esquiva Sobrenatural (metade, reação)' : ''].filter(Boolean).join(' + ')}: ${base} → ${reduced}.`, { tone: 'ok' });
       setUncanny(false);
       setEvasion(null);
     }
@@ -88,6 +105,12 @@ export function TabCombate({ char, derived }: TabProps) {
     if (concentrating) setConcDC(Math.max(10, Math.floor(n / 2)));
     const after = useCharacterStore.getState().characters.find((c) => c.id === char.id);
     if (barb?.raging && barb.relentlessDC !== null && after && after.hpCurrent === 0 && (after.combat.deathSaves?.fail ?? 0) < 3) setRelentlessDC(barb.relentlessDC);
+    // Sentinela Imortal (Anciões 15º): caiu a 0 PV sem morrer → fica com 1 PV, 1× por descanso longo
+    else if (pal && pal.undyingLeft > 0 && after && after.hpCurrent === 0 && (after.combat.deathSaves?.fail ?? 0) < 3) {
+      store.setResource(char.id, 'undyingSentinel', pal.undyingLeft - 1);
+      store.heal(char.id, 1);
+      toast('Sentinela Imortal: você cai a 0 PV, mas fica de pé com 1 PV.', { tone: 'ok' });
+    }
   };
   const rollRelentless = () => {
     if (relentlessDC === null) return;
@@ -190,8 +213,18 @@ export function TabCombate({ char, derived }: TabProps) {
         )}
 
         {/* Ladino/Monge/Caçador: defesas que cortam o próximo dano */}
-        {(uncannyOk || evasionOk) && (
+        {(uncannyOk || evasionOk || monk?.deflectBonus != null) && (
           <div className="fv-defense-chips" style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {monk?.deflectBonus != null && (
+              <button type="button" className={'fv-resist-chip' + (monkReduce === 'deflect' ? ' is-on' : '')} aria-pressed={monkReduce === 'deflect'} disabled={char.combat.turn.reaction} onClick={() => setMonkReduce((v) => (v === 'deflect' ? null : 'deflect'))} title="Reação: um ataque à distância com arma o acertou — reduz o dano em 1d10 + DES + nível de monge.">
+                {monkReduce === 'deflect' ? '✓ ' : ''}Defletir Projéteis: −1d10+{monk.deflectBonus}
+              </button>
+            )}
+            {monk?.slowFall != null && (
+              <button type="button" className={'fv-resist-chip' + (monkReduce === 'fall' ? ' is-on' : '')} aria-pressed={monkReduce === 'fall'} disabled={char.combat.turn.reaction} onClick={() => setMonkReduce((v) => (v === 'fall' ? null : 'fall'))} title="Reação ao cair: reduz o dano da queda em 5 × nível de monge.">
+                {monkReduce === 'fall' ? '✓ ' : ''}Queda Lenta: −{monk.slowFall}
+              </button>
+            )}
             {uncannyOk && (
               <button type="button" className={'fv-resist-chip' + (uncanny ? ' is-on' : '')} aria-pressed={uncanny} disabled={char.combat.turn.reaction} onClick={() => setUncanny((v) => !v)} title="Reação: um atacante que você vê o acertou — o dano cai pela metade. Gasta a reação.">
                 {uncanny ? '✓ ' : ''}Esquiva Sobrenatural: metade{char.combat.turn.reaction ? ' (reação já usada)' : ' (reação)'}
@@ -242,6 +275,8 @@ export function TabCombate({ char, derived }: TabProps) {
         <RagePanel char={char} />
         <FighterPanel char={char} />
         <RoguePanel char={char} derived={derived} />
+        <MonkPanel char={char} derived={derived} />
+        <PaladinPanel char={char} derived={derived} />
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>

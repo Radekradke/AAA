@@ -4,7 +4,7 @@ import { useUiStore } from '@/store/uiStore';
 import { castDiceLabel, rollCastDice } from '@/components/spells/castRoll';
 
 const UNTIL: Record<string, string> = { turn: 'até seu próximo turno', concentration: 'concentração', rest: 'até o descanso longo' };
-const MARKS: Record<string, string> = { hex: 'Bruxaria · +1d6 necrótico', huntersMark: 'Marca do Caçador · +1d6', rage: 'Fúria', frenzy: 'Frenesi (exaustão ao fim)', reckless: 'Imprudente · inimigos com vantagem em você', assassinate: 'Assassinar · vantagem em quem não agiu' };
+const MARKS: Record<string, string> = { hex: 'Bruxaria · +1d6 necrótico', huntersMark: 'Marca do Caçador · +1d6', rage: 'Fúria', frenzy: 'Frenesi (exaustão ao fim)', reckless: 'Imprudente · inimigos com vantagem em você', assassinate: 'Assassinar · vantagem em quem não agiu', dodge: 'Esquivando · ataques contra você com desvantagem', sacredWeapon: 'Arma Sagrada · +CAR no ataque', vow: 'Voto de Inimizade · vantagem contra o alvo jurado' };
 
 /**
  * Magias e efeitos ligados agora — a ficha já está somando; × encerra.

@@ -733,3 +733,35 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 4. Trocar de raça troca a cena com fusão. A sublinhagem e os atributos à escolha (Meio-Elfo) continuam funcionando, e "+" cria raça homebrew.
 5. **Avançar** vai para o Caminho, e o card do herói volta a aparecer.
 6. Para colocar o vídeo de uma raça: `src/assets/racas/<id>.mp4` (e `.webp`), ver o LEIA-ME de lá.
+
+## 77. Monge: auditoria do 1 ao 20
+
+1. Combate → painel "Monge": ki e CD de ki no topo.
+   - **Rajada de Golpes**, **Defesa Paciente** e **Passo do Vento** gastam 1 ki e a ação bônus.
+   - Defesa Paciente mostra "Esquivando" nos efeitos e dá vantagem nas salvaguardas de DES até o próximo turno.
+2. "Aplicar dano":
+   - **Defletir Projéteis** (3º) rola 1d10 + DES + nível e tira do dano.
+   - **Queda Lenta** (4º) tira 5 × nível.
+   - Os dois gastam a reação.
+3. Nível 5+: no dano de um ataque corpo a corpo, **Golpe Atordoante** gasta 1 ki e avisa a CD de CON.
+4. Nível 7: **Mente Tranquila** tira Enfeitiçado/Amedrontado. Nível 10: não dá para marcar Envenenado (Pureza do Corpo).
+5. Nível 14: **Alma de Diamante** rola de novo a última salvaguarda por 1 ki. Nível 18: **Corpo Vazio** gasta 4 ki.
+6. Tradições:
+   - **Mão Aberta**: Integridade do Corpo cura 3 × nível; Palma Trêmula (17º) gasta 3 ki e rola 10d10.
+   - **Sombra**: Artes das Sombras (2 ki) e Passo das Sombras.
+   - **Quatro Elementos**: cada disciplina escolhida vira botão com o custo, e as de dano rolam.
+7. Relatório completo: `docs/auditoria/monge.md`.
+
+## 78. Paladino: auditoria do 1 ao 20
+
+1. Combate → painel "Paladino": **Cura pelas Mãos** com o valor escolhido.
+   - "Curar a mim" cura e desconta a reserva (ex.: 50 → 42).
+   - "Doença ou veneno" gasta 5 e tira Envenenado.
+2. **Sentido Divino** gasta o uso. **Canalizar Divindade** mostra as duas opções do juramento, com a CD.
+   - **Arma Sagrada** (Devoção) soma CAR no bônus de ataque.
+   - **Voto de Inimizade** (Vingança) dá vantagem nos ataques.
+3. Nível 6: as salvaguardas somam CAR (Aura de Proteção). Nível 10: não dá para marcar Amedrontado. Devoção 7: nem Enfeitiçado.
+4. Destruição Divina no dano do ataque corpo a corpo: escolha o espaço. No 11º, +1d8 radiante sozinho.
+5. Anciões 15: cair a 0 PV pelo "Aplicar dano" deixa com 1 PV uma vez (Sentinela Imortal).
+6. Nível 14: **Toque Purificador**. Nível 20: a forma do juramento, 1× por descanso longo.
+7. Relatório completo: `docs/auditoria/paladino.md`.
