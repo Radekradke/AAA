@@ -840,3 +840,21 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 7. Nível 20: **Matador de Inimigos** soma SAB no dano, 1× por turno.
 8. Mestre das Feras: companheiro com ataques mágicos (7º) e dois ataques (11º).
 9. Relatório: `docs/auditoria/patrulheiro.md`.
+
+## 83. Feiticeiro: auditoria do 1 ao 20
+
+1. Combate → painel "Feiticeiro": "Pontos de Feitiçaria N/M" e a CD.
+2. **Fonte de Magia**: escolha o círculo.
+   - "Espaço → pontos" gasta o espaço e dá pontos iguais ao círculo.
+   - "Pontos → espaço" devolve um espaço gasto (custos: 2/3/5/6/7). Os dois gastam a ação bônus.
+3. **Metamagia**: cada opção escolhida vira botão e gasta os pontos. A Magia Gêmea usa o círculo escolhido ao lado.
+4. **Dracônica** 6º:
+   - Uma magia do tipo do ancestral soma CAR no dano.
+   - "Afinidade Elemental" gasta 1 ponto e mostra a resistência na Ficha.
+   - No 18º, Presença Dracônica gasta 5 pontos.
+5. **Magia Selvagem**:
+   - Depois de magia de 1º+, o aviso tem "Surto? (d20)". No 1, rola a tabela.
+   - Marés do Caos gasta o uso; o surto devolve.
+   - Distorcer o Destino (6º) rola ±1d4. Caos Controlado (14º) mostra dois resultados.
+6. Nível 20: o descanso curto devolve 4 pontos de feitiçaria.
+7. Relatório: `docs/auditoria/feiticeiro.md`.

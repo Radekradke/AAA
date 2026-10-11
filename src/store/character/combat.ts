@@ -273,9 +273,13 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
             if (slot) slot.used = Math.max(0, slot.used - n);
           }
         }
+        // Restauração Feiticeira (Feiticeiro 20º): +4 pontos de feitiçaria no descanso curto
+        const sorc = characterResources(c).find((r) => r.id === 'sorcery');
+        const sorcLv = (c.classLevels ?? []).find((l) => l.classId === 'sorcerer')?.level ?? (c.classId === 'sorcerer' ? c.level : 0);
+        if (sorc && sorcLv >= 20) c.combat.resources.sorcery = Math.min(sorc.max, (c.combat.resources.sorcery ?? sorc.max) + 4);
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow', 'camouflage'].includes(m));
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow', 'camouflage', 'draconicWard'].includes(m));
         // Fúria Implacável: a CD volta a 10 depois de um descanso
         delete c.combat.resources.relentless;
       });

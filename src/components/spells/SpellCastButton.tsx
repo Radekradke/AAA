@@ -16,6 +16,8 @@ import { ABILITY_SHORT } from '@/data/skills';
 import type { ChargeOption } from '@/engine/itemCharges';
 import { materialWarning } from '@/engine/spellFocus';
 import { lifeHealing, potentSpellcasting, withLifeHealing } from '@/engine/cleric';
+import { elementalAffinity } from '@/engine/sorcerer';
+import { useWildSurge } from './useWildSurge';
 
 interface Props {
   char: Character;
@@ -72,6 +74,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const [flash, setFlash] = useState(0);
   const { rollDice, check } = useDiceRoller();
   const [open, setOpen] = useState(false);
+  const wildSurge = useWildSurge(char);
   const [pending, setPending] = useState<PendingAttack | null>(null);
   const [targetAc, setTargetAc] = useState('');
   const typeOptions = damageTypeOptions(spell);
@@ -182,6 +185,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         lines.push(`Curandeiro Abençoado: curando outra criatura, você recupera ${blessed} PV`);
       } else if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
     }
+    // Magia Selvagem: magia de 1º círculo ou mais pode causar um surto (o mestre pede o d20)
+    if (wildSurge.wild && !isCantrip && how !== 'item') actions.push({ label: 'Surto? (d20)', run: wildSurge.check });
     if (spell.concentration) lines.push('Concentração ligada');
     // componentes: magia de item não pede; espaço/ritual pedem material (ou foco/bolsa)
     if (how === 'slot' || how === 'ritual' || (how === 'free' && isCantrip)) {
@@ -226,7 +231,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const lvl = isCantrip ? 0 : slotLevel;
     const save = spell.save ? ` · CD ${spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
     const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
-    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
+    const rawPlan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
+    // Afinidade Elemental soma CAR numa rolagem de dano da magia (magia de um ataque só)
+    const atkAffinity = rawPlan && rawPlan.beams === 1 ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) : 0;
+    const plan = rawPlan && atkAffinity ? { ...rawPlan, perHit: { ...rawPlan.perHit, bonus: rawPlan.perHit.bonus + atkAffinity, label: `${rawPlan.perHit.label} · Afinidade Elemental +${atkAffinity}` } } : rawPlan;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
@@ -245,7 +253,11 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const rawDmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
     // Conjuração Potente (Luz/Conhecimento 8º): + SAB no dano dos truques de clérigo
     const potent = rawDmg ? potentSpellcasting(char, spell, derived.abilities.wis.mod) : 0;
-    const dmg = rawDmg && potent ? { ...rawDmg, bonus: rawDmg.bonus + potent, label: `${rawDmg.label} · Conjuração Potente +${potent}` } : rawDmg;
+    // Afinidade Elemental (Dracônica 6º): + CAR no dano do tipo do ancestral
+    const affinity = rawDmg ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) : 0;
+    const extraBonus = potent + affinity;
+    const tag = [potent ? `Conjuração Potente +${potent}` : '', affinity ? `Afinidade Elemental +${affinity}` : ''].filter(Boolean).join(' · ');
+    const dmg = rawDmg && extraBonus ? { ...rawDmg, bonus: rawDmg.bonus + extraBonus, label: `${rawDmg.label} · ${tag}` } : rawDmg;
     const timing = damageTiming(spell);
     // Domínio da Vida: Discípulo da Vida (+2 + círculo) e Cura Suprema (dados no máximo)
     life = lifeHealing(char, lvl);

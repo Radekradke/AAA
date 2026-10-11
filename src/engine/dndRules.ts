@@ -11,6 +11,7 @@ import { SKILLS, ABILITY_LABELS } from '@/data/skills';
 import { getItem } from '@/data/items';
 import { casterOf } from './spellcasting';
 import { canDualWield, itemIsActive } from './inventory';
+import { dragonAncestry } from './sorcerer';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown, Modifier } from './effects';
 import { breakdown, mod } from './effects';
@@ -773,6 +774,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     // Saúde Divina (Paladino 3º): imune a doenças; Aura de Proteção dos Anciões (7º): resistência a dano de magias
     ...(levelIn('paladin') >= 3 ? [{ value: 'doenças (imune)', source: 'Saúde Divina' }] : []),
     ...(char.subclassId === 'ancients' && levelIn('paladin') >= 7 ? [{ value: 'dano de magias', source: 'Aura de Proteção (Anciões)' }] : []),
+    // Afinidade Elemental (Dracônica 6º): 1 ponto de feitiçaria = resistência ao tipo do ancestral por 1 hora
+    ...((char.combat?.marks ?? []).includes('draconicWard') && dragonAncestry(char) ? [{ value: dragonAncestry(char)!.type, source: 'Afinidade Elemental' }] : []),
     // Bruxo: Escudo Mental (Grande Antigo 10º) e Resiliência Infernal (Corruptor 10º, tipo escolhido)
     ...(char.subclassId === 'oldone' && levelIn('warlock') >= 10 ? [{ value: 'psíquico', source: 'Escudo Mental' }] : []),
     ...(char.subclassId === 'fiend' && levelIn('warlock') >= 10 && char.choices?.['warlock.fiendResilience']?.[0]

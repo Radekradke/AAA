@@ -75,10 +75,12 @@ export interface CharacterState {
   toggleSpellSlot: (id: string, level: number, index: number) => void;
   /** Mestre Místico: devolve todos os espaços de Magia de Pacto. */
   restorePactSlots: (id: string) => void;
+  /** Fonte de Magia: espaço → pontos (= círculo) ou pontos → espaço gasto de volta (custo da tabela). */
+  fontOfMagic: (id: string, dir: 'toPoints' | 'toSlot', level: number) => boolean;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage', on: boolean) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard', on: boolean) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */
