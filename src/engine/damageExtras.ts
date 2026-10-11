@@ -18,7 +18,7 @@ import { effectiveAbilities } from './levelUp';
  * · Fúria (Bárbaro): +2/+3/+4 no dano corpo a corpo com FOR.
  * No crítico, TODOS os dados dobram (os bônus fixos não).
  */
-export type MarkId = 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow';
+export type MarkId = 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage';
 
 export interface ExtraDice {
   count: number;
@@ -77,6 +77,10 @@ export interface ExtrasAvailable {
   lifedrinker: { bonus: number } | null;
   /** Golpe Divino (Clérigo 8º/14º): +1d8/2d8 num acerto com arma, 1× por turno. */
   divineStrike: { dice: number; type: string; used: boolean } | null;
+  /** Matador de Colossos (Caçador 3º): +1d8 contra alvo já ferido, 1× por turno. */
+  colossus: { used: boolean } | null;
+  /** Matador de Inimigos (Patrulheiro 20º): + SAB contra inimigo favorito, 1× por turno. */
+  foeSlayer: { bonus: number; used: boolean } | null;
 }
 
 export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailable {
@@ -84,6 +88,7 @@ export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailab
   const paladin = levelIn(char, 'paladin');
   const barb = levelIn(char, 'barbarian');
   const strike = divineStrike(char);
+  const ranger = levelIn(char, 'ranger');
   const melee = (atk.range ?? 'melee') === 'melee';
   const slots = syncSpellSlots(char);
   const openSlots = Object.entries(slots)
@@ -99,6 +104,8 @@ export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailab
     hex: knowsSpell(char, 'phb-hex') || hasMark(char, 'hex'),
     huntersMark: !!atk.weapon && (knowsSpell(char, 'phb-hunters-mark') || hasMark(char, 'huntersMark')),
     rage: barb >= 1 && melee && atk.ability === 'str' ? { bonus: rageBonus(barb) } : null,
+    colossus: atk.weapon && char.subclassId === 'hunter' && ranger >= 3 && char.choices?.['ranger.hunterPrey']?.[0] === 'colossus' ? { used: !!char.combat.turn.colossus } : null,
+    foeSlayer: atk.weapon && ranger >= 20 ? { bonus: Math.max(0, Math.floor((effectiveAbilities(char).wis - 10) / 2)), used: !!char.combat.turn.foeSlayer } : null,
     divineStrike: atk.weapon && strike ? { ...strike, type: strike.type === 'da arma' ? atk.damageType : strike.type, used: !!char.combat.turn.divineStrike } : null,
     lifedrinker: !!atk.weapon && melee && (char.choices?.['warlock.invocation'] ?? []).includes('lifedrinker')
       ? { bonus: Math.max(1, Math.floor((effectiveAbilities(char).cha - 10) / 2)) }
@@ -121,6 +128,10 @@ export interface ExtrasChoice {
   power?: boolean;
   /** Golpe Divino neste acerto (1× por turno). */
   divineStrike?: boolean;
+  /** Matador de Colossos: o alvo já estava ferido. */
+  colossus?: boolean;
+  /** Matador de Inimigos: o alvo é um inimigo favorito. */
+  foeSlayer?: boolean;
 }
 
 /** Dados extras e bônus fixo que valem para este acerto. */
@@ -132,12 +143,14 @@ export function resolveExtras(char: Character, atk: DerivedAttack, avail: Extras
   if (avail.hex && hasMark(char, 'hex')) dice.push({ count: 1, die: 6, type: 'necrótico', source: 'Bruxaria' });
   if (avail.huntersMark && hasMark(char, 'huntersMark')) dice.push({ count: 1, die: 6, type: atk.damageType, source: 'Marca do Caçador' });
   if (avail.divineStrike && choice.divineStrike && !avail.divineStrike.used) dice.push({ count: avail.divineStrike.dice, die: 8, type: avail.divineStrike.type, source: 'Golpe Divino' });
+  if (avail.colossus && choice.colossus && !avail.colossus.used) dice.push({ count: 1, die: 8, type: atk.damageType, source: 'Matador de Colossos' });
   if (choice.maneuver) dice.push({ count: 1, die: choice.maneuver.die, type: atk.damageType, source: choice.maneuver.label });
   const rage = avail.rage && hasMark(char, 'rage') ? avail.rage.bonus : 0;
   const life = avail.lifedrinker && choice.lifedrinker ? avail.lifedrinker.bonus : 0;
   const power = atk.powerAttack && choice.power ? 10 : 0;
-  const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : '', power ? `${atk.powerAttack} +10` : ''].filter(Boolean).join(' · ') || null;
-  return { dice, flat: rage + life + power, flatSource };
+  const foe = avail.foeSlayer && choice.foeSlayer && !avail.foeSlayer.used ? avail.foeSlayer.bonus : 0;
+  const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : '', power ? `${atk.powerAttack} +10` : '', foe ? `Matador de Inimigos +${foe}` : ''].filter(Boolean).join(' · ') || null;
+  return { dice, flat: rage + life + power + foe, flatSource };
 }
 
 /** Rola dados extras e junta numa rolagem só (crítico dobra os dados extras). */

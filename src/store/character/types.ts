@@ -78,7 +78,7 @@ export interface CharacterState {
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow', on: boolean) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage', on: boolean) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */
@@ -87,6 +87,8 @@ export interface CharacterState {
   useSneakAttack: (id: string) => void;
   /** Golpe Divino (Clérigo): 1× por turno. */
   useDivineStrike: (id: string) => void;
+  /** Marca algo que só vale 1× por turno (Matador de Colossos, Matador de Inimigos…). */
+  markTurn: (id: string, key: 'colossus' | 'foeSlayer') => void;
   /** Disparada: dobra o deslocamento do turno e gasta a ação (ou a ação bônus, Ação Ardilosa). */
   dash: (id: string, as: 'action' | 'bonus') => void;
   /** Efeito de magia passa a valer em você (troca o da mesma magia). */

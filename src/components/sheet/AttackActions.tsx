@@ -63,7 +63,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   // Golpe poderoso: −5 no ataque escolhido ANTES de rolar; o +10 vai junto para o dano
   const [power, setPower] = useState(false);
   const hasOptions =
-    !!atk.powerAttack || !!atk.versatileDie || !!avail.sneak || !!avail.divineStrike || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
+    !!atk.powerAttack || !!atk.versatileDie || !!avail.sneak || !!avail.divineStrike || !!avail.colossus || !!avail.foeSlayer || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
 
   const openDamage = (crit: boolean, powered = false) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
@@ -113,6 +113,8 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     pushRoll(r);
     if (avail.sneak && c.sneak && !avail.sneak.used) store.useSneakAttack(char.id);
     if (avail.divineStrike && c.divineStrike && !avail.divineStrike.used) store.useDivineStrike(char.id);
+    if (avail.colossus && c.colossus && !avail.colossus.used) store.markTurn(char.id, 'colossus');
+    if (avail.foeSlayer && c.foeSlayer && !avail.foeSlayer.used) store.markTurn(char.id, 'foeSlayer');
     if (avail.smite && c.smiteLevel) store.castWithSlot(char.id, c.smiteLevel);
     if (c.maneuver && bm) {
       store.setResource(char.id, 'superiority', bm.left - 1);
@@ -257,6 +259,24 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
                 title: 'Clérigo: uma vez em cada um dos seus turnos, um acerto com arma causa dano extra do seu domínio.',
               })}
               <small>{avail.divineStrike.used ? 'já usado neste turno' : '1× por turno'}</small>
+            </span>
+          )}
+
+          {(avail.colossus || avail.foeSlayer) && (
+            <span className="fv-atk-group">
+              <small>Patrulheiro · 1× por turno cada</small>
+              <span className="fv-atk-chips">
+                {avail.colossus &&
+                  chip(!!choice.colossus && !avail.colossus.used, `Matador de Colossos +1d8${avail.colossus.used ? ' (usado)' : ''}`, () => setChoice((c) => ({ ...c, colossus: !c.colossus })), {
+                    disabled: avail.colossus.used,
+                    title: 'O alvo já estava abaixo dos PV máximos: +1d8 de dano, uma vez por turno.',
+                  })}
+                {avail.foeSlayer &&
+                  chip(!!choice.foeSlayer && !avail.foeSlayer.used, `Matador de Inimigos +${avail.foeSlayer.bonus}${avail.foeSlayer.used ? ' (usado)' : ''}`, () => setChoice((c) => ({ ...c, foeSlayer: !c.foeSlayer })), {
+                    disabled: avail.foeSlayer.used,
+                    title: 'O alvo é um dos seus inimigos favoritos: soma SAB ao dano (ou ao ataque), uma vez por turno.',
+                  })}
+              </span>
             </span>
           )}
 

@@ -824,3 +824,19 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - **Habilidade Incomparável** (14º) soma ao último teste.
 9. Colégio da Bravura: Dar Inspiração explica dano/CA; Ataque Extra no 6º.
 10. Relatórios: `docs/auditoria/clerigo.md` e `docs/auditoria/bardo.md`.
+
+## 82. Patrulheiro: auditoria do 1 ao 20
+
+1. Combate → painel "Patrulheiro": CD, inimigos favoritos e terrenos escolhidos.
+2. **Consciência Primitiva** (3º):
+   - Escolha o círculo; gasta o espaço e a ação.
+   - O aviso diz quantos minutos dura.
+3. **Esconder-se à Vista** (10º) vira "Camuflado". O botão de esconder passa a mostrar Furtividade +10.
+4. **Desaparecer** (14º): o Esconder vira ação bônus e rola Furtividade.
+5. Caçador com **Matador de Colossos**:
+   - No dano da arma, "+1d8" aparece.
+   - Depois de usado, fica "(usado)" até o Novo turno.
+6. Caçador: Matador de Gigantes e Resistir à Maré (reações) no painel; Evasão/Esquiva Sobrenatural ao aplicar dano.
+7. Nível 20: **Matador de Inimigos** soma SAB no dano, 1× por turno.
+8. Mestre das Feras: companheiro com ataques mágicos (7º) e dois ataques (11º).
+9. Relatório: `docs/auditoria/patrulheiro.md`.
