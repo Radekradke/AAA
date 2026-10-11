@@ -4089,7 +4089,11 @@ body.fv-dragging .fv-screen-scroll {
 .fv-cast-pop {
   position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; padding: 6px;
   display: flex; flex-direction: column; gap: 2px; border-radius: var(--radius-md);
+  /* nunca maior que a tela: o resto rola por dentro (o botão de rolar não some) */
+  max-height: min(72vh, 560px); overflow-y: auto; overscroll-behavior: contain;
 }
+/* sem espaço embaixo: abre para cima do botão */
+.fv-cast-pop.is-up { top: auto; bottom: calc(100% + 6px); }
 .fv-cast-pop-title { padding: 4px 8px 6px; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .fv-cast-pop button {
   cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 9px;

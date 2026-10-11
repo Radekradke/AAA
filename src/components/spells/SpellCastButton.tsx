@@ -19,6 +19,7 @@ import { lifeHealing, potentSpellcasting, withLifeHealing } from '@/engine/cleri
 import { elementalAffinity } from '@/engine/sorcerer';
 import { empoweredEvocation, overchannelBacklash } from '@/engine/wizard';
 import { useWildSurge } from './useWildSurge';
+import { usePopFlip } from '@/components/ui/usePopFlip';
 
 interface Props {
   char: Character;
@@ -77,6 +78,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const [open, setOpen] = useState(false);
   const wildSurge = useWildSurge(char);
   const [pending, setPending] = useState<PendingAttack | null>(null);
+  const menuPop = usePopFlip<HTMLSpanElement>(open && !pending);
+  const hitPop = usePopFlip<HTMLSpanElement>(pending);
   const [targetAc, setTargetAc] = useState('');
   const typeOptions = damageTypeOptions(spell);
   const [dmgType, setDmgType] = useState<string | null>(() => (typeOptions ? lastType(spell.id) ?? typeOptions[0] : null));
@@ -370,7 +373,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       </button>
 
       {open && !pending && (
-        <span className="fv-cast-pop fv-panel" role="menu">
+        <span ref={menuPop.ref} className={'fv-cast-pop fv-panel' + (menuPop.up ? ' is-up' : '')} role="menu">
           {typeOptions && (
             <>
               <span className="fv-cast-pop-title">Tipo de dano</span>
@@ -417,7 +420,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       )}
 
       {pending && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit" role="dialog" aria-label={`${spell.name}: acertou?`}>
+        <span ref={hitPop.ref} className={'fv-cast-pop fv-panel fv-cast-hit' + (hitPop.up ? ' is-up' : '')} role="dialog" aria-label={`${spell.name}: acertou?`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">{pending.plan.beams > 1 ? `${pending.plan.beams} ataques — acertaram?` : 'Acertou o alvo?'}</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setPending(null)} aria-label="Fechar">×</button>
