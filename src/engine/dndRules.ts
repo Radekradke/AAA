@@ -783,6 +783,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     ...(char.subclassId === 'fiend' && levelIn('warlock') >= 10 && char.choices?.['warlock.fiendResilience']?.[0]
       ? [{ value: `${char.choices['warlock.fiendResilience'][0]} (não mágico e não prateado)`, source: 'Resiliência Infernal' }]
       : []),
+    // Guarda da Natureza (Druida da Terra 10º): imune a veneno e doenças
+    ...(char.subclassId === 'land' && levelIn('druid') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Guarda da Natureza' }] : []),
     // Pureza do Corpo (Monge 10º): imune a doenças e veneno
     ...(levelIn('monk') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Pureza do Corpo' }] : []),
     ...(char.subclassId === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),

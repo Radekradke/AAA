@@ -85,6 +85,8 @@ export interface CharacterState {
   setPortent: (id: string, rolls: number[]) => void;
   /** Sobrecarga: conta mais um uso desde o descanso longo. */
   noteOverchannel: (id: string) => void;
+  /** Forma Selvagem: assume uma fera ({ beastId, hp }) ou volta à forma normal (null). */
+  wildShape: (id: string, shape: { beastId: string; hp: number } | null) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */

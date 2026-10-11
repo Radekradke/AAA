@@ -264,6 +264,8 @@ export interface CombatState {
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
   marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard' | 'arcaneWard' | 'overchannel'>;
+  /** Forma Selvagem (Druida): a fera atual e os PV dela. */
+  wildShape?: { beastId: string; hp: number };
   /** Portento (Mago Adivinhador): d20 rolados no descanso longo, à espera de uso. */
   portent?: number[];
   /** Sobrecarga (Mago Evocador 14º): usos desde o descanso longo. */
