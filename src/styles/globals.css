@@ -4274,6 +4274,8 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-cast-pop .fv-atk-chip.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .fv-cast-pop .fv-atk-chip:disabled { opacity: 0.45; cursor: default; }
+.fv-ranger-primeval { display: inline-flex; align-items: stretch; gap: 6px; flex-wrap: wrap; }
+.fv-ranger-primeval select { width: auto; min-height: 38px; }
 .fv-inv-offhand { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); padding: 4px 9px; border: 1px dashed color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 999px; }
 .fv-atk-power {
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;

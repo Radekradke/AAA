@@ -23,6 +23,7 @@ import { PaladinPanel } from './PaladinPanel';
 import { WarlockPanel } from './WarlockPanel';
 import { ClericPanel } from './ClericPanel';
 import { BardPanel } from './BardPanel';
+import { RangerPanel } from './RangerPanel';
 import { paladinState } from '@/engine/paladin';
 import { hasEvasion, hasUncannyDodge, reduceDamage } from '@/engine/rogue';
 import { toast } from '@/store/feedbackStore';
@@ -283,6 +284,7 @@ export function TabCombate({ char, derived }: TabProps) {
         <WarlockPanel char={char} derived={derived} />
         <ClericPanel char={char} derived={derived} />
         <BardPanel char={char} derived={derived} />
+        <RangerPanel char={char} derived={derived} />
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>

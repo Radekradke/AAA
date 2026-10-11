@@ -12,7 +12,7 @@ import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'markTurn' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -210,6 +210,11 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.turn = { ...c.combat.turn, sneak: true };
       });
     },
+    markTurn(id, key) {
+      mutate(id, (c) => {
+        c.combat.turn = { ...c.combat.turn, [key]: true };
+      });
+    },
     useDivineStrike(id) {
       mutate(id, (c) => {
         c.combat.turn = { ...c.combat.turn, divineStrike: true };
@@ -270,7 +275,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         }
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow'].includes(m));
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow', 'camouflage'].includes(m));
         // Fúria Implacável: a CD volta a 10 depois de um descanso
         delete c.combat.resources.relentless;
       });
