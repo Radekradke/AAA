@@ -19,6 +19,7 @@ import { deriveCharacter } from '@/engine/dndRules';
 import { monkState } from '@/engine/monk';
 import { battleMasterState } from '@/engine/fighter';
 import { ABILITY_SHORT } from '@/data/skills';
+import { usePopFlip } from '@/components/ui/usePopFlip';
 
 interface Props {
   char: Character;
@@ -45,6 +46,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   const store = useCharacterStore();
   const [stage, setStage] = useState<Stage>(null);
   const [choice, setChoice] = useState<ExtrasChoice>({});
+  const pop = usePopFlip<HTMLSpanElement>(stage?.kind);
   const avail = weaponExtras(char, atk);
   // Mestre de Batalha: manobras que somam o dado de superioridade (só com arma)
   const bm = useMemo(() => {
@@ -177,7 +179,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       </LoreTooltip>
 
       {stage?.kind === 'attack' && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit" role="dialog" aria-label={`${atk.name}: acertou?`}>
+        <span ref={pop.ref} className={'fv-cast-pop fv-panel fv-cast-hit' + (pop.up ? ' is-up' : '')} role="dialog" aria-label={`${atk.name}: acertou?`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">Acertou o alvo?</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setStage(null)} aria-label="Fechar">×</button>
@@ -226,7 +228,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       )}
 
       {stage?.kind === 'damage' && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit fv-atk-pop" role="dialog" aria-label={`Dano de ${atk.name}`}>
+        <span ref={pop.ref} className={'fv-cast-pop fv-panel fv-cast-hit fv-atk-pop' + (pop.up ? ' is-up' : '')} role="dialog" aria-label={`Dano de ${atk.name}`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">Dano · {atk.name}</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setStage(null)} aria-label="Fechar">×</button>
