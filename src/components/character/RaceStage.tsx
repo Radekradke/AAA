@@ -24,11 +24,11 @@ export function RaceStageBackdrop({ race }: { race: Race }) {
   const media = raceStageMedia(race.id);
   const play = !!media.video && videoWorthIt(pref);
   return (
-    <div className="fv-stage-backdrop" aria-hidden>
+    <div className="fv-origin-backdrop" aria-hidden>
       <AnimatePresence initial={false}>
         <m.div
           key={race.id}
-          className="fv-stage-scene"
+          className="fv-origin-scene"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -39,14 +39,14 @@ export function RaceStageBackdrop({ race }: { race: Race }) {
           ) : media.poster ? (
             <img src={media.poster} alt="" decoding="async" />
           ) : (
-            <div className="fv-stage-sigil" style={{ ['--jewel' as string]: race.jewel }}>
+            <div className="fv-origin-sigil" style={{ ['--jewel' as string]: race.jewel }}>
               <GlyphIcon name={raceIconKey(race)} size={180} />
               <small>{media.video ? '' : 'cena da raça em produção'}</small>
             </div>
           )}
         </m.div>
       </AnimatePresence>
-      <div className="fv-stage-scrim" />
+      <div className="fv-origin-scrim" />
     </div>
   );
 }
@@ -65,20 +65,20 @@ export function StepRaceStage({ char, update }: StepProps) {
   ];
 
   return (
-    <div className="fv-stage">
-      <section className="fv-stage-info" aria-live="polite" aria-label={`Linhagem: ${race.label}`}>
-        <span className="fv-stage-eyebrow">{race.homebrew ? 'Linhagem homebrew' : 'Escolha sua origem'}</span>
-        <h1 className="fv-stage-title">{race.label}</h1>
-        {sub && <span className="fv-stage-sub">{sub.label}</span>}
-        <p className="fv-stage-desc">{race.desc || 'Sem descrição.'}</p>
-        <div className="fv-stage-chips">
+    <div className="fv-origin">
+      <section className="fv-origin-info" aria-live="polite" aria-label={`Linhagem: ${race.label}`}>
+        <span className="fv-origin-eyebrow">{race.homebrew ? 'Linhagem homebrew' : 'Escolha sua origem'}</span>
+        <h1 className="fv-origin-title">{race.label}</h1>
+        {sub && <span className="fv-origin-sub">{sub.label}</span>}
+        <p className="fv-origin-desc">{race.desc || 'Sem descrição.'}</p>
+        <div className="fv-origin-chips">
           {raceFacts(char).map((f) => (
-            <span key={f.label} className={'fv-stage-chip' + (f.label === 'Atributos' ? ' is-gold' : '')}>
+            <span key={f.label} className={'fv-origin-chip' + (f.label === 'Atributos' ? ' is-gold' : '')}>
               {f.label === 'Atributos' ? f.value : `${f.label}: ${f.value}`}
             </span>
           ))}
         </div>
-        <ul className="fv-stage-traits">
+        <ul className="fv-origin-traits">
           {raceTraitFacts(char).map((f) => (
             <li key={f.label}>
               <LoreTooltip info={passiveLore(f.label, sub?.label ?? race.label, f.value, ['Traço racial'])}>
@@ -93,7 +93,7 @@ export function StepRaceStage({ char, update }: StepProps) {
         )}
       </section>
 
-      <nav className="fv-stage-roster" aria-label="Linhagens">
+      <nav className="fv-origin-roster" aria-label="Linhagens">
         {roster.map(({ r, pick }) => {
           const poster = raceStageMedia(r.id).poster;
           const on = char.raceId === r.id;
@@ -101,7 +101,7 @@ export function StepRaceStage({ char, update }: StepProps) {
             <button
               key={r.id}
               type="button"
-              className={'fv-stage-medal' + (on ? ' is-on' : '')}
+              className={'fv-origin-medal' + (on ? ' is-on' : '')}
               aria-pressed={on}
               aria-label={r.label}
               title={r.label}
@@ -109,14 +109,14 @@ export function StepRaceStage({ char, update }: StepProps) {
               style={{ ['--jewel' as string]: r.jewel }}
             >
               {poster ? <img src={poster} alt="" /> : <GlyphIcon name={raceIconKey(r)} size={28} />}
-              {r.homebrew && <i className="fv-stage-hb" aria-hidden>HB</i>}
-              <span className="fv-stage-name">{r.label}</span>
+              {r.homebrew && <i className="fv-origin-hb" aria-hidden>HB</i>}
+              <span className="fv-origin-name">{r.label}</span>
             </button>
           );
         })}
-        <button type="button" className="fv-stage-medal is-new" aria-label="Criar raça homebrew" title="Criar raça homebrew" onClick={() => setEditing('new')}>
+        <button type="button" className="fv-origin-medal is-new" aria-label="Criar raça homebrew" title="Criar raça homebrew" onClick={() => setEditing('new')}>
           <span aria-hidden>+</span>
-          <span className="fv-stage-name">Criar raça</span>
+          <span className="fv-origin-name">Criar raça</span>
         </button>
       </nav>
 
