@@ -774,6 +774,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     // Saúde Divina (Paladino 3º): imune a doenças; Aura de Proteção dos Anciões (7º): resistência a dano de magias
     ...(levelIn('paladin') >= 3 ? [{ value: 'doenças (imune)', source: 'Saúde Divina' }] : []),
     ...(char.subclassId === 'ancients' && levelIn('paladin') >= 7 ? [{ value: 'dano de magias', source: 'Aura de Proteção (Anciões)' }] : []),
+    // Resistência a Magia (Abjuração 14º): resistência ao dano de magias (e vantagem nas salvaguardas contra elas)
+    ...(char.subclassId === 'abjuration' && levelIn('wizard') >= 14 ? [{ value: 'dano de magias (e vantagem nas salvaguardas contra magias)', source: 'Resistência a Magia' }] : []),
     // Afinidade Elemental (Dracônica 6º): 1 ponto de feitiçaria = resistência ao tipo do ancestral por 1 hora
     ...((char.combat?.marks ?? []).includes('draconicWard') && dragonAncestry(char) ? [{ value: dragonAncestry(char)!.type, source: 'Afinidade Elemental' }] : []),
     // Bruxo: Escudo Mental (Grande Antigo 10º) e Resiliência Infernal (Corruptor 10º, tipo escolhido)

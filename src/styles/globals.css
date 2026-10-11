@@ -4274,6 +4274,13 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-cast-pop .fv-atk-chip.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .fv-cast-pop .fv-atk-chip:disabled { opacity: 0.45; cursor: default; }
+.fv-wiz-recovery { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.fv-wiz-recovery > span:first-child:not(.fv-wiz-pick) { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-wiz-recovery select { width: auto; min-height: 38px; }
+.fv-wiz-pick { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-num); font-size: 12px; }
+.fv-wiz-pick button { min-width: 28px; min-height: 28px; border-radius: 999px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.fv-wiz-pick b { min-width: 14px; text-align: center; color: var(--gold); }
+.fv-wiz-check { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
 .fv-sorc-font { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
 .fv-sorc-font > span { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .fv-sorc-font select, .fv-sorc-twin { width: auto; min-height: 38px; }

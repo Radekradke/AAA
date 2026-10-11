@@ -858,3 +858,22 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - Distorcer o Destino (6º) rola ±1d4. Caos Controlado (14º) mostra dois resultados.
 6. Nível 20: o descanso curto devolve 4 pontos de feitiçaria.
 7. Relatório: `docs/auditoria/feiticeiro.md`.
+
+## 84. Mago: auditoria do 1 ao 20
+
+1. Combate → painel "Mago": CD e Recuperação Arcana.
+   - Com espaços gastos, use +/− por círculo (até metade do nível, nada de 6º+).
+   - "Recuperar espaços" devolve os escolhidos e trava até o descanso longo.
+2. Nível 18: as magias do Domínio de Magia ganham um "Usar" extra sem espaço na aba Magias.
+3. Nível 20: as Magias de Assinatura também ganham "Usar" sem espaço, 1× por descanso curto.
+4. **Abjuração**:
+   - Conjure uma abjuração de 1º+: a Barreira Arcana aparece cheia.
+   - "Aplicar dano" tira da barreira antes dos PV.
+   - Outra abjuração recarrega 2 × círculo.
+5. **Adivinhação**: "Rolar Portento" guarda 2 d20 (3 no 14º). Cada botão some ao usar; o descanso longo limpa.
+6. **Evocação**:
+   - No 10º, Bola de Fogo soma INT no dano.
+   - No 14º, "Sobrecarga" deixa a próxima magia de 1º–5º no máximo.
+   - Do 2º uso no dia em diante, você sofre o necrótico.
+7. Conjuração (Transposição Benigna), Encantamento (Olhar Hipnótico, Charme Instintivo), Ilusão (Eu Ilusório) e Necromancia (Colheita Sinistra) com botões no painel.
+8. Relatório: `docs/auditoria/mago.md`.

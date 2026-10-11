@@ -7,7 +7,7 @@ import { characterResources } from '@/engine/classResources';
 import { SLOT_COST } from '@/engine/sorcerer';
 
 /** Magias: conjurar gastando espaço, espaços, magias de itens, esquecer e copiar (grimório). */
-export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'spendItemCharges' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot' | 'restorePactSlots' | 'fontOfMagic'> {
+export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'spendItemCharges' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot' | 'restorePactSlots' | 'fontOfMagic' | 'recoverSlots' | 'chargeWard'> {
   return {
     noteCast(id, spellId) {
       mutate(id, (c) => {
@@ -87,6 +87,28 @@ export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, '
         }
       });
       return true;
+    },
+    recoverSlots(id, picks) {
+      // Recuperação Arcana / Recuperação Natural: devolve espaços gastos escolhidos
+      mutate(id, (c) => {
+        if (!c.combat.spellSlots) c.combat.spellSlots = syncSpellSlots(c);
+        for (const [lv, n] of Object.entries(picks)) {
+          const slot = c.combat.spellSlots[Number(lv)];
+          if (slot && n > 0) slot.used = Math.max(0, slot.used - n);
+        }
+      });
+    },
+    chargeWard(id, slotLevel) {
+      // Barreira Arcana: a 1ª abjuração do dia ergue a barreira cheia; as seguintes recuperam 2 × círculo
+      const char = get().getCharacter(id);
+      const ward = char ? characterResources(char).find((r) => r.id === 'arcaneWard') : undefined;
+      if (!char || !ward) return;
+      mutate(id, (c) => {
+        const up = (c.combat.marks ?? []).includes('arcaneWard');
+        const hp = Math.min(ward.max, c.combat.resources.arcaneWard ?? ward.max);
+        c.combat.resources.arcaneWard = up ? Math.min(ward.max, hp + 2 * slotLevel) : ward.max;
+        if (!up) c.combat.marks = [...(c.combat.marks ?? []), 'arcaneWard'];
+      });
     },
     restorePactSlots(id) {
       // Mestre Místico (Bruxo 20º): todos os espaços de Magia de Pacto voltam
