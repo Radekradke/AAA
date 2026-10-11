@@ -12,7 +12,7 @@ import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -208,6 +208,11 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
     useSneakAttack(id) {
       mutate(id, (c) => {
         c.combat.turn = { ...c.combat.turn, sneak: true };
+      });
+    },
+    useDivineStrike(id) {
+      mutate(id, (c) => {
+        c.combat.turn = { ...c.combat.turn, divineStrike: true };
       });
     },
     dash(id, as) {

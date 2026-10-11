@@ -85,6 +85,8 @@ export interface CharacterState {
   endRage: (id: string) => void;
   /** Ataque Furtivo gasto neste turno. */
   useSneakAttack: (id: string) => void;
+  /** Golpe Divino (Clérigo): 1× por turno. */
+  useDivineStrike: (id: string) => void;
   /** Disparada: dobra o deslocamento do turno e gasta a ação (ou a ação bônus, Ação Ardilosa). */
   dash: (id: string, as: 'action' | 'bonus') => void;
   /** Efeito de magia passa a valer em você (troca o da mesma magia). */

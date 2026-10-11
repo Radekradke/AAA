@@ -252,7 +252,7 @@ export interface CombatState {
   hitDiceRemaining: number;
   deathSaves: { success: number; fail: number };
   /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
-  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean };
+  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean; divineStrike?: boolean };
   moveUsed: number;
   conditions: string[];
   /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */

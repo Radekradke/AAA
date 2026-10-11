@@ -15,6 +15,7 @@ import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCas
 import { ABILITY_SHORT } from '@/data/skills';
 import type { ChargeOption } from '@/engine/itemCharges';
 import { materialWarning } from '@/engine/spellFocus';
+import { lifeHealing, potentSpellcasting, withLifeHealing } from '@/engine/cleric';
 
 interface Props {
   char: Character;
@@ -174,7 +175,12 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     if (healed !== null) {
       lines.push(`Cura rolada: ${healed} PV`);
       actions.unshift({ label: `Curar em mim (+${healed})`, primary: true, run: () => store.heal(char.id, healed) });
-      if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
+      // Curandeiro Abençoado (Vida 6º): curar outra criatura também cura você em 2 + círculo
+      const blessed = life?.blessed ?? 0;
+      if (blessed) {
+        actions.push({ label: `Foi em outra criatura (+${blessed} em mim)`, run: () => store.heal(char.id, blessed) });
+        lines.push(`Curandeiro Abençoado: curando outra criatura, você recupera ${blessed} PV`);
+      } else if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
     }
     if (spell.concentration) lines.push('Concentração ligada');
     // componentes: magia de item não pede; espaço/ritual pedem material (ou foco/bolsa)
@@ -201,6 +207,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     saveType(spell.id, t);
   };
 
+  // cura do Domínio da Vida desta conjuração (Curandeiro Abençoado usa no aviso)
+  let life: ReturnType<typeof lifeHealing> = null;
   const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0) => {
     setOpen(false);
     onCast?.();
@@ -234,9 +242,15 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       announce(slotLevel, how, null, undefined, cost);
       return;
     }
-    const dmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
+    const rawDmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
+    // Conjuração Potente (Luz/Conhecimento 8º): + SAB no dano dos truques de clérigo
+    const potent = rawDmg ? potentSpellcasting(char, spell, derived.abilities.wis.mod) : 0;
+    const dmg = rawDmg && potent ? { ...rawDmg, bonus: rawDmg.bonus + potent, label: `${rawDmg.label} · Conjuração Potente +${potent}` } : rawDmg;
     const timing = damageTiming(spell);
-    const heal = healRoll(spell, lvl, castMod);
+    // Domínio da Vida: Discípulo da Vida (+2 + círculo) e Cura Suprema (dados no máximo)
+    life = lifeHealing(char, lvl);
+    const rawHeal = healRoll(spell, lvl, castMod);
+    const heal = rawHeal ? withLifeHealing(rawHeal, life) : null;
     // Sono / Leque Cromático: rola o total de PV afetados (não é dano)
     const pool = hpPool(spell, isCantrip ? 0 : slotLevel);
     if (pool) {

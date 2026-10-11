@@ -798,3 +798,29 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - Armas leves (ou com Combatente com Duas Armas): o ataque dela em Combate diz "mão secundária · ação bônus".
    - Sem isso: "sem ataque bônus".
    - Com arma de duas mãos na principal, o botão não aparece.
+
+## 81. Clérigo e Bardo: auditoria do 1 ao 20
+
+1. **Clérigo**, Combate → painel "Clérigo":
+   - Mostra "Canalizar Divindade N/M", a CD e o ND do Destruir Mortos-Vivos (5º+).
+   - **Expulsar Mortos-Vivos** e o Canalizar do domínio gastam o uso e o turno certo.
+   - Radiância da Alvorada (Luz) rola 2d10 + nível.
+   - Preservar a Vida (Vida) oferece "Em mim" só até a metade dos PV.
+2. Domínio da Vida, ao conjurar Curar Ferimentos:
+   - A cura soma +2 + círculo (Discípulo da Vida).
+   - No 6º, "Foi em outra criatura" também cura você.
+   - No 17º, os dados vêm no máximo.
+3. Golpe Divino (8º, menos Luz e Conhecimento): no dano do ataque com arma aparece "+1d8 tipo", 1× por turno.
+4. Conjuração Potente (Luz/Conhecimento 8º): Chama Sagrada soma SAB no dano.
+5. Reações de domínio no painel: Labareda Protetora, Ira da Tempestade (rola 2d8) e Sacerdote da Guerra (ação bônus).
+6. Nível 10: **Intervenção Divina** rola o d100 e trava até o descanso longo.
+7. **Bardo**, painel "Bardo":
+   - Mostra "Inspiração de Bardo N/M" com o dado e quando volta.
+   - **Dar Inspiração** gasta a ação bônus.
+   - **Canção de Descanso** rola o dado.
+   - **Contraencanto** no 6º.
+8. Colégio do Conhecimento:
+   - **Palavras Cortantes** (reação) rola e gasta o dado.
+   - **Habilidade Incomparável** (14º) soma ao último teste.
+9. Colégio da Bravura: Dar Inspiração explica dano/CA; Ataque Extra no 6º.
+10. Relatórios: `docs/auditoria/clerigo.md` e `docs/auditoria/bardo.md`.
