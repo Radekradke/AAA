@@ -10,6 +10,7 @@ import { effectiveAbilities } from './levelUp';
  *   que você vê — some se estiver cego, surdo ou incapacitado.
  * · Força Indomável (Bárbaro 18º): teste de FOR nunca abaixo do valor de FOR.
  * · Talento Confiável (Ladino 11º): em teste com proficiência, d20 de 9 ou menos conta como 10.
+ * · Esquivar (Defesa Paciente): vantagem em salvaguardas de DES até o seu próximo turno.
  * · Furtividade Suprema (Ladrão 9º): vantagem em Furtividade se andou no máximo metade do deslocamento.
  */
 export interface RollRule {
@@ -40,6 +41,8 @@ export function rollRule(char: Character, kind: 'check' | 'save', ability: Abili
   if (kind === 'save' && ability === 'dex' && barb >= 2 && !(char.combat?.conditions ?? []).some((c) => BLOCKS_DANGER.includes(c))) {
     sources.push('Sentido de Perigo');
   }
+  // Esquivar (Defesa Paciente do Monge ou a ação comum): vantagem em salvaguardas de DES até o próximo turno
+  if (kind === 'save' && ability === 'dex' && (char.combat?.marks ?? []).includes('dodge') && !sources.includes('Sentido de Perigo')) sources.push('Esquivar');
   const rogue = levelIn(char, 'rogue');
   if (kind === 'check' && ctx.skill === 'stealth' && char.subclassId === 'thief' && rogue >= 9 && ctx.speed && (char.combat?.moveUsed ?? 0) <= ctx.speed / 2) {
     sources.push('Furtividade Suprema');
