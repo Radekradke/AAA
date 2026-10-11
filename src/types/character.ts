@@ -252,7 +252,7 @@ export interface CombatState {
   hitDiceRemaining: number;
   deathSaves: { success: number; fail: number };
   /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
-  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean };
+  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean };
   moveUsed: number;
   conditions: string[];
   /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */
@@ -263,7 +263,7 @@ export interface CombatState {
    * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
-  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless'>;
+  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate'>;
   /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
   spellEffects?: ActiveSpellEffect[];
   /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */

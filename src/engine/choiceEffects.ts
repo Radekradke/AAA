@@ -43,3 +43,22 @@ export function grantChoiceEffects(c: Character, picks: Record<string, string[]>
     }
   }
 }
+
+/** Proficiências que vêm com a subclasse (Assassino 3º: kit de disfarce e de envenenador). */
+const SUBCLASS_TOOLS: Record<string, { classId: string; level: number; tools: string[]; source: string }> = {
+  assassin: { classId: 'rogue', level: 3, tools: ['disguise-kit', 'poisoners-kit'], source: 'Assassino' },
+};
+
+/**
+ * Devolve a ficha com as ferramentas da subclasse na lista de proficiências.
+ * Sem nada a acrescentar, devolve o mesmo objeto (seguro para chamar sempre).
+ */
+export function withSubclassTools(c: Character): Character {
+  const grant = c.subclassId ? SUBCLASS_TOOLS[c.subclassId] : undefined;
+  if (!grant) return c;
+  const lv = c.classLevels?.find((cl) => cl.classId === grant.classId)?.level ?? (c.classId === grant.classId ? c.level : 0);
+  const have = c.toolProfs ?? [];
+  const missing = lv >= grant.level ? grant.tools.filter((id) => !have.some((t) => t.id === id)) : [];
+  if (!missing.length) return c;
+  return { ...c, toolProfs: [...have, ...missing.map((id) => ({ id, label: toolLabel(id), source: grant.source }))] };
+}

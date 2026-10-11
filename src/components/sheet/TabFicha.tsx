@@ -130,7 +130,7 @@ export function TabFicha({ char, derived }: TabProps) {
             {trained.map((sk) => (
               <LoreTooltip key={sk.key} info={skillLore(sk.key, sk.bonus, true, sk.expertise)}>
                 <button
-                  onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus)}
+                  onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus, { skill: sk.key, proficient: sk.proficient, speed: derived.speed })}
                   style={{
                     cursor: 'pointer',
                     display: 'inline-flex',
@@ -220,7 +220,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     </button>
                   )}
                   <button
-                    onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                    onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total, { proficient: true })}
                     style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
@@ -317,13 +317,18 @@ export function TabFicha({ char, derived }: TabProps) {
             ))}
           </div>
 
-          {(derived.darkvision || derived.resistances.length > 0) && (
+          {(derived.darkvision || derived.blindsense || derived.resistances.length > 0) && (
             <>
               <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos &amp; Resistências</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {derived.darkvision && (
                   <LoreTooltip info={passiveLore('Visão no Escuro', `${derived.darkvision.range} m`, `Enxerga na penumbra como se fosse luz e no escuro como penumbra (tons de cinza). Origem: ${derived.darkvision.source}.`, ['Sentido'])}>
                     <span className="fv-chip fv-chip-gold" style={{ cursor: 'help' }}>Visão no Escuro {derived.darkvision.range} m</span>
+                  </LoreTooltip>
+                )}
+                {derived.blindsense && (
+                  <LoreTooltip info={passiveLore('Sentido Cego', `${derived.blindsense} m`, 'Se puder ouvir, você sabe onde está qualquer criatura escondida ou invisível a até 3 m (Ladino 14º).', ['Sentido'])}>
+                    <span className="fv-chip fv-chip-gold" style={{ cursor: 'help' }}>Sentido Cego {derived.blindsense} m</span>
                   </LoreTooltip>
                 )}
                 {derived.resistances.map((r) => (

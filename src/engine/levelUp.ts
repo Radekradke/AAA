@@ -8,6 +8,7 @@ import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
 import { ABILITY_SHORT } from '@/data/skills';
 import { totalAbilities } from './modifiers';
+import { withSubclassTools } from './choiceEffects';
 import { specsAt, validateChoicePicks } from './classChoices';
 import { proficienciesOf } from './proficiencies';
 import { WEAPON_BY_ID } from '@/data/weapons';
@@ -248,7 +249,8 @@ export function synthesizeHistory(char: Pick<Character, 'level' | 'classId' | 's
 
 /** Migração defensiva: garante os campos dos schemas v2/v3 num personagem antigo. */
 export function ensureCharacterV2(c: Character): Character {
-  if (c.schema === 3 && c.levelHistory?.length) return c;
+  // ferramentas da subclasse (Assassino) também chegam às fichas que já existiam
+  if (c.schema === 3 && c.levelHistory?.length) return withSubclassTools(c);
   const migrated: Character = {
     ...c,
     schema: 3,
@@ -264,5 +266,5 @@ export function ensureCharacterV2(c: Character): Character {
     toolProfs: c.toolProfs ?? [],
     extraLanguages: c.extraLanguages ?? [],
   };
-  return migrated;
+  return withSubclassTools(migrated);
 }

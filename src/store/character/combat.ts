@@ -11,7 +11,7 @@ import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -87,8 +87,8 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.turn = { action: false, bonus: false, reaction: false };
         c.combat.moveUsed = 0;
         c.combat.castThisTurn = [];
-        // Ataque Imprudente vale até o início do seu próximo turno
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'reckless');
+        // Ataque Imprudente vale até o início do seu próximo turno; Assassinar só no turno marcado
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'reckless' && m !== 'assassinate');
         // Escudo Arcano acaba no início do seu turno; Heroísmo renova os PV temporários
         const effects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'turn');
         c.combat.spellEffects = effects;
@@ -101,7 +101,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       if (!char) return;
       const speed = deriveCharacter(char).speed;
       mutate(id, (c) => {
-        c.combat.moveUsed = Math.max(0, Math.min(speed, c.combat.moveUsed + delta));
+        c.combat.moveUsed = Math.max(0, Math.min(speed * (c.combat.turn.dash ? 2 : 1), c.combat.moveUsed + delta));
       });
     },
     toggleCondition(id, cond) {
@@ -203,6 +203,12 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.turn = { ...c.combat.turn, sneak: true };
       });
     },
+    dash(id, as) {
+      // Disparada: o deslocamento do turno dobra (ação comum ou ação bônus da Ação Ardilosa)
+      mutate(id, (c) => {
+        c.combat.turn = { ...c.combat.turn, dash: true, [as]: true };
+      });
+    },
     setResource(id, resId, value) {
       mutate(id, (c) => {
         c.combat.resources[resId] = Math.max(0, value);
@@ -252,7 +258,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         }
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy' && m !== 'reckless');
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy' && m !== 'reckless' && m !== 'assassinate');
         // Fúria Implacável: a CD volta a 10 depois de um descanso
         delete c.combat.resources.relentless;
       });

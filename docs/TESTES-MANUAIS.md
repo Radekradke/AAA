@@ -704,3 +704,18 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Cada clipe toca até o fim (5 s) e funde no da outra irmã, sem corte seco. Depois volta para a primeira, e assim por diante.
 3. Trocar de aba do navegador pausa o vídeo; voltar retoma.
 4. Celular, "economia de dados" ou "reduzir movimento" no sistema: sem vídeo, e o menu volta ao centro como antes.
+
+## 75. Ladino: auditoria do 1 ao 20
+
+1. Combate → painel "Ladino" (nível 2+):
+   - **Disparada** muda o Movimento para o dobro (ex.: "9,0 m de 18 m (Disparada)").
+   - **Desengajar** e **Esconder** gastam a ação bônus. Esconder rola Furtividade.
+2. Nível 5+: no "Aplicar dano", marque **Esquiva Sobrenatural**. O dano cai pela metade e a reação fica gasta.
+3. Nível 7+ (ou Monge 7+): **Evasão: passei** zera o dano; **falhei** aplica metade.
+4. Nível 11+: rolar uma perícia treinada com d20 baixo mostra "Talento Confiável (d20 3 → 10)".
+5. Nível 14+: a Ficha mostra "Sentido Cego 3 m".
+6. Nível 20: **Golpe de Sorte** transforma o último teste em 20 e gasta o uso (volta no descanso curto).
+7. Subclasses:
+   - **Ladrão**: Mãos Rápidas no painel. Nível 9: Furtividade com vantagem se andou até metade do deslocamento. Nível 17: aviso do 2º turno ao rolar iniciativa.
+   - **Assassino**: os kits de disfarce e de envenenador aparecem nas ferramentas. **Assassinar** dá vantagem nos ataques do turno. Nível 17: o painel mostra a CD do Golpe Mortal.
+8. Relatório completo: `docs/auditoria/ladino.md`.

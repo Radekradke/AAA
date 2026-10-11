@@ -16,6 +16,8 @@ import { characterResources } from '@/engine/classResources';
 import { barbarianState } from '@/engine/barbarian';
 import { RagePanel } from './RagePanel';
 import { FighterPanel } from './FighterPanel';
+import { RoguePanel } from './RoguePanel';
+import { hasEvasion, hasUncannyDodge, reduceDamage } from '@/engine/rogue';
 import { toast } from '@/store/feedbackStore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -47,6 +49,11 @@ export function TabCombate({ char, derived }: TabProps) {
   const [rageHalf, setRageHalf] = useState(true);
   const halving = !!barb?.raging && rageHalf;
   const [relentlessDC, setRelentlessDC] = useState<number | null>(null);
+  // Esquiva Sobrenatural (reação, metade de um ataque) e Evasão (salvaguarda de DES): valem para o próximo dano
+  const uncannyOk = hasUncannyDodge(char);
+  const evasionOk = hasEvasion(char);
+  const [uncanny, setUncanny] = useState(false);
+  const [evasion, setEvasion] = useState<'pass' | 'fail' | null>(null);
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
@@ -58,15 +65,24 @@ export function TabCombate({ char, derived }: TabProps) {
     { k: 'bonus' as const, label: 'Ação Bônus' },
     { k: 'reaction' as const, label: 'Reação' },
   ];
-  const moveLeft = (derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',');
+  const moveMax = derived.speed * (char.combat.turn.dash ? 2 : 1);
+  const moveLeft = (moveMax - char.combat.moveUsed).toFixed(1).replace('.', ',');
   const concentrating = !!char.combat.concentration;
   const exhaustion = char.combat.exhaustion ?? 0;
 
   // aplica dano e, se concentrando, calcula a CD da salvaguarda de CON (10 ou metade)
   const dealDamage = (raw: number) => {
     if (raw <= 0) return;
-    // Fúria: resistência (metade, arredondado para baixo) ao dano coberto
-    const n = halving ? Math.floor(raw / 2) : raw;
+    // Evasão / Esquiva Sobrenatural primeiro; depois a resistência da Fúria (metade, para baixo)
+    const useUncanny = uncanny && !char.combat.turn.reaction;
+    const reduced = reduceDamage(raw, { evasion, uncanny: useUncanny });
+    if (useUncanny) store.useTurn(char.id, 'reaction');
+    if (evasion || useUncanny) {
+      toast(`${[evasion ? `Evasão (${evasion === 'pass' ? 'passou: nenhum dano' : 'falhou: metade'})` : '', useUncanny ? 'Esquiva Sobrenatural (metade, reação)' : ''].filter(Boolean).join(' + ')}: ${raw} → ${reduced}.`, { tone: 'ok' });
+      setUncanny(false);
+      setEvasion(null);
+    }
+    const n = halving ? Math.floor(reduced / 2) : reduced;
     if (n <= 0) return;
     store.applyDamage(char.id, n);
     if (concentrating) setConcDC(Math.max(10, Math.floor(n / 2)));
@@ -173,6 +189,27 @@ export function TabCombate({ char, derived }: TabProps) {
           </div>
         )}
 
+        {/* Ladino/Monge/Caçador: defesas que cortam o próximo dano */}
+        {(uncannyOk || evasionOk) && (
+          <div className="fv-defense-chips" style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {uncannyOk && (
+              <button type="button" className={'fv-resist-chip' + (uncanny ? ' is-on' : '')} aria-pressed={uncanny} disabled={char.combat.turn.reaction} onClick={() => setUncanny((v) => !v)} title="Reação: um atacante que você vê o acertou — o dano cai pela metade. Gasta a reação.">
+                {uncanny ? '✓ ' : ''}Esquiva Sobrenatural: metade{char.combat.turn.reaction ? ' (reação já usada)' : ' (reação)'}
+              </button>
+            )}
+            {evasionOk && (
+              <>
+                <button type="button" className={'fv-resist-chip' + (evasion === 'pass' ? ' is-on' : '')} aria-pressed={evasion === 'pass'} onClick={() => setEvasion((v) => (v === 'pass' ? null : 'pass'))} title="Evasão: efeito com salvaguarda de DES para meio dano e você passou — nenhum dano.">
+                  {evasion === 'pass' ? '✓ ' : ''}Evasão: passei na DES (0)
+                </button>
+                <button type="button" className={'fv-resist-chip' + (evasion === 'fail' ? ' is-on' : '')} aria-pressed={evasion === 'fail'} onClick={() => setEvasion((v) => (v === 'fail' ? null : 'fail'))} title="Evasão: efeito com salvaguarda de DES para meio dano e você falhou — só metade.">
+                  {evasion === 'fail' ? '✓ ' : ''}Evasão: falhei na DES (½)
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Fúria Implacável (Bárbaro 11º): caiu a 0 PV em Fúria */}
         {relentlessDC !== null && (
           <div role="alert" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid #ff5a36', background: 'var(--lift)' }}>
@@ -204,6 +241,7 @@ export function TabCombate({ char, derived }: TabProps) {
         <div style={{ marginTop: 12 }}><ActiveEffects char={char} /></div>
         <RagePanel char={char} />
         <FighterPanel char={char} />
+        <RoguePanel char={char} derived={derived} />
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>
@@ -314,7 +352,7 @@ export function TabCombate({ char, derived }: TabProps) {
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-              {moveLeft} m de {derived.speed.toString().replace('.', ',')} m
+              {moveLeft} m de {moveMax.toString().replace('.', ',')} m{char.combat.turn.dash ? ' (Disparada)' : ''}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>

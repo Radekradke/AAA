@@ -9,6 +9,8 @@ export interface InitiativeRules {
   advantageSource?: string;
   /** Recursos zerados que voltam ao rolar iniciativa. */
   refills: { resId: string; value: number; label: string }[];
+  /** Reflexos de Ladrão (Ladrão 17º): 2º turno na 1ª rodada, na iniciativa − 10. */
+  secondTurn: boolean;
 }
 
 export function initiativeRules(char: Character): InitiativeRules {
@@ -36,5 +38,6 @@ export function initiativeRules(char: Character): InitiativeRules {
     advantage: barb >= 7,
     advantageSource: barb >= 7 ? 'Instinto Selvagem' : undefined,
     refills,
+    secondTurn: char.subclassId === 'thief' && classLevelOf(char, 'rogue') >= 17,
   };
 }

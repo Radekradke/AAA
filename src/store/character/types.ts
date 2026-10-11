@@ -74,13 +74,15 @@ export interface CharacterState {
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless', on: boolean) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate', on: boolean) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */
   endRage: (id: string) => void;
   /** Ataque Furtivo gasto neste turno. */
   useSneakAttack: (id: string) => void;
+  /** Disparada: dobra o deslocamento do turno e gasta a ação (ou a ação bônus, Ação Ardilosa). */
+  dash: (id: string, as: 'action' | 'bonus') => void;
   /** Efeito de magia passa a valer em você (troca o da mesma magia). */
   applySpellEffect: (id: string, effect: ActiveSpellEffect) => void;
   removeSpellEffect: (id: string, spellId: string) => void;
