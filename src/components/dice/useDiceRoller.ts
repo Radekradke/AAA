@@ -6,6 +6,9 @@ import type { DerivedAttack } from '@/engine/dndRules';
 import { rollAttack, rollDamage } from '@/engine/combat';
 import { useCharacterStore } from '@/store/characterStore';
 import { playSample } from '@/lib/sfx';
+import type { Character } from '@/types/character';
+import type { AbilityKey } from '@/types/dnd';
+import { rollRule } from '@/engine/rollRules';
 
 /**
  * Inspiração preparada: marca a rolagem, desconta o ponto da ficha e
@@ -51,6 +54,27 @@ export function useDiceRoller() {
     [pushRoll],
   );
 
+  /**
+   * Teste/salvaguarda com as regras de classe aplicadas: vantagem da Fúria e do
+   * Sentido de Perigo (cancela com a desvantagem escolhida) e o mínimo da Força Indomável.
+   */
+  const checkFor = useCallback(
+    (char: Character, kind: 'check' | 'save', ability: AbilityKey, label: string, modifier: number): RollResult => {
+      const rule = rollRule(char, kind, ability);
+      const mode = modeFlags();
+      const adv = !!mode.advantage || rule.advantage;
+      const dis = !!mode.disadvantage;
+      const tag = rule.sources.length ? ` · vantagem: ${rule.sources.join(', ')}` : '';
+      let result = consumeArmedInspiration(rollCheck(label + tag, modifier, { advantage: adv && !dis, disadvantage: dis && !adv }));
+      if (rule.floor && result.total < rule.floor.value) {
+        result = { ...result, total: rule.floor.value, label: `${result.label} · ${rule.floor.source} (mínimo ${rule.floor.value})` };
+      }
+      pushRoll(result);
+      return result;
+    },
+    [pushRoll],
+  );
+
   const attack = useCallback(
     (atk: DerivedAttack, opts: { advantage?: boolean; disadvantage?: boolean } = {}): RollResult => {
       const result = consumeArmedInspiration(rollAttack(atk, { ...modeFlags(), ...opts }));
@@ -80,5 +104,5 @@ export function useDiceRoller() {
     [pushRoll],
   );
 
-  return { rollDice, check, attack, damage, checkD20 };
+  return { rollDice, check, checkFor, attack, damage, checkD20 };
 }

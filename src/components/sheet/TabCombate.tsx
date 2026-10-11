@@ -13,6 +13,9 @@ import { useCharacterStore } from '@/store/characterStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { modStr } from '@/engine/dice';
 import { characterResources } from '@/engine/classResources';
+import { barbarianState } from '@/engine/barbarian';
+import { RagePanel } from './RagePanel';
+import { toast } from '@/store/feedbackStore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
@@ -38,6 +41,11 @@ export function TabCombate({ char, derived }: TabProps) {
   const [amt, setAmt] = useState('');
   // CD da salvaguarda de Concentração após sofrer dano (10 ou metade do dano)
   const [concDC, setConcDC] = useState<number | null>(null);
+  // Bárbaro: resistência da Fúria no dano recebido e Fúria Implacável ao cair a 0
+  const barb = barbarianState(char);
+  const [rageHalf, setRageHalf] = useState(true);
+  const halving = !!barb?.raging && rageHalf;
+  const [relentlessDC, setRelentlessDC] = useState<number | null>(null);
 
   const hpMax = derived.maxHp;
   const pct = Math.max(0, Math.min(100, Math.round((char.hpCurrent / Math.max(1, hpMax)) * 100)));
@@ -54,10 +62,28 @@ export function TabCombate({ char, derived }: TabProps) {
   const exhaustion = char.combat.exhaustion ?? 0;
 
   // aplica dano e, se concentrando, calcula a CD da salvaguarda de CON (10 ou metade)
-  const dealDamage = (n: number) => {
+  const dealDamage = (raw: number) => {
+    if (raw <= 0) return;
+    // Fúria: resistência (metade, arredondado para baixo) ao dano coberto
+    const n = halving ? Math.floor(raw / 2) : raw;
     if (n <= 0) return;
     store.applyDamage(char.id, n);
     if (concentrating) setConcDC(Math.max(10, Math.floor(n / 2)));
+    const after = useCharacterStore.getState().characters.find((c) => c.id === char.id);
+    if (barb?.raging && barb.relentlessDC !== null && after && after.hpCurrent === 0 && (after.combat.deathSaves?.fail ?? 0) < 3) setRelentlessDC(barb.relentlessDC);
+  };
+  const rollRelentless = () => {
+    if (relentlessDC === null) return;
+    const r = check(`Fúria Implacável · CON (CD ${relentlessDC})`, derived.abilities.con.save);
+    store.setResource(char.id, 'relentless', (char.combat.resources.relentless ?? 0) + 1);
+    if (r.total >= relentlessDC) {
+      store.heal(char.id, 1);
+      toast(`Fúria Implacável: ${r.total} contra CD ${relentlessDC} — você fica de pé com 1 PV.`, { tone: 'ok' });
+    } else {
+      store.endRage(char.id);
+      toast(`Fúria Implacável: ${r.total} contra CD ${relentlessDC} — você cai e a Fúria acaba.`, { tone: 'danger' });
+    }
+    setRelentlessDC(null);
   };
   const applyAmount = (heal: boolean) => {
     const n = Math.max(0, Math.floor(Number(amt) || 0));
@@ -137,6 +163,26 @@ export function TabCombate({ char, derived }: TabProps) {
           <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt, ink('#3FC56B'))}>Curar</button>
         </div>
 
+        {/* Fúria: o dano físico (ou todo, com o Urso) cai pela metade */}
+        {barb?.raging && (
+          <div style={{ marginTop: 8 }}>
+            <button type="button" className={'fv-resist-chip' + (rageHalf ? ' is-on' : '')} aria-pressed={rageHalf} onClick={() => setRageHalf((v) => !v)} title="Desligue se o dano não for coberto pela resistência da Fúria">
+              {rageHalf ? '✓ ' : ''}Resistência da Fúria: metade do dano ({barb.resistance})
+            </button>
+          </div>
+        )}
+
+        {/* Fúria Implacável (Bárbaro 11º): caiu a 0 PV em Fúria */}
+        {relentlessDC !== null && (
+          <div role="alert" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid #ff5a36', background: 'var(--lift)' }}>
+            <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
+              Fúria Implacável: salvaguarda de <b>Constituição</b> CD <b style={{ fontFamily: 'var(--font-num)' }}>{relentlessDC}</b> para ficar com 1 PV
+            </span>
+            <button type="button" onClick={rollRelentless} className="fv-rage-end">Rolar {modStr(derived.abilities.con.save)}</button>
+            <button onClick={() => setRelentlessDC(null)} aria-label="Dispensar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+          </div>
+        )}
+
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
         {concentrating && concDC !== null && (
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: 'var(--lift)' }}>
@@ -155,6 +201,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* magias e efeitos ligados (Armadura Arcana, Escudo, Auxílio, Bruxaria…) */}
         <div style={{ marginTop: 12 }}><ActiveEffects char={char} /></div>
+        <RagePanel char={char} />
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>

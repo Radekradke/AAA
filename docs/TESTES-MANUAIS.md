@@ -674,3 +674,15 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 8. Explosão Repulsiva / Lança Mística: no "acertou?" da Rajada Mística aparece o lembrete de empurrar 3 m / alcance 90 m.
 9. Arcano Místico (6º–9º): a magia mostra "Arcano Místico · 1×/descanso longo" e conjura sem espaço. Depois fica "usado · volta no descanso longo".
 10. Magias de raça e talento (Legado Infernal, Magia Drow…) também conjuram de verdade agora, com efeito e rolagem, em vez de só descontar o uso.
+
+## 72. Bárbaro: Fúria de verdade (auditoria do 1 ao 20)
+
+1. Combate → painel de Fúria: **Entrar em Fúria** gasta 1 uso (ex.: 4/4 → 3/4) e a ação bônus. A lista mostra o que vale enquanto ela dura.
+2. Em Fúria, "Aplicar dano" corta pela metade (chip "Resistência da Fúria", que dá para desligar). Com o Totem do Urso, a resistência vale para tudo menos psíquico.
+3. Em Fúria, teste e salvaguarda de FOR (e Atletismo) rolam com vantagem. O rótulo diz "vantagem: Fúria". Magias ficam travadas.
+4. Nível 2+: **Ataque Imprudente** dá vantagem nos ataques corpo a corpo com FOR no turno e aparece nos efeitos. Some ao passar o turno.
+5. Nível 2+: salvaguarda de DES com "vantagem: Sentido de Perigo" (não vale se estiver cego).
+6. Nível 11+: cair a 0 PV em Fúria abre a "Fúria Implacável" (CON CD 10, +5 por uso). Passou → 1 PV; falhou → cai e a Fúria acaba.
+7. Nível 18: teste de FOR nunca fica abaixo do valor de FOR ("Força Indomável (mínimo N)").
+8. Furioso: "com Frenesi" e, ao encerrar, +1 exaustão. Nível 6+: em Fúria, não deixa marcar Enfeitiçado/Amedrontado.
+9. Relatório completo: `docs/auditoria/barbaro.md`.
