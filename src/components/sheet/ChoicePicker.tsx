@@ -1,5 +1,7 @@
 import type { ChoiceOption } from '@/data/classChoices';
 import type { ReplacePick } from '@/engine/classChoices';
+import { choiceOptionLore } from '@/lib/lore';
+import { LoreTooltip } from '@/components/ui/LoreTooltip';
 
 interface ChoicePickerProps {
   label: string;
@@ -60,8 +62,8 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
           const on = value.includes(o.id);
           const full = !on && value.length >= need && need > 1;
           return (
+            <LoreTooltip key={o.id} info={choiceOptionLore(o)}>
             <button
-              key={o.id}
               type="button"
               aria-pressed={on}
               disabled={has || full}
@@ -74,6 +76,7 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
               </span>
               <span className="fv-choice-opt-desc">{o.desc}</span>
             </button>
+            </LoreTooltip>
           );
         })}
       </div>}

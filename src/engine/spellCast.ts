@@ -173,9 +173,16 @@ export function spellAttackPlan(
   slotLevel: number,
   charLevel: number,
   chosenType?: string | null,
-  opts: { agonizing?: number; castMod?: number } = {},
+  opts: { agonizing?: number; castMod?: number; invocations?: string[] } = {},
 ): SpellAttackPlan | null {
-  const plan = baseAttackPlan(sp, slotLevel, charLevel, chosenType, opts.castMod ?? 0);
+  const base = baseAttackPlan(sp, slotLevel, charLevel, chosenType, opts.castMod ?? 0);
+  // Explosão Repulsiva / Lança Mística: lembretes no "acertou?" da Rajada Mística
+  const inv = sp.id === 'sp-eldritch' ? opts.invocations ?? [] : [];
+  const notes = [
+    inv.includes('repellingBlast') && 'Explosão Repulsiva: cada feixe que acertou empurra o alvo até 3 m para longe de você.',
+    inv.includes('eldritchSpear') && 'Lança Mística: alcance de 90 m.',
+  ].filter(Boolean);
+  const plan = base && notes.length ? { ...base, note: [base.note, ...notes].filter(Boolean).join(' ') } : base;
   // Explosão Agonizante: +CAR em CADA feixe da Rajada Mística
   if (plan && opts.agonizing && sp.id === 'sp-eldritch') {
     return { ...plan, perHit: { ...plan.perHit, bonus: plan.perHit.bonus + opts.agonizing, label: `${plan.perHit.label} · Explosão Agonizante` } };

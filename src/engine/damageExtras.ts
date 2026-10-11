@@ -5,6 +5,7 @@ import type { RollResult } from './dice';
 import { rollDamage } from './combat';
 import { grantedSpells, syncSpellSlots } from './spellcasting';
 import { bonusSpellIds } from './classChoices';
+import { effectiveAbilities } from './levelUp';
 
 /**
  * Dano extra somado no acerto — PHB 2014:
@@ -56,6 +57,8 @@ export interface ExtrasAvailable {
   hex: boolean;
   huntersMark: boolean;
   rage: { bonus: number } | null;
+  /** Bebedor de Vida (invocação, Pacto da Lâmina): +CAR necrótico com a arma de pacto. */
+  lifedrinker: { bonus: number } | null;
 }
 
 export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailable {
@@ -77,6 +80,9 @@ export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailab
     hex: knowsSpell(char, 'phb-hex') || hasMark(char, 'hex'),
     huntersMark: !!atk.weapon && (knowsSpell(char, 'phb-hunters-mark') || hasMark(char, 'huntersMark')),
     rage: barb >= 1 && melee && atk.ability === 'str' ? { bonus: rageBonus(barb) } : null,
+    lifedrinker: !!atk.weapon && melee && (char.choices?.['warlock.invocation'] ?? []).includes('lifedrinker')
+      ? { bonus: Math.max(1, Math.floor((effectiveAbilities(char).cha - 10) / 2)) }
+      : null,
   };
 }
 
@@ -87,6 +93,8 @@ export interface ExtrasChoice {
   /** Círculo gasto na Destruição Divina (0/undefined = não usar). */
   smiteLevel?: number;
   smiteUndead?: boolean;
+  /** Este ataque é com a arma de pacto (Bebedor de Vida soma). */
+  lifedrinker?: boolean;
 }
 
 /** Dados extras e bônus fixo que valem para este acerto. */
@@ -98,7 +106,9 @@ export function resolveExtras(char: Character, atk: DerivedAttack, avail: Extras
   if (avail.hex && hasMark(char, 'hex')) dice.push({ count: 1, die: 6, type: 'necrótico', source: 'Bruxaria' });
   if (avail.huntersMark && hasMark(char, 'huntersMark')) dice.push({ count: 1, die: 6, type: atk.damageType, source: 'Marca do Caçador' });
   const rage = avail.rage && hasMark(char, 'rage') ? avail.rage.bonus : 0;
-  return { dice, flat: rage, flatSource: rage ? 'Fúria' : null };
+  const life = avail.lifedrinker && choice.lifedrinker ? avail.lifedrinker.bonus : 0;
+  const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : ''].filter(Boolean).join(' · ') || null;
+  return { dice, flat: rage + life, flatSource };
 }
 
 /** Rola dados extras e junta numa rolagem só (crítico dobra os dados extras). */

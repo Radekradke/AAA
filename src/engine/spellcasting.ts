@@ -117,6 +117,44 @@ export function racialSpells(char: Character): { spellId: string; recharge: 'atw
   return out;
 }
 
+/**
+ * Invocações Místicas que concedem magia (PHB 2014): à vontade (sem espaço)
+ * ou uma vez por descanso longo (as que "gastam um espaço de pacto").
+ */
+const INVOCATION_SPELLS: Record<string, { spellId: string; recharge: 'atwill' | 'long'; label: string; /** "em si mesmo" */ self?: boolean }> = {
+  armorOfShadows: { self: true, spellId: 'sp-armaduraarcana', recharge: 'atwill', label: 'Armadura das Sombras' },
+  ascendantStep: { self: true, spellId: 'phb-levitate', recharge: 'atwill', label: 'Passo Ascendente' },
+  beastSpeech: { spellId: 'phb-speak-animals', recharge: 'atwill', label: 'Fala Bestial' },
+  chainsOfCarceri: { spellId: 'phb-hold-monster', recharge: 'atwill', label: 'Correntes de Carceri' },
+  eldritchSight: { spellId: 'sp-detectar', recharge: 'atwill', label: 'Visão Mística' },
+  fiendishVigor: { self: true, spellId: 'phb-false-life', recharge: 'atwill', label: 'Vigor Infernal' },
+  manyFaces: { spellId: 'phb-disguise-self', recharge: 'atwill', label: 'Máscara de Muitas Faces' },
+  myriadForms: { spellId: 'phb-alter-self', recharge: 'atwill', label: 'Mestre das Formas Incontáveis' },
+  mistyVisions: { spellId: 'phb-silent-image', recharge: 'atwill', label: 'Visões Nebulosas' },
+  otherworldlyLeap: { self: true, spellId: 'sp-saltar', recharge: 'atwill', label: 'Salto Transcendental' },
+  distantRealms: { spellId: 'phb-arcane-eye', recharge: 'atwill', label: 'Visões de Reinos Distantes' },
+  whispersOfGrave: { spellId: 'phb-speak-dead', recharge: 'atwill', label: 'Sussurros do Túmulo' },
+  bewitchingWhispers: { spellId: 'phb-compulsion', recharge: 'long', label: 'Sussurros Enfeitiçantes' },
+  dreadfulWord: { spellId: 'phb-confusion', recharge: 'long', label: 'Palavra Terrível' },
+  minionsOfChaos: { spellId: 'phb-conjure-elemental', recharge: 'long', label: 'Lacaios do Caos' },
+  mireTheMind: { spellId: 'phb-slow', recharge: 'long', label: 'Atolar a Mente' },
+  sculptorOfFlesh: { spellId: 'phb-polymorph', recharge: 'long', label: 'Escultor de Carne' },
+  illOmen: { spellId: 'phb-bestow-curse', recharge: 'long', label: 'Sinal de Mau Agouro' },
+  fiveFates: { spellId: 'sp-perdicao', recharge: 'long', label: 'Ladrão dos Cinco Destinos' },
+};
+
+/** Magias que as invocações escolhidas concedem. */
+export function invocationSpells(char: Character): { id: string; spellId: string; recharge: 'atwill' | 'long'; source: string; self: boolean }[] {
+  return (char.choices?.['warlock.invocation'] ?? [])
+    .filter((id) => INVOCATION_SPELLS[id])
+    .map((id) => ({ id, spellId: INVOCATION_SPELLS[id].spellId, recharge: INVOCATION_SPELLS[id].recharge, source: `Invocação: ${INVOCATION_SPELLS[id].label}`, self: !!INVOCATION_SPELLS[id].self }));
+}
+
+/** Invocação escolhida pelo bruxo. */
+export function hasInvocation(char: Character, id: string): boolean {
+  return (char.choices?.['warlock.invocation'] ?? []).includes(id);
+}
+
 /** Magia concedida por um item, com estado de uso resolvido. */
 export interface ItemSpell {
   /** Chave estável `uid:spellId` para rastrear usos. */
@@ -136,6 +174,8 @@ export interface ItemSpell {
   options?: ChargeOption[];
   /** CD fixa do item (varinhas: 15); sem valor, usa a de quem empunha. */
   dc?: number;
+  /** Só em si mesmo (Armadura das Sombras, Vigor Infernal): o efeito cai direto no herói. */
+  selfOnly?: boolean;
 }
 
 /**
@@ -182,6 +222,14 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
     const key = `race:${r.spellId}`;
     const usesMax = r.recharge === 'atwill' ? 0 : 1;
     out.push({ key, itemUid: 'race', itemName: r.source, spell, recharge: r.recharge, usesMax, usesLeft: Math.max(0, usesMax - (uses[key] ?? 0)) });
+  }
+  // Invocações Místicas: armadura arcana à vontade, vitalidade falsa, disfarçar-se, lentidão 1×/descanso…
+  for (const inv of invocationSpells(char)) {
+    const spell = getSpell(inv.spellId);
+    if (!spell) continue;
+    const key = `inv:${inv.id}`;
+    const usesMax = inv.recharge === 'atwill' ? 0 : 1;
+    out.push({ key, itemUid: `inv:${inv.id}`, itemName: inv.source, spell, recharge: inv.recharge, usesMax, usesLeft: Math.max(0, usesMax - (uses[key] ?? 0)), selfOnly: inv.self });
   }
   // magias inatas de talentos (Alta Magia Drow, Teleporte Feérico, Magia do Elfo da Floresta)
   for (const featId of char.feats ?? []) {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SPELL_BY_ID, SPELLS } from '@/data/spells';
-import { damageRoll, damageTiming, healRoll, isFixedRoll, parseDiceGroups, spellAttackPlan, spellHitDamage, upcastDice } from '../spellCast';
+import { damageRoll, damageTiming, hasAgonizingBlast, healRoll, isFixedRoll, parseDiceGroups, spellAttackPlan, spellHitDamage, upcastDice } from '../spellCast';
 
 const sp = (id: string) => {
   const s = SPELL_BY_ID[id];
@@ -71,5 +71,29 @@ describe('quando o dano acontece', () => {
   it('toda magia de dano rolável na hora tem uma rolagem', () => {
     const missing = SPELLS.filter((s) => s.damage && !s.attack && damageTiming(s) === 'now' && !damageRoll(s, Math.max(1, s.level), 1)).map((s) => s.id);
     expect(missing).toEqual([]);
+  });
+});
+
+describe('Explosão Agonizante (invocação do Bruxo)', () => {
+  it('reconhece a invocação escolhida na evolução', () => {
+    expect(hasAgonizingBlast({ 'warlock.invocation': ['devilSight', 'agonizingBlast'] })).toBe(true);
+    expect(hasAgonizingBlast({ 'warlock.invocation': ['devilSight'] })).toBe(false);
+    expect(hasAgonizingBlast(undefined)).toBe(false);
+  });
+
+  it('soma o CAR em CADA feixe da Rajada Mística que acerta', () => {
+    // nível 5: 2 feixes; CAR +3
+    const plan = spellAttackPlan(sp('sp-eldritch'), 0, 5, null, { agonizing: 3 })!;
+    expect(plan.beams).toBe(2);
+    expect(plan.perHit).toMatchObject({ count: 1, sides: 10, bonus: 3 });
+    expect(spellHitDamage(plan, ['hit', 'hit'])).toMatchObject({ count: 2, sides: 10, bonus: 6 });
+    // um acerto e um erro: só +3; crítico dobra os dados, não o CAR
+    expect(spellHitDamage(plan, ['hit', 'miss'])).toMatchObject({ count: 1, bonus: 3 });
+    expect(spellHitDamage(plan, ['crit', 'miss'])).toMatchObject({ count: 2, bonus: 3 });
+  });
+
+  it('não mexe em outras magias de ataque', () => {
+    const plan = spellAttackPlan(sp('sp-firebolt'), 0, 5, null, { agonizing: 3 });
+    expect(plan?.perHit.bonus ?? 0).toBe(0);
   });
 });

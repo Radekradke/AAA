@@ -657,3 +657,20 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 2. Draconato: a frase diz o sopro (forma e salvaguarda) e a resistência da cor escolhida.
 3. Raças homebrew (ex.: Aasimar, Tabaxi, Golias): passe o mouse no card (no celular, toque longo). O balão mostra a descrição, os traços em uma linha cada e, em "Sub-raças (o que muda)", o bônus, a frase e o traço de cada sub-raça. A base oficial aparece como etiqueta.
 4. Escolhida uma raça homebrew com sub-raças, a sub-raça escolhida também ganha a frase curta embaixo dos botões.
+
+## 71. Bruxo: invocações e Arcano Místico funcionando + subir de nível pelo topo
+
+1. Cabeçalho da ficha: o "+" do nível **não** sobe mais sozinho. Ele abre a aba Evoluir, já rolada até "Subir para o Nível N", com PV e escolhas. O nível só muda ao confirmar ali.
+2. Evoluir → escolhas pendentes (Invocações, Arcano Místico, Metamagia…): passe o mouse numa opção. Se for magia, aparece a magia inteira (círculo, tempo, alcance, duração e o que a ficha faz); senão, o efeito completo.
+3. Aba Ficha → características escolhidas: passar o mouse numa magia escolhida (ex.: Arcano Místico) mostra a magia inteira, não só a escola.
+4. Explosão Agonizante: Rajada Mística do nível 5 com CAR +3 e dois acertos → dano "2d10 +6".
+5. Invocações que dão magia aparecem em Magias → "Magias de raça, itens, talentos e invocações" e conjuram de verdade, sem espaço:
+   - Armadura das Sombras: Armadura Arcana em si mesmo, a CA vira 13 + DES na hora.
+   - Vigor Infernal: Vitalidade Falsa em si mesmo, ganha PV temporários.
+   - Disfarçar-se, Imagem Silenciosa, Detectar Magia, Falar com Animais e outras à vontade.
+   - Atolar a Mente, Palavra Terrível, Sussurros Enfeitiçantes e outras: 1×, "usada" até o descanso longo.
+6. Visão do Diabo: na aba Ficha, Visão no Escuro de 36 m (inclui escuridão mágica).
+7. Bebedor de Vida (Pacto da Lâmina, nível 12): no dano da arma aparece "Bebedor de Vida +CAR necrótico", ligado por padrão.
+8. Explosão Repulsiva / Lança Mística: no "acertou?" da Rajada Mística aparece o lembrete de empurrar 3 m / alcance 90 m.
+9. Arcano Místico (6º–9º): a magia mostra "Arcano Místico · 1×/descanso longo" e conjura sem espaço. Depois fica "usado · volta no descanso longo".
+10. Magias de raça e talento (Legado Infernal, Magia Drow…) também conjuram de verdade agora, com efeito e rolagem, em vez de só descontar o uso.
