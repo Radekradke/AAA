@@ -5,7 +5,7 @@ import { racePickers, RaceExtras } from './StepRace';
 import { GlyphIcon, raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
-import { videoWorthIt } from '@/components/animations/BackgroundScene';
+import { startVideo, videoWorthIt } from '@/components/animations/BackgroundScene';
 import { passiveLore } from '@/lib/lore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
 import { raceStageMedia } from '@/data/raceStage';
@@ -35,7 +35,7 @@ export function RaceStageBackdrop({ race }: { race: Race }) {
           transition={{ duration: 0.9, ease: 'easeOut' }}
         >
           {play ? (
-            <video src={media.video} poster={media.poster} muted loop autoPlay playsInline preload="auto" />
+            <video ref={startVideo} src={media.video} poster={media.poster} muted loop autoPlay playsInline preload="auto" />
           ) : media.poster ? (
             <img src={media.poster} alt="" decoding="async" />
           ) : (
@@ -58,6 +58,9 @@ export function StepRaceStage({ char, update }: StepProps) {
   const homebrew = useHomebrewStore((s) => s.races);
   const [editing, setEditing] = useState<Race | 'new' | null>(null);
   const { pickRace, pickHomebrew } = racePickers(update);
+  const pref = useUiStore((s) => s.bgVideo);
+  const setBgVideo = useUiStore((s) => s.setBgVideo);
+  const stillScene = !!raceStageMedia(race.id).video && pref === 'auto' && !videoWorthIt(pref);
   const sub = subs.find((x) => x.id === char.subraceId);
   const roster: Array<{ r: Race; pick: () => void }> = [
     ...RACES.map((r) => ({ r, pick: () => pickRace(r.id) })),
@@ -68,6 +71,12 @@ export function StepRaceStage({ char, update }: StepProps) {
     <div className="fv-origin">
       <section className="fv-origin-info" aria-live="polite" aria-label={`Linhagem: ${race.label}`}>
         <span className="fv-origin-eyebrow">{race.homebrew ? 'Linhagem homebrew' : 'Escolha sua origem'}</span>
+        {/* a cena tem vídeo mas está parada pelo modo automático (ex.: Windows com animações desligadas) */}
+        {stillScene && (
+          <button type="button" className="fv-origin-play" onClick={() => setBgVideo('on')} title="Mostra os vídeos de fundo mesmo com economia de dados ou animações do sistema desligadas (Configurações → Aparência).">
+            ▶ Ativar vídeo da cena
+          </button>
+        )}
         <h1 className="fv-origin-title">{race.label}</h1>
         {sub && <span className="fv-origin-sub">{sub.label}</span>}
         <p className="fv-origin-desc">{race.desc || 'Sem descrição.'}</p>
