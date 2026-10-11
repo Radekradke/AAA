@@ -1,7 +1,7 @@
 import type { Character } from '@/types/character';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
-import { passiveLore } from '@/lib/lore';
+import { choiceOptionLore, passiveLore } from '@/lib/lore';
 import { getClass } from '@/data/classes';
 import { getSubclass } from '@/data/subclasses';
 import { featureInfo } from '@/data/featureInfo';
@@ -30,7 +30,7 @@ export function ClassFeaturesPanel({ char }: { char: Character }) {
               <span className="fv-feat-choice-label">{c.label}</span>
               <div className="fv-feat-chips">
                 {c.options.map((o) => (
-                  <LoreTooltip key={o.id} info={passiveLore(o.label, c.label, o.desc, o.tag ? [o.tag] : [])}>
+                  <LoreTooltip key={o.id} info={choiceOptionLore(o, c.label)}>
                     <span className="fv-chip fv-chip-gold" style={{ cursor: 'help' }}>{o.label}</span>
                   </LoreTooltip>
                 ))}

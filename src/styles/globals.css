@@ -8751,3 +8751,4 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 
 /* criação: frase curta explicando a sublinhagem escolhida */
 .fv-sub-desc { margin: 8px 2px 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); font-style: italic; }
+.fv-cast-used { font-size: 11px; color: var(--muted); font-style: italic; white-space: nowrap; }

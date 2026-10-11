@@ -179,6 +179,9 @@ export function TabMagias({ char, derived }: TabProps) {
     const forget = learned ? forgetInfo(sp) : null;
     const fav = favorites.includes(sp.id);
     const art = spellArt(sp.id);
+    // Arcano Místico (bruxo 11+): conjura sem espaço, 1× por descanso longo (contador do recurso)
+    const arcanumId = sp.level >= 6 && (char.choices?.[`warlock.arcanum${sp.level}`] ?? []).includes(sp.id) ? `arcanum${sp.level}` : null;
+    const arcanumLeft = arcanumId ? char.combat.resources?.[arcanumId] ?? 1 : 0;
     return (
       <div
         key={sp.id}
@@ -205,6 +208,7 @@ export function TabMagias({ char, derived }: TabProps) {
             </span>
             <span className="fv-spell-meta">
               {grantSource && <span className="fv-spell-granted">sempre preparada · {grantSource}</span>}
+              {arcanumId && <span className="fv-spell-granted">Arcano Místico · {arcanumLeft ? '1×/descanso longo' : 'usado · volta no descanso longo'}</span>}
               {canPrepare && !isPrepared && <span className="fv-spell-granted is-muted">não preparada</span>}
               {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
               {sp.heal && <Mini c="#3FC56B">cura</Mini>}
@@ -223,7 +227,13 @@ export function TabMagias({ char, derived }: TabProps) {
             </span>
           </span>
         </LoreTooltip>
-        {canCast && <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />}
+        {canCast && arcanumId ? (
+          arcanumLeft > 0 && (
+            <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact free onCast={() => store.setResource(char.id, arcanumId, arcanumLeft - 1)} />
+          )
+        ) : (
+          canCast && <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />
+        )}
         <span className="fv-spell-tools">
           <button
             type="button"
@@ -358,7 +368,7 @@ export function TabMagias({ char, derived }: TabProps) {
       {/* Magias concedidas por itens (BG3) */}
       {itemSpells.length > 0 && (
         <Panel full>
-          <SectionLabel>Magias de raça, itens e talentos</SectionLabel>
+          <SectionLabel>Magias de raça, itens, talentos e invocações</SectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {itemSpells.map((is) => (
               <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
@@ -368,24 +378,28 @@ export function TabMagias({ char, derived }: TabProps) {
                     <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
                   </span>
                 </LoreTooltip>
-                {is.recharge === 'atwill' ? (
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: t.acc, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + hexA(t.acc, 0.5) }}>à vontade</span>
+                {is.recharge !== 'atwill' && (
+                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
+                )}
+                {/* conjura de verdade (efeitos, PV temporários, CA, ataque/dano), sem gastar espaço */}
+                {is.recharge === 'atwill' || is.usesLeft > 0 ? (
+                  <SpellCastButton
+                    char={char}
+                    derived={derived}
+                    spell={is.spell}
+                    castMod={castMod}
+                    free
+                    compact
+                    selfOnly={is.selfOnly}
+                    onCast={is.recharge === 'atwill' ? undefined : () => store.useItemSpell(char.id, is.key)}
+                  />
                 ) : (
-                  <>
-                    <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
-                    <button
-                      onClick={() => is.usesLeft > 0 && store.useItemSpell(char.id, is.key)}
-                      disabled={is.usesLeft === 0}
-                      style={{ cursor: is.usesLeft > 0 ? 'pointer' : 'not-allowed', minHeight: 32, padding: '5px 13px', borderRadius: 999, border: '1px solid ' + (is.usesLeft > 0 ? t.gold : t.line), color: is.usesLeft > 0 ? t.gold : 'var(--muted)', background: is.usesLeft > 0 ? hexA(t.gold, 0.12) : 'transparent', fontWeight: 700, fontSize: 12, opacity: is.usesLeft > 0 ? 1 : 0.5 }}
-                    >
-                      Usar
-                    </button>
-                  </>
+                  <span className="fv-cast-used">usada · volta no descanso</span>
                 )}
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias da raça e de talentos conjuram sem gastar espaço; as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
+          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias da raça, de talentos e de invocações conjuram sem gastar espaço (e aplicam o efeito na ficha); as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 

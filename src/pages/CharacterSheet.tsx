@@ -119,6 +119,12 @@ export function CharacterSheet() {
     setTimeout(() => document.getElementById('fv-regras')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
+  // "+" do nível no cabeçalho: abre o plano do próximo nível (PV, escolhas) em vez de subir sem elas
+  const openLevelUp = () => {
+    setTab('evoluir');
+    setTimeout(() => document.getElementById('fv-subir')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  };
+
   const renderTab = () => {
     switch (activeTab) {
       case 'mesa': return <TabMesa char={char} derived={derived} goTab={setTab} />;
@@ -167,7 +173,7 @@ export function CharacterSheet() {
         }}
       >
         {/* na Mesa, o painel de vitais já traz CA/iniciativa/etc. — o cabeçalho fica só com a identidade */}
-        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} onRules={openRules} />
+        <SheetHeader char={char} derived={derived} compact={activeTab === 'mesa' || activeTab === 'retrato'} onShare={() => setSharing(true)} onRules={openRules} onLevelUp={openLevelUp} />
 
         <div className="fv-desktop-only">
           <SheetTabs active={activeTab} onSelect={setTab} isCaster={isCaster} />

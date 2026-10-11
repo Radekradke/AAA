@@ -20,10 +20,12 @@ interface SheetHeaderProps {
   onShare?: () => void;
   /** Leva ao painel "Regras desta ficha" (aba Evoluir). */
   onRules?: () => void;
+  /** "+" do nível: leva ao plano do próximo nível (aba Evoluir), sem subir sozinho. */
+  onLevelUp?: () => void;
 }
 
 /** Cabeçalho da ficha: avatar, nome, subtítulo e blocos de defesa. */
-export function SheetHeader({ char, derived, compact, onShare, onRules }: SheetHeaderProps) {
+export function SheetHeader({ char, derived, compact, onShare, onRules, onLevelUp }: SheetHeaderProps) {
   const race = raceOf(char);
   const setLevel = useCharacterStore((s) => s.setLevel);
 
@@ -109,7 +111,8 @@ export function SheetHeader({ char, derived, compact, onShare, onRules }: SheetH
           <span className="fv-sh-level-ctrl">
             <button onClick={() => setLevel(char.id, char.level - 1)} className="fv-sh-lvl-btn" aria-label="Diminuir nível" disabled={char.level <= 1}>−</button>
             <b>Nível {char.level}</b>
-            <button onClick={() => setLevel(char.id, char.level + 1)} className="fv-sh-lvl-btn" aria-label="Aumentar nível" disabled={char.level >= 20}>+</button>
+            {/* subir de nível tem escolhas (PV, talentos, magias…): leva à aba Evoluir em vez de pular tudo */}
+            <button onClick={onLevelUp} className="fv-sh-lvl-btn" aria-label="Subir de nível (abre a aba Evoluir)" title="Subir de nível: abre a aba Evoluir com as escolhas do próximo nível" disabled={char.level >= 20}>+</button>
           </span>
           <span className="fv-sh-level-bar" aria-hidden title={`Nível ${char.level} de 20`}>
             <span style={{ width: `${Math.min(100, (char.level / 20) * 100)}%` }} />

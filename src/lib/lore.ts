@@ -8,6 +8,7 @@ import { spellAutomation } from '@/engine/spellAutomation';
 import { itemDescription } from '@/data/itemDescriptions';
 import { itemTags } from '@/engine/itemTags';
 import { spellArt, spellRarity } from './spellArt';
+import { SPELL_BY_ID } from '@/data/spells';
 
 export interface LoreInfo {
   title: string;
@@ -129,6 +130,16 @@ export function skillLore(key: SkillKey, bonus: number, proficient: boolean, exp
 
 export function passiveLore(label: string, value: string, body: string, tags: string[] = []): LoreInfo {
   return { title: label, subtitle: value, body, tags };
+}
+
+/**
+ * Balão de uma opção de classe (Invocação, Arcano Místico, Metamagia…): se a
+ * opção é uma magia, a magia inteira; senão, o efeito completo com a origem.
+ */
+export function choiceOptionLore(o: { id: string; label: string; desc: string; tag?: string }, source?: string): LoreInfo {
+  const spell = SPELL_BY_ID[o.id];
+  if (spell) return { ...spellLore(spell), subtitle: [source, spellLore(spell).subtitle].filter(Boolean).join(' · ') };
+  return passiveLore(o.label, source ?? o.tag ?? '', o.desc, o.tag ? [o.tag] : []);
 }
 
 export function spellLore(spell: Spell): LoreInfo {

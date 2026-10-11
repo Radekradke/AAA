@@ -26,6 +26,10 @@ interface Props {
   compact?: boolean;
   /** Magia de item com cargas: escolhe quantas gastar (círculo) e usa a CD do item, se ele tiver. */
   itemCast?: { itemName: string; options: ChargeOption[]; dc?: number; onSpend: (cost: number) => void };
+  /** Chamado ao conjurar (ex.: gastar o uso de uma magia 1×/descanso de raça, talento ou invocação). */
+  onCast?: () => void;
+  /** Só em si mesmo (invocações "em si mesmo"): não pergunta o alvo. */
+  selfOnly?: boolean;
 }
 
 /** Jogadas de ataque feitas, esperando o "acertou?". */
@@ -60,7 +64,7 @@ function saveType(spellId: string, type: string) {
  * Magia de ataque rola o d20 primeiro — o dano só sai nos acertos (crítico
  * dobra os dados); cada raio/feixe é uma jogada separada.
  */
-export function SpellCastButton({ char, derived, spell, castMod, free, compact, itemCast }: Props) {
+export function SpellCastButton({ char, derived, spell, castMod, free, compact, itemCast, onCast, selfOnly }: Props) {
   const store = useCharacterStore();
   const pushRoll = useUiStore((s) => s.pushRoll);
   const pushCastNotice = useUiStore((s) => s.pushCastNotice);
@@ -114,7 +118,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
 
     const lines: string[] = [];
     const actions: { label: string; run: () => void; primary?: boolean }[] = [];
-    const out = spellOutcome(spell, isCantrip ? 0 : slotLevel, castMod);
+    const raw = spellOutcome(spell, isCantrip ? 0 : slotLevel, castMod);
+    const out = raw && selfOnly && raw.target === 'choose' ? { ...raw, target: 'self' as const } : raw;
     const applyOnMe = () => {
       if (out?.tempHp) {
         const n = rollTempHp(out.tempHp);
@@ -198,6 +203,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
 
   const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0) => {
     setOpen(false);
+    onCast?.();
     if (how === 'item') itemCast?.onSpend(cost);
     if (spell.concentration) {
       // nova concentração encerra Bruxaria/Marca/efeitos anteriores; estas duas já ficam ligadas
@@ -212,7 +218,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const lvl = isCantrip ? 0 : slotLevel;
     const save = spell.save ? ` · CD ${spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
     const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
-    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod }) : null;
+    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
