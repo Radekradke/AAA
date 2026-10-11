@@ -91,6 +91,10 @@ export function Settings() {
   const toggleCinematics = useUiStore((s) => s.toggleCinematics);
   const keepAwake = useUiStore((s) => s.keepAwake);
   const toggleKeepAwake = useUiStore((s) => s.toggleKeepAwake);
+  const bgVideo = useUiStore((s) => s.bgVideo);
+  const setBgVideo = useUiStore((s) => s.setBgVideo);
+  const forgeStage = useUiStore((s) => s.forgeStage);
+  const toggleForgeStage = useUiStore((s) => s.toggleForgeStage);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
@@ -171,6 +175,15 @@ export function Settings() {
             própria (layout, formas, fontes e o dado), com paleta clara e escura.
           </p>
           <ThemeGrid />
+          <Row title="Vídeos de fundo" hint="Os vídeos do menu e da Forja. No automático, ficam de fora em telas pequenas, com economia de dados, rede lenta ou quando o sistema pede menos movimento (no Windows: animações desligadas). “Sempre” mostra mesmo assim.">
+            <div className="fv-seg" role="radiogroup" aria-label="Vídeos de fundo">
+              {([['auto', 'Automático'], ['on', 'Sempre'], ['off', 'Desligado']] as const).map(([id, label]) => (
+                <button key={id} type="button" role="radio" aria-checked={bgVideo === id} className={bgVideo === id ? 'is-on' : ''} onClick={() => setBgVideo(id)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </Row>
         </section>
 
         <section id="cfg-som" className="fv-panel fv-set-card" aria-labelledby="cfg-som-t">
@@ -295,6 +308,9 @@ export function Settings() {
               <ArtCounter />
             </Suspense>
           )}
+          <Row title="Palco das origens (experimental)" hint="Na Forja, a escolha de raça vira um palco: o vídeo da raça em tela cheia, a ficha dela ao lado e os brasões das raças na borda. O card do herói só aparece a partir do Caminho.">
+            <Switch on={forgeStage} label="Palco das origens" onToggle={toggleForgeStage} />
+          </Row>
           <Row title="Oficina de retratos" hint="Para quem mantém o app: prepara a arte padrão das classes (as imagens que aparecem quando o herói não tem retrato próprio). Para trocar o retrato do SEU herói, use a aba Retrato da ficha.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
               Abrir

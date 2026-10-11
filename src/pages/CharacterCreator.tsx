@@ -10,6 +10,7 @@ import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
 import type { Character } from '@/types/character';
 import { StepRace } from '@/components/character/StepRace';
+import { RaceStageBackdrop, StepRaceStage } from '@/components/character/RaceStage';
 import { StepClass } from '@/components/character/StepClass';
 import { StepBackground } from '@/components/character/StepBackground';
 import { StepAbilities } from '@/components/character/StepAbilities';
@@ -49,6 +50,7 @@ export function CharacterCreator() {
   // 1ª criação neste aparelho: tour guiado pelas partes da tela
   const startTour = useUiStore((s) => s.startTour);
   const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator || s.tipsOff);
+  const forgeStage = useUiStore((s) => s.forgeStage);
   useEffect(() => {
     if (creatorTourSeen) return;
     let alive = true;
@@ -124,8 +126,10 @@ export function CharacterCreator() {
   // o que ainda falta decidir nesta etapa (o rodapé avisa antes de seguir)
   const hereDue = pending.find((p) => p.step === step && p.step !== STEP_IDENTITY);
 
+  // Palco das Origens (experimental, Configurações → Avançado): a etapa de raça vira um palco
+  const stage = forgeStage && step === STEP_RACE;
   // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
-  const creatorVideo = CREATOR_VIDEOS ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
+  const creatorVideo = CREATOR_VIDEOS && !stage ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
   const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
   const creatorDarken = creatorVideo ? 0.5 : 1;
 
@@ -165,7 +169,7 @@ export function CharacterCreator() {
 
   const renderStep = () => {
     switch (step) {
-      case STEP_RACE: return <StepRace char={char} update={update} />;
+      case STEP_RACE: return stage ? <StepRaceStage char={char} update={update} /> : <StepRace char={char} update={update} />;
       case STEP_CLASS: return <StepClass char={char} update={update} />;
       case STEP_GIFTS: return <StepGifts char={char} update={update} />;
       case STEP_BACKGROUND: return <StepBackground char={char} update={update} />;
@@ -193,8 +197,8 @@ export function CharacterCreator() {
         { label: 'Descartar este herói', icon: 'trash', onClick: discard, danger: true },
       ]}
     >
-      <RaceAura raceId={char.raceId} />
-      <div className="fv-forge">
+      {stage ? <RaceStageBackdrop race={raceOf(char)} /> : <RaceAura raceId={char.raceId} />}
+      <div className={'fv-forge' + (stage ? ' is-stage' : '')}>
         {/* capítulos (desktop): um diário de missão, clicável */}
         <nav className="fv-forge-rail" aria-label="Capítulos da criação">
           <div className="fv-rail-title">Forja do Herói</div>
