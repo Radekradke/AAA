@@ -161,9 +161,7 @@ export function placeInSlots(char: Character, it: InventoryItem): { equipped: Eq
     }
     const main = byUid(equipped.mainHand);
     const mainW = weaponOf(main);
-    const dualFeat = (char.feats ?? []).includes('dual-wielder');
-    const canPair = (x: WeaponData | undefined) => !!x && x.range === 'melee' && !isTwoHanded(x) && (dualFeat || isLightWeapon(x));
-    if (main && main.uid !== it.uid && !equipped.shield && canPair(mainW) && canPair(w)) {
+    if (main && main.uid !== it.uid && !equipped.shield && canDualWield(char, mainW, w)) {
       if (equipped.offHand && equipped.offHand !== it.uid) notes.push(`${name(equipped.offHand)} saiu da mão secundária`);
       equipped.offHand = it.uid;
       notes.unshift(`${it.name} na mão secundária (luta com duas armas)`);
@@ -175,6 +173,55 @@ export function placeInSlots(char: Character, it: InventoryItem): { equipped: Eq
 
   equipped[slot] = it.uid;
   return { equipped };
+}
+
+/** Luta com duas armas (PHB 2014): as duas corpo a corpo, sem Duas mãos, leves — ou qualquer uma com Combatente com Duas Armas. */
+export function canDualWield(char: Character, main: WeaponData | undefined, off: WeaponData | undefined): boolean {
+  const dualFeat = (char.feats ?? []).includes('dual-wielder');
+  const ok = (x: WeaponData | undefined) => !!x && x.range === 'melee' && !isTwoHanded(x) && (dualFeat || isLightWeapon(x));
+  return ok(main) && ok(off);
+}
+
+/**
+ * "Equipar na segunda mão": põe uma arma de uma mão na mão secundária, ao
+ * lado da principal. Tira o escudo (a mão fica ocupada) e a arma que estava
+ * lá. Se as armas não forem leves (e sem o talento), avisa que segurar pode,
+ * mas o ataque bônus da luta com duas armas não vale.
+ */
+export function placeInOffHand(char: Character, it: InventoryItem): { ok: true; equipped: EquippedSlots; note?: string } | { ok: false; reason: string } {
+  const w = weaponOf(it);
+  if (!w || w.range !== 'melee') return { ok: false, reason: `${it.name} não é arma corpo a corpo — não vai na segunda mão.` };
+  if (isTwoHanded(w)) return { ok: false, reason: `${it.name} usa as duas mãos.` };
+  const equipped = { ...char.equipped };
+  if (equipped.offHand === it.uid) return { ok: true, equipped };
+  const byUid = (uid: string | null) => (uid ? char.inventory.find((i) => i.uid === uid) : undefined);
+  const main = byUid(equipped.mainHand);
+  if (main?.uid === it.uid) return { ok: false, reason: `${it.name} já está na mão principal — equipe outra arma nela primeiro.` };
+  if (!main) {
+    equipped.mainHand = it.uid;
+    return { ok: true, equipped, note: `${it.name} foi para a mão principal (estava vazia)` };
+  }
+  const mainW = weaponOf(main);
+  if (isTwoHanded(mainW)) return { ok: false, reason: `${main.name} usa as duas mãos — não sobra mão para outra arma.` };
+  const notes: string[] = [`${it.name} na segunda mão`];
+  if (equipped.shield) {
+    notes.push(`${byUid(equipped.shield)?.name ?? 'escudo'} foi para a mochila`);
+    equipped.shield = null;
+  }
+  const prev = byUid(equipped.offHand);
+  if (prev) notes.push(`${prev.name} saiu da mão secundária`);
+  equipped.offHand = it.uid;
+  if (!canDualWield(char, mainW, w)) notes.push('sem ataque bônus: as duas armas precisam ser leves (ou o talento Combatente com Duas Armas)');
+  return { ok: true, equipped, note: notes.join('; ') };
+}
+
+/** Mostra "Equipar na segunda mão"? Arma de uma mão corpo a corpo, com outra arma de uma mão na principal. */
+export function offHandCandidate(char: Character, it: InventoryItem): boolean {
+  const w = weaponOf(it);
+  if (!w || w.range !== 'melee' || isTwoHanded(w)) return false;
+  if (it.uid === char.equipped.mainHand || it.uid === char.equipped.offHand) return false;
+  const main = char.equipped.mainHand ? char.inventory.find((i) => i.uid === char.equipped.mainHand) : undefined;
+  return !!main && !isTwoHanded(weaponOf(main));
 }
 
 /** Tira o item dos slots; se sair a arma principal, a da mão secundária passa para a principal. */

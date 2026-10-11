@@ -4274,6 +4274,16 @@ body.fv-dragging .fv-screen-scroll {
 }
 .fv-cast-pop .fv-atk-chip.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .fv-cast-pop .fv-atk-chip:disabled { opacity: 0.45; cursor: default; }
+.fv-inv-offhand { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); padding: 4px 9px; border: 1px dashed color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 999px; }
+.fv-atk-power {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-width: 34px; min-height: 38px; padding: 3px 6px; border-radius: 9px; cursor: pointer;
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, var(--line)); background: transparent;
+  color: var(--muted); font-family: var(--font-num); font-size: 10.5px; line-height: 1.05;
+}
+.fv-atk-power b { font-weight: 700; }
+.fv-atk-power.is-on { border-style: solid; border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.fv-atk-power:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .fv-atk-fixed { font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--gold) 50%, transparent); color: var(--gold); }
 
 /* Adicionar item: subgrupos, encantamento +1/+2/+3 e sintonia */

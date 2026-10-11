@@ -97,6 +97,8 @@ export interface ExtrasChoice {
   lifedrinker?: boolean;
   /** Manobra do Mestre de Batalha que soma o dado de superioridade ao dano. */
   maneuver?: { id: string; label: string; die: number };
+  /** Golpe poderoso (Mestre em Armas Grandes / Atirador de Elite): +10 no dano. */
+  power?: boolean;
 }
 
 /** Dados extras e bônus fixo que valem para este acerto. */
@@ -110,8 +112,9 @@ export function resolveExtras(char: Character, atk: DerivedAttack, avail: Extras
   if (choice.maneuver) dice.push({ count: 1, die: choice.maneuver.die, type: atk.damageType, source: choice.maneuver.label });
   const rage = avail.rage && hasMark(char, 'rage') ? avail.rage.bonus : 0;
   const life = avail.lifedrinker && choice.lifedrinker ? avail.lifedrinker.bonus : 0;
-  const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : ''].filter(Boolean).join(' · ') || null;
-  return { dice, flat: rage + life, flatSource };
+  const power = atk.powerAttack && choice.power ? 10 : 0;
+  const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : '', power ? `${atk.powerAttack} +10` : ''].filter(Boolean).join(' · ') || null;
+  return { dice, flat: rage + life + power, flatSource };
 }
 
 /** Rola dados extras e junta numa rolagem só (crítico dobra os dados extras). */

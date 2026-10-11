@@ -781,3 +781,20 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - Nível 10: não dá para marcar Enfeitiçado.
 6. **Grande Antigo**: **Escudo Entrópico** (reação). Nível 10: resistência psíquica na Ficha.
 7. Relatório completo: `docs/auditoria/bruxo.md`.
+
+## 80. Talentos de arma, versátil e segunda mão
+
+1. **Mestre em Armas Grandes** com arma pesada (espada grande, glaive, machado grande…):
+   - Combate → ao lado de ACERTO aparece o botão **−5 / +10**. Ligado, o ACERTO cai 5.
+   - Acertando assim, o dano já abre com "Mestre em Armas Grandes +10" ligado.
+   - Crítico com arma corpo a corpo: aviso do ataque bônus, com "Usar ação bônus".
+   - Depois do dano (ação bônus livre): lembrete "se derrubou o alvo a 0 PV, ataque bônus".
+2. **Atirador de Elite**: o mesmo −5 / +10 com arco ou besta.
+3. **Mestre em Hastes** com glaive, alabarda, bordão (ou cajado) ou lança: surge o ataque "*Arma* (cabo)", 1d4 concussão, ação bônus.
+   - Com uma segunda arma na mão, o cabo some. Com escudo e lança, continua.
+4. **Versátil**: espada longa sozinha oferece "Duas mãos (1d10)" no dano. Com escudo ou segunda arma, a opção some.
+5. **Inventário → "Equipar na segunda mão"** numa arma de uma mão (com outra arma de uma mão na principal):
+   - O escudo vai para a mochila e a arma aparece como "na segunda mão".
+   - Armas leves (ou com Combatente com Duas Armas): o ataque dela em Combate diz "mão secundária · ação bônus".
+   - Sem isso: "sem ataque bônus".
+   - Com arma de duas mãos na principal, o botão não aparece.
