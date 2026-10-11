@@ -877,3 +877,20 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - Do 2º uso no dia em diante, você sofre o necrótico.
 7. Conjuração (Transposição Benigna), Encantamento (Olhar Hipnótico, Charme Instintivo), Ilusão (Eu Ilusório) e Necromancia (Colheita Sinistra) com botões no painel.
 8. Relatório: `docs/auditoria/mago.md`.
+
+## 85. Druida: auditoria do 1 ao 20
+
+1. Combate → painel "Druida": "Forma Selvagem N/2", o ND máximo, as restrições de voo/natação, as horas e a CD.
+2. Escolha uma fera na lista (só aparecem as permitidas) e toque **Transformar**.
+   - Gasta o uso e a ação (a ação bônus no Círculo da Lua).
+   - Aparecem os PV da forma, a CA, o deslocamento e os ataques roláveis da fera.
+3. "Aplicar dano" tira dos PV da forma. Zerou: você volta e o que sobrou do dano cai nos seus PV.
+4. **Círculo da Lua**:
+   - Feras até ND 1 (e nível ÷ 3 a partir do 6º).
+   - "Curar a forma" gasta um espaço (1d8 por círculo).
+   - No 6º os ataques viram mágicos; no 10º os 4 elementais aparecem (2 usos).
+5. "Voltar à forma normal" (ação bônus) e o descanso longo encerram a forma.
+6. **Círculo da Terra**:
+   - Recuperação Natural escolhe espaços gastos (até metade do nível, nada de 6º+).
+   - No 10º, Envenenado não pode ser marcado.
+7. Relatório: `docs/auditoria/druida.md`.
