@@ -95,6 +95,32 @@ const videoStyle = (opacity: number): CSSProperties => ({
   opacity,
 });
 
+/**
+ * Dá o play num vídeo de fundo sem depender da sorte: marca como mudo de
+ * todas as formas (propriedade, padrão e atributo — alguns navegadores só
+ * liberam o autoplay olhando o atributo) e, se o navegador recusar, tenta de
+ * novo quando os dados chegarem e no primeiro toque ou tecla na página.
+ */
+export function startVideo(el: HTMLVideoElement | null) {
+  if (!el) return;
+  el.muted = true;
+  el.defaultMuted = true;
+  el.setAttribute('muted', '');
+  el.setAttribute('playsinline', '');
+  const p = el.play();
+  if (!p) return;
+  p.catch(() => {
+    const retry = () => void el.play()?.catch(() => {});
+    el.addEventListener('canplay', retry, { once: true });
+    const gestures = ['pointerdown', 'keydown', 'touchstart'] as const;
+    const onGesture = () => {
+      retry();
+      for (const g of gestures) window.removeEventListener(g, onGesture, true);
+    };
+    for (const g of gestures) window.addEventListener(g, onGesture, true);
+  });
+}
+
 /** Um vídeo só, em loop (o fundo clássico). */
 function LoopVideo({ src, opacity }: { src: string | null; opacity: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
@@ -106,7 +132,7 @@ function LoopVideo({ src, opacity }: { src: string | null; opacity: number }) {
         el.src = src;
         el.load();
       }
-      el.play()?.catch(() => {});
+      startVideo(el);
     } else if (!el.paused) {
       el.pause();
     }
@@ -144,13 +170,21 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
   useEffect(() => {
     load(refs[0].current, start);
     load(refs[1].current, start + 1);
-    refs[0].current?.play()?.catch(() => {});
+    startVideo(refs[0].current);
+    // vigia: se depois de uns segundos a cena da frente ainda não andou, tenta de novo
+    const watchdog = window.setTimeout(() => {
+      const el = refs[frontRef.current].current;
+      if (el && el.paused && el.currentTime === 0 && !document.hidden) startVideo(el);
+    }, 2500);
     const onVis = () => {
       if (document.hidden) for (const r of refs) r.current?.pause();
-      else refs[frontRef.current].current?.play()?.catch(() => {});
+      else startVideo(refs[frontRef.current].current);
     };
     document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
+    return () => {
+      window.clearTimeout(watchdog);
+      document.removeEventListener('visibilitychange', onVis);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -163,7 +197,7 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
     const back = refs[1 - layer].current;
     if (back) {
       back.currentTime = 0;
-      back.play()?.catch(() => {});
+      startVideo(back);
     }
     clip.current += 1;
     setFront(1 - layer);
