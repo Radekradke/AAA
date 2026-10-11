@@ -33,7 +33,7 @@ export function TabFicha({ char, derived }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const tilt = useTilt();
-  const { check } = useDiceRoller();
+  const { checkFor } = useDiceRoller();
   const store = useCharacterStore();
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [toolPick, setToolPick] = useState('');
@@ -53,7 +53,7 @@ export function TabFicha({ char, derived }: TabProps) {
             return (
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <div
-                  onClick={() => check(`Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
+                  onClick={() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
                   onMouseMove={tilt.onMouseMove}
                   onMouseLeave={tilt.onMouseLeave}
                   style={{
@@ -87,7 +87,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
                     <div
-                      onClick={(e) => { e.stopPropagation(); check(`Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }}
+                      onClick={(e) => { e.stopPropagation(); checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }}
                       style={{
                         marginTop: 7,
                         fontSize: 10,
@@ -130,7 +130,7 @@ export function TabFicha({ char, derived }: TabProps) {
             {trained.map((sk) => (
               <LoreTooltip key={sk.key} info={skillLore(sk.key, sk.bonus, true, sk.expertise)}>
                 <button
-                  onClick={() => check(sk.label, sk.bonus)}
+                  onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus)}
                   style={{
                     cursor: 'pointer',
                     display: 'inline-flex',
@@ -220,7 +220,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     </button>
                   )}
                   <button
-                    onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                    onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
                     style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}

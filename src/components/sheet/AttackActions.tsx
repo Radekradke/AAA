@@ -52,7 +52,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   };
 
   const roll = (shot?: Shot) => {
-    const r = attack(atk);
+    // Ataque Imprudente (Bárbaro 2º): vantagem nos ataques corpo a corpo com FOR neste turno
+    const reckless = hasMark(char, 'reckless') && (atk.range ?? 'melee') === 'melee' && atk.ability === 'str';
+    const dis = useUiStore.getState().rollMode === 'disadvantage';
+    const r = attack(atk, reckless ? { advantage: !dis, disadvantage: false } : {});
     setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
   };
 
@@ -183,7 +186,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
             <span className="fv-atk-group">
               <small>Ligados (valem em todo acerto)</small>
               <span className="fv-atk-chips">
-                {avail.rage && chip(hasMark(char, 'rage'), `Em Fúria +${avail.rage.bonus}`, () => mark('rage'))}
+                {avail.rage && chip(hasMark(char, 'rage'), `Em Fúria +${avail.rage.bonus}`, () => (hasMark(char, 'rage') ? store.endRage(char.id) : store.startRage(char.id)), { title: 'Entrar em Fúria gasta 1 uso e a ação bônus (o painel de Fúria fica na aba Combate)' })}
                 {avail.hex && chip(hasMark(char, 'hex'), 'Bruxaria +1d6 necrótico', () => mark('hex'))}
                 {avail.huntersMark && chip(hasMark(char, 'huntersMark'), 'Marca do Caçador +1d6', () => mark('huntersMark'))}
                 {avail.improvedSmite && <span className="fv-atk-fixed">Destruição Aprimorada +1d8 radiante</span>}

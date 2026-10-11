@@ -302,6 +302,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   };
 
   const hexAvail = knowsSpell(char, 'phb-hex') || hasMark(char, 'hex');
+  // Fúria (Bárbaro): não conjura nem mantém concentração
+  const raging = hasMark(char, 'rage');
   const hexOn = hasMark(char, 'hex');
   const outcomes = pending?.attacks.map(outcomeOf) ?? [];
   const decided = outcomes.every((o) => o !== null);
@@ -314,8 +316,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         key={flash}
         className={'fv-cast-btn' + (compact ? ' is-compact' : '') + (pending ? ' is-pending' : '') + (flash ? ' is-cast' : '') + ((char.combat.castThisTurn ?? []).includes(spell.id) && !pending ? ' is-used' : '')}
         onClick={onMain}
-        disabled={noSlot && !ritual && !pending}
-        title={itemCast ? (noSlot ? `Sem cargas suficientes em ${itemCast.itemName}` : `Usar cargas de ${itemCast.itemName}`) : noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}
+        disabled={(noSlot && !ritual && !pending) || (raging && !pending)}
+        title={raging ? 'Em Fúria você não conjura magias' : itemCast ? (noSlot ? `Sem cargas suficientes em ${itemCast.itemName}` : `Usar cargas de ${itemCast.itemName}`) : noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}
         aria-expanded={open || !!pending}
       >
         ✦ {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
