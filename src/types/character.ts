@@ -263,7 +263,11 @@ export interface CombatState {
    * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
-  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard'>;
+  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard' | 'arcaneWard' | 'overchannel'>;
+  /** Portento (Mago Adivinhador): d20 rolados no descanso longo, à espera de uso. */
+  portent?: number[];
+  /** Sobrecarga (Mago Evocador 14º): usos desde o descanso longo. */
+  overchannel?: number;
   /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
   spellEffects?: ActiveSpellEffect[];
   /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */

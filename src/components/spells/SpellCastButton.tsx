@@ -8,7 +8,7 @@ import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { syncSpellSlots } from '@/engine/spellcasting';
 import { canRitual, damageRoll, damageTiming, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, isFixedRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
 import { castDiceLabel, rollCastDice } from './castRoll';
-import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
+import { hasMark, knowsSpell, levelIn, withExtraDice } from '@/engine/damageExtras';
 import { castTurnKey, rollTempHp, spellOutcome } from '@/engine/spellEffects';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCast';
@@ -17,6 +17,7 @@ import type { ChargeOption } from '@/engine/itemCharges';
 import { materialWarning } from '@/engine/spellFocus';
 import { lifeHealing, potentSpellcasting, withLifeHealing } from '@/engine/cleric';
 import { elementalAffinity } from '@/engine/sorcerer';
+import { empoweredEvocation, overchannelBacklash } from '@/engine/wizard';
 import { useWildSurge } from './useWildSurge';
 
 interface Props {
@@ -225,6 +226,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       store.endConcentrationEffects(char.id);
     }
     if (how === 'slot' && !isCantrip) store.castWithSlot(char.id, slotLevel, spell.concentration);
+    // Barreira Arcana (Abjuração 2º): abjuração de 1º+ ergue ou recarrega a barreira
+    if (!isCantrip && spell.school === 'Abjuração' && char.subclassId === 'abjuration' && levelIn(char, 'wizard') >= 2) store.chargeWard(char.id, slotLevel);
+    // Transposição Benigna (Conjuração 6º): volta ao conjurar conjuração de 1º+
+    if (!isCantrip && spell.school === 'Conjuração' && char.subclassId === 'conjuration' && levelIn(char, 'wizard') >= 6) store.setResource(char.id, 'benignTransposition', 1);
     else if (spell.concentration) {
       if (!char.combat.concentration) store.toggleConcentration(char.id);
     }
@@ -233,8 +238,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
     const rawPlan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
     // Afinidade Elemental soma CAR numa rolagem de dano da magia (magia de um ataque só)
-    const atkAffinity = rawPlan && rawPlan.beams === 1 ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) : 0;
-    const plan = rawPlan && atkAffinity ? { ...rawPlan, perHit: { ...rawPlan.perHit, bonus: rawPlan.perHit.bonus + atkAffinity, label: `${rawPlan.perHit.label} · Afinidade Elemental +${atkAffinity}` } } : rawPlan;
+    const atkAffinity = rawPlan && rawPlan.beams === 1 ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) + empoweredEvocation(char, spell, derived.abilities.int.mod) : 0;
+    const plan = rawPlan && atkAffinity ? { ...rawPlan, perHit: { ...rawPlan.perHit, bonus: rawPlan.perHit.bonus + atkAffinity, label: `${rawPlan.perHit.label} · +${atkAffinity} (${char.subclassId === 'evocation' ? 'Evocação Poderosa' : 'Afinidade Elemental'})` } } : rawPlan;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
@@ -255,9 +260,24 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const potent = rawDmg ? potentSpellcasting(char, spell, derived.abilities.wis.mod) : 0;
     // Afinidade Elemental (Dracônica 6º): + CAR no dano do tipo do ancestral
     const affinity = rawDmg ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) : 0;
-    const extraBonus = potent + affinity;
-    const tag = [potent ? `Conjuração Potente +${potent}` : '', affinity ? `Afinidade Elemental +${affinity}` : ''].filter(Boolean).join(' · ');
-    const dmg = rawDmg && extraBonus ? { ...rawDmg, bonus: rawDmg.bonus + extraBonus, label: `${rawDmg.label} · ${tag}` } : rawDmg;
+    // Evocação Poderosa (Evocação 10º): + INT no dano de evocação de mago
+    const empowered = rawDmg ? empoweredEvocation(char, spell, derived.abilities.int.mod) : 0;
+    const extraBonus = potent + affinity + empowered;
+    const tag = [potent ? `Conjuração Potente +${potent}` : '', affinity ? `Afinidade Elemental +${affinity}` : '', empowered ? `Evocação Poderosa +${empowered}` : ''].filter(Boolean).join(' · ');
+    const boosted = rawDmg && extraBonus ? { ...rawDmg, bonus: rawDmg.bonus + extraBonus, label: `${rawDmg.label} · ${tag}` } : rawDmg;
+    // Sobrecarga (Evocação 14º): magia de 1º a 5º com dano máximo; do 2º uso no dia em diante, você sofre necrótico
+    const over = !!boosted && !isFixedRoll(boosted) && lvl >= 1 && lvl <= 5 && hasMark(char, 'overchannel');
+    const dmg = over && boosted
+      ? { count: 0, sides: 1, bonus: boosted.count * boosted.sides + (boosted.extra ?? []).reduce((n, x) => n + x.count * x.sides, 0) + boosted.bonus, label: `${boosted.label} · Sobrecarga (máximo)` }
+      : boosted;
+    if (over) {
+      const backlash = overchannelBacklash(char.combat.overchannel ?? 0, lvl);
+      store.noteOverchannel(char.id);
+      if (backlash) {
+        const hurt = rollDice(12, { count: backlash, label: 'Sobrecarga (necrótico em você)', damage: true });
+        store.applyDamage(char.id, hurt.total);
+      }
+    }
     const timing = damageTiming(spell);
     // Domínio da Vida: Discípulo da Vida (+2 + círculo) e Cura Suprema (dados no máximo)
     life = lifeHealing(char, lvl);

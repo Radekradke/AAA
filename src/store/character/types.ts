@@ -77,10 +77,18 @@ export interface CharacterState {
   restorePactSlots: (id: string) => void;
   /** Fonte de Magia: espaço → pontos (= círculo) ou pontos → espaço gasto de volta (custo da tabela). */
   fontOfMagic: (id: string, dir: 'toPoints' | 'toSlot', level: number) => boolean;
+  /** Recuperação Arcana/Natural: devolve espaços gastos (círculo → quantos). */
+  recoverSlots: (id: string, picks: Record<number, number>) => void;
+  /** Barreira Arcana: ergue (1ª abjuração do dia) ou recarrega 2 × círculo. */
+  chargeWard: (id: string, slotLevel: number) => void;
+  /** Portento: guarda os d20 rolados (ou o que sobrou depois de usar um). */
+  setPortent: (id: string, rolls: number[]) => void;
+  /** Sobrecarga: conta mais um uso desde o descanso longo. */
+  noteOverchannel: (id: string) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard', on: boolean) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard' | 'arcaneWard' | 'overchannel', on: boolean) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */

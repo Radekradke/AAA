@@ -12,7 +12,7 @@ import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'markTurn' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'markTurn' | 'setPortent' | 'noteOverchannel' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -20,6 +20,14 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       const maxHp = deriveCharacter(char).maxHp;
       mutate(id, (c) => {
         let rem = amount;
+        // Barreira Arcana (Mago Abjurador): a barreira sofre o dano primeiro (antes dos PV temporários e dos PV)
+        const ward = (c.combat.marks ?? []).includes('arcaneWard') ? characterResources(c).find((r) => r.id === 'arcaneWard') : undefined;
+        if (ward) {
+          const hp = Math.min(ward.max, c.combat.resources.arcaneWard ?? ward.max);
+          const absorbed = Math.min(hp, rem);
+          c.combat.resources.arcaneWard = hp - absorbed;
+          rem -= absorbed;
+        }
         if (c.combat.hpTemp > 0) {
           const absorbed = Math.min(c.combat.hpTemp, rem);
           c.combat.hpTemp -= absorbed;
@@ -210,6 +218,17 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.turn = { ...c.combat.turn, sneak: true };
       });
     },
+    setPortent(id, rolls) {
+      mutate(id, (c) => {
+        c.combat.portent = rolls;
+      });
+    },
+    noteOverchannel(id) {
+      mutate(id, (c) => {
+        c.combat.overchannel = (c.combat.overchannel ?? 0) + 1;
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'overchannel');
+      });
+    },
     markTurn(id, key) {
       mutate(id, (c) => {
         c.combat.turn = { ...c.combat.turn, [key]: true };
@@ -302,6 +321,9 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.concentration = false;
         c.combat.marks = [];
         delete c.combat.resources.relentless;
+        // Portento rola de novo e a Sobrecarga volta a ser grátis a cada descanso longo
+        delete c.combat.portent;
+        delete c.combat.overchannel;
         c.combat.spellEffects = [];
         c.combat.castThisTurn = [];
         // descanso longo remove 1 nível de exaustão (PHB 2014)
