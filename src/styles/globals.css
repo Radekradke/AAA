@@ -8778,3 +8778,5 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-rage-reckless.is-on { border-style: solid; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); }
 .fv-resist-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
 .fv-resist-chip.is-on { color: var(--ink); border-color: color-mix(in srgb, #ff5a36 70%, transparent); background: color-mix(in srgb, #ff5a36 10%, transparent); }
+.fv-rage-go.is-steel { border-color: color-mix(in srgb, var(--acc) 60%, transparent); background: color-mix(in srgb, var(--acc) 10%, var(--lift)); flex: 1 1 180px; }
+.fv-fighter { background: var(--sunk); }

@@ -15,6 +15,7 @@ import { modStr } from '@/engine/dice';
 import { characterResources } from '@/engine/classResources';
 import { barbarianState } from '@/engine/barbarian';
 import { RagePanel } from './RagePanel';
+import { FighterPanel } from './FighterPanel';
 import { toast } from '@/store/feedbackStore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -202,6 +203,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* magias e efeitos ligados (Armadura Arcana, Escudo, Auxílio, Bruxaria…) */}
         <div style={{ marginTop: 12 }}><ActiveEffects char={char} /></div>
         <RagePanel char={char} />
+        <FighterPanel char={char} />
 
         {/* Concentração — lembrete para o conjurador (salvaguarda de CON ao sofrer dano) */}
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>

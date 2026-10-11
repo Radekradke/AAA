@@ -53,6 +53,8 @@ export interface DerivedAttack {
   critMin: number;
   /** Dados de arma extras no crítico (Crítico Brutal do Bárbaro). */
   critExtraDice?: number;
+  /** Estilo Combate com Armas Grandes: sempre (duas mãos) ou só usada com as duas mãos (versátil). */
+  greatWeapon?: 'always' | 'versatile';
   /** Corpo a corpo ou à distância (golpes desarmados contam como corpo a corpo). */
   range?: 'melee' | 'ranged';
   /** Atributo usado no ataque (Fúria só vale com FOR). */
@@ -601,6 +603,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       bonusDamage,
       critMin,
       critExtraDice: w.range === 'melee' && brutal ? brutal : undefined,
+      // Combate com Armas Grandes: rola de novo 1 e 2 nos dados de dano (duas mãos; versátil só usada com as duas)
+      greatWeapon: styles.has('gwf') && w.range === 'melee' ? (w.properties.includes('Duas mãos') ? 'always' : w.versatileDie ? 'versatile' : undefined) : undefined,
       range: w.range,
       ability: abilKey,
       finesse: !!w.finesse,

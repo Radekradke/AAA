@@ -686,3 +686,14 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 7. Nível 18: teste de FOR nunca fica abaixo do valor de FOR ("Força Indomável (mínimo N)").
 8. Furioso: "com Frenesi" e, ao encerrar, +1 exaustão. Nível 6+: em Fúria, não deixa marcar Enfeitiçado/Amedrontado.
 9. Relatório completo: `docs/auditoria/barbaro.md`.
+
+## 73. Guerreiro: auditoria do 1 ao 20
+
+1. Combate → painel "Guerreiro":
+   - **Retomar o Fôlego** rola 1d10 + nível, cura e gasta a ação bônus. Fica travado até o descanso curto.
+   - **Surto de Ação** gasta o uso e libera a ação do turno.
+   - **Indomável** rola de novo a última salvaguarda feita na ficha (o nome dela aparece no botão).
+2. Estilo **Combate com Armas Grandes**: com montante/machado grande, os 1 e 2 do dano rolam de novo. O rótulo diz "Armas Grandes (rolou de novo 1–2)". Com espada longa, só quando marcar "Duas mãos".
+3. Campeão 18: em "Novo turno" com PV ≤ metade, recupera 5 + CON (aviso "Sobrevivente").
+4. Mestre de Batalha: no dano do ataque aparece "Manobra · gasta 1 dado (+1dX) · CD N". Escolher (ex.: Derrubada) soma o dado, gasta 1 dado e avisa "salvaguarda de FOR CD N ou o alvo cai". Ataque Preciso aparece no "Acertou?" e soma o dado ao ataque.
+5. Relatório completo: `docs/auditoria/guerreiro.md`.

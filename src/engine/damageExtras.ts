@@ -95,6 +95,8 @@ export interface ExtrasChoice {
   smiteUndead?: boolean;
   /** Este ataque é com a arma de pacto (Bebedor de Vida soma). */
   lifedrinker?: boolean;
+  /** Manobra do Mestre de Batalha que soma o dado de superioridade ao dano. */
+  maneuver?: { id: string; label: string; die: number };
 }
 
 /** Dados extras e bônus fixo que valem para este acerto. */
@@ -105,6 +107,7 @@ export function resolveExtras(char: Character, atk: DerivedAttack, avail: Extras
   if (avail.improvedSmite) dice.push({ count: 1, die: 8, type: 'radiante', source: 'Destruição Divina Aprimorada' });
   if (avail.hex && hasMark(char, 'hex')) dice.push({ count: 1, die: 6, type: 'necrótico', source: 'Bruxaria' });
   if (avail.huntersMark && hasMark(char, 'huntersMark')) dice.push({ count: 1, die: 6, type: atk.damageType, source: 'Marca do Caçador' });
+  if (choice.maneuver) dice.push({ count: 1, die: choice.maneuver.die, type: atk.damageType, source: choice.maneuver.label });
   const rage = avail.rage && hasMark(char, 'rage') ? avail.rage.bonus : 0;
   const life = avail.lifedrinker && choice.lifedrinker ? avail.lifedrinker.bonus : 0;
   const flatSource = [rage ? 'Fúria' : '', life ? `Bebedor de Vida +${life} necrótico` : ''].filter(Boolean).join(' · ') || null;
