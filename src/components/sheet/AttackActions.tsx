@@ -63,11 +63,11 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   // Golpe poderoso: −5 no ataque escolhido ANTES de rolar; o +10 vai junto para o dano
   const [power, setPower] = useState(false);
   const hasOptions =
-    !!atk.powerAttack || !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
+    !!atk.powerAttack || !!atk.versatileDie || !!avail.sneak || !!avail.divineStrike || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
 
   const openDamage = (crit: boolean, powered = false) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
-    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, lifedrinker: !!avail.lifedrinker, power: powered });
+    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, divineStrike: !!avail.divineStrike && !avail.divineStrike.used, lifedrinker: !!avail.lifedrinker, power: powered });
     setStun(false);
     setStage({ kind: 'damage' });
   };
@@ -112,6 +112,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     const r = rollWeaponDamage(char, atk, avail, c);
     pushRoll(r);
     if (avail.sneak && c.sneak && !avail.sneak.used) store.useSneakAttack(char.id);
+    if (avail.divineStrike && c.divineStrike && !avail.divineStrike.used) store.useDivineStrike(char.id);
     if (avail.smite && c.smiteLevel) store.castWithSlot(char.id, c.smiteLevel);
     if (c.maneuver && bm) {
       store.setResource(char.id, 'superiority', bm.left - 1);
@@ -246,6 +247,16 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
                 title: 'Com vantagem, ou com um aliado a 1,5 m do alvo (e sem desvantagem). Uma vez por turno.',
               })}
               <small>{avail.sneak.used ? 'já usado neste turno' : '1× por turno'}</small>
+            </span>
+          )}
+
+          {avail.divineStrike && (
+            <span className="fv-atk-group">
+              {chip(!!choice.divineStrike && !avail.divineStrike.used, `Golpe Divino +${avail.divineStrike.dice}d8 ${avail.divineStrike.type}`, () => setChoice((c) => ({ ...c, divineStrike: !c.divineStrike })), {
+                disabled: avail.divineStrike.used,
+                title: 'Clérigo: uma vez em cada um dos seus turnos, um acerto com arma causa dano extra do seu domínio.',
+              })}
+              <small>{avail.divineStrike.used ? 'já usado neste turno' : '1× por turno'}</small>
             </span>
           )}
 

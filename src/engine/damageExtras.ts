@@ -31,6 +31,22 @@ export function levelIn(char: Character, classId: string): number {
   return char.classLevels?.find((c) => c.classId === classId)?.level ?? (char.classId === classId ? char.level : 0);
 }
 
+/** Tipo de dano do Golpe Divino por domínio (8º: 1d8; 14º: 2d8), 1× por turno. */
+const STRIKE_TYPE: Record<string, string> = {
+  life: 'radiante',
+  war: 'da arma',
+  nature: 'frio, fogo ou elétrico',
+  tempest: 'trovejante',
+  trickery: 'veneno',
+};
+
+export function divineStrike(char: Character): { dice: number; type: string } | null {
+  const lv = levelIn(char, 'cleric');
+  const type = char.subclassId ? STRIKE_TYPE[char.subclassId] : undefined;
+  if (lv < 8 || !type) return null;
+  return { dice: lv >= 14 ? 2 : 1, type };
+}
+
 export const sneakDice = (rogueLevel: number) => Math.ceil(rogueLevel / 2);
 export const rageBonus = (barbLevel: number) => (barbLevel >= 16 ? 4 : barbLevel >= 9 ? 3 : 2);
 /** Dados de Destruição Divina: 2d8 no 1º círculo, +1d8 por círculo, teto 5d8; +1d8 vs morto-vivo/corruptor. */
@@ -59,12 +75,15 @@ export interface ExtrasAvailable {
   rage: { bonus: number } | null;
   /** Bebedor de Vida (invocação, Pacto da Lâmina): +CAR necrótico com a arma de pacto. */
   lifedrinker: { bonus: number } | null;
+  /** Golpe Divino (Clérigo 8º/14º): +1d8/2d8 num acerto com arma, 1× por turno. */
+  divineStrike: { dice: number; type: string; used: boolean } | null;
 }
 
 export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailable {
   const rogue = levelIn(char, 'rogue');
   const paladin = levelIn(char, 'paladin');
   const barb = levelIn(char, 'barbarian');
+  const strike = divineStrike(char);
   const melee = (atk.range ?? 'melee') === 'melee';
   const slots = syncSpellSlots(char);
   const openSlots = Object.entries(slots)
@@ -80,6 +99,7 @@ export function weaponExtras(char: Character, atk: DerivedAttack): ExtrasAvailab
     hex: knowsSpell(char, 'phb-hex') || hasMark(char, 'hex'),
     huntersMark: !!atk.weapon && (knowsSpell(char, 'phb-hunters-mark') || hasMark(char, 'huntersMark')),
     rage: barb >= 1 && melee && atk.ability === 'str' ? { bonus: rageBonus(barb) } : null,
+    divineStrike: atk.weapon && strike ? { ...strike, type: strike.type === 'da arma' ? atk.damageType : strike.type, used: !!char.combat.turn.divineStrike } : null,
     lifedrinker: !!atk.weapon && melee && (char.choices?.['warlock.invocation'] ?? []).includes('lifedrinker')
       ? { bonus: Math.max(1, Math.floor((effectiveAbilities(char).cha - 10) / 2)) }
       : null,
@@ -99,6 +119,8 @@ export interface ExtrasChoice {
   maneuver?: { id: string; label: string; die: number };
   /** Golpe poderoso (Mestre em Armas Grandes / Atirador de Elite): +10 no dano. */
   power?: boolean;
+  /** Golpe Divino neste acerto (1× por turno). */
+  divineStrike?: boolean;
 }
 
 /** Dados extras e bônus fixo que valem para este acerto. */
@@ -109,6 +131,7 @@ export function resolveExtras(char: Character, atk: DerivedAttack, avail: Extras
   if (avail.improvedSmite) dice.push({ count: 1, die: 8, type: 'radiante', source: 'Destruição Divina Aprimorada' });
   if (avail.hex && hasMark(char, 'hex')) dice.push({ count: 1, die: 6, type: 'necrótico', source: 'Bruxaria' });
   if (avail.huntersMark && hasMark(char, 'huntersMark')) dice.push({ count: 1, die: 6, type: atk.damageType, source: 'Marca do Caçador' });
+  if (avail.divineStrike && choice.divineStrike && !avail.divineStrike.used) dice.push({ count: avail.divineStrike.dice, die: 8, type: avail.divineStrike.type, source: 'Golpe Divino' });
   if (choice.maneuver) dice.push({ count: 1, die: choice.maneuver.die, type: atk.damageType, source: choice.maneuver.label });
   const rage = avail.rage && hasMark(char, 'rage') ? avail.rage.bonus : 0;
   const life = avail.lifedrinker && choice.lifedrinker ? avail.lifedrinker.bonus : 0;
