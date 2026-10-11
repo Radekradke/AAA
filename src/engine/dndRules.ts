@@ -723,6 +723,11 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     // Saúde Divina (Paladino 3º): imune a doenças; Aura de Proteção dos Anciões (7º): resistência a dano de magias
     ...(levelIn('paladin') >= 3 ? [{ value: 'doenças (imune)', source: 'Saúde Divina' }] : []),
     ...(char.subclassId === 'ancients' && levelIn('paladin') >= 7 ? [{ value: 'dano de magias', source: 'Aura de Proteção (Anciões)' }] : []),
+    // Bruxo: Escudo Mental (Grande Antigo 10º) e Resiliência Infernal (Corruptor 10º, tipo escolhido)
+    ...(char.subclassId === 'oldone' && levelIn('warlock') >= 10 ? [{ value: 'psíquico', source: 'Escudo Mental' }] : []),
+    ...(char.subclassId === 'fiend' && levelIn('warlock') >= 10 && char.choices?.['warlock.fiendResilience']?.[0]
+      ? [{ value: `${char.choices['warlock.fiendResilience'][0]} (não mágico e não prateado)`, source: 'Resiliência Infernal' }]
+      : []),
     // Pureza do Corpo (Monge 10º): imune a doenças e veneno
     ...(levelIn('monk') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Pureza do Corpo' }] : []),
     ...(char.subclassId === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),

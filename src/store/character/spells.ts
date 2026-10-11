@@ -1,10 +1,11 @@
+import { warlockSlots } from '@/engine/progression';
 import { syncSpellSlots } from '@/engine/spellcasting';
 import { chargesOf } from '@/engine/itemCharges';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 
 /** Magias: conjurar gastando espaço, espaços, magias de itens, esquecer e copiar (grimório). */
-export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'spendItemCharges' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot'> {
+export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, 'noteCast' | 'useItemSpell' | 'spendItemCharges' | 'castWithSlot' | 'forgetSpell' | 'copySpell' | 'toggleSpellSlot' | 'restorePactSlots'> {
   return {
     noteCast(id, spellId) {
       mutate(id, (c) => {
@@ -55,6 +56,18 @@ export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, '
         c.coins.gp -= cost;
         c.knownSpells = [...(c.knownSpells ?? []), spellId];
         c.spellbookCopied = [...(c.spellbookCopied ?? []), spellId];
+      });
+    },
+    restorePactSlots(id) {
+      // Mestre Místico (Bruxo 20º): todos os espaços de Magia de Pacto voltam
+      mutate(id, (c) => {
+        const wl = (c.classLevels ?? []).find((l) => l.classId === 'warlock')?.level ?? (c.classId === 'warlock' ? c.level : 0);
+        if (!wl) return;
+        if (!c.combat.spellSlots) c.combat.spellSlots = syncSpellSlots(c);
+        for (const [circle, n] of Object.entries(warlockSlots(wl))) {
+          const slot = c.combat.spellSlots[Number(circle)];
+          if (slot) slot.used = Math.max(0, slot.used - n);
+        }
       });
     },
     toggleSpellSlot(id, level, index) {

@@ -71,6 +71,8 @@ export interface CharacterState {
   /** Gasta cargas de um item (cajado, varinha…; negativo devolve); devolve quantas sobraram. */
   spendItemCharges: (id: string, uid: string, n: number) => number;
   toggleSpellSlot: (id: string, level: number, index: number) => void;
+  /** Mestre Místico: devolve todos os espaços de Magia de Pacto. */
+  restorePactSlots: (id: string) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
