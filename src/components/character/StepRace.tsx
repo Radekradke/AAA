@@ -20,27 +20,9 @@ export function StepRace({ char, update }: StepProps) {
   const race = raceOf(char);
   const subs = getSubraces(char.raceId);
   const homebrew = useHomebrewStore((s) => s.races);
-  const tasha = useUiStore((s) => s.packs?.tce);
   const [editing, setEditing] = useState<Race | 'new' | null>(null);
 
-  const pickRace = (id: string) =>
-    update((c) => {
-      if (c.raceId !== id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
-      c.raceId = id;
-      c.customRace = null;
-      c.customOrigin = null;
-      const s = getSubraces(id);
-      c.subraceId = s.length ? s[s.length - 1].id : null;
-    });
-
-  const pickHomebrew = (r: Race) =>
-    update((c) => {
-      if (c.raceId !== r.id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
-      c.raceId = r.id;
-      c.customRace = r;
-      c.customOrigin = null;
-      c.subraceId = r.subraces?.length ? r.subraces[0].id : null;
-    });
+  const { pickRace, pickHomebrew } = racePickers(update);
 
   return (
     <div className="fv-step">
@@ -86,59 +68,7 @@ export function StepRace({ char, update }: StepProps) {
             </button>
           </OptionGrid>
           {/* escolhas da linhagem ficam sob a grade (a coluna de detalhe não cresce até criar barra) */}
-          <div className="fv-choice-extras">
-            {race.abilityChoice && !char.customOrigin && (() => {
-              const ch = race.abilityChoice;
-              const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
-              const active = picked.length === ch.count ? picked : ch.default;
-              const toggle = (k: AbilityKey) =>
-                update((c) => {
-                  const cur = (c.raceAbilityChoice ?? active).filter((x) => !ch.exclude?.includes(x));
-                  c.raceAbilityChoice = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k].slice(-ch.count);
-                });
-              return (
-                <div className="fv-detail-sub">
-                  <div className="fv-facts-title">+{ch.amount} em {ch.count} atributos à escolha</div>
-                  <div className="fv-pills" role="group" aria-label="Atributos à escolha">
-                    {ABILITY_KEYS.filter((k) => !ch.exclude?.includes(k)).map((k) => {
-                      const on = picked.length ? picked.includes(k) : active.includes(k);
-                      return (
-                        <button key={k} type="button" aria-pressed={on} className={'fv-pill' + (on ? ' is-on' : '')} onClick={() => toggle(k)}>
-                          {ABILITY_LABELS[k]}
-                          <small>+{ch.amount}</small>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {picked.length > 0 && picked.length < ch.count && <small className="fv-langs-why">Escolha mais {ch.count - picked.length}.</small>}
-                </div>
-              );
-            })()}
-            {subs.length > 0 && (
-              <div className="fv-detail-sub">
-                <div className="fv-facts-title">{race.id === 'dragonborn' ? 'Ancestral dracônico (cor do dragão)' : 'Sublinhagem'}</div>
-                <div className="fv-pills" role="group" aria-label="Sublinhagem">
-                  {subs.map((sub) => (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      aria-pressed={char.subraceId === sub.id}
-                      className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
-                      onClick={() => update((c) => { c.subraceId = sub.id; c.customOrigin = null; })}
-                    >
-                      {sub.label}
-                      {sub.bonus && <small>{sub.bonus}</small>}
-                    </button>
-                  ))}
-                </div>
-                {(() => {
-                  const desc = subs.find((x) => x.id === char.subraceId)?.desc;
-                  return desc ? <p className="fv-sub-desc">{desc}</p> : null;
-                })()}
-              </div>
-            )}
-            {tasha && <CustomOriginPanel char={char} update={update} />}
-          </div>
+          <RaceExtras char={char} update={update} />
         </div>
 
         <ChoiceDetail
@@ -222,4 +152,88 @@ function homebrewLore(r: Race): LoreInfo {
     body: subs.length ? `Sub-raças (o que muda):\n${subs.join('\n')}` : '',
     tags: [r.source && `base: ${r.source}`].filter(Boolean) as string[],
   };
+}
+
+/** Pega a raça do livro ou uma homebrew (limpa as escolhas raciais da anterior). */
+export function racePickers(update: StepProps['update']) {
+  const pickRace = (id: string) =>
+    update((c) => {
+      if (c.raceId !== id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
+      c.raceId = id;
+      c.customRace = null;
+      c.customOrigin = null;
+      const s = getSubraces(id);
+      c.subraceId = s.length ? s[s.length - 1].id : null;
+    });
+  const pickHomebrew = (r: Race) =>
+    update((c) => {
+      if (c.raceId !== r.id && c.choices) c.choices = Object.fromEntries(Object.entries(c.choices).filter(([k]) => !k.startsWith('race.')));
+      c.raceId = r.id;
+      c.customRace = r;
+      c.customOrigin = null;
+      c.subraceId = r.subraces?.length ? r.subraces[0].id : null;
+    });
+  return { pickRace, pickHomebrew };
+}
+
+/** Escolhas da linhagem: atributos à escolha, sublinhagem (com a descrição) e a origem personalizada (Tasha). */
+export function RaceExtras({ char, update }: StepProps) {
+  const race = raceOf(char);
+  const subs = getSubraces(char.raceId);
+  const tasha = useUiStore((s) => s.packs?.tce);
+  return (
+    <div className="fv-choice-extras">
+      {race.abilityChoice && !char.customOrigin && (() => {
+        const ch = race.abilityChoice;
+        const picked = (char.raceAbilityChoice ?? []).filter((k) => !ch.exclude?.includes(k));
+        const active = picked.length === ch.count ? picked : ch.default;
+        const toggle = (k: AbilityKey) =>
+          update((c) => {
+            const cur = (c.raceAbilityChoice ?? active).filter((x) => !ch.exclude?.includes(x));
+            c.raceAbilityChoice = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k].slice(-ch.count);
+          });
+        return (
+          <div className="fv-detail-sub">
+            <div className="fv-facts-title">+{ch.amount} em {ch.count} atributos à escolha</div>
+            <div className="fv-pills" role="group" aria-label="Atributos à escolha">
+              {ABILITY_KEYS.filter((k) => !ch.exclude?.includes(k)).map((k) => {
+                const on = picked.length ? picked.includes(k) : active.includes(k);
+                return (
+                  <button key={k} type="button" aria-pressed={on} className={'fv-pill' + (on ? ' is-on' : '')} onClick={() => toggle(k)}>
+                    {ABILITY_LABELS[k]}
+                    <small>+{ch.amount}</small>
+                  </button>
+                );
+              })}
+            </div>
+            {picked.length > 0 && picked.length < ch.count && <small className="fv-langs-why">Escolha mais {ch.count - picked.length}.</small>}
+          </div>
+        );
+      })()}
+      {subs.length > 0 && (
+        <div className="fv-detail-sub">
+          <div className="fv-facts-title">{race.id === 'dragonborn' ? 'Ancestral dracônico (cor do dragão)' : 'Sublinhagem'}</div>
+          <div className="fv-pills" role="group" aria-label="Sublinhagem">
+            {subs.map((sub) => (
+              <button
+                key={sub.id}
+                type="button"
+                aria-pressed={char.subraceId === sub.id}
+                className={'fv-pill' + (char.subraceId === sub.id ? ' is-on' : '')}
+                onClick={() => update((c) => { c.subraceId = sub.id; c.customOrigin = null; })}
+              >
+                {sub.label}
+                {sub.bonus && <small>{sub.bonus}</small>}
+              </button>
+            ))}
+          </div>
+          {(() => {
+            const desc = subs.find((x) => x.id === char.subraceId)?.desc;
+            return desc ? <p className="fv-sub-desc">{desc}</p> : null;
+          })()}
+        </div>
+      )}
+      {tasha && <CustomOriginPanel char={char} update={update} />}
+    </div>
+  );
 }

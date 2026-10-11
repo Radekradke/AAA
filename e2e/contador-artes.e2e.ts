@@ -20,7 +20,13 @@ test.describe('contador de artes', () => {
     await box.getByRole('button', { name: /^Magias/ }).click();
     await expect(box).toContainText('src/assets/magias');
     await expect(box.locator('.fv-artcount-groups li').first()).toContainText('Truques');
-    await box.locator('.fv-artcount-missing summary').first().click();
-    await expect(box.locator('.fv-artcount-missing li').first()).toBeVisible();
+    // com todas as artes de magia prontas, a lista dá lugar ao "Tudo com arte."
+    const done = box.locator('.fv-artcount-done');
+    if (await done.count()) {
+      await expect(done.first()).toHaveText('Tudo com arte.');
+    } else {
+      await box.locator('.fv-artcount-missing summary').first().click();
+      await expect(box.locator('.fv-artcount-missing li').first()).toBeVisible();
+    }
   });
 });

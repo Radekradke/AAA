@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ParticleField } from './ParticleField';
 import { RuneDrift } from './RuneDrift';
 import { useTheme } from '@/lib/useTheme';
+import { useUiStore } from '@/store/uiStore';
 
 interface BackgroundSceneProps {
   /** Vídeo de fundo opcional (luz volumétrica/cena). Uma lista vira playlist: cada clipe toca até o fim e funde no próximo. */
@@ -19,12 +20,15 @@ interface BackgroundSceneProps {
  * (bloom superior, brilho arcano inferior, vinheta) + partículas.
  */
 /**
- * O vídeo de fundo é enfeite de vários MB: fica de fora em telas pequenas,
- * com "economia de dados" ligada, em conexão lenta ou para quem pediu menos
- * movimento — a cena em gradiente + partículas continua lá.
+ * O vídeo de fundo é enfeite de vários MB: no automático fica de fora em telas
+ * pequenas, com "economia de dados" ligada, em conexão lenta ou para quem pediu
+ * menos movimento — a cena em gradiente + partículas continua lá. Nas
+ * Configurações dá para forçar (sempre) ou desligar.
  */
-function videoWorthIt(): boolean {
-  if (typeof window === 'undefined') return false;
+export function videoWorthIt(pref: 'auto' | 'on' | 'off' = useUiStore.getState().bgVideo): boolean {
+  if (typeof window === 'undefined' || pref === 'off') return false;
+  // "Sempre" (Configurações → Aparência): ignora as travas de economia
+  if (pref === 'on') return true;
   const nav = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } };
   if (nav.connection?.saveData) return false;
   if (nav.connection?.effectiveType && /(^|-)2g|3g/.test(nav.connection.effectiveType)) return false;
@@ -38,8 +42,9 @@ export function BackgroundScene({ video = null, posters, videoOpacity = 0.5, dar
   const botDark = Math.min(1, 0.66 * darken);
   const list = video == null ? [] : typeof video === 'string' ? [video] : video;
   const playlist = list.length > 1;
-  // decidido uma vez por tela: a tela pode reorganizar o layout em volta do vídeo ([data-video])
-  const [worth] = useState(videoWorthIt);
+  // decidido por tela (e ao mudar a preferência): a tela pode reorganizar o layout em volta do vídeo ([data-video])
+  const pref = useUiStore((s) => s.bgVideo);
+  const worth = useMemo(() => videoWorthIt(pref), [pref]);
   const on = list.length > 0 && worth;
 
   return (

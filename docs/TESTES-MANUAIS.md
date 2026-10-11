@@ -719,3 +719,17 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - **Ladrão**: Mãos Rápidas no painel. Nível 9: Furtividade com vantagem se andou até metade do deslocamento. Nível 17: aviso do 2º turno ao rolar iniciativa.
    - **Assassino**: os kits de disfarce e de envenenador aparecem nas ferramentas. **Assassinar** dá vantagem nos ataques do turno. Nível 17: o painel mostra a CD do Golpe Mortal.
 8. Relatório completo: `docs/auditoria/ladino.md`.
+
+## 76. Vídeos de fundo e Palco das origens (experimental)
+
+1. Configurações → Aparência → **Vídeos de fundo**:
+   - **Automático**: comportamento de antes (sem vídeo no celular, com economia de dados, rede lenta ou "menos movimento" no sistema).
+   - **Sempre**: mostra o vídeo do menu mesmo assim. Use se o seu Windows estiver com as animações desligadas.
+   - **Desligado**: nunca mostra.
+2. Configurações → Avançado → **Palco das origens** (ligado):
+   - Na Forja, a etapa Origem mostra a cena da raça em tela cheia, a ficha da raça à direita e os brasões na borda.
+   - Sem a trilha de capítulos e sem o card do herói nessa etapa.
+3. Humano, Elfo, Tiefling e Anão usam as irmãs como cena provisória. As outras raças mostram o brasão com "cena da raça em produção".
+4. Trocar de raça troca a cena com fusão. A sublinhagem e os atributos à escolha (Meio-Elfo) continuam funcionando, e "+" cria raça homebrew.
+5. **Avançar** vai para o Caminho, e o card do herói volta a aparecer.
+6. Para colocar o vídeo de uma raça: `src/assets/racas/<id>.mp4` (e `.webp`), ver o LEIA-ME de lá.

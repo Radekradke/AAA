@@ -5856,23 +5856,25 @@ body.fv-dragging .fv-screen-scroll {
 }
 /* menu sobre o vídeo das irmãs: a maga ocupa a esquerda, o menu vai para o lado
    livre e uma névoa na cor do tema garante a leitura (só quando o vídeo toca) */
-:has(> .fv-bg[data-video]) .fv-menu.is-stage {
-  align-items: flex-end;
-  padding-right: clamp(32px, 7vw, 128px);
-  isolation: isolate;
-}
-:has(> .fv-bg[data-video]) .fv-menu.is-stage::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent 38%, color-mix(in srgb, var(--bg) 62%, transparent) 62%, color-mix(in srgb, var(--bg) 88%, transparent)),
-    linear-gradient(0deg, color-mix(in srgb, var(--bg) 55%, transparent), transparent 30%);
-}
-:has(> .fv-bg[data-video]) .fv-menu.is-stage :is(.fv-menu-brand, .fv-menu-nav) {
-  width: min(460px, 100%);
+@media (min-width: 900px) {
+  :has(> .fv-bg[data-video]) .fv-menu.is-stage {
+    align-items: flex-end;
+    padding-right: clamp(32px, 7vw, 128px);
+    isolation: isolate;
+  }
+  :has(> .fv-bg[data-video]) .fv-menu.is-stage::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 38%, color-mix(in srgb, var(--bg) 62%, transparent) 62%, color-mix(in srgb, var(--bg) 88%, transparent)),
+      linear-gradient(0deg, color-mix(in srgb, var(--bg) 55%, transparent), transparent 30%);
+  }
+  :has(> .fv-bg[data-video]) .fv-menu.is-stage :is(.fv-menu-brand, .fv-menu-nav) {
+    width: min(460px, 100%);
+  }
 }
 .fv-menu-brand {
   display: flex;
@@ -8800,3 +8802,94 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-resist-chip.is-on { color: var(--ink); border-color: color-mix(in srgb, #ff5a36 70%, transparent); background: color-mix(in srgb, #ff5a36 10%, transparent); }
 .fv-rage-go.is-steel { border-color: color-mix(in srgb, var(--acc) 60%, transparent); background: color-mix(in srgb, var(--acc) 10%, var(--lift)); flex: 1 1 180px; }
 .fv-fighter { background: var(--sunk); }
+
+/* =====================================================================
+   PALCO DAS ORIGENS (Forja, experimental — Configurações → Avançado)
+   A cena da raça em tela cheia (personagem à esquerda), a ficha da raça no
+   lado livre e os brasões na borda. No celular: cena em cima, ficha embaixo.
+   ===================================================================== */
+.fv-origin-backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.fv-origin-scene { position: absolute; inset: 0; }
+.fv-origin-scene :is(video, img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 20% 30%; }
+.fv-origin-sigil {
+  position: absolute; inset: 0; display: grid; place-content: center start; justify-items: center; gap: 12px; padding-left: 12vw;
+  color: var(--jewel, var(--gold)); background: radial-gradient(60% 80% at 25% 55%, color-mix(in srgb, var(--jewel, var(--gold)) 18%, var(--bg2)), var(--bg));
+}
+.fv-origin-sigil svg { width: min(30vw, 260px); height: auto; filter: drop-shadow(0 0 40px color-mix(in srgb, var(--jewel, var(--gold)) 45%, transparent)); }
+.fv-origin-sigil small { color: var(--muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+.fv-origin-scrim {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, transparent 30%, color-mix(in srgb, var(--bg) 62%, transparent) 54%, color-mix(in srgb, var(--bg) 92%, transparent) 78%),
+    linear-gradient(0deg, color-mix(in srgb, var(--bg) 75%, transparent), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 60%, transparent), transparent 16%);
+}
+
+.fv-origin { display: flex; justify-content: flex-end; align-items: center; gap: clamp(20px, 3vw, 48px); min-height: 100%; }
+.fv-origin-info { width: min(480px, 42vw); display: flex; flex-direction: column; gap: 12px; padding-block: 8px; }
+.fv-origin-eyebrow { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--acc2, var(--gold)); }
+.fv-origin-title { margin: 0; font: 400 clamp(44px, 6vw, 80px) / 1 var(--font-display); letter-spacing: 0.03em; color: var(--ink); text-wrap: balance; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+.fv-origin-sub { font-family: var(--font-display); color: var(--gold); font-size: 16px; margin-top: -4px; }
+.fv-origin-desc { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.5; max-width: 44ch; }
+.fv-origin-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fv-origin-chip { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 6px; color: var(--muted); border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.fv-origin-chip.is-gold { color: var(--gold); font-weight: 800; border-color: color-mix(in srgb, var(--gold) 45%, transparent); background: color-mix(in srgb, var(--gold) 12%, transparent); font-variant-numeric: tabular-nums; }
+.fv-origin-traits { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; }
+.fv-origin-traits li { position: relative; padding-left: 16px; font-size: 14px; color: var(--ink); }
+.fv-origin-traits li::before { content: '◆'; position: absolute; left: 0; top: 2px; font-size: 9px; color: var(--gold); }
+.fv-origin-traits span { cursor: help; border-bottom: 1px dotted color-mix(in srgb, var(--muted) 60%, transparent); }
+.fv-origin-info .fv-choice-extras { margin: 0; }
+
+.fv-origin-roster { display: flex; flex-direction: column; gap: 8px; max-height: 100%; overflow-y: auto; scrollbar-width: none; padding: 4px; }
+.fv-origin-medal {
+  position: relative; flex: none; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; cursor: pointer;
+  color: var(--jewel, var(--muted)); border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 70%, transparent);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.fv-origin-medal img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 22% 18%; opacity: 0.75; }
+.fv-origin-medal:hover { transform: scale(1.06); border-color: var(--gold); }
+.fv-origin-medal.is-on { border: 2px solid var(--gold); box-shadow: 0 0 20px color-mix(in srgb, var(--gold) 45%, transparent); }
+.fv-origin-medal.is-on img { opacity: 1; }
+.fv-origin-medal.is-new { color: var(--gold); font-size: 26px; border-style: dashed; }
+.fv-origin-hb { position: absolute; bottom: 3px; font: 800 8px var(--font-body); letter-spacing: 0.08em; color: var(--gold); font-style: normal; }
+.fv-origin-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (hover: hover) and (min-width: 1180px) {
+  .fv-origin-medal { overflow: visible; }
+  .fv-origin-medal img { border-radius: 50%; }
+  .fv-origin-medal .fv-origin-name {
+    width: auto; height: auto; clip: auto; overflow: visible; right: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+    font: 700 12.5px var(--font-body); color: var(--ink); padding: 3px 9px; border-radius: 6px; background: color-mix(in srgb, var(--bg) 80%, transparent);
+    opacity: 0; transition: opacity 0.15s; pointer-events: none;
+  }
+  .fv-origin-medal:is(:hover, :focus-visible) .fv-origin-name { opacity: 1; }
+}
+
+/* PC: sem trilha de capítulos nem card do herói (ele entra no Caminho); progresso em cima */
+@media (min-width: 1180px) {
+  .fv-forge.is-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'progress' 'main' 'foot';
+  }
+  .fv-forge.is-stage :is(.fv-forge-rail, .fv-forge-hero) { display: none; }
+  .fv-forge.is-stage .fv-forge-progress { display: flex; max-width: 520px; width: 100%; justify-self: center; }
+  .fv-forge.is-stage .fv-forge-main { padding-right: 4px; }
+}
+
+/* celular/tablet: a cena ocupa o topo, a ficha rola por cima dela */
+@media (max-width: 1179px) {
+  .fv-origin-backdrop { bottom: auto; height: 46vh; }
+  .fv-origin-scene :is(video, img) { object-position: 12% 25%; }
+  .fv-origin-sigil { place-content: center; padding-left: 0; }
+  .fv-origin-sigil svg { width: 140px; }
+  .fv-origin-scrim { background: linear-gradient(0deg, var(--bg) 0%, transparent 55%); }
+  .fv-origin { flex-direction: column-reverse; align-items: stretch; justify-content: flex-end; gap: 10px; padding-top: 28vh; }
+  .fv-origin-info { width: auto; padding: 4px 2px 12px; }
+  .fv-origin-title { font-size: clamp(40px, 11vw, 56px); }
+  .fv-origin-traits { grid-template-columns: minmax(0, 1fr); }
+  .fv-origin-roster { flex-direction: row; overflow-x: auto; overflow-y: visible; max-height: none; padding: 4px 2px; }
+  .fv-origin-medal { width: 54px; height: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-origin-medal { transition: none; }
+}
