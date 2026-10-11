@@ -9,6 +9,7 @@ import { playSample } from '@/lib/sfx';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import { rollRule } from '@/engine/rollRules';
+import type { RollContext } from '@/engine/rollRules';
 
 /**
  * Inspiração preparada: marca a rolagem, desconta o ponto da ficha e
@@ -59,13 +60,18 @@ export function useDiceRoller() {
    * Sentido de Perigo (cancela com a desvantagem escolhida) e o mínimo da Força Indomável.
    */
   const checkFor = useCallback(
-    (char: Character, kind: 'check' | 'save', ability: AbilityKey, label: string, modifier: number): RollResult => {
-      const rule = rollRule(char, kind, ability);
+    (char: Character, kind: 'check' | 'save', ability: AbilityKey, label: string, modifier: number, ctx: RollContext = {}): RollResult => {
+      const rule = rollRule(char, kind, ability, ctx);
       const mode = modeFlags();
       const adv = !!mode.advantage || rule.advantage;
       const dis = !!mode.disadvantage;
       const tag = rule.sources.length ? ` · vantagem: ${rule.sources.join(', ')}` : '';
       let result = consumeArmedInspiration(rollCheck(label + tag, modifier, { advantage: adv && !dis, disadvantage: dis && !adv }));
+      // Talento Confiável: o d20 que valeu (já com vantagem/desvantagem) nunca fica abaixo de 10
+      const die = result.total - result.modifier;
+      if (rule.d20Min && die < rule.d20Min.value) {
+        result = { ...result, total: rule.d20Min.value + result.modifier, label: `${result.label} · ${rule.d20Min.source} (d20 ${die} → ${rule.d20Min.value})` };
+      }
       if (rule.floor && result.total < rule.floor.value) {
         result = { ...result, total: rule.floor.value, label: `${result.label} · ${rule.floor.source} (mínimo ${rule.floor.value})` };
       }

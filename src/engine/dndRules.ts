@@ -102,6 +102,8 @@ export interface DerivedCharacter {
   };
   /** Sentidos/idiomas/resistências herdados com origem. */
   darkvision: { range: number; source: string } | null;
+  /** Sentido Cego (Ladino 14º): alcance em metros, se tiver. */
+  blindsense: number | null;
   languages: string[];
   /** Proficiências com armaduras e armas (classe, multiclasse, subclasse, raça, talentos). */
   weaponArmorProfs: { armor: string; weapons: string };
@@ -754,6 +756,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       spellAttack: atkBd,
     },
     darkvision,
+    blindsense: levelIn('rogue') >= 14 ? 3 : null,
     languages,
     resistances,
     grantedProficiencies,

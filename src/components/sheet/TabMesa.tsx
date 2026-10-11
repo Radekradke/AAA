@@ -208,7 +208,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             );
           })}
           <span className="fv-mesa-move">
-            Mov. <b>{(derived.speed - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{derived.speed.toString().replace('.', ',')} m
+            Mov. <b>{(derived.speed * (char.combat.turn.dash ? 2 : 1) - char.combat.moveUsed).toFixed(1).replace('.', ',')}</b>/{(derived.speed * (char.combat.turn.dash ? 2 : 1)).toString().replace('.', ',')} m
           </span>
           <button
             type="button"
@@ -337,7 +337,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             {proficientSkills.map((sk) => (
               <button
                 key={sk.key}
-                onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus)}
+                onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus, { skill: sk.key, proficient: sk.proficient, speed: derived.speed })}
                 style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
               >
                 {sk.label} <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
@@ -355,7 +355,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                   return (
                     <button
                       key={tool.id}
-                      onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                      onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total, { proficient: true })}
                       style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
                       {tool.label} <span className="fv-mesa-chip-ab">{ABILITY_SHORT[chk.ability]}</span>{' '}

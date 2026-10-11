@@ -79,7 +79,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
             >
               <LoreTooltip info={skillLore(sk.key, sk.bonus, sk.proficient, sk.expertise)} anchorStyle={{ display: 'block' }}>
                 <button
-                  onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus)}
+                  onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus, { skill: sk.key, proficient: sk.proficient, speed: derived.speed })}
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, width: '100%', textAlign: 'left' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>

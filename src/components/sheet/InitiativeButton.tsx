@@ -8,6 +8,7 @@ import { initiativeRules } from '@/engine/initiative';
 import { modStr } from '@/engine/dice';
 import { music } from '@/lib/music';
 import { useSessionStore } from '@/store/sessionStore';
+import { toast } from '@/store/feedbackStore';
 
 /**
  * Rola a iniciativa já com o que a classe muda nela: vantagem do Instinto
@@ -31,6 +32,7 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
     // com a trilha tocando, o combate ganha a música de batalha
     if (music.get().playing) music.setMood('combate');
     for (const f of rules.refills) store.setResource(char.id, f.resId, f.value);
+    if (rules.secondTurn) toast(`Reflexos de Ladrão: na 1ª rodada você age de novo na iniciativa ${r.total - 10}.`, { tone: 'info' });
     // na mesa ao vivo, se este herói está no encontro, o valor vai para a ordem compartilhada
     void useSessionStore.getState().reportInitiative(char.id, r.total);
   };
@@ -39,6 +41,7 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
     `1d20 ${modStr(derived.initiative)}`,
     rules.advantage ? `vantagem (${rules.advantageSource})` : '',
     ...rules.refills.map((f) => f.label),
+    rules.secondTurn ? '2º turno na 1ª rodada (−10)' : '',
   ].filter(Boolean).join(' · ');
 
   return (

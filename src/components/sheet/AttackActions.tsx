@@ -64,8 +64,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   const roll = (shot?: Shot) => {
     // Ataque Imprudente (Bárbaro 2º): vantagem nos ataques corpo a corpo com FOR neste turno
     const reckless = hasMark(char, 'reckless') && (atk.range ?? 'melee') === 'melee' && atk.ability === 'str';
+    // Assassinar (Assassino 3º): vantagem contra quem ainda não agiu no combate
+    const assassin = hasMark(char, 'assassinate');
     const dis = useUiStore.getState().rollMode === 'disadvantage';
-    const r = attack(atk, reckless ? { advantage: !dis, disadvantage: false } : {});
+    const r = attack(atk, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
     setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
   };
 
@@ -182,7 +184,9 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
             <button type="button" className="fv-cast-hit-close" onClick={() => setStage(null)} aria-label="Fechar">×</button>
           </span>
           <span className="fv-atk-chips">
-            {chip(!!choice.crit, 'Crítico (dobra os dados)', () => setChoice((c) => ({ ...c, crit: !c.crit })))}
+            {chip(!!choice.crit, hasMark(char, 'assassinate') ? 'Crítico (alvo surpreso: Assassinar)' : 'Crítico (dobra os dados)', () => setChoice((c) => ({ ...c, crit: !c.crit })), {
+              title: hasMark(char, 'assassinate') ? 'Acertar uma criatura surpresa é crítico automático (Assassinar).' : undefined,
+            })}
             {atk.versatileDie && chip(!!choice.versatile, `Duas mãos (1d${atk.versatileDie})`, () => setChoice((c) => ({ ...c, versatile: !c.versatile })))}
           </span>
 

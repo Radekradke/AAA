@@ -7,7 +7,7 @@ import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
 import { gainsSpellSwap } from '@/engine/spellRules';
 import { syncResources } from '@/engine/classResources';
 import { applyChoicePicks } from '@/engine/classChoices';
-import { grantChoiceEffects } from '@/engine/choiceEffects';
+import { grantChoiceEffects, withSubclassTools } from '@/engine/choiceEffects';
 import { getFeat } from '@/data/feats';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -136,6 +136,8 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
         else c.classLevels.push({ classId: plan.classId, level: 1 });
 
         if (plan.subclassId) c.subclassId = plan.subclassId;
+        // ferramentas da subclasse (Assassino) entram ao chegar no nível dela
+        c.toolProfs = withSubclassTools(c).toolProfs ?? c.toolProfs;
         // magias conhecidas: ao subir de nível pode trocar uma (PHB 2014)
         if (plan.classId === c.classId && gainsSpellSwap(c)) c.spellSwaps = (c.spellSwaps ?? 0) + 1;
         if (plan.asi?.kind === 'asi') {
@@ -229,6 +231,7 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
         Object.assign(c, patch);
         // subclasse conjuradora (Cavaleiro/Trapaceiro Arcano) muda os espaços e recursos
         if ('subclassId' in patch) {
+          c.toolProfs = withSubclassTools(c).toolProfs ?? c.toolProfs;
           c.combat.spellSlots = syncSpellSlots(c);
           c.combat.resources = syncResources(c, c.combat.resources, false);
         }
