@@ -6,6 +6,7 @@ import { levelIn } from './damageExtras';
  * · Pureza do Corpo (Monge 10º): imune a doenças e veneno (Envenenado).
  * · Aura de Coragem (Paladino 10º): não pode ficar Amedrontado.
  * · Aura de Devoção (Juramento de Devoção 7º): não pode ficar Enfeitiçado.
+ * · Defesas Encantadoras (Arquifada 10º): não pode ficar Enfeitiçado.
  * Devolve o motivo, ou null se a condição pode ser marcada.
  */
 export function conditionImmunity(char: Character, cond: string): string | null {
@@ -13,5 +14,6 @@ export function conditionImmunity(char: Character, cond: string): string | null 
   const pal = levelIn(char, 'paladin');
   if (cond === 'Amedrontado' && pal >= 10) return 'Aura de Coragem';
   if (cond === 'Enfeitiçado' && pal >= 7 && char.subclassId === 'devotion') return 'Aura de Devoção';
+  if (cond === 'Enfeitiçado' && char.subclassId === 'archfey' && levelIn(char, 'warlock') >= 10) return 'Defesas Encantadoras';
   return null;
 }

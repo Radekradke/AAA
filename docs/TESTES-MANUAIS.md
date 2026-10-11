@@ -765,3 +765,19 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 5. Anciões 15: cair a 0 PV pelo "Aplicar dano" deixa com 1 PV uma vez (Sentinela Imortal).
 6. Nível 14: **Toque Purificador**. Nível 20: a forma do juramento, 1× por descanso longo.
 7. Relatório completo: `docs/auditoria/paladino.md`.
+
+## 79. Bruxo: auditoria do 1 ao 20
+
+1. Combate → painel "Bruxo": "Magia de Pacto N/M" com o círculo dos espaços e a CD.
+2. Pacto da Corrente: convocar familiar aparece nas magias (ritual), sem contar no limite.
+3. Nível 20: com espaços gastos, **Mestre Místico** devolve todos e fica travado até o descanso longo.
+4. **Corruptor**:
+   - **Bênção do Tinhoso** dá CAR + nível de PV temporários.
+   - **Sorte do Tinhoso** (6º) soma 1d10 ao último teste/salvaguarda.
+   - **Resiliência Infernal** (10º): escolha o tipo de dano e ele aparece nas resistências da Ficha.
+   - **Arremesso pelo Inferno** (14º) rola 10d10.
+5. **Arquifada**:
+   - **Presença Feérica** e **Delírio Sombrio** (ação, CD de SAB). **Fuga Enevoada** (reação).
+   - Nível 10: não dá para marcar Enfeitiçado.
+6. **Grande Antigo**: **Escudo Entrópico** (reação). Nível 10: resistência psíquica na Ficha.
+7. Relatório completo: `docs/auditoria/bruxo.md`.
