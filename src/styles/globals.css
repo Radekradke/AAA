@@ -8752,3 +8752,31 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 /* criação: frase curta explicando a sublinhagem escolhida */
 .fv-sub-desc { margin: 8px 2px 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); font-style: italic; }
 .fv-cast-used { font-size: 11px; color: var(--muted); font-style: italic; white-space: nowrap; }
+
+/* ── Fúria do Bárbaro (Combate) ── */
+.fv-rage { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); }
+.fv-rage.is-on { border-color: color-mix(in srgb, #ff5a36 70%, transparent); background: color-mix(in srgb, #ff5a36 9%, var(--sunk)); box-shadow: 0 0 18px color-mix(in srgb, #ff5a36 22%, transparent); }
+.fv-rage-start { display: flex; gap: 8px; flex-wrap: wrap; }
+.fv-rage-go {
+  flex: 1 1 200px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 46px; padding: 8px 14px;
+  border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, #ff5a36 70%, transparent); cursor: pointer;
+  background: color-mix(in srgb, #ff5a36 12%, var(--lift)); color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 15px; text-align: left;
+}
+.fv-rage-go small { font-family: var(--font-body); font-weight: 500; font-size: 11px; color: var(--muted); }
+.fv-rage-go.is-frenzy { flex: 0 1 180px; }
+.fv-rage-go:disabled { opacity: .5; cursor: not-allowed; }
+.fv-rage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.fv-rage-head b { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.fv-rage-head span { font-family: var(--font-num); font-size: 12px; color: var(--muted); }
+.fv-rage-effects { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 12.5px; line-height: 1.45; color: var(--ink); }
+.fv-rage-end { align-self: flex-start; min-height: 34px; padding: 5px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--lift); color: var(--ink); font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.fv-rage-reckless {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 40px; padding: 7px 12px; text-align: left;
+  border-radius: var(--radius-sm); border: 1px dashed var(--line); background: transparent; color: var(--ink); font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.fv-rage-reckless small { font-weight: 500; font-size: 11px; color: var(--muted); }
+.fv-rage-reckless.is-on { border-style: solid; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.fv-resist-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.fv-resist-chip.is-on { color: var(--ink); border-color: color-mix(in srgb, #ff5a36 70%, transparent); background: color-mix(in srgb, #ff5a36 10%, transparent); }
+.fv-rage-go.is-steel { border-color: color-mix(in srgb, var(--acc) 60%, transparent); background: color-mix(in srgb, var(--acc) 10%, var(--lift)); flex: 1 1 180px; }
+.fv-fighter { background: var(--sunk); }

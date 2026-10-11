@@ -46,7 +46,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
   const store = useCharacterStore();
   const spendHitDie = useSpendHitDie(char, derived);
   const bump = useUiStore((s) => s.bump);
-  const { rollDice, check } = useDiceRoller();
+  const { rollDice, check, checkFor } = useDiceRoller();
   const resources = characterResources(char);
   const bd = derived.breakdowns;
   const [skillsOpen, setSkillsOpen] = useState(false);
@@ -160,7 +160,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <button
                   className="fv-mabil"
-                  onClick={() => check(`Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
+                  onClick={() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
                   style={{ '--c': color } as React.CSSProperties}
                 >
                   <span className="fv-mabil-key">{ABILITY_SHORT[a.key]}</span>
@@ -311,7 +311,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             {derived.abilityList.map((a) => (
               <button
                 key={a.key}
-                onClick={() => check(`Resist. de ${ABILITY_LABELS[a.key]}`, a.save)}
+                onClick={() => checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save)}
                 style={{
                   cursor: 'pointer',
                   padding: '8px 4px',
@@ -337,7 +337,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             {proficientSkills.map((sk) => (
               <button
                 key={sk.key}
-                onClick={() => check(sk.label, sk.bonus)}
+                onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus)}
                 style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
               >
                 {sk.label} <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
@@ -355,7 +355,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                   return (
                     <button
                       key={tool.id}
-                      onClick={() => check(`${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
+                      onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total)}
                       style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
                     >
                       {tool.label} <span className="fv-mesa-chip-ab">{ABILITY_SHORT[chk.ability]}</span>{' '}

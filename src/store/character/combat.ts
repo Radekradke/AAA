@@ -7,9 +7,11 @@ import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 import { rechargeAll } from '@/engine/itemCharges';
 import { toast } from '@/store/feedbackStore';
+import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
+import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -40,6 +42,12 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.deathSaves = ds;
         // cair a 0 PV rompe a concentração automaticamente (PHB)
         if (c.hpCurrent === 0) c.combat.concentration = false;
+        // desmaiar encerra a Fúria — a menos que a Fúria Implacável (11º) ainda possa segurar
+        const barbLv = (c.classLevels ?? []).find((l) => l.classId === 'barbarian')?.level ?? (c.classId === 'barbarian' ? c.level : 0);
+        if (c.hpCurrent === 0 && (c.combat.marks ?? []).includes('rage') && (barbLv < 11 || ds.fail >= 3)) {
+          if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
+          c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy');
+        }
       });
     },
     heal(id, amount) {
@@ -69,10 +77,18 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       });
     },
     resetTurn(id) {
+      // Sobrevivente (Campeão 18º): abaixo da metade dos PV, recupera 5 + CON no início do turno
+      const ch = get().getCharacter(id);
+      const d = ch ? deriveCharacter(ch) : null;
+      const regen = ch && d ? survivorHeal(ch, d.maxHp, d.abilities.con.mod) : 0;
+      if (regen && d) toast(`Sobrevivente: +${regen} PV no início do turno.`, { tone: 'ok' });
       mutate(id, (c) => {
+        if (regen && d) c.hpCurrent = Math.min(d.maxHp, c.hpCurrent + regen);
         c.combat.turn = { action: false, bonus: false, reaction: false };
         c.combat.moveUsed = 0;
         c.combat.castThisTurn = [];
+        // Ataque Imprudente vale até o início do seu próximo turno
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'reckless');
         // Escudo Arcano acaba no início do seu turno; Heroísmo renova os PV temporários
         const effects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'turn');
         c.combat.spellEffects = effects;
@@ -89,6 +105,13 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       });
     },
     toggleCondition(id, cond) {
+      // Fúria Inconsciente (Furioso 6º): em Fúria, não pode ser enfeitiçado nem amedrontado
+      const ch = get().getCharacter(id);
+      const barb = ch ? barbarianState(ch) : null;
+      if (ch && barb?.raging && barb.berserker && barb.level >= 6 && MINDLESS_RAGE_BLOCKS.includes(cond) && !ch.combat.conditions.includes(cond)) {
+        toast(`Fúria Inconsciente: você não pode ficar ${cond.toLowerCase()} enquanto está em Fúria.`, { tone: 'info' });
+        return;
+      }
       mutate(id, (c) => {
         c.combat.conditions = c.combat.conditions.includes(cond)
           ? c.combat.conditions.filter((x) => x !== cond)
@@ -116,6 +139,27 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       mutate(id, (c) => {
         const cur = (c.combat.marks ?? []).filter((m) => m !== mark);
         c.combat.marks = on ? [...cur, mark] : cur;
+      });
+    },
+    startRage(id, frenzy) {
+      const char = get().getCharacter(id);
+      if (!char || (char.combat.marks ?? []).includes('rage')) return;
+      const res = characterResources(char).find((r) => r.id === 'rage');
+      if (!res) return;
+      const left = Math.min(res.max, char.combat.resources.rage ?? res.max);
+      if (!res.unlimited && left <= 0) return;
+      mutate(id, (c) => {
+        if (!res.unlimited) c.combat.resources.rage = left - 1;
+        c.combat.marks = [...(c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy'), 'rage', ...(frenzy ? (['frenzy'] as const) : [])];
+        c.combat.turn.bonus = true; // entrar em Fúria gasta a ação bônus
+      });
+    },
+    endRage(id) {
+      mutate(id, (c) => {
+        const frenzy = (c.combat.marks ?? []).includes('frenzy');
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy');
+        // Frenesi: quando a Fúria acaba, 1 nível de exaustão
+        if (frenzy) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
       });
     },
     applySpellEffect(id, effect) {
@@ -206,8 +250,11 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
             if (slot) slot.used = Math.max(0, slot.used - n);
           }
         }
-        // a Fúria dura 1 minuto: não sobrevive a um descanso
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage');
+        // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
+        if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy' && m !== 'reckless');
+        // Fúria Implacável: a CD volta a 10 depois de um descanso
+        delete c.combat.resources.relentless;
       });
     },
     longRest(id) {
@@ -227,6 +274,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.moveUsed = 0;
         c.combat.concentration = false;
         c.combat.marks = [];
+        delete c.combat.resources.relentless;
         c.combat.spellEffects = [];
         c.combat.castThisTurn = [];
         // descanso longo remove 1 nível de exaustão (PHB 2014)

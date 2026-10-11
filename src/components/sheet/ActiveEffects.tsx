@@ -4,7 +4,7 @@ import { useUiStore } from '@/store/uiStore';
 import { castDiceLabel, rollCastDice } from '@/components/spells/castRoll';
 
 const UNTIL: Record<string, string> = { turn: 'até seu próximo turno', concentration: 'concentração', rest: 'até o descanso longo' };
-const MARKS: Record<string, string> = { hex: 'Bruxaria · +1d6 necrótico', huntersMark: 'Marca do Caçador · +1d6', rage: 'Fúria' };
+const MARKS: Record<string, string> = { hex: 'Bruxaria · +1d6 necrótico', huntersMark: 'Marca do Caçador · +1d6', rage: 'Fúria', frenzy: 'Frenesi (exaustão ao fim)', reckless: 'Imprudente · inimigos com vantagem em você' };
 
 /**
  * Magias e efeitos ligados agora — a ficha já está somando; × encerra.
@@ -42,7 +42,7 @@ export function ActiveEffects({ char }: { char: Character }) {
       {marks.map((m) => (
         <span key={m} className="fv-spell-effect">
           <b>{MARKS[m]}</b>
-          <button type="button" onClick={() => store.setMark(char.id, m, false)} aria-label={`Encerrar ${MARKS[m]}`}>×</button>
+          <button type="button" onClick={() => (m === 'rage' || m === 'frenzy' ? store.endRage(char.id) : store.setMark(char.id, m, false))} aria-label={`Encerrar ${MARKS[m]}`}>×</button>
         </span>
       ))}
     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Character } from '@/types/character';
 import type { DerivedAttack } from '@/engine/dndRules';
@@ -15,6 +15,9 @@ import { attacksPerAction } from '@/engine/extraAttack';
 import { ammoStatus } from '@/engine/ammo';
 import type { AmmoKind } from '@/engine/ammo';
 import { toast } from '@/store/feedbackStore';
+import { deriveCharacter } from '@/engine/dndRules';
+import { battleMasterState } from '@/engine/fighter';
+import { ABILITY_SHORT } from '@/data/skills';
 
 interface Props {
   char: Character;
@@ -27,7 +30,7 @@ interface Props {
 
 /** Disparo que gastou munição (o "acertou?" mostra e deixa desfazer). */
 type Shot = { kind: AmmoKind; left: number };
-type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot?: Shot } | { kind: 'damage' } | null;
+type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot?: Shot; precise?: number } | { kind: 'damage' } | null;
 
 /**
  * Botões ACERTO / DANO da arma. O ataque abre o "acertou?"; o dano junta
@@ -36,14 +39,21 @@ type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot
  * Arco, besta, funda e zarabatana gastam 1 peça de munição por disparo.
  */
 export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub }: Props) {
-  const { attack } = useDiceRoller();
+  const { attack, rollDice } = useDiceRoller();
   const pushRoll = useUiStore((s) => s.pushRoll);
   const store = useCharacterStore();
   const [stage, setStage] = useState<Stage>(null);
   const [choice, setChoice] = useState<ExtrasChoice>({});
   const avail = weaponExtras(char, atk);
+  // Mestre de Batalha: manobras que somam o dado de superioridade (só com arma)
+  const bm = useMemo(() => {
+    if (!atk.weapon) return null;
+    const d = deriveCharacter(char);
+    return battleMasterState(char, d.proficiency, d.abilities.str.mod, d.abilities.dex.mod);
+  }, [char, atk.weapon]);
+  const maneuvers = bm && bm.left > 0 ? bm.damage : [];
   const hasOptions =
-    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker;
+    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0;
 
   const openDamage = (crit: boolean) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
@@ -52,7 +62,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   };
 
   const roll = (shot?: Shot) => {
-    const r = attack(atk);
+    // Ataque Imprudente (Bárbaro 2º): vantagem nos ataques corpo a corpo com FOR neste turno
+    const reckless = hasMark(char, 'reckless') && (atk.range ?? 'melee') === 'melee' && atk.ability === 'str';
+    const dis = useUiStore.getState().rollMode === 'disadvantage';
+    const r = attack(atk, reckless ? { advantage: !dis, disadvantage: false } : {});
     setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
   };
 
@@ -77,6 +90,11 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     pushRoll(r);
     if (avail.sneak && c.sneak && !avail.sneak.used) store.useSneakAttack(char.id);
     if (avail.smite && c.smiteLevel) store.castWithSlot(char.id, c.smiteLevel);
+    if (c.maneuver && bm) {
+      store.setResource(char.id, 'superiority', bm.left - 1);
+      const m = bm.damage.find((x) => x.id === c.maneuver!.id);
+      if (m) toast(`${m.label}: ${m.save ? `salvaguarda de ${ABILITY_SHORT[m.save]} CD ${bm.dc} ou ` : ''}${m.effect}.`, { tone: 'info' });
+    }
     setStage(null);
   };
 
@@ -129,6 +147,21 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
               <button type="button" onClick={() => undoShot(stage.shot!)}>Desfazer</button>
             </span>
           )}
+          {bm?.precision && bm.left > 0 && !stage.crit && !stage.fail && !stage.precise && (
+            <button
+              type="button"
+              className="fv-atk-chip"
+              title="Ataque Preciso: gasta 1 dado de superioridade e soma ao ataque (antes de saber se acertou)"
+              onClick={() => {
+                const r = rollDice(bm.die, { label: 'Ataque Preciso' });
+                store.setResource(char.id, 'superiority', bm.left - 1);
+                setStage((st) => (st?.kind === 'attack' ? { ...st, total: st.total + r.total, precise: r.total } : st));
+              }}
+            >
+              Ataque Preciso +1d{bm.die} <small>({bm.left} dados)</small>
+            </button>
+          )}
+          {stage.precise && <small className="fv-atk-precise">Ataque Preciso: +{stage.precise} no ataque</small>}
           {stage.fail ? (
             <button type="button" className="fv-cast-hit-go" onClick={() => setStage(null)}>Errou — fechar</button>
           ) : (
@@ -179,11 +212,25 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
             </span>
           )}
 
+          {maneuvers.length > 0 && bm && (
+            <span className="fv-atk-group">
+              <small>Manobra · gasta 1 dado de superioridade (+1d{bm.die}) · CD {bm.dc} · {bm.left}/{bm.max} dados</small>
+              <span className="fv-atk-chips">
+                {chip(!choice.maneuver, 'Nenhuma', () => setChoice((c) => ({ ...c, maneuver: undefined })))}
+                {maneuvers.map((m) =>
+                  chip(choice.maneuver?.id === m.id, `${m.label} +1d${bm.die}`, () => setChoice((c) => ({ ...c, maneuver: c.maneuver?.id === m.id ? undefined : { id: m.id, label: m.label, die: bm.die } })), {
+                    title: `${m.save ? `Salvaguarda de ${ABILITY_SHORT[m.save]} CD ${bm.dc}: ` : ''}${m.effect}`,
+                  }),
+                )}
+              </span>
+            </span>
+          )}
+
           {(avail.hex || avail.huntersMark || avail.rage || avail.improvedSmite || avail.lifedrinker) && (
             <span className="fv-atk-group">
               <small>Ligados (valem em todo acerto)</small>
               <span className="fv-atk-chips">
-                {avail.rage && chip(hasMark(char, 'rage'), `Em Fúria +${avail.rage.bonus}`, () => mark('rage'))}
+                {avail.rage && chip(hasMark(char, 'rage'), `Em Fúria +${avail.rage.bonus}`, () => (hasMark(char, 'rage') ? store.endRage(char.id) : store.startRage(char.id)), { title: 'Entrar em Fúria gasta 1 uso e a ação bônus (o painel de Fúria fica na aba Combate)' })}
                 {avail.hex && chip(hasMark(char, 'hex'), 'Bruxaria +1d6 necrótico', () => mark('hex'))}
                 {avail.huntersMark && chip(hasMark(char, 'huntersMark'), 'Marca do Caçador +1d6', () => mark('huntersMark'))}
                 {avail.improvedSmite && <span className="fv-atk-fixed">Destruição Aprimorada +1d8 radiante</span>}
