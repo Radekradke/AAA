@@ -697,3 +697,10 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 3. Campeão 18: em "Novo turno" com PV ≤ metade, recupera 5 + CON (aviso "Sobrevivente").
 4. Mestre de Batalha: no dano do ataque aparece "Manobra · gasta 1 dado (+1dX) · CD N". Escolher (ex.: Derrubada) soma o dado, gasta 1 dado e avisa "salvaguarda de FOR CD N ou o alvo cai". Ataque Preciso aparece no "Acertou?" e soma o dado ao ataque.
 5. Relatório completo: `docs/auditoria/guerreiro.md`.
+
+## 74. Menu principal: irmãs magas no fundo
+
+1. No PC (janela com 900 px ou mais), o fundo do menu mostra a maga da água ou a do ar (sorteada a cada visita). O menu fica no lado direito, com uma névoa escura atrás para ler bem.
+2. Cada clipe toca até o fim (5 s) e funde no da outra irmã, sem corte seco. Depois volta para a primeira, e assim por diante.
+3. Trocar de aba do navegador pausa o vídeo; voltar retoma.
+4. Celular, "economia de dados" ou "reduzir movimento" no sistema: sem vídeo, e o menu volta ao centro como antes.
