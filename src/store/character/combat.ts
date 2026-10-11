@@ -8,6 +8,7 @@ import { playSample } from '@/lib/sfx';
 import { rechargeAll } from '@/engine/itemCharges';
 import { toast } from '@/store/feedbackStore';
 import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
+import { survivorHeal } from '@/engine/fighter';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
 export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
@@ -76,7 +77,13 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       });
     },
     resetTurn(id) {
+      // Sobrevivente (Campeão 18º): abaixo da metade dos PV, recupera 5 + CON no início do turno
+      const ch = get().getCharacter(id);
+      const d = ch ? deriveCharacter(ch) : null;
+      const regen = ch && d ? survivorHeal(ch, d.maxHp, d.abilities.con.mod) : 0;
+      if (regen && d) toast(`Sobrevivente: +${regen} PV no início do turno.`, { tone: 'ok' });
       mutate(id, (c) => {
+        if (regen && d) c.hpCurrent = Math.min(d.maxHp, c.hpCurrent + regen);
         c.combat.turn = { action: false, bonus: false, reaction: false };
         c.combat.moveUsed = 0;
         c.combat.castThisTurn = [];
