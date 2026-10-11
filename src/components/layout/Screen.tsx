@@ -12,7 +12,8 @@ interface ScreenProps {
   actions?: ReactNode;
   /** Ações secundárias no menu "⋯" da barra superior. */
   menu?: TopBarMenuItem[];
-  video?: string | null;
+  video?: string | readonly string[] | null;
+  posters?: readonly string[];
   videoOpacity?: number;
   darken?: number;
   /** Conteúdo rola internamente (telas longas como a ficha). */
@@ -23,7 +24,7 @@ interface ScreenProps {
  * Tela completa: casca + barra superior + área de conteúdo com entrada
  * cinematográfica. Base de todas as páginas.
  */
-export function Screen({ children, actions, menu, video, videoOpacity, darken, scroll }: ScreenProps) {
+export function Screen({ children, actions, menu, video, posters, videoOpacity, darken, scroll }: ScreenProps) {
   const theme = useUiStore((s) => s.theme);
   // a barra do topo ganha fundo quando o conteúdo rola por baixo dela (só muda o estado ao cruzar o limite)
   const [scrolled, setScrolled] = useState(false);
@@ -34,7 +35,7 @@ export function Screen({ children, actions, menu, video, videoOpacity, darken, s
     frame.current = requestAnimationFrame(() => setScrolled(el.scrollTop > 12));
   }, []);
   return (
-    <AppShell video={video} videoOpacity={videoOpacity} darken={darken}>
+    <AppShell video={video} posters={posters} videoOpacity={videoOpacity} darken={darken}>
       {/* teclado/leitor de tela: pula a barra do topo direto para o conteúdo */}
       <a className="fv-skip" href="#fv-conteudo" onClick={(e) => { e.preventDefault(); document.getElementById('fv-conteudo')?.focus(); }}>
         Pular para o conteúdo

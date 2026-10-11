@@ -5854,6 +5854,26 @@ body.fv-dragging .fv-screen-scroll {
   padding: calc(var(--topbar-h) + 4px) 16px calc(18px + env(safe-area-inset-bottom));
   overflow-y: auto;
 }
+/* menu sobre o vídeo das irmãs: a maga ocupa a esquerda, o menu vai para o lado
+   livre e uma névoa na cor do tema garante a leitura (só quando o vídeo toca) */
+:has(> .fv-bg[data-video]) .fv-menu.is-stage {
+  align-items: flex-end;
+  padding-right: clamp(32px, 7vw, 128px);
+  isolation: isolate;
+}
+:has(> .fv-bg[data-video]) .fv-menu.is-stage::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 38%, color-mix(in srgb, var(--bg) 62%, transparent) 62%, color-mix(in srgb, var(--bg) 88%, transparent)),
+    linear-gradient(0deg, color-mix(in srgb, var(--bg) 55%, transparent), transparent 30%);
+}
+:has(> .fv-bg[data-video]) .fv-menu.is-stage :is(.fv-menu-brand, .fv-menu-nav) {
+  width: min(460px, 100%);
+}
 .fv-menu-brand {
   display: flex;
   flex-direction: column;
