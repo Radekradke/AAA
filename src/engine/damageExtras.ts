@@ -18,7 +18,7 @@ import { effectiveAbilities } from './levelUp';
  * · Fúria (Bárbaro): +2/+3/+4 no dano corpo a corpo com FOR.
  * No crítico, TODOS os dados dobram (os bônus fixos não).
  */
-export type MarkId = 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage';
+export type MarkId = 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard';
 
 export interface ExtraDice {
   count: number;
