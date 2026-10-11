@@ -20,6 +20,10 @@ import type { UpcomingForMe } from '@/services/agendaService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
 
+/** As irmãs magas do menu: cada clipe toca até o fim e funde no da outra. */
+const IRMAS = ['/assets/irmas/irma-agua.mp4', '/assets/irmas/irma-ar.mp4'] as const;
+const IRMAS_POSTER = ['/assets/irmas/irma-agua.webp', '/assets/irmas/irma-ar.webp'] as const;
+
 interface MenuItem {
   key: string;
   label: string;
@@ -135,8 +139,9 @@ export function Home() {
   };
 
   return (
-    <Screen video="/assets/bg.mp4" videoOpacity={0.32}>
-      <div className="fv-menu">
+    <Screen video={IRMAS} posters={IRMAS_POSTER} videoOpacity={1} darken={0.35}>
+      {/* a maga fica à esquerda do vídeo; no PC o menu vai para o lado livre (direita) */}
+      <div className="fv-menu is-stage">
         <header className="fv-menu-brand">
           <RuneRing size="clamp(84px,12vh,128px)">
             <span className="fv-menu-sigil">F</span>
