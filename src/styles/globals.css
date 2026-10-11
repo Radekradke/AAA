@@ -8748,3 +8748,6 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
   .fv-lib-flabel { padding-top: 0; }
   .fv-lib-filterbtn { padding: 0 12px; }
 }
+
+/* criação: frase curta explicando a sublinhagem escolhida */
+.fv-sub-desc { margin: 8px 2px 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); font-style: italic; }

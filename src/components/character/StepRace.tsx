@@ -5,6 +5,7 @@ import { raceIconKey } from './RaceIcon';
 import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore } from '@/lib/lore';
+import type { LoreInfo } from '@/lib/lore';
 import { CustomOriginPanel } from './CustomOriginPanel';
 import { useUiStore } from '@/store/uiStore';
 import { RACES, getSubraces, raceOf } from '@/data/races';
@@ -66,15 +67,17 @@ export function StepRace({ char, update }: StepProps) {
           </div>
           <OptionGrid label="Raças homebrew">
             {homebrew.map((r) => (
-              <OptionTile
-                key={r.id}
-                icon={raceIconKey(r)}
-                label={r.label}
-                line={r.bonus}
-                color={r.jewel}
-                selected={char.raceId === r.id}
-                onSelect={() => pickHomebrew(r)}
-              />
+              // balão com o resumo da raça e o que muda em cada sub-raça (no celular: toque longo)
+              <LoreTooltip key={r.id} info={homebrewLore(r)}>
+                <OptionTile
+                  icon={raceIconKey(r)}
+                  label={r.label}
+                  line={r.bonus}
+                  color={r.jewel}
+                  selected={char.raceId === r.id}
+                  onSelect={() => pickHomebrew(r)}
+                />
+              </LoreTooltip>
             ))}
             <button type="button" className="fv-option fv-hb-new" onClick={() => setEditing('new')}>
               <span className="fv-hb-plus" aria-hidden>+</span>
@@ -128,6 +131,10 @@ export function StepRace({ char, update }: StepProps) {
                     </button>
                   ))}
                 </div>
+                {(() => {
+                  const desc = subs.find((x) => x.id === char.subraceId)?.desc;
+                  return desc ? <p className="fv-sub-desc">{desc}</p> : null;
+                })()}
               </div>
             )}
             {tasha && <CustomOriginPanel char={char} update={update} />}
@@ -193,4 +200,26 @@ export function StepRace({ char, update }: StepProps) {
       )}
     </div>
   );
+}
+
+/** Primeira frase, curta: o balão é um resumo, o texto inteiro fica no painel. */
+function brief(text: string, max = 110): string {
+  const first = text.split(/(?<=[.!?])\s/)[0] ?? text;
+  return first.length > max ? first.slice(0, max - 1).trimEnd() + '…' : first;
+}
+
+/** Balão da raça homebrew: o que é, traços em uma linha e o que cada sub-raça muda. */
+function homebrewLore(r: Race): LoreInfo {
+  const subs = (r.subraces ?? []).map((sub) => {
+    const what = [sub.bonus, sub.desc && brief(sub.desc), sub.traitDetails?.length && `traço: ${sub.traitDetails.map((t) => t.name).join(', ')}`].filter(Boolean).join(' · ');
+    return `• ${sub.label}${what ? ` — ${what}` : ''}`;
+  });
+  return {
+    title: r.label,
+    subtitle: ['Homebrew', r.bonus, r.size, r.speed && `${String(r.speed).replace('.', ',')} m`].filter(Boolean).join(' · '),
+    flavor: r.desc || undefined,
+    props: (r.traitDetails ?? []).map((t) => `${t.name}${t.desc ? ` — ${brief(t.desc)}` : ''}`),
+    body: subs.length ? `Sub-raças (o que muda):\n${subs.join('\n')}` : '',
+    tags: [r.source && `base: ${r.source}`].filter(Boolean) as string[],
+  };
 }
