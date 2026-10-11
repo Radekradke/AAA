@@ -49,6 +49,8 @@ export interface CharacterState {
   toggleEquip: (id: string, uid: string) => void;
   /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
   moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
+  /** "Equipar na segunda mão": arma de uma mão ao lado da principal (tira o escudo). */
+  equipOffHand: (id: string, uid: string) => MoveResult;
   toggleFavorite: (id: string, uid: string) => void;
   toggleAttune: (id: string, uid: string) => void;
   adjustCoin: (id: string, coin: CoinKey, delta: number) => void;
