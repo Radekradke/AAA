@@ -14,6 +14,7 @@ import { useSourceOn } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { CLASSES, getClass } from '@/data/classes';
 import { getSubclass, subclassesFor } from '@/data/subclasses';
+import { subclassOf } from '@/engine/characterClasses';
 import { isAsiLevel } from '@/data/classFeatures';
 import { FEATS, getFeat } from '@/data/feats';
 import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
@@ -99,13 +100,13 @@ export function TabEvoluir({ char, derived }: TabProps) {
   const [featAbility, setFeatAbility] = useState<AbilityKey | ''>('');
 
   const subLevel = subclassLevelFor(classId);
-  const needsSubclass = newClassLevel >= subLevel && !char.subclassId;
+  const needsSubclass = newClassLevel >= subLevel && !subclassOf(char, classId);
   const [subPick, setSubPick] = useState('');
 
   // escolhas de classe do novo nível (Metamagia, Estilo de Luta, Manobras…)
   const [picks, setPicks] = useState<Record<string, string[]>>({});
   const [replace, setReplace] = useState<Record<string, ReplacePick | undefined>>({});
-  const subForLevel = needsSubclass && newClassLevel === subLevel ? subPick || null : classId === char.classId ? char.subclassId : null;
+  const subForLevel = needsSubclass ? subPick || null : subclassOf(char, classId);
   const choiceGroups = useMemo(
     () => groupSpecs(char, specsAt(classId, newClassLevel, subForLevel, { ...(char.choices ?? {}), ...picks })),
     [char, classId, newClassLevel, subForLevel, picks],
@@ -129,7 +130,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
       hpMethod,
       hpValue,
       asi,
-      subclassId: needsSubclass && newClassLevel === subLevel && subPick ? subPick : undefined,
+      subclassId: needsSubclass && subPick ? subPick : undefined,
       choices: Object.fromEntries(Object.entries(picks).filter(([k]) => choiceKeys.has(k))),
       replace: Object.fromEntries(Object.entries(replace).filter(([k, r]) => choiceKeys.has(k) && r?.from && r.to)),
     };
@@ -175,7 +176,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
     return lines.join(' ');
   })();
 
-  const features = featuresGained(classId, newClassLevel, plan.subclassId ?? char.subclassId);
+  const features = featuresGained(classId, newClassLevel, plan.subclassId ?? subclassOf(char, classId));
   const profNow = proficiencyBonus(char.level);
   const profNext = proficiencyBonus(newLevel);
 
@@ -310,7 +311,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
           </div>
 
           {/* subclasse no nível certo */}
-          {needsSubclass && newClassLevel === subLevel && (
+          {needsSubclass && newClassLevel >= subLevel && (
             <div style={{ marginTop: 16 }}>
               <div style={microLabel}>Subclasse de {cls.label} (nível {subLevel})</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 9 }}>

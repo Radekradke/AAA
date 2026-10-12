@@ -3,13 +3,15 @@ import { toolLabel } from '@/data/tools';
 import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import type { JournalEntry } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
-import { spellSlotsFor, syncSpellSlots } from '@/engine/spellcasting';
+import { saveSlotPools, syncSlotPools, changeSpellSelection } from '@/engine/spellcasting';
+import { saveHitDicePools } from '@/engine/hitDice';
 import { gainsSpellSwap } from '@/engine/spellRules';
 import { syncResources } from '@/engine/classResources';
 import { applyChoicePicks } from '@/engine/classChoices';
 import { grantChoiceEffects, withSubclassTools } from '@/engine/choiceEffects';
 import { getFeat } from '@/data/feats';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
+import { subclassOf } from '@/engine/characterClasses';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { getClass } from '@/data/classes';
 import type { CharacterState, StoreCtx } from './types';
@@ -75,18 +77,21 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
       if (newLevel === char.level) return;
       const leveledUp = newLevel > char.level;
       const before = deriveCharacter(char).maxHp;
-      const after = deriveCharacter({ ...char, level: newLevel }).maxHp;
+      const oldLevel = char.level;
+      const oldClassLevel = classLevelOf(char, char.classId);
       mutate(id, (c) => {
         Object.assign(c, ensureCharacterV2(c));
+        saveHitDicePools(c);
+        saveSlotPools(c);
         c.level = newLevel;
         // mantém a linha do tempo coerente (registros sintéticos pela média)
         if (leveledUp) {
-          for (let lv = char.level + 1; lv <= newLevel; lv++) {
+          for (let lv = oldLevel + 1; lv <= newLevel; lv++) {
             const cls = getClass(c.classId);
             c.levelHistory.push({
               level: lv,
               classId: c.classId,
-              classLevel: lv,
+              classLevel: oldClassLevel + lv - oldLevel,
               hpMethod: 'media',
               hpValue: Math.floor(cls.hitDie / 2) + 1,
               features: featuresGained(c.classId, lv, c.subclassId),
@@ -98,21 +103,20 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
           c.levelHistory = c.levelHistory.filter((r) => r.level <= newLevel);
         }
         const entry = c.classLevels.find((x) => x.classId === c.classId);
-        if (entry) entry.level = newLevel;
+        if (entry) entry.level = Math.max(1, entry.level + newLevel - oldLevel);
+        if (!leveledUp) {
+          const counts: Record<string, number> = {};
+          for (const record of c.levelHistory) counts[record.classId] = (counts[record.classId] ?? 0) + 1;
+          if (Object.values(counts).reduce((n, value) => n + value, 0) === newLevel) {
+            c.classLevels = c.classLevels.flatMap((cl) => counts[cl.classId] ? [{ ...cl, level: counts[cl.classId] }] : []);
+          }
+        }
+        const after = deriveCharacter(c).maxHp;
         // ao subir, soma o PV ganho; ao descer, apenas mantém dentro do novo máximo
         c.hpCurrent = leveledUp ? c.hpCurrent + Math.max(0, after - before) : Math.min(c.hpCurrent, after);
         c.hpCurrent = Math.max(1, Math.min(after, c.hpCurrent));
-        c.combat.hitDiceRemaining = leveledUp
-          ? Math.min(newLevel, c.combat.hitDiceRemaining + (newLevel - char.level))
-          : Math.min(newLevel, c.combat.hitDiceRemaining);
-        // espaços de magia
-        const slotMax = spellSlotsFor(c);
-        const nextSlots: typeof c.combat.spellSlots = {};
-        for (const [circle, max] of Object.entries(slotMax)) {
-          const used = leveledUp ? 0 : c.combat.spellSlots[Number(circle)]?.used ?? 0;
-          nextSlots[Number(circle)] = { used: Math.min(used, max), max };
-        }
-        c.combat.spellSlots = nextSlots;
+        saveHitDicePools(c);
+        saveSlotPools(c, syncSlotPools(c, leveledUp));
         // recursos: ao subir restaura tudo; ao descer, mantém dentro do novo máximo
         c.combat.resources = syncResources(c, c.combat.resources, leveledUp);
       });
@@ -130,16 +134,21 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
 
       mutate(id, (c) => {
         Object.assign(c, ensureCharacterV2(c));
+        saveHitDicePools(c);
+        saveSlotPools(c);
         c.level = newLevel;
         const entry = c.classLevels.find((x) => x.classId === plan.classId);
         if (entry) entry.level += 1;
         else c.classLevels.push({ classId: plan.classId, level: 1 });
 
-        if (plan.subclassId) c.subclassId = plan.subclassId;
+        if (plan.subclassId) {
+          c.classLevels.find((cl) => cl.classId === plan.classId)!.subclassId = plan.subclassId;
+          if (plan.classId === c.classId) c.subclassId = plan.subclassId;
+        }
         // ferramentas da subclasse (Assassino) entram ao chegar no nível dela
         c.toolProfs = withSubclassTools(c).toolProfs ?? c.toolProfs;
         // magias conhecidas: ao subir de nível pode trocar uma (PHB 2014)
-        if (plan.classId === c.classId && gainsSpellSwap(c)) c.spellSwaps = (c.spellSwaps ?? 0) + 1;
+        if (gainsSpellSwap(c, plan.classId)) changeSpellSelection(c, plan.classId, (s) => { s.spellSwaps = (s.spellSwaps ?? 0) + 1; });
         if (plan.asi?.kind === 'asi') {
           for (const k of ABILITY_KEYS) {
             const inc = plan.asi.increases[k] ?? 0;
@@ -170,7 +179,7 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
           classLevel: newClassLevel,
           hpMethod: plan.hpMethod,
           hpValue: plan.hpValue,
-          features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? c.subclassId),
+          features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? subclassOf(c, plan.classId)),
           asi: plan.asi,
           subclassId: plan.subclassId,
           choices: plan.choices && Object.keys(plan.choices).length ? plan.choices : undefined,
@@ -178,14 +187,8 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
         });
 
         // dados de vida, espaços de magia e recursos acompanham o novo nível
-        c.combat.hitDiceRemaining = Math.min(newLevel, c.combat.hitDiceRemaining + 1);
-        const slotMax = spellSlotsFor(c);
-        const nextSlots: typeof c.combat.spellSlots = {};
-        for (const [circle, max] of Object.entries(slotMax)) {
-          const used = c.combat.spellSlots[Number(circle)]?.used ?? 0;
-          nextSlots[Number(circle)] = { used: Math.min(used, max), max };
-        }
-        c.combat.spellSlots = nextSlots;
+        saveHitDicePools(c);
+        saveSlotPools(c);
         c.combat.resources = syncResources(c, c.combat.resources, true);
       });
 
@@ -231,8 +234,10 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
         Object.assign(c, patch);
         // subclasse conjuradora (Cavaleiro/Trapaceiro Arcano) muda os espaços e recursos
         if ('subclassId' in patch) {
+          const primary = c.classLevels.find((cl) => cl.classId === c.classId);
+          if (primary) primary.subclassId = c.subclassId;
           c.toolProfs = withSubclassTools(c).toolProfs ?? c.toolProfs;
-          c.combat.spellSlots = syncSpellSlots(c);
+          saveSlotPools(c);
           c.combat.resources = syncResources(c, c.combat.resources, false);
         }
       });

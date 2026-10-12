@@ -14,6 +14,8 @@ import { proficienciesOf } from './proficiencies';
 import { WEAPON_BY_ID } from '@/data/weapons';
 import { casterOf } from './spellcasting';
 import type { ReplacePick } from './classChoices';
+import { levelsOf, subclassOf } from './characterClasses';
+import { raceOf } from '@/data/races';
 
 export const MAX_LEVEL = 20;
 export const ABILITY_CAP = 20;
@@ -119,7 +121,7 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
     }
   }
 
-  const needSub = newClassLevel >= subclassLevelFor(plan.classId) && !char.subclassId && plan.classId === primaryClass(char);
+  const needSub = newClassLevel >= subclassLevelFor(plan.classId) && !subclassOf(char, plan.classId);
   if (plan.subclassId) {
     const sub = getSubclass(plan.subclassId);
     if (!sub) errors.push('Subclasse desconhecida.');
@@ -127,12 +129,12 @@ export function validateLevelUp(char: Character, plan: LevelUpPlan): string[] {
     else if (newClassLevel < subclassLevelFor(plan.classId)) {
       errors.push(`${cls.label} escolhe subclasse no nível ${subclassLevelFor(plan.classId)} (2014).`);
     }
-  } else if (needSub && newClassLevel === subclassLevelFor(plan.classId)) {
+  } else if (needSub) {
     errors.push('Escolha a subclasse deste nível antes de confirmar.');
   }
 
   // escolhas de classe/subclasse do novo nível (Metamagia, Estilo de Luta, Manobras…)
-  const subForLevel = plan.subclassId ?? (plan.classId === char.classId ? char.subclassId : null);
+  const subForLevel = plan.subclassId ?? subclassOf(char, plan.classId);
   errors.push(...validateChoicePicks(char, specsAt(plan.classId, newClassLevel, subForLevel, { ...(char.choices ?? {}), ...(plan.choices ?? {}) }), plan.choices, plan.replace));
 
   return errors;
@@ -210,7 +212,7 @@ export function expertiseUsed(char: Character): number {
 
 /** Atributos efetivos (base + raça + ASI/talentos), sem itens. */
 export function effectiveAbilities(char: Character): AbilityScores {
-  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
+  const totals = totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi, raceOf(char));
   for (const k of ABILITY_KEYS) {
     totals[k] = Math.min(ABILITY_CAP, totals[k] + (char.asiBonuses?.[k] ?? 0));
   }
@@ -247,15 +249,15 @@ export function synthesizeHistory(char: Pick<Character, 'level' | 'classId' | 's
   return records;
 }
 
-/** Migração defensiva: garante os campos dos schemas v2/v3 num personagem antigo. */
+/** Migração defensiva: garante os campos até schema v4 num personagem antigo. */
 export function ensureCharacterV2(c: Character): Character {
   // ferramentas da subclasse (Assassino) também chegam às fichas que já existiam
-  if (c.schema === 3 && c.levelHistory?.length) return withSubclassTools(c);
+  if (c.schema === 4 && c.levelHistory?.length) return withSubclassTools(c);
   const migrated: Character = {
     ...c,
-    schema: 3,
-    classLevels: c.classLevels?.length ? c.classLevels : [{ classId: c.classId, level: c.level }],
-    subclassId: c.subclassId ?? null,
+    schema: 4,
+    classLevels: levelsOf(c).map((cl) => ({ ...cl, subclassId: subclassOf(c, cl.classId) })),
+    subclassId: subclassOf(c, c.classId),
     feats: c.feats ?? [],
     asiBonuses: c.asiBonuses ?? {},
     inspiration: c.inspiration ?? false,

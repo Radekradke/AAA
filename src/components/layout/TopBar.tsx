@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
 import { useAuthStore } from '@/store/authStore';
+import { FichaVivaMark } from '@/components/ui/FichaVivaMark';
 
 /** Navegação global: sempre no mesmo lugar, com a tela atual marcada. */
 const NAV: { to: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
@@ -131,9 +132,7 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
     <div className={'fv-topbar' + (scrolled ? ' is-scrolled' : '')}>
       {/* a marca leva ao menu principal */}
       <button type="button" className="fv-topbar-brand" onClick={() => navigate('/')} aria-label="Menu principal" title="Menu principal">
-        <div className="fv-topbar-logo" aria-hidden>
-          <span>F</span>
-        </div>
+        <FichaVivaMark />
         <span className="fv-hide-mobile" style={{ fontFamily: 'var(--font-display)', letterSpacing: '.22em', fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
           FICHA&nbsp;VIVA
         </span>

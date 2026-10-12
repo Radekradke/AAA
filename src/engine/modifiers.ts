@@ -1,4 +1,4 @@
-import type { AbilityKey, AbilityScores } from '@/types/dnd';
+import type { AbilityKey, AbilityScores, Race } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
 import { getRace, getSubrace } from '@/data/races';
 
@@ -28,8 +28,8 @@ export function addAbilityBonuses(
 }
 
 /** Bônus racial à escolha (Meio-Elfo): os atributos escolhidos, ou o padrão antigo. */
-export function raceChoiceBonus(raceId: string, choice?: AbilityKey[] | null): Partial<AbilityScores> {
-  const ch = getRace(raceId).abilityChoice;
+export function raceChoiceBonus(raceId: string, choice?: AbilityKey[] | null, definition?: Race): Partial<AbilityScores> {
+  const ch = (definition ?? getRace(raceId)).abilityChoice;
   if (!ch) return {};
   const picked = (choice ?? []).filter((k) => !ch.exclude?.includes(k)).slice(0, ch.count);
   const keys = picked.length === ch.count ? picked : ch.default;
@@ -45,12 +45,13 @@ export function totalAbilities(
   subraceId: string | null,
   choice?: AbilityKey[] | null,
   custom?: Partial<AbilityScores> | null,
+  definition?: Race,
 ): AbilityScores {
   // Origem personalizada (Tasha): os bônus redistribuídos substituem os da raça
   if (custom) return addAbilityBonuses(base, custom);
-  const race = getRace(raceId);
-  const sub = getSubrace(raceId, subraceId);
-  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {}, raceChoiceBonus(raceId, choice));
+  const race = definition ?? getRace(raceId);
+  const sub = definition?.subraces ? definition.subraces.find((s) => s.id === subraceId) : getSubrace(raceId, subraceId);
+  return addAbilityBonuses(base, race.abilityBonus, sub?.abilityBonus ?? {}, raceChoiceBonus(raceId, choice, race));
 }
 
 /** Bônus raciais do personagem como lista (+2, +1…), do maior para o menor. */
@@ -68,9 +69,10 @@ export function racialBonusFor(
   subraceId: string | null,
   choice?: AbilityKey[] | null,
   custom?: Partial<AbilityScores> | null,
+  definition?: Race,
 ): number {
   if (custom) return custom[ability] ?? 0;
-  const race = getRace(raceId);
-  const sub = getSubrace(raceId, subraceId);
-  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0) + (raceChoiceBonus(raceId, choice)[ability] ?? 0);
+  const race = definition ?? getRace(raceId);
+  const sub = definition?.subraces ? definition.subraces.find((s) => s.id === subraceId) : getSubrace(raceId, subraceId);
+  return (race.abilityBonus[ability] ?? 0) + (sub?.abilityBonus?.[ability] ?? 0) + (raceChoiceBonus(raceId, choice, race)[ability] ?? 0);
 }

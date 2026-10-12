@@ -69,11 +69,12 @@ describe('itens mágicos aplicam sozinhos (vestidos e sintonizados)', () => {
     const { c, it } = give(f, 'a-chainmail-plus1');
     expect(deriveCharacter({ ...c, equipped: { ...c.equipped, armor: it.uid, shield: null } }).ac).toBe(17);
     const w = hero('wizard');
-    const { c: cw } = give(w, 'm-wand-warmage2', { attuned: true });
+    const { c: cw, it: wand } = give(w, 'm-wand-warmage2', { attuned: true });
+    cw.equipped.mainHand = wand.uid;
     expect(deriveCharacter(cw).spellAttack).toBe(deriveCharacter(w).spellAttack! + 2);
   });
   it('item no Baú não vale; Língua de Fogo soma 2d6 de fogo', () => {
-    const { c, it } = give(hero(), 'mw-flametongue', { attuned: true });
+    const { c, it } = give(hero(), 'mw-flametongue', { attuned: true, activated: true });
     const d = deriveCharacter({ ...c, equipped: { ...c.equipped, mainHand: it.uid } });
     expect(d.attacks.find((a) => a.uid === it.uid)!.bonusDamage).toEqual({ dice: 2, die: 6, type: 'fogo' });
     const { c: cs } = give(hero(), 'm-periapt-poison', { location: 'bau' });

@@ -34,13 +34,15 @@ export function defenseFor(
 ): DefenseMode {
   if (!type) return 'normal';
   // 'gelo' era o nome antigo do dano de frio (fichas salvas)
-  const t = norm(type).split(/\s+/)[0].replace(/^gelo$/, 'frio');
+  const canonical = (value: string) => norm(value).replace(/\bgelo\b/g, 'frio').replace(/\benergia\b/g, 'forca').replace(/\bcontundente\b/g, 'concussao');
+  const t = canonical(type).split(/\s+/)[0];
+  const physical = ['concussao', 'perfurante', 'cortante'].includes(t);
   // cláusulas separadas por ";" — com ataque mágico, ignora as "de ataques não mágicos"
   const has = (text?: string) =>
     !!text &&
-    norm(text)
+    canonical(text)
       .split(';')
-      .some((clause) => clause.includes(t) && !(magical && /nao magic/.test(clause)));
+      .some((clause) => (clause.includes(t) || (physical && /armas nao magic/.test(clause))) && !(magical && /nao magic/.test(clause)));
   if (has(defs.immune)) return 'zero';
   if (has(defs.resist)) return 'half';
   if (has(defs.vuln)) return 'double';

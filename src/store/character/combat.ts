@@ -1,6 +1,7 @@
-import { warlockSlots } from '@/engine/progression';
 import { deriveCharacter } from '@/engine/dndRules';
-import { syncSpellSlots } from '@/engine/spellcasting';
+import { syncSlotPools, saveSlotPools } from '@/engine/spellcasting';
+import { saveHitDicePools, syncHitDicePools, recoverHitDice } from '@/engine/hitDice';
+import { getClass } from '@/data/classes';
 import { characterResources, syncResources } from '@/engine/classResources';
 import { getFeat } from '@/data/feats';
 import type { CharacterState, StoreCtx } from './types';
@@ -10,6 +11,7 @@ import { toast } from '@/store/feedbackStore';
 import { conditionImmunity } from '@/engine/conditionImmunity';
 import { barbarianState, MINDLESS_RAGE_BLOCKS } from '@/engine/barbarian';
 import { survivorHeal } from '@/engine/fighter';
+import { canConcentrate, clearConcentration, INCAPACITATING_CONDITIONS } from '@/engine/concentration';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
 export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
@@ -42,7 +44,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         }
         c.combat.deathSaves = ds;
         // cair a 0 PV rompe a concentração automaticamente (PHB)
-        if (c.hpCurrent === 0) c.combat.concentration = false;
+        if (c.hpCurrent === 0) clearConcentration(c);
         // desmaiar encerra a Fúria — a menos que a Fúria Implacável (11º) ainda possa segurar
         const barbLv = (c.classLevels ?? []).find((l) => l.classId === 'barbarian')?.level ?? (c.classId === 'barbarian' ? c.level : 0);
         if (c.hpCurrent === 0 && (c.combat.marks ?? []).includes('rage') && (barbLv < 11 || ds.fail >= 3)) {
@@ -123,6 +125,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.conditions = c.combat.conditions.includes(cond)
           ? c.combat.conditions.filter((x) => x !== cond)
           : [...c.combat.conditions, cond];
+        if (c.combat.conditions.includes(cond) && INCAPACITATING_CONDITIONS.has(cond)) clearConcentration(c);
       });
     },
     setExhaustion(id, level) {
@@ -134,18 +137,18 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
     },
     toggleConcentration(id) {
       mutate(id, (c) => {
-        c.combat.concentration = !c.combat.concentration;
-        // romper a concentração encerra Bruxaria, Marca do Caçador e os efeitos de concentração
-        if (!c.combat.concentration) {
-          c.combat.marks = (c.combat.marks ?? []).filter((m) => m === 'rage');
-          c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
-        }
+        if (c.combat.concentration) clearConcentration(c);
+        else if (canConcentrate(c)) c.combat.concentration = true;
       });
     },
-    setMark(id, mark, on) {
+    setMark(id, mark, on, weaponUid) {
       mutate(id, (c) => {
         const cur = (c.combat.marks ?? []).filter((m) => m !== mark);
         c.combat.marks = on ? [...cur, mark] : cur;
+        if (mark === 'sacredWeapon') {
+          if (on) c.combat.sacredWeaponUid = weaponUid ?? c.equipped.mainHand ?? c.equipped.offHand ?? undefined;
+          else delete c.combat.sacredWeaponUid;
+        }
       });
     },
     startRage(id, frenzy) {
@@ -157,6 +160,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       if (!res.unlimited && left <= 0) return;
       mutate(id, (c) => {
         if (!res.unlimited) c.combat.resources.rage = left - 1;
+        clearConcentration(c);
         c.combat.marks = [...(c.combat.marks ?? []).filter((m) => m !== 'rage' && m !== 'frenzy'), 'rage', ...(frenzy ? (['frenzy'] as const) : [])];
         c.combat.turn.bonus = true; // entrar em Fúria gasta a ação bônus
       });
@@ -174,7 +178,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         const list = c.combat.spellEffects ?? [];
         const had = list.find((e) => e.spellId === effect.spellId);
         // Auxílio: o PV atual sobe junto com o máximo (só na primeira vez)
-        if (effect.maxHp && !had) c.hpCurrent += effect.maxHp;
+        if (effect.maxHp) c.hpCurrent = Math.max(0, c.hpCurrent + effect.maxHp - (had?.maxHp ?? 0));
         c.combat.spellEffects = [...list.filter((e) => e.spellId !== effect.spellId), effect];
       });
     },
@@ -187,7 +191,7 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
     },
     endConcentrationEffects(id) {
       mutate(id, (c) => {
-        c.combat.spellEffects = (c.combat.spellEffects ?? []).filter((e) => e.until !== 'concentration');
+        clearConcentration(c);
       });
     },
     gainTempHp(id, amount) {
@@ -221,9 +225,13 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.resources[resId] = Math.max(0, value);
       });
     },
-    spendHitDie(id) {
+    spendHitDie(id, die) {
       mutate(id, (c) => {
-        c.combat.hitDiceRemaining = Math.max(0, c.combat.hitDiceRemaining - 1);
+        const pools = syncHitDicePools(c);
+        const sides = die ?? getClass(c.classId).hitDie;
+        if (!pools[sides]?.remaining) return;
+        pools[sides].remaining -= 1;
+        saveHitDicePools(c, pools);
       });
     },
     setDeathSave(id, type, n) {
@@ -256,13 +264,9 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         }
         c.combat.itemSpellUses = uses;
         // Magia de Pacto (Bruxo): os espaços do pacto voltam no descanso curto
-        const wl = (c.classLevels ?? []).find((l) => l.classId === 'warlock')?.level ?? (c.classId === 'warlock' ? c.level : 0);
-        if (wl) {
-          for (const [circle, n] of Object.entries(warlockSlots(wl))) {
-            const slot = c.combat.spellSlots?.[Number(circle)];
-            if (slot) slot.used = Math.max(0, slot.used - n);
-          }
-        }
+        const pools = syncSlotPools(c);
+        for (const slot of Object.values(pools.pact)) slot.used = 0;
+        saveSlotPools(c, pools);
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
         c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow'].includes(m));
@@ -273,13 +277,11 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
     longRest(id) {
       playSample('descanso');
       const char = get().getCharacter(id);
-      if (!char) return;
-      const derived = deriveCharacter(char);
+      if (!char || (char.combat.deathSaves?.fail ?? 0) >= 3 || (char.combat.exhaustion ?? 0) >= 6 || char.hpCurrent <= 0) return;
       // amanhecer: cajados e varinhas recuperam parte das cargas
       const recharge = rechargeAll(char);
       mutate(id, (c) => {
         c.combat.itemCharges = recharge.used;
-        c.hpCurrent = derived.maxHp;
         c.combat.hpTemp = 0;
         c.combat.deathSaves = { success: 0, fail: 0 };
         c.combat.conditions = [];
@@ -287,22 +289,22 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.moveUsed = 0;
         c.combat.concentration = false;
         c.combat.marks = [];
+        delete c.combat.sacredWeaponUid;
         delete c.combat.resources.relentless;
         c.combat.spellEffects = [];
         c.combat.castThisTurn = [];
         // descanso longo remove 1 nível de exaustão (PHB 2014)
         c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
+        const derived = deriveCharacter(c);
+        c.hpCurrent = derived.maxHp;
         // todas as magias de item recarregam no descanso longo
         c.combat.itemSpellUses = {};
         // munição que não foi recolhida depois da luta ficou para trás
         c.combat.ammoSpent = {};
         // recupera metade dos dados de vida
-        c.combat.hitDiceRemaining = Math.min(
-          derived.hitDiceMax,
-          c.combat.hitDiceRemaining + Math.max(1, Math.floor(derived.hitDiceMax / 2)),
-        );
+        recoverHitDice(c);
         c.combat.resources = syncResources(c, c.combat.resources, true);
-        c.combat.spellSlots = syncSpellSlots(c, true);
+        saveSlotPools(c, syncSlotPools(c, true));
         // companheiro de patrulheiro volta com PV cheio
         if (c.companion) c.companion = { ...c.companion, hpCurrent: undefined };
       });

@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { levelIn } from './damageExtras';
 
@@ -12,6 +13,6 @@ export function conditionImmunity(char: Character, cond: string): string | null 
   if (cond === 'Envenenado' && levelIn(char, 'monk') >= 10) return 'Pureza do Corpo';
   const pal = levelIn(char, 'paladin');
   if (cond === 'Amedrontado' && pal >= 10) return 'Aura de Coragem';
-  if (cond === 'Enfeitiçado' && pal >= 7 && char.subclassId === 'devotion') return 'Aura de Devoção';
+  if (cond === 'Enfeitiçado' && pal >= 7 && subclassOf(char, 'paladin') === 'devotion') return 'Aura de Devoção';
   return null;
 }

@@ -28,6 +28,7 @@ import {
 } from '@dnd-kit/core';
 import type { CollisionDetection, DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core';
 import type { InventoryItem } from '@/types/character';
+import type { DamageType } from '@/types/dnd';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { itemLore } from '@/lib/lore';
@@ -392,6 +393,13 @@ export function TabInventario({ char, derived }: TabProps) {
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
                         onDrink={healOf(it) ? () => drink(it) : undefined}
+                        canActivate={where === 'equipado' && it.attuned && !char.combat.turn.bonus}
+                        onActivate={(it.requiresActivation ?? getItem(it.itemId)?.requiresActivation) ? () => {
+                          if (where !== 'equipado' || !it.attuned || char.combat.turn.bonus) return;
+                          store.updateInventoryItem(char.id, it.uid, { activated: !it.activated });
+                          store.useTurn(char.id, 'bonus');
+                        } : undefined}
+                        onResistance={it.itemId === 'm-ring-resist' ? (resistanceType) => store.updateInventoryItem(char.id, it.uid, { resistanceType }) : undefined}
                         onOpenPack={isPack(it.itemId) ? () => store.openPackItem(char.id, it.uid) : undefined}
                         charges={chargesOf(it) ? { left: chargesLeft(char, it), max: chargesOf(it)!.max, regain: chargesOf(it)!.regain } : undefined}
                         onCharge={(n) => store.spendItemCharges(char.id, it.uid, n)}
@@ -559,7 +567,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onOpenPack, onArt, charges, onCharge }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onOpenPack, onArt, charges, onCharge, onActivate, canActivate, onResistance }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -575,6 +583,9 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   onRemove: () => void;
   /** Poções de cura: bebe (rola a cura, aplica nos PV e gasta uma). */
   onDrink?: () => void;
+  onActivate?: () => void;
+  canActivate?: boolean;
+  onResistance?: (type: DamageType | undefined) => void;
   /** Pacote fechado (ficha antiga): abre nos itens de dentro. */
   onOpenPack?: () => void;
   /** Item com cargas (cajado, varinha, Anel da Evasão…). */
@@ -695,6 +706,13 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         )}
 
         <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {onActivate && <button type="button" className="fv-btn-ghost" aria-pressed={!!it.activated} disabled={!canActivate} onClick={(e) => { e.stopPropagation(); onActivate(); }}>{it.activated ? 'Apagar lâmina' : 'Acender lâmina'} · ação bônus</button>}
+          {onResistance && <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Resistência
+            <select className="fv-input" aria-label={`Resistência de ${it.name}`} value={it.resistanceType ?? ''} onClick={(e) => e.stopPropagation()} onChange={(e) => onResistance(e.target.value ? e.target.value as DamageType : undefined)}>
+              <option value="">Escolha a gema</option>
+              {(['ácido', 'frio', 'fogo', 'força', 'elétrico', 'necrótico', 'veneno', 'psíquico', 'radiante', 'trovejante'] as DamageType[]).map((type) => <option key={type} value={type}>{type}</option>)}
+            </select>
+          </label>}
           {equippable && (
             <ItemBtn active={equipped} onClick={onEquip}>
               {isWearable(it) ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}

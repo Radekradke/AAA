@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/useTheme';
 
 // o modal (com o cálculo de diferença entre versões) só carrega quando há conflito
 const ConflictModal = lazy(() => import('./SyncConflictModal').then((m) => ({ default: m.ConflictModal })));
+const LocalSaveErrorModal = lazy(() => import('./LocalSaveErrorModal').then((m) => ({ default: m.LocalSaveErrorModal })));
 
 /**
  * Indicador discreto de salvamento/sincronização no topo:
@@ -14,12 +15,14 @@ const ConflictModal = lazy(() => import('./SyncConflictModal').then((m) => ({ de
  */
 export function SyncBadge() {
   const t = useTheme();
-  const { local, cloud, pendingCount, conflicts, lastError } = useSaveStatusStore();
+  const { local, cloud, pendingCount, conflicts, lastError, localError } = useSaveStatusStore();
   const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
 
   const view = (() => {
     // conflito vem antes do "Salvando…" (passageiro): o selo não pode deixar de ser clicável
     if (cloud === 'conflict' || conflicts.length) return { dot: t.danger, text: `Conflito (${conflicts.length})`, click: true };
+    if (local === 'error') return { dot: t.danger, text: 'Falha ao salvar', retry: true, title: `${localError ?? 'Armazenamento indisponível.'} Clique para recuperar as alterações e baixar um backup.` };
     if (local === 'saving') return { dot: t.acc, text: 'Salvando…', pulse: true };
     if (cloud === 'error') return { dot: t.danger, text: 'Erro ao sincronizar', title: lastError ?? undefined };
     if (cloud === 'offline') return { dot: '#E0A93E', text: pendingCount > 0 ? `Offline · ${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : 'Offline' };
@@ -27,17 +30,17 @@ export function SyncBadge() {
     if (cloud === 'synced') return { dot: '#3FC56B', text: 'Nuvem em dia', short: 'Na nuvem', calm: true };
     if (cloud === 'pending') return { dot: t.acc, text: 'Aguardando nuvem' };
     // nuvem desativada (sem Supabase ou convidado): só o estado local
-    return { dot: local === 'saved' ? '#3FC56B' : t.muted, text: 'Salvo neste aparelho', short: 'Salvo', calm: true };
+    return local === 'saved' ? { dot: '#3FC56B', text: 'Salvo neste aparelho', short: 'Salvo', calm: true } : { dot: t.muted, text: 'Sem gravação pendente', short: 'Local', calm: true };
   })();
 
   return (
     <>
       <button
-        onClick={view.click ? () => setOpen(true) : undefined}
+        onClick={view.click ? () => setOpen(true) : 'retry' in view ? () => setLocalOpen(true) : undefined}
         title={view.title ?? view.text}
         aria-label={`Estado de salvamento: ${view.text}`}
         style={{
-          cursor: view.click ? 'pointer' : 'default',
+          cursor: view.click || 'retry' in view ? 'pointer' : 'default',
           display: 'inline-flex',
           alignItems: 'center',
           gap: 7,
@@ -67,7 +70,7 @@ export function SyncBadge() {
           }}
         />
         {/* atenção → texto visível no desktop; tudo certo → rótulo curto só em telas largas (no resto, o ponto e o title) */}
-        {'calm' in view && view.calm ? <span className="fv-sync-calm">{view.short}</span> : <span className="fv-hide-mobile">{view.text}</span>}
+        {'calm' in view && view.calm ? <span className="fv-sync-calm">{view.short}</span> : <span className={local === 'error' ? undefined : 'fv-hide-mobile'}>{view.text}</span>}
       </button>
 
       {open && (
@@ -75,6 +78,7 @@ export function SyncBadge() {
           <ConflictModal onClose={() => setOpen(false)} />
         </Suspense>
       )}
+      {localOpen && <Suspense fallback={null}><LocalSaveErrorModal onClose={() => setLocalOpen(false)} /></Suspense>}
     </>
   );
 }

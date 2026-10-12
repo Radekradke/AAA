@@ -1,4 +1,6 @@
 import type { InventoryItem } from '@/types/character';
+import { getItem } from '@/data/items';
+import { bodySlotFromName } from './bodySlotNames';
 
 /**
  * Onde um item mágico se veste (D&D 5e 2014, Guia do Mestre, "Vestindo e
@@ -32,26 +34,12 @@ export const BODY_SLOTS: Record<BodySlot, BodySlotDef> = {
 };
 
 /** Pelo nome (vale para o catálogo, para itens editados e para homebrew com nome claro). */
-const BY_NAME: [RegExp, BodySlot][] = [
-  [/^anel\b/i, 'anel'],
-  [/^(manto do arquimago|robe|t[úu]nica|veste)\b/i, 'veste'],
-  [/^(manto|capa)\b/i, 'manto'],
-  [/^(botas|sand[áa]lias|chinelos|sapatos)\b/i, 'pes'],
-  [/^(luvas|manoplas)\b/i, 'maos'],
-  [/^bra[çc]adeiras\b/i, 'bracos'],
-  [/^(tiara|chap[ée]u|elmo|coroa|capacete|diadema|capuz)\b/i, 'cabeca'],
-  [/^(óculos|oculos|olhos|lentes)\b/i, 'olhos'],
-  [/^(amuleto|periapto|colar|medalh[ãa]o|pingente|talism[ãa])\b/i, 'pescoco'],
-  [/^cinto\b/i, 'cintura'],
-  [/^pedra ioun\b/i, 'orbita'],
-];
 
 /** Em que parte do corpo o item se veste (null = não é vestível: arma, poção, varinha…). */
-export function bodySlotOf(it: Pick<InventoryItem, 'name' | 'category' | 'wear'>): BodySlot | null {
+export function bodySlotOf(it: Pick<InventoryItem, 'name' | 'category' | 'wear' | 'bodySlot' | 'itemId'>): BodySlot | null {
   if (it.wear === 'body') return null;
-  if (it.category === 'ring') return 'anel';
-  if (it.category !== 'wondrous' && it.wear !== 'worn') return null;
-  const name = it.name.trim();
-  for (const [re, slot] of BY_NAME) if (re.test(name)) return slot;
-  return null;
+  if (it.bodySlot) return it.bodySlot;
+  const catalogSlot = it.itemId ? getItem(it.itemId)?.bodySlot : undefined;
+  if (catalogSlot) return catalogSlot;
+  return bodySlotFromName(it);
 }

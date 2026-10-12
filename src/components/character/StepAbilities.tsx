@@ -1,3 +1,4 @@
+import { raceOf } from '@/data/races';
 import type { StepProps } from './stepTypes';
 import { STEP_ABILITIES } from '@/engine/creationSummary';
 import { StepHeader, Segmented } from './creatorUi';
@@ -124,7 +125,7 @@ export function StepAbilities({ char, update }: StepProps) {
       <div className="fv-abil-list">
         {ABILITY_KEYS.map((key) => {
           const baseVal = base[key];
-          const racial = racialBonusFor(key, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi);
+          const racial = racialBonusFor(key, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi, raceOf(char));
           const total = baseVal + racial;
           const isRec = recommended.includes(key);
           const isBg = bg.suggestedAbilities.includes(key);

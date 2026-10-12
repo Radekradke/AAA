@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import type { AbilityKey, SkillKey } from '@/types/dnd';
 import { levelIn } from './damageExtras';
@@ -44,7 +45,7 @@ export function rollRule(char: Character, kind: 'check' | 'save', ability: Abili
   // Esquivar (Defesa Paciente do Monge ou a ação comum): vantagem em salvaguardas de DES até o próximo turno
   if (kind === 'save' && ability === 'dex' && (char.combat?.marks ?? []).includes('dodge') && !sources.includes('Sentido de Perigo')) sources.push('Esquivar');
   const rogue = levelIn(char, 'rogue');
-  if (kind === 'check' && ctx.skill === 'stealth' && char.subclassId === 'thief' && rogue >= 9 && ctx.speed && (char.combat?.moveUsed ?? 0) <= ctx.speed / 2) {
+  if (kind === 'check' && ctx.skill === 'stealth' && subclassOf(char, 'rogue') === 'thief' && rogue >= 9 && ctx.speed && (char.combat?.moveUsed ?? 0) <= ctx.speed / 2) {
     sources.push('Furtividade Suprema');
   }
   const floor = kind === 'check' && ability === 'str' && barb >= 18 ? { value: effectiveAbilities(char).str, source: 'Força Indomável' } : undefined;

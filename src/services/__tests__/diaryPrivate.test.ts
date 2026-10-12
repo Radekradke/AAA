@@ -7,7 +7,9 @@ const cloud = vi.hoisted(() => ({
   rows: [] as SheetRow[],
   /** null = banco sem a tabela sheet_diaries */
   diaries: new Map() as Map<string, DiaryRow> | null,
-  sheetPushes: [] as { id: string; base: number | null | undefined; privateDiary: boolean; snapshot: Character }[],
+  sheetPushes: [] as { id: string; base: number | null | undefined; snapshot: Character }[],
+  pullError: false,
+  pushError: false,
   diaryPushes: [] as { id: string; version: number; data: unknown }[],
 }));
 
@@ -19,9 +21,9 @@ vi.mock('../characterSheetService', async () => {
     characterSheetService: {
       pullSheets: async () => cloud.rows.map((r) => ({ ...r })),
       deleteSheet: async () => undefined,
-      pushSheet: async (char: Character, _u: string, base?: number | null, privateDiary = false) => {
-        const snapshot = privateDiary ? withoutDiary(char) : char;
-        cloud.sheetPushes.push({ id: char.id, base, privateDiary, snapshot });
+      pushSheet: async (char: Character, _u: string, base?: number | null) => {
+        const snapshot = withoutDiary(char);
+        cloud.sheetPushes.push({ id: char.id, base, snapshot });
         const row = cloud.rows.find((r) => r.id === char.id);
         if (row) Object.assign(row, { snapshot, updated_at: char.updatedAt });
         else cloud.rows.push({ id: char.id, user_id: 'u', snapshot, updated_at: char.updatedAt } as SheetRow);
@@ -35,8 +37,9 @@ vi.mock('../diaryCloud', async () => {
   return {
     ...real,
     diaryCloud: {
-      pull: async () => (cloud.diaries ? new Map(cloud.diaries) : null),
+      pull: async () => { if (cloud.pullError) throw new Error("Consulta de diário falhou"); return cloud.diaries ? new Map(cloud.diaries) : null; },
       push: async (char: Character, user: string, version: number) => {
+        if (cloud.pushError) throw new Error("Envio de diário falhou");
         const data = real.diaryPartOf(char);
         cloud.diaryPushes.push({ id: char.id, version, data });
         cloud.diaries?.set(char.id, { sheet_id: char.id, user_id: user, data, updated_at: version });
@@ -45,7 +48,7 @@ vi.mock('../diaryCloud', async () => {
   };
 });
 
-import { syncNow } from '../offlineSyncService';
+import { resolveConflict, syncNow } from '../offlineSyncService';
 import { cloudDiaryFor, hasLegacyDiary, isEmptyDiaryPart, withDiary, withoutDiary } from '../diaryCloud';
 import { useCharacterStore } from '@/store/characterStore';
 import { useSaveStatusStore } from '@/store/saveStatusStore';
@@ -61,6 +64,8 @@ const drow = (id: string, d: Diary, v: number): DiaryRow => ({ sheet_id: id, use
 const current = () => useCharacterStore.getState().characters.find((c) => c.id === 'h1')!;
 
 beforeEach(() => {
+  cloud.pullError = false;
+  cloud.pushError = false;
   cloud.rows = [];
   cloud.diaries = new Map();
   cloud.sheetPushes = [];
@@ -98,11 +103,109 @@ describe('diário privado: funções puras', () => {
 });
 
 describe('diário privado: sincronização', () => {
+  it('falha de consulta não autoriza enviar um snapshot com segredo', async () => {
+    cloud.pullError = true;
+    useCharacterStore.setState({ characters: [hero({ updatedAt: 200, syncBase: 100, syncStatus: 'pending', diary: diary('segredo transitório') })], pendingDeletes: [] });
+    cloud.rows = [row(withoutDiary(hero()))];
+    await syncNow(USER);
+    expect(cloud.sheetPushes).toHaveLength(0);
+    expect(current().diary?.notes[0].text).toBe('segredo transitório');
+    expect(useSaveStatusStore.getState().cloud).toBe('error');
+  });
+  it('falha no envio do diário fica pendente e a rodada seguinte recupera', async () => {
+    cloud.pushError = true;
+    useCharacterStore.setState({ characters: [hero({ updatedAt: 200, syncBase: 100, syncStatus: 'pending', diary: diary('segredo pendente') })], pendingDeletes: [] });
+    cloud.rows = [row(withoutDiary(hero()))];
+    await syncNow(USER);
+    expect(cloud.rows[0].snapshot.diary).toBeUndefined();
+    expect(current().syncStatus).toBe('pending');
+    expect(useSaveStatusStore.getState().cloud).toBe('error');
+    cloud.pushError = false;
+    await syncNow(USER);
+    expect(cloud.diaries!.get('h1')?.data.diary?.notes[0].text).toBe('segredo pendente');
+    expect(current().syncStatus).toBe('synced');
+  });
+  it('retenta também a exclusão da última nota após falha no envio', async () => {
+    cloud.pushError = true;
+    useCharacterStore.setState({ characters: [hero({ updatedAt: 200, syncBase: 100, syncStatus: 'pending', diary: { notes: [], quests: [], clues: [], people: {} } })], pendingDeletes: [] });
+    cloud.rows = [row(withoutDiary(hero()))];
+    cloud.diaries!.set('h1', drow('h1', diary('nota excluída'), 100));
+    await syncNow(USER);
+    cloud.pushError = false;
+    await syncNow(USER);
+    expect(current().diary?.notes).toEqual([]);
+    expect(cloud.diaries!.get('h1')?.data.diary?.notes).toEqual([]);
+    expect(cloud.diaries!.get('h1')?.updated_at).toBe(200);
+    expect(current().syncStatus).toBe('synced');
+  });
+  it('limpa também snapshot legado que já tem cópia privada da mesma versão', async () => {
+    const c = hero({ syncBase: 100, diary: diary('legado') });
+    useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
+    cloud.rows = [row(c)];
+    cloud.diaries!.set('h1', drow('h1', diary('cópia privada'), 100));
+    await syncNow(USER);
+    expect(cloud.rows[0].snapshot.diary).toBeUndefined();
+    expect(current().diary?.notes[0].text).toBe('cópia privada');
+    expect(cloud.diaries!.get('h1')?.data.diary?.notes[0].text).toBe('cópia privada');
+  });
+  it('falha do diário ao resolver conflito mantém conflito e ficha local', async () => {
+    const c = hero({ diary: diary('segredo no conflito') });
+    useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
+    useSaveStatusStore.setState({ conflicts: [{ sheetId: 'h1', name: 'Kael', localUpdatedAt: 100, remoteUpdatedAt: 90, remote: hero() }] });
+    cloud.pullError = true;
+    await resolveConflict(USER, 'h1', 'local');
+    expect(cloud.sheetPushes).toHaveLength(0);
+    expect(useSaveStatusStore.getState().conflicts).toHaveLength(1);
+    expect(current().diary?.notes[0].text).toBe('segredo no conflito');
+  });
+  it('manter versão local mais antiga cria uma revisão nova para ficha e diário', async () => {
+    const c = hero({ updatedAt: 150, syncBase: 100, syncStatus: 'conflict', diary: diary('escolha local') });
+    useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
+    cloud.rows = [row(withoutDiary(hero({ updatedAt: 200 })))];
+    cloud.diaries!.set('h1', drow('h1', diary('outra escolha'), 200));
+    useSaveStatusStore.setState({ conflicts: [{ sheetId: 'h1', name: 'Kael', localUpdatedAt: 150, remoteUpdatedAt: 200, remote: hero({ updatedAt: 200 }) }] });
+    await resolveConflict(USER, 'h1', 'local');
+    const version = current().updatedAt;
+    expect(version).toBeGreaterThan(200);
+    expect(cloud.rows[0].updated_at).toBe(version);
+    expect(cloud.diaries!.get('h1')?.updated_at).toBe(version);
+    expect(cloud.diaries!.get('h1')?.data.diary?.notes[0].text).toBe('escolha local');
+    expect(current().syncStatus).toBe('synced');
+    expect(useSaveStatusStore.getState().conflicts).toHaveLength(0);
+  });
+  it('edição legada com relógio atrasado sobe com revisão nova e retenta o diário', async () => {
+    const c = hero({ updatedAt: 150, syncBase: 200, syncStatus: 'pending', diary: diary('edição com relógio atrasado') });
+    useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
+    cloud.rows = [row(withoutDiary(hero({ updatedAt: 200 })))];
+    cloud.diaries!.set('h1', drow('h1', diary('base'), 200));
+    cloud.pushError = true;
+    await syncNow(USER);
+    const version = current().updatedAt;
+    expect(version).toBeGreaterThan(200);
+    expect(current().syncStatus).toBe('pending');
+    expect(cloud.rows[0].updated_at).toBe(version);
+    cloud.pushError = false;
+    await syncNow(USER);
+    expect(cloud.diaries!.get('h1')?.updated_at).toBe(version);
+    expect(current().diary?.notes[0].text).toBe('edição com relógio atrasado');
+    expect(current().syncStatus).toBe('synced');
+  });
+  it('limpa legado sem rebaixar um diário privado mais novo que a ficha', async () => {
+    const c = hero({ syncBase: 100, diary: diary('legado') });
+    useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
+    cloud.rows = [row(c)];
+    cloud.diaries!.set('h1', drow('h1', diary('mais novo'), 200));
+    await syncNow(USER);
+    expect(cloud.rows[0].snapshot.diary).toBeUndefined();
+    expect(cloud.diaryPushes).toHaveLength(0);
+    expect(cloud.diaries!.get('h1')?.updated_at).toBe(200);
+    expect(current().diary?.notes[0].text).toBe('mais novo');
+  });
   it('edição local: a ficha sobe sem o diário e o diário vai à parte com a mesma versão', async () => {
     useCharacterStore.setState({ characters: [hero({ updatedAt: 200, syncBase: 100, syncStatus: 'pending', diary: diary('meu segredo') })], pendingDeletes: [] });
     cloud.rows = [row(withoutDiary(hero({ updatedAt: 100 })))];
     await syncNow(USER);
-    expect(cloud.sheetPushes[0]).toMatchObject({ base: 100, privateDiary: true });
+    expect(cloud.sheetPushes[0]).toMatchObject({ base: 100 });
     expect(JSON.stringify(cloud.sheetPushes[0].snapshot)).not.toContain('meu segredo');
     expect(cloud.diaryPushes[0]).toMatchObject({ id: 'h1', version: 200 });
     expect(current().diary?.notes[0].text).toBe('meu segredo'); // continua no aparelho
@@ -113,7 +216,7 @@ describe('diário privado: sincronização', () => {
     useCharacterStore.setState({ characters: [c], pendingDeletes: [] });
     cloud.rows = [row(c)];
     await syncNow(USER);
-    expect(cloud.sheetPushes[0]).toMatchObject({ base: 100, privateDiary: true });
+    expect(cloud.sheetPushes[0]).toMatchObject({ base: 100 });
     expect(cloud.rows[0].snapshot.diary).toBeUndefined();
     expect(cloud.rows[0].updated_at).toBe(100);
     expect(cloud.diaryPushes[0]).toMatchObject({ version: 100 });
@@ -156,13 +259,15 @@ describe('diário privado: sincronização', () => {
     expect(current().diary?.notes[0].text).toBe('do outro aparelho');
   });
 
-  it('banco sem a tabela nova: nada muda — o diário segue dentro da ficha', async () => {
+  it('banco sem tabela privada mantém o diário local e informa erro', async () => {
     cloud.diaries = null;
     useCharacterStore.setState({ characters: [hero({ updatedAt: 200, syncBase: 100, syncStatus: 'pending', diary: diary('x') })], pendingDeletes: [] });
     cloud.rows = [row(hero({ updatedAt: 100 }))];
     await syncNow(USER);
-    expect(cloud.sheetPushes[0].privateDiary).toBe(false);
-    expect(cloud.rows[0].snapshot.diary?.notes[0].text).toBe('x');
+    expect(cloud.sheetPushes).toHaveLength(0);
+    expect(current().diary?.notes[0].text).toBe('x');
+    expect(current().syncStatus).toBe('pending');
+    expect(useSaveStatusStore.getState().cloud).toBe('error');
     expect(cloud.diaryPushes).toHaveLength(0);
   });
 });

@@ -99,6 +99,7 @@ export async function flushClueImageUploads(userId: string): Promise<void> {
   if (!sb || !CLOUD_ID.test(userId)) return;
   const pending = await queue();
   const done: string[] = [];
+  let failed: string | null = null;
   for (const id of pending) {
     const url = await get<string>(key(id));
     if (!url) {
@@ -107,10 +108,11 @@ export async function flushClueImageUploads(userId: string): Promise<void> {
     }
     const blob = dataUrlToBlob(url);
     const { error } = await sb.storage.from(BUCKET).upload(path(userId, id), blob, { contentType: blob.type, upsert: true, cacheControl: '31536000' });
-    if (error) break; // sem o bucket (SQL não rodou) ou sem rede: tenta na próxima
+    if (error) { failed = error.message; break; } // mantém o restante na fila
     done.push(id);
   }
   if (done.length) await editQueue((q) => q.filter((x) => !done.includes(x)));
+  if (failed) throw new Error(`Imagens do diário ainda pendentes: ${failed}`);
 }
 
 /** A imagem de uma pista para mostrar (null enquanto carrega ou se não houver). */

@@ -3,7 +3,8 @@ import { ABILITY_KEYS } from '@/types/dnd';
 import type { AbilityKey } from '@/types/dnd';
 import { abilityModifier, proficiencyBonus } from './modifiers';
 import { dragonAncestry } from '@/data/races';
-import { effectiveAbilities } from './levelUp';
+import { currentAbilities } from './currentAbilities';
+import { subclassOf } from './characterClasses';
 import { getFeat } from '@/data/feats';
 
 /**
@@ -29,7 +30,7 @@ export interface ResourceState {
 type Mods = Record<AbilityKey, number>;
 
 function mods(char: Character): Mods {
-  const totals = effectiveAbilities(char);
+  const totals = currentAbilities(char);
   const out = {} as Mods;
   for (const k of ABILITY_KEYS) out[k] = abilityModifier(totals[k]);
   return out;
@@ -158,7 +159,7 @@ export function characterResources(char: Character): ResourceState[] {
   const add2 = (r: ResourceState) => out.push(r);
   for (const cl of levels) {
     // a subclasse registrada é a da classe principal
-    const sub = cl.classId === char.classId ? char.subclassId ?? null : null;
+    const sub = subclassOf(char, cl.classId);
     out.push(...classResources(cl.classId, Math.max(1, cl.level), m, sub, char.choices ?? {}));
   }
   // traços raciais com uso (PHB 2014)
@@ -184,6 +185,12 @@ export function characterResources(char: Character): ResourceState[] {
   for (const featId of char.feats ?? []) {
     const u = getFeat(featId)?.uses;
     if (u) out.push({ id: u.id, label: u.label, desc: u.desc, recharge: u.recharge, max: u.max ?? 1 });
+  }
+  // Canalizar Divindade é uma reserva compartilhada, com o maior máximo conquistado.
+  const channel = out.filter((r) => r.id === 'channel');
+  if (channel.length > 1) {
+    const max = Math.max(...channel.map((r) => r.max));
+    return [...out.filter((r) => r.id !== 'channel'), { ...channel[0], max }];
   }
   return out;
 }

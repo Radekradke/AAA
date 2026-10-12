@@ -3,7 +3,7 @@ import type { KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
-import { RuneRing } from '@/components/animations/RuneRing';
+import { FichaVivaMark } from '@/components/ui/FichaVivaMark';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
@@ -143,9 +143,7 @@ export function Home() {
       {/* a maga fica à esquerda do vídeo; no PC o menu vai para o lado livre (direita) */}
       <div className="fv-menu is-stage">
         <header className="fv-menu-brand">
-          <RuneRing size="clamp(84px,12vh,128px)">
-            <span className="fv-menu-sigil">F</span>
-          </RuneRing>
+          <FichaVivaMark />
           <h1 className="fv-home-title fv-menu-title">FICHA&nbsp;VIVA</h1>
           <p className="fv-menu-tag">Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue</p>
         </header>

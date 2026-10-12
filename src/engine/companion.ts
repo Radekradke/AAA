@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import { ABILITY_KEYS } from '@/types/dnd';
@@ -30,7 +31,7 @@ export interface CompanionView {
  * patrulheiro, o que for maior.
  */
 export function companionOf(char: Character): CompanionView | null {
-  if (char.subclassId !== 'beastmaster') return null;
+  if (subclassOf(char, 'ranger') !== 'beastmaster') return null;
   const beast = getBeast(char.choices?.['ranger.companion']?.[0]);
   if (!beast) return null;
   const lv = char.classLevels?.find((c) => c.classId === 'ranger')?.level ?? (char.classId === 'ranger' ? char.level : 0);

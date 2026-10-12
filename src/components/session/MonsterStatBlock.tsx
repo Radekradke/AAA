@@ -11,6 +11,9 @@ import { withExtraDice } from '@/engine/damageExtras';
 import { useUiStore } from '@/store/uiStore';
 import { ABILITY_SHORT } from '@/data/skills';
 import type { AbilityKey } from '@/types/dnd';
+import { tableHero } from '@/lib/tableHeroes';
+import { useCharacterStore } from '@/store/characterStore';
+import { heroDefenses } from '@/engine/heroDefenses';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
@@ -70,7 +73,9 @@ export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Mo
 
   const defs = (c: Combatant) => {
     const mm = c.monsterRef ? MONSTER_BY_ID[c.monsterRef] : null;
-    return mm ? { vuln: mm.vuln, resist: mm.resist, immune: mm.immune } : {};
+    if (mm) return { vuln: mm.vuln, resist: mm.resist, immune: mm.immune };
+    const hero = c.sheetId ? useCharacterStore.getState().getCharacter(c.sheetId) ?? tableHero(c.sheetId) : undefined;
+    return hero ? heroDefenses(hero) : {};
   };
 
   /** PV do alvo antes/depois (para a crônica), quando o encontro sabe o PV. */

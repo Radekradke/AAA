@@ -9,7 +9,7 @@ import { getSubraces } from '@/data/races';
 import { getBackground } from '@/data/backgrounds';
 import { toolLabel } from '@/data/tools';
 import { defaultPreparedForClass, getSpell } from '@/data/spells';
-import { cantripsKnown, spellsKnownOrPrepared } from './spellcasting';
+import { cantripsKnown, spellsKnownOrPrepared, syncPrimarySpellSelection } from './spellcasting';
 import { buildSpellSlots, buildResources } from './progression';
 import { resourceMaxMap } from './classResources';
 import { buildLoadout, defaultSelection, kitGold } from './loadout';
@@ -152,7 +152,7 @@ export function createDraftCharacter(input: NewCharacterInput): Character {
     levelHistory: [],
     inspiration: false,
     campaign: { ...DEFAULT_CAMPAIGN },
-    schema: 3,
+    schema: 4,
     baseAbilities: standardArrayFor(classId),
     skillProfs: [],
     skillExpertise: [],
@@ -272,7 +272,7 @@ export function finalizeCharacter(draft: Character): Character {
   const finalized: Character = {
     ...draft,
     name: draft.name.trim() || 'Herói Sem Nome',
-    classLevels: [{ classId: draft.classId, level: draft.level }],
+    classLevels: [{ classId: draft.classId, level: draft.level, subclassId: draft.subclassId }],
     levelHistory: synthesizeHistory(draft),
     inventory,
     equipped,
@@ -291,6 +291,7 @@ export function finalizeCharacter(draft: Character): Character {
     draft: false,
     updatedAt: Date.now(),
   };
+  syncPrimarySpellSelection(finalized);
   // escolhas do 1º nível feitas na criação: ferramentas viram proficiência, truques entram na lista
   grantChoiceEffects(finalized, Object.fromEntries(Object.entries(finalized.choices ?? {}).filter(([k]) => !k.startsWith('feat.'))));
   // recursos calculados com o personagem pronto (nível, atributos, subclasse)

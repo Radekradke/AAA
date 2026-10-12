@@ -1,6 +1,7 @@
+import { subraceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
-import { getSubrace, raceOf } from '@/data/races';
+import { raceOf } from '@/data/races';
 import type { Character } from '@/types/character';
 import type { SkillKey } from '@/types/dnd';
 
@@ -114,7 +115,7 @@ export interface LanguagePicks {
 
 export function languagePicks(char: Character): LanguagePicks {
   const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
+  const sub = subraceOf(char);
   const bg = getBackground(char.backgroundId);
   const fixed: string[] = [];
   const sources: { label: string; count: number }[] = [];

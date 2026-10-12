@@ -11,7 +11,7 @@ import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
 import { useUiStore } from '@/store/uiStore';
 import { getClass } from '@/data/classes';
-import { casterKind, casterOf, expandedSpellIds, grantedSpells, itemGrantedSpells, syncSpellSlots } from '@/engine/spellcasting';
+import { casterKind, casterOf, casterForClass, casterProfiles, changeSpellSelection, expandedSpellIds, grantedSpellsForClass, itemGrantedSpells, spellSelectionOf, syncSpellSlots, syncSlotPools } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
@@ -35,16 +35,22 @@ export function TabMagias({ char, derived }: TabProps) {
   const store = useCharacterStore();
   const [learn, setLearn] = useState<false | 'class' | 'all'>(false);
 
-  const cls = getClass(char.classId);
+  const profiles = casterProfiles(char);
+  const [selectedClass, setSelectedClass] = useState(() => casterOf(char)?.classId ?? char.classId);
+  const classId = profiles.find((p) => p.classId === selectedClass)?.classId ?? casterOf(char)?.classId ?? char.classId;
+  const cls = getClass(classId);
   // conjura pela classe ou pela subclasse (Cavaleiro Arcano / Trapaceiro Arcano: lista de mago, INT)
-  const castAbility = casterOf(char)?.ability ?? cls.spellAbility ?? cls.prim;
+  const castAbility = casterForClass(char, classId)?.ability ?? cls.spellAbility ?? cls.prim;
   const castMod = derived.abilities[castAbility].mod;
-  const caster = casterOf(char, castMod);
-  const kind = caster?.kind ?? casterKind(char.classId);
+  const caster = casterForClass(char, classId, castMod);
+  const kind = caster?.kind ?? casterKind(classId);
+  const numbers = derived.spellProfiles?.[classId];
+  const castingDerived = numbers ? { ...derived, spellDC: numbers.dc, spellAttack: numbers.attack } : derived;
+  const selection = spellSelectionOf(char, classId);
   const isWizard = kind === 'spellbook';
-  const listClass = caster?.listClass ?? char.classId;
+  const listClass = caster?.listClass ?? classId;
   // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
-  const st = useMemo(() => spellLearnState(char, castMod), [char, castMod]);
+  const st = useMemo(() => spellLearnState(char, castMod, classId), [char, castMod, classId]);
   // pacotes de conteúdo ligados mudam as listas (Xanathar, Tasha)
   const packs = useUiStore((s) => s.packs);
   const [freeMode, setFreeMode] = useState(false);
@@ -55,7 +61,8 @@ export function TabMagias({ char, derived }: TabProps) {
 
   // máximos vêm das regras (classe + subclasse); o gasto vem da ficha
   const slotView = syncSpellSlots(char);
-  const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
+  const slotPools = syncSlotPools(char);
+  const slotEntries = (['spellcasting', 'pact'] as const).flatMap((pool) => Object.entries(slotPools[pool]).map(([lv, slot]) => ({ lv: Number(lv), slot, pool })));
 
   const allItemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.combat.itemCharges, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
   // cajados e varinhas (cargas) ficam num bloco próprio; o resto segue como antes
@@ -63,11 +70,11 @@ export function TabMagias({ char, derived }: TabProps) {
   const itemSpells = allItemSpells.filter((s) => !s.charges);
 
   // magias "do personagem": preparadas (todas as classes) + grimório do mago (nível ≥1)
-  const prepared = char.preparedSpells;
-  const spellbook = char.knownSpells; // usado só pelo mago (nível ≥1)
+  const prepared = selection.preparedSpells;
+  const spellbook = selection.knownSpells;
 
   // magias de Domínio/Juramento/Círculo: sempre preparadas, fora do limite
-  const granted = useMemo(() => grantedSpells(char), [char.subclassId, char.classLevels, char.level, char.choices]);
+  const granted = useMemo(() => grantedSpellsForClass(char, classId), [char.subclassId, char.classLevels, char.level, char.choices, classId]);
   const grantedFrom = useMemo(() => new Map(granted.map((g) => [g.id, g.source])), [granted]);
   const activeIds = useMemo(
     () => Array.from(new Set([...(isWizard ? [...prepared, ...spellbook] : prepared), ...granted.map((g) => g.id)])),
@@ -84,9 +91,9 @@ export function TabMagias({ char, derived }: TabProps) {
   // lista da classe + lista expandida do patrono (Bruxo)
   const classLearnList = useMemo(() => {
     const base = spellsForClass(listClass, 9);
-    const extra = expandedSpellIds(char).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
+    const extra = expandedSpellIds(char, classId).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
     return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-  }, [listClass, char.subclassId, packs]);
+  }, [listClass, char.subclassId, char.classLevels, classId, packs]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -97,7 +104,7 @@ export function TabMagias({ char, derived }: TabProps) {
     if (!sp) return;
     const f = forgetInfo(sp);
     if (f.block) return;
-    store.forgetSpell(char.id, id, f.usesSwap);
+    store.forgetSpell(char.id, id, f.usesSwap, classId);
   };
 
   // aprender/preparar (lista da classe) ou copiar para o grimório (mago, custa ouro)
@@ -105,19 +112,19 @@ export function TabMagias({ char, derived }: TabProps) {
     const sp = SPELL_BY_ID[id];
     if (!sp) return;
     const field: 'knownSpells' | 'preparedSpells' = isWizard && sp.level >= 1 ? 'knownSpells' : 'preparedSpells';
-    if (char[field].includes(id)) return removeSpell(id);
+    if (selection[field].includes(id)) return removeSpell(id);
     if (blockFor(sp, copy ? 'copy' : 'class')) return;
-    if (copy) return store.copySpell(char.id, id, scrollCost(sp));
+    if (copy) return store.copySpell(char.id, id, scrollCost(sp), classId);
     update((c) => {
-      c[field] = [...c[field], id];
+      changeSpellSelection(c, classId, (s) => { s[field] = [...s[field], id]; });
     });
   };
 
   const togglePrepared = (id: string) => {
-    const isOn = char.preparedSpells.includes(id);
+    const isOn = selection.preparedSpells.includes(id);
     if (!isOn && !freeMode && st && prepareBlock(st, false)) return;
     update((c) => {
-      c.preparedSpells = isOn ? c.preparedSpells.filter((x) => x !== id) : [...c.preparedSpells, id];
+      changeSpellSelection(c, classId, (s) => { s.preparedSpells = isOn ? s.preparedSpells.filter((x) => x !== id) : [...s.preparedSpells, id]; });
     });
   };
 
@@ -229,10 +236,10 @@ export function TabMagias({ char, derived }: TabProps) {
         </LoreTooltip>
         {canCast && arcanumId ? (
           arcanumLeft > 0 && (
-            <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact free onCast={() => store.setResource(char.id, arcanumId, arcanumLeft - 1)} />
+            <SpellCastButton char={char} derived={castingDerived} castingClassId={classId} spell={sp} castMod={castMod} compact free onCast={() => store.setResource(char.id, arcanumId, arcanumLeft - 1)} />
           )
         ) : (
-          canCast && <SpellCastButton char={char} derived={derived} spell={sp} castMod={castMod} compact />
+          canCast && <SpellCastButton char={char} derived={castingDerived} castingClassId={classId} spell={sp} castMod={castMod} compact />
         )}
         <span className="fv-spell-tools">
           <button
@@ -266,13 +273,19 @@ export function TabMagias({ char, derived }: TabProps) {
       {/* Espaços de magia + guia */}
       {kind !== 'none' && (
         <Panel full>
+          {profiles.length > 1 && <label className="fv-label" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            Origem das magias
+            <select className="fv-input" aria-label="Classe das magias" value={classId} onChange={(e) => { setSelectedClass(e.target.value); setLearn(false); setCircle('all'); setQ(''); }}>
+              {profiles.map((p) => <option key={p.classId} value={p.classId}>{getClass(p.classId).label} · nível {p.level}</option>)}
+            </select>
+          </label>}
           <SectionLabel
             style={{ marginBottom: 6 }}
             right={
               <span className="fv-spell-dc" title="CD das salvaguardas contra suas magias · bônus de ataque com magia · atributo de conjuração">
-                CD <b className="is-gold">{derived.spellDC}</b>
+                CD <b className="is-gold">{castingDerived.spellDC}</b>
                 <i aria-hidden>·</i>
-                <b className="is-acc">{derived.spellAttack !== null ? modStr(derived.spellAttack) : '—'}</b>
+                <b className="is-acc">{castingDerived.spellAttack !== null ? modStr(castingDerived.spellAttack) : '—'}</b>
                 <i aria-hidden>·</i>
                 {ABILITY_SHORT[castAbility]}
               </span>
@@ -333,19 +346,18 @@ export function TabMagias({ char, derived }: TabProps) {
             </div>
           )}
 
-          {slotLevels.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
-          {slotLevels.map((lv) => {
-            const slot = slotView[lv];
+          {slotEntries.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
+          {slotEntries.map(({ lv, slot, pool }) => {
             return (
-              <div key={lv} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
-                <LoreTooltip info={passiveLore(`${lv}º círculo`, `${slot.max - slot.used}/${slot.max} disponíveis`, 'Cada losango é um espaço. Gastos voltam após descanso longo.', ['Magia', 'Recurso'])}>
-                  <span style={{ cursor: 'help', fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo</span>
+              <div key={`${pool}-${lv}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
+                <LoreTooltip info={passiveLore(`${lv}º círculo${pool === 'pact' ? ' · Pacto' : ''}`, `${slot.max - slot.used}/${slot.max} disponíveis`, `Cada losango é um espaço. Gastos voltam após descanso ${pool === 'pact' ? 'curto ou longo' : 'longo'}.`, ['Magia', 'Recurso'])}>
+                  <span style={{ cursor: 'help', fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo{pool === 'pact' ? ' · Pacto' : ''}</span>
                 </LoreTooltip>
                 <div style={{ flex: 1, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                   {Array.from({ length: slot.max }, (_, i) => {
                     const filled = i >= slot.used;
                     return (
-                      <span key={i} onClick={() => store.toggleSpellSlot(char.id, lv, i + 1)}
+                      <span key={i} onClick={() => store.toggleSpellSlot(char.id, lv, i + 1, pool)}
                         style={{ cursor: 'pointer', width: 19, height: 19, borderRadius: 6, transform: 'rotate(45deg)', border: '1px solid ' + (filled ? t.acc : t.line), background: filled ? hexA(t.acc, 0.85) : 'transparent', boxShadow: filled ? '0 0 10px ' + hexA(t.acc, 0.6) : 'none', transition: '.2s' }} />
                     );
                   })}

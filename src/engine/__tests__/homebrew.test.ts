@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { blankRace, bonusText, customLineage, finalizeRace, monogram, validateRace } from '../homebrew';
 import { deriveCharacter } from '../dndRules';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
-import { getRace, raceOf } from '@/data/races';
+import { getRace, raceOf, subracesOf } from '@/data/races';
 
 describe('raça homebrew', () => {
   it('monta o texto do bônus e o monograma', () => {
@@ -50,7 +50,7 @@ describe('raça homebrew', () => {
     const char = { ...base, raceId: race.id, subraceId: null, customRace: race };
     const d = deriveCharacter(char);
     expect(raceOf(char).label).toBe('Filho da Tempestade');
-    expect(getRace(race.id).label).toBe('Filho da Tempestade'); // ficou registrada para o resto do app
+    expect(getRace(race.id).label).not.toBe('Filho da Tempestade'); // cálculo não altera a biblioteca global
     expect(d.speed).toBe(10.5);
     expect(d.darkvision?.range).toBe(18);
     expect(d.resistances.map((r) => r.value)).toContain('elétrico');
@@ -60,7 +60,6 @@ describe('raça homebrew', () => {
 });
 
 import { RACE_PRESETS } from '@/data/racePresets';
-import { getSubraces } from '@/data/races';
 
 describe('pré-montadas e sub-raças', () => {
   it('Aasimar Protetor: +2 CAR e +1 SAB, resistências, visão e traços de raça + sub-raça', () => {
@@ -72,7 +71,7 @@ describe('pré-montadas e sub-raças', () => {
     const base = finalizeCharacter(createDraftCharacter({ ownerId: 'u', name: 'Seraph', classId: 'paladin' }));
     const char = { ...base, raceId: race.id, subraceId: protetor.id, customRace: race };
     const d = deriveCharacter(char);
-    expect(getSubraces(race.id)).toHaveLength(3);
+    expect(subracesOf(char)).toHaveLength(3);
     expect(d.abilities.cha.total).toBe(base.baseAbilities.cha + 2);
     expect(d.abilities.wis.total).toBe(base.baseAbilities.wis + 1);
     expect(d.resistances.map((r) => r.value)).toEqual(expect.arrayContaining(['necrótico', 'radiante']));

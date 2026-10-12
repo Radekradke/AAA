@@ -29,6 +29,11 @@ vi.mock('../characterSheetService', () => ({
   },
 }));
 
+vi.mock('../diaryCloud', async () => ({
+  ...await vi.importActual<typeof import('../diaryCloud')>('../diaryCloud'),
+  diaryCloud: { pull: async () => new Map(), push: async () => undefined },
+}));
+
 import { resolveConflict, syncNow } from '../offlineSyncService';
 import { __resetHistory, listHistory } from '../sheetHistory';
 import { useCharacterStore } from '@/store/characterStore';

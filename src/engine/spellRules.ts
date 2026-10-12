@@ -1,7 +1,7 @@
 import type { Character } from '@/types/character';
 import type { Spell } from '@/types/dnd';
 import { SPELL_BY_ID } from '@/data/spells';
-import { casterOf, expandedSpellIds, grantedSpells, spellSlotsFor } from './spellcasting';
+import { casterOf, casterForClass, expandedSpellIds, grantedSpellsForClass, spellSelectionOf } from './spellcasting';
 import type { CasterInfo } from './spellcasting';
 import { bonusSpellIds } from './classChoices';
 
@@ -45,18 +45,19 @@ function levelIn(char: Character, classId: string): number {
   return char.classLevels?.find((c) => c.classId === classId)?.level ?? (char.classId === classId ? char.level : 0);
 }
 
-export function spellLearnState(char: Character, castMod: number): SpellLearnState | null {
-  const caster = casterOf(char, castMod);
+export function spellLearnState(char: Character, castMod: number, classId = casterOf(char)?.classId): SpellLearnState | null {
+  const caster = classId ? casterForClass(char, classId, castMod) : null;
   if (!caster) return null;
-  const slots = spellSlotsFor(char);
+  const selection = spellSelectionOf(char, caster.classId);
+  const slots = caster.slots;
   const maxCircle = Math.max(0, ...Object.keys(slots).map(Number));
-  const freeIds = new Set([...bonusSpellIds(char), ...grantedSpells(char).map((g) => g.id)]);
+  const freeIds = new Set([...bonusSpellIds(char), ...grantedSpellsForClass(char, caster.classId).map((g) => g.id)]);
   const spell = (id: string) => SPELL_BY_ID[id];
   const counted = (ids: string[]) => ids.filter((id) => spell(id) && !freeIds.has(id));
-  const copied = new Set(char.spellbookCopied ?? []);
+  const copied = new Set(selection.spellbookCopied ?? []);
 
   const isWizard = caster.kind === 'spellbook';
-  const pool = isWizard ? counted([...char.preparedSpells, ...(char.knownSpells ?? [])]) : counted(char.preparedSpells);
+  const pool = isWizard ? counted([...selection.preparedSpells, ...selection.knownSpells]) : counted(selection.preparedSpells);
   const unique = [...new Set(pool)];
   const cantripsHave = unique.filter((id) => spell(id).level === 0).length;
   const leveled = unique.filter((id) => spell(id).level >= 1);
@@ -66,10 +67,10 @@ export function spellLearnState(char: Character, castMod: number): SpellLearnSta
   if (caster.kind === 'known') {
     known = { have: leveled.length, max: caster.guide.count };
   } else if (isWizard) {
-    const book = counted(char.knownSpells ?? []).filter((id) => spell(id).level >= 1);
+    const book = counted(selection.knownSpells).filter((id) => spell(id).level >= 1);
     known = { have: book.filter((id) => !copied.has(id)).length, max: caster.guide.count };
     prepared = {
-      have: counted(char.preparedSpells).filter((id) => spell(id).level >= 1).length,
+      have: counted(selection.preparedSpells).filter((id) => spell(id).level >= 1).length,
       max: Math.max(1, castMod + caster.level),
     };
   } else if (caster.kind === 'prepared') {
@@ -79,7 +80,7 @@ export function spellLearnState(char: Character, castMod: number): SpellLearnSta
   const offSchool = caster.schools ? leveled.filter((id) => !caster.schools!.allowed.includes(spell(id).school)).length : 0;
   const listIds = new Set<string>([
     ...Object.values(SPELL_BY_ID).filter((s) => (s.classes ?? []).includes(caster.listClass as never)).map((s) => s.id),
-    ...expandedSpellIds(char),
+    ...expandedSpellIds(char, caster.classId),
   ]);
 
   return {
@@ -89,7 +90,7 @@ export function spellLearnState(char: Character, castMod: number): SpellLearnSta
     cantrips: { have: cantripsHave, max: caster.cantrips },
     known,
     prepared,
-    swaps: char.spellSwaps ?? 0,
+    swaps: selection.spellSwaps ?? 0,
     copied,
     offSchool,
     listIds,
@@ -162,7 +163,7 @@ export function forgetBlock(st: SpellLearnState, sp: Spell): { block: string | n
 }
 
 /** Classes que ganham uma troca de magia conhecida a cada nível. */
-export function gainsSpellSwap(char: Character): boolean {
-  const c = casterOf(char);
-  return !!c && c.kind === 'known' && levelIn(char, char.classId) >= 2;
+export function gainsSpellSwap(char: Character, classId = casterOf(char)?.classId): boolean {
+  const c = classId ? casterForClass(char, classId) : null;
+  return !!c && c.kind === 'known' && levelIn(char, c.classId) >= 2;
 }

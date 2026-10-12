@@ -3,6 +3,7 @@ import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
+import { FichaVivaMark } from '@/components/ui/FichaVivaMark';
 
 interface NavItem {
   label: string;
@@ -40,9 +41,7 @@ export function GuildNav() {
 
   return (
     <nav className={'fv-guild-nav' + (onHub ? ' is-hub' : '')} aria-label="Navegação principal">
-      <div className="fv-guild-brand" aria-hidden>
-        <span>F</span>
-      </div>
+      <FichaVivaMark />
       <ul>
         {items.map((it) => {
           const on = it.match(pathname);

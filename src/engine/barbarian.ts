@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { characterResources } from './classResources';
 import { levelIn, rageBonus } from './damageExtras';
@@ -35,7 +36,7 @@ export function barbarianState(char: Character): BarbarianState | null {
   const usesMax = res?.max ?? 0;
   const unlimited = !!res?.unlimited;
   const usesLeft = unlimited ? Infinity : Math.min(usesMax, char.combat?.resources?.rage ?? usesMax);
-  const sub = char.subclassId;
+  const sub = subclassOf(char, 'barbarian');
   const berserker = sub === 'berserker' && level >= 3;
   const totem = sub === 'totem' && level >= 3 ? char.choices?.['barbarian.totemSpirit']?.[0] ?? null : null;
   const attune = sub === 'totem' && level >= 14 ? char.choices?.['barbarian.totemAttunement']?.[0] ?? null : null;

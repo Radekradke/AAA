@@ -607,7 +607,7 @@ No app (`services/diaryCloud.ts`, `services/offlineSyncService.ts`):
 - ao baixar, o diário certo é o da linha privada da mesma versão; uma ficha antiga (diário ainda no `snapshot`, gravada por um app desatualizado) é limpa na próxima sincronização;
 - se o envio do diário falhar depois do da ficha, a próxima rodada vê "mesma versão dos dois lados" e reenvia — sem conflito;
 - um aparelho com o diário vazio nunca apaga o da nuvem: traz de volta;
-- **sem este SQL**, nada muda: o diário segue dentro da ficha (como antes) e as imagens das pistas ficam só no aparelho.
+- **sem este SQL**, a sincronização informa que o armazenamento privado está indisponível e mantém os dados locais pendentes. O diário nunca é enviado no snapshot compartilhável. Rode `supabase/diario_privado.sql` e retente a sincronização.
 
 `npm test` roda `supabase/__tests__/diario.sql.test.ts` num Postgres em memória (PGlite): migração, mestre sem acesso ao diário, estranho/anônimo sem acesso e pastas de imagem por jogador.
 

@@ -1,4 +1,5 @@
-import { syncSpellSlots } from '@/engine/spellcasting';
+import { syncSlotPools, saveSlotPools, casterOf, changeSpellSelection, spellSelectionOf } from '@/engine/spellcasting';
+import { canConcentrate, clearConcentration } from '@/engine/concentration';
 import { chargesOf } from '@/engine/itemCharges';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
@@ -31,39 +32,58 @@ export function spellsActions({ mutate, get }: StoreCtx): Pick<CharacterState, '
         c.combat.itemSpellUses = uses;
       });
     },
-    castWithSlot(id, level, concentration) {
+    castWithSlot(id, level, concentration, pool) {
       playSample('pagina');
       mutate(id, (c) => {
-        if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
-        const slot = c.combat.spellSlots[level];
+        if (concentration && !canConcentrate(c)) return;
+        const pools = syncSlotPools(c);
+        const kind = pool ?? (pools.spellcasting[level] && pools.spellcasting[level].used < pools.spellcasting[level].max ? 'spellcasting' : 'pact');
+        const slot = pools[kind][level];
         if (!slot || slot.used >= slot.max) return;
         slot.used += 1;
-        if (concentration) c.combat.concentration = true;
+        saveSlotPools(c, pools);
+        if (concentration && canConcentrate(c)) { clearConcentration(c); c.combat.concentration = true; }
       });
     },
-    forgetSpell(id, spellId, useSwap) {
+    forgetSpell(id, spellId, useSwap, classId) {
       mutate(id, (c) => {
-        c.preparedSpells = c.preparedSpells.filter((x) => x !== spellId);
-        c.knownSpells = (c.knownSpells ?? []).filter((x) => x !== spellId);
-        c.spellbookCopied = (c.spellbookCopied ?? []).filter((x) => x !== spellId);
-        if (useSwap) c.spellSwaps = Math.max(0, (c.spellSwaps ?? 0) - 1);
+        changeSpellSelection(c, classId ?? casterOf(c)?.classId ?? c.classId, (s) => {
+          s.preparedSpells = s.preparedSpells.filter((x) => x !== spellId);
+          s.knownSpells = s.knownSpells.filter((x) => x !== spellId);
+          s.spellbookCopied = (s.spellbookCopied ?? []).filter((x) => x !== spellId);
+          if (useSwap) s.spellSwaps = Math.max(0, (s.spellSwaps ?? 0) - 1);
+        });
       });
     },
-    copySpell(id, spellId, cost) {
+    copySpell(id, spellId, cost, classId) {
       mutate(id, (c) => {
-        if (c.coins.gp < cost || (c.knownSpells ?? []).includes(spellId)) return;
+        const origin = classId ?? casterOf(c)?.classId ?? c.classId;
+        if (c.coins.gp < cost || spellSelectionOf(c, origin).knownSpells.includes(spellId)) return;
         c.coins.gp -= cost;
-        c.knownSpells = [...(c.knownSpells ?? []), spellId];
-        c.spellbookCopied = [...(c.spellbookCopied ?? []), spellId];
+        changeSpellSelection(c, origin, (s) => {
+          s.knownSpells = [...s.knownSpells, spellId];
+          s.spellbookCopied = [...(s.spellbookCopied ?? []), spellId];
+        });
       });
     },
-    toggleSpellSlot(id, level, index) {
+    toggleSpellSlot(id, level, index, pool) {
       mutate(id, (c) => {
-        if (!c.combat.spellSlots[level]) c.combat.spellSlots = syncSpellSlots(c);
-        const slot = c.combat.spellSlots[level];
+        const pools = syncSlotPools(c);
+        if (!pool) {
+          let used = c.combat.spellSlots[level]?.used ?? 0;
+          used = used >= index ? index - 1 : index;
+          for (const kind of ['spellcasting', 'pact'] as const) {
+            const slot = pools[kind][level];
+            if (slot) { slot.used = Math.min(slot.max, Math.max(0, used)); used -= slot.used; }
+          }
+          saveSlotPools(c, pools);
+          return;
+        }
+        const slot = pools[pool][level];
         if (!slot) return;
         // clicar no pip n alterna: se já gasto até n, devolve; senão gasta até n
-        slot.used = slot.used >= index ? index - 1 : index;
+        slot.used = Math.max(0, Math.min(slot.max, slot.used >= index ? index - 1 : index));
+        saveSlotPools(c, pools);
       });
     },
   };

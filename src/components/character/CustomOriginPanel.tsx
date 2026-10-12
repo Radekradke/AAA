@@ -1,5 +1,6 @@
+import { subraceOf } from '@/data/races';
 import type { StepProps } from './stepTypes';
-import { raceOf, getSubrace } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { ABILITY_LABELS, SKILLS, SKILL_BY_KEY } from '@/data/skills';
 import { LANGUAGE_OPTIONS } from '@/data/classChoices';
 import { racialIncreases } from '@/engine/modifiers';
@@ -15,7 +16,7 @@ const PICK = /idiomas?\s+(?:à|a)\s+escolha/i;
  */
 export function CustomOriginPanel({ char, update }: StepProps) {
   const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
+  const sub = subraceOf(char);
   const incs = racialIncreases(char.raceId, char.subraceId, char.raceAbilityChoice);
   const custom = char.customOrigin;
   const on = !!custom;

@@ -324,6 +324,8 @@ export interface WeaponData {
 }
 
 export interface ArmorData {
+  /** Quem veste conta como proficiente (Camisão Élfico). */
+  grantsProficiency?: boolean;
   /** CA base concedida. */
   baseAC: number;
   category: 'leve' | 'média' | 'pesada';
@@ -361,12 +363,19 @@ export interface MagicEffects {
   /** Bônus em ataque e CD de magia (Varinha do Mago de Guerra, Bastão do Guardião do Pacto…). */
   spellAttack?: number;
   spellDC?: number;
+  /** Bônus de conjuração restrito às magias desta classe. */
+  spellClass?: string;
   /** Deslocamento extra, em metros. */
   speed?: number;
   resistances?: string[];
 }
 
 export interface Item {
+  bodySlot?: import('@/engine/bodySlots').BodySlot;
+  /** Propriedades mágicas que exigem empunhar o item. */
+  requiresHeld?: boolean;
+  /** Propriedades mágicas que exigem ativação por comando. */
+  requiresActivation?: boolean;
   id: string;
   name: string;
   category: ItemCategory;

@@ -1,5 +1,6 @@
+import { subraceOf } from '@/data/races';
 import type { Character } from '@/types/character';
-import { getSubrace, raceOf } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { SKILL_BY_KEY, ABILITY_SHORT } from '@/data/skills';
@@ -85,8 +86,8 @@ export interface Fact {
 
 export function raceFacts(char: Character): Fact[] {
   const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
-  const bonus = Object.fromEntries(ABILITY_KEYS.map((k) => [k, racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi)]));
+  const sub = subraceOf(char);
+  const bonus = Object.fromEntries(ABILITY_KEYS.map((k) => [k, racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi, raceOf(char))]));
   const bonusLine = ABILITY_KEYS.filter((k) => bonus[k]).map((k) => `+${bonus[k]} ${ABILITY_SHORT[k]}`).join(' · ');
   const facts: Fact[] = [{ label: 'Atributos', value: race.abilityChoice || char.customOrigin?.asi ? bonusLine : [race.bonus, sub && Object.keys(sub.abilityBonus ?? {}).length ? sub.bonus : ''].filter(Boolean).join(' · ') }];
   facts.push({ label: 'Deslocamento', value: `${String(race.speed + (sub?.speedBonus ?? 0)).replace('.', ',')} m` });
@@ -106,7 +107,7 @@ export function raceFacts(char: Character): Fact[] {
 /** Traços da linhagem com o que cada um faz (homebrew usa a descrição do autor). */
 export function raceTraitFacts(char: Character): Fact[] {
   const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
+  const sub = subraceOf(char);
   const details = [...(race.traitDetails ?? []), ...(sub?.traitDetails ?? [])];
   const names = [...race.traits, ...(sub?.traits ?? [])]
     .filter((n, i, all) => all.indexOf(n) === i)
@@ -119,7 +120,7 @@ export function raceTraitFacts(char: Character): Fact[] {
 
 export function classFacts(char: Character): Fact[] {
   const cls = getClass(char.classId);
-  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi).con);
+  const conMod = abilityModifier(totalAbilities(char.baseAbilities, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi, raceOf(char)).con);
   const prof = classProficiencySummary(cls.id);
   const skillList = cls.skillChoices.map((k) => SKILL_BY_KEY[k].label).join(', ');
   const facts: Fact[] = [

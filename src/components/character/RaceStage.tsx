@@ -1,3 +1,4 @@
+import { subracesOf } from '@/data/races';
 import { useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import type { StepProps } from './stepTypes';
@@ -7,7 +8,7 @@ import { HomebrewRaceEditor } from './HomebrewRaceEditor';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { videoWorthIt } from '@/components/animations/BackgroundScene';
 import { passiveLore } from '@/lib/lore';
-import { RACES, getSubraces, raceOf } from '@/data/races';
+import { RACES, raceOf } from '@/data/races';
 import { raceStageMedia } from '@/data/raceStage';
 import { raceFacts, raceTraitFacts } from '@/engine/creationSummary';
 import { useHomebrewStore } from '@/store/homebrewStore';
@@ -54,7 +55,7 @@ export function RaceStageBackdrop({ race }: { race: Race }) {
 /** Capítulo I no palco: a ficha da raça no lado livre e os brasões na borda. */
 export function StepRaceStage({ char, update }: StepProps) {
   const race = raceOf(char);
-  const subs = getSubraces(char.raceId);
+  const subs = subracesOf(char);
   const homebrew = useHomebrewStore((s) => s.races);
   const [editing, setEditing] = useState<Race | 'new' | null>(null);
   const { pickRace, pickHomebrew } = racePickers(update);

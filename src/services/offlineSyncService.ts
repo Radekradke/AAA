@@ -82,13 +82,11 @@ export function adoptLocalCharacters(userId: string): boolean {
   return true;
 }
 
-/** Diários privados do usuário, ou null se o banco ainda não tem a tabela (aí o diário segue dentro da ficha). */
-async function pullDiaries(userId: string): Promise<Map<string, DiaryRow> | null> {
-  try {
-    return await diaryCloud.pull(userId);
-  } catch {
-    return null; // na dúvida, o jeito antigo: nada some
-  }
+/** Falhas e schema ausente mantêm o diário local; nunca autorizam um envio público. */
+async function pullDiaries(userId: string): Promise<Map<string, DiaryRow>> {
+  const diaries = await diaryCloud.pull(userId);
+  if (!diaries) throw new Error('Diário privado indisponível na nuvem. Suas alterações continuam neste aparelho. Configure supabase/diario_privado.sql e tente novamente.');
+  return diaries;
 }
 
 /** A ficha como está na nuvem, com o diário certo (privado ou o que o snapshot antigo carrega). */
@@ -108,12 +106,15 @@ function cloudChar(row: SheetRow, userId: string, diaries: Map<string, DiaryRow>
 async function settleDiary(local: Character, remote: SheetRow, userId: string, diaries: Map<string, DiaryRow>): Promise<DiaryPart | undefined> {
   const d = diaries.get(local.id);
   const mine = diaryPartOf(local);
-  if (d && d.updated_at === remote.updated_at) return sameDiary(d.data, mine) ? undefined : d.data;
   if (hasLegacyDiary(remote.snapshot)) {
-    if (await characterSheetService.pushSheet(local, userId, remote.updated_at, true)) await diaryCloud.push(local, userId, remote.updated_at);
-    return undefined;
+    const part = cloudDiaryFor(remote, d);
+    // Preserva o diário existente antes de retirar sua cópia do snapshot legado.
+    if (!d || d.updated_at < remote.updated_at) await diaryCloud.push(withDiary(local, part), userId, remote.updated_at);
+    if (!await characterSheetService.pushSheet(local, userId, remote.updated_at)) throw new Error('A ficha mudou durante a migração do diário. Tente sincronizar novamente.');
+    return sameDiary(part, mine) ? undefined : part;
   }
-  if (!isEmptyDiaryPart(mine)) {
+  if (d && d.updated_at === remote.updated_at) return sameDiary(d.data, mine) ? undefined : d.data;
+  if (local.syncStatus === 'pending' || !isEmptyDiaryPart(mine)) {
     await diaryCloud.push(local, userId, remote.updated_at);
     return undefined;
   }
@@ -144,7 +145,6 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
 
     const rows = await characterSheetService.pullSheets(userId);
     const diaries = await pullDiaries(userId);
-    const privateDiary = diaries !== null;
     const remoteById = new Map(rows.map((r) => [r.id, r]));
     const outcomes = new Map<string, Outcome>();
     let raced = false;
@@ -155,11 +155,16 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
       remoteById.delete(local.id);
       const action = decideSyncAction(local, remote ? remote.updated_at : null);
       if (action === 'push') {
+        // Legado/relógio atrasado: a edição autorizada ganha uma revisão acima
+        // da base remota, sem confundi-la com um envio antigo em trânsito.
+        const remoteVersion = Math.max(remote?.updated_at ?? 0, diaries.get(local.id)?.updated_at ?? 0);
+        const outgoing = local.updatedAt > remoteVersion ? local : { ...local, updatedAt: Math.max(Date.now(), remoteVersion + 1) };
+        if (outgoing !== local) useCharacterStore.setState((s) => ({ characters: s.characters.map((c) => c.id === local.id && c.updatedAt === local.updatedAt ? outgoing : c) }));
         // condicional: só grava se a nuvem ainda estiver na versão que acabamos de ler
-        const ok = await characterSheetService.pushSheet(local, userId, remote ? remote.updated_at : null, privateDiary);
+        const ok = await characterSheetService.pushSheet(outgoing, userId, remote ? remote.updated_at : null);
         // diário privado com a mesma versão; se falhar, a próxima rodada vê "mesma versão" e reenvia
-        if (ok && privateDiary) await diaryCloud.push(local, userId, local.updatedAt).catch(() => undefined);
-        outcomes.set(local.id, ok ? { kind: 'pushed', version: local.updatedAt } : { kind: 'raced' });
+        if (ok) await diaryCloud.push(outgoing, userId, outgoing.updatedAt);
+        outcomes.set(local.id, ok ? { kind: 'pushed', version: outgoing.updatedAt } : { kind: 'raced' });
         raced ||= !ok;
       } else if (action === 'pull') {
         outcomes.set(local.id, { kind: 'pulled', seen: local.updatedAt, char: cloudChar(remote!, userId, diaries) });
@@ -210,7 +215,7 @@ export async function syncNow(userId: string, retry = 0): Promise<void> {
     // outro aparelho gravou entre a leitura e o envio: mais uma rodada decide (push, pull ou conflito)
     if (raced && retry < 2) setTimeout(() => void syncNow(userId, retry + 1), 0);
     // imagens das pistas: cópia privada na nuvem (para os outros aparelhos do jogador)
-    if (privateDiary) await flushClueImageUploads(userId).catch(() => undefined);
+    await flushClueImageUploads(userId);
   } catch (e) {
     status.setCloud('error', e instanceof Error ? e.message : 'Falha ao sincronizar.');
   } finally {
@@ -230,12 +235,14 @@ export async function resolveConflict(userId: string, sheetId: string, keep: 'lo
     const diaries = await pullDiaries(userId);
     if (keep === 'local' && local) {
       if (known?.remote) await recordVersion(known.remote, 'conflict', 'Versão da nuvem, descartada num conflito');
-      await characterSheetService.pushSheet(local, userId, undefined, diaries !== null); // escolha explícita: grava por cima
-      if (diaries) await diaryCloud.push(local, userId, local.updatedAt);
+      // Escolher uma versão antiga é uma nova revisão, não um envio atrasado.
+      const chosen = { ...local, updatedAt: Math.max(Date.now(), local.updatedAt + 1, (known?.remoteUpdatedAt ?? 0) + 1, (diaries.get(sheetId)?.updated_at ?? 0) + 1) };
+      await characterSheetService.pushSheet(chosen, userId, undefined); // escolha explícita: grava por cima
+      await diaryCloud.push(chosen, userId, chosen.updatedAt);
       const now = Date.now();
       useCharacterStore.setState((s) => ({
         characters: s.characters.map((c) =>
-          c.id === sheetId ? { ...c, syncBase: local.updatedAt, lastSyncedAt: now, syncStatus: c.updatedAt === local.updatedAt ? 'synced' : 'pending' } : c,
+          c.id === sheetId ? { ...c, updatedAt: c.updatedAt === local.updatedAt ? chosen.updatedAt : c.updatedAt, syncBase: chosen.updatedAt, lastSyncedAt: now, syncStatus: c.updatedAt === local.updatedAt ? 'synced' : 'pending' } : c,
         ),
       }));
     } else {

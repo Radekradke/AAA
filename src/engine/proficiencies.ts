@@ -1,6 +1,7 @@
+import { subraceOf } from '@/data/races';
+import { subclassOf } from './characterClasses';
 import type { Character, InventoryItem } from '@/types/character';
 import type { WeaponType } from '@/types/dnd';
-import { getSubrace } from '@/data/races';
 import { WEAPONS } from '@/data/weapons';
 import { getItem } from '@/data/items';
 
@@ -109,9 +110,12 @@ export function proficienciesOf(char: Character): Proficiencies {
   };
   add(CLASS_PROFS[char.classId]);
   for (const cl of char.classLevels ?? []) if (cl.classId !== char.classId) add(MULTICLASS_PROFS[cl.classId]);
-  if (char.subclassId) add(SUBCLASS_PROFS[char.subclassId]);
+  for (const cl of char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }]) {
+    const sub = subclassOf(char, cl.classId);
+    if (sub) add(SUBCLASS_PROFS[sub]);
+  }
   add(RACE_PROFS[char.raceId]);
-  const sub = getSubrace(char.raceId, char.subraceId);
+  const sub = subraceOf(char);
   if (sub) add(RACE_PROFS[sub.id]);
   for (const f of char.feats ?? []) add(FEAT_PROFS[f]);
   // Mestre em Armas: as 4 armas escolhidas (sem escolha ainda, não pune a ficha)

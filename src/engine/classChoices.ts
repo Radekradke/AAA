@@ -1,3 +1,6 @@
+import { subraceOf } from '@/data/races';
+import { subclassOf } from './characterClasses';
+import { knownSpellIds } from './spellcasting';
 import type { Character } from '@/types/character';
 import { CATALOGS, CLASS_CHOICES, FEAT_CHOICES, RACE_CHOICES, SUBCLASS_CHOICES, SUBRACE_CHOICES } from '@/data/classChoices';
 import { getFeat } from '@/data/feats';
@@ -7,7 +10,7 @@ import { getClass } from '@/data/classes';
 import { SPELLS, SPELL_BY_ID, spellVisible } from '@/data/spells';
 import { spellSlotsForClass } from './progression';
 import { getBackground } from '@/data/backgrounds';
-import { getSubrace, raceOf } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { raceSkillProfs } from './originChoices';
 
 /** Uma escolha com contexto: de qual classe/subclasse e nível ela vem. */
@@ -88,7 +91,7 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
   const levels = char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }];
   const out: ResolvedSpec[] = [];
   for (const cl of levels) {
-    const sub = cl.classId === char.classId ? char.subclassId : null;
+    const sub = subclassOf(char, cl.classId);
     for (let lv = 1; lv <= cl.level; lv++) out.push(...specsAt(cl.classId, lv, sub, char.choices ?? {}).filter((s) => s.count > 0));
   }
   out.push(...raceSpecs(char));
@@ -104,7 +107,7 @@ export function specsUpTo(char: Character): ResolvedSpec[] {
 /** Escolhas da raça (Anão: ferramenta). */
 export function raceSpecs(char: Character): ResolvedSpec[] {
   const list = [...(RACE_CHOICES[char.raceId] ?? []), ...(SUBRACE_CHOICES[char.subraceId ?? ''] ?? [])];
-  const source = getSubrace(char.raceId, char.subraceId)?.label ?? raceOf(char).label;
+  const source = subraceOf(char)?.label ?? raceOf(char).label;
   return list.map((spec) => ({ ...spec, storeKey: storeKeyFor('race', spec.key), classId: 'race', classLevel: char.level, source: RACE_CHOICES[char.raceId]?.includes(spec) ? raceOf(char).label : source }));
 }
 
@@ -230,14 +233,14 @@ export function catalogFor(spec: SpecContext, char?: Character): ChoiceOption[] 
   }
   // magias: esconde as que o personagem já conhece por outro caminho
   if (char && spec.catalog === 'spell') {
-    const known = new Set([...(char.preparedSpells ?? []), ...(char.knownSpells ?? [])]);
+    const known = knownSpellIds(char);
     const mine = new Set(spec.classId && spec.key ? char.choices?.[storeKeyFor(spec.classId, spec.key)] ?? [] : []);
     all = all.filter((o) => !known.has(o.id) || mine.has(o.id));
   }
   if (char && spec.classId) {
     const lv = spec.classLevel ?? 20;
     const pacts = char.choices?.[storeKeyFor(spec.classId, 'pact')] ?? [];
-    const spells = new Set([...(char.preparedSpells ?? []), ...(char.knownSpells ?? [])]);
+    const spells = knownSpellIds(char);
     all = all.filter((o) => {
       const p = o.prereq;
       if (!p) return true;

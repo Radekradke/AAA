@@ -1,5 +1,5 @@
 import type { StoreApi } from 'zustand';
-import type { ActiveSpellEffect, Character, Diary, CoinKey, InventoryItem, JournalEntry, ToolProf } from '@/types/character';
+import type { ActiveSpellEffect, Character, Diary, CoinKey, InventoryItem, JournalEntry, ToolProf, SpellSlotPoolKind } from '@/types/character';
 import type { Item, SkillKey } from '@/types/dnd';
 import type { NewCharacterInput } from '@/engine/characterBuilder';
 import type { ContainerId, MoveResult } from '@/engine/inventory';
@@ -70,11 +70,11 @@ export interface CharacterState {
   useItemSpell: (id: string, key: string) => void;
   /** Gasta cargas de um item (cajado, varinha…; negativo devolve); devolve quantas sobraram. */
   spendItemCharges: (id: string, uid: string, n: number) => number;
-  toggleSpellSlot: (id: string, level: number, index: number) => void;
+  toggleSpellSlot: (id: string, level: number, index: number, pool?: SpellSlotPoolKind) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
-  castWithSlot: (id: string, level: number, concentration?: boolean) => void;
+  castWithSlot: (id: string, level: number, concentration?: boolean, pool?: SpellSlotPoolKind) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow', on: boolean) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow', on: boolean, weaponUid?: string) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */
@@ -105,11 +105,11 @@ export interface CharacterState {
   /** Sessão da mesa ao vivo jogada com esta ficha (linha da jornada). */
   recordSession: (id: string, session: { id: string; name: string; at: string }) => void;
   /** Esquece uma magia; `useSwap` gasta a troca ganha ao subir de nível. */
-  forgetSpell: (id: string, spellId: string, useSwap?: boolean) => void;
+  forgetSpell: (id: string, spellId: string, useSwap?: boolean, classId?: string) => void;
   /** Mago: copia uma magia para o grimório pagando ouro. */
-  copySpell: (id: string, spellId: string, cost: number) => void;
+  copySpell: (id: string, spellId: string, cost: number, classId?: string) => void;
   setResource: (id: string, resId: string, value: number) => void;
-  spendHitDie: (id: string) => void;
+  spendHitDie: (id: string, die?: number) => void;
   setDeathSave: (id: string, type: 'success' | 'fail', n: number) => void;
   shortRest: (id: string) => void;
   longRest: (id: string) => void;

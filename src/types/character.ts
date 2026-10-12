@@ -9,6 +9,16 @@ export interface InventoryItem {
   uid: string;
   /** Referência ao item base do catálogo (quando existir). */
   itemId?: string;
+  /** Encaixe estável: mudar o apelido não muda como o item é vestido. */
+  bodySlot?: import('@/engine/bodySlots').BodySlot;
+  /** Ativação por comando (ex.: lâmina acesa da Língua de Fogo). */
+  activated?: boolean;
+  requiresHeld?: boolean;
+  requiresActivation?: boolean;
+  /** Identidade do efeito de um item personalizado, independente do apelido. */
+  effectKey?: string;
+  /** Gema escolhida no Anel de Resistência. */
+  resistanceType?: import('./dnd').DamageType;
   name: string;
   category: string;
   note: string;
@@ -246,10 +256,16 @@ export interface SpellSlotState {
   max: number;
 }
 
+export type SpellSlotPoolKind = 'spellcasting' | 'pact';
+export type SpellSlotPools = Record<SpellSlotPoolKind, Record<number, SpellSlotState>>;
+export interface HitDicePool { max: number; remaining: number }
+
 /** Estado efêmero de combate — reiniciado por descanso/turno. */
 export interface CombatState {
   hpTemp: number;
   hitDiceRemaining: number;
+  /** Dados separados por faces; o saldo total acima é uma projeção legada. */
+  hitDicePools?: Record<number, HitDicePool>;
   deathSaves: { success: number; fail: number };
   /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
   turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean };
@@ -259,6 +275,8 @@ export interface CombatState {
   exhaustion?: number;
   /** Concentração ativa numa magia (lembrete de salvaguarda de CON). */
   concentration?: boolean;
+  /** Arma específica afetada por Arma Sagrada. */
+  sacredWeaponUid?: string;
   /**
    * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
    * (somem ao romper a concentração) e Fúria (some no descanso).
@@ -277,6 +295,8 @@ export interface CombatState {
   /** Munição disparada desde o último "Recolher" (id da munição -> peças); metade volta. */
   ammoSpent?: Record<string, number>;
   spellSlots: Record<number, SpellSlotState>;
+  /** Reservas com recuperações distintas. spellSlots é a projeção agregada. */
+  slotPools?: SpellSlotPools;
 }
 
 /** Escolha de ASI/talento registrada num nível. */
@@ -334,6 +354,8 @@ export const DEFAULT_CAMPAIGN: CampaignSettings = {
 };
 
 export interface Character {
+  /** Seleção e trocas independentes por classe conjuradora. Campos globais espelham o perfil legado. */
+  classSpells?: Record<string, ClassSpellSelection>;
   /** Versão do schema para migrações seguras. */
   schema?: number;
   id: string;
@@ -389,7 +411,7 @@ export interface Character {
   /** Sessões da mesa ao vivo jogadas com esta ficha (linha da jornada). */
   sessions?: { id: string; name: string; at: string }[];
   /** Níveis por classe (pronto para multiclasse). */
-  classLevels: { classId: string; level: number }[];
+  classLevels: { classId: string; level: number; subclassId?: string | null }[];
   subclassId: string | null;
   /** Talentos escolhidos (ids de data/feats). */
   feats: string[];
@@ -463,6 +485,13 @@ export interface Character {
   syncStatus?: import('./models').SyncStatus;
   /** Personagem ainda em criação (rascunho). */
   draft?: boolean;
+}
+
+export interface ClassSpellSelection {
+  knownSpells: string[];
+  preparedSpells: string[];
+  spellbookCopied?: string[];
+  spellSwaps?: number;
 }
 
 /** Conta de usuário simples (local). */

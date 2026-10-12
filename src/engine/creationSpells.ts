@@ -3,7 +3,7 @@ import type { Spell } from '@/types/dnd';
 import { SPELLS, defaultPreparedForClass, getSpell, spellVisible } from '@/data/spells';
 import { abilityModifier } from './modifiers';
 import { effectiveAbilities } from './levelUp';
-import { casterOf, grantedSpells, racialSpells } from './spellcasting';
+import { casterOf, grantedSpells, racialSpells, syncPrimarySpellSelection } from './spellcasting';
 import { spellLearnState } from './spellRules';
 import { bonusSpellIds } from './classChoices';
 
@@ -131,10 +131,12 @@ export function suggestCreationSpells(c: Character): void {
   } else {
     c.preparedSpells = [...cantrips, ...spells];
   }
+  syncPrimarySpellSelection(c);
 }
 
 /** Troca de classe: as magias escolhidas eram da lista antiga. */
 export function resetCreationSpells(c: Character): void {
   c.preparedSpells = [];
   c.knownSpells = [];
+  c.classSpells = {};
 }

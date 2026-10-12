@@ -3,6 +3,7 @@ import type { Character, EquippedSlots, InventoryItem } from '@/types/character'
 import { getItem } from '@/data/items';
 import { BODY_SLOTS, bodySlotOf } from './bodySlots';
 import { getClass } from '@/data/classes';
+import { subclassOf } from './characterClasses';
 
 let _seq = 0;
 function invUid(): string {
@@ -15,6 +16,10 @@ export function itemToInventory(item: Item, quantity = 1): InventoryItem {
   return {
     uid: invUid(),
     itemId: item.id,
+    bodySlot: item.bodySlot ?? bodySlotOf(item) ?? undefined,
+    requiresHeld: item.requiresHeld,
+    requiresActivation: item.requiresActivation,
+    activated: item.requiresActivation ? false : undefined,
     name: item.name,
     category: item.category,
     note: item.note,
@@ -56,6 +61,14 @@ export function customInventoryItem(partial: Partial<InventoryItem> & { name: st
     attunement: partial.attunement,
     value: partial.value,
     itemId: partial.itemId,
+    effectKey: partial.effectKey ?? partial.itemId ?? partial.name.trim().toLowerCase(),
+    bodySlot: partial.bodySlot ?? bodySlotOf({ ...partial, category: partial.category ?? 'gear' }) ?? undefined,
+    activated: partial.activated,
+    requiresHeld: partial.requiresHeld,
+    requiresActivation: partial.requiresActivation,
+    attuneBy: partial.attuneBy,
+    heal: partial.heal,
+    charges: partial.charges,
     magic: partial.magic,
     grantsSpells: partial.grantsSpells,
     wear: partial.wear,
@@ -95,12 +108,38 @@ export function canEquip(it: InventoryItem): boolean {
  * - pede sintonia: sintonizado;
  * - o resto: com o personagem (no Baú não conta).
  */
-export function itemIsActive(char: Character, it: InventoryItem, needsAttunement = !!it.attunement): boolean {
+export function itemIsActive(char: Character, it: InventoryItem, needsAttunement = !!itemDefinition(it).attunement): boolean {
+  const definition = itemDefinition(it);
+  if (definition.requiresHeld && !Object.values(char.equipped).includes(it.uid)) return false;
+  if (needsAttunement && !it.attuned) return false;
   if (it.wear === 'body') return true;
   // anel, capa, botas…: só valem vestidos (e sintonizados, se pedem sintonia)
   if (isWearable(it)) return isWorn(it) && (!needsAttunement || it.attuned);
   if (needsAttunement) return it.attuned;
   return containerOf(char, it) !== 'bau';
+}
+
+/** O catálogo corrige cópias antigas; alterações mecânicas explícitas usam a instância. */
+export function itemDefinition(it: InventoryItem): InventoryItem {
+  const base = !it.homebrew ? getItem(it.itemId) : undefined;
+  return base ? { ...it, ...base, name: it.name } : it;
+}
+
+export function itemIdentity(it: InventoryItem): string {
+  return it.itemId?.replace(/-plus[123]$/, '') ?? it.effectKey ?? it.name.trim().toLowerCase();
+}
+
+export function activeMagicItems(char: Character): { name: string; magic: import('@/types/dnd').MagicEffects }[] {
+  const seen = new Set<string>();
+  const out: { name: string; magic: import('@/types/dnd').MagicEffects }[] = [];
+  for (const it of char.inventory) {
+    const d = itemDefinition(it);
+    const magic = it.itemId === 'm-ring-resist' && it.resistanceType ? { ...d.magic, resistances: [it.resistanceType] } : d.magic;
+    if (!magic || !itemIsActive(char, it, !!d.attunement) || seen.has(itemIdentity(it))) continue;
+    seen.add(itemIdentity(it));
+    out.push({ name: it.name, magic });
+  }
+  return out;
 }
 
 /** Qual slot um item ocupa quando equipado. */
@@ -109,6 +148,7 @@ const weaponOf = (it: InventoryItem | undefined): WeaponData | undefined => (it 
 export function slotForItem(it: InventoryItem): keyof EquippedSlots | null {
   if (it.category === 'armor') return 'armor';
   if (it.category === 'shield') return 'shield';
+  if (itemDefinition(it).requiresHeld) return 'mainHand';
   // arma — ou item que serve de arma (cajado = bordão), mesmo em cópias antigas da mochila
   const w = weaponOf(it);
   if (w) return w.range === 'ranged' ? 'ranged' : 'mainHand';
@@ -232,6 +272,13 @@ export function containerOf(char: Character, it: InventoryItem): ContainerId {
 
 export type MoveResult = { ok: true; note?: string } | { ok: false; reason: string };
 
+/** Guardar ou trocar a arma encerra sua ativação; sacar de novo exige ativá-la. */
+export function clearStowedActivations(char: Character): void {
+  for (const it of char.inventory) {
+    if (itemDefinition(it).requiresActivation && !isEquipped(char, it)) it.activated = false;
+  }
+}
+
 /**
  * Move um item para um recipiente (muta o rascunho da ficha):
  * - Equipado: ocupa o slot do item (troca o que estava lá);
@@ -240,6 +287,7 @@ export type MoveResult = { ok: true; note?: string } | { ok: false; reason: stri
 export function moveItemTo(char: Character, uid: string, target: ContainerId): MoveResult {
   const it = char.inventory.find((i) => i.uid === uid);
   if (!it) return { ok: false, reason: 'Item não encontrado.' };
+  if (target !== 'equipado' && itemDefinition(it).requiresActivation) it.activated = false;
   if (it.wear === 'body') return { ok: false, reason: `${it.name} faz parte do corpo — fica sempre com o herói.` };
   if (isWearable(it)) {
     if (target === 'equipado' && !isWorn(it)) {
@@ -265,10 +313,12 @@ export function moveItemTo(char: Character, uid: string, target: ContainerId): M
     if (isEquipped(char, it)) return { ok: true };
     const placed = placeInSlots(char, it);
     char.equipped = placed.equipped;
+    clearStowedActivations(char);
     return { ok: true, note: placed.note };
   }
   if (isEquipped(char, it)) char.equipped = removeFromSlots(char.equipped, uid);
   it.location = target;
+  clearStowedActivations(char);
   return { ok: true };
 }
 
@@ -290,12 +340,15 @@ function classesOf(char: Character): string[] {
  * um conjurador"… Devolve o motivo do bloqueio, ou null se pode sintonizar.
  */
 export function attunementBlock(char: Character, it: InventoryItem): string | null {
+  if (char.inventory.some((other) => other.uid !== it.uid && other.attuned && itemIdentity(other) === itemIdentity(it))) {
+    return 'Você já está sintonizado com uma cópia deste item.';
+  }
   const by = it.homebrew ? it.attuneBy : getItem(it.itemId)?.attuneBy ?? it.attuneBy;
   if (!by?.length) return null;
   const classes = classesOf(char);
   if (by.some((b) => classes.includes(b))) return null;
   if (by.includes('spellcaster')) {
-    const caster = classes.some((c) => getClass(c)?.spellcasting) || (!!char.subclassId && THIRD_CASTER_SUBS.has(char.subclassId));
+    const caster = classes.some((c) => getClass(c)?.spellcasting || THIRD_CASTER_SUBS.has(subclassOf(char, c) ?? ''));
     if (caster) return null;
   }
   const who = by.map((b) => (b === 'spellcaster' ? 'conjuradores' : CLASS_PLURAL[b] ?? b));

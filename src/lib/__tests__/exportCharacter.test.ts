@@ -12,7 +12,7 @@ describe('exportar a ficha em JSON', () => {
   });
 
   it('o JSON exportado volta pelo Importar personagem (ida e volta)', () => {
-    const hero = { ...finalizeCharacter(createDraftCharacter({ ownerId: 'u', name: 'Kael Venturo', classId: 'fighter' })), level: 4, title: 'heroi-da-estrada', scars: [{ id: 's1', text: 'Corte no rosto', date: '2026-01-01', by: 'mestre' as const }] };
+    const hero = { ...finalizeCharacter(createDraftCharacter({ ownerId: 'u', name: 'Kael Venturo', classId: 'fighter' })), level: 4, classLevels: [{ classId: 'fighter', level: 4 }], title: 'heroi-da-estrada', scars: [{ id: 's1', text: 'Corte no rosto', date: '2026-01-01', by: 'mestre' as const }] };
     useCharacterStore.setState({ characters: [hero] });
     const json = JSON.stringify(hero, null, 2); // o mesmo que downloadCharacterJson grava
     const res = useCharacterStore.getState().importCharacter(json, 'outra-conta');

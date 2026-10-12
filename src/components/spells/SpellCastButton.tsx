@@ -5,7 +5,8 @@ import type { DerivedCharacter } from '@/engine/dndRules';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
-import { syncSpellSlots } from '@/engine/spellcasting';
+import { casterOf, syncSlotPools } from '@/engine/spellcasting';
+import { canConcentrate } from '@/engine/concentration';
 import { canRitual, damageRoll, damageTiming, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, isFixedRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
 import { castDiceLabel, rollCastDice } from './castRoll';
 import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
@@ -17,6 +18,8 @@ import type { ChargeOption } from '@/engine/itemCharges';
 import { materialWarning } from '@/engine/spellFocus';
 
 interface Props {
+  castingClassId?: string;
+  freeCastLevel?: number;
   char: Character;
   derived: DerivedCharacter;
   spell: Spell;
@@ -64,7 +67,7 @@ function saveType(spellId: string, type: string) {
  * Magia de ataque rola o d20 primeiro — o dano só sai nos acertos (crítico
  * dobra os dados); cada raio/feixe é uma jogada separada.
  */
-export function SpellCastButton({ char, derived, spell, castMod, free, compact, itemCast, onCast, selfOnly }: Props) {
+export function SpellCastButton({ char, derived, spell, castMod, free, compact, itemCast, onCast, selfOnly, castingClassId, freeCastLevel }: Props) {
   const store = useCharacterStore();
   const pushRoll = useUiStore((s) => s.pushRoll);
   const pushCastNotice = useUiStore((s) => s.pushCastNotice);
@@ -76,12 +79,12 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const typeOptions = damageTypeOptions(spell);
   const [dmgType, setDmgType] = useState<string | null>(() => (typeOptions ? lastType(spell.id) ?? typeOptions[0] : null));
 
-  const slots = syncSpellSlots(char);
-  const options = Object.entries(slots)
-    .map(([lv, s]) => ({ lv: Number(lv), left: s.max - s.used }))
+  const pools = syncSlotPools(char);
+  const options = (['spellcasting', 'pact'] as const).flatMap((pool) => Object.entries(pools[pool])
+    .map(([lv, s]) => ({ lv: Number(lv), left: s.max - s.used, pool })))
     .filter((o) => o.lv >= spell.level && o.left > 0)
     .sort((a, b) => a.lv - b.lv);
-  const ritual = spell.level > 0 && canRitual(char.classId, spell);
+  const ritual = spell.level > 0 && canRitual(castingClassId ?? casterOf(char)?.classId ?? char.classId, spell);
   const isCantrip = spell.level === 0;
   const noSlot = itemCast ? itemCast.options.length === 0 : !isCantrip && !free && options.length === 0;
   const spellDC = itemCast?.dc ?? derived.spellDC;
@@ -201,19 +204,28 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     saveType(spell.id, t);
   };
 
-  const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0) => {
+  const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0, slotPool?: import('@/types/character').SpellSlotPoolKind) => {
+    const current = store.getCharacter(char.id) ?? char;
+    if (spell.concentration && !canConcentrate(current)) return;
+    if (how === 'slot' && !isCantrip) {
+      const live = syncSlotPools(current);
+      const available = slotPool ? [live[slotPool][slotLevel]] : [live.spellcasting[slotLevel], live.pact[slotLevel]];
+      if (!available.some((slot) => slot && slot.used < slot.max)) return;
+    }
     setOpen(false);
     onCast?.();
     if (how === 'item') itemCast?.onSpend(cost);
     if (spell.concentration) {
       // nova concentração encerra Bruxaria/Marca/efeitos anteriores; estas duas já ficam ligadas
-      store.setMark(char.id, 'hex', spell.id === 'phb-hex');
-      store.setMark(char.id, 'huntersMark', spell.id === 'phb-hunters-mark');
       store.endConcentrationEffects(char.id);
     }
-    if (how === 'slot' && !isCantrip) store.castWithSlot(char.id, slotLevel, spell.concentration);
+    if (how === 'slot' && !isCantrip) store.castWithSlot(char.id, slotLevel, spell.concentration, slotPool);
     else if (spell.concentration) {
-      if (!char.combat.concentration) store.toggleConcentration(char.id);
+      store.toggleConcentration(char.id);
+    }
+    if (spell.concentration) {
+      store.setMark(char.id, 'hex', spell.id === 'phb-hex');
+      store.setMark(char.id, 'huntersMark', spell.id === 'phb-hunters-mark');
     }
     const lvl = isCantrip ? 0 : slotLevel;
     const save = spell.save ? ` · CD ${spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
@@ -295,8 +307,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         if (itemCast.options.length === 1) return fire(itemCast.options[0].level, 'item', itemCast.options[0].cost);
         return setOpen((o) => !o);
       }
-      if (isCantrip || free) return fire(spell.level, 'free');
-      if (options.length === 1 && !ritual) return fire(options[0].lv, 'slot');
+      if (isCantrip || free) return fire(freeCastLevel ?? spell.level, 'free');
+      if (options.length === 1 && !ritual) return fire(options[0].lv, 'slot', 0, options[0].pool);
     }
     setOpen((o) => !o);
   };
@@ -348,15 +360,15 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
               {itemCast.options.length === 0 && <span className="fv-cast-pop-empty">Sem cargas suficientes.</span>}
             </>
           ) : isCantrip || free ? (
-            <button type="button" role="menuitem" onClick={() => fire(spell.level, 'free')}>
+            <button type="button" role="menuitem" onClick={() => fire(freeCastLevel ?? spell.level, 'free')}>
               {isCantrip ? 'Conjurar' : 'Usar'} <small>{damageTypeLabel(spell, dmgType)}</small>
             </button>
           ) : (
             <>
               <span className="fv-cast-pop-title">Gastar espaço de…</span>
               {options.map((o) => (
-                <button key={o.lv} type="button" role="menuitem" onClick={() => fire(o.lv, 'slot')}>
-                  {o.lv}º círculo <small>{o.left} livre{o.left > 1 ? 's' : ''}{o.lv > spell.level ? ' · círculo maior' : ''}</small>
+                <button key={`${o.pool}-${o.lv}`} type="button" role="menuitem" onClick={() => fire(o.lv, 'slot', 0, o.pool)}>
+                  {o.lv}º círculo{o.pool === 'pact' ? ' · Pacto' : ''} <small>{o.left} livre{o.left > 1 ? 's' : ''}{o.lv > spell.level ? ' · círculo maior' : ''}</small>
                 </button>
               ))}
               {ritual && (

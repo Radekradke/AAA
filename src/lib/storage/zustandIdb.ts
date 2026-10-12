@@ -14,15 +14,34 @@ const DEBOUNCE_MS = 900;
 const memory = new Map<string, string>(); // fallback para testes/SSR
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const lastValue = new Map<string, string>();
+const pending = new Set<string>();
+let writeQueue = Promise.resolve();
 
 async function write(name: string, value: string) {
-  useSaveStatusStore.getState().setLocal('saving');
-  try {
-    if (idbAvailable()) await idbSet(name, value);
-    else memory.set(name, value);
-    useSaveStatusStore.getState().setLocal('saved');
-  } catch {
-    useSaveStatusStore.getState().setLocal('idle');
+  writeQueue = writeQueue.then(async () => {
+    if (lastValue.get(name) !== value) return; // existe uma edição mais recente
+    useSaveStatusStore.getState().setLocal('saving');
+    try {
+      if (idbAvailable()) await idbSet(name, value);
+      else if (typeof window !== 'undefined') localStorage.setItem(name, value);
+      else memory.set(name, value); // apenas SSR/testes
+      if (lastValue.get(name) === value) pending.delete(name);
+      useSaveStatusStore.getState().setLocal(pending.size ? 'saving' : 'saved');
+    } catch (e) {
+      useSaveStatusStore.getState().setLocal('error', e instanceof Error ? e.message : 'Não foi possível salvar neste aparelho.');
+    }
+  });
+  await writeQueue;
+}
+
+/** Retenta os valores que continuam em memória após uma falha de gravação. */
+export async function retryLocalSave(): Promise<void> {
+  for (const name of pending) {
+    const timer = timers.get(name);
+    if (timer) clearTimeout(timer);
+    timers.delete(name);
+    const value = lastValue.get(name);
+    if (value !== undefined) await write(name, value);
   }
 }
 
@@ -45,7 +64,7 @@ if (typeof window !== 'undefined') {
 
 export const idbStateStorage: StateStorage = {
   async getItem(name) {
-    if (!idbAvailable()) return memory.get(name) ?? null;
+    if (!idbAvailable()) return typeof window !== 'undefined' ? localStorage.getItem(name) : memory.get(name) ?? null;
     const stored = await idbGet<string>(name);
     if (stored !== undefined) return stored;
     // migração única: dado antigo do localStorage → IndexedDB
@@ -63,6 +82,8 @@ export const idbStateStorage: StateStorage = {
   },
   setItem(name, value) {
     lastValue.set(name, value);
+    pending.add(name);
+    useSaveStatusStore.getState().setLocal('saving');
     const prev = timers.get(name);
     if (prev) clearTimeout(prev);
     timers.set(
@@ -77,7 +98,10 @@ export const idbStateStorage: StateStorage = {
     lastValue.delete(name);
     const prev = timers.get(name);
     if (prev) clearTimeout(prev);
+    timers.delete(name);
+    pending.delete(name);
     if (idbAvailable()) await idbDel(name);
+    else if (typeof window !== 'undefined') localStorage.removeItem(name);
     else memory.delete(name);
   },
 };

@@ -9,6 +9,7 @@ import { toolLabel } from '@/data/tools';
 import { heroAvatar } from '@/lib/summary';
 import { COINS, fmtM, usePrintData } from './printData';
 import '@/styles/sheet-illustrated.css';
+import { syncHitDicePools } from '@/engine/hitDice';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -48,7 +49,6 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
   const blank = opts.blank;
   const slotUsed = (lv: number) => (blank ? 0 : (char.combat?.spellSlots?.[lv]?.used ?? 0));
   const resUsed = (id: string) => (blank ? 0 : (char.combat?.resources?.[id] ?? 0));
-  const hitDiceLeft = char.combat?.hitDiceRemaining ?? d.hitDiceMax;
   const slotLevels = Object.entries(slots).map(([lv, n]) => [Number(lv), n] as const).filter(([, n]) => n > 0);
   // quanto a página 1 tem para mostrar além do herói: passou do ponto, a arte encolhe um pouco
   const dense = Math.ceil(slotLevels.length / 3) + resources.length + d.attacks.length + (d.hitDiceMax > 12 ? 1 : 0) > 7;
@@ -111,8 +111,8 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
             <Write value={char.combat?.hpTemp || ''} blank={blank} />
           </div>
           <div className="fv-ills-cell">
-            <span className="fv-ills-k">Dados de vida · d{d.hitDie}</span>
-            <Pips n={d.hitDiceMax} used={blank ? 0 : d.hitDiceMax - hitDiceLeft} label="Dados de vida" />
+            <span className="fv-ills-k">Dados de vida</span>
+            {Object.entries(syncHitDicePools(char)).map(([die, pool]) => <span key={die}>d{die} <Pips n={pool.max} used={blank ? 0 : pool.max - pool.remaining} label={`Dados de vida d${die}`} /></span>)}
           </div>
           <div className="fv-ills-cell">
             <span className="fv-ills-k">Contra a morte</span>

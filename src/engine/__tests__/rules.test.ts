@@ -105,7 +105,7 @@ describe('evolução de nível', () => {
     const c = ensureCharacterV2(makeChar());
     const asi = { kind: 'asi' as const, increases: { str: 2 } };
     expect(validateLevelUp(c, { classId: 'fighter', hpMethod: 'media', hpValue: 6, asi }).length).toBeGreaterThan(0);
-    const lvl3: Character = { ...c, level: 3, classLevels: [{ classId: 'fighter', level: 3 }], levelHistory: synthesizeHistory({ level: 3, classId: 'fighter', subclassId: 'champion' }) };
+    const lvl3: Character = { ...c, level: 3, subclassId: 'champion', classLevels: [{ classId: 'fighter', level: 3, subclassId: 'champion' }], levelHistory: synthesizeHistory({ level: 3, classId: 'fighter', subclassId: 'champion' }) };
     expect(validateLevelUp(lvl3, { classId: 'fighter', hpMethod: 'media', hpValue: 6, asi })).toEqual([]);
   });
 
@@ -323,7 +323,7 @@ describe('migração v2/v3', () => {
     delete legacy.asiBonuses;
     delete (legacy as { schema?: number }).schema;
     const migrated = ensureCharacterV2({ ...(legacy as Character), level: 3 });
-    expect(migrated.classLevels).toEqual([{ classId: 'fighter', level: 3 }]);
+    expect(migrated.classLevels).toEqual([{ classId: 'fighter', level: 3, subclassId: null }]);
     expect(migrated.levelHistory).toHaveLength(3);
     expect(migrated.levelHistory[0].hpValue).toBe(10);
     expect(migrated.campaign.system).toBe('5e-2014');
@@ -339,7 +339,7 @@ describe('migração v2/v3', () => {
     delete legacy.extraLanguages;
     delete (legacy as { schema?: number }).schema;
     const migrated = ensureCharacterV2(legacy as Character);
-    expect(migrated.schema).toBe(3);
+    expect(migrated.schema).toBe(4);
     expect(migrated.toolProfs).toEqual([]);
     expect(migrated.skillExpertise).toEqual([]);
     expect(migrated.extraLanguages).toEqual([]);
@@ -424,6 +424,7 @@ describe('arma mágica estruturada e pré-requisitos de talento', () => {
     const c = ensureCharacterV2(makeChar());
     const axe = itemToInventory(getItem('w-battleaxe')!);
     axe.weapon = { ...axe.weapon!, magicBonus: 2 };
+    axe.homebrew = true;
     const armed: Character = { ...c, inventory: [...c.inventory, axe], equipped: { ...c.equipped, mainHand: axe.uid } };
     const atk = deriveCharacter(armed).attacks.find((a) => a.uid === axe.uid)!;
     expect(atk.attackBonus).toBe(3 + 2 + 2); // FOR 3 + prof 2 + mágica 2
@@ -435,6 +436,7 @@ describe('arma mágica estruturada e pré-requisitos de talento', () => {
     const c = ensureCharacterV2(makeChar());
     const sword = itemToInventory(getItem('w-longsword')!); // 1d8 cortante
     sword.weapon = { ...sword.weapon!, bonusDamage: { dice: 2, die: 6, type: 'fogo' } };
+    sword.homebrew = true;
     const armed: Character = { ...c, inventory: [...c.inventory, sword], equipped: { ...c.equipped, mainHand: sword.uid } };
     const atk = deriveCharacter(armed).attacks.find((a) => a.uid === sword.uid)!;
     expect(atk.bonusDamage).toEqual({ dice: 2, die: 6, type: 'fogo' });

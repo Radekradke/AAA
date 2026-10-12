@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import type { AbilityKey } from '@/types/dnd';
 import { characterResources } from './classResources';
@@ -53,7 +54,7 @@ export function battleMasterState(char: Character, prof: number, strMod: number,
 
 /** Sobrevivente (Campeão 18º): no início do turno, com PV ≤ metade (e > 0), recupera 5 + CON. */
 export function survivorHeal(char: Character, maxHp: number, conMod: number): number {
-  if (char.subclassId !== 'champion' || levelIn(char, 'fighter') < 18) return 0;
+  if (subclassOf(char, 'fighter') !== 'champion' || levelIn(char, 'fighter') < 18) return 0;
   if (char.hpCurrent <= 0 || char.hpCurrent > Math.floor(maxHp / 2)) return 0;
   return Math.max(0, 5 + conMod);
 }

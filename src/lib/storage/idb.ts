@@ -16,7 +16,7 @@ function openDb(): Promise<IDBDatabase> {
       if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE);
     };
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => { dbPromise = null; reject(req.error); };
   });
   return dbPromise;
 }
@@ -37,6 +37,7 @@ export async function idbSet(key: string, value: unknown): Promise<void> {
     tx.objectStore(STORE).put(value, key);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error('Gravação local interrompida.'));
   });
 }
 
@@ -47,6 +48,7 @@ export async function idbDel(key: string): Promise<void> {
     tx.objectStore(STORE).delete(key);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error('Exclusão local interrompida.'));
   });
 }
 

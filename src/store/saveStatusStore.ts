@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { SyncConflict } from '@/types/models';
 
-export type LocalSaveState = 'idle' | 'saving' | 'saved';
+export type LocalSaveState = 'idle' | 'saving' | 'saved' | 'error';
 export type CloudSaveState =
   | 'disabled' // Supabase não configurado ou usuário offline/convidado
   | 'offline' // sem internet, alterações pendentes
@@ -17,7 +17,8 @@ interface SaveStatusState {
   pendingCount: number;
   conflicts: SyncConflict[];
   lastError: string | null;
-  setLocal: (s: LocalSaveState) => void;
+  localError: string | null;
+  setLocal: (s: LocalSaveState, error?: string | null) => void;
   setCloud: (s: CloudSaveState, error?: string | null) => void;
   setPending: (n: number) => void;
   setConflicts: (c: SyncConflict[]) => void;
@@ -30,7 +31,8 @@ export const useSaveStatusStore = create<SaveStatusState>((set) => ({
   pendingCount: 0,
   conflicts: [],
   lastError: null,
-  setLocal: (local) => set({ local }),
+  localError: null,
+  setLocal: (local, localError = null) => set({ local, localError }),
   setCloud: (cloud, lastError = null) => set({ cloud, lastError }),
   setPending: (pendingCount) => set({ pendingCount }),
   setConflicts: (conflicts) =>

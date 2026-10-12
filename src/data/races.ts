@@ -216,13 +216,23 @@ export function getRace(id: string): Race {
   return RACE_BY_ID[id] ?? HOMEBREW.get(id) ?? RACES[0];
 }
 
-/** Raça da ficha: a homebrew embutida vence (e fica registrada para o resto do app). */
+/** Raça da ficha: a versão embutida vence sem modificar a biblioteca global. */
 export function raceOf(char: { raceId: string; customRace?: Race | null }): Race {
   if (char.customRace && char.customRace.id === char.raceId) {
-    registerRace(char.customRace);
     return char.customRace;
   }
   return getRace(char.raceId);
+}
+
+/** Sublinhagem da versão da raça gravada nesta ficha. */
+export function subraceOf(char: { raceId: string; subraceId: string | null; customRace?: Race | null }): Subrace | undefined {
+  if (!char.subraceId) return undefined;
+  const race = raceOf(char);
+  return (race.subraces ?? SUBRACES[char.raceId] ?? []).find((s) => s.id === char.subraceId);
+}
+
+export function subracesOf(char: { raceId: string; customRace?: Race | null }): Subrace[] {
+  return raceOf(char).subraces ?? SUBRACES[char.raceId] ?? [];
 }
 
 export function getSubraces(raceId: string): Subrace[] {

@@ -52,12 +52,13 @@ export function warlockSlots(level: number): Record<number, number> {
  * A Magia de Pacto do Bruxo é um conjunto à parte (somado aos espaços comuns).
  * Com só UMA classe conjuradora, valem as tabelas da própria classe.
  */
-export function multiclassSlots(levels: { classId: string; level: number }[], thirdCasterClass: string | null): Record<number, number> {
-  const casters = levels.filter((l) => FULL_CASTERS.has(l.classId) || HALF_CASTERS.has(l.classId) || l.classId === thirdCasterClass);
+export function multiclassSlots(levels: { classId: string; level: number }[], thirdCasterClass: string | string[] | null): Record<number, number> {
+  const thirds = new Set(Array.isArray(thirdCasterClass) ? thirdCasterClass : thirdCasterClass ? [thirdCasterClass] : []);
+  const casters = levels.filter((l) => FULL_CASTERS.has(l.classId) || HALF_CASTERS.has(l.classId) || thirds.has(l.classId));
   let out: Record<number, number> = {};
   if (casters.length === 1) {
     const c = casters[0];
-    out = c.classId === thirdCasterClass ? thirdCasterSlots(c.level) : spellSlotsForClass(c.classId, c.level);
+    out = thirds.has(c.classId) ? thirdCasterSlots(c.level) : spellSlotsForClass(c.classId, c.level);
   } else if (casters.length > 1) {
     const casterLevel = casters.reduce(
       (n, c) => n + (FULL_CASTERS.has(c.classId) ? c.level : HALF_CASTERS.has(c.classId) ? Math.floor(c.level / 2) : Math.floor(c.level / 3)),

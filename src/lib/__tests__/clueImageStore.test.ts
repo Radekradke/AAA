@@ -56,7 +56,7 @@ describe('imagens das pistas (fora da ficha)', () => {
   it('sem o bucket (SQL não rodou): mantém na fila e tenta depois', async () => {
     const id = await saveClueImage(PNG);
     bucket.fail = true;
-    await flushClueImageUploads(USER);
+    await expect(flushClueImageUploads(USER)).rejects.toThrow('Imagens do diário ainda pendentes');
     expect(bucket.files.size).toBe(0);
     bucket.fail = false;
     await flushClueImageUploads(USER);

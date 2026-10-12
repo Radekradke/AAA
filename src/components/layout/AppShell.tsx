@@ -6,6 +6,8 @@ import { BackgroundScene } from '@/components/animations/BackgroundScene';
 import { RollOverlay } from '@/components/dice/RollOverlay';
 import { CastNotice } from '@/components/spells/CastNotice';
 import { loadThemeCss } from '@/lib/themeCss';
+import { brandSvg } from '@/lib/brand';
+import '@/styles/brand.css';
 
 interface AppShellProps {
   children: ReactNode;
@@ -31,6 +33,11 @@ export function AppShell({ children, video = null, posters, videoOpacity, darken
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-mode', mode);
   }, [theme, mode]);
+
+  useEffect(() => {
+    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"][type="image/svg+xml"]');
+    if (favicon) favicon.href = `data:image/svg+xml,${encodeURIComponent(brandSvg(t.gold))}`;
+  }, [t.gold]);
 
   // as variáveis de cor vêm do CSS do tema ([data-theme][data-mode]); o JS
   // usa a mesma paleta (resolveTheme) só para os estilos inline

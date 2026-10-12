@@ -14,11 +14,14 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
   const store = useCharacterStore();
   const pal = paladinState(char, derived.proficiency, derived.abilities.cha.mod);
   const [amount, setAmount] = useState(5);
+  const [weaponUid, setWeaponUid] = useState(char.equipped.mainHand ?? '');
   if (!pal) return null;
   const turn = char.combat.turn;
   const n = Math.max(1, Math.min(amount || 1, pal.layLeft));
   const lost = derived.maxHp - char.hpCurrent;
   const poisoned = char.combat.conditions.includes('Envenenado');
+  const weapons = derived.attacks.filter((a) => a.weapon);
+  const selectedWeapon = weapons.find((a) => a.uid === weaponUid)?.uid ?? weapons[0]?.uid;
 
   const useAction = (kind: 'action' | 'bonus') => store.useTurn(char.id, kind);
   const layOnHands = (who: 'self' | 'ally') => {
@@ -60,6 +63,13 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
         </button>
       </div>
       <div className="fv-rage-start">
+        {pal.channelOptions.some((o) => o.mark === 'sacredWeapon') && <label className="fv-pal-amt">
+          <span>Arma Sagrada</span>
+          <select className="fv-input" aria-label="Arma para Arma Sagrada" value={selectedWeapon ?? ''} onChange={(e) => setWeaponUid(e.target.value)}>
+            {!weapons.length && <option value="">Equipe uma arma</option>}
+            {weapons.map((a) => <option key={a.uid} value={a.uid}>{a.name}</option>)}
+          </select>
+        </label>}
         <button type="button" className="fv-rage-go is-steel" disabled={!pal.senseLeft || turn.action} onClick={() => {
           store.setResource(char.id, 'divineSense', pal.senseLeft - 1);
           useAction('action');
@@ -71,13 +81,13 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
           const on = !!o.mark && (char.combat.marks ?? []).includes(o.mark);
           const kind = o.id === 'vow' ? 'bonus' : 'action';
           return (
-            <button key={o.id} type="button" className="fv-rage-go is-steel" disabled={!pal.channelLeft || turn[kind] || on} onClick={() => {
+            <button key={o.id} type="button" className="fv-rage-go is-steel" disabled={!pal.channelLeft || turn[kind] || on || (o.mark === 'sacredWeapon' && !selectedWeapon)} onClick={() => {
               store.setResource(char.id, 'channel', pal.channelLeft - 1);
               useAction(kind);
-              if (o.mark) store.setMark(char.id, o.mark, true);
+              if (o.mark) store.setMark(char.id, o.mark, true, o.mark === 'sacredWeapon' ? selectedWeapon : undefined);
               toast(`Canalizar Divindade · ${o.label}: ${o.desc}${o.save ? ` CD ${pal.dc}.` : ''}`, { tone: 'ok' });
             }} title={o.desc}>
-              {o.label} <small>Canalizar · {kind === 'bonus' ? 'ação bônus' : 'ação'}{o.save ? ` · ${o.save} CD ${pal.dc}` : ''}{on ? ' · ativo' : ` · ${pal.channelLeft}/1`}</small>
+              {o.label} <small>Canalizar · {kind === 'bonus' ? 'ação bônus' : 'ação'}{o.save ? ` · ${o.save} CD ${pal.dc}` : ''}{on ? ' · ativo' : ` · ${pal.channelLeft}/${pal.channelMax}`}</small>
             </button>
           );
         })}

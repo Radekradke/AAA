@@ -8,11 +8,17 @@ import { conditionLore, passiveLore } from '@/lib/lore';
 import { CONDITIONS } from '@/data/conditions';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
 import { useSpendHitDie } from './useSpendHitDie';
+import { useState } from 'react';
+import { syncHitDicePools } from '@/engine/hitDice';
 
 export function TabDescanso({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
-  const spendHitDie = useSpendHitDie(char, derived);
+  const pools = syncHitDicePools(char);
+  const [die, setDie] = useState(derived.hitDie);
+  const selectedDie = pools[die] ? die : Number(Object.keys(pools)[0]);
+  const spendHitDie = useSpendHitDie(char, derived, selectedDie);
+  const canRest = char.hpCurrent > 0 && (char.combat.deathSaves?.fail ?? 0) < 3 && (char.combat.exhaustion ?? 0) < 6;
 
   const restHint = char.combat.conditions.length
     ? `Atenção: ${char.combat.conditions.length} condição(ões) ativa(s) — um descanso longo as remove.`
@@ -35,7 +41,7 @@ export function TabDescanso({ char, derived }: TabProps) {
             </button>
           </LoreTooltip>
           <LoreTooltip info={passiveLore('Descanso Longo', '8 horas', 'Restaura PV ao máximo, recupera parte dos Dados de Vida, limpa condições nesta ficha e restaura recursos/espaços.', ['Descanso', 'Restauração'])} anchorStyle={{ display: 'block' }}>
-            <button onClick={() => store.longRest(char.id)} style={{ cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--goldB)', background: 'linear-gradient(160deg, rgba(255,224,138,.14), rgba(255,224,138,.04))', boxShadow: '0 0 26px var(--bloom)', transition: '.25s' }}>
+            <button disabled={!canRest} onClick={() => store.longRest(char.id)} style={{ cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--goldB)', background: 'linear-gradient(160deg, rgba(255,224,138,.14), rgba(255,224,138,.04))', boxShadow: '0 0 26px var(--bloom)', transition: '.25s' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>Descanso Longo</div>
               <div style={{ marginTop: 5, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
                 8 horas · PV no máximo, metade dos Dados de Vida e todos os recursos restaurados.
@@ -48,8 +54,11 @@ export function TabDescanso({ char, derived }: TabProps) {
           <div>
             <b>Dados de Vida</b>
             <span>
-              {char.combat.hitDiceRemaining}/{derived.hitDiceMax} · d{derived.hitDie} {derived.abilities.con.mod >= 0 ? '+' : '−'} {Math.abs(derived.abilities.con.mod)} CON por dado
+              {Object.values(pools).reduce((n, p) => n + p.remaining, 0)}/{derived.hitDiceMax} · {derived.abilities.con.mod >= 0 ? '+' : '−'} {Math.abs(derived.abilities.con.mod)} CON por dado
             </span>
+            <select className="fv-input" aria-label="Tipo de Dado de Vida" value={selectedDie} onChange={(e) => setDie(Number(e.target.value))}>
+              {Object.entries(pools).map(([sides, pool]) => <option key={sides} value={sides}>d{sides} · {pool.remaining}/{pool.max} disponíveis</option>)}
+            </select>
           </div>
           <button
             type="button"
@@ -62,6 +71,7 @@ export function TabDescanso({ char, derived }: TabProps) {
           </button>
         </div>
         <div style={{ marginTop: 13, fontSize: 12, color: 'var(--acc)', fontFamily: 'var(--font-num)' }}>{restHint}</div>
+        {!canRest && <p role="note">Descanso longo exige ao menos 1 PV e não revive personagens mortos.</p>}
       </Panel>
 
       <Panel full>

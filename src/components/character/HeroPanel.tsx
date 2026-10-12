@@ -1,10 +1,11 @@
+import { subraceOf } from '@/data/races';
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import type React from 'react';
 import type { Character } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
 import { creationPending } from '@/engine/creationSummary';
-import { getSubrace, raceOf } from '@/data/races';
+import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
@@ -34,7 +35,7 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
   const derived = useMemo(() => deriveCharacter(char), [char]);
   const pending = useMemo(() => creationPending(char), [char]);
   const race = raceOf(char);
-  const sub = getSubrace(char.raceId, char.subraceId);
+  const sub = subraceOf(char);
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
   const named = char.name.trim();

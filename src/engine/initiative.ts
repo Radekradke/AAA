@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { characterResources } from './classResources';
 import { classLevelOf } from './levelUp';
@@ -38,6 +39,6 @@ export function initiativeRules(char: Character): InitiativeRules {
     advantage: barb >= 7,
     advantageSource: barb >= 7 ? 'Instinto Selvagem' : undefined,
     refills,
-    secondTurn: char.subclassId === 'thief' && classLevelOf(char, 'rogue') >= 17,
+    secondTurn: subclassOf(char, 'rogue') === 'thief' && classLevelOf(char, 'rogue') >= 17,
   };
 }

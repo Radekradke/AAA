@@ -14,7 +14,7 @@ import { skillBudget, languagePicks } from './originChoices';
 import { subclassLevelFor } from './levelUp';
 import { asiLevelsFor } from '@/data/classFeatures';
 import { buildSpellSlots } from './progression';
-import { cantripsKnown } from './spellcasting';
+import { cantripsKnown, syncPrimarySpellSelection } from './spellcasting';
 
 /**
  * "Ficha simples" — formato enxuto para criar um herói fora do app (ex.: o
@@ -236,6 +236,7 @@ export function fromSimpleSheet(s: SimpleSheet, ownerId: string): SimpleImportRe
     if (cantrips > maxCantrips) warn(`Truques demais: ${getClass(c.classId).label} conhece ${maxCantrips} no nível ${level}.`);
     c.preparedSpells = spells;
     if (c.classId === 'wizard') c.knownSpells = Array.from(new Set([...ids(s.grimorio), ...spells.filter((id) => (getSpell(id)?.level ?? 0) >= 1)]));
+    syncPrimarySpellSelection(c);
   }
 
   // ---- história (vai para as Notas da ficha) ----

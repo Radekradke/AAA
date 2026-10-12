@@ -14,6 +14,7 @@ import { inventoryActions } from './character/inventory';
 import { proficienciesActions } from './character/proficiencies';
 import { spellsActions } from './character/spells';
 import { progressionActions } from './character/progression';
+import { characterImportError } from '@/engine/characterImport';
 
 export type { CharacterState } from './character/types';
 
@@ -27,7 +28,7 @@ export const useCharacterStore = create<CharacterState>()(
             if (c.id !== id) return c;
             const copy: Character = structuredClone(c);
             recipe(copy);
-            copy.updatedAt = Date.now();
+            copy.updatedAt = Math.max(Date.now(), c.updatedAt + 1, (copy.syncBase ?? 0) + 1);
             // qualquer edição marca a ficha como pendente de sincronização
             if (copy.syncStatus === 'synced') copy.syncStatus = 'pending';
             return copy;
@@ -105,11 +106,11 @@ export const useCharacterStore = create<CharacterState>()(
         },
         importCharacter(json, ownerId) {
           try {
-            const parsed = JSON.parse(json) as Partial<Character>;
-            if (!parsed || typeof parsed !== 'object' || !parsed.name) {
-              return { ok: false, error: 'Arquivo inválido: estrutura de personagem não reconhecida.' };
-            }
             const base = createDraftCharacter({ ownerId });
+            const input: unknown = JSON.parse(json);
+            const error = characterImportError(input, base);
+            if (error) return { ok: false, error };
+            const parsed = input as Partial<Character>;
             const merged: Character = {
               ...base,
               ...parsed,
@@ -119,8 +120,15 @@ export const useCharacterStore = create<CharacterState>()(
               combat: { ...emptyCombat(), ...(parsed.combat ?? {}) },
               createdAt: Date.now(),
               updatedAt: Date.now(),
+              syncStatus: 'pending',
+              syncBase: undefined,
+              lastSyncedAt: undefined,
             } as Character;
             const migrated = ensureCharacterV2(merged);
+            const calculated = deriveCharacter(migrated); // valida também a composição antes de persistir
+            if (![calculated.maxHp, calculated.ac, ...Object.values(calculated.abilities).map((a) => a.total)].every(Number.isFinite)) {
+              return { ok: false, error: 'A ficha contém atributos ou modificadores inválidos.' };
+            }
             set((s) => ({ characters: [...s.characters, migrated], currentId: migrated.id }));
             return { ok: true, id: migrated.id };
           } catch {
@@ -142,11 +150,11 @@ export const useCharacterStore = create<CharacterState>()(
     },
     {
       name: 'fv-characters',
-      version: 3,
+      version: 4,
       // persistência principal em IndexedDB (autosave com debounce);
       // migra o dado antigo do localStorage automaticamente
       storage: createJSONStorage(() => idbStateStorage),
-      // migração segura: personagens antigos ganham os campos dos schemas v2/v3
+      // migração segura: fichas antigas ganham subclasses por classe no schema v4
       migrate: (persisted) => {
         const state = persisted as { characters?: Character[]; currentId?: string | null; pendingDeletes?: string[] };
         return {

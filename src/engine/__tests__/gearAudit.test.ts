@@ -21,6 +21,7 @@ function hero(classId = 'wizard'): Character {
 function add(c: Character, id: string, patch: Partial<InventoryItem> = {}) {
   const it = { ...itemToInventory(getItem(id)!), ...patch };
   c.inventory.push(it);
+  if (getItem(id)?.requiresHeld) c.equipped.mainHand = it.uid;
   return it;
 }
 const spend = (c: Character, uid: string, n: number) => ({ ...c, combat: { ...c.combat, itemCharges: { ...(c.combat.itemCharges ?? {}), [uid]: (c.combat.itemCharges?.[uid] ?? 0) + n } } });
@@ -119,8 +120,8 @@ describe('sintonia restrita por classe', () => {
     const p = hero('paladin');
     expect(attunementBlock(p, add(p, 'm-wand-web'))).toBeNull();
   });
-  it('Anel de Resistência não pede sintonia (Guia do Mestre)', () => {
-    expect(getItem('m-ring-resist')!.attunement).toBeFalsy();
+  it('Anel de Resistência pede sintonia (Guia do Mestre 2014)', () => {
+    expect(getItem('m-ring-resist')!.attunement).toBe(true);
   });
 });
 

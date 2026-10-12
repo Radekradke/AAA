@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { characterResources } from './classResources';
 import { levelIn } from './damageExtras';
@@ -26,6 +27,7 @@ export interface PaladinState {
   senseLeft: number;
   senseMax: number;
   channelLeft: number;
+  channelMax: number;
   channelOptions: ChannelOption[];
   cleansingLeft: number;
   cleansingMax: number;
@@ -59,7 +61,7 @@ export function paladinState(char: Character, prof: number, chaMod: number): Pal
   if (!level) return null;
   const res = Object.fromEntries(characterResources(char).map((r) => [r.id, r]));
   const left = (id: string) => (res[id] ? Math.min(res[id].max, char.combat?.resources?.[id] ?? res[id].max) : 0);
-  const sub = char.subclassId;
+  const sub = subclassOf(char, 'paladin');
   return {
     level,
     dc: 8 + prof + chaMod,
@@ -68,6 +70,7 @@ export function paladinState(char: Character, prof: number, chaMod: number): Pal
     senseLeft: left('divineSense'),
     senseMax: res.divineSense?.max ?? 0,
     channelLeft: left('channel'),
+    channelMax: res.channel?.max ?? 0,
     channelOptions: level >= 3 && sub ? CHANNEL[sub] ?? [] : [],
     cleansingLeft: left('cleansing'),
     cleansingMax: res.cleansing?.max ?? 0,

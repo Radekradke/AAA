@@ -173,10 +173,12 @@ describe('mãos: escudo, duas mãos e duas armas', () => {
 });
 
 describe('varinhas e cajados', () => {
-  it('Varinha de Mísseis Mágicos (sem sintonia) funciona na mochila; no Baú, não', () => {
+  it('Varinha de Mísseis Mágicos não exige sintonia, mas deve ser empunhada', () => {
     const c = hero('wizard');
     const wand = add(c, 'm-wand-missiles');
     expect(containerOf(c, wand)).toBe('mochila');
+    expect(itemGrantedSpells(c)).toHaveLength(0);
+    moveItemTo(c, wand.uid, 'equipado');
     expect(itemGrantedSpells(c).map((s) => s.itemUid)).toContain(wand.uid);
     moveItemTo(c, wand.uid, 'bau');
     expect(itemGrantedSpells(c)).toHaveLength(0);

@@ -1,5 +1,7 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { toolLabel } from '@/data/tools';
+import { changeSpellSelection } from './spellcasting';
 
 const TOOL_SOURCES: Record<string, string> = {
   artisanTool: 'Estudioso da Guerra',
@@ -23,15 +25,16 @@ export function grantChoiceEffects(c: Character, picks: Record<string, string[]>
     // Magias de Assinatura) entram na lista do personagem
     if (SPELL_KEYS.test(key)) {
       const wizardBook = key === 'signature' || key.startsWith('spellMastery');
+      changeSpellSelection(c, storeKey.split('.')[0], (selection) => {
       for (const id of ids) {
         if (wizardBook) {
-          c.knownSpells = c.knownSpells ?? [];
-          if (!c.knownSpells.includes(id)) c.knownSpells.push(id);
-          if (key === 'signature' && !c.preparedSpells.includes(id)) c.preparedSpells.push(id);
-        } else if (!c.preparedSpells.includes(id)) {
-          c.preparedSpells.push(id);
+          if (!selection.knownSpells.includes(id)) selection.knownSpells.push(id);
+          if (key === 'signature' && !selection.preparedSpells.includes(id)) selection.preparedSpells.push(id);
+        } else if (!selection.preparedSpells.includes(id)) {
+          selection.preparedSpells.push(id);
         }
       }
+      });
     }
     // ferramentas escolhidas viram proficiência na ficha
     const toolSource = TOOL_SOURCES[key];
@@ -54,7 +57,7 @@ const SUBCLASS_TOOLS: Record<string, { classId: string; level: number; tools: st
  * Sem nada a acrescentar, devolve o mesmo objeto (seguro para chamar sempre).
  */
 export function withSubclassTools(c: Character): Character {
-  const grant = c.subclassId ? SUBCLASS_TOOLS[c.subclassId] : undefined;
+  const grant = SUBCLASS_TOOLS[subclassOf(c, 'rogue') ?? ''];
   if (!grant) return c;
   const lv = c.classLevels?.find((cl) => cl.classId === grant.classId)?.level ?? (c.classId === grant.classId ? c.level : 0);
   const have = c.toolProfs ?? [];

@@ -49,11 +49,7 @@
         border: 1px solid color-mix(in srgb, var(--boot-gold, #f4d58d) 55%, transparent);
         animation: fv-boot-pulse 1.6s ease-in-out infinite;
       }
-      .fv-boot-mark span {
-        width: 44px; height: 44px; display: grid; place-items: center; transform: rotate(45deg);
-        border: 1.5px solid var(--boot-gold, #f4d58d); color: var(--boot-gold, #f4d58d);
-      }
-      .fv-boot-mark b { transform: rotate(-45deg); font-size: 22px; font-weight: 700; }
+      .fv-boot-mark svg { width: 48px; height: 48px; color: var(--boot-gold, #f4d58d); }
       .fv-boot-name { letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.85; }
       @keyframes fv-boot-pulse { 0%, 100% { transform: scale(0.92); opacity: 0.45; } 50% { transform: scale(1.06); opacity: 1; } }
       @media (prefers-reduced-motion: reduce) { .fv-boot-mark::before { animation: none; } }
@@ -62,7 +58,7 @@
   <body>
     <div id="root">
       <div class="fv-boot" role="status" aria-label="Abrindo o Ficha Viva">
-        <div class="fv-boot-mark" aria-hidden="true"><span><b>F</b></span></div>
+        <div class="fv-boot-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 2.5 28 9.25v13.5L16 29.5 4 22.75V9.25Z"/><path d="m16 2.5-7 7h14Zm0 27v-5" stroke-width="1.2"/><path d="M11 23V12h10M11 17h7" stroke-width="2.4"/></svg></div>
         <div class="fv-boot-name">Ficha Viva</div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { modStr } from '@/engine/dice';
 import { STEP_SPELLS } from '@/engine/creationSummary';
 import { creationSpellPlan, suggestCreationSpells } from '@/engine/creationSpells';
 import type { SpellPick } from '@/engine/creationSpells';
+import { syncPrimarySpellSelection } from '@/engine/spellcasting';
 
 /** Uma linha curta do efeito (a carta inteira fica na aba Magias). */
 function short(sp: Spell): string {
@@ -53,12 +54,14 @@ export function StepSpells({ char, update }: StepProps) {
     update((c) => {
       const inPool = new Set(pool.pool.map((s) => s.id));
       c.preparedSpells = [...c.preparedSpells.filter((id) => !inPool.has(id)), ...next];
+      syncPrimarySpellSelection(c);
     });
   const setBook = (next: string[]) =>
     update((c) => {
       c.knownSpells = next;
       // preparada que saiu do grimório deixa de estar preparada
       c.preparedSpells = c.preparedSpells.filter((id) => level(id) < 1 || next.includes(id) || plan.free.some((f) => f.id === id));
+      syncPrimarySpellSelection(c);
     });
 
   const spellsLabel = plan.kind === 'known' ? 'Magias conhecidas (1º círculo)' : plan.kind === 'prepared' ? 'Magias preparadas (1º círculo)' : 'Grimório (1º círculo)';

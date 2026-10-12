@@ -7,6 +7,7 @@ import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
 import { toolLabel } from '@/data/tools';
 import { COINS, fmtM, usePrintData } from './printData';
 import '@/styles/print.css';
+import { syncHitDicePools } from '@/engine/hitDice';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -99,7 +100,7 @@ export function SheetPrint({ char }: { char: Character }) {
           <div className="fv-print-row2">
             <div className="fv-print-box">
               <span className="fv-print-k">Dados de vida</span>
-              <b className="fv-print-v">{char.combat?.hitDiceRemaining ?? d.hitDiceMax}/{d.hitDiceMax} · d{d.hitDie}</b>
+              <b className="fv-print-v">{Object.entries(syncHitDicePools(char)).map(([die, pool]) => `${pool.remaining}/${pool.max} d${die}`).join(' · ')}</b>
             </div>
             <div className="fv-print-box">
               <span className="fv-print-k">Testes contra a morte</span>

@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { characterResources } from './classResources';
 import { levelIn, sneakDice } from './damageExtras';
@@ -30,7 +31,7 @@ export interface RogueState {
 export function rogueState(char: Character, prof: number, dexMod: number): RogueState | null {
   const level = levelIn(char, 'rogue');
   if (!level) return null;
-  const sub = char.subclassId;
+  const sub = subclassOf(char, 'rogue');
   const stroke = characterResources(char).find((r) => r.id === 'strokeOfLuck');
   const strokeLeft = stroke ? Math.min(stroke.max, char.combat?.resources?.strokeOfLuck ?? stroke.max) : 0;
   return {
@@ -49,7 +50,7 @@ export function rogueState(char: Character, prof: number, dexMod: number): Rogue
 }
 
 const hunterDefense = (char: Character) =>
-  char.subclassId === 'hunter' && levelIn(char, 'ranger') >= 15 ? char.choices?.['ranger.hunterDefense']?.[0] ?? null : null;
+  subclassOf(char, 'ranger') === 'hunter' && levelIn(char, 'ranger') >= 15 ? char.choices?.['ranger.hunterDefense']?.[0] ?? null : null;
 
 /** Esquiva Sobrenatural: Ladino 5º ou Caçador 15º (Defesa Superior). */
 export function hasUncannyDodge(char: Character): boolean {

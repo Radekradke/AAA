@@ -1,14 +1,15 @@
-import type { Character } from '@/types/character';
+import type { Character, SpellSlotPools, ClassSpellSelection } from '@/types/character';
 import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
 import { DOMAIN_SPELLS, LAND_SPELLS, OATH_SPELLS, PATRON_SPELLS } from '@/data/subclassSpells';
 import type { AbilityKey, Spell } from '@/types/dnd';
 import { getSpell } from '@/data/spells';
 import { getClass } from '@/data/classes';
-import { multiclassSlots, spellSlotsForClass, thirdCasterSlots } from './progression';
+import { multiclassSlots, spellSlotsForClass, thirdCasterSlots, warlockSlots } from './progression';
 import { itemIsActive, slotForItem } from './inventory';
 import { chargeOptions, chargesLeft, chargesOf, grantsOf, minCost } from './itemCharges';
 import type { ChargeOption } from './itemCharges';
+import { levelsOf, subclassOf } from './characterClasses';
 
 /**
  * Guia de conjuração (PHB 2014): quantos truques e magias cada classe
@@ -192,7 +193,7 @@ export function itemGrantedSpells(char: Character): ItemSpell[] {
     if (!grants?.length) continue;
     // arma/armadura/escudo: empunhado ou sintonizado; vestível: vestido;
     // varinha, cajado…: sintonizado se pede, senão enquanto está com o herói
-    const ok = slotForItem(it) ? equipped.has(it.uid) || it.attuned : itemIsActive(char, it);
+    const ok = itemIsActive(char, it) && (slotForItem(it) ? equipped.has(it.uid) || it.attuned : true);
     if (!ok) continue;
     const ch = chargesOf(it);
     const left = ch ? chargesLeft(char, it) : 0;
@@ -273,6 +274,8 @@ const THIRD_CASTERS: Record<string, { classId: string; schools: string[]; cantri
 };
 
 export interface CasterInfo {
+  /** Classe de origem, mesmo quando usa a lista de outra classe. */
+  classId: string;
   /** Classe dona da lista de magias (Cavaleiro Arcano usa a de mago). */
   listClass: string;
   ability: AbilityKey;
@@ -294,48 +297,140 @@ export interface CasterInfo {
  * pela subclasse (lista de mago, Inteligência, um terço de conjurador).
  */
 export function casterOf(char: Character, castMod = 0): CasterInfo | null {
-  const levels = char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }];
-  const multi = levels.length > 1;
-  const thirdClass = char.subclassId && THIRD_CASTERS[char.subclassId]?.classId === char.classId ? char.classId : null;
-  // multiclasse: espaços pelo nível de conjurador somado (PHB 2014, cap. 6)
-  const multiSlots = () => multiclassSlots(levels, thirdClass);
-  // a classe que conjura: a principal; se ela não conjura, a primeira conjuradora da multiclasse
-  const castClass = getClass(char.classId).spellcasting
-    ? char.classId
-    : thirdClass && (levels.find((l) => l.classId === char.classId)?.level ?? 0) >= 3
-      ? null
-      : levels.find((l) => getClass(l.classId).spellcasting)?.classId ?? null;
-  if (castClass) {
-    const cls = getClass(castClass);
-    const level = levels.find((c) => c.classId === castClass)?.level ?? char.level;
-    const ownSub = castClass === char.classId ? char.subclassId : null;
+  const profiles = casterProfiles(char, castMod);
+  const selected = profiles.find((p) => p.classId === char.classId) ?? profiles[0];
+  if (!selected) return null;
+  return { ...selected, slots: combinedSlotMaxes(char) };
+}
+
+/** Perfil individual: o limite de aprendizado usa estes espaços, nunca os combinados. */
+export function casterForClass(char: Character, classId: string, castMod = 0): CasterInfo | null {
+  const level = levelsOf(char).find((cl) => cl.classId === classId)?.level ?? 0;
+  if (!level) return null;
+  const cls = getClass(classId);
+  const ownSub = subclassOf(char, classId);
+  if (cls.spellcasting) {
     return {
-      listClass: castClass,
+      classId,
+      listClass: classId,
       ability: cls.spellAbility ?? cls.prim,
-      kind: casterKind(castClass),
+      kind: casterKind(classId),
       level,
       // truque extra do Círculo da Terra (2º); o luz do Domínio da Luz vem em grantedSpells
-      cantrips: cantripsKnown(castClass, level) + (ownSub === 'land' && level >= 2 ? 1 : 0),
-      guide: spellsKnownOrPrepared(castClass, level, castMod),
-      slots: multi ? multiSlots() : spellSlotsForClass(castClass, level),
+      cantrips: cantripsKnown(classId, level) + (ownSub === 'land' && level >= 2 ? 1 : 0),
+      guide: spellsKnownOrPrepared(classId, level, castMod),
+      slots: spellSlotsForClass(classId, level),
     };
   }
-  const level = levels.find((c) => c.classId === char.classId)?.level ?? char.level;
-  const third = char.subclassId ? THIRD_CASTERS[char.subclassId] : undefined;
-  if (third && third.classId === char.classId && level >= 3) {
+  const third = ownSub ? THIRD_CASTERS[ownSub] : undefined;
+  if (third && third.classId === classId && level >= 3) {
     return {
+      classId,
       listClass: 'wizard',
       ability: 'int',
       kind: 'known',
       level,
       cantrips: third.cantrips(level),
       guide: { count: THIRD_KNOWN[level - 1] ?? 0, label: 'conhecidas' },
-      slots: multi ? multiSlots() : thirdCasterSlots(level),
+      slots: thirdCasterSlots(level),
       via: third.label,
       schools: { allowed: third.schools, free: THIRD_FREE_LEVELS.filter((l) => level >= l).length },
     };
   }
   return null;
+}
+
+export function casterProfiles(char: Character, castMod = 0): CasterInfo[] {
+  return levelsOf(char).flatMap((cl) => {
+    const profile = casterForClass(char, cl.classId, castMod);
+    return profile ? [profile] : [];
+  });
+}
+
+export function spellSelectionOf(char: Character, classId: string): ClassSpellSelection {
+  if (char.classSpells?.[classId]) return char.classSpells[classId];
+  if (casterOf(char)?.classId === classId) return {
+    knownSpells: char.knownSpells ?? [], preparedSpells: char.preparedSpells ?? [],
+    spellbookCopied: char.spellbookCopied ?? [], spellSwaps: char.spellSwaps ?? 0,
+  };
+  return { knownSpells: [], preparedSpells: [], spellbookCopied: [], spellSwaps: 0 };
+}
+
+export function knownSpellIds(char: Character): Set<string> {
+  return new Set([...(char.knownSpells ?? []), ...(char.preparedSpells ?? []), ...Object.values(char.classSpells ?? {}).flatMap((s) => [...s.knownSpells, ...s.preparedSpells])]);
+}
+
+/** Escritores legados da criação/importação ainda montam as listas globais. */
+export function syncPrimarySpellSelection(char: Character): void {
+  const classId = casterOf(char)?.classId;
+  if (!classId || !char.classSpells?.[classId]) return;
+  char.classSpells = { ...char.classSpells, [classId]: {
+    knownSpells: [...(char.knownSpells ?? [])], preparedSpells: [...(char.preparedSpells ?? [])],
+    spellbookCopied: [...(char.spellbookCopied ?? [])], spellSwaps: char.spellSwaps ?? 0,
+  } };
+}
+
+/** Muta uma seleção por origem e mantém a projeção para leitores de fichas antigas. */
+export function changeSpellSelection(char: Character, classId: string, recipe: (selection: ClassSpellSelection) => void): void {
+  const current = spellSelectionOf(char, classId);
+  const selection = { ...current, knownSpells: [...current.knownSpells], preparedSpells: [...current.preparedSpells], spellbookCopied: [...(current.spellbookCopied ?? [])] };
+  recipe(selection);
+  char.classSpells = { ...char.classSpells, [classId]: selection };
+  if (casterOf(char)?.classId === classId) {
+    char.knownSpells = selection.knownSpells;
+    char.preparedSpells = selection.preparedSpells;
+    char.spellbookCopied = selection.spellbookCopied;
+    char.spellSwaps = selection.spellSwaps;
+  }
+}
+
+function combinedSlotMaxes(char: Character): Record<number, number> {
+  const levels = levelsOf(char);
+  const thirds = levels.filter((cl) => {
+    const sub = subclassOf(char, cl.classId);
+    return sub && THIRD_CASTERS[sub]?.classId === cl.classId && cl.level >= 3;
+  }).map((cl) => cl.classId);
+  return multiclassSlots(levels, thirds);
+}
+
+/** Sem origem legada, aloca gastos primeiro aos espaços comuns: não os recupera no descanso curto. */
+export function syncSlotPools(char: Character, refill = false): SpellSlotPools {
+  const levels = levelsOf(char);
+  const thirds = casterProfiles(char).filter((p) => p.via).map((p) => p.classId);
+  const warlock = levels.find((cl) => cl.classId === 'warlock');
+  const maxes = {
+    spellcasting: multiclassSlots(levels.filter((cl) => cl.classId !== 'warlock'), thirds),
+    pact: warlock ? warlockSlots(warlock.level) : {},
+  };
+  const out: SpellSlotPools = { spellcasting: {}, pact: {} };
+  const legacySpent: Record<number, number> = {};
+  for (const [lv, slot] of Object.entries(char.combat.spellSlots ?? {})) legacySpent[Number(lv)] = Math.max(0, slot.used);
+  for (const kind of ['spellcasting', 'pact'] as const) {
+    for (const [lv, max] of Object.entries(maxes[kind])) {
+      const circle = Number(lv);
+      const used = refill ? 0 : char.combat.slotPools
+        ? char.combat.slotPools[kind]?.[circle]?.used ?? 0
+        : Math.min(max, legacySpent[circle] ?? 0);
+      out[kind][circle] = { max, used: Math.min(max, Math.max(0, used)) };
+      legacySpent[circle] = Math.max(0, (legacySpent[circle] ?? 0) - out[kind][circle].used);
+    }
+  }
+  return out;
+}
+
+export function aggregateSlotPools(pools: SpellSlotPools): Character['combat']['spellSlots'] {
+  const out: Character['combat']['spellSlots'] = {};
+  for (const pool of Object.values(pools)) for (const [lv, slot] of Object.entries(pool)) {
+    const circle = Number(lv);
+    const current = out[circle] ?? { used: 0, max: 0 };
+    out[circle] = { used: current.used + slot.used, max: current.max + slot.max };
+  }
+  return out;
+}
+
+export function saveSlotPools(char: Character, pools = syncSlotPools(char)): void {
+  char.combat.slotPools = pools;
+  char.combat.spellSlots = aggregateSlotPools(pools);
 }
 
 /** Espaços de magia do personagem (classe ou subclasse conjuradora). */
@@ -348,12 +443,7 @@ export function spellSlotsFor(char: Character): Record<number, number> {
  * conjuradora). Mantém o que já foi gasto, a menos que `refill`.
  */
 export function syncSpellSlots(char: Character, refill = false): Character['combat']['spellSlots'] {
-  const next: Character['combat']['spellSlots'] = {};
-  for (const [circle, max] of Object.entries(spellSlotsFor(char))) {
-    const used = refill ? 0 : char.combat.spellSlots?.[Number(circle)]?.used ?? 0;
-    next[Number(circle)] = { used: Math.min(used, max), max };
-  }
-  return next;
+  return aggregateSlotPools(syncSlotPools(char, refill));
 }
 
 export interface GrantedSpell {
@@ -368,7 +458,11 @@ export interface GrantedSpell {
  * truque luz do Domínio da Luz.
  */
 export function grantedSpells(char: Character): GrantedSpell[] {
-  const sub = getSubclass(char.subclassId ?? undefined);
+  return levelsOf(char).flatMap((cl) => grantedSpellsForClass(char, cl.classId));
+}
+
+export function grantedSpellsForClass(char: Character, classId: string): GrantedSpell[] {
+  const sub = getSubclass(subclassOf(char, classId));
   if (!sub) return [];
   const lv = char.classLevels?.find((c) => c.classId === sub.classId)?.level ?? (char.classId === sub.classId ? char.level : 0);
   let table: Record<number, string[]> | undefined;
@@ -384,7 +478,8 @@ export function grantedSpells(char: Character): GrantedSpell[] {
 }
 
 /** Magias extras que o bruxo pode aprender pela lista expandida do patrono. */
-export function expandedSpellIds(char: Character): string[] {
-  const table = char.subclassId ? PATRON_SPELLS[char.subclassId] : undefined;
+export function expandedSpellIds(char: Character, classId = casterOf(char)?.classId): string[] {
+  const sub = classId === 'warlock' ? subclassOf(char, 'warlock') : null;
+  const table = sub ? PATRON_SPELLS[sub] : undefined;
   return table ? Object.values(table).flat() : [];
 }

@@ -11,8 +11,8 @@ import type { SheetRow } from '@/types/models';
  * gravada com a mesma versão (`updated_at`) da ficha: assim a decisão de
  * sync da ficha (push / pull / conflito) vale para os dois juntos.
  *
- * Sem a tabela (SQL ainda não rodou), nada muda: o diário segue dentro da
- * ficha como antes, para não sumir de nenhum aparelho.
+ * Sem a tabela (SQL ainda não rodou), a sincronização informa a pendência.
+ * O diário permanece no aparelho e nunca entra na ficha compartilhável.
  */
 
 /** A parte "diário" de uma ficha. */
@@ -74,7 +74,7 @@ export function cloudDiaryFor(row: Pick<SheetRow, 'snapshot' | 'updated_at'>, d?
 const missingTable = (e: { code?: string; message?: string }) => e.code === '42P01' || e.code === 'PGRST205' || /does not exist|could not find the table/i.test(e.message ?? '');
 
 export const diaryCloud = {
-  /** Diários do usuário por ficha. `null` = sem a tabela privada (o diário segue dentro da ficha). */
+  /** Diários do usuário por ficha. `null` = sem a tabela privada; o diário permanece local. */
   async pull(userId: string): Promise<Map<string, DiaryRow> | null> {
     const sb = getSupabase();
     if (!sb) return null;
@@ -91,7 +91,19 @@ export const diaryCloud = {
     const sb = getSupabase();
     if (!sb) return;
     const row: DiaryRow = { sheet_id: char.id, user_id: userId, data: diaryPartOf(char), updated_at: version };
-    const { error } = await sb.from('sheet_diaries').upsert(row, { onConflict: 'sheet_id' });
-    if (error) throw new Error(error.message);
+    // Um envio atrasado não pode substituir um diário de versão mais nova.
+    const update = async () => {
+      const { data, error } = await sb.from('sheet_diaries').update(row).eq('sheet_id', char.id).lte('updated_at', version).select('sheet_id');
+      if (error) throw new Error(error.message);
+      return !!data?.length;
+    };
+    if (await update()) return;
+    const { error } = await sb.from('sheet_diaries').insert(row);
+    if (!error) return;
+    if (error.code === '23505') {
+      if (await update()) return; // outro aparelho criou a linha durante o envio
+      throw new Error('O diário mudou em outro aparelho. Tente sincronizar novamente.');
+    }
+    throw new Error(error.message);
   },
 };

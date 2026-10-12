@@ -3,6 +3,8 @@ import type { Item } from '@/types/dnd';
 import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
+import { bodySlotOf } from '@/engine/bodySlots';
+import { itemIdentity, clearStowedActivations } from '@/engine/inventory';
 import { isPack, openPack, undoPack } from '@/engine/packs';
 import type { PackChange } from '@/engine/packs';
 import { toast } from '@/store/feedbackStore';
@@ -86,8 +88,18 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       mutate(id, (c) => {
         const idx = c.inventory.findIndex((i) => i.uid === uid);
         if (idx === -1) return;
-        // item editado deixa de referenciar o catálogo: os dados passam a viver na instância
-        c.inventory[idx] = { ...c.inventory[idx], ...patch, uid, itemId: undefined };
+        const previous = c.inventory[idx];
+        const fields: (keyof InventoryItem)[] = ['weapon', 'armor', 'magic', 'acBonus', 'attunement', 'attuneBy', 'grantsSpells', 'charges', 'heal', 'wear', 'requiresHeld', 'requiresActivation'];
+        const mechanical = fields.some((key) => key in patch && JSON.stringify(patch[key]) !== JSON.stringify(previous[key]));
+        c.inventory[idx] = {
+          ...previous,
+          bodySlot: previous.bodySlot ?? bodySlotOf(previous) ?? undefined,
+          effectKey: previous.effectKey ?? itemIdentity(previous),
+          ...patch,
+          uid,
+          itemId: previous.itemId,
+          homebrew: previous.homebrew || mechanical || undefined,
+        };
       });
     },
     removeInventoryItem(id, uid) {
@@ -105,6 +117,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       const equipped = computeEquip(char, it);
       mutate(id, (c) => {
         c.equipped = equipped;
+        clearStowedActivations(c);
       });
     },
     moveItem(id, uid, target) {
@@ -128,6 +141,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
         if (!it) return;
         if (it.attuned) {
           it.attuned = false;
+          it.activated = false;
         } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT && !attunementBlock(c, it)) {
           // fixa o "vestido" antes (ficha antiga não tinha): sintonizar não veste sozinho por baixo dos panos
           if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);

@@ -1,5 +1,6 @@
 import type { Item, ItemCategory, MagicEffects, Rarity } from '@/types/dnd';
 import type { ItemCharges, ItemSpellGrant } from '@/types/character';
+import { bodySlotFromName } from '@/engine/bodySlotNames';
 
 /**
  * Itens mágicos do Guia do Mestre (D&D 5e 2014) — seleção dos mais usados.
@@ -23,6 +24,8 @@ function M(
 ): Item {
   return {
     id, name, category, rarity, note, group,
+    bodySlot: bodySlotFromName({ name, category }) ?? undefined,
+    requiresHeld: group === 'Varinhas, cajados e bastões' ? true : undefined,
     weight: opts.kg ?? 0,
     value: opts.gp ?? PRICE[rarity],
     attunement: !!opts.attune || undefined,
@@ -89,7 +92,7 @@ export const MAGIC_ITEMS: Item[] = [
 
   // ---- anéis ----
   M('m-ring-prot', 'Anel de Proteção', AN, 'ring', 'raro', '+1 na CA e nas salvaguardas', { attune: true, magic: { saves: 1 }, extra: { acBonus: 1 } }),
-  M('m-ring-resist', 'Anel de Resistência', AN, 'ring', 'raro', 'Resistência a um tipo de dano (conforme a gema)'),
+  M('m-ring-resist', 'Anel de Resistência', AN, 'ring', 'raro', 'Resistência a um tipo de dano (conforme a gema)', { attune: true }),
   M('m-ring-feather', 'Anel da Queda Suave', AN, 'ring', 'raro', 'Cai 18 m por rodada, sem dano de queda', { attune: true }),
   M('m-ring-freeaction', 'Anel da Ação Livre', AN, 'ring', 'raro', 'Terreno difícil não custa extra; magia não reduz seu deslocamento nem paralisa/impede', { attune: true }),
   M('m-ring-jumping', 'Anel do Salto', AN, 'ring', 'incomum', 'Salto à vontade (ação bônus)', { attune: true }),
@@ -136,9 +139,9 @@ export const MAGIC_ITEMS: Item[] = [
   M('m-wand-warmage1', 'Varinha do Mago de Guerra +1', VA, 'wondrous', 'incomum', '+1 no ataque de magia; ignora meia cobertura', { attune: ['spellcaster'], kg: 0.5, magic: { spellAttack: 1 } }),
   M('m-wand-warmage2', 'Varinha do Mago de Guerra +2', VA, 'wondrous', 'raro', '+2 no ataque de magia; ignora meia cobertura', { attune: ['spellcaster'], kg: 0.5, magic: { spellAttack: 2 } }),
   M('m-wand-warmage3', 'Varinha do Mago de Guerra +3', VA, 'wondrous', 'muito-raro', '+3 no ataque de magia; ignora meia cobertura', { attune: ['spellcaster'], kg: 0.5, magic: { spellAttack: 3 } }),
-  M('m-rod-pact1', 'Bastão do Guardião do Pacto +1', VA, 'wondrous', 'incomum', 'Bruxo: +1 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 1, spellDC: 1 } }),
-  M('m-rod-pact2', 'Bastão do Guardião do Pacto +2', VA, 'wondrous', 'raro', 'Bruxo: +2 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 2, spellDC: 2 } }),
-  M('m-rod-pact3', 'Bastão do Guardião do Pacto +3', VA, 'wondrous', 'muito-raro', 'Bruxo: +3 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 3, spellDC: 3 } }),
+  M('m-rod-pact1', 'Bastão do Guardião do Pacto +1', VA, 'wondrous', 'incomum', 'Bruxo: +1 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 1, spellDC: 1, spellClass: 'warlock' } }),
+  M('m-rod-pact2', 'Bastão do Guardião do Pacto +2', VA, 'wondrous', 'raro', 'Bruxo: +2 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 2, spellDC: 2, spellClass: 'warlock' } }),
+  M('m-rod-pact3', 'Bastão do Guardião do Pacto +3', VA, 'wondrous', 'muito-raro', 'Bruxo: +3 no ataque e na CD de magia; recupera 1 espaço 1×/dia', { attune: ['warlock'], kg: 1, magic: { spellAttack: 3, spellDC: 3, spellClass: 'warlock' } }),
   M('m-wand-missiles', 'Varinha de Mísseis Mágicos', VA, 'wondrous', 'incomum', '7 cargas: Mísseis Mágicos — 1 carga no 1º círculo, +1 círculo por carga extra (recupera 1d6+1 ao amanhecer)', { kg: 0.5, charges: WAND7, spells: [C('sp-misseis', 1, { upcast: true })] }),
   M('m-wand-web', 'Varinha de Teia', VA, 'wondrous', 'incomum', '7 cargas: Teia (CD 15) por 1 carga (recupera 1d6+1 ao amanhecer)', { attune: ['spellcaster'], kg: 0.5, charges: WAND7, spells: [C('sp-teiaaranha', 1, { dc: 15 })] }),
   M('m-wand-magicdetection', 'Varinha de Detecção de Magia', VA, 'wondrous', 'incomum', '3 cargas: Detectar Magia por 1 carga (recupera 1d3 ao amanhecer)', { kg: 0.5, charges: { max: 3, regain: '1d3' }, spells: [C('sp-detectar')] }),
@@ -151,7 +154,7 @@ export const MAGIC_ITEMS: Item[] = [
   M('m-staff-power', 'Cajado do Poder', VA, 'wondrous', 'muito-raro', 'Feiticeiro, bruxo ou mago · bordão +2 · +2 na CA, salvaguardas e ataque de magia · 20 cargas: Mísseis Mágicos (1), Raio do Enfraquecimento (1), Levitação (2), Bola de Fogo de 5º (5), Relâmpago de 5º (5), Imobilizar Monstro (5), Cone do Frio (5), Muralha de Energia (5), Globo de Invulnerabilidade (6) — com a sua CD (recupera 2d8+4 ao amanhecer)', { attune: ['sorcerer', 'warlock', 'wizard'], kg: 2, magic: { ac: 2, saves: 2, spellAttack: 2 }, charges: { max: 20, regain: '2d8+4', emptyRisk: { text: 'O cajado mantém o +2 em ataque e dano, mas perde todas as outras propriedades.' } }, spells: [C('sp-misseis', 1), C('sp-aterrorizar', 1), C('phb-levitate', 2), C('sp-bolafogo', 5, { castLevel: 5 }), C('sp-relampago', 5, { castLevel: 5 }), C('phb-hold-monster', 5), C('sp-conemar', 5), C('phb-wall-force', 5), C('phb-globe-invulnerability', 6)], extra: { weapon: { baseId: 'w-quarterstaff', damageDice: 1, damageDie: 6, damageType: 'concussão', type: 'simple', range: 'melee', properties: ['Versátil'], versatileDie: 8, magicBonus: 2 } } }),
 
   // ---- maravilhosos ----
-  M('m-bag-holding', 'Bolsa Devoradora (Bolsa de Guardar)', MA, 'wondrous', 'incomum', 'Guarda 250 kg / 1,8 m³ e pesa sempre 7,5 kg', { kg: 7.5 }),
+  M('m-bag-holding', 'Bolsa de Guardar', MA, 'wondrous', 'incomum', 'Guarda 250 kg / 1,8 m³ e pesa sempre 7,5 kg', { kg: 7.5 }),
   M('m-haversack', 'Mochila Prática de Heward', MA, 'wondrous', 'raro', 'Três bolsos mágicos; o item pedido está sempre no topo', { kg: 2.5 }),
   M('m-rope-climbing', 'Corda da Escalada', MA, 'wondrous', 'incomum', '18 m de corda que se move e amarra ao comando', { kg: 1.5 }),
   M('m-immovable-rod', 'Bastão Imóvel', MA, 'wondrous', 'incomum', 'Botão: fica parado no ar, aguentando até 4 toneladas', { kg: 1 }),
@@ -175,11 +178,11 @@ export const MAGIC_ITEMS: Item[] = [
   // ---- armas mágicas com nome (as +1/+2/+3 genéricas saem do catálogo de armas) ----
   M('mw-flametongue', 'Língua de Fogo (Espada Longa)', AR, 'weapon', 'raro', 'Ação bônus: acende a lâmina — +2d6 de fogo em cada acerto; luz de 12 m', {
     attune: true, kg: 1.5,
-    extra: { weapon: { baseId: 'w-longsword', damageDice: 1, damageDie: 8, damageType: 'cortante', type: 'martial', range: 'melee', properties: ['Versátil'], versatileDie: 10, bonusDamage: { dice: 2, die: 6, type: 'fogo' } } },
+    extra: { requiresActivation: true, weapon: { baseId: 'w-longsword', damageDice: 1, damageDie: 8, damageType: 'cortante', type: 'martial', range: 'melee', properties: ['Versátil'], versatileDie: 10, bonusDamage: { dice: 2, die: 6, type: 'fogo' } } },
   }),
   M('mw-frostbrand', 'Marca Gélida (Espada Longa)', AR, 'weapon', 'muito-raro', '+1d6 de frio em cada acerto; resistência a fogo', {
     attune: true, kg: 1.5, magic: { resistances: ['fogo'] },
-    extra: { weapon: { baseId: 'w-longsword', damageDice: 1, damageDie: 8, damageType: 'cortante', type: 'martial', range: 'melee', properties: ['Versátil'], versatileDie: 10, bonusDamage: { dice: 1, die: 6, type: 'frio' } } },
+    extra: { requiresHeld: true, weapon: { baseId: 'w-longsword', damageDice: 1, damageDie: 8, damageType: 'cortante', type: 'martial', range: 'melee', properties: ['Versátil'], versatileDie: 10, bonusDamage: { dice: 1, die: 6, type: 'frio' } } },
   }),
   M('mw-sunblade', 'Lâmina Solar', AR, 'weapon', 'raro', 'Espada longa de luz +2 (acuidade), radiante; +1d8 contra mortos-vivos', {
     attune: true, kg: 1.5,
@@ -221,8 +224,8 @@ export const MAGIC_ITEMS: Item[] = [
   M('ma-adamantine', 'Armadura de Placas de Adamante', AM, 'armor', 'incomum', 'CA 18 · acertos críticos contra você viram acertos normais', {
     kg: 32.5, extra: { armor: { baseAC: 18, category: 'pesada', addDex: false, strReq: 15, stealthDisadvantage: true } },
   }),
-  M('ma-elven-chain', 'Camisão Élfico', AM, 'armor', 'raro', 'Camisão de malha +1 · conta como armadura leve (DES sem limite)', {
-    kg: 10, extra: { armor: { baseAC: 13, category: 'leve', addDex: true, magicBonus: 1 } },
+  M('ma-elven-chain', 'Camisão Élfico', AM, 'armor', 'raro', 'Camisão de malha +1 · armadura média (DES até +2); quem veste conta como proficiente', {
+    kg: 10, extra: { armor: { baseAC: 13, category: 'média', addDex: true, maxDexBonus: 2, magicBonus: 1, grantsProficiency: true } },
   }),
   M('ma-dragonscale', 'Armadura de Escamas de Dragão', AM, 'armor', 'muito-raro', 'Brunea +1 · resistência ao tipo do dragão; vantagem contra presença aterradora', {
     attune: true, kg: 22.5, extra: { armor: { baseAC: 14, category: 'média', addDex: true, maxDexBonus: 2, magicBonus: 1 } },

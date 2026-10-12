@@ -68,10 +68,12 @@ export function roll(sides: number, options: RollOptions = {}): RollResult {
   let sum = 0;
 
   const singleD20 = count === 1 && sides === 20;
-  if (singleD20 && (advantage || disadvantage)) {
+  const adv = !!advantage && !disadvantage;
+  const dis = !!disadvantage && !advantage;
+  if (singleD20 && (adv || dis)) {
     const a = rollDie(20);
     const b = rollDie(20);
-    const chosen = advantage ? Math.max(a, b) : Math.min(a, b);
+    const chosen = adv ? Math.max(a, b) : Math.min(a, b);
     rolls.push(a, b);
     sum = chosen;
   } else {
@@ -86,7 +88,7 @@ export function roll(sides: number, options: RollOptions = {}): RollResult {
   const exprBase = `${count}d${sides}`;
   const expr = modifier ? `${exprBase} ${modStr(modifier)}` : exprBase;
   // Crítico/falha só fazem sentido para um único d20 puro.
-  const natural = singleD20 ? (advantage || disadvantage ? sum : rolls[0]) : null;
+  const natural = singleD20 ? (adv || dis ? sum : rolls[0]) : null;
   const crit = natural !== null && natural >= critMin;
   const fail = natural === 1;
 

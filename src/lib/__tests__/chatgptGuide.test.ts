@@ -15,7 +15,7 @@ describe('guia Criar com o ChatGPT', () => {
 
   it('o arquivo em docs/ está igual ao gerado (rode npm run docs:chatgpt)', () => {
     if (process.env.UPDATE_GUIDE) writeFileSync(DOC, guide);
-    expect(readFileSync(DOC, 'utf8')).toBe(guide);
+    expect(readFileSync(DOC, 'utf8').replace(/\r\n/g, '\n')).toBe(guide.replace(/\r\n/g, '\n'));
   });
 
   it('lista todas as raças, sub-raças, classes, subclasses e antecedentes', () => {

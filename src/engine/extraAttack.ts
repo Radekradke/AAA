@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 
 /**
@@ -17,7 +18,7 @@ export function attacksPerAction(char: Character): { count: number; source: stri
   for (const { classId, level } of levels) {
     if (classId === 'fighter') offer(level >= 20 ? 4 : level >= 11 ? 3 : level >= 5 ? 2 : 1, 'Ataque Extra (Guerreiro)');
     if (['barbarian', 'monk', 'paladin', 'ranger'].includes(classId) && level >= 5) offer(2, 'Ataque Extra');
-    if (classId === 'bard' && level >= 6 && char.subclassId === 'valor') offer(2, 'Ataque Extra (Colégio da Bravura)');
+    if (classId === 'bard' && level >= 6 && subclassOf(char, 'bard') === 'valor') offer(2, 'Ataque Extra (Colégio da Bravura)');
     if (classId === 'warlock' && level >= 5 && (char.choices?.['warlock.invocation'] ?? []).includes('thirstingBlade')) offer(2, 'Lâmina Sedenta (só com a arma de pacto)');
   }
   return best;

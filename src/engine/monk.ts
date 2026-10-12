@@ -1,3 +1,4 @@
+import { subclassOf } from './characterClasses';
 import type { Character } from '@/types/character';
 import { characterResources } from './classResources';
 import { levelIn } from './damageExtras';
@@ -60,7 +61,7 @@ const DISCIPLINE_DAMAGE: Record<string, KiAction['damage']> = {
 export function monkState(char: Character, prof: number, wisMod: number, dexMod: number): MonkState | null {
   const level = levelIn(char, 'monk');
   if (!level) return null;
-  const sub = char.subclassId;
+  const sub = subclassOf(char, 'monk');
   const ki = characterResources(char).find((r) => r.id === 'ki');
   const kiMax = ki?.max ?? 0;
   const kiLeft = Math.min(kiMax, char.combat?.resources?.ki ?? kiMax);

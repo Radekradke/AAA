@@ -3,9 +3,9 @@ import type { DerivedAttack } from './dndRules';
 import { roll } from './dice';
 import type { RollResult } from './dice';
 import { rollDamage } from './combat';
-import { grantedSpells, syncSpellSlots } from './spellcasting';
+import { grantedSpells, syncSpellSlots, knownSpellIds } from './spellcasting';
 import { bonusSpellIds } from './classChoices';
-import { effectiveAbilities } from './levelUp';
+import { currentAbilities as effectiveAbilities } from './currentAbilities';
 
 /**
  * Dano extra somado no acerto — PHB 2014:
@@ -38,8 +38,7 @@ export const smiteDice = (slotLevel: number, undead = false) => Math.min(5, 1 + 
 
 export function knowsSpell(char: Character, spellId: string): boolean {
   return (
-    char.preparedSpells.includes(spellId) ||
-    (char.knownSpells ?? []).includes(spellId) ||
+    knownSpellIds(char).has(spellId) ||
     grantedSpells(char).some((g) => g.id === spellId) ||
     bonusSpellIds(char).has(spellId)
   );
