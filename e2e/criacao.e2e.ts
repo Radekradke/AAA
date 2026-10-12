@@ -1,3 +1,4 @@
+import { chooseFullRules } from './fixtures/creator';
 import { test, expect } from './fixtures/test';
 import type { Page } from '@playwright/test';
 import { signIn } from './fixtures/supabase';
@@ -16,6 +17,7 @@ test.describe('criação de herói', () => {
   test('do zero até a ficha, com as escolhas obrigatórias', async ({ page }) => {
     await signIn(page, 'guest');
     await page.goto('/criar');
+    await chooseFullRules(page);
     const cta = page.locator('.fv-foot-cta');
 
     // Origem → Caminho → Passado (padrões: Humano, Guerreiro, Soldado)
@@ -93,6 +95,7 @@ test.describe('criação de herói', () => {
   test('escolhas do 1º nível ficam na criação (Clérigo do Conhecimento, Anão)', async ({ page }) => {
     await signIn(page, 'guest');
     await page.goto('/criar');
+    await chooseFullRules(page);
     const cta = page.locator('.fv-foot-cta');
 
     // Origem: Anão
@@ -148,6 +151,7 @@ test.describe('criação de herói', () => {
     test.skip(test.info().project.name !== 'celular');
     await signIn(page, 'guest');
     await page.goto('/criar');
+    await chooseFullRules(page);
     const cta = page.locator('.fv-foot-cta');
     await cta.click(); // Caminho
     await page.getByRole('button', { name: /^Bardo/ }).click();

@@ -54,9 +54,6 @@ interface UiState {
   /** Vídeos de fundo (menu, Forja): automático (respeita aparelho e rede), sempre ou desligado. */
   bgVideo: 'auto' | 'on' | 'off';
   setBgVideo: (v: 'auto' | 'on' | 'off') => void;
-  /** Forja (experimental): escolha de raça em palco, com o vídeo da raça em tela cheia. */
-  forgeStage: boolean;
-  toggleForgeStage: () => void;
   /** Momento em tela cheia agora (efêmero). */
   cinematic: Cinematic | null;
   showCinematic: (c: Cinematic) => void;
@@ -224,10 +221,6 @@ export const useUiStore = create<UiState>()(
       setBgVideo(v) {
         set({ bgVideo: v });
       },
-      forgeStage: false,
-      toggleForgeStage() {
-        set((s) => ({ forgeStage: !s.forgeStage }));
-      },
       cinematic: null,
       showCinematic(c) {
         if (get().cinematics) set({ cinematic: { ...c, at: Date.now() } });
@@ -336,7 +329,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, forgeStage: s.forgeStage, bgVideo: s.bgVideo }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, bgVideo: s.bgVideo }),
     },
   ),
 );

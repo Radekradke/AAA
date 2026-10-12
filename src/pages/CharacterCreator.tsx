@@ -10,7 +10,6 @@ import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
 import type { Character } from '@/types/character';
 import { StepRace } from '@/components/character/StepRace';
-import { RaceStageBackdrop, StepRaceStage } from '@/components/character/RaceStage';
 import { StepClass } from '@/components/character/StepClass';
 import { StepBackground } from '@/components/character/StepBackground';
 import { StepAbilities } from '@/components/character/StepAbilities';
@@ -27,15 +26,8 @@ import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
-import { raceOf } from '@/data/races';
+import { applyCreationConcept, CREATION_CONCEPTS, firstActions } from '@/engine/creationConcepts';
 
-/**
- * Vídeos animados de fundo por raça/classe (Draconato, Bruxo) — em espera
- * para uma atualização futura. Os arquivos e o mapeamento (`video` em
- * races.ts/classes.ts) continuam no projeto: para religar, troque para true.
- */
-const CREATOR_VIDEOS = false;
-import { getClass } from '@/data/classes';
 
 export function CharacterCreator() {
   const navigate = useNavigate();
@@ -47,12 +39,12 @@ export function CharacterCreator() {
   const currentId = useCharacterStore((s) => s.currentId);
 
   const [step, setStep] = useState(0);
+  const [conceptOpen, setConceptOpen] = useState(true);
   // 1ª criação neste aparelho: tour guiado pelas partes da tela
   const startTour = useUiStore((s) => s.startTour);
   const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator || s.tipsOff);
-  const forgeStage = useUiStore((s) => s.forgeStage);
   useEffect(() => {
-    if (creatorTourSeen) return;
+    if (creatorTourSeen || conceptOpen) return;
     let alive = true;
     const t = setTimeout(() => {
       void mayAutoShow((ui) => !!ui.toursSeen.creator).then((ok) => alive && ok && startTour('creator'));
@@ -61,7 +53,7 @@ export function CharacterCreator() {
       alive = false;
       clearTimeout(t);
     };
-  }, [creatorTourSeen, startTour]);
+  }, [creatorTourSeen, conceptOpen, startTour]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const startedRef = useRef(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -76,7 +68,7 @@ export function CharacterCreator() {
     if (startedRef.current) return;
     startedRef.current = true;
     const existing = characters.find((c) => c.ownerId === user.id && c.draft);
-    if (existing) setCurrent(existing.id);
+    if (existing) { setCurrent(existing.id); setConceptOpen(false); }
     else startDraft({ ownerId: user.id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -126,12 +118,6 @@ export function CharacterCreator() {
   // o que ainda falta decidir nesta etapa (o rodapé avisa antes de seguir)
   const hereDue = pending.find((p) => p.step === step && p.step !== STEP_IDENTITY);
 
-  // Palco das Origens (experimental, Configurações → Avançado): a etapa de raça vira um palco
-  const stage = forgeStage && step === STEP_RACE;
-  // vídeo de fundo: o da classe tem prioridade, depois o da raça; sem mapeamento, sem vídeo
-  const creatorVideo = CREATOR_VIDEOS && !stage ? getClass(char.classId).video ?? raceOf(char).video ?? null : null;
-  const creatorVideoOpacity = creatorVideo ? 0.82 : 0;
-  const creatorDarken = creatorVideo ? 0.5 : 1;
 
   const setPortrait = (url: string | null) => update((c) => { c.portrait = url; });
 
@@ -169,7 +155,7 @@ export function CharacterCreator() {
 
   const renderStep = () => {
     switch (step) {
-      case STEP_RACE: return stage ? <StepRaceStage char={char} update={update} /> : <StepRace char={char} update={update} />;
+      case STEP_RACE: return <StepRace char={char} update={update} />;
       case STEP_CLASS: return <StepClass char={char} update={update} />;
       case STEP_GIFTS: return <StepGifts char={char} update={update} />;
       case STEP_BACKGROUND: return <StepBackground char={char} update={update} />;
@@ -183,9 +169,6 @@ export function CharacterCreator() {
 
   return (
     <Screen
-      video={creatorVideo}
-      videoOpacity={creatorVideoOpacity}
-      darken={creatorDarken}
       actions={
         <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
           Salvar e sair
@@ -197,8 +180,13 @@ export function CharacterCreator() {
         { label: 'Descartar este herói', icon: 'trash', onClick: discard, danger: true },
       ]}
     >
-      {stage ? <RaceStageBackdrop race={raceOf(char)} /> : <RaceAura raceId={char.raceId} />}
-      <div className={'fv-forge' + (stage ? ' is-stage' : '')}>
+      <RaceAura raceId={char.raceId} />
+      {conceptOpen ? <section className="fv-panel fv-experience" style={{ maxWidth: 760, margin: '24px auto' }}>
+        <h1>Que herói você quer jogar?</h1>
+        <p>Escolha uma ideia. Sugerimos atributos, perícias, idiomas, equipamento e magias; você pode revisar tudo nos próximos passos.</p>
+        <div className="fv-concept-options">{CREATION_CONCEPTS.map((c) => <button key={c.id} type="button" className="fv-concept-card" onClick={() => { update((draft) => applyCreationConcept(draft, c.id)); setConceptOpen(false); setStep(STEP_RACE); }}><b>{c.title}</b><span>{c.description}</span></button>)}</div>
+        <button type="button" className="fv-btn-ghost" onClick={() => setConceptOpen(false)}>Escolher tudo pelas regras completas</button>
+      </section> : <div className="fv-forge">
         {/* capítulos (desktop): um diário de missão, clicável */}
         <nav className="fv-forge-rail" aria-label="Capítulos da criação">
           <div className="fv-rail-title">Forja do Herói</div>
@@ -242,6 +230,8 @@ export function CharacterCreator() {
               exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
               transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] }}
             >
+              <details className="fv-experience fv-action-guide"><summary>Duas primeiras ações · como jogar</summary>{firstActions(char.classId).map((a) => <p key={a.title}><b>{a.title}:</b> {a.text}</p>)}<p>As sugestões são um ponto de partida. Abra qualquer capítulo para ver e alterar as regras.</p></details>
+              {isLast && pending.length > 0 && <div className="fv-experience" role="status"><b>Para despertar o herói:</b>{pending.map((p, i) => <button type="button" key={i} className="fv-link-btn" style={{ display: 'block', marginTop: 8 }} onClick={() => goStep(p.step)}>{p.label} →</button>)}</div>}
               {renderStep()}
             </m.div>
           </AnimatePresence>
@@ -279,7 +269,7 @@ export function CharacterCreator() {
             {isLast ? <>Despertar<span className="fv-cta-long"> o Herói</span></> : 'Avançar ›'}
           </button>
         </footer>
-      </div>
+      </div>}
 
       {summaryOpen && (
         <Modal title="Seu herói" icon="banner" onClose={() => setSummaryOpen(false)} maxWidth={400}>

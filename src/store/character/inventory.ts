@@ -1,6 +1,6 @@
 import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
-import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, placeInOffHand, removeFromSlots } from '@/engine/inventory';
+import { toggleItemAttunement, toggleEquip as computeEquip, itemToInventory, moveItemTo, placeInOffHand, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 import { bodySlotOf } from '@/engine/bodySlots';
@@ -148,20 +148,7 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       });
     },
     toggleAttune(id, uid) {
-      mutate(id, (c) => {
-        const it = c.inventory.find((i) => i.uid === uid);
-        if (!it) return;
-        if (it.attuned) {
-          it.attuned = false;
-          it.activated = false;
-        } else if (c.inventory.filter((i) => i.attuned).length < MAX_ATTUNEMENT && !attunementBlock(c, it)) {
-          // fixa o "vestido" antes (ficha antiga não tinha): sintonizar não veste sozinho por baixo dos panos
-          if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);
-          it.attuned = true;
-          // sintonizou anel/capa/botas guardado: veste junto, se houver encaixe livre
-          if (isWearable(it) && !it.worn) moveItemTo(c, uid, 'equipado');
-        }
-      });
+      mutate(id, (c) => { toggleItemAttunement(c, uid); });
     },
     adjustCoin(id, coin, delta) {
       if (delta) playSample('moedas');

@@ -16,6 +16,7 @@ export interface SearchEntry {
   keywords?: string;
   /** Peso extra (telas e heróis aparecem antes de regras com o mesmo nome). */
   boost?: number;
+  intent?: { heal?: boolean; reaction?: boolean; concentration?: boolean; damageTypes?: string[] };
 }
 
 export const KIND_LABEL: Record<SearchKind, string> = {
@@ -44,7 +45,13 @@ export function normalize(s: string): string {
 
 /** Pontua uma entrada para a busca (0 = não serve). */
 export function scoreEntry(e: SearchEntry, query: string): number {
-  const q = normalize(query);
+  const intent = e.intent ? parseSearchIntent(query) : { ...parseSearchIntent(''), text: normalize(query) };
+  if (intent.heal && !e.intent?.heal) return 0;
+  if (intent.reaction && !e.intent?.reaction) return 0;
+  if (intent.noConcentration && (e.kind !== 'magia' || e.intent?.concentration !== false)) return 0;
+  if (intent.damageType && !e.intent?.damageTypes?.includes(intent.damageType)) return 0;
+  const q = intent.text;
+  if (!q && intent.labels.length) return 20 + (e.boost ?? 0);
   if (!q) return 0;
   const title = normalize(e.title);
   const hay = `${title} ${normalize(e.subtitle ?? '')} ${normalize(e.keywords ?? '')}`;
@@ -59,6 +66,22 @@ export function scoreEntry(e: SearchEntry, query: string): number {
   else if (tokens.every((t) => title.includes(t))) s = 12;
   // nomes curtos ganham de longos com o mesmo começo ("Luz" antes de "Luz do Dia")
   return s + (e.boost ?? 0) - Math.min(title.length, 40) / 100;
+}
+
+/** Filtros explícitos: “sem concentração” nunca é tratado como uma palavra positiva. */
+export function parseSearchIntent(query: string) {
+  let text = normalize(query);
+  const noConcentration = /\bsem concentracao\b/.test(text);
+  text = text.replace(/\bsem concentracao\b/g, '');
+  const heal = /\b(curar|cura|curacao|recuperar pv)\b/.test(text);
+  text = text.replace(/\b(curar|cura|curacao|recuperar pv)\b/g, '');
+  const reaction = /\b(reacao|reagir)\b/.test(text);
+  text = text.replace(/\b(reacao|reagir)\b/g, '');
+  const damageType = /\b(fogo|frio|necrotico|radiante|eletrico|acido|veneno|trovejante|psiquico|energia)\b/.exec(text)?.[1];
+  if (damageType) text = text.replace(new RegExp(`\\b${damageType}\\b`, 'g'), '');
+  const labels = [heal && 'Cura', reaction && 'Reação', noConcentration && 'Sem concentração', damageType && `Dano de ${damageType}`].filter(Boolean) as string[];
+  if (labels.length) text = text.replace(/\b(quero|preciso|uma|um|magia|magias|de|para|com|e|dano)\b/g, '');
+  return { text: text.replace(/\s+/g, ' ').trim(), heal, reaction, noConcentration, damageType, labels };
 }
 
 export interface SearchGroup {

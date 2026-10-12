@@ -1,3 +1,4 @@
+import { WhoAmI } from '@/components/diary/WhoAmI';
 import { useEffect, useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Icon } from '@/components/ui/Icon';
@@ -112,6 +113,7 @@ export function TabDiario({ char }: TabProps) {
   return (
     <DiaryNavContext.Provider value={nav}>
     <div className="animate-riseIn fv-diary">
+      <WhoAmI char={char} />
       <header className="fv-diary-head">
         <div className="fv-diary-title">
           <Icon name="quill" size={22} color={t.gold} />

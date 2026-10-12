@@ -1,3 +1,6 @@
+import { Moments } from './Moments';
+import { diaryOf } from '@/engine/diary';
+import { confirmAction } from '@/store/feedbackStore';
 import { useMemo, useState } from 'react';
 import type { Character, JournalEntry } from '@/types/character';
 import type { Mentionable } from '@/engine/diary';
@@ -26,14 +29,24 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
   });
   const total = char.journal.length;
   const sessions = useMemo(
-    () => char.journal.map((e, i) => ({ e, n: entrySession(e, total - i), body: entryBody(e) })),
+    () => char.journal.map((e, i) => ({ e, n: entrySession(e, total - i), body: e.body ?? entryBody({ ...e, summary: '' }) })),
     [char.journal, total],
   );
   const q = norm(query);
-  const shown = q ? sessions.filter((s) => norm(`${s.e.title}\n${s.body}`).includes(q)) : sessions;
+  const shown = q ? sessions.filter((s) => norm(`${s.e.title}\n${s.body}\n${s.e.summary}`).includes(q)) : sessions;
   const open = sessions.find((s) => s.e.id === openId);
 
   const patch = (e: JournalEntry, p: Partial<JournalEntry>) => store.updateJournalEntry(char.id, e.id, p);
+  const sessionMoments = (diaryOf(char).moments ?? []).filter((m) => m.sessionId === openId);
+  const fillSummary = async () => {
+    if (!open || !sessionMoments.length) return;
+    if (open.e.summary.trim() && !await confirmAction({ title: 'Substituir o resumo atual?', message: 'O texto será preenchido com os momentos desta sessão. Você pode editar o resultado.', confirmLabel: 'Substituir resumo' })) return;
+    const live = store.getCharacter(char.id);
+    const entry = live?.journal.find((e) => e.id === open.e.id);
+    if (!live || !entry || entry.summary !== open.e.summary) return;
+    const text = (diaryOf(live).moments ?? []).filter((m) => m.sessionId === entry.id).slice().sort((a, b) => a.at - b.at).map((m) => m.title + (m.text ? ': ' + m.text : '')).join('\n');
+    patch(entry, { body: entry.body ?? entryBody({ ...entry, summary: '' }), summary: text });
+  };
 
   const create = () => {
     const id = store.addJournalEntry(char.id);
@@ -42,7 +55,7 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
   };
 
   if (open) {
-    const digest = sessionDigest(`${open.e.title}\n${open.body}`, people);
+    const digest = sessionDigest(`${open.e.title}\n${open.body}\n${open.e.summary}`, people);
     return (
       <article className="fv-chron-page">
         <header className="fv-chron-head">
@@ -80,6 +93,8 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
               value={open.e.title}
               onChange={(ev) => patch(open.e, { title: ev.target.value })}
             />
+            <section className="fv-experience" style={{ marginBottom: 16 }}><h3>Resumo da sessão</h3>{mode === 'write' ? <><label className="fv-field">Resumo editável<textarea className="fv-input" aria-label="Resumo da sessão" rows={4} value={open.e.summary} onChange={(e) => patch(open.e, { body: open.body, summary: e.target.value })} /></label><button type="button" className="fv-btn-ghost" disabled={!sessionMoments.length} onClick={() => void fillSummary()}>Preencher com momentos memoráveis</button><small>{sessionMoments.length ? 'Você pode revisar o texto antes de encerrar a sessão.' : 'Vincule um momento a esta sessão para preencher o resumo.'}</small></> : <p style={{ whiteSpace: 'pre-wrap' }}>{open.e.summary || 'Ainda sem resumo. Use Escrever para criar.'}</p>}</section>
+            <Moments char={char} sessionId={open.e.id} query={query} />
             {mode === 'write' ? (
               <MentionInput
                 value={open.body}
@@ -135,6 +150,7 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
 
   return (
     <div className="fv-chron">
+      <Moments char={char} query={query} />
       <button type="button" className="fv-chron-new" onClick={create}>
         <b>+ Nova sessão</b>
         <small>Sessão {Math.max(0, ...sessions.map((s) => s.n)) + 1} · escreva com calma o que aconteceu</small>

@@ -402,3 +402,24 @@ export function attunementBlock(char: Character, it: InventoryItem): string | nu
   const list = who.length > 1 ? `${who.slice(0, -1).join(', ')} ou ${who[who.length - 1]}` : who[0];
   return `${it.name} só aceita sintonia de ${list}.`;
 }
+
+/** Mesmo resultado no inventário e na comparação; equipar por sintonia também exige prévia. */
+export function toggleItemAttunement(char: Character, uid: string): MoveResult {
+  const it = char.inventory.find((i) => i.uid === uid);
+  if (!it) return { ok: false, reason: 'Item não encontrado.' };
+  if (it.attuned) {
+    it.attuned = false;
+    it.activated = false;
+    return { ok: true };
+  }
+  const blocked = attunementBlock(char, it);
+  if (blocked) return { ok: false, reason: blocked };
+  if (attunedCount(char) >= MAX_ATTUNEMENT) return { ok: false, reason: 'As três vagas de sintonia estão ocupadas.' };
+  if (isWearable(it) && it.worn === undefined) it.worn = isWorn(it);
+  it.attuned = true;
+  if (isWearable(it) && !it.worn) {
+    const result = moveItemTo(char, uid, 'equipado');
+    return result.ok ? result : { ok: true, note: `Sintonia ativada, mas o item permanece guardado: ${result.reason}` };
+  }
+  return { ok: true };
+}

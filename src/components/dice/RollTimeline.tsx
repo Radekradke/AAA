@@ -1,3 +1,4 @@
+import { RememberMoment } from '@/components/diary/Moments';
 import { useState } from 'react';
 import { confirmAction } from '@/store/feedbackStore';
 import { useUiStore, historyFor } from '@/store/uiStore';
@@ -39,6 +40,7 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
               <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>{r.label}</span>
               <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
               <b style={{ color: rollColor(r), fontSize: 13 }}>{r.total}</b>
+              {char && <RememberMoment char={char} rollId={r.id} title={r.label + ' · resultado ' + r.total} />}
             </div>
           ))}
         </div>
@@ -89,6 +91,7 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
                   <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{r.expr} [{r.rolls.join(', ')}]</div>
                 </div>
                 <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 18, color: rollColor(r) }}>{r.total}</span>
+                {char && <RememberMoment char={char} rollId={r.id} title={r.label + ' · resultado ' + r.total} />}
               </li>
             ))}
           </ol>

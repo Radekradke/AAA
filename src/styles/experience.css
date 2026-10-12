@@ -1,0 +1,26 @@
+.fv-experience { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--sunk); color: var(--ink); line-height: 1.6; min-width: 0; }
+.fv-experience p { margin: 8px 0 14px; overflow-wrap: anywhere; }
+.fv-experience h3, .fv-experience h4 { margin: 8px 0; }
+.fv-experience small { color: var(--muted); }
+.fv-experience-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fv-experience-actions button { min-height: 36px; }
+.fv-concept-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin: 22px 0; }
+.fv-concept-card { padding: 20px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--sunk); color: var(--ink); text-align: left; cursor: pointer; line-height: 1.6; }
+.fv-concept-card b, .fv-concept-card span { display: block; }
+.fv-concept-card span { font-size: 13px; margin-top: 12px; color: var(--muted); }
+.fv-concept-card:hover, .fv-concept-card:focus-visible { border-color: var(--gold); background: var(--panel); }
+.fv-action-guide { margin-bottom: 14px; font-size: 13px; }
+.fv-action-guide summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+.fv-experience-table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 12px 0; table-layout: fixed; }
+.fv-experience-table th, .fv-experience-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); text-align: left; overflow-wrap: anywhere; }
+.fv-experience-table thead { color: var(--muted); }
+.fv-effect-card { padding: 12px; margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; }
+.fv-effect-card small { display: block; line-height: 1.6; overflow-wrap: anywhere; }
+.fv-effects-summary { width: 100%; margin-top: 12px; }
+.fv-experience .fv-field { display: grid; gap: 6px; margin-bottom: 16px; font-size: 13px; }
+.fv-identity-access { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; grid-column: 1 / -1; margin-bottom: 10px; }
+.fv-identity-access small { color: var(--muted); overflow-wrap: anywhere; }
+.fv-identity-line { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+@media (max-width: 480px) { .fv-experience { padding: 12px; } .fv-experience-table { font-size: 12px; } }
+
+.fv-cast-block { display: block; white-space: normal; max-width: 260px; font-size: 11px; line-height: 1.5; color: var(--muted); margin-top: 6px; }

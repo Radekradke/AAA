@@ -78,6 +78,10 @@ export interface ActiveSpellEffect {
   until: 'turn' | 'concentration' | 'rest';
   /** Resumo curto para o chip ("+5 CA", "CA 13 + DES"…). */
   label: string;
+  appliedBy?: string;
+  duration?: string;
+  endsWhen?: string;
+  kind?: 'spell' | 'manual';
   ac?: number;
   /** CA base alternativa sem armadura (Armadura Arcana: 13 + DES). */
   acBase?: number;
@@ -244,6 +248,9 @@ export interface DiaryPersonNote {
 }
 
 export interface Diary {
+  /** Cartão pessoal; permanece no armazenamento privado do diário. */
+  identity?: { goal: string; bond: string; fear: string; trait: string; phrase: string };
+  moments?: Array<{ id: string; title: string; text: string; at: number; rollId?: string; sessionId?: string }>;
   notes: DiaryNote[];
   quests: DiaryQuest[];
   clues: DiaryClue[];

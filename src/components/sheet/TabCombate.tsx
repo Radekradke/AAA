@@ -1,3 +1,4 @@
+import { WhoAmI } from '@/components/diary/WhoAmI';
 import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
@@ -145,6 +146,7 @@ export function TabCombate({ char, derived }: TabProps) {
       className="animate-riseIn"
       style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}
     >
+      <WhoAmI char={char} />
       {/* Vitalidade */}
       <Panel full>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 10 }}>

@@ -5,6 +5,20 @@ import type { SearchEntry } from '@/lib/globalSearch';
 const E = (id: string, kind: SearchEntry['kind'], title: string, extra: Partial<SearchEntry> = {}): SearchEntry => ({ id, kind, title, ...extra });
 
 describe('busca geral', () => {
+  it('interpreta cura, reação e a exclusão de concentração sem perder busca por nome', () => {
+    const list = [
+      E('h', 'magia', 'Palavra Curativa', { intent: { heal: true, concentration: false } }),
+      E('c', 'magia', 'Aura de Vitalidade', { intent: { heal: true, concentration: true } }),
+      E('r', 'magia', 'Escudo', { intent: { reaction: true, concentration: false } }),
+      E('f', 'magia', 'Raio de Fogo', { intent: { damageTypes: ['fogo'], concentration: false } }),
+      E('fc', 'magia', 'Parede de Fogo', { intent: { damageTypes: ['fogo'], concentration: true } }),
+    ];
+    expect(searchAll(list, 'quero curar sem concentração')[0].items.map((x) => x.id)).toEqual(['h']);
+    expect(searchAll(list, 'reagir')[0].items.map((x) => x.id)).toEqual(['r']);
+    expect(searchAll(list, 'magia de fogo sem concentração')[0].items.map((x) => x.id)).toEqual(['f']);
+    expect(searchAll(list, 'escudo')[0].items.map((x) => x.id)).toEqual(['r']);
+    expect(searchAll(list, 'curar reação')).toEqual([]);
+  });
   it('ignora acento e maiúsculas', () => {
     expect(normalize('Mísseis Mágicos!')).toBe('misseis magicos');
     expect(scoreEntry(E('1', 'magia', 'Mísseis Mágicos'), 'misseis')).toBeGreaterThan(0);

@@ -1,7 +1,9 @@
 import type { Character, InventoryItem } from '@/types/character';
 import type { DerivedAttack, DerivedCharacter } from './dndRules';
 import { deriveCharacter } from './dndRules';
-import { canEquip, isEquipped, moveItemTo } from './inventory';
+import { canEquip, isEquipped, moveItemTo, placeInOffHand, attunementBlock, attunedCount, itemDefinition, itemIsActive, toggleItemAttunement } from './inventory';
+import { proficienciesOf, isArmorProficient, isWeaponProficient } from './proficiencies';
+import { barbarianState } from './barbarian';
 import { modStr } from './dice';
 import { damageExpr } from './combat';
 import { getItem } from '@/data/items';
@@ -29,9 +31,13 @@ export interface EquipPreview {
   deltas: StatDelta[];
   /** Avisos de regra: Força mínima, Furtividade, duas mãos, encaixe cheio, sintonia… */
   warnings: string[];
+  blocked?: boolean;
+  facts?: Array<{ label: string; from: string; to: string }>;
+  removed?: string[];
 }
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+export type EquipTarget = 'equipado' | 'offHand' | 'attune';
 
 /** Dano médio de um ataque (para dizer se a troca melhora). */
 function avgDamage(a: DerivedAttack): number {
@@ -44,13 +50,15 @@ function num(label: string, from: number, to: number, fmt: (n: number) => string
   return { label, from: fmt(from), to: fmt(to), better: to > from };
 }
 
-export function previewEquip(char: Character, uid: string, before: DerivedCharacter = deriveCharacter(char)): EquipPreview | null {
+export function previewEquip(char: Character, uid: string, before: DerivedCharacter = deriveCharacter(char), target: EquipTarget = 'equipado'): EquipPreview | null {
   const it = char.inventory.find((i) => i.uid === uid);
-  if (!it || isEquipped(char, it) || !canEquip(it)) return null;
+  if (!it || (target === 'equipado' && isEquipped(char, it)) || (target !== 'attune' && !canEquip(it))) return null;
 
   const draft = structuredClone(char);
-  const r = moveItemTo(draft, uid, 'equipado');
-  if (!r.ok) return { replaces: null, deltas: [], warnings: [r.reason] };
+  const off = target === 'offHand' ? placeInOffHand(draft, it) : null;
+  const r = off ?? (target === 'attune' ? toggleItemAttunement(draft, uid) : moveItemTo(draft, uid, 'equipado'));
+  if (!r.ok) return { replaces: null, deltas: [], warnings: [r.reason], blocked: true };
+  if (off?.ok) draft.equipped = off.equipped;
   const after = deriveCharacter(draft);
 
   // o que estava equipado e saiu
@@ -89,7 +97,30 @@ export function previewEquip(char: Character, uid: string, before: DerivedCharac
     warnings.push(`Exige Força ${armor.strReq} (você tem ${after.abilities.str.total})`);
   }
   if (armor?.stealthDisadvantage) warnings.push('Desvantagem em Furtividade');
+  const def = itemDefinition(it);
+  const profs = proficienciesOf(char);
+  const prof = it.category === 'shield' ? isArmorProficient(profs, 'escudo') : armor ? isArmorProficient(profs, armor.category) : def?.weapon ? isWeaponProficient(profs, it, def.weapon.type, def.weapon.range) : true;
+  const equippedAfter = draft.inventory.find((i) => i.uid === it.uid)!;
+  if (!prof) warnings.push(armor || it.category === 'shield' ? 'Sem proficiência: desvantagem em testes, ataques e salvaguardas de FOR/DES; não pode conjurar.' : 'Sem proficiência: seu ataque não soma o bônus de proficiência.');
+  if (def?.attunement && !equippedAfter.attuned) warnings.push(attunementBlock(char, it) ?? (attunedCount(char) >= 3 ? 'As três vagas de sintonia estão ocupadas. Os efeitos que exigem sintonia não serão ativados.' : 'Sem sintonia: os efeitos mágicos que a exigem não estarão ativos.'));
+  if (def?.requiresActivation && !equippedAfter.activated) warnings.push('O efeito por comando precisa ser ativado depois de equipar.');
+  const armorKind = (c: Character) => { const i = c.inventory.find((x) => x.uid === c.equipped.armor); return i ? itemDefinition(i).armor?.category : undefined; };
+  if (barbarianState(char)?.raging && armorKind(char) !== 'pesada' && armorKind(draft) === 'pesada') warnings.push('Esta troca impede os benefícios da Fúria.');
+  const monk = (char.classLevels ?? [{ classId: char.classId, level: char.level }]).some((c) => c.classId === 'monk');
+  if (monk && (draft.equipped.armor || draft.equipped.shield) && !char.equipped.armor && !char.equipped.shield) warnings.push('Armadura ou escudo desativa Artes Marciais, Defesa sem Armadura e Movimento sem Armadura do Monge.');
+  const activeAfter = new Set(draft.inventory.filter((i) => itemIsActive(draft, i) && itemDefinition(i).magic).map((i) => i.uid));
+  const lost = char.inventory.filter((i) => itemIsActive(char, i) && itemDefinition(i).magic).filter((i) => !activeAfter.has(i.uid));
+  if (lost.length) warnings.push(`Efeitos mágicos que deixam de valer: ${lost.map((i) => i.name).join(', ')}.`);
   if (r.note) warnings.push(r.note);
-
-  return { replaces, deltas, warnings };
+  const oldAtk = replaces ? before.attacks.find((a) => a.uid === replaces.uid) : undefined;
+  const facts = [
+    { label: 'CA', from: String(before.ac), to: String(after.ac) },
+    { label: 'Deslocamento', from: `${before.speed} m`, to: `${after.speed} m` },
+    { label: 'Ataque da arma', from: oldAtk ? modStr(oldAtk.attackBonus) : '—', to: newAtk ? modStr(newAtk.attackBonus) : '—' },
+    { label: 'Dano da arma', from: oldAtk ? damageExpr(oldAtk) : '—', to: newAtk ? damageExpr(newAtk) : '—' },
+    { label: 'Proficiência no item', from: '—', to: prof ? 'Sim / não exigida' : 'Não' },
+    { label: 'Sintonia', from: `${attunedCount(char)}/3`, to: def?.attunement ? `${attunedCount(draft)}/3 · ${equippedAfter.attuned ? 'sintonizado' : 'exigida, pendente'}` : `${attunedCount(draft)}/3 · não exigida` },
+  ];
+  const removed = draft.inventory.filter((i) => wasOn.has(i.uid) && !isEquipped(draft, i)).map((i) => i.name);
+  return { replaces, deltas, warnings, facts, removed };
 }

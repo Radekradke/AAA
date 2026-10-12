@@ -32,7 +32,7 @@ test.describe('magias na mesa', () => {
     const before = Number(await ca.textContent());
     await cast(page, 'Escudo', '1º círculo');
     await expect(ca).toHaveText(String(before + 5));
-    await expect(page.locator('.fv-spell-effect', { hasText: 'Escudo' })).toBeVisible();
+    await expect(page.locator('.fv-effect-card', { hasText: 'Escudo' })).toBeVisible();
   });
 
   test('Bola de Fogo: rola 8d6 ao conjurar', async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe('magias na mesa', () => {
     const note = page.locator('.fv-castnote', { hasText: 'Nuvem de Adagas' });
     await expect(note).toContainText('quando alguém entra');
     await expect(page.getByText(/Nuvem de Adagas · cortante/)).toHaveCount(0);
-    const effect = page.locator('.fv-spell-effect', { hasText: 'Nuvem de Adagas' });
+    const effect = page.locator('.fv-effect-card', { hasText: 'Nuvem de Adagas' });
     await expect(effect).toBeVisible();
     await effect.getByRole('button', { name: /Rolar 4d4/ }).click();
     await expect(page.getByText(/Nuvem de Adagas · cortante/).first()).toBeVisible();

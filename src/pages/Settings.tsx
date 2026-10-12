@@ -93,8 +93,6 @@ export function Settings() {
   const toggleKeepAwake = useUiStore((s) => s.toggleKeepAwake);
   const bgVideo = useUiStore((s) => s.bgVideo);
   const setBgVideo = useUiStore((s) => s.setBgVideo);
-  const forgeStage = useUiStore((s) => s.forgeStage);
-  const toggleForgeStage = useUiStore((s) => s.toggleForgeStage);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
@@ -308,9 +306,6 @@ export function Settings() {
               <ArtCounter />
             </Suspense>
           )}
-          <Row title="Palco das origens (experimental)" hint="Na Forja, a escolha de raça vira um palco: o vídeo da raça em tela cheia, a ficha dela ao lado e os brasões das raças na borda. O card do herói só aparece a partir do Caminho.">
-            <Switch on={forgeStage} label="Palco das origens" onToggle={toggleForgeStage} />
-          </Row>
           <Row title="Oficina de retratos" hint="Para quem mantém o app: prepara a arte padrão das classes (as imagens que aparecem quando o herói não tem retrato próprio). Para trocar o retrato do SEU herói, use a aba Retrato da ficha.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
               Abrir

@@ -1,3 +1,4 @@
+import { chooseFullRules } from './fixtures/creator';
 import { test, expect } from './fixtures/test';
 import type { Page } from '@playwright/test';
 import { WIZARD, signIn } from './fixtures/supabase';
@@ -62,6 +63,7 @@ for (const s of SIZES) {
     test('criação: o botão de avançar fica à vista', async ({ page }) => {
       await signIn(page, 'guest', { characters: [WIZARD] });
       await page.goto('/criar');
+    await chooseFullRules(page);
       const next = page.getByRole('button', { name: /Avançar/ });
       await expect(next).toBeInViewport();
       expect(await overflow(page)).toBeLessThanOrEqual(1);

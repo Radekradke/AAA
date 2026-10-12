@@ -54,7 +54,7 @@ export function hasLegacyDiary(snapshot: Partial<Character> | null | undefined):
 
 export function isEmptyDiaryPart(p: DiaryPart): boolean {
   const d = p.diary;
-  return !p.journal.length && !p.notes.trim() && (!d || (!d.notes.length && !d.quests.length && !d.clues.length && !Object.keys(d.people ?? {}).length));
+  return !p.journal.length && !p.notes.trim() && (!d || (!d.notes.length && !d.quests.length && !d.clues.length && !Object.keys(d.people ?? {}).length && !(d.moments?.length) && !Object.values(d.identity ?? {}).some((v) => v.trim())));
 }
 
 export const sameDiary = (a: DiaryPart, b: DiaryPart) => JSON.stringify(a) === JSON.stringify(b);

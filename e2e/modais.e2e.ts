@@ -1,3 +1,4 @@
+import { chooseFullRules } from './fixtures/creator';
 import { test, expect } from './fixtures/test';
 import { signIn, WIZARD } from './fixtures/supabase';
 
@@ -10,6 +11,7 @@ test.describe('modais', () => {
 
   test('criando raça: clicar fora não fecha (o ✕ pisca); o ✕ fecha @celular', async ({ page }) => {
     await page.goto('/criar');
+    await chooseFullRules(page);
     await page.getByRole('button', { name: /Criar raça/ }).click();
     const modal = page.getByRole('dialog', { name: 'Nova raça homebrew' });
     await modal.getByPlaceholder(/Nome/).fill('Povo da Névoa');

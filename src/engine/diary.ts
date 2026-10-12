@@ -97,7 +97,8 @@ export function diaryTexts(char: Pick<Character, 'diary' | 'notes' | 'journal'>)
   const d = diaryOf(char);
   return [
     ...d.notes.map((n) => n.text),
-    ...char.journal.map((e) => `${e.title}\n${entryBody(e)}`),
+    ...(d.moments ?? []).map((m) => `${m.title}\n${m.text}`),
+    ...char.journal.map((e) => `${e.title}\n${entryBody(e)}\n${e.summary}`),
     ...d.quests.map(questText),
     ...d.clues.map(clueText),
   ];
@@ -227,9 +228,10 @@ export function diaryItems(char: Pick<Character, 'diary' | 'notes' | 'journal'>)
   const total = char.journal.length;
   return [
     ...d.notes.map((n) => ({ section: 'notes' as const, id: n.id, title: n.text.split('\n')[0].slice(0, 60), text: n.text })),
+    ...(d.moments ?? []).map((m) => ({ section: 'chronicle' as const, id: m.sessionId ?? m.id, title: m.title, text: `${m.title}\n${m.text}` })),
     ...char.journal.map((e, i) => {
       const n = entrySession(e, total - i);
-      return { section: 'chronicle' as const, id: e.id, title: e.title.trim() || `Sessão ${n}`, text: `${e.title}\n${entryBody(e)}` };
+      return { section: 'chronicle' as const, id: e.id, title: e.title.trim() || `Sessão ${n}`, text: `${e.title}\n${entryBody(e)}\n${e.summary}` };
     }),
     ...d.quests.map((q) => ({ section: 'board' as const, id: q.id, title: q.title.trim() || 'Missão sem nome', text: questText(q) })),
     ...d.clues.map((c) => ({ section: 'clues' as const, id: c.id, title: c.title.trim() || 'Pista sem nome', text: clueText(c) })),

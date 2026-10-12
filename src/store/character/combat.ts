@@ -1,9 +1,8 @@
+import { characterResources } from '@/engine/classResources';
+import { applyRest, canLongRest } from '@/engine/rest';
 import { deriveCharacter } from '@/engine/dndRules';
-import { syncSlotPools, saveSlotPools } from '@/engine/spellcasting';
-import { saveHitDicePools, syncHitDicePools, recoverHitDice } from '@/engine/hitDice';
+import { saveHitDicePools, syncHitDicePools } from '@/engine/hitDice';
 import { getClass } from '@/data/classes';
-import { characterResources, syncResources } from '@/engine/classResources';
-import { getFeat } from '@/data/feats';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 import { rechargeAll } from '@/engine/itemCharges';
@@ -290,75 +289,18 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       const char = get().getCharacter(id);
       if (!char) return;
       mutate(id, (c) => {
-        for (const r of characterResources(c)) {
-          if (r.recharge === 'short' && !r.unlimited) c.combat.resources[r.id] = r.max;
-        }
-        // magias de item com recarga em descanso curto voltam
-        const uses = { ...(c.combat.itemSpellUses ?? {}) };
-        for (const it of c.inventory) {
-          for (const g of it.grantsSpells ?? []) {
-            if (g.recharge === 'short') delete uses[`${it.uid}:${g.spellId}`];
-          }
-        }
-        // magias de talento com recarga curta (Teleporte Feérico)
-        for (const featId of c.feats ?? []) {
-          for (const g of getFeat(featId)?.grantsSpells ?? []) {
-            if (g.recharge === 'short') delete uses[`feat:${featId}:${g.spellId}`];
-          }
-        }
-        c.combat.itemSpellUses = uses;
-        // Magia de Pacto (Bruxo): os espaços do pacto voltam no descanso curto
-        const pools = syncSlotPools(c);
-        for (const slot of Object.values(pools.pact)) slot.used = 0;
-        saveSlotPools(c, pools);
-        // Restauração Feiticeira (Feiticeiro 20º): +4 pontos de feitiçaria no descanso curto
-        const sorc = characterResources(c).find((r) => r.id === 'sorcery');
-        const sorcLv = (c.classLevels ?? []).find((l) => l.classId === 'sorcerer')?.level ?? (c.classId === 'sorcerer' ? c.level : 0);
-        if (sorc && sorcLv >= 20) c.combat.resources.sorcery = Math.min(sorc.max, (c.combat.resources.sorcery ?? sorc.max) + 4);
-        // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
-        if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow', 'camouflage', 'draconicWard'].includes(m));
-        // Fúria Implacável: a CD volta a 10 depois de um descanso
-        delete c.combat.resources.relentless;
+        applyRest(c, 'short');
       });
     },
     longRest(id) {
       playSample('descanso');
       const char = get().getCharacter(id);
-      if (!char || (char.combat.deathSaves?.fail ?? 0) >= 3 || (char.combat.exhaustion ?? 0) >= 6 || char.hpCurrent <= 0) return;
+      if (!char || !canLongRest(char)) return;
       // amanhecer: cajados e varinhas recuperam parte das cargas
       const recharge = rechargeAll(char);
       mutate(id, (c) => {
         c.combat.itemCharges = recharge.used;
-        c.combat.hpTemp = 0;
-        c.combat.deathSaves = { success: 0, fail: 0 };
-        c.combat.conditions = [];
-        c.combat.turn = { action: false, bonus: false, reaction: false };
-        c.combat.moveUsed = 0;
-        c.combat.concentration = false;
-        c.combat.marks = [];
-        delete c.combat.sacredWeaponUid;
-        delete c.combat.resources.relentless;
-        // Portento rola de novo e a Sobrecarga volta a ser grátis a cada descanso longo
-        delete c.combat.portent;
-        delete c.combat.overchannel;
-        delete c.combat.wildShape;
-        c.combat.spellEffects = [];
-        c.combat.castThisTurn = [];
-        // descanso longo remove 1 nível de exaustão (PHB 2014)
-        c.combat.exhaustion = Math.max(0, (c.combat.exhaustion ?? 0) - 1);
-        const derived = deriveCharacter(c);
-        c.hpCurrent = derived.maxHp;
-        // todas as magias de item recarregam no descanso longo
-        c.combat.itemSpellUses = {};
-        // munição que não foi recolhida depois da luta ficou para trás
-        c.combat.ammoSpent = {};
-        // recupera metade dos dados de vida
-        recoverHitDice(c);
-        c.combat.resources = syncResources(c, c.combat.resources, true);
-        saveSlotPools(c, syncSlotPools(c, true));
-        // companheiro de patrulheiro volta com PV cheio
-        if (c.companion) c.companion = { ...c.companion, hpCurrent: undefined };
+        applyRest(c, 'long');
       });
       if (recharge.report.length) {
         toast(recharge.report.map((r) => `${r.name}: +${r.regained} carga${r.regained === 1 ? '' : 's'} (${r.left}/${r.max})`).join(' · '), { tone: 'info' });

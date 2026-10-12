@@ -76,11 +76,26 @@ export function characterImportError(value: unknown, defaults: Character): strin
     }
   }
   if (record(value.combat)) {
+    if (value.combat.spellEffects !== undefined) {
+      if (!Array.isArray(value.combat.spellEffects)) return 'Efeitos ativos precisam ser uma lista.';
+      for (const effect of value.combat.spellEffects) {
+        if (!record(effect) || typeof effect.spellId !== 'string' || typeof effect.name !== 'string' || typeof effect.label !== 'string' || !['turn', 'rest', 'concentration'].includes(String(effect.until))) return 'Efeito ativo inválido.';
+        for (const field of ['appliedBy', 'duration', 'endsWhen'] as const) if (effect[field] !== undefined && typeof effect[field] !== 'string') return 'Metadados do efeito precisam ser textos.';
+        for (const field of ['ac', 'speed'] as const) if (effect[field] !== undefined && (typeof effect[field] !== 'number' || !Number.isFinite(effect[field]))) return 'Bônus do efeito precisa ser um número finito.';
+      }
+    }
     for (const field of ['conditions', 'marks'] as const) if (field in value.combat && !strings(value.combat[field])) return `combat.${field} precisa ser uma lista de textos.`;
     if (value.combat.spellSlots !== undefined) {
       if (!record(value.combat.spellSlots)) return 'Espaços de magia precisam ser um objeto.';
       for (const [circle, slot] of Object.entries(value.combat.spellSlots)) if (!integer(Number(circle), 1, 9) || !record(slot) || !integer(slot.max, 0, 20) || !integer(slot.used, 0, slot.max)) return 'Reserva de espaços de magia inválida.';
     }
+  }
+  if (value.diary !== undefined) {
+    if (!record(value.diary) || !Array.isArray(value.diary.notes) || !Array.isArray(value.diary.quests) || !Array.isArray(value.diary.clues) || !record(value.diary.people)) return 'Diário pessoal inválido.';
+    const identity = value.diary.identity;
+    if (identity !== undefined && (!record(identity) || Object.values(identity).some((v) => typeof v !== 'string'))) return 'Os campos de Quem sou eu? precisam ser textos.';
+    const moments = value.diary.moments;
+    if (moments !== undefined && (!Array.isArray(moments) || moments.some((m) => !record(m) || typeof m.id !== 'string' || typeof m.title !== 'string' || typeof m.text !== 'string' || typeof m.at !== 'number' || !Number.isFinite(m.at) || (m.sessionId !== undefined && typeof m.sessionId !== 'string') || (m.rollId !== undefined && typeof m.rollId !== 'string')))) return 'Momento memorável inválido.';
   }
   return null;
 }

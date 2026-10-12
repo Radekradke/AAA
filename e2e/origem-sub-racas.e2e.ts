@@ -1,3 +1,4 @@
+import { chooseFullRules } from './fixtures/creator';
 import { test, expect } from './fixtures/test';
 import { signIn } from './fixtures/supabase';
 // raça homebrew pronta (resumo do Aasimar de src/data/racePresets.ts)
@@ -25,6 +26,7 @@ test.describe('origem: sub-raças explicadas e balão das raças homebrew', () =
     }, AASIMAR);
     await signIn(page, 'guest', { ui: { onboarded: true, toursSeen: { creator: true }, dice3d: false } });
     await page.goto('/criar');
+    await chooseFullRules(page);
 
     // sublinhagem do livro: a escolhida ganha uma frase curta
     await page.getByRole('button', { name: /^Anão/ }).first().click();

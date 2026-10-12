@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Modal } from '@/components/ui/Modal';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m } from 'framer-motion';
 import { HoloBadge } from '@/components/ui/holo-badge';
@@ -21,7 +22,7 @@ import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
 import { isPack } from '@/engine/packs';
-import type { EquipPreview } from '@/engine/equipPreview';
+import type { EquipTarget, EquipPreview } from '@/engine/equipPreview';
 import { useUiStore } from '@/store/uiStore';
 import {
   DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, MouseSensor, TouchSensor, pointerWithin, rectIntersection, useDraggable, useDroppable, useSensor, useSensors,
@@ -115,6 +116,9 @@ export function TabInventario({ char, derived }: TabProps) {
     else store.removeInventoryItem(char.id, it.uid);
   };
   const [open, setOpen] = useState<ContainerId>(() => (char.inventory.some((it) => isEquipped(char, it)) ? 'equipado' : 'mochila'));
+  const [equipRequest, setEquipRequest] = useState<{ uid: string; target: EquipTarget } | null>(null);
+  const requestedItem = char.inventory.find((i) => i.uid === equipRequest?.uid);
+  const equipComparison = equipRequest ? previewEquip(char, equipRequest.uid, derived, equipRequest.target) : null;
   const [picker, setPicker] = useState(false);
   const [forge, setForge] = useState<false | string>(false);
   const [coins, setCoins] = useState(false);
@@ -138,9 +142,10 @@ export function TabInventario({ char, derived }: TabProps) {
     return () => clearTimeout(id);
   }, [flash]);
 
-  const move = (it: InventoryItem, target: ContainerId) => {
+  const move = (it: InventoryItem, target: ContainerId, confirmed = false) => {
     const from = containerOf(char, it);
     if (from === target) return;
+    if (target === 'equipado' && !confirmed) { setEquipRequest({ uid: it.uid, target }); return; }
     const r = store.moveItem(char.id, it.uid, target);
     const label = CONTAINERS.find((c) => c.id === target)!.label;
     if (r.ok) {
@@ -149,7 +154,8 @@ export function TabInventario({ char, derived }: TabProps) {
     } else setFlash({ ok: false, text: r.reason });
   };
 
-  const toOffHand = (it: InventoryItem) => {
+  const toOffHand = (it: InventoryItem, confirmed = false) => {
+    if (!confirmed) { setEquipRequest({ uid: it.uid, target: 'offHand' }); return; }
     const r = store.equipOffHand(char.id, it.uid);
     if (r.ok) {
       setFlash({ ok: true, text: r.note ?? `${it.name} na segunda mão` });
@@ -163,16 +169,6 @@ export function TabInventario({ char, derived }: TabProps) {
     document.body.classList.remove('fv-dragging');
     if (it && e.over) move(it, String(e.over.id).replace('dock-', '') as ContainerId);
   };
-
-  // comparação estilo BG3 para cada item equipável ainda não equipado
-  const previews = useMemo(() => {
-    const map = new Map<string, EquipPreview>();
-    for (const it of char.inventory) {
-      const p = previewEquip(char, it.uid, derived);
-      if (p) map.set(it.uid, p);
-    }
-    return map;
-  }, [char, derived]);
 
   const attuneItems = char.inventory.filter((i) => i.attunement);
 
@@ -274,7 +270,7 @@ export function TabInventario({ char, derived }: TabProps) {
                     setFlash({ ok: false, text: blocked });
                     return;
                   }
-                  store.toggleAttune(char.id, it.uid);
+                  setEquipRequest({ uid: it.uid, target: 'attune' });
                 }}
                 style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
               >
@@ -391,7 +387,7 @@ export function TabInventario({ char, derived }: TabProps) {
                         item={it}
                         equipped={where === 'equipado'}
                         equippable={canEquip(it)}
-                        preview={previews.get(it.uid) ?? null}
+                        preview={null}
                         handle={handle}
                         stashLabel={where === 'bau' ? 'Levar na Mochila' : 'Guardar no Baú'}
                         loreDisabled={!!dragging}
@@ -437,6 +433,16 @@ export function TabInventario({ char, derived }: TabProps) {
         </DndContext>
       </Panel>
 
+      {equipRequest && <Modal title="Comparar antes de equipar" onClose={() => setEquipRequest(null)} footer={<>
+        <button type="button" className="fv-btn-ghost" onClick={() => setEquipRequest(null)}>Cancelar</button>
+        <button type="button" className="fv-btn-gold" disabled={!requestedItem || !equipComparison || equipComparison.blocked} onClick={() => { if (requestedItem) { if (equipRequest.target === "attune") store.toggleAttune(char.id, requestedItem.uid); else if (equipRequest.target === "offHand") toOffHand(requestedItem, true); else move(requestedItem, "equipado", true); } setEquipRequest(null); }}>{equipRequest.target === 'attune' ? 'Confirmar sintonia' : 'Confirmar troca'}</button>
+      </>}>
+        <div className="fv-experience"><h3>{requestedItem?.name ?? "Item indisponível"}</h3>
+        {equipComparison ? <><p>{equipComparison.removed?.length ? "Sai: " + equipComparison.removed.join(", ") : "Nenhum item precisa sair."}</p>
+          <table className="fv-experience-table"><thead><tr><th>Característica</th><th>Agora</th><th>Depois</th></tr></thead><tbody>{equipComparison.facts?.map((f) => <tr key={f.label}><th>{f.label}</th><td>{f.from}</td><td>{f.to}</td></tr>)}</tbody></table>
+          {equipComparison.deltas.filter((d) => !["CA", "Desloc.", "Acerto", "Dano"].includes(d.label)).map((d) => <p key={d.label}>{d.label}: {d.from} → {d.to}</p>)}
+          {equipComparison.warnings.length > 0 && <ul>{equipComparison.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>}</> : <p role="status">O item mudou ou já está equipado. Feche e confira o inventário novamente.</p>}</div>
+      </Modal>}
       {picker && (
         <AddItemPicker
           onAdd={(item) => store.addInventoryItem(char.id, item)}

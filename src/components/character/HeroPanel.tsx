@@ -10,7 +10,7 @@ import { getClass } from '@/data/classes';
 import { getBackground } from '@/data/backgrounds';
 import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
-import { heroAvatar, heroPortraitPosition } from '@/lib/summary';
+import { HeroPortrait } from './HeroPortrait';
 import { Icon } from '@/components/ui/Icon';
 import { themedIcon } from './creatorUi';
 import { PortraitPicker } from './PortraitPicker';
@@ -61,8 +61,9 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
       <div className="fv-hero-portrait" onPointerMove={onSheen} onPointerLeave={offSheen}>
         {/* reflexo metálico que segue o ponteiro */}
         <span className="fv-hero-sheen" aria-hidden />
-        <img src={heroAvatar(char)} alt="" style={{ objectPosition: heroPortraitPosition(char) }} />
+        <HeroPortrait char={char} />
         {onPortrait && <PortraitPicker portrait={char.portrait} onChange={onPortrait} />}
+        {char.portrait && onPortrait && <button type="button" className="fv-btn-ghost" style={{ position: 'absolute', top: 50, left: 8, zIndex: 3, fontSize: 11 }} onClick={() => onPortrait(null)}>Usar retrato da classe</button>}
         <div className="fv-hero-sigil" title={cls.label}>
           <Icon name={themedIcon('class', cls.id)} size={22} />
         </div>
@@ -76,6 +77,7 @@ export function HeroPanel({ char, onGoStep, onPortrait, showPending = false }: H
             {sub && race.id !== 'dragonborn' ? sub.label : race.label} · {cls.label}
           </div>
           <div className="fv-hero-bg">{bg.label}</div>
+          {char.portrait && <small>Retrato próprio · permanece ao trocar aparência</small>}
         </div>
       </div>
 

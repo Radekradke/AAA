@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useDialogFocus } from '@/lib/useDialogFocus';
-import { searchAll } from '@/lib/globalSearch';
+import { parseSearchIntent, searchAll } from '@/lib/globalSearch';
 import type { SearchEntry, SearchKind } from '@/lib/globalSearch';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
@@ -135,8 +135,8 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
       list.push({ id: `h-${c.id}`, kind: 'heroi', title: c.name || 'Sem nome', subtitle: shortSubtitle(c), boost: 5, ref: { t: 'nav', to: `/ficha/${c.id}` }, thumb: { src: heroAvatar(c), round: true } });
     }
     for (const m of campaigns) list.push({ id: `m-${m.id}`, kind: 'mesa', title: m.name, subtitle: m.master ? 'Você é o mestre' : 'Você joga', boost: 5, ref: { t: 'nav', to: `/mesa/${m.id}` } });
-    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s }, thumb: { spell: s } });
-    for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), keywords: i.group, ref: { t: 'item', v: i }, thumb: { src: itemArt({ itemId: i.id }) } });
+    for (const s of SPELLS) list.push({ id: `s-${s.id}`, kind: 'magia', title: s.name, subtitle: `${spellLevel(s)} · ${s.school}`, intent: { heal: !!s.heal || (s.tags ?? []).includes('cura'), reaction: /rea[cç][aã]o/i.test(s.castingTime ?? ''), concentration: !!s.concentration, damageTypes: s.damage ? [s.damage.type.normalize('NFD').replace(/[̀-ͯ]/g, '')] : [] }, keywords: `${s.school} ${(s.classes ?? []).map((c) => getClass(c).label).join(' ')}`, ref: { t: 'spell', v: s }, thumb: { spell: s } });
+    for (const i of [...WEAPONS, ...ARMORS, ...GEAR, ...MAGIC_ITEMS]) list.push({ id: `i-${i.id}`, kind: 'item', title: i.name, subtitle: [i.group, dmg(i), i.rarity !== 'comum' ? RARITY[i.rarity] : ''].filter(Boolean).join(' · '), intent: { heal: !!i.heal }, keywords: i.group, ref: { t: 'item', v: i }, thumb: { src: itemArt({ itemId: i.id }) } });
     for (const c of CONDITIONS) list.push({ id: `c-${c.id}`, kind: 'condicao', title: c.label, subtitle: c.short, boost: 1, ref: { t: 'cond', v: c }, thumb: hasConditionIcon(c.id) ? { cond: c.id } : undefined });
     for (const f of FEATS) list.push({ id: `f-${f.id}`, kind: 'talento', title: f.label, subtitle: f.prereq ? `Pré-requisito: ${f.prereq}` : f.source, ref: { t: 'feat', v: f } });
     for (const m of MONSTERS) {
@@ -192,7 +192,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 aria-controls="fv-search-results"
                 aria-activedescendant={flat[active] ? `fv-sr-${flat[active].id}` : undefined}
                 aria-label="Buscar telas, heróis, magias, itens, regras…"
-                placeholder="Buscar telas, heróis, magias, itens, regras…"
+                placeholder="Nome ou intenção: curar, reação, fogo…"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={onKey}
@@ -203,13 +203,14 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 Esc
               </button>
             </div>
+            {parseSearchIntent(q).labels.length > 0 && <p className="fv-search-hint" role="status">Filtros: {parseSearchIntent(q).labels.join(' · ')}</p>}
             <div id="fv-search-results" role="listbox" aria-label="Resultados" className="fv-search-results">
               {!q.trim() && (
-                <p className="fv-search-hint">
+                <div className="fv-search-hint"><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>{['curar', 'reação', 'fogo sem concentração'].map((v) => <button className="fv-btn-ghost" type="button" key={v} onClick={() => setQ(v)}>{v}</button>)}</div>
                   Digite um nome: <b>bola de fogo</b>, <b>espada longa</b>, <b>agarrado</b>, <b>goblin</b>, o nome de um herói ou de uma tela.
                   <br />
                   Atalhos: <kbd>Ctrl</kbd>+<kbd>K</kbd> ou <kbd>/</kbd> abre · <kbd>↑</kbd><kbd>↓</kbd> escolhe · <kbd>Enter</kbd> abre.
-                </p>
+                </div>
               )}
               {q.trim() && !flat.length && <p className="fv-search-hint">Nada encontrado para “{q}”.</p>}
               {groups.map((g) => (

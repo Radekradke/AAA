@@ -1,3 +1,5 @@
+import { WhoAmI } from '@/components/diary/WhoAmI';
+import { RestPreview, useRestPreview } from './RestPreview';
 import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
 import { useState } from 'react';
@@ -44,6 +46,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
   const t = useTheme();
   const ink = useInk();
   const store = useCharacterStore();
+  const [restPreview, setRestPreview] = useRestPreview();
   const spendHitDie = useSpendHitDie(char, derived);
   const bump = useUiStore((s) => s.bump);
   const { rollDice, check, checkFor } = useDiceRoller();
@@ -83,6 +86,8 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
 
   return (
     <div className="animate-riseIn fv-mesa">
+      <WhoAmI char={char} />
+      {restPreview && <RestPreview char={char} kind={restPreview} onClose={() => setRestPreview(null)} />}
       {/* ===== VITAIS ===== */}
       <Panel style={{ padding: 'clamp(14px,1.8vw,20px)' }}>
         {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
@@ -230,12 +235,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
 
         {/* Ataques */}
         <Panel>
-          {((char.combat.spellEffects?.length ?? 0) > 0 || (char.combat.marks?.length ?? 0) > 0) && (
-            <div className="fv-mesa-effects">
-              <div className="fv-label fv-mesa-label-tight">Efeitos ativos</div>
-              <ActiveEffects char={char} />
-            </div>
-          )}
+          <ActiveEffects char={char} />
           <div className="fv-mesa-head">
             <div className="fv-label">Ataques</div>
             <GoTab to="combate" label="Combate" goTab={goTab} />
@@ -457,10 +457,10 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             );
           })}
           <div className="fv-mesa-rests">
-            <button onClick={() => store.shortRest(char.id)} style={{ ...restBtn, borderColor: t.acc, color: t.acc }}>
+            <button onClick={() => setRestPreview('short')} style={{ ...restBtn, borderColor: t.acc, color: t.acc }}>
               <Icon name="moon" size={14} /> Descanso Curto
             </button>
-            <button onClick={() => store.longRest(char.id)} style={{ ...restBtn, borderColor: t.gold, color: t.gold, background: hexA(t.gold, 0.08) }}>
+            <button onClick={() => setRestPreview('long')} style={{ ...restBtn, borderColor: t.gold, color: t.gold, background: hexA(t.gold, 0.08) }}>
               <Icon name="moon" size={14} /> Descanso Longo
             </button>
           </div>

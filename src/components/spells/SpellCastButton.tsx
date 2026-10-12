@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { Character } from '@/types/character';
 import type { Spell } from '@/types/dnd';
 import type { DerivedCharacter } from '@/engine/dndRules';
@@ -141,7 +141,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       return 0;
     };
     const effectOnMe = () => {
-      if (out?.effect) store.applySpellEffect(char.id, { spellId: spell.id, name: spell.name, ...out.effect });
+      if (out?.effect) store.applySpellEffect(char.id, { spellId: spell.id, name: spell.name, appliedBy: char.name || 'Este herói', duration: spell.duration, ...out.effect });
     };
     if (out?.target === 'self') {
       const n = applyOnMe();
@@ -177,6 +177,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
           const current = useCharacterStore.getState().characters.find((c) => c.id === char.id)?.combat.spellEffects?.find((e) => e.spellId === spell.id);
           store.applySpellEffect(char.id, {
             ...(current ?? { spellId: spell.id, name: spell.name, until, label: damageTiming(spell) === 'rider' ? `no acerto · ${typeLabel}` : `na área · ${typeLabel}` }),
+            appliedBy: char.name || 'Este herói', duration: spell.duration,
             roll: { ...later, when: `Dano ${when}` },
           });
           lines.push('O botão de rolar fica em Efeitos ativos, na aba Jogar, enquanto a magia durar.');
@@ -365,6 +366,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const hexAvail = knowsSpell(char, 'phb-hex') || hasMark(char, 'hex');
   // Fúria (Bárbaro): não conjura nem mantém concentração
   const raging = hasMark(char, 'rage');
+  const blockId = useId();
+  const blockReason = !pending && (raging ? 'Em Fúria você não conjura. Encerre a Fúria no painel de combate.' : noSlot && !ritual ? itemCast ? 'Sem cargas suficientes. Confira as cargas do item; elas se recuperam conforme sua regra de recarga.' : 'Sem espaços disponíveis para este círculo. Escolha outra magia ou confira a prévia de descanso.' : null);
   const hexOn = hasMark(char, 'hex');
   const outcomes = pending?.attacks.map(outcomeOf) ?? [];
   const decided = outcomes.every((o) => o !== null);
@@ -379,10 +382,13 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         onClick={onMain}
         disabled={(noSlot && !ritual && !pending) || (raging && !pending)}
         title={raging ? 'Em Fúria você não conjura magias' : itemCast ? (noSlot ? `Sem cargas suficientes em ${itemCast.itemName}` : `Usar cargas de ${itemCast.itemName}`) : noSlot && !ritual ? 'Sem espaços disponíveis para este círculo' : isCantrip ? 'Conjurar truque' : 'Conjurar'}
+        aria-describedby={blockReason ? blockId : undefined}
         aria-expanded={open || !!pending}
       >
         ✦ {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
       </button>
+
+      {blockReason && <small id={blockId} className="fv-cast-block" role="note">{blockReason}</small>}
 
       {open && !pending && (
         <span ref={menuPop.ref} className={'fv-cast-pop fv-panel' + (menuPop.up ? ' is-up' : '')} role="menu">

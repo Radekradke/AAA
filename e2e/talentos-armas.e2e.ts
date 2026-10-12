@@ -74,6 +74,8 @@ test.describe('talentos de arma e mãos', () => {
     await tab(page, 'Inventário');
     await page.getByRole('button', { name: /^Mochila:/ }).click();
     await page.locator('.fv-inv-card[data-item="Adaga"]').getByRole('button', { name: 'Equipar na segunda mão' }).click();
+    await expect(page.getByRole('dialog', { name: 'Comparar antes de equipar' })).toContainText('Escudo');
+    await page.getByRole('button', { name: 'Confirmar troca' }).click();
     await expect(page.locator('[aria-live="polite"]', { hasText: 'Adaga na segunda mão; Escudo foi para a mochila' })).toBeVisible();
 
     await tab(page, 'Combate');

@@ -1,3 +1,4 @@
+import { warmHeroPortraits } from './HeroPortrait';
 import type { CSSProperties } from 'react';
 import type { StepProps } from './stepTypes';
 import { StepHeader, OptionGrid, OptionTile, ChoiceDetail, themedIcon } from './creatorUi';
@@ -35,6 +36,7 @@ export function StepClass({ char, update }: StepProps) {
   const speaking = voice.speaking === `${cls.id}-${char.gender}`;
 
   const pickClass = (id: string) => {
+    warmHeroPortraits(id);
     voices.play(id, char.gender);
     if (char.classId === id) return; // mesma classe: nada a refazer
     update((c) => {
@@ -77,6 +79,7 @@ export function StepClass({ char, update }: StepProps) {
                 color={c.jewel}
                 selected={char.classId === c.id}
                 onSelect={() => pickClass(c.id)}
+                onPreview={(on) => { if (on) warmHeroPortraits(c.id); }}
               />
             ))}
           </OptionGrid>
