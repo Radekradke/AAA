@@ -1,6 +1,6 @@
 import type { InventoryItem } from '@/types/character';
 import type { Item } from '@/types/dnd';
-import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, removeFromSlots } from '@/engine/inventory';
+import { attunementBlock, toggleEquip as computeEquip, isWearable, isWorn, itemToInventory, MAX_ATTUNEMENT, moveItemTo, placeInOffHand, removeFromSlots } from '@/engine/inventory';
 import type { CharacterState, StoreCtx } from './types';
 import { playSample } from '@/lib/sfx';
 import { bodySlotOf } from '@/engine/bodySlots';
@@ -29,7 +29,7 @@ function announceOpened(mutate: StoreCtx['mutate'], id: string, name: string, ch
 }
 
 /** Mochila e moedas: itens, equipar, mover entre recipientes, favoritos, sintonização. */
-export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'openPackItem' | 'fireAmmo' | 'refundAmmo' | 'recoverAmmo' | 'toggleEquip' | 'moveItem' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
+export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addInventoryItem' | 'updateInventoryItem' | 'removeInventoryItem' | 'openPackItem' | 'fireAmmo' | 'refundAmmo' | 'recoverAmmo' | 'toggleEquip' | 'moveItem' | 'equipOffHand' | 'toggleFavorite' | 'toggleAttune' | 'adjustCoin' | 'setCoin'> {
   return {
     addInventoryItem(id, item) {
       playSample('mochila');
@@ -128,6 +128,18 @@ export function inventoryActions({ get, mutate }: StoreCtx): Pick<CharacterState
       if (!probe.ok) return probe;
       mutate(id, (c) => void moveItemTo(c, uid, target));
       return probe;
+    },
+    equipOffHand(id, uid) {
+      const char = get().getCharacter(id);
+      const it = char?.inventory.find((i) => i.uid === uid);
+      if (!char || !it) return { ok: false, reason: 'Item não encontrado.' };
+      const placed = placeInOffHand(char, it);
+      if (!placed.ok) return placed;
+      playSample('equipar');
+      mutate(id, (c) => {
+        c.equipped = placed.equipped;
+      });
+      return { ok: true, note: placed.note };
     },
     toggleFavorite(id, uid) {
       mutate(id, (c) => {

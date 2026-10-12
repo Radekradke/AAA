@@ -16,7 +16,7 @@ import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/Coins
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
-import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn, attunementBlock } from '@/engine/inventory';
+import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn, attunementBlock, offHandCandidate } from '@/engine/inventory';
 import { BODY_SLOTS, bodySlotOf } from '@/engine/bodySlots';
 import type { ContainerId } from '@/engine/inventory';
 import { previewEquip } from '@/engine/equipPreview';
@@ -145,6 +145,14 @@ export function TabInventario({ char, derived }: TabProps) {
     const label = CONTAINERS.find((c) => c.id === target)!.label;
     if (r.ok) {
       setFlash({ ok: true, text: r.note ?? `${it.name} → ${label}` });
+      bump(0.8);
+    } else setFlash({ ok: false, text: r.reason });
+  };
+
+  const toOffHand = (it: InventoryItem) => {
+    const r = store.equipOffHand(char.id, it.uid);
+    if (r.ok) {
+      setFlash({ ok: true, text: r.note ?? `${it.name} na segunda mão` });
       bump(0.8);
     } else setFlash({ ok: false, text: r.reason });
   };
@@ -389,6 +397,8 @@ export function TabInventario({ char, derived }: TabProps) {
                         loreDisabled={!!dragging}
                         onStash={() => move(it, where === 'bau' ? 'mochila' : 'bau')}
                         onEquip={() => move(it, where === 'equipado' ? 'mochila' : 'equipado')}
+                        onOffHand={offHandCandidate(char, it) ? () => toOffHand(it) : undefined}
+                        offHand={char.equipped.offHand === it.uid && char.equipped.mainHand !== it.uid}
                         onFavorite={() => store.toggleFavorite(char.id, it.uid)}
                         onEdit={() => setEditing(it)}
                         onRemove={() => store.removeInventoryItem(char.id, it.uid)}
@@ -567,7 +577,7 @@ function CarriedItem({ item: it }: { item: InventoryItem }) {
 /** Dados de cura da poção (fichas antigas não copiaram o campo: busca no catálogo). */
 const healOf = (it: InventoryItem) => it.heal ?? getItem(it.itemId)?.heal;
 
-function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onFavorite, onEdit, onRemove, onDrink, onOpenPack, onArt, charges, onCharge, onActivate, canActivate, onResistance }: {
+function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel, loreDisabled, onStash, onEquip, onOffHand, offHand, onFavorite, onEdit, onRemove, onDrink, onOpenPack, onArt, charges, onCharge, onActivate, canActivate, onResistance }: {
   item: InventoryItem;
   /** Arrastando: a dica de "segurar" não pode abrir por cima dos destinos. */
   loreDisabled: boolean;
@@ -578,6 +588,10 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
   stashLabel: string;
   onStash: () => void;
   onEquip: () => void;
+  /** "Equipar na segunda mão" (arma de uma mão ao lado da principal). */
+  onOffHand?: () => void;
+  /** Este item está na mão secundária. */
+  offHand?: boolean;
   onFavorite: () => void;
   onEdit: () => void;
   onRemove: () => void;
@@ -718,6 +732,8 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               {isWearable(it) ? (equipped ? 'Tirar' : 'Vestir') : equipped ? 'Desequipar' : 'Equipar'}
             </ItemBtn>
           )}
+          {onOffHand && <ItemBtn onClick={onOffHand}>Equipar na segunda mão</ItemBtn>}
+          {offHand && <span className="fv-inv-offhand">na segunda mão</span>}
           {onDrink && <ItemBtn active onClick={onDrink}>Beber · {healOf(it)}</ItemBtn>}
           {onOpenPack && <ItemBtn active onClick={onOpenPack}>Abrir pacote</ItemBtn>}
           {!equipped && it.wear !== 'body' && <ItemBtn onClick={onStash}>{stashLabel}</ItemBtn>}

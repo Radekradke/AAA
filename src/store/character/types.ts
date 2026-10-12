@@ -49,6 +49,8 @@ export interface CharacterState {
   toggleEquip: (id: string, uid: string) => void;
   /** Move entre Equipado / Mochila / Baú (arrastar ou botões). */
   moveItem: (id: string, uid: string, target: ContainerId) => MoveResult;
+  /** "Equipar na segunda mão": arma de uma mão ao lado da principal (tira o escudo). */
+  equipOffHand: (id: string, uid: string) => MoveResult;
   toggleFavorite: (id: string, uid: string) => void;
   toggleAttune: (id: string, uid: string) => void;
   adjustCoin: (id: string, coin: CoinKey, delta: number) => void;
@@ -71,16 +73,34 @@ export interface CharacterState {
   /** Gasta cargas de um item (cajado, varinha…; negativo devolve); devolve quantas sobraram. */
   spendItemCharges: (id: string, uid: string, n: number) => number;
   toggleSpellSlot: (id: string, level: number, index: number, pool?: SpellSlotPoolKind) => void;
+  /** Mestre Místico: devolve todos os espaços de Magia de Pacto. */
+  restorePactSlots: (id: string) => void;
+  /** Fonte de Magia: espaço → pontos (= círculo) ou pontos → espaço gasto de volta (custo da tabela). */
+  fontOfMagic: (id: string, dir: 'toPoints' | 'toSlot', level: number, pool?: SpellSlotPoolKind) => boolean;
+  /** Recuperação Arcana/Natural: devolve espaços gastos (círculo → quantos). */
+  recoverSlots: (id: string, picks: Record<number, number>) => void;
+  /** Barreira Arcana: ergue (1ª abjuração do dia) ou recarrega 2 × círculo. */
+  chargeWard: (id: string, slotLevel: number) => void;
+  /** Portento: guarda os d20 rolados (ou o que sobrou depois de usar um). */
+  setPortent: (id: string, rolls: number[]) => void;
+  /** Sobrecarga: conta mais um uso desde o descanso longo. */
+  noteOverchannel: (id: string) => void;
+  /** Forma Selvagem: assume uma fera ({ beastId, hp }) ou volta à forma normal (null). */
+  wildShape: (id: string, shape: { beastId: string; hp: number } | null) => void;
   /** Conjurar: gasta um espaço do círculo (e liga a concentração, se a magia pedir). */
   castWithSlot: (id: string, level: number, concentration?: boolean, pool?: SpellSlotPoolKind) => void;
   /** Liga/desliga Bruxaria, Marca do Caçador ou Fúria (dano extra em todo acerto). */
-  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow', on: boolean, weaponUid?: string) => void;
+  setMark: (id: string, mark: 'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard' | 'arcaneWard' | 'overchannel', on: boolean, weaponUid?: string) => void;
   /** Bárbaro: entra em Fúria (gasta 1 uso e a ação bônus); `frenzy` = Frenesi do Furioso. */
   startRage: (id: string, frenzy?: boolean) => void;
   /** Bárbaro: encerra a Fúria (com Frenesi, +1 nível de exaustão). */
   endRage: (id: string) => void;
   /** Ataque Furtivo gasto neste turno. */
   useSneakAttack: (id: string) => void;
+  /** Golpe Divino (Clérigo): 1× por turno. */
+  useDivineStrike: (id: string) => void;
+  /** Marca algo que só vale 1× por turno (Matador de Colossos, Matador de Inimigos…). */
+  markTurn: (id: string, key: 'colossus' | 'foeSlayer') => void;
   /** Disparada: dobra o deslocamento do turno e gasta a ação (ou a ação bônus, Ação Ardilosa). */
   dash: (id: string, as: 'action' | 'bonus') => void;
   /** Efeito de magia passa a valer em você (troca o da mesma magia). */

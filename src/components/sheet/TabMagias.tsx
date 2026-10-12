@@ -13,6 +13,7 @@ import { useUiStore } from '@/store/uiStore';
 import { getClass } from '@/data/classes';
 import { casterKind, casterOf, casterForClass, casterProfiles, changeSpellSelection, expandedSpellIds, grantedSpellsForClass, itemGrantedSpells, spellSelectionOf, syncSpellSlots, syncSlotPools } from '@/engine/spellcasting';
 import { forgetBlock, learnBlock, prepareBlock, spellLearnState } from '@/engine/spellRules';
+import { wizardFreeCast } from '@/engine/wizard';
 import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
 import { ABILITY_SHORT } from '@/data/skills';
@@ -189,6 +190,8 @@ export function TabMagias({ char, derived }: TabProps) {
     // Arcano Místico (bruxo 11+): conjura sem espaço, 1× por descanso longo (contador do recurso)
     const arcanumId = sp.level >= 6 && (char.choices?.[`warlock.arcanum${sp.level}`] ?? []).includes(sp.id) ? `arcanum${sp.level}` : null;
     const arcanumLeft = arcanumId ? char.combat.resources?.[arcanumId] ?? 1 : 0;
+    // Domínio de Magia (Mago 18º): à vontade no círculo base; Assinatura (20º): 1× por descanso curto sem espaço
+    const wizFree = classId === 'wizard' ? wizardFreeCast(char, sp.id) : null;
     return (
       <div
         key={sp.id}
@@ -216,6 +219,8 @@ export function TabMagias({ char, derived }: TabProps) {
             <span className="fv-spell-meta">
               {grantSource && <span className="fv-spell-granted">sempre preparada · {grantSource}</span>}
               {arcanumId && <span className="fv-spell-granted">Arcano Místico · {arcanumLeft ? '1×/descanso longo' : 'usado · volta no descanso longo'}</span>}
+              {wizFree?.kind === 'mastery' && <span className="fv-spell-granted">Domínio de Magia · à vontade no {sp.level}º círculo</span>}
+              {wizFree?.kind === 'signature' && <span className="fv-spell-granted">Magia de Assinatura · {wizFree.left ? '1× sem espaço (descanso curto)' : 'grátis usada · volta no descanso curto'}</span>}
               {canPrepare && !isPrepared && <span className="fv-spell-granted is-muted">não preparada</span>}
               {sp.damage && <Mini c="#FF6A3D">{spellDamageLabel(sp, char.level)}</Mini>}
               {sp.heal && <Mini c="#3FC56B">cura</Mini>}
@@ -239,7 +244,22 @@ export function TabMagias({ char, derived }: TabProps) {
             <SpellCastButton char={char} derived={castingDerived} castingClassId={classId} spell={sp} castMod={castMod} compact free onCast={() => store.setResource(char.id, arcanumId, arcanumLeft - 1)} />
           )
         ) : (
-          canCast && <SpellCastButton char={char} derived={castingDerived} castingClassId={classId} spell={sp} castMod={castMod} compact />
+          canCast && (
+            <>
+              {wizFree && (wizFree.kind === 'mastery' || wizFree.left > 0) && (
+                <SpellCastButton
+                  char={char}
+                  derived={castingDerived} castingClassId={classId}
+                  spell={sp}
+                  castMod={castMod}
+                  compact
+                  free
+                  onCast={wizFree.kind === 'signature' ? () => store.setResource(char.id, wizFree.resId, 0) : undefined}
+                />
+              )}
+              <SpellCastButton char={char} derived={castingDerived} castingClassId={classId} spell={sp} castMod={castMod} compact />
+            </>
+          )
         )}
         <span className="fv-spell-tools">
           <button

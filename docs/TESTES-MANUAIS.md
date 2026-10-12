@@ -765,3 +765,132 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 5. Anciões 15: cair a 0 PV pelo "Aplicar dano" deixa com 1 PV uma vez (Sentinela Imortal).
 6. Nível 14: **Toque Purificador**. Nível 20: a forma do juramento, 1× por descanso longo.
 7. Relatório completo: `docs/auditoria/paladino.md`.
+
+## 79. Bruxo: auditoria do 1 ao 20
+
+1. Combate → painel "Bruxo": "Magia de Pacto N/M" com o círculo dos espaços e a CD.
+2. Pacto da Corrente: convocar familiar aparece nas magias (ritual), sem contar no limite.
+3. Nível 20: com espaços gastos, **Mestre Místico** devolve todos e fica travado até o descanso longo.
+4. **Corruptor**:
+   - **Bênção do Tinhoso** dá CAR + nível de PV temporários.
+   - **Sorte do Tinhoso** (6º) soma 1d10 ao último teste/salvaguarda.
+   - **Resiliência Infernal** (10º): escolha o tipo de dano e ele aparece nas resistências da Ficha.
+   - **Arremesso pelo Inferno** (14º) rola 10d10.
+5. **Arquifada**:
+   - **Presença Feérica** e **Delírio Sombrio** (ação, CD de SAB). **Fuga Enevoada** (reação).
+   - Nível 10: não dá para marcar Enfeitiçado.
+6. **Grande Antigo**: **Escudo Entrópico** (reação). Nível 10: resistência psíquica na Ficha.
+7. Relatório completo: `docs/auditoria/bruxo.md`.
+
+## 80. Talentos de arma, versátil e segunda mão
+
+1. **Mestre em Armas Grandes** com arma pesada (espada grande, glaive, machado grande…):
+   - Combate → ao lado de ACERTO aparece o botão **−5 / +10**. Ligado, o ACERTO cai 5.
+   - Acertando assim, o dano já abre com "Mestre em Armas Grandes +10" ligado.
+   - Crítico com arma corpo a corpo: aviso do ataque bônus, com "Usar ação bônus".
+   - Depois do dano (ação bônus livre): lembrete "se derrubou o alvo a 0 PV, ataque bônus".
+2. **Atirador de Elite**: o mesmo −5 / +10 com arco ou besta.
+3. **Mestre em Hastes** com glaive, alabarda, bordão (ou cajado) ou lança: surge o ataque "*Arma* (cabo)", 1d4 concussão, ação bônus.
+   - Com uma segunda arma na mão, o cabo some. Com escudo e lança, continua.
+4. **Versátil**: espada longa sozinha oferece "Duas mãos (1d10)" no dano. Com escudo ou segunda arma, a opção some.
+5. **Inventário → "Equipar na segunda mão"** numa arma de uma mão (com outra arma de uma mão na principal):
+   - O escudo vai para a mochila e a arma aparece como "na segunda mão".
+   - Armas leves (ou com Combatente com Duas Armas): o ataque dela em Combate diz "mão secundária · ação bônus".
+   - Sem isso: "sem ataque bônus".
+   - Com arma de duas mãos na principal, o botão não aparece.
+
+## 81. Clérigo e Bardo: auditoria do 1 ao 20
+
+1. **Clérigo**, Combate → painel "Clérigo":
+   - Mostra "Canalizar Divindade N/M", a CD e o ND do Destruir Mortos-Vivos (5º+).
+   - **Expulsar Mortos-Vivos** e o Canalizar do domínio gastam o uso e o turno certo.
+   - Radiância da Alvorada (Luz) rola 2d10 + nível.
+   - Preservar a Vida (Vida) oferece "Em mim" só até a metade dos PV.
+2. Domínio da Vida, ao conjurar Curar Ferimentos:
+   - A cura soma +2 + círculo (Discípulo da Vida).
+   - No 6º, "Foi em outra criatura" também cura você.
+   - No 17º, os dados vêm no máximo.
+3. Golpe Divino (8º, menos Luz e Conhecimento): no dano do ataque com arma aparece "+1d8 tipo", 1× por turno.
+4. Conjuração Potente (Luz/Conhecimento 8º): Chama Sagrada soma SAB no dano.
+5. Reações de domínio no painel: Labareda Protetora, Ira da Tempestade (rola 2d8) e Sacerdote da Guerra (ação bônus).
+6. Nível 10: **Intervenção Divina** rola o d100 e trava até o descanso longo.
+7. **Bardo**, painel "Bardo":
+   - Mostra "Inspiração de Bardo N/M" com o dado e quando volta.
+   - **Dar Inspiração** gasta a ação bônus.
+   - **Canção de Descanso** rola o dado.
+   - **Contraencanto** no 6º.
+8. Colégio do Conhecimento:
+   - **Palavras Cortantes** (reação) rola e gasta o dado.
+   - **Habilidade Incomparável** (14º) soma ao último teste.
+9. Colégio da Bravura: Dar Inspiração explica dano/CA; Ataque Extra no 6º.
+10. Relatórios: `docs/auditoria/clerigo.md` e `docs/auditoria/bardo.md`.
+
+## 82. Patrulheiro: auditoria do 1 ao 20
+
+1. Combate → painel "Patrulheiro": CD, inimigos favoritos e terrenos escolhidos.
+2. **Consciência Primitiva** (3º):
+   - Escolha o círculo; gasta o espaço e a ação.
+   - O aviso diz quantos minutos dura.
+3. **Esconder-se à Vista** (10º) vira "Camuflado". O botão de esconder passa a mostrar Furtividade +10.
+4. **Desaparecer** (14º): o Esconder vira ação bônus e rola Furtividade.
+5. Caçador com **Matador de Colossos**:
+   - No dano da arma, "+1d8" aparece.
+   - Depois de usado, fica "(usado)" até o Novo turno.
+6. Caçador: Matador de Gigantes e Resistir à Maré (reações) no painel; Evasão/Esquiva Sobrenatural ao aplicar dano.
+7. Nível 20: **Matador de Inimigos** soma SAB no dano, 1× por turno.
+8. Mestre das Feras: companheiro com ataques mágicos (7º) e dois ataques (11º).
+9. Relatório: `docs/auditoria/patrulheiro.md`.
+
+## 83. Feiticeiro: auditoria do 1 ao 20
+
+1. Combate → painel "Feiticeiro": "Pontos de Feitiçaria N/M" e a CD.
+2. **Fonte de Magia**: escolha o círculo.
+   - "Espaço → pontos" gasta o espaço e dá pontos iguais ao círculo.
+   - "Pontos → espaço" devolve um espaço gasto (custos: 2/3/5/6/7). Os dois gastam a ação bônus.
+3. **Metamagia**: cada opção escolhida vira botão e gasta os pontos. A Magia Gêmea usa o círculo escolhido ao lado.
+4. **Dracônica** 6º:
+   - Uma magia do tipo do ancestral soma CAR no dano.
+   - "Afinidade Elemental" gasta 1 ponto e mostra a resistência na Ficha.
+   - No 18º, Presença Dracônica gasta 5 pontos.
+5. **Magia Selvagem**:
+   - Depois de magia de 1º+, o aviso tem "Surto? (d20)". No 1, rola a tabela.
+   - Marés do Caos gasta o uso; o surto devolve.
+   - Distorcer o Destino (6º) rola ±1d4. Caos Controlado (14º) mostra dois resultados.
+6. Nível 20: o descanso curto devolve 4 pontos de feitiçaria.
+7. Relatório: `docs/auditoria/feiticeiro.md`.
+
+## 84. Mago: auditoria do 1 ao 20
+
+1. Combate → painel "Mago": CD e Recuperação Arcana.
+   - Com espaços gastos, use +/− por círculo (até metade do nível, nada de 6º+).
+   - "Recuperar espaços" devolve os escolhidos e trava até o descanso longo.
+2. Nível 18: as magias do Domínio de Magia ganham um "Usar" extra sem espaço na aba Magias.
+3. Nível 20: as Magias de Assinatura também ganham "Usar" sem espaço, 1× por descanso curto.
+4. **Abjuração**:
+   - Conjure uma abjuração de 1º+: a Barreira Arcana aparece cheia.
+   - "Aplicar dano" tira da barreira antes dos PV.
+   - Outra abjuração recarrega 2 × círculo.
+5. **Adivinhação**: "Rolar Portento" guarda 2 d20 (3 no 14º). Cada botão some ao usar; o descanso longo limpa.
+6. **Evocação**:
+   - No 10º, Bola de Fogo soma INT no dano.
+   - No 14º, "Sobrecarga" deixa a próxima magia de 1º–5º no máximo.
+   - Do 2º uso no dia em diante, você sofre o necrótico.
+7. Conjuração (Transposição Benigna), Encantamento (Olhar Hipnótico, Charme Instintivo), Ilusão (Eu Ilusório) e Necromancia (Colheita Sinistra) com botões no painel.
+8. Relatório: `docs/auditoria/mago.md`.
+
+## 85. Druida: auditoria do 1 ao 20
+
+1. Combate → painel "Druida": "Forma Selvagem N/2", o ND máximo, as restrições de voo/natação, as horas e a CD.
+2. Escolha uma fera na lista (só aparecem as permitidas) e toque **Transformar**.
+   - Gasta o uso e a ação (a ação bônus no Círculo da Lua).
+   - Aparecem os PV da forma, a CA, o deslocamento e os ataques roláveis da fera.
+3. "Aplicar dano" tira dos PV da forma. Zerou: você volta e o que sobrou do dano cai nos seus PV.
+4. **Círculo da Lua**:
+   - Feras até ND 1 (e nível ÷ 3 a partir do 6º).
+   - "Curar a forma" gasta um espaço (1d8 por círculo).
+   - No 6º os ataques viram mágicos; no 10º os 4 elementais aparecem (2 usos).
+5. "Voltar à forma normal" (ação bônus) e o descanso longo encerram a forma.
+6. **Círculo da Terra**:
+   - Recuperação Natural escolhe espaços gastos (até metade do nível, nada de 6º+).
+   - No 10º, Envenenado não pode ser marcado.
+7. Relatório: `docs/auditoria/druida.md`.

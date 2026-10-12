@@ -14,11 +14,14 @@ import { defenseFor } from '../strike';
 import { MONSTER_BY_ID } from '@/data/bestiary';
 import { spellLearnState, learnBlock } from '../spellRules';
 import { getSpell } from '@/data/spells';
-import { changeSpellSelection, saveSlotPools, spellSelectionOf, syncSlotPools } from '../spellcasting';
+import { changeSpellSelection, grantedSpellsForClass, saveSlotPools, spellSelectionOf, syncSlotPools } from '../spellcasting';
 import { syncHitDicePools } from '../hitDice';
 import { spellsActions } from '@/store/character/spells';
 import { attacksPerAction } from '../extraAttack';
 import { heroDefenses } from '../heroDefenses';
+import { warlockState } from '../warlock';
+import { druidState } from '../druid';
+import { conditionImmunity } from '../conditionImmunity';
 
 function hero(classId = 'fighter', levels: Character['classLevels'] = [{ classId, level: 1 }], subclassId: string | null = null): Character {
   const c = finalizeCharacter(createDraftCharacter({ ownerId: 'regression', name: 'Regressão', classId }));
@@ -119,6 +122,49 @@ describe('regressões de concentração e descanso (D&D 2014)', () => {
 });
 
 describe('reservas e perfis independentes em multiclasse', () => {
+  it('Mestre Místico restaura somente o pacto e o painel ignora gastos comuns', () => {
+    const c = hero('wizard', [{ classId: 'wizard', level: 3 }, { classId: 'warlock', level: 3, subclassId: 'fiend' }]);
+    saveSlotPools(c, syncSlotPools(c, true));
+    c.combat.slotPools!.spellcasting[2].used = 1;
+    c.combat.slotPools!.pact[2].used = 2;
+    saveSlotPools(c, c.combat.slotPools!);
+    spellsActions(ctx(c)).restorePactSlots(c.id);
+    expect(c.combat.slotPools!.spellcasting[2].used).toBe(1);
+    expect(warlockState(c, 3, 4)?.pactUsed).toBe(0);
+  });
+  it('Recuperação Arcana não restaura espaços do pacto', () => {
+    const c = hero('wizard', [{ classId: 'wizard', level: 3 }, { classId: 'warlock', level: 3 }]);
+    saveSlotPools(c, syncSlotPools(c, true));
+    c.combat.slotPools!.spellcasting[2].used = 1;
+    c.combat.slotPools!.pact[2].used = 1;
+    spellsActions(ctx(c)).recoverSlots(c.id, { 2: 1 });
+    expect(c.combat.slotPools!.spellcasting[2].used).toBe(0);
+    expect(c.combat.slotPools!.pact[2].used).toBe(1);
+  });
+  it('Fonte de Magia consome a reserva escolhida e seu gasto persiste após descanso', () => {
+    const c = hero('sorcerer', [{ classId: 'sorcerer', level: 3 }, { classId: 'warlock', level: 3 }]);
+    c.combat.resources.sorcery = 0;
+    saveSlotPools(c, syncSlotPools(c, true));
+    const actions = spellsActions(ctx(c));
+    expect(actions.fontOfMagic(c.id, 'toPoints', 2, 'spellcasting')).toBe(true);
+    expect(c.combat.resources.sorcery).toBe(2);
+    combatActions(ctx(c)).shortRest(c.id);
+    expect(c.combat.slotPools!.spellcasting[2].used).toBe(1);
+    expect(c.combat.slotPools!.pact[2].used).toBe(0);
+    expect(actions.fontOfMagic(c.id, 'toSlot', 1, 'pact')).toBe(false);
+  });
+  it('Pacto da Corrente concede Familiar somente à seleção de bruxo', () => {
+    const c = hero('wizard', [{ classId: 'wizard', level: 1 }, { classId: 'warlock', level: 3, subclassId: 'fiend' }]);
+    c.choices = { ...c.choices, 'warlock.pact': ['chain'] };
+    expect(grantedSpellsForClass(c, 'warlock').map((g) => g.id)).toContain('phb-find-familiar');
+    expect(grantedSpellsForClass(c, 'wizard').map((g) => g.id)).not.toContain('phb-find-familiar');
+  });
+  it('os novos painéis e imunidades usam a subclasse da classe secundária', () => {
+    const c = hero('fighter', [{ classId: 'fighter', level: 3 }, { classId: 'druid', level: 2, subclassId: 'moon' }, { classId: 'warlock', level: 10, subclassId: 'archfey' }], 'champion');
+    expect(druidState(c, 4, 2)?.circle).toBe('moon');
+    expect(druidState(c, 4, 2)?.maxCr).toBe(1);
+    expect(conditionImmunity(c, 'Enfeitiçado')).toBe('Defesas Encantadoras');
+  });
   it('descanso curto recupera somente o pacto, mesmo no mesmo círculo', () => {
     const c = hero('wizard', [{ classId: 'wizard', level: 3 }, { classId: 'warlock', level: 3 }]);
     const spells = spellsActions(ctx(c));

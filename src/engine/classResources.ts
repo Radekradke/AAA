@@ -144,6 +144,8 @@ function classResources(classId: string, lv: number, m: Mods, subclassId: string
       if (subclassId === 'conjuration' && lv >= 6) add({ id: 'benignTransposition', label: 'Transposição Benigna', desc: 'Ação: teleporta até 9 m ou troca de lugar com criatura voluntária Pequena/Média. Volta também ao conjurar magia de conjuração de 1º+', recharge: 'long', max: 1 });
       if (subclassId === 'illusion' && lv >= 10) add({ id: 'illusorySelf', label: 'Eu Ilusório', desc: 'Reação: um ataque contra você erra automaticamente', recharge: 'short', max: 1 });
       if (subclassId === 'divination' && lv >= 2) add({ id: 'portent', label: 'Portento', desc: 'Role os d20 após o descanso longo e anote; troque qualquer jogada que você vê por um deles', recharge: 'long', max: lv >= 14 ? 3 : 2, die: 'd20' });
+      // Magias de Assinatura (20º): cada uma 1× por descanso curto sem espaço
+      if (lv >= 20) for (const id of choices['wizard.signature'] ?? []) add({ id: `signature-${id}`, label: 'Magia de Assinatura', desc: 'Conjura no 3º círculo sem gastar espaço', recharge: 'short', max: 1 });
       add({ id: 'recovery', label: 'Recuperação Arcana', desc: `Recupera espaços somando até ${Math.ceil(lv / 2)} níveis (nenhum de 6º+) num descanso curto`, recharge: 'long', max: 1 });
       break;
     }

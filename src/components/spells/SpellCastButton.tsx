@@ -9,13 +9,19 @@ import { casterOf, syncSlotPools } from '@/engine/spellcasting';
 import { canConcentrate } from '@/engine/concentration';
 import { canRitual, damageRoll, damageTiming, damageTypeLabel, damageTypeOptions, hasAgonizingBlast, healRoll, hpPool, isFixedRoll, spellAttackPlan, spellHitDamage } from '@/engine/spellCast';
 import { castDiceLabel, rollCastDice } from './castRoll';
-import { hasMark, knowsSpell, withExtraDice } from '@/engine/damageExtras';
+import { hasMark, knowsSpell, levelIn, withExtraDice } from '@/engine/damageExtras';
 import { castTurnKey, rollTempHp, spellOutcome } from '@/engine/spellEffects';
 import { SPELL_BY_ID } from '@/data/spells';
 import type { AttackOutcome, CastRoll, SpellAttackPlan } from '@/engine/spellCast';
 import { ABILITY_SHORT } from '@/data/skills';
 import type { ChargeOption } from '@/engine/itemCharges';
 import { materialWarning } from '@/engine/spellFocus';
+import { lifeHealing, potentSpellcasting, withLifeHealing } from '@/engine/cleric';
+import { elementalAffinity } from '@/engine/sorcerer';
+import { empoweredEvocation, overchannelBacklash } from '@/engine/wizard';
+import { useWildSurge } from './useWildSurge';
+import { usePopFlip } from '@/components/ui/usePopFlip';
+import { subclassOf } from '@/engine/characterClasses';
 
 interface Props {
   castingClassId?: string;
@@ -74,7 +80,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const [flash, setFlash] = useState(0);
   const { rollDice, check } = useDiceRoller();
   const [open, setOpen] = useState(false);
+  const wildSurge = useWildSurge(char);
   const [pending, setPending] = useState<PendingAttack | null>(null);
+  const menuPop = usePopFlip<HTMLSpanElement>(open && !pending);
+  const hitPop = usePopFlip<HTMLSpanElement>(pending);
   const [targetAc, setTargetAc] = useState('');
   const typeOptions = damageTypeOptions(spell);
   const [dmgType, setDmgType] = useState<string | null>(() => (typeOptions ? lastType(spell.id) ?? typeOptions[0] : null));
@@ -177,8 +186,15 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     if (healed !== null) {
       lines.push(`Cura rolada: ${healed} PV`);
       actions.unshift({ label: `Curar em mim (+${healed})`, primary: true, run: () => store.heal(char.id, healed) });
-      if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
+      // Curandeiro Abençoado (Vida 6º): curar outra criatura também cura você em 2 + círculo
+      const blessed = life?.blessed ?? 0;
+      if (blessed) {
+        actions.push({ label: `Foi em outra criatura (+${blessed} em mim)`, run: () => store.heal(char.id, blessed) });
+        lines.push(`Curandeiro Abençoado: curando outra criatura, você recupera ${blessed} PV`);
+      } else if (!actions.some((a) => a.label === 'Em outra criatura')) actions.push({ label: 'Foi em outra criatura', run: () => undefined });
     }
+    // Magia Selvagem: magia de 1º círculo ou mais pode causar um surto (o mestre pede o d20)
+    if (wildSurge.wild && !isCantrip && how !== 'item') actions.push({ label: 'Surto? (d20)', run: wildSurge.check });
     if (spell.concentration) lines.push('Concentração ligada');
     // componentes: magia de item não pede; espaço/ritual pedem material (ou foco/bolsa)
     if (how === 'slot' || how === 'ritual' || (how === 'free' && isCantrip)) {
@@ -204,6 +220,8 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     saveType(spell.id, t);
   };
 
+  // Cura do Domínio da Vida desta conjuração (Curandeiro Abençoado usa no aviso).
+  let life: ReturnType<typeof lifeHealing> = null;
   const fire = (slotLevel: number, how: 'slot' | 'ritual' | 'free' | 'item', cost = 0, slotPool?: import('@/types/character').SpellSlotPoolKind) => {
     const current = store.getCharacter(char.id) ?? char;
     if (spell.concentration && !canConcentrate(current)) return;
@@ -223,6 +241,9 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     else if (spell.concentration) {
       store.toggleConcentration(char.id);
     }
+    // Consulta a escola do mago, inclusive quando ele é a classe secundária.
+    if (!isCantrip && spell.school === 'Abjuração' && subclassOf(char, 'wizard') === 'abjuration' && levelIn(char, 'wizard') >= 2) store.chargeWard(char.id, slotLevel);
+    if (!isCantrip && spell.school === 'Conjuração' && subclassOf(char, 'wizard') === 'conjuration' && levelIn(char, 'wizard') >= 6) store.setResource(char.id, 'benignTransposition', 1);
     if (spell.concentration) {
       store.setMark(char.id, 'hex', spell.id === 'phb-hex');
       store.setMark(char.id, 'huntersMark', spell.id === 'phb-hunters-mark');
@@ -230,7 +251,10 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
     const lvl = isCantrip ? 0 : slotLevel;
     const save = spell.save ? ` · CD ${spellDC ?? '—'} ${ABILITY_SHORT[spell.save]}` : '';
     const agonizing = hasAgonizingBlast(char.choices) ? Math.max(0, derived.abilities.cha.mod) : 0;
-    const plan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
+    const rawPlan = spell.attack && derived.spellAttack !== null ? spellAttackPlan(spell, lvl, char.level, dmgType, { agonizing, castMod, invocations: char.choices?.['warlock.invocation'] }) : null;
+    // Afinidade Elemental soma CAR numa rolagem de dano da magia (magia de um ataque só)
+    const atkAffinity = rawPlan && rawPlan.beams === 1 ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) + empoweredEvocation(char, spell, derived.abilities.int.mod) : 0;
+    const plan = rawPlan && atkAffinity ? { ...rawPlan, perHit: { ...rawPlan.perHit, bonus: rawPlan.perHit.bonus + atkAffinity, label: `${rawPlan.perHit.label} · +${atkAffinity} (${subclassOf(char, 'wizard') === 'evocation' ? 'Evocação Poderosa' : 'Afinidade Elemental'})` } } : rawPlan;
     if (plan) {
       // cada raio/feixe é uma jogada; o dano espera o "acertou?"
       const attacks = Array.from({ length: plan.beams }, (_, i) => {
@@ -246,9 +270,34 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       announce(slotLevel, how, null, undefined, cost);
       return;
     }
-    const dmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
+    const rawDmg = damageRoll(spell, lvl, char.level, dmgType, castMod);
+    // Conjuração Potente (Luz/Conhecimento 8º): + SAB no dano dos truques de clérigo
+    const potent = rawDmg ? potentSpellcasting(char, spell, derived.abilities.wis.mod) : 0;
+    // Afinidade Elemental (Dracônica 6º): + CAR no dano do tipo do ancestral
+    const affinity = rawDmg ? elementalAffinity(char, spell, dmgType, derived.abilities.cha.mod) : 0;
+    // Evocação Poderosa (Evocação 10º): + INT no dano de evocação de mago
+    const empowered = rawDmg ? empoweredEvocation(char, spell, derived.abilities.int.mod) : 0;
+    const extraBonus = potent + affinity + empowered;
+    const tag = [potent ? `Conjuração Potente +${potent}` : '', affinity ? `Afinidade Elemental +${affinity}` : '', empowered ? `Evocação Poderosa +${empowered}` : ''].filter(Boolean).join(' · ');
+    const boosted = rawDmg && extraBonus ? { ...rawDmg, bonus: rawDmg.bonus + extraBonus, label: `${rawDmg.label} · ${tag}` } : rawDmg;
+    // Sobrecarga (Evocação 14º): magia de 1º a 5º com dano máximo; do 2º uso no dia em diante, você sofre necrótico
+    const over = !!boosted && !isFixedRoll(boosted) && lvl >= 1 && lvl <= 5 && hasMark(char, 'overchannel');
+    const dmg = over && boosted
+      ? { count: 0, sides: 1, bonus: boosted.count * boosted.sides + (boosted.extra ?? []).reduce((n, x) => n + x.count * x.sides, 0) + boosted.bonus, label: `${boosted.label} · Sobrecarga (máximo)` }
+      : boosted;
+    if (over) {
+      const backlash = overchannelBacklash(char.combat.overchannel ?? 0, lvl);
+      store.noteOverchannel(char.id);
+      if (backlash) {
+        const hurt = rollDice(12, { count: backlash, label: 'Sobrecarga (necrótico em você)', damage: true });
+        store.applyDamage(char.id, hurt.total);
+      }
+    }
     const timing = damageTiming(spell);
-    const heal = healRoll(spell, lvl, castMod);
+    // Domínio da Vida: Discípulo da Vida (+2 + círculo) e Cura Suprema (dados no máximo)
+    life = lifeHealing(char, lvl);
+    const rawHeal = healRoll(spell, lvl, castMod);
+    const heal = rawHeal ? withLifeHealing(rawHeal, life) : null;
     // Sono / Leque Cromático: rola o total de PV afetados (não é dano)
     const pool = hpPool(spell, isCantrip ? 0 : slotLevel);
     if (pool) {
@@ -336,7 +385,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       </button>
 
       {open && !pending && (
-        <span className="fv-cast-pop fv-panel" role="menu">
+        <span ref={menuPop.ref} className={'fv-cast-pop fv-panel' + (menuPop.up ? ' is-up' : '')} role="menu">
           {typeOptions && (
             <>
               <span className="fv-cast-pop-title">Tipo de dano</span>
@@ -383,7 +432,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
       )}
 
       {pending && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit" role="dialog" aria-label={`${spell.name}: acertou?`}>
+        <span ref={hitPop.ref} className={'fv-cast-pop fv-panel fv-cast-hit' + (hitPop.up ? ' is-up' : '')} role="dialog" aria-label={`${spell.name}: acertou?`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">{pending.plan.beams > 1 ? `${pending.plan.beams} ataques — acertaram?` : 'Acertou o alvo?'}</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setPending(null)} aria-label="Fechar">×</button>

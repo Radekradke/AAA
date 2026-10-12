@@ -19,6 +19,7 @@ import { deriveCharacter } from '@/engine/dndRules';
 import { monkState } from '@/engine/monk';
 import { battleMasterState } from '@/engine/fighter';
 import { ABILITY_SHORT } from '@/data/skills';
+import { usePopFlip } from '@/components/ui/usePopFlip';
 
 interface Props {
   char: Character;
@@ -31,7 +32,7 @@ interface Props {
 
 /** Disparo que gastou munição (o "acertou?" mostra e deixa desfazer). */
 type Shot = { kind: AmmoKind; left: number };
-type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot?: Shot; precise?: number } | { kind: 'damage' } | null;
+type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot?: Shot; precise?: number; power?: boolean } | { kind: 'damage' } | null;
 
 /**
  * Botões ACERTO / DANO da arma. O ataque abre o "acertou?"; o dano junta
@@ -45,6 +46,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   const store = useCharacterStore();
   const [stage, setStage] = useState<Stage>(null);
   const [choice, setChoice] = useState<ExtrasChoice>({});
+  const pop = usePopFlip<HTMLSpanElement>(stage?.kind);
   const avail = weaponExtras(char, atk);
   // Mestre de Batalha: manobras que somam o dado de superioridade (só com arma)
   const bm = useMemo(() => {
@@ -60,12 +62,14 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   }, [char]);
   const stunOk = !!monk?.stunning && (atk.range ?? 'melee') === 'melee' && monk.kiLeft > 0;
   const [stun, setStun] = useState(false);
+  // Golpe poderoso: −5 no ataque escolhido ANTES de rolar; o +10 vai junto para o dano
+  const [power, setPower] = useState(false);
   const hasOptions =
-    !!atk.versatileDie || !!avail.sneak || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
+    !!atk.powerAttack || !!atk.versatileDie || !!avail.sneak || !!avail.divineStrike || !!avail.colossus || !!avail.foeSlayer || !!avail.smite || avail.improvedSmite || avail.hex || avail.huntersMark || !!avail.rage || !!avail.lifedrinker || maneuvers.length > 0 || stunOk;
 
-  const openDamage = (crit: boolean) => {
+  const openDamage = (crit: boolean, powered = false) => {
     // Furtivo já ligado por padrão quando ainda não foi usado neste turno
-    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, lifedrinker: !!avail.lifedrinker });
+    setChoice({ crit, sneak: !!avail.sneak && !avail.sneak.used, divineStrike: !!avail.divineStrike && !avail.divineStrike.used, lifedrinker: !!avail.lifedrinker, power: powered });
     setStun(false);
     setStage({ kind: 'damage' });
   };
@@ -76,9 +80,19 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     // Assassinar (Assassino 3º) e Voto de Inimizade (Vingança 3º): vantagem no ataque
     const assassin = hasMark(char, 'assassinate') || hasMark(char, 'vow');
     const dis = useUiStore.getState().rollMode === 'disadvantage';
-    const r = attack(atk, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
-    setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot });
+    const powered = power && !!atk.powerAttack;
+    const used = powered ? { ...atk, name: `${atk.name} (−5/+10)`, attackBonus: atk.attackBonus - 5 } : atk;
+    const r = attack(used, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
+    setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot, power: powered });
+    if (r.crit && atk.gwmBonus) bonusAttackToast('Crítico');
   };
+
+  // Mestre em Armas Grandes: crítico ou derrubar alguém a 0 PV com arma corpo a corpo → ataque bônus
+  const bonusAttackToast = (why: string) =>
+    toast(`Mestre em Armas Grandes · ${why}: você pode fazer um ataque corpo a corpo com arma como ação bônus.`, {
+      tone: 'ok',
+      action: char.combat.turn.bonus ? undefined : { label: 'Usar ação bônus', run: () => store.useTurn(char.id, 'bonus') },
+    });
 
   const onAttack = () => {
     const res = store.fireAmmo(char.id, atk.uid);
@@ -100,11 +114,21 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     const r = rollWeaponDamage(char, atk, avail, c);
     pushRoll(r);
     if (avail.sneak && c.sneak && !avail.sneak.used) store.useSneakAttack(char.id);
+    if (avail.divineStrike && c.divineStrike && !avail.divineStrike.used) store.useDivineStrike(char.id);
+    if (avail.colossus && c.colossus && !avail.colossus.used) store.markTurn(char.id, 'colossus');
+    if (avail.foeSlayer && c.foeSlayer && !avail.foeSlayer.used) store.markTurn(char.id, 'foeSlayer');
     if (avail.smite && c.smiteLevel) store.castWithSlot(char.id, c.smiteLevel);
     if (c.maneuver && bm) {
       store.setResource(char.id, 'superiority', bm.left - 1);
       const m = bm.damage.find((x) => x.id === c.maneuver!.id);
       if (m) toast(`${m.label}: ${m.save ? `salvaguarda de ${ABILITY_SHORT[m.save]} CD ${bm.dc} ou ` : ''}${m.effect}.`, { tone: 'info' });
+    }
+    // (só lembra enquanto a ação bônus do turno está livre; no crítico o aviso já saiu no acerto)
+    if (atk.gwmBonus && !c.crit && !char.combat.turn.bonus) {
+      toast('Mestre em Armas Grandes: se este golpe derrubou o alvo a 0 PV, você ganha um ataque bônus.', {
+        tone: 'info',
+        action: { label: 'Derrubou — ataque bônus', run: () => store.useTurn(char.id, 'bonus') },
+      });
     }
     if (stun && stunOk && monk) {
       store.setResource(char.id, 'ki', monk.kiLeft - 1);
@@ -128,9 +152,22 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
 
   return (
     <span className="fv-cast fv-atk">
+      {atk.powerAttack && (
+        <button
+          type="button"
+          className={'fv-atk-power' + (power ? ' is-on' : '')}
+          aria-pressed={power}
+          aria-label={`${atk.powerAttack}: −5 no ataque, +10 no dano`}
+          title={`${atk.powerAttack}: aceite −5 no ataque para causar +10 de dano se acertar. Decida antes de rolar.`}
+          onClick={() => setPower((v) => !v)}
+        >
+          <b>−5</b>
+          <b>+10</b>
+        </button>
+      )}
       <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
         <button type="button" onClick={onAttack} style={hitStyle}>
-          {modStr(atk.attackBonus)}
+          {modStr(atk.attackBonus - (power && atk.powerAttack ? 5 : 0))}
           <div style={subStyle}>ACERTO</div>
         </button>
       </LoreTooltip>
@@ -142,7 +179,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       </LoreTooltip>
 
       {stage?.kind === 'attack' && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit" role="dialog" aria-label={`${atk.name}: acertou?`}>
+        <span ref={pop.ref} className={'fv-cast-pop fv-panel fv-cast-hit' + (pop.up ? ' is-up' : '')} role="dialog" aria-label={`${atk.name}: acertou?`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">Acertou o alvo?</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setStage(null)} aria-label="Fechar">×</button>
@@ -181,7 +218,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
             <button type="button" className="fv-cast-hit-go" onClick={() => setStage(null)}>Errou — fechar</button>
           ) : (
             <span className="fv-atk-row">
-              <button type="button" className="fv-cast-hit-go" onClick={() => (hasOptions || stage.crit ? openDamage(stage.crit) : rollIt({}))}>
+              <button type="button" className="fv-cast-hit-go" onClick={() => (hasOptions || stage.crit ? openDamage(stage.crit, stage.power) : rollIt({}))}>
                 {stage.crit ? 'Crítico — dano' : 'Acertou — dano'}
               </button>
               <button type="button" className="fv-atk-miss" onClick={() => setStage(null)}>Errou</button>
@@ -191,7 +228,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       )}
 
       {stage?.kind === 'damage' && (
-        <span className="fv-cast-pop fv-panel fv-cast-hit fv-atk-pop" role="dialog" aria-label={`Dano de ${atk.name}`}>
+        <span ref={pop.ref} className={'fv-cast-pop fv-panel fv-cast-hit fv-atk-pop' + (pop.up ? ' is-up' : '')} role="dialog" aria-label={`Dano de ${atk.name}`}>
           <span className="fv-cast-hit-head">
             <span className="fv-cast-pop-title">Dano · {atk.name}</span>
             <button type="button" className="fv-cast-hit-close" onClick={() => setStage(null)} aria-label="Fechar">×</button>
@@ -201,6 +238,10 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
               title: hasMark(char, 'assassinate') ? 'Acertar uma criatura surpresa é crítico automático (Assassinar).' : undefined,
             })}
             {atk.versatileDie && chip(!!choice.versatile, `Duas mãos (1d${atk.versatileDie})`, () => setChoice((c) => ({ ...c, versatile: !c.versatile })))}
+            {atk.powerAttack &&
+              chip(!!choice.power, `${atk.powerAttack} +10`, () => setChoice((c) => ({ ...c, power: !c.power })), {
+                title: 'Só vale se o ataque foi feito com −5 (ligue "−5/+10" antes de rolar o acerto).',
+              })}
           </span>
 
           {avail.sneak && (
@@ -210,6 +251,34 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
                 title: 'Com vantagem, ou com um aliado a 1,5 m do alvo (e sem desvantagem). Uma vez por turno.',
               })}
               <small>{avail.sneak.used ? 'já usado neste turno' : '1× por turno'}</small>
+            </span>
+          )}
+
+          {avail.divineStrike && (
+            <span className="fv-atk-group">
+              {chip(!!choice.divineStrike && !avail.divineStrike.used, `Golpe Divino +${avail.divineStrike.dice}d8 ${avail.divineStrike.type}`, () => setChoice((c) => ({ ...c, divineStrike: !c.divineStrike })), {
+                disabled: avail.divineStrike.used,
+                title: 'Clérigo: uma vez em cada um dos seus turnos, um acerto com arma causa dano extra do seu domínio.',
+              })}
+              <small>{avail.divineStrike.used ? 'já usado neste turno' : '1× por turno'}</small>
+            </span>
+          )}
+
+          {(avail.colossus || avail.foeSlayer) && (
+            <span className="fv-atk-group">
+              <small>Patrulheiro · 1× por turno cada</small>
+              <span className="fv-atk-chips">
+                {avail.colossus &&
+                  chip(!!choice.colossus && !avail.colossus.used, `Matador de Colossos +1d8${avail.colossus.used ? ' (usado)' : ''}`, () => setChoice((c) => ({ ...c, colossus: !c.colossus })), {
+                    disabled: avail.colossus.used,
+                    title: 'O alvo já estava abaixo dos PV máximos: +1d8 de dano, uma vez por turno.',
+                  })}
+                {avail.foeSlayer &&
+                  chip(!!choice.foeSlayer && !avail.foeSlayer.used, `Matador de Inimigos +${avail.foeSlayer.bonus}${avail.foeSlayer.used ? ' (usado)' : ''}`, () => setChoice((c) => ({ ...c, foeSlayer: !c.foeSlayer })), {
+                    disabled: avail.foeSlayer.used,
+                    title: 'O alvo é um dos seus inimigos favoritos: soma SAB ao dano (ou ao ataque), uma vez por turno.',
+                  })}
+              </span>
             </span>
           )}
 

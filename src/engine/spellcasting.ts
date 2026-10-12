@@ -454,22 +454,24 @@ export interface GrantedSpell {
 
 /**
  * Magias sempre preparadas pela subclasse (não contam no limite):
- * Domínio do Clérigo, Juramento do Paladino, Círculo da Terra do Druida e o
- * truque luz do Domínio da Luz.
+ * Domínio do Clérigo, Juramento do Paladino, Círculo da Terra do Druida, o
+ * truque luz do Domínio da Luz e o convocar familiar do Pacto da Corrente.
  */
 export function grantedSpells(char: Character): GrantedSpell[] {
   return levelsOf(char).flatMap((cl) => grantedSpellsForClass(char, cl.classId));
 }
 
 export function grantedSpellsForClass(char: Character, classId: string): GrantedSpell[] {
+  const out: GrantedSpell[] = [];
+  const warlockLv = levelsOf(char).find((cl) => cl.classId === 'warlock')?.level ?? 0;
+  if (classId === 'warlock' && warlockLv >= 3 && (char.choices?.['warlock.pact'] ?? []).includes('chain')) out.push({ id: 'phb-find-familiar', source: 'Pacto da Corrente' });
   const sub = getSubclass(subclassOf(char, classId));
-  if (!sub) return [];
+  if (!sub) return out;
   const lv = char.classLevels?.find((c) => c.classId === sub.classId)?.level ?? (char.classId === sub.classId ? char.level : 0);
   let table: Record<number, string[]> | undefined;
   if (sub.classId === 'cleric') table = DOMAIN_SPELLS[sub.id];
   else if (sub.classId === 'paladin') table = OATH_SPELLS[sub.id];
   else if (sub.id === 'land') table = LAND_SPELLS[char.choices?.['druid.land']?.[0] ?? ''];
-  const out: GrantedSpell[] = [];
   if (sub.id === 'light') out.push({ id: 'sp-luz', source: sub.label });
   for (const [need, ids] of Object.entries(table ?? {})) {
     if (lv >= Number(need)) for (const id of ids) if (!out.some((g) => g.id === id)) out.push({ id, source: sub.label });

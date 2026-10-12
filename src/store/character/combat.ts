@@ -14,7 +14,7 @@ import { survivorHeal } from '@/engine/fighter';
 import { canConcentrate, clearConcentration, INCAPACITATING_CONDITIONS } from '@/engine/concentration';
 
 /** Combate e descanso: PV, PV temporários, turno, condições, concentração, efeitos de magia, recursos, dados de vida, testes contra a morte e descansos. */
-export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
+export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'applyDamage' | 'heal' | 'setTempHp' | 'toggleTurn' | 'resetTurn' | 'adjustMove' | 'toggleCondition' | 'setExhaustion' | 'toggleConcentration' | 'setMark' | 'startRage' | 'endRage' | 'applySpellEffect' | 'removeSpellEffect' | 'endConcentrationEffects' | 'gainTempHp' | 'useTurn' | 'markEventApplied' | 'useSneakAttack' | 'useDivineStrike' | 'markTurn' | 'setPortent' | 'noteOverchannel' | 'wildShape' | 'dash' | 'setResource' | 'spendHitDie' | 'setDeathSave' | 'shortRest' | 'longRest'> {
   return {
     applyDamage(id, amount, opts) {
       const char = get().getCharacter(id);
@@ -22,6 +22,22 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
       const maxHp = deriveCharacter(char).maxHp;
       mutate(id, (c) => {
         let rem = amount;
+        // Forma Selvagem: o dano cai nos PV da fera; zerou, volta à forma normal e o que sobra passa adiante
+        if (c.combat.wildShape) {
+          const absorbed = Math.min(c.combat.wildShape.hp, rem);
+          c.combat.wildShape.hp -= absorbed;
+          rem -= absorbed;
+          if (c.combat.wildShape.hp <= 0) delete c.combat.wildShape;
+          if (rem <= 0) return;
+        }
+        // Barreira Arcana (Mago Abjurador): a barreira sofre o dano primeiro (antes dos PV temporários e dos PV)
+        const ward = (c.combat.marks ?? []).includes('arcaneWard') ? characterResources(c).find((r) => r.id === 'arcaneWard') : undefined;
+        if (ward) {
+          const hp = Math.min(ward.max, c.combat.resources.arcaneWard ?? ward.max);
+          const absorbed = Math.min(hp, rem);
+          c.combat.resources.arcaneWard = hp - absorbed;
+          rem -= absorbed;
+        }
         if (c.combat.hpTemp > 0) {
           const absorbed = Math.min(c.combat.hpTemp, rem);
           c.combat.hpTemp -= absorbed;
@@ -214,6 +230,34 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.turn = { ...c.combat.turn, sneak: true };
       });
     },
+    wildShape(id, shape) {
+      // Forma Selvagem: assume a fera (PV cheios dela) ou volta à forma normal (null)
+      mutate(id, (c) => {
+        if (shape) c.combat.wildShape = shape;
+        else delete c.combat.wildShape;
+      });
+    },
+    setPortent(id, rolls) {
+      mutate(id, (c) => {
+        c.combat.portent = rolls;
+      });
+    },
+    noteOverchannel(id) {
+      mutate(id, (c) => {
+        c.combat.overchannel = (c.combat.overchannel ?? 0) + 1;
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => m !== 'overchannel');
+      });
+    },
+    markTurn(id, key) {
+      mutate(id, (c) => {
+        c.combat.turn = { ...c.combat.turn, [key]: true };
+      });
+    },
+    useDivineStrike(id) {
+      mutate(id, (c) => {
+        c.combat.turn = { ...c.combat.turn, divineStrike: true };
+      });
+    },
     dash(id, as) {
       // Disparada: o deslocamento do turno dobra (ação comum ou ação bônus da Ação Ardilosa)
       mutate(id, (c) => {
@@ -267,9 +311,13 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         const pools = syncSlotPools(c);
         for (const slot of Object.values(pools.pact)) slot.used = 0;
         saveSlotPools(c, pools);
+        // Restauração Feiticeira (Feiticeiro 20º): +4 pontos de feitiçaria no descanso curto
+        const sorc = characterResources(c).find((r) => r.id === 'sorcery');
+        const sorcLv = (c.classLevels ?? []).find((l) => l.classId === 'sorcerer')?.level ?? (c.classId === 'sorcerer' ? c.level : 0);
+        if (sorc && sorcLv >= 20) c.combat.resources.sorcery = Math.min(sorc.max, (c.combat.resources.sorcery ?? sorc.max) + 4);
         // a Fúria dura 1 minuto: não sobrevive a um descanso (Frenesi cobra 1 de exaustão)
         if ((c.combat.marks ?? []).includes('frenzy')) c.combat.exhaustion = Math.min(6, (c.combat.exhaustion ?? 0) + 1);
-        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow'].includes(m));
+        c.combat.marks = (c.combat.marks ?? []).filter((m) => !['rage', 'frenzy', 'reckless', 'assassinate', 'dodge', 'sacredWeapon', 'vow', 'camouflage', 'draconicWard'].includes(m));
         // Fúria Implacável: a CD volta a 10 depois de um descanso
         delete c.combat.resources.relentless;
       });
@@ -291,6 +339,10 @@ export function combatActions({ get, mutate }: StoreCtx): Pick<CharacterState, '
         c.combat.marks = [];
         delete c.combat.sacredWeaponUid;
         delete c.combat.resources.relentless;
+        // Portento rola de novo e a Sobrecarga volta a ser grátis a cada descanso longo
+        delete c.combat.portent;
+        delete c.combat.overchannel;
+        delete c.combat.wildShape;
         c.combat.spellEffects = [];
         c.combat.castThisTurn = [];
         // descanso longo remove 1 nível de exaustão (PHB 2014)

@@ -268,7 +268,7 @@ export interface CombatState {
   hitDicePools?: Record<number, HitDicePool>;
   deathSaves: { success: number; fail: number };
   /** `sneak`: Ataque Furtivo já usado neste turno (limpa no "Novo turno"). */
-  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean };
+  turn: { action: boolean; bonus: boolean; reaction: boolean; sneak?: boolean; dash?: boolean; divineStrike?: boolean; colossus?: boolean; foeSlayer?: boolean };
   moveUsed: number;
   conditions: string[];
   /** Níveis de exaustão (0–6, PHB 2014). Opcional para fichas antigas. */
@@ -281,7 +281,13 @@ export interface CombatState {
    * Efeitos ligados que somam dano a cada acerto: Bruxaria, Marca do Caçador
    * (somem ao romper a concentração) e Fúria (some no descanso).
    */
-  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow'>;
+  marks?: Array<'hex' | 'huntersMark' | 'rage' | 'frenzy' | 'reckless' | 'assassinate' | 'dodge' | 'sacredWeapon' | 'vow' | 'camouflage' | 'draconicWard' | 'arcaneWard' | 'overchannel'>;
+  /** Forma Selvagem (Druida): a fera atual e os PV dela. */
+  wildShape?: { beastId: string; hp: number };
+  /** Portento (Mago Adivinhador): d20 rolados no descanso longo, à espera de uso. */
+  portent?: number[];
+  /** Sobrecarga (Mago Evocador 14º): usos desde o descanso longo. */
+  overchannel?: number;
   /** Magias com efeito ativo em você (Armadura Arcana, Escudo, Auxílio…). */
   spellEffects?: ActiveSpellEffect[];
   /** Magias conjuradas neste turno (mostra "usado" até o Novo turno). */

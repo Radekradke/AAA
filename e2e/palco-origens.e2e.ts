@@ -13,6 +13,9 @@ test.describe('Palco das origens (Configurações → Avançado)', () => {
     await roster.getByRole('button', { name: 'Elfo', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Linhagem: Elfo' })).toContainText('Sublinhagem');
     await expect(page.locator('.fv-forge-hero')).toBeHidden();
+    // os testes rodam com "menos movimento": a cena fica parada e oferece ligar o vídeo
+    await page.getByRole('button', { name: /Ativar vídeo da cena/ }).click();
+    await expect(page.getByRole('button', { name: /Ativar vídeo da cena/ })).toHaveCount(0);
     await page.getByRole('button', { name: /Drow/ }).click();
     await expect(page.getByRole('region', { name: 'Linhagem: Elfo' })).toContainText('Visão no escuro: 36 m');
 

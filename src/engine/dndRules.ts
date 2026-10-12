@@ -9,8 +9,9 @@ import { getSubclass } from '@/data/subclasses';
 import { getFeat } from '@/data/feats';
 import { SKILLS, ABILITY_LABELS } from '@/data/skills';
 import { casterOf, casterProfiles } from './spellcasting';
-import { itemIsActive, itemDefinition as resolveItemData, itemIdentity as sameItemKey, activeMagicItems } from './inventory';
+import { canDualWield, itemIsActive, itemDefinition as resolveItemData, itemIdentity as sameItemKey, activeMagicItems } from './inventory';
 import { levelsOf, subclassOf } from './characterClasses';
+import { dragonAncestry } from './sorcerer';
 import { averageHp, ABILITY_CAP } from './levelUp';
 import type { Breakdown, Modifier } from './effects';
 import { breakdown, mod } from './effects';
@@ -63,6 +64,10 @@ export interface DerivedAttack {
   finesse?: boolean;
   /** Ataque com ARMA (não golpe desarmado/garras) — Furtivo/Destruição Divina/Marca. */
   weapon?: boolean;
+  /** −5 no ataque / +10 no dano à escolha (Mestre em Armas Grandes com arma pesada; Atirador de Elite). */
+  powerAttack?: string;
+  /** Mestre em Armas Grandes: crítico ou derrubar alguém com arma corpo a corpo libera um ataque bônus. */
+  gwmBonus?: boolean;
   hitBreakdown: Breakdown;
   damageBreakdown: Breakdown;
 }
@@ -136,6 +141,12 @@ function weaponMagicBonus(w: { magicBonus?: number; properties: string[] }): num
 }
 
 /** Calcula todos os valores derivados de um personagem — D&D 5e 2014, com origem rastreável. */
+/** Armas do Mestre em Hastes (PHB, errata 2018): glaive, alabarda, bordão (e cajados) e lança. */
+const POLEARM_IDS = new Set(['w-glaive', 'w-halberd', 'w-quarterstaff', 'w-spear']);
+function isPolearm(it: InventoryItem): boolean {
+  return POLEARM_IDS.has(it.itemId ?? '') || /glaive|alabarda|bord[ãa]o|cajado|^lan[çc]a(?! de montaria)/i.test(it.name);
+}
+
 export function deriveCharacter(char: Character): DerivedCharacter {
   const cls = getClass(char.classId);
   const race = raceOf(char);
@@ -511,6 +522,7 @@ export function deriveCharacter(char: Character): DerivedCharacter {
   const brutal = barbLv >= 17 ? 3 : barbLv >= 13 ? 2 : barbLv >= 9 ? 1 : 0;
   const attacks: DerivedAttack[] = [];
   const seen = new Set<string>();
+  const hasFeat = (id: string) => feats.some((f) => f.id === id);
   for (const slot of [char.equipped.mainHand, char.equipped.offHand, char.equipped.ranged]) {
     const it = findEquipped(char, slot);
     if (!it || seen.has(it.uid)) continue;
@@ -550,6 +562,8 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     // mão secundária (luta com duas armas, ação bônus): sem o atributo no dano,
     // a não ser negativo ou com o Estilo de Luta com Duas Armas
     const offHand = it.uid === char.equipped.offHand && it.uid !== char.equipped.mainHand;
+    const mainItem = findEquipped(char, char.equipped.mainHand);
+    const offBonus = offHand && canDualWield(char, mainItem ? resolveItemData(mainItem).weapon : undefined, w);
     const dmgAbil = offHand && abilMod > 0 && !styles.has('twf') ? 0 : abilMod;
     const dmgBd = breakdown(
       [
@@ -559,29 +573,66 @@ export function deriveCharacter(char: Character): DerivedCharacter {
       ],
       `${w.damageDice}d${w.damageDie} ${w.damageType}${bonusDamage ? ` + ${bonusDamage.dice}d${bonusDamage.die} ${bonusDamage.type}` : ''} + modificadores`,
     );
+    // Versátil com as duas mãos: só com a outra mão livre (sem escudo nem segunda arma)
+    const handsFree = !char.equipped.shield && heldWeapons.length === 1;
+    const versatileDie = w.range === 'melee' && handsFree ? w.versatileDie : undefined;
+    const gwf: DerivedAttack['greatWeapon'] = styles.has('gwf') && w.range === 'melee' ? (w.properties.includes('Duas mãos') ? 'always' : versatileDie ? 'versatile' : undefined) : undefined;
+    // Mestre em Armas Grandes (arma pesada corpo a corpo) e Atirador de Elite (à distância): −5/+10, exige proficiência
+    const powerAttack = !weaponProf ? undefined
+      : hasFeat('gwm') && w.range === 'melee' && w.properties.includes('Pesada') ? 'Mestre em Armas Grandes'
+      : hasFeat('sharpshooter') && w.range === 'ranged' ? 'Atirador de Elite'
+      : undefined;
+    const gwmBonus = hasFeat('gwm') && w.range === 'melee';
     attacks.push({
       uid: it.uid,
       name: it.name,
-      note: `${offHand ? 'mão secundária · ação bônus · ' : ''}${weaponProf ? '' : 'sem proficiência · '}${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
+      note: `${offHand ? (offBonus ? 'mão secundária · ação bônus · ' : 'mão secundária · sem ataque bônus (armas não leves) · ') : ''}${weaponProf ? '' : 'sem proficiência · '}${w.range === 'ranged' ? (w.rangeLabel ?? 'à distância') : 'corpo a corpo'}${w.properties.length ? ' · ' + w.properties.join(', ') : ''}${brutal && w.range === 'melee' ? ` · Crítico Brutal +${brutal} dado${brutal > 1 ? 's' : ''}` : ''}`,
       attackBonus: hitBd.total,
       damageDice: w.damageDice,
       // Artes Marciais: usa o dado do monge se for maior que o da arma
       damageDie: monkWeapon && w.damageDice === 1 ? Math.max(w.damageDie, maDie) : w.damageDie,
       damageBonus: dmgBd.total,
       damageType: w.damageType,
-      versatileDie: w.versatileDie,
+      versatileDie,
       bonusDamage,
       critMin,
       critExtraDice: w.range === 'melee' && brutal ? brutal : undefined,
       // Combate com Armas Grandes: rola de novo 1 e 2 nos dados de dano (duas mãos; versátil só usada com as duas)
-      greatWeapon: styles.has('gwf') && w.range === 'melee' ? (w.properties.includes('Duas mãos') ? 'always' : w.versatileDie ? 'versatile' : undefined) : undefined,
+      greatWeapon: gwf,
       range: w.range,
       ability: abilKey,
       finesse: !!w.finesse,
       weapon: true,
+      powerAttack,
+      gwmBonus,
       hitBreakdown: hitBd,
       damageBreakdown: dmgBd,
     });
+    // Mestre em Hastes: atacando só com glaive, alabarda, bordão ou lança, a outra ponta
+    // dá um ataque bônus de 1d4 concussão (mesmos bônus de ataque e dano)
+    if (hasFeat('polearm-master') && w.range === 'melee' && heldWeapons.length === 1 && isPolearm(it)) {
+      const buttDmg = { ...dmgBd, note: '1d4 concussão + modificadores' };
+      attacks.push({
+        uid: `${it.uid}:cabo`,
+        name: `${it.name} (cabo)`,
+        note: 'ação bônus após Atacar com a haste · Mestre em Hastes · corpo a corpo',
+        attackBonus: hitBd.total,
+        damageDice: 1,
+        damageDie: 4,
+        damageBonus: buttDmg.total,
+        damageType: 'concussão',
+        critMin,
+        critExtraDice: brutal || undefined,
+        greatWeapon: gwf === 'always' ? 'always' : undefined,
+        range: 'melee',
+        ability: abilKey,
+        weapon: true,
+        powerAttack,
+        gwmBonus,
+        hitBreakdown: hitBd,
+        damageBreakdown: buttDmg,
+      });
+    }
   }
 
   // Golpe desarmado do Monge (Artes Marciais): FOR ou DES, dado de artes marciais
@@ -699,6 +750,17 @@ export function deriveCharacter(char: Character): DerivedCharacter {
     // Saúde Divina (Paladino 3º): imune a doenças; Aura de Proteção dos Anciões (7º): resistência a dano de magias
     ...(levelIn('paladin') >= 3 ? [{ value: 'doenças (imune)', source: 'Saúde Divina' }] : []),
     ...(subclassOf(char, 'paladin') === 'ancients' && levelIn('paladin') >= 7 ? [{ value: 'dano de magias', source: 'Aura de Proteção (Anciões)' }] : []),
+    // Resistência a Magia (Abjuração 14º): resistência ao dano de magias (e vantagem nas salvaguardas contra elas)
+    ...(subclassOf(char, 'wizard') === 'abjuration' && levelIn('wizard') >= 14 ? [{ value: 'dano de magias (e vantagem nas salvaguardas contra magias)', source: 'Resistência a Magia' }] : []),
+    // Afinidade Elemental (Dracônica 6º): 1 ponto de feitiçaria = resistência ao tipo do ancestral por 1 hora
+    ...((char.combat?.marks ?? []).includes('draconicWard') && dragonAncestry(char) ? [{ value: dragonAncestry(char)!.type, source: 'Afinidade Elemental' }] : []),
+    // Bruxo: Escudo Mental (Grande Antigo 10º) e Resiliência Infernal (Corruptor 10º, tipo escolhido)
+    ...(subclassOf(char, 'warlock') === 'oldone' && levelIn('warlock') >= 10 ? [{ value: 'psíquico', source: 'Escudo Mental' }] : []),
+    ...(subclassOf(char, 'warlock') === 'fiend' && levelIn('warlock') >= 10 && char.choices?.['warlock.fiendResilience']?.[0]
+      ? [{ value: `${char.choices['warlock.fiendResilience'][0]} (não mágico e não prateado)`, source: 'Resiliência Infernal' }]
+      : []),
+    // Guarda da Natureza (Druida da Terra 10º): imune a veneno e doenças
+    ...(subclassOf(char, 'druid') === 'land' && levelIn('druid') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Guarda da Natureza' }] : []),
     // Pureza do Corpo (Monge 10º): imune a doenças e veneno
     ...(levelIn('monk') >= 10 ? [{ value: 'veneno (imune) e doenças', source: 'Pureza do Corpo' }] : []),
     ...(subclassOf(char, 'cleric') === 'war' && levelIn('cleric') >= 17 ? [{ value: 'concussão, cortante e perfurante (armas não mágicas)', source: 'Avatar da Batalha' }] : []),
