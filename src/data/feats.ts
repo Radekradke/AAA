@@ -587,3 +587,21 @@ export const FEAT_BY_ID: Record<string, Feat> = Object.fromEntries(FEATS.map((f)
 export function getFeat(id: string): Feat | undefined {
   return FEAT_BY_ID[id];
 }
+
+/** Talento homebrew entra na mesma lista (evolução, busca, efeitos na ficha). */
+export function registerFeat(feat: Feat | null | undefined): void {
+  if (!feat?.id || !feat.homebrew) return;
+  const cur = FEAT_BY_ID[feat.id];
+  if (cur && (!cur.homebrew || (feat.updatedAt ?? 0) < (cur.updatedAt ?? 0))) return;
+  const i = FEATS.findIndex((f) => f.id === feat.id);
+  if (i >= 0) FEATS[i] = feat;
+  else FEATS.push(feat);
+  FEAT_BY_ID[feat.id] = feat;
+}
+
+export function unregisterFeat(id: string): void {
+  if (!FEAT_BY_ID[id]?.homebrew) return;
+  const i = FEATS.findIndex((f) => f.id === id);
+  if (i >= 0) FEATS.splice(i, 1);
+  delete FEAT_BY_ID[id];
+}

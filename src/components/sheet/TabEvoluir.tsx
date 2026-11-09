@@ -17,9 +17,11 @@ import { getSubclass, subclassesFor } from '@/data/subclasses';
 import { subclassOf } from '@/engine/characterClasses';
 import { isAsiLevel } from '@/data/classFeatures';
 import { FEATS, getFeat } from '@/data/feats';
+import { useHomebrewStore } from '@/store/homebrewStore';
+import { HomebrewFeatEditor } from '@/components/homebrew/HomebrewFeatEditor';
 import { ABILITY_LABELS, ABILITY_SHORT } from '@/data/skills';
 import { ABILITY_KEYS } from '@/types/dnd';
-import type { AbilityKey } from '@/types/dnd';
+import type { AbilityKey, Feat } from '@/types/dnd';
 import type { AsiChoice, Character, LevelUpRecord } from '@/types/character';
 import {
   averageHp,
@@ -76,6 +78,9 @@ function XpBar({ char }: { char: TabProps['char'] }) {
 
 export function TabEvoluir({ char, derived }: TabProps) {
   const sourceOn = useSourceOn();
+  // editor de talento homebrew: undefined = fechado, null = novo (a lista relê FEATS ao mudar)
+  const [hbFeat, setHbFeat] = useState<Feat | null | undefined>(undefined);
+  useHomebrewStore((st) => st.feats);
   const t = useTheme();
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
@@ -392,16 +397,23 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
               {asiMode === 'feat' && (
                 <div style={{ marginTop: 10 }}>
-                  {(['PHB 2014', 'XGE', 'TCE'] as const).filter((source) => sourceOn(source)).map((source) => {
+                  {(['PHB 2014', 'XGE', 'TCE', 'Homebrew'] as const).filter((source) => sourceOn(source)).map((source) => {
                     const list = FEATS.filter((f) => f.source === source && !char.feats.includes(f.id));
                     if (list.length === 0) return null;
                     return (
                       <div key={source} style={{ marginBottom: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
                           <span style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
-                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : source === 'XGE' ? 'GUIA DE XANATHAR (RACIAIS)' : 'CALDEIRÃO DE TASHA'}
+                            {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : source === 'XGE' ? 'GUIA DE XANATHAR (RACIAIS)' : source === 'TCE' ? 'CALDEIRÃO DE TASHA' : 'SEUS TALENTOS (HOMEBREW)'}
                           </span>
                           <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
+                          {source === 'Homebrew' && (
+                            <span className="fv-hb-lib">
+                              {list.map((f) => (
+                                <button key={f.id} type="button" className="fv-hb-chip" onClick={() => setHbFeat(f)} aria-label={`Editar ${f.label}`}>✎ {f.label}</button>
+                              ))}
+                            </span>
+                          )}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 8 }}>
                           {list.map((f) => {
@@ -440,6 +452,9 @@ export function TabEvoluir({ char, derived }: TabProps) {
                       </div>
                     );
                   })}
+                  <button type="button" className="fv-btn-ghost" onClick={() => setHbFeat(null)} title="Talento seu: a ficha soma os bônus e cria o contador de usos">
+                    ✦ Criar talento homebrew
+                  </button>
                   {featId && getFeat(featId)?.abilityChoice && (
                     <div style={{ marginTop: 9, display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>+1 em:</span>
@@ -509,6 +524,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
           )}
         </div>
       </Panel>
+      {hbFeat !== undefined && <HomebrewFeatEditor feat={hbFeat} onClose={() => setHbFeat(undefined)} onSaved={(f) => { if (!hbFeat && !featPrereqIssue(char, f)) { setFeatId(f.id); setFeatAbility(''); } }} />}
     </div>
   );
 }

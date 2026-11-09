@@ -399,6 +399,9 @@ export interface Character {
   } | null;
   /** Raça homebrew usada por esta ficha (cópia embutida: funciona offline e na tela do mestre). */
   customRace?: import('./dnd').Race | null;
+  /** Magias e talentos homebrew que a ficha usa (cópias embutidas, como customRace). */
+  customSpells?: import('./dnd').Spell[];
+  customFeats?: import('./dnd').Feat[];
   classId: string;
   backgroundId: string;
   alignment: string;

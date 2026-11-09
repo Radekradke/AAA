@@ -97,7 +97,8 @@ export interface Subrace {
 }
 
 /** Fonte oficial de um talento/antecedente. */
-export type SourceBook = 'PHB 2014' | 'XGE' | 'TCE';
+/** 'Homebrew' = criado pelo jogador (Magias e Talentos homebrew). */
+export type SourceBook = 'PHB 2014' | 'XGE' | 'TCE' | 'Homebrew';
 
 /** Talento (PHB 2014 / Xanathar) com efeitos mecânicos rastreáveis. */
 export interface Feat {
@@ -148,6 +149,10 @@ export interface Feat {
   prereqCasterFeature?: boolean;
   /** Exige proficiência com ao menos uma arma marcial. */
   prereqMartial?: boolean;
+  /** Criado pelo jogador (homebrew): o mestre vê o selo. */
+  homebrew?: boolean;
+  author?: string;
+  updatedAt?: number;
 }
 
 /** Subclasse (PHB 2014): arquetipo com características por nível de classe. */
@@ -450,6 +455,10 @@ export interface Spell {
   tags?: SpellTag[];
   /** Livro de origem (ausente = Livro do Jogador 2014). */
   source?: SourceBook;
+  /** Criada pelo jogador (homebrew): o mestre vê o selo. */
+  homebrew?: boolean;
+  author?: string;
+  updatedAt?: number;
 }
 
 export interface RarityDef {

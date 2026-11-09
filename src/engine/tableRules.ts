@@ -1,6 +1,8 @@
 import type { Character } from '@/types/character';
 import { RACE_BY_ID } from '@/data/races';
 import { FEAT_BY_ID } from '@/data/feats';
+import { SPELL_BY_ID } from '@/data/spells';
+import { spellIdsOf } from './homebrewContent';
 import { stacksInspiration } from './inspiration';
 
 /**
@@ -41,7 +43,12 @@ export function sheetRuleNotes(c: Character): RuleNote[] {
   if (homebrewRace) notes.push({ kind: 'homebrew', text: `Raça criada: ${homebrewRace.label}` });
   if (c.customOrigin) notes.push({ kind: 'livro', text: 'Origem personalizada (Caldeirão de Tasha)' });
 
-  const otherBookFeats = c.feats.filter((id) => FEAT_BY_ID[id]?.source && FEAT_BY_ID[id].source !== 'PHB 2014');
+  const hbFeats = c.feats.map((id) => FEAT_BY_ID[id]).filter((f) => f?.homebrew);
+  if (hbFeats.length) notes.push({ kind: 'homebrew', text: `${hbFeats.length === 1 ? 'Talento criado' : 'Talentos criados'}: ${hbFeats.map((f) => f.label).join(', ')}` });
+  const hbSpells = spellIdsOf(c).map((id) => SPELL_BY_ID[id]).filter((s) => s?.homebrew);
+  if (hbSpells.length) notes.push({ kind: 'homebrew', text: `${hbSpells.length === 1 ? 'Magia criada' : 'Magias criadas'}: ${hbSpells.map((s) => s.name).join(', ')}` });
+
+  const otherBookFeats = c.feats.filter((id) => FEAT_BY_ID[id]?.source && FEAT_BY_ID[id].source !== 'PHB 2014' && !FEAT_BY_ID[id].homebrew);
   if (c.feats.length) notes.push({ kind: 'opcional', text: `Talentos: ${c.feats.length}${otherBookFeats.length ? ` (${otherBookFeats.length} de outro livro)` : ''}` });
   if ((c.classLevels?.length ?? 0) > 1) notes.push({ kind: 'opcional', text: 'Multiclasse' });
 

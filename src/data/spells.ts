@@ -497,6 +497,27 @@ export function getSpell(id: string): Spell | undefined {
   return SPELL_BY_ID[id];
 }
 
+/**
+ * Magia homebrew entra na mesma biblioteca (listas da classe, busca,
+ * conjuração). Nunca troca uma oficial; entre duas cópias vence a mais nova.
+ */
+export function registerSpell(spell: Spell | null | undefined): void {
+  if (!spell?.id || !spell.homebrew) return;
+  const cur = SPELL_BY_ID[spell.id];
+  if (cur && (!cur.homebrew || (spell.updatedAt ?? 0) < (cur.updatedAt ?? 0))) return;
+  const i = SPELLS.findIndex((s) => s.id === spell.id);
+  if (i >= 0) SPELLS[i] = spell;
+  else SPELLS.push(spell);
+  SPELL_BY_ID[spell.id] = spell;
+}
+
+export function unregisterSpell(id: string): void {
+  if (!SPELL_BY_ID[id]?.homebrew) return;
+  const i = SPELLS.findIndex((s) => s.id === id);
+  if (i >= 0) SPELLS.splice(i, 1);
+  delete SPELL_BY_ID[id];
+}
+
 /** Todas as magias que a classe pode aprender/preparar até o círculo dado. */
 export function spellsForClass(classId: string, maxCircle = 9): Spell[] {
   return SPELLS.filter(
