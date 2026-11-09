@@ -87,6 +87,8 @@ export function Settings() {
   const sound = useUiStore((s) => s.sound);
   const toggleSound = useUiStore((s) => s.toggleSound);
   const dice3d = useUiStore((s) => s.dice3d);
+  const shortcuts = useUiStore((s) => s.shortcuts);
+  const toggleShortcuts = useUiStore((s) => s.toggleShortcuts);
   const cinematics = useUiStore((s) => s.cinematics);
   const toggleCinematics = useUiStore((s) => s.toggleCinematics);
   const keepAwake = useUiStore((s) => s.keepAwake);
@@ -221,6 +223,9 @@ export function Settings() {
 
         <section id="cfg-dados" className="fv-panel fv-set-card" aria-labelledby="cfg-dados-t">
           <h2 id="cfg-dados-t">Dados e mesa</h2>
+          <Row title="Atalhos de teclado" hint="No PC, rolar sem o mouse na ficha: I iniciativa, A ataque, 1–6 testes, Alt+1–6 salvaguardas, Shift para vantagem e ? para ver todos.">
+            <Switch on={shortcuts} label="Atalhos de teclado" onToggle={toggleShortcuts} />
+          </Row>
           <Row title="Dados 3D" hint="Dados com física rolando pela tela. Desligado, aparece um dado 2D mais leve (bom para celulares antigos).">
             <Switch on={dice3d} label="Dados 3D" onToggle={toggleDice3d} />
           </Row>
