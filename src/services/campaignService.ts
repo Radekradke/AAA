@@ -1,4 +1,5 @@
 import { registerRace } from '@/data/races';
+import { registerCharacterHomebrew } from '@/engine/homebrewContent';
 import { getSupabase } from './supabaseClient';
 import type { Campaign, CampaignMember, InviteLink, MasterPermission, SharedCharacterSheet, SheetRow } from '@/types/models';
 import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
@@ -160,7 +161,10 @@ export const campaignService = {
     const { data: rows } = await client.from('sheets').select('*').in('id', list.map((s) => s.sheetId));
     const byId = new Map(((rows ?? []) as SheetRow[]).map((r) => [r.id, r.snapshot]));
     // raça homebrew da ficha vinculada: o mestre passa a enxergar também
-    for (const snap of byId.values()) if (snap?.customRace) registerRace(snap.customRace);
+    for (const snap of byId.values()) {
+      if (snap?.customRace) registerRace(snap.customRace);
+      registerCharacterHomebrew(snap);
+    }
     return list.map((share) => ({ share, snapshot: byId.get(share.sheetId) ?? null }));
   },
 };

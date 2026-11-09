@@ -1,4 +1,5 @@
 import { getSupabase } from './supabaseClient';
+import { registerCharacterHomebrew } from '@/engine/homebrewContent';
 import type { Character } from '@/types/character';
 
 /**
@@ -62,6 +63,8 @@ export const shareService = {
     if (error) throw friendly(error.message);
     const row = Array.isArray(data) ? data[0] : data;
     if (!row?.snapshot) return null;
-    return { char: row.snapshot as Character, updatedAt: Number(row.updated_at) };
+    const char = row.snapshot as Character;
+    registerCharacterHomebrew(char);
+    return { char, updatedAt: Number(row.updated_at) };
   },
 };

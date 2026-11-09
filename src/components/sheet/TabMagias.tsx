@@ -25,6 +25,8 @@ import { passiveLore, spellLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
 import { spellArt } from '@/lib/spellArt';
+import { useHomebrewStore } from '@/store/homebrewStore';
+import { HomebrewSpellEditor } from '@/components/homebrew/HomebrewSpellEditor';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -35,6 +37,9 @@ export function TabMagias({ char, derived }: TabProps) {
   const t = useTheme();
   const store = useCharacterStore();
   const [learn, setLearn] = useState<false | 'class' | 'all'>(false);
+  // editor de magia homebrew: undefined = fechado, null = nova
+  const [hbSpell, setHbSpell] = useState<Spell | null | undefined>(undefined);
+  const hbSpells = useHomebrewStore((s) => s.spells);
 
   const profiles = casterProfiles(char);
   const [selectedClass, setSelectedClass] = useState(() => casterOf(char)?.classId ?? char.classId);
@@ -51,7 +56,8 @@ export function TabMagias({ char, derived }: TabProps) {
   const isWizard = kind === 'spellbook';
   const listClass = caster?.listClass ?? classId;
   // regras de aprendizado (limites, lista, círculo, escolas, trocas) — "modo mestre" libera ajustes
-  const st = useMemo(() => spellLearnState(char, castMod, classId), [char, castMod, classId]);
+  // hbSpells: uma magia homebrew nova entra na lista da classe (listIds)
+  const st = useMemo(() => spellLearnState(char, castMod, classId), [char, castMod, classId, hbSpells]); // eslint-disable-line react-hooks/exhaustive-deps
   // pacotes de conteúdo ligados mudam as listas (Xanathar, Tasha)
   const packs = useUiStore((s) => s.packs);
   const [freeMode, setFreeMode] = useState(false);
@@ -94,7 +100,7 @@ export function TabMagias({ char, derived }: TabProps) {
     const base = spellsForClass(listClass, 9);
     const extra = expandedSpellIds(char, classId).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
     return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-  }, [listClass, char.subclassId, char.classLevels, classId, packs]);
+  }, [listClass, char.subclassId, char.classLevels, classId, packs, hbSpells]);
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -516,8 +522,10 @@ export function TabMagias({ char, derived }: TabProps) {
           onClose={() => setLearn(false)}
           actionLabel={learnLabel}
           costOf={learn === 'all' ? (s) => scrollCost(s) : undefined}
+          onHomebrew={setHbSpell}
         />
       )}
+      {hbSpell !== undefined && <HomebrewSpellEditor spell={hbSpell} defaultClass={listClass} onClose={() => setHbSpell(undefined)} />}
     </div>
   );
 }

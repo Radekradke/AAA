@@ -21,6 +21,8 @@ const item = (uid: string, itemId: string, name: string, attuned: boolean) => ({
 const HERO = {
   ...WIZARD,
   inventory: [...(WIZARD.inventory as unknown[]), item('staff-fire', 'm-staff-fire', 'Cajado do Fogo', true), item('staff-heal', 'm-staff-healing', 'Cajado da Cura', false)],
+  // cajado só conjura empunhado
+  equipped: { ...(WIZARD.equipped as Record<string, unknown>), mainHand: 'staff-fire' },
 };
 
 test.describe('cajados: cargas e sintonia', () => {

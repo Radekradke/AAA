@@ -39,7 +39,7 @@ export const CONTENT_PACKS: ContentPack[] = [
 ];
 
 /** Selo curto do livro nas listas (magias, talentos). */
-export const SOURCE_SHORT: Record<string, string> = { 'PHB 2014': 'Livro do Jogador', XGE: 'Xanathar', TCE: 'Tasha' };
+export const SOURCE_SHORT: Record<string, string> = { 'PHB 2014': 'Livro do Jogador', XGE: 'Xanathar', TCE: 'Tasha', Homebrew: 'Homebrew' };
 
 /** Pacote de cada fonte de talento/magia/subclasse (PHB = sempre ligado). */
 export const SOURCE_PACK: Record<string, PackId | null> = {

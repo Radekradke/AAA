@@ -50,7 +50,7 @@ test.describe('bárbaro: Fúria de verdade', () => {
   test('Frenesi cobra exaustão ao encerrar; Ataque Imprudente aparece nos efeitos', async ({ page }) => {
     const rage = page.getByRole('region', { name: 'Fúria do Bárbaro' });
     await rage.getByRole('button', { name: 'Ataque Imprudente' }).click();
-    await expect(page.getByText(/Imprudente · inimigos com vantagem/)).toBeVisible();
+    await expect(page.getByText(/Imprudente · vantagem em FOR; inimigos com vantagem/)).toBeVisible();
     await rage.getByRole('button', { name: /com Frenesi/ }).click();
     await expect(rage).toContainText('com Frenesi');
     await rage.getByRole('button', { name: /Encerrar Fúria \(\+1 exaustão\)/ }).click();

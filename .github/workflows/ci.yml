@@ -33,7 +33,8 @@ jobs:
 
   e2e:
     name: Ponta a ponta (Playwright)
-    runs-on: ubuntu-latest
+    # ubuntu-latest virou Ubuntu 26 e o `playwright install --with-deps` (1.56) não instala as dependências nele
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

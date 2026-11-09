@@ -27,6 +27,8 @@ interface SpellLibraryProps {
   blockedAdd?: (s: Spell) => boolean;
   /** Motivo pelo qual NÃO pode adicionar (regras); null = pode. */
   blockReason?: (s: Spell) => string | null;
+  /** Abre o editor de magia homebrew (nova ou, com a magia, editar). */
+  onHomebrew?: (s: Spell | null) => void;
 }
 
 const SCHOOLS = ['Abjuração', 'Adivinhação', 'Conjuração', 'Encantamento', 'Evocação', 'Ilusão', 'Necromancia', 'Transmutação'];
@@ -47,7 +49,7 @@ const circleLabel = (lv: number) => (lv === 0 ? 'Truques' : `${lv}º círculo`);
  * propriedades num painel "Filtros" que dobra. Os filtros ligados viram
  * etiquetas removíveis, e a lista vem separada por círculo.
  */
-export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar', costOf, blockedAdd, blockReason }: SpellLibraryProps) {
+export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar', costOf, blockedAdd, blockReason, onHomebrew }: SpellLibraryProps) {
   const t = useTheme();
   const [query, setQuery] = useState('');
   const [level, setLevel] = useState<number | null>(null);
@@ -130,6 +132,11 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
           <button type="button" className={'fv-lib-filterbtn' + (panel || active.length ? ' is-on' : '')} onClick={() => setPanel((v) => !v)} aria-expanded={panel} aria-controls="fv-lib-panel">
             <span aria-hidden>☰</span> Filtros{active.length > 0 && <b>{active.length}</b>}
           </button>
+          {onHomebrew && (
+            <button type="button" className="fv-lib-filterbtn" onClick={() => onHomebrew(null)} title="Criar uma magia sua: a ficha conjura, rola e desconta como as do livro">
+              <span aria-hidden>✦</span> Criar magia
+            </button>
+          )}
         </div>
 
         <div className="fv-lib-views" role="group" aria-label="Mostrar">
@@ -257,6 +264,11 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                     {sp.conditions?.length ? <span>☠ {sp.conditions.join(', ')}</span> : null}
                   </div>
                   {sp.higher && <p style={{ margin: 0, fontSize: 11.5, color: 'var(--acc)' }}>Círculos superiores: {sp.higher}</p>}
+                  {sp.homebrew && onHomebrew && (
+                    <button type="button" className="fv-btn-ghost" style={{ alignSelf: 'flex-start' }} onClick={() => onHomebrew(sp)}>
+                      Editar magia homebrew
+                    </button>
+                  )}
                 </div>
               )}
             </div>

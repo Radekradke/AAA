@@ -894,3 +894,21 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
    - Recuperação Natural escolhe espaços gastos (até metade do nível, nada de 6º+).
    - No 10º, Envenenado não pode ser marcado.
 7. Relatório: `docs/auditoria/druida.md`.
+
+## 86. Magias e talentos homebrew
+
+1. Magias → **+ Aprender** → **✦ Criar magia**.
+   - A classe da ficha já vem marcada; escolha círculo, escola, tempo, alcance, duração e componentes.
+   - Em "O que a ficha resolve", escolha Automático, Ataque de magia ou Salvaguarda, e preencha dano, cura, área e dados extras por círculo.
+   - "Na mesa" mostra o que a ficha vai rolar ou aplicar.
+   - Dano acima da tabela do Guia do Mestre gera aviso amarelo, mas deixa salvar. Nome vazio, nenhuma classe ou dano ilegível bloqueiam o botão.
+2. Salve. A magia aparece na biblioteca (selo "Homebrew") e pode ser aprendida como as do livro.
+3. Jogar → **Conjurar**. Desconta o espaço, rola o ataque (ou pede a salvaguarda) e rola o dano. Em espaço maior, soma os dados extras por círculo.
+4. Abra a magia na biblioteca → **Editar magia homebrew**. Salvar atualiza todas as fichas que a conhecem.
+5. Evoluir, num nível com Aumento de Atributo → **Talento** → **✦ Criar talento homebrew**.
+   - Testar +1 em atributo, PV por nível, deslocamento, iniciativa, Percepção passiva, resistências e um uso por descanso.
+   - Ao salvar, o talento já fica escolhido. Depois de confirmar o nível, PV, resistência e o contador aparecem na ficha.
+6. Regras desta ficha (Evoluir) lista "Magia criada" e "Talento criado". O cabeçalho mostra "fora do padrão".
+7. Viagem da ficha:
+   - Exportar o JSON e importar em outro navegador traz as magias e talentos. Eles entram na biblioteca do aparelho novo.
+   - Compartilhar com a mesa ou por link: o mestre vê e conjura a magia na ficha do jogador.

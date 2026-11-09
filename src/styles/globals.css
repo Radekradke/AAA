@@ -4459,6 +4459,14 @@ body.fv-dragging .fv-screen-scroll {
 .fv-hb-warn li::before { content: '⚠ '; color: #ffc857; }
 .fv-hb-warn li.is-info::before { content: 'ⓘ '; color: var(--acc); }
 .fv-hb-note { font-size: 12px; color: var(--muted); }
+.fv-hb-grid label.fv-hb-check { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); min-height: 44px; }
+.fv-hb-check input { width: 18px; height: 18px; accent-color: var(--acc); }
+.fv-hb-pair { display: flex; gap: 6px; }
+.fv-hb-pair > * { flex: 1; min-width: 0; }
+.fv-hb-auto { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--ink); }
+.fv-hb-auto b { color: var(--acc); font-weight: 600; }
+.fv-hb-warn li.is-error::before { content: '✕ '; color: var(--danger); }
+.fv-hb-lib { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .fv-hb-templates.is-presets button.is-on { border-color: var(--gold); color: var(--gold); }
 .fv-hb-templates small { font-size: 10.5px; color: var(--muted); font-weight: 500; }
 .fv-hb-source { margin: 0; font-size: 12px; color: var(--muted); }

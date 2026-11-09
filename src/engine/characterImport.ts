@@ -69,6 +69,22 @@ export function characterImportError(value: unknown, defaults: Character): strin
       for (const field of ['weapon', 'armor', 'magic', 'charges'] as const) if (item[field] !== undefined && !record(item[field])) return `${item.name}: ${field} precisa ser um objeto.`;
     }
   }
+  if (value.customSpells !== undefined) {
+    if (!Array.isArray(value.customSpells)) return 'Magias homebrew precisam ser uma lista.';
+    for (const sp of value.customSpells) {
+      if (!record(sp) || typeof sp.id !== 'string' || !sp.id || sp.homebrew !== true || typeof sp.name !== 'string' || !integer(sp.level, 0, 9) || typeof sp.school !== 'string') return 'Magia homebrew inválida.';
+      if (sp.damage !== undefined && (!record(sp.damage) || typeof sp.damage.dice !== 'string' || typeof sp.damage.type !== 'string')) return `${sp.name}: dano inválido.`;
+      if (sp.classes !== undefined && !strings(sp.classes)) return `${sp.name}: classes inválidas.`;
+    }
+  }
+  if (value.customFeats !== undefined) {
+    if (!Array.isArray(value.customFeats)) return 'Talentos homebrew precisam ser uma lista.';
+    for (const f of value.customFeats) {
+      if (!record(f) || typeof f.id !== 'string' || !f.id || f.homebrew !== true || typeof f.label !== 'string' || typeof f.desc !== 'string') return 'Talento homebrew inválido.';
+      for (const field of ['hpPerLevel', 'speedBonus', 'initiativeBonus', 'passivePerceptionBonus'] as const) if (f[field] !== undefined && (typeof f[field] !== 'number' || !Number.isFinite(f[field]))) return `${f.label}: bônus precisa ser um número.`;
+      if (f.uses !== undefined && (!record(f.uses) || typeof f.uses.id !== 'string' || typeof f.uses.label !== 'string' || !['short', 'long'].includes(String(f.uses.recharge)))) return `${f.label}: uso por descanso inválido.`;
+    }
+  }
   if (value.classSpells !== undefined) {
     if (!record(value.classSpells)) return 'Magias por classe precisam ser um objeto.';
     for (const [id, selection] of Object.entries(value.classSpells)) {

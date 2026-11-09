@@ -74,7 +74,7 @@ test.describe('paladino: reservas e auras', () => {
     const hit = page.locator('.fv-atk button').first();
     const bonus = Number((await hit.innerText()).match(/[+-]\d+/)?.[0]);
     await page.getByRole('button', { name: /^Arma Sagrada/ }).click();
-    await expect(page.getByText(/Arma Sagrada · \+CAR no ataque/)).toBeVisible();
+    await expect(page.getByText(/Arma Sagrada · CAR no acerto da arma escolhida/)).toBeVisible();
     await expect.poll(async () => Number((await hit.innerText()).match(/[+-]\d+/)?.[0])).toBe(bonus + 3);
   });
 

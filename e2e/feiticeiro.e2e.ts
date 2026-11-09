@@ -33,7 +33,7 @@ test.describe('feiticeiro na mesa', () => {
     // 2 pontos → espaço de 1º gasto de volta
     await panel.getByRole('button', { name: /^Pontos → espaço/ }).click();
     await expect(panel).toContainText('Pontos de Feitiçaria 4/6');
-    await expect(panel.getByLabel('Círculo da Fonte de Magia')).toContainText('1º círculo (3/4)');
+    await expect(panel.getByLabel('Círculo da Fonte de Magia')).toContainText('1º círculo · Conjuração (3/4)');
 
     // espaço de 1º → +1 ponto (ação bônus: novo turno antes)
     await page.getByRole('button', { name: 'Novo turno' }).click();
