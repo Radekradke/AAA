@@ -4,6 +4,9 @@ import { encounterService, StaleRevisionError } from '@/services/encounterServic
 import type { CombatantPatch, NewCombatant } from '@/services/encounterService';
 import { joinLiveChannel } from '@/services/realtimeService';
 import { getSupabase } from '@/services/supabaseClient';
+import { discordService } from '@/services/discordService';
+import { sendRoll, setTableWebhook, tableWebhook } from '@/lib/discordRelay';
+import { relayable, type DiscordRoll } from '@/engine/discord';
 import type { LiveChannel } from '@/services/realtimeService';
 import { useCharacterStore } from './characterStore';
 import { rollEnemyInitiatives } from '@/engine/encounter';
@@ -467,6 +470,13 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       }
       get().leave();
       set({ campaignId, me, loading: true, error: null, rollVisibility: savedVisibility(me.isMaster) });
+      // webhook do Discord da mesa: só o mestre consegue ler (RLS); fica em memória
+      if (me.isMaster) {
+        void discordService
+          .get(campaignId)
+          .then((d) => setTableWebhook(campaignId, d?.enabled ? d.webhookUrl : null))
+          .catch(() => undefined);
+      }
       try {
         localStorage.setItem(RESUME_KEY, JSON.stringify({ campaignId, userId: me.userId }));
       } catch {
@@ -519,6 +529,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         // ordens que ficaram fora das últimas 40 (aparelho dormindo, muitas rolagens) ou de sessões encerradas
         if (!me.isMaster) void catchUpHeroEvents(campaignId, session?.createdBy ?? null, !seeded);
         if (seeded) {
+          // Discord da mesa: o navegador do mestre manda as rolagens públicas para o canal
+          const hook = me.isMaster ? tableWebhook(campaignId) : null;
+          if (hook) for (const e of fresh.filter(relayable)) void sendRoll(hook, e.payload as unknown as DiscordRoll);
           const roll = fresh.filter((e) => e.type === 'roll' && e.actorId !== me.userId).pop();
           if (roll) set({ lastTableRoll: roll });
           // 20 / 1 natural e teste contra a morte de outro herói: o momento em tela cheia aparece para a mesa toda

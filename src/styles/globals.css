@@ -8864,3 +8864,16 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-keys dt, .fv-keys dd { margin: 0; }
 .fv-keys dd { font-size: 13.5px; color: var(--ink); }
 .fv-keys kbd { display: inline-block; min-width: 1.8em; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--sunk); font-family: var(--font-num); font-size: 12px; color: var(--acc); text-align: center; }
+
+/* Discord (sala do mestre e Configurações) */
+.fv-discord { padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.fv-discord-hint { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.fv-discord-field { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fv-discord-field .fv-input { flex: 1 1 260px; min-width: 0; }
+.fv-discord-saved { flex: 1 1 200px; font-size: 13px; color: var(--ink); font-family: var(--font-num); }
+.fv-discord-bad { flex-basis: 100%; color: var(--danger); font-size: 12px; }
+.fv-discord-how { font-size: 12.5px; color: var(--muted); }
+.fv-discord-how summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; color: var(--acc); }
+.fv-discord-how ol { margin: 4px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; }
+.fv-set-row:has(.fv-discord-field) { flex-wrap: wrap; }
+.fv-set-row-ctl:has(.fv-discord-field) { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 6px; }

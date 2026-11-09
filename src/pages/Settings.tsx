@@ -1,3 +1,4 @@
+import { WebhookField, WebhookHowTo } from '@/components/campaign/DiscordCard';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -88,6 +89,9 @@ export function Settings() {
   const toggleSound = useUiStore((s) => s.toggleSound);
   const dice3d = useUiStore((s) => s.dice3d);
   const shortcuts = useUiStore((s) => s.shortcuts);
+  const discordWebhook = useUiStore((s) => s.discordWebhook);
+  const setDiscordWebhook = useUiStore((s) => s.setDiscordWebhook);
+  const userName = useAuthStore((s) => s.user?.name ?? 'Ficha Viva');
   const toggleShortcuts = useUiStore((s) => s.toggleShortcuts);
   const cinematics = useUiStore((s) => s.cinematics);
   const toggleCinematics = useUiStore((s) => s.toggleCinematics);
@@ -223,6 +227,16 @@ export function Settings() {
 
         <section id="cfg-dados" className="fv-panel fv-set-card" aria-labelledby="cfg-dados-t">
           <h2 id="cfg-dados-t">Dados e mesa</h2>
+          <Row title="Discord pessoal" hint="Suas rolagens vão para um canal do Discord (só as públicas: com &quot;Só eu&quot; ou &quot;Só mestre&quot; nada sai). O endereço fica só neste aparelho. Se o mestre já liga a mesa ao Discord, não precisa.">
+            <WebhookField
+              saved={discordWebhook || null}
+              who={userName}
+              label="Webhook pessoal do Discord"
+              onSave={(url) => setDiscordWebhook(url)}
+              onRemove={() => setDiscordWebhook('')}
+            />
+            <WebhookHowTo />
+          </Row>
           <Row title="Atalhos de teclado" hint="No PC, rolar sem o mouse na ficha: I iniciativa, A ataque, 1–6 testes, Alt+1–6 salvaguardas, Shift para vantagem e ? para ver todos.">
             <Switch on={shortcuts} label="Atalhos de teclado" onToggle={toggleShortcuts} />
           </Row>
