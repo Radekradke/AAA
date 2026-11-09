@@ -33,22 +33,33 @@ test.describe('inventário: anéis e sintonia', () => {
     await expect(ac(page)).toHaveText('12');
     const box = (name: RegExp) => page.getByRole('button', { name });
 
+    // vestir e sintonizar abrem a comparação antes de aplicar
+    const compare = page.getByRole('dialog', { name: 'Comparar antes de equipar' });
+    const confirm = async () => {
+      await compare.getByRole('button', { name: /^Confirmar (troca|sintonia)/ }).click();
+      await expect(compare).toHaveCount(0);
+    };
+
     // vestir sem sintonia: avisa e não muda a CA
     await box(/^Mochila:/).click();
     await card(page, 'Anel de Proteção').getByRole('button', { name: 'Vestir' }).click();
-    await expect(page.getByText(/só funciona sintonizado/)).toBeVisible();
+    await expect(compare).toContainText(/só funciona sintonizado/);
+    await confirm();
     await expect(ac(page)).toHaveText('12');
 
     // sintonizar: +1 de CA
     await page.getByRole('button', { name: /Anel de Proteção.*sem sintonia/ }).click();
+    await confirm();
     await expect(ac(page)).toHaveText('13');
 
     // segundo anel: cabe; terceiro: recusado com o motivo
     await card(page, 'Anel da Natação').getByRole('button', { name: 'Vestir' }).click();
-    // o card já avisa antes de tentar; tentando, a mochila diz o motivo
-    await expect(card(page, 'Anel de Andar na Água')).toContainText('Já está usando 2 anéis');
+    await confirm();
+    // a comparação diz o motivo e não deixa confirmar
     await card(page, 'Anel de Andar na Água').getByRole('button', { name: 'Vestir' }).click();
-    await expect(page.locator('[aria-live="polite"]', { hasText: 'Já está usando 2 anéis' })).toBeVisible();
+    await expect(compare).toContainText('Já está usando 2 anéis');
+    await expect(compare.getByRole('button', { name: /^Confirmar/ })).toBeDisabled();
+    await compare.getByRole('button', { name: 'Cancelar' }).click();
     await expect(card(page, 'Anel de Andar na Água')).toBeVisible(); // continua na mochila
 
     // em Equipado: os dois vestidos; tirar o de Proteção devolve a CA
