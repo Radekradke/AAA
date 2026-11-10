@@ -960,3 +960,19 @@ Só funciona no site publicado na Vercel: a busca passa pela função `api/ddb`.
    - equipamento vestido, moedas e PV atual (descontado o dano do D&D Beyond).
 5. Personagem privado: a mensagem explica como deixar público.
 6. Link que não é de personagem: o botão fica desligado com aviso.
+
+## 90. Criar já em nível alto (Trilha de níveis)
+
+1. Criação → Caminho → **Nível inicial** (abaixo da classe). Escolha, por exemplo, 5.
+2. Aparece o capítulo **Níveis**, antes do Despertar, com uma linha por nível (2º ao 5º). Cada nível pede o mesmo que a aba Evoluir:
+   - PV (média ou rolar);
+   - subclasse no nível certo;
+   - aumento de atributo ou talento (+2 em um, +1 em dois ou talento);
+   - escolhas da classe (estilos, manobras, invocações, metamagia…).
+3. **Escolher por mim** completa um nível; **Escolher tudo por mim** completa a trilha. Um nível que falta ou não vale fica marcado com o motivo, e os seguintes esperam.
+4. Com multiclasse ligada nas regras da mesa, cada nível pode trocar de classe (pré-requisito de atributo conferido).
+5. Despertar: a ficha abre no nível escolhido.
+   - Os registros da aba Evoluir mostram cada nível.
+   - PV, espaços de magia, recursos e características batem com quem subiu nível a nível.
+   - As magias novas se escolhem na aba Magias (ela mostra quantas faltam).
+6. Trocar de classe no Caminho limpa a trilha. Baixar o nível inicial corta os níveis a mais.

@@ -399,6 +399,9 @@ export interface Character {
   } | null;
   /** Raça homebrew usada por esta ficha (cópia embutida: funciona offline e na tela do mestre). */
   customRace?: import('./dnd').Race | null;
+  /** Criação já num nível alto (só no rascunho): o nível inicial e os planos do 2º em diante. */
+  startLevel?: number;
+  levelPlans?: (import('../engine/levelUp').LevelUpPlan | undefined)[];
   /** Magias e talentos homebrew que a ficha usa (cópias embutidas, como customRace). */
   customSpells?: import('./dnd').Spell[];
   customFeats?: import('./dnd').Feat[];
