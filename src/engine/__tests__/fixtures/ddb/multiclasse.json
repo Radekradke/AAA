@@ -1,0 +1,24 @@
+{
+  "id": 90000003, "name": "Seraphine", "gender": "Female", "alignmentId": 1,
+  "race": { "fullName": "Tiefling", "baseRaceName": "Tiefling" },
+  "classes": [
+    { "level": 3, "isStartingClass": true, "definition": { "name": "Cleric" }, "subclassDefinition": { "name": "Life Domain" } },
+    { "level": 2, "isStartingClass": false, "definition": { "name": "Fighter" }, "subclassDefinition": null }
+  ],
+  "background": { "definition": { "name": "Acolyte" } },
+  "stats": [{ "id": 1, "value": 14 }, { "id": 2, "value": 10 }, { "id": 3, "value": 13 }, { "id": 4, "value": 8 }, { "id": 5, "value": 15 }, { "id": 6, "value": 12 }],
+  "baseHitPoints": 36,
+  "modifiers": {
+    "race": [{ "type": "bonus", "subType": "charisma-score", "value": 2 }, { "type": "bonus", "subType": "intelligence-score", "value": 1 }],
+    "class": [{ "type": "proficiency", "subType": "medicine" }, { "type": "proficiency", "subType": "persuasion" }],
+    "background": [{ "type": "proficiency", "subType": "insight" }, { "type": "proficiency", "subType": "religion" }]
+  },
+  "classSpells": [{ "spells": [
+    { "prepared": true, "definition": { "name": "Sacred Flame", "level": 0 } },
+    { "prepared": true, "definition": { "name": "Bless", "level": 1 } },
+    { "prepared": true, "definition": { "name": "Guiding Bolt", "level": 1 } },
+    { "prepared": true, "definition": { "name": "Protection from Evil and Good", "level": 1 } },
+    { "prepared": true, "alwaysPrepared": true, "definition": { "name": "Cure Wounds", "level": 1 } }
+  ] }],
+  "inventory": []
+}

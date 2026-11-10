@@ -21,6 +21,7 @@ import { derivedOf } from '@/lib/derivedCache';
 import type { Character } from '@/types/character';
 import { GuildDashboard } from '@/components/character/GuildDashboard';
 import { PasteImportModal } from '@/components/character/PasteImportModal';
+import { DdbImportModal } from '@/components/character/DdbImportModal';
 import { importHeroText } from '@/lib/heroImport';
 
 export function CharacterSelect() {
@@ -47,6 +48,7 @@ export function CharacterSelect() {
 
   const [importError, setImportError] = useState<string | null>(null);
   const [pasting, setPasting] = useState(false);
+  const [ddb, setDdb] = useState(false);
 
   const openId = (id: string) => {
     setCurrent(id);
@@ -296,11 +298,23 @@ export function CharacterSelect() {
         <div style={{ marginTop: 28, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
           <Button onClick={() => setPasting(true)}>Colar ficha (ChatGPT)</Button>
+          <Button onClick={() => setDdb(true)}>Importar do D&amp;D Beyond</Button>
           {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
         </div>
       </div>
       )}
       <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+      {ddb && (
+        <DdbImportModal
+          ownerId={user.id}
+          onClose={() => setDdb(false)}
+          onOpen={(id) => {
+            setDdb(false);
+            toast('Herói importado do D&D Beyond.');
+            openId(id);
+          }}
+        />
+      )}
       {pasting && (
         <PasteImportModal
           ownerId={user.id}

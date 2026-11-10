@@ -1,0 +1,23 @@
+{
+  "id": 90000002, "name": "Brakka", "gender": "Male", "alignmentId": 6,
+  "race": { "fullName": "Half-Orc", "baseRaceName": "Half-Orc" },
+  "classes": [{ "level": 6, "isStartingClass": true, "definition": { "name": "Fighter" }, "subclassDefinition": { "name": "Battle Master" } }],
+  "background": { "definition": { "name": "Soldier" } },
+  "stats": [{ "id": 1, "value": 15 }, { "id": 2, "value": 13 }, { "id": 3, "value": 14 }, { "id": 4, "value": 8 }, { "id": 5, "value": 12 }, { "id": 6, "value": 10 }],
+  "baseHitPoints": 49, "removedHitPoints": 0, "temporaryHitPoints": 5,
+  "modifiers": {
+    "race": [{ "type": "bonus", "subType": "strength-score", "value": 2 }, { "type": "bonus", "subType": "constitution-score", "value": 1 }, { "type": "proficiency", "subType": "intimidation" }, { "type": "language", "subType": "common", "friendlySubtypeName": "Common" }, { "type": "language", "subType": "orc", "friendlySubtypeName": "Orc" }],
+    "class": [{ "type": "bonus", "subType": "strength-score", "value": 2 }, { "type": "proficiency", "subType": "perception" }, { "type": "proficiency", "subType": "survival" }],
+    "background": [{ "type": "proficiency", "subType": "athletics" }],
+    "feat": []
+  },
+  "feats": [{ "definition": { "name": "Great Weapon Master" } }, { "definition": { "name": "Iron Will", "description": "<p>You can't be frightened.</p>" } }],
+  "classSpells": [],
+  "inventory": [
+    { "quantity": 1, "equipped": true, "definition": { "name": "Greatsword", "filterType": "Weapon", "weight": 6 } },
+    { "quantity": 1, "equipped": true, "definition": { "name": "Chain Mail", "filterType": "Armor", "weight": 55 } },
+    { "quantity": 1, "equipped": false, "definition": { "name": "Crossbow, Light", "filterType": "Weapon", "weight": 5 } },
+    { "quantity": 1, "equipped": true, "isAttuned": true, "definition": { "name": "Cloak of Many Stars", "filterType": "Wondrous item", "magic": true, "rarity": "Rare", "canAttune": true, "weight": 1 } }
+  ],
+  "currencies": { "gp": 120 }
+}
