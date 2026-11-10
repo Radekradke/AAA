@@ -42,6 +42,9 @@ interface UiState {
   rollMode: RollMode;
   setRollMode: (m: RollMode) => void;
 
+  /** Atalhos de teclado de rolagem na ficha (só PC). */
+  shortcuts: boolean;
+  toggleShortcuts: () => void;
   /** Dados 3D com física no lugar do dado 2D do overlay. */
   dice3d: boolean;
   toggleDice3d: () => void;
@@ -203,6 +206,10 @@ export const useUiStore = create<UiState>()(
         set({ inspirationArmed: false, armedCharId: null, rollMode: _modeBeforeInspiration });
       },
 
+      shortcuts: true,
+      toggleShortcuts() {
+        set((s) => ({ shortcuts: !s.shortcuts }));
+      },
       // quem pediu menos animação ao sistema começa com o 3D desligado
       dice3d: !prefersReducedMotion(),
       toggleDice3d() {
@@ -329,7 +336,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, bgVideo: s.bgVideo }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, bgVideo: s.bgVideo }),
     },
   ),
 );

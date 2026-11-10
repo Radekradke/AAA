@@ -912,3 +912,17 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 7. Viagem da ficha:
    - Exportar o JSON e importar em outro navegador traz as magias e talentos. Eles entram na biblioteca do aparelho novo.
    - Compartilhar com a mesa ou por link: o mestre vê e conjura a magia na ficha do jogador.
+
+## 87. Atalhos de teclado (PC)
+
+1. Na ficha, sem nenhum campo em foco:
+   - `I` rola a iniciativa (o número aparece no botão "Rolar Iniciativa");
+   - `A` ataca com a arma principal (abre o mesmo cartão de acerto/dano do botão);
+   - `1`–`6` rolam teste de FOR, DES, CON, INT, SAB, CAR; `Alt` + número rola a salvaguarda;
+   - `P` Percepção, `F` Furtividade, `D` d20 livre.
+2. Segurando `Shift`, a rolagem sai com vantagem. O modo escolhido na barra do topo não muda, e a Inspiração preparada continua preparada.
+3. `?` abre a lista de atalhos. Com ela aberta (ou qualquer outra janela), as teclas não rolam nada.
+4. Digitando em "O que eu rolo?", no Diário ou na busca, nenhuma tecla dispara rolagem.
+5. Configurações → Dados e mesa → "Atalhos de teclado" desliga tudo.
+6. No celular os atalhos ficam desligados.
+7. No Linux, o Chrome pode usar `Alt` + número para trocar de aba. Se isso acontecer, use as salvaguardas pela ficha.

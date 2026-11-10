@@ -15,27 +15,33 @@ import { toast } from '@/store/feedbackStore';
  * Selvagem e recursos que voltam ao rolar (Implacável, Perfeição, Inspiração
  * Superior). Mostra o último resultado para lembrar a ordem na mesa.
  */
-export function InitiativeButton({ char, derived, compact }: { char: Character; derived: DerivedCharacter; compact?: boolean }) {
+/** A rolagem de iniciativa da ficha (botão e atalho `I` usam a mesma). */
+export function useInitiativeRoll(char: Character, derived: DerivedCharacter) {
   const { check } = useDiceRoller();
   const store = useCharacterStore();
-  const [last, setLast] = useState<number | null>(null);
   const rules = initiativeRules(char);
-
-  const roll = () => {
+  return () => {
     const mode = useUiStore.getState().rollMode;
     // vantagem de classe + desvantagem da mesa se anulam (regra geral do d20)
     const adv = mode === 'advantage' || rules.advantage;
     const dis = mode === 'disadvantage';
     const label = rules.advantage ? `Iniciativa · ${rules.advantageSource}` : 'Iniciativa';
     const r = check(label, derived.initiative, { advantage: adv && !dis, disadvantage: dis && !adv });
-    setLast(r.total);
     // com a trilha tocando, o combate ganha a música de batalha
     if (music.get().playing) music.setMood('combate');
     for (const f of rules.refills) store.setResource(char.id, f.resId, f.value);
     if (rules.secondTurn) toast(`Reflexos de Ladrão: na 1ª rodada você age de novo na iniciativa ${r.total - 10}.`, { tone: 'info' });
     // na mesa ao vivo, se este herói está no encontro, o valor vai para a ordem compartilhada
     void useSessionStore.getState().reportInitiative(char.id, r.total);
+    return r;
   };
+}
+
+export function InitiativeButton({ char, derived, compact }: { char: Character; derived: DerivedCharacter; compact?: boolean }) {
+  const [last, setLast] = useState<number | null>(null);
+  const rules = initiativeRules(char);
+  const rollInitiative = useInitiativeRoll(char, derived);
+  const roll = () => setLast(rollInitiative().total);
 
   const tip = [
     `1d20 ${modStr(derived.initiative)}`,
@@ -45,7 +51,7 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
   ].filter(Boolean).join(' · ');
 
   return (
-    <button type="button" className={'fv-init-btn' + (compact ? ' is-compact' : '')} onClick={roll} title={tip} aria-label={`Rolar iniciativa (${tip})`}>
+    <button type="button" className={'fv-init-btn' + (compact ? ' is-compact' : '')} onClick={roll} title={tip} aria-label={`Rolar iniciativa (${tip})`} aria-keyshortcuts="I">
       <span className="fv-init-btn-icon" aria-hidden>⚔</span>
       <span className="fv-init-btn-text">
         <b>Rolar Iniciativa</b>

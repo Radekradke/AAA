@@ -19,6 +19,7 @@ import { TabMesa } from '@/components/sheet/TabMesa';
 import { TabEvoluir } from '@/components/sheet/TabEvoluir';
 import { CharacterEditModal } from '@/components/character/CharacterEditModal';
 import { RollModeToggle } from '@/components/dice/RollModeToggle';
+import { SheetShortcuts } from '@/components/sheet/useRollShortcuts';
 import { useUiStore } from '@/store/uiStore';
 import { mayAutoShow } from '@/services/onboardingSync';
 import { loadDice3d } from '@/lib/dice3d';
@@ -184,6 +185,7 @@ export function CharacterSheet() {
       </div>
 
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
+      <SheetShortcuts char={char} derived={derived} />
       {/* anotação rápida em qualquer aba: vai para os Rabiscos do Diário */}
       <Suspense fallback={null}>
         <QuickNote char={char} />

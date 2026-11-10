@@ -166,7 +166,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
         </button>
       )}
       <LoreTooltip info={calcLore(`Ataque · ${atk.name}`, atk.hitBreakdown, { intro: '1d20 + os bônus abaixo. Compare com a CA do alvo.' })}>
-        <button type="button" onClick={onAttack} style={hitStyle}>
+        <button type="button" onClick={onAttack} style={hitStyle} data-attack-hit={atk.uid}>
           {modStr(atk.attackBonus - (power && atk.powerAttack ? 5 : 0))}
           <div style={subStyle}>ACERTO</div>
         </button>
