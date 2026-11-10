@@ -63,16 +63,16 @@ const NAMES: Record<string, NamePool> = {
   },
 };
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pick<T>(arr: T[], rand: () => number = Math.random): T {
+  return arr[Math.floor(rand() * arr.length)];
 }
 
 /** Gera um nome temático para a raça/sexo, às vezes com sobrenome/epíteto. */
-export function randomName(raceId: string, gender: 'masc' | 'fem'): string {
+export function randomName(raceId: string, gender: 'masc' | 'fem', rand: () => number = Math.random): string {
   const pool = NAMES[raceId] ?? GENERIC;
-  const first = pick(gender === 'fem' ? pool.fem : pool.masc);
+  const first = pick(gender === 'fem' ? pool.fem : pool.masc, rand);
   // ~60% de chance de receber um sobrenome/epíteto
-  if (Math.random() < 0.6) return `${first} ${pick(pool.surnames)}`;
+  if (rand() < 0.6) return `${first} ${pick(pool.surnames, rand)}`;
   return first;
 }
 

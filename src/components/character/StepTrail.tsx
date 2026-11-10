@@ -17,6 +17,7 @@ import { STEP_TRAIL } from '@/engine/creationSummary';
 import { ChoicePicker } from '@/components/sheet/ChoicePicker';
 import { StepHeader } from './creatorUi';
 import type { StepProps } from './stepTypes';
+import '@/styles/session.css';
 
 /**
  * Trilha de níveis: herói que começa acima do 1º. Cada nível pede o mesmo

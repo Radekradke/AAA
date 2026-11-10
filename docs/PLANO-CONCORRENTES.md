@@ -19,6 +19,12 @@ Conferido no código em 09/11/2026, item por item do documento "Ficha Viva — C
 - **Identidade visual:** 8 temas com claro e escuro, cartas de herói, crítico cinematográfico.
 - **Offline com sync, sem limite de fichas:** funciona sem conta e sem internet (PWA); com conta, sincroniza no Supabase. Não há limite de personagens.
 
-## Fora do plano, mas vale avaliar
+## Depois do plano (feito em 10/11/2026)
 
-- **Importar do D&D Beyond por link** (o Shard faz). Exigiria um servidor intermediário, porque o navegador não lê a API do D&D Beyond direto.
+| Recurso | Onde está |
+|---|---|
+| Atalhos de teclado no PC | `I`, `A`, `1`–`6`, `Alt` + número, `Shift` = vantagem, `?` = lista (TESTES-MANUAIS §87) |
+| Rolagens no Discord | Webhook da mesa (mestre, `supabase/discord.sql`) e pessoal (Configurações) (§88) |
+| Importar do D&D Beyond pelo link | Função `api/ddb` na Vercel + conversor; o que falta vira homebrew ou aviso (§89) |
+| Criar já em nível alto | Capítulo "Níveis" na criação, mesmo código da aba Evoluir (§90) |
+| Herói rápido | Home → Herói rápido: nível, classe ou estilo, "Sortear de novo" (§91) |

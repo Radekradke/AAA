@@ -8917,3 +8917,15 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
   .fv-trail-head { grid-template-columns: 4.5rem 1fr; }
   .fv-trail-head small { grid-column: 1 / -1; text-align: left; max-width: none; }
 }
+
+/* Herói rápido */
+.fv-quick { display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; }
+.fv-quick-opts { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.fv-quick-opts label, .fv-quick-style { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+.fv-quick-style .fv-live-seg { flex-wrap: wrap; }
+.fv-quick-card { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--sunk); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.fv-quick-card h3 { margin: 0; font-family: var(--font-display); font-size: 20px; color: var(--gold); }
+.fv-quick-card header p { margin: 2px 0 0; color: var(--muted); }
+.fv-quick-spells { margin: 0; }
+.fv-quick-actions { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+.fv-quick-actions b { color: var(--ink); }
