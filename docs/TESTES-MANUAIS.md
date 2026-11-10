@@ -976,3 +976,16 @@ Só funciona no site publicado na Vercel: a busca passa pela função `api/ddb`.
    - PV, espaços de magia, recursos e características batem com quem subiu nível a nível.
    - As magias novas se escolhem na aba Magias (ela mostra quantas faltam).
 6. Trocar de classe no Caminho limpa a trilha. Baixar o nível inicial corta os níveis a mais.
+
+## 91. Herói rápido (one-shot)
+
+1. Home → **Herói rápido** (ou Heróis → "Herói rápido (one-shot)").
+2. Escolha o nível (padrão 3). Opcionalmente, escolha a classe ou o estilo (Proteger e resistir / Usar magia / Explorar em silêncio).
+3. O cartão mostra nome, raça, classe e subclasse, PV, CA, ataque principal, magias de destaque e as "duas primeiras ações".
+4. **Sortear de novo** troca o herói, mantendo nível, classe e estilo.
+5. **Criar herói** abre a ficha. Confira:
+   - nada pendente: perícias, idiomas e escolhas de classe;
+   - subclasse no nível certo;
+   - magias conhecidas e preparadas até o limite do nível;
+   - registros de nível na aba Evoluir (os mesmos planos da Trilha de níveis).
+6. Repetir com níveis 1, 5, 11 e 20 e classes diferentes.

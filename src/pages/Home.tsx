@@ -90,6 +90,16 @@ export function Home() {
     };
   }, [onboarded, openTutorial]);
 
+  const goQuick = () => {
+    bump(1.2);
+    if (!user) {
+      rememberNext('/personagens');
+      navigate('/entrar');
+      return;
+    }
+    navigate('/personagens', { state: { quick: true } });
+  };
+
   /** Telas que pedem conta (ou convidado) passam pela tela de entrar e voltam. */
   const go = (path: string, auth = true) => {
     bump(1.2);
@@ -122,7 +132,10 @@ export function Home() {
     ...(heroCount ? [heroes, newHero] : [newHero, heroes]),
     { key: 'tables', label: 'Mesas', hint: 'Jogue com amigos: crie ou entre numa sala', icon: 'banner', run: () => go('/mesas') },
   ];
+  // one-shot: herói pronto em um minuto
+  const quickItem: MenuItem = { key: 'quick', label: 'Herói rápido', hint: 'Um herói jogável na hora, no nível que quiser', icon: 'd20', run: () => goQuick() };
   const extras: MenuItem[] = [
+    quickItem,
     { key: 'config', label: 'Configurações', hint: 'Tema, som, dados e conta', icon: 'gear', run: () => go('/config', false) },
     { key: 'tutorial', label: 'Tutorial', hint: 'Como tudo funciona', icon: 'compass', run: openTutorial },
   ];

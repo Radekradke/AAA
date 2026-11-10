@@ -4,10 +4,12 @@ import { getClass } from '@/data/classes';
 import { subclassesFor } from '@/data/subclasses';
 import { isAsiLevel } from '@/data/classFeatures';
 import { FEATS } from '@/data/feats';
+import { getSpell } from '@/data/spells';
 import { averageHp, classLevelOf, effectiveAbilities, featPrereqIssue, subclassLevelFor, validateLevelUp, ABILITY_CAP, type LevelUpPlan } from './levelUp';
 import { groupSpecs, specsAt, chosenFor } from './classChoices';
 import { subclassOf } from './characterClasses';
-import { classAbilityOrder } from './characterBuilder';
+import { classAbilityOrder, finalizeCharacter } from './characterBuilder';
+import { deriveCharacter } from './dndRules';
 import { levelUpCharacter } from './levelUpApply';
 
 /**
@@ -33,7 +35,10 @@ export function autoPlan(char: Character, classId: string = char.classId, prefer
     for (const g of groupSpecs(char, specsAt(classId, newClassLevel, sub, { ...(char.choices ?? {}), ...picks }))) {
       if ((picks[g.spec.storeKey]?.length ?? 0) === g.need) continue;
       const taken = new Set(chosenFor(char, g.spec.storeKey));
-      picks[g.spec.storeKey] = g.options.filter((o) => !taken.has(o.id)).slice(0, g.need).map((o) => o.id);
+      // magia à escolha (Segredos Mágicos…): o círculo mais alto que dá
+      const free = g.options.filter((o) => !taken.has(o.id));
+      const ordered = g.spec.catalog === 'spell' ? [...free].sort((a, b) => (getSpell(b.id)?.level ?? 0) - (getSpell(a.id)?.level ?? 0)) : free;
+      picks[g.spec.storeKey] = ordered.slice(0, g.need).map((o) => o.id);
       changed = true;
     }
     if (!changed) break;
@@ -112,4 +117,15 @@ export function autoTrail(base: Character, target: number, keep: (LevelUpPlan | 
     char = next.char;
   }
   return plans;
+}
+
+/** Despertar: monta o 1º nível e, se o herói começa mais alto, aplica a Trilha de níveis (os mesmos planos da aba Evoluir). */
+export function finalizeWithTrail(draft: Character): Character {
+  const target = Math.max(1, Math.min(20, draft.startLevel ?? 1));
+  const lvl1 = finalizeCharacter({ ...draft, level: 1, classLevels: [{ classId: draft.classId, level: 1 }] });
+  delete lvl1.startLevel;
+  delete lvl1.levelPlans;
+  if (target <= 1) return lvl1;
+  lvl1.hpCurrent = deriveCharacter(lvl1).maxHp;
+  return runTrail(lvl1, draft.levelPlans ?? [], target).char;
 }

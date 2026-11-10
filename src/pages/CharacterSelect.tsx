@@ -22,6 +22,7 @@ import type { Character } from '@/types/character';
 import { GuildDashboard } from '@/components/character/GuildDashboard';
 import { PasteImportModal } from '@/components/character/PasteImportModal';
 import { DdbImportModal } from '@/components/character/DdbImportModal';
+import { QuickHeroModal } from '@/components/character/QuickHeroModal';
 import { importHeroText } from '@/lib/heroImport';
 
 export function CharacterSelect() {
@@ -49,6 +50,8 @@ export function CharacterSelect() {
   const [importError, setImportError] = useState<string | null>(null);
   const [pasting, setPasting] = useState(false);
   const [ddb, setDdb] = useState(false);
+  // Herói rápido: também abre direto quando a Home manda (estado da navegação)
+  const [quick, setQuick] = useState(() => !!(window.history.state?.usr as { quick?: boolean } | undefined)?.quick);
 
   const openId = (id: string) => {
     setCurrent(id);
@@ -299,11 +302,23 @@ export function CharacterSelect() {
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
           <Button onClick={() => setPasting(true)}>Colar ficha (ChatGPT)</Button>
           <Button onClick={() => setDdb(true)}>Importar do D&amp;D Beyond</Button>
+          <Button onClick={() => setQuick(true)}>Herói rápido (one-shot)</Button>
           {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
         </div>
       </div>
       )}
       <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+      {quick && (
+        <QuickHeroModal
+          ownerId={user.id}
+          onClose={() => setQuick(false)}
+          onOpen={(id) => {
+            setQuick(false);
+            toast('Herói rápido pronto.');
+            openId(id);
+          }}
+        />
+      )}
       {ddb && (
         <DdbImportModal
           ownerId={user.id}
