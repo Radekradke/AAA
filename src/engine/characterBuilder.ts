@@ -79,6 +79,11 @@ const CLASS_PRIORITY: Record<string, AbilityKey[]> = {
   wizard: ['int', 'con', 'dex', 'wis', 'cha', 'str'],
 };
 
+/** Ordem de importância dos atributos para a classe (sugestões automáticas). */
+export function classAbilityOrder(classId: string): AbilityKey[] {
+  return CLASS_PRIORITY[classId] ?? ['str', 'con', 'dex', 'wis', 'int', 'cha'];
+}
+
 /** Os 2 atributos mais importantes da classe (recomendações leves na criação). */
 export function recommendedAbilities(classId: string): AbilityKey[] {
   return (CLASS_PRIORITY[classId] ?? ['str', 'con']).slice(0, 2);

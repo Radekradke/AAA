@@ -1,3 +1,4 @@
+import { StepTrail } from '@/components/character/StepTrail';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction } from '@/store/feedbackStore';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ import { StepGifts } from '@/components/character/StepGifts';
 import { StepAwaken } from '@/components/character/StepAwaken';
 import { HeroPanel } from '@/components/character/HeroPanel';
 import { Modal } from '@/components/ui/Modal';
-import { creationPending, CREATION_STEPS, STEP_ABILITIES, STEP_BACKGROUND, STEP_CLASS, STEP_GEAR, STEP_GIFTS, STEP_IDENTITY, STEP_RACE, STEP_SKILLS, STEP_SPELLS, visibleSteps } from '@/engine/creationSummary';
+import { creationPending, CREATION_STEPS, STEP_ABILITIES, STEP_BACKGROUND, STEP_CLASS, STEP_GEAR, STEP_GIFTS, STEP_IDENTITY, STEP_RACE, STEP_SKILLS, STEP_SPELLS, STEP_TRAIL, visibleSteps } from '@/engine/creationSummary';
 import { suggestCreationSpells } from '@/engine/creationSpells';
 import { defaultSelection, applySelection } from '@/engine/loadout';
 import { playLevel } from '@/lib/sfx';
@@ -163,6 +164,7 @@ export function CharacterCreator() {
       case STEP_SKILLS: return <StepSkills char={char} update={update} />;
       case STEP_SPELLS: return <StepSpells char={char} update={update} />;
       case STEP_GEAR: return <StepGear char={char} update={update} />;
+      case STEP_TRAIL: return <StepTrail char={char} update={update} />;
       default: return <StepAwaken char={char} update={update} onGoStep={goStep} />;
     }
   };

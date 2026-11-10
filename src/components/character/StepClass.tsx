@@ -43,6 +43,8 @@ export function StepClass({ char, update }: StepProps) {
       const oldCls = getClass(c.classId);
       // subclasse, escolhas do 1º nível e magias eram da classe antiga
       c.subclassId = null;
+      // a trilha de níveis era da classe antiga
+      c.levelPlans = [];
       clearClassChoices(c);
       resetCreationSpells(c);
       // atributos: só realinha o array padrão se o jogador ainda não mexeu neles
@@ -143,6 +145,23 @@ export function StepClass({ char, update }: StepProps) {
               <small className="fv-voice-none">sem fala gravada para esta versão</small>
             )}
           </div>
+          <label className="fv-start-level">
+            <span>Nível inicial</span>
+            <select
+              className="fv-input"
+              value={char.startLevel ?? 1}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                update((c) => {
+                  c.startLevel = n > 1 ? n : undefined;
+                  c.levelPlans = (c.levelPlans ?? []).slice(0, Math.max(0, n - 1));
+                });
+              }}
+            >
+              {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n === 1 ? '1º (começo da aventura)' : `${n}º`}</option>)}
+            </select>
+            <small>{(char.startLevel ?? 1) > 1 ? 'A etapa "Trilha de níveis" mostra o que cada nível pede, com "Escolher por mim".' : 'Mesa começando mais alto? Escolha o nível e o app monta os níveis por você.'}</small>
+          </label>
         </ChoiceDetail>
       </div>
     </div>

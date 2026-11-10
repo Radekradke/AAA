@@ -1,21 +1,17 @@
 import { diaryOf, entrySession } from '@/engine/diary';
-import { toolLabel } from '@/data/tools';
 import { inspirationCount, setInspirationCount } from '@/engine/inspiration';
 import type { JournalEntry } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
-import { saveSlotPools, syncSlotPools, changeSpellSelection } from '@/engine/spellcasting';
+import { saveSlotPools, syncSlotPools } from '@/engine/spellcasting';
 import { saveHitDicePools } from '@/engine/hitDice';
-import { gainsSpellSwap } from '@/engine/spellRules';
 import { syncResources } from '@/engine/classResources';
 import { applyChoicePicks } from '@/engine/classChoices';
 import { grantChoiceEffects, withSubclassTools } from '@/engine/choiceEffects';
-import { getFeat } from '@/data/feats';
 import { ensureCharacterV2, validateLevelUp, classLevelOf, featuresGained } from '@/engine/levelUp';
-import { subclassOf } from '@/engine/characterClasses';
-import { ABILITY_KEYS } from '@/types/dnd';
 import { getClass } from '@/data/classes';
 import type { CharacterState, StoreCtx } from './types';
 import { newId } from './ids';
+import { applyLevelUp } from '@/engine/levelUpApply';
 
 /** Evolução e registro: nível, subir de nível guiado, escolhas de classe, XP, Inspiração, diário, notas, campanha e edição. */
 export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterState, 'addXp' | 'addJournalEntry' | 'updateDiary' | 'updateJournalEntry' | 'deleteJournalEntry' | 'setNotes' | 'setLevel' | 'levelUp' | 'setClassChoices' | 'toggleInspiration' | 'gainInspiration' | 'spendInspiration' | 'setInspiration' | 'updateCampaign' | 'editCharacter'> {
@@ -129,68 +125,8 @@ export function progressionActions({ get, mutate }: StoreCtx): Pick<CharacterSta
       if (errors.length) return { ok: false, errors };
 
       const beforeMax = deriveCharacter(char).maxHp;
-      const newClassLevel = classLevelOf(char, plan.classId) + 1;
-      const newLevel = char.level + 1;
 
-      mutate(id, (c) => {
-        Object.assign(c, ensureCharacterV2(c));
-        saveHitDicePools(c);
-        saveSlotPools(c);
-        c.level = newLevel;
-        const entry = c.classLevels.find((x) => x.classId === plan.classId);
-        if (entry) entry.level += 1;
-        else c.classLevels.push({ classId: plan.classId, level: 1 });
-
-        if (plan.subclassId) {
-          c.classLevels.find((cl) => cl.classId === plan.classId)!.subclassId = plan.subclassId;
-          if (plan.classId === c.classId) c.subclassId = plan.subclassId;
-        }
-        // ferramentas da subclasse (Assassino) entram ao chegar no nível dela
-        c.toolProfs = withSubclassTools(c).toolProfs ?? c.toolProfs;
-        // magias conhecidas: ao subir de nível pode trocar uma (PHB 2014)
-        if (gainsSpellSwap(c, plan.classId)) changeSpellSelection(c, plan.classId, (s) => { s.spellSwaps = (s.spellSwaps ?? 0) + 1; });
-        if (plan.asi?.kind === 'asi') {
-          for (const k of ABILITY_KEYS) {
-            const inc = plan.asi.increases[k] ?? 0;
-            if (inc) c.asiBonuses[k] = (c.asiBonuses[k] ?? 0) + inc;
-          }
-        }
-        if (plan.asi?.kind === 'feat') {
-          c.feats.push(plan.asi.featId);
-          // talentos que dão proficiência com ferramenta (Chef, Envenenador)
-          const featDef = getFeat(plan.asi.featId);
-          for (const tid of featDef?.tools ?? []) {
-            if (!c.toolProfs.some((t) => t.id === tid)) c.toolProfs.push({ id: tid, label: toolLabel(tid), source: featDef!.label });
-          }
-          if (plan.asi.ability) {
-            c.asiBonuses[plan.asi.ability] = (c.asiBonuses[plan.asi.ability] ?? 0) + 1;
-          }
-        }
-
-        // escolhas de classe (Metamagia, Estilo de Luta, Manobras…) e seus efeitos na ficha
-        if (plan.choices || plan.replace) {
-          applyChoicePicks(c, plan.choices ?? {}, plan.replace ?? {});
-          grantChoiceEffects(c, plan.choices ?? {});
-        }
-
-        c.levelHistory.push({
-          level: newLevel,
-          classId: plan.classId,
-          classLevel: newClassLevel,
-          hpMethod: plan.hpMethod,
-          hpValue: plan.hpValue,
-          features: featuresGained(plan.classId, newClassLevel, plan.subclassId ?? subclassOf(c, plan.classId)),
-          asi: plan.asi,
-          subclassId: plan.subclassId,
-          choices: plan.choices && Object.keys(plan.choices).length ? plan.choices : undefined,
-          at: Date.now(),
-        });
-
-        // dados de vida, espaços de magia e recursos acompanham o novo nível
-        saveHitDicePools(c);
-        saveSlotPools(c);
-        c.combat.resources = syncResources(c, c.combat.resources, true);
-      });
+      mutate(id, (c) => applyLevelUp(c, plan));
 
       // PV atual sobe junto com o novo máximo
       const after = get().getCharacter(id);

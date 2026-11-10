@@ -1,3 +1,5 @@
+import { finalizeCharacter } from './characterBuilder';
+import { runTrail } from './levelTrail';
 import { subraceOf } from '@/data/races';
 import type { Character } from '@/types/character';
 import { raceOf } from '@/data/races';
@@ -41,6 +43,7 @@ export const CREATION_STEPS = [
   { id: 'pericias', label: 'Perícias', title: 'Perícias', subtitle: 'No que você é treinado.' },
   { id: 'magias', label: 'Magias', title: 'Magias', subtitle: 'Truques e magias do 1º nível.' },
   { id: 'equipamento', label: 'Equipamento', title: 'Equipamento', subtitle: 'O que você carrega na primeira aventura.' },
+  { id: 'trilha', label: 'Níveis', title: 'Trilha de níveis', subtitle: 'Do 2º nível até o nível inicial: o que cada um pede.' },
   { id: 'despertar', label: 'Despertar', title: 'Despertar', subtitle: 'Dê nome e alma ao herói.' },
 ] as const;
 
@@ -52,11 +55,12 @@ export const STEP_ABILITIES = 4;
 export const STEP_SKILLS = 5;
 export const STEP_SPELLS = 6;
 export const STEP_GEAR = 7;
-export const STEP_IDENTITY = 8;
+export const STEP_TRAIL = 8;
+export const STEP_IDENTITY = 9;
 
 /** Etapas que este herói percorre: "Magias" só para quem conjura no 1º nível. */
 export function visibleSteps(char: Character): number[] {
-  return CREATION_STEPS.map((_, i) => i).filter((i) => (i !== STEP_SPELLS || castsAtCreation(char)) && (i !== STEP_GIFTS || giftsAtCreation(char)));
+  return CREATION_STEPS.map((_, i) => i).filter((i) => (i !== STEP_SPELLS || castsAtCreation(char)) && (i !== STEP_GIFTS || giftsAtCreation(char)) && (i !== STEP_TRAIL || (char.startLevel ?? 1) > 1));
 }
 
 /** Há algo a decidir no capítulo Dons (subclasse do 1º nível, escolhas da classe ou da raça)? */
@@ -203,6 +207,16 @@ export function creationPending(char: Character): PendingItem[] {
   }
   for (const label of abilityPending(char)) pending.push({ label, step: STEP_ABILITIES });
   for (const label of creationSpellPending(char)) pending.push({ label, step: STEP_SPELLS });
+  for (const label of trailPending(char)) pending.push({ label, step: STEP_TRAIL });
 
   return pending;
+}
+
+/** Trilha de níveis: qual nível falta escolher ou não vale (herói que começa acima do 1º). */
+export function trailPending(char: Character): string[] {
+  const target = char.startLevel ?? 1;
+  if (target <= 1) return [];
+  const lvl1 = finalizeCharacter({ ...char, level: 1, classLevels: [{ classId: char.classId, level: 1 }] });
+  const stuck = runTrail(lvl1, char.levelPlans ?? [], target).steps.find((st) => st.errors.length);
+  return stuck ? [`Trilha de níveis: complete o ${stuck.level}º nível`] : [];
 }

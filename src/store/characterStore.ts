@@ -1,3 +1,4 @@
+import { runTrail } from '@/engine/levelTrail';
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -17,6 +18,18 @@ import { progressionActions } from './character/progression';
 import { characterImportError } from '@/engine/characterImport';
 
 export type { CharacterState } from './character/types';
+
+/** Despertar: monta o 1º nível e, se o herói começa mais alto, aplica a Trilha de níveis (os mesmos planos da aba Evoluir). */
+function finalizeWithTrail(draft: Character): Character {
+  const target = Math.max(1, Math.min(20, draft.startLevel ?? 1));
+  const plans = draft.levelPlans ?? [];
+  const lvl1 = finalizeCharacter({ ...draft, level: 1, classLevels: [{ classId: draft.classId, level: 1 }] });
+  delete lvl1.startLevel;
+  delete lvl1.levelPlans;
+  if (target <= 1) return lvl1;
+  lvl1.hpCurrent = deriveCharacter(lvl1).maxHp;
+  return runTrail(lvl1, plans, target).char;
+}
 
 export const useCharacterStore = create<CharacterState>()(
   persist(
@@ -68,7 +81,7 @@ export const useCharacterStore = create<CharacterState>()(
         },
         finalizeDraft(id) {
           set((state) => ({
-            characters: state.characters.map((c) => (c.id === id ? finalizeCharacter(c) : c)),
+            characters: state.characters.map((c) => (c.id === id ? finalizeWithTrail(c) : c)),
             currentId: id,
           }));
           // garante PV cheio ao despertar
