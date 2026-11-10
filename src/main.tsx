@@ -7,12 +7,24 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { installGlobalErrorHandlers } from './lib/errorReporter';
 import { installCardTilt } from './lib/cardTilt';
 import './store/homebrewStore';
+import { useUiStore } from './store/uiStore';
 import './styles/fonts';
 import './styles/globals.css';
 import './styles/experience.css';
 import './styles/mobile.css';
 import './styles/responsive.css';
 import { loadFixesCss, loadThemeCss, savedTheme } from './lib/themeCss';
+
+// Discord pessoal: o envio só carrega quando há um webhook (não pesa a primeira tela)
+const discordOn = () => !!useUiStore.getState().discordWebhook;
+if (discordOn()) void import('./lib/discordPersonal');
+else {
+  const stop = useUiStore.subscribe((s) => {
+    if (!s.discordWebhook) return;
+    stop();
+    void import('./lib/discordPersonal');
+  });
+}
 // animações básicas vêm junto (entradas com opacity:0 não podem esperar a rede
 // para aparecer); arrastar/layout (domMax) só nos toasts, carregado à parte.
 // strict: nenhum `motion` completo escondido no bundle.

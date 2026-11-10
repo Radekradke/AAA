@@ -1,0 +1,34 @@
+{
+  "id": 90000001, "name": "Ilse Varga", "gender": "Female", "age": 112, "alignmentId": 2,
+  "race": { "fullName": "High Elf", "baseRaceName": "Elf", "baseName": "Elf" },
+  "classes": [{ "level": 5, "isStartingClass": true, "definition": { "name": "Wizard" }, "subclassDefinition": { "name": "School of Evocation" } }],
+  "background": { "definition": { "name": "Sage" } },
+  "stats": [{ "id": 1, "value": 8 }, { "id": 2, "value": 14 }, { "id": 3, "value": 13 }, { "id": 4, "value": 15 }, { "id": 5, "value": 12 }, { "id": 6, "value": 10 }],
+  "overrideStats": [{ "id": 1, "value": null }, { "id": 2, "value": null }, { "id": 3, "value": null }, { "id": 4, "value": null }, { "id": 5, "value": null }, { "id": 6, "value": null }],
+  "baseHitPoints": 26, "removedHitPoints": 4, "temporaryHitPoints": 0,
+  "modifiers": {
+    "race": [{ "type": "bonus", "subType": "dexterity-score", "value": 2 }, { "type": "bonus", "subType": "intelligence-score", "value": 1 }, { "type": "proficiency", "subType": "perception" }, { "type": "language", "subType": "elvish", "friendlySubtypeName": "Elvish" }, { "type": "language", "subType": "common", "friendlySubtypeName": "Common" }, { "type": "language", "subType": "draconic", "friendlySubtypeName": "Draconic" }],
+    "class": [{ "type": "bonus", "subType": "intelligence-score", "value": 2 }, { "type": "proficiency", "subType": "arcana" }, { "type": "proficiency", "subType": "investigation" }],
+    "background": [{ "type": "proficiency", "subType": "history" }, { "type": "language", "subType": "celestial", "friendlySubtypeName": "Celestial" }, { "type": "language", "subType": "infernal", "friendlySubtypeName": "Infernal" }]
+  },
+  "feats": [],
+  "classSpells": [{ "spells": [
+    { "prepared": true, "definition": { "name": "Fire Bolt", "level": 0 } },
+    { "prepared": true, "definition": { "name": "Mage Hand", "level": 0 } },
+    { "prepared": true, "definition": { "name": "Toll the Dead", "level": 0 } },
+    { "prepared": true, "definition": { "name": "Magic Missile", "level": 1 } },
+    { "prepared": true, "definition": { "name": "Shield", "level": 1 } },
+    { "prepared": false, "definition": { "name": "Detect Magic", "level": 1 } },
+    { "prepared": true, "definition": { "name": "Misty Step", "level": 2 } },
+    { "prepared": true, "definition": { "name": "Fireball", "level": 3 } },
+    { "prepared": false, "definition": { "name": "Leomund's Tiny Hut", "level": 3 } },
+    { "prepared": true, "definition": { "name": "Bonfire Lance", "level": 2, "school": "Evocation", "concentration": false, "ritual": false, "components": [1, 2], "range": { "origin": "Ranged", "rangeValue": 60 }, "duration": { "durationType": "Instantaneous" }, "snippet": "A lance of <b>fire</b> strikes a creature." } }
+  ] }],
+  "inventory": [
+    { "quantity": 1, "equipped": true, "definition": { "name": "Quarterstaff", "filterType": "Weapon", "weight": 4 } },
+    { "quantity": 1, "equipped": false, "definition": { "name": "Spellbook", "filterType": "Other Gear", "weight": 3 } }
+  ],
+  "currencies": { "cp": 3, "sp": 12, "ep": 0, "gp": 41, "pp": 1 },
+  "traits": { "personalityTraits": "Lê tudo o que encontra.", "ideals": "Conhecimento.", "bonds": "Minha biblioteca.", "flaws": "Distraída.", "appearance": "Cabelo prateado." },
+  "notes": { "backstory": "<p>Estudou em Candlekeep.</p>" }
+}

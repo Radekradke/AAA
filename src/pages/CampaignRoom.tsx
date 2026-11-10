@@ -29,6 +29,7 @@ import '@/styles/stage.css';
 import { InviteCard } from '@/components/campaign/InviteCard';
 import { SchemaNotice } from '@/components/campaign/SchemaNotice';
 import { AgendaCard } from '@/components/campaign/AgendaCard';
+import { DiscordCard } from '@/components/campaign/DiscordCard';
 
 // bestiário (65 criaturas com ficha e arte): só o mestre vê, baixa sob demanda
 const BestiaryGallery = lazy(() => import('@/components/bestiary/BestiaryGallery').then((m) => ({ default: m.BestiaryGallery })));
@@ -129,6 +130,9 @@ export function CampaignRoom() {
 
         {/* banco desatualizado: o mestre vê qual script falta */}
         {isMaster && <SchemaNotice />}
+
+        {/* Discord da mesa (mestre): rolagens públicas no canal */}
+        {isMaster && campaign && user && !user.guest && <DiscordCard campaignId={campaign.id} />}
 
         {/* convite (mestre): código, link e QR */}
         {isMaster && invite && campaign && (

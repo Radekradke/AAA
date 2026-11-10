@@ -42,6 +42,9 @@ interface UiState {
   rollMode: RollMode;
   setRollMode: (m: RollMode) => void;
 
+  /** Webhook pessoal do Discord: só neste aparelho (nunca vai na ficha nem na nuvem). */
+  discordWebhook: string;
+  setDiscordWebhook: (url: string) => void;
   /** Atalhos de teclado de rolagem na ficha (só PC). */
   shortcuts: boolean;
   toggleShortcuts: () => void;
@@ -206,6 +209,10 @@ export const useUiStore = create<UiState>()(
         set({ inspirationArmed: false, armedCharId: null, rollMode: _modeBeforeInspiration });
       },
 
+      discordWebhook: '',
+      setDiscordWebhook(url) {
+        set({ discordWebhook: url.trim() });
+      },
       shortcuts: true,
       toggleShortcuts() {
         set((s) => ({ shortcuts: !s.shortcuts }));
@@ -336,7 +343,7 @@ export const useUiStore = create<UiState>()(
       name: 'fv-ui',
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, bgVideo: s.bgVideo }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, discordWebhook: s.discordWebhook, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, bgVideo: s.bgVideo }),
     },
   ),
 );

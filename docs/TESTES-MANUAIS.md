@@ -926,3 +926,37 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 5. Configurações → Dados e mesa → "Atalhos de teclado" desliga tudo.
 6. No celular os atalhos ficam desligados.
 7. No Linux, o Chrome pode usar `Alt` + número para trocar de aba. Se isso acontecer, use as salvaguardas pela ficha.
+
+## 88. Discord
+
+1. No Discord: configurações do canal → Integrações → Webhooks → Novo webhook → Copiar URL.
+2. **Mesa (mestre):** rode `supabase/discord.sql`. Na sala da campanha, cartão "Discord da mesa":
+   - Cole a URL, toque **Testar** (chega "Teste da Ficha Viva" no canal) e **Salvar**.
+   - Depois de salvo, só o fim do endereço aparece.
+   - Abra a mesa ao vivo. Rolagens **públicas** (mestre e jogadores) aparecem no canal com nome, rolagem, dados e total. 20 natural vem em dourado.
+   - Rolagem "Só mestre" ou "Só eu" **não** aparece.
+   - Entrando como jogador, o cartão não aparece.
+3. **Pessoal:** Configurações → Dados e mesa → "Discord pessoal".
+   - Cole a URL, teste e salve.
+   - Rolagens da ficha vão para o canal com o nome do herói.
+   - Com "Só eu" ou "Só mestre" na mesa ao vivo, nada sai.
+   - Se for o mesmo webhook da mesa, não duplica.
+4. Texto com `@everyone` no nome da rolagem não marca ninguém.
+
+## 89. Importar do D&D Beyond
+
+Só funciona no site publicado na Vercel: a busca passa pela função `api/ddb`.
+
+1. No D&D Beyond, deixe o personagem público (Character Settings → Privacy → Public) e copie o link.
+2. Heróis → **Importar do D&D Beyond** → cole o link → **Buscar personagem**.
+3. A prévia mostra nome, raça, classe e a lista do que foi adaptado:
+   - multiclasse: entra a classe principal com todos os níveis;
+   - magias e talentos fora do app viram homebrew (aparecem na biblioteca);
+   - itens fora do catálogo viram itens criados;
+   - diferença de PV máximo (a ficha usa a média por nível).
+4. **Criar herói** abre a ficha. Confira:
+   - atributos (base + raça + aumentos), perícias e especializações;
+   - idiomas, magias (preparadas e grimório do mago);
+   - equipamento vestido, moedas e PV atual (descontado o dano do D&D Beyond).
+5. Personagem privado: a mensagem explica como deixar público.
+6. Link que não é de personagem: o botão fica desligado com aviso.

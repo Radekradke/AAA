@@ -624,3 +624,14 @@ No app (`store/sessionStore.ts`, `syncMyVitals`): quando a ficha do jogador muda
 **Ordens do mestre não se perdem mais** (não precisa de SQL): dano, cura, condição, XP, item, feito e cicatriz são buscados à parte das últimas 40 do registro, inclusive de sessões já encerradas — ao abrir a sala da mesa ou a mesa ao vivo, e a cada minuto durante a sessão. Cada ordem continua aplicada uma vez só (o id fica gravado na ficha).
 
 `npm test` roda `supabase/__tests__/mesavida.sql.test.ts` num Postgres em memória (PGlite): só o dono atualiza, campos do mestre ignorados, PV limitado.
+
+## 14. Discord da mesa — rolagens públicas num canal
+
+Rode `supabase/discord.sql` (depois do SQL base da seção 5). Pode rodar de novo sem problema e não apaga dados.
+
+- **`campaign_discord`**: uma linha por campanha com o webhook do canal. O RLS deixa **só o mestre** ler, gravar e apagar. Jogadores, estranhos e anônimos não enxergam o endereço. O banco só aceita `https://discord.com/api/webhooks/…` (e os domínios `ptb`/`canary`/`discordapp`).
+- O envio sai do **navegador do mestre**: durante a mesa ao vivo, cada rolagem com visibilidade **pública** que chega pelo realtime vira uma mensagem no canal (nome, rolagem, dados e total). "Só mestre" e "Só eu" não saem. Com a mesa fechada no aparelho do mestre, nada é enviado.
+- O endereço nunca entra na ficha, no link compartilhado nem no aparelho dos jogadores.
+- **Discord pessoal** (Configurações): o webhook fica só no aparelho do jogador, sem banco.
+
+`npm test` roda `supabase/__tests__/discord.sql.test.ts` num Postgres em memória (PGlite): só o mestre lê e grava, endereço inválido recusado.
