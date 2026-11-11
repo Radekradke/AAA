@@ -1,0 +1,30 @@
+.fv-concept-entry {
+  width: min(100%, 1150px);
+  margin-inline: auto;
+  padding: calc(var(--topbar-h) + 36px) var(--page-x) max(100px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: clamp(20px, 5vw, 72px);
+  align-items: center;
+}
+.fv-concept-copy { min-width: 0; }
+.fv-concept-copy h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem); line-height: 1.05; margin: 0 0 16px; text-wrap: balance; }
+.fv-concept-copy > p, .fv-concept-preview { color: var(--muted); line-height: 1.55; }
+.fv-concept-entry .fv-concept-options { display: grid; grid-template-columns: 1fr; gap: 8px; margin-block: 22px 14px; }
+.fv-concept-options > button { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 12px; text-align: left; color: var(--ink); background: var(--sunk); border: 1px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; font: inherit; transition: border-color .18s, background-color .18s; }
+.fv-concept-options > button:is(:hover, :focus-visible, [aria-pressed="true"]) { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 9%, var(--sunk)); }
+.fv-concept-options > button small { display: block; color: var(--muted); margin-top: 2px; }
+.fv-concept-preview { min-height: 86px; }
+.fv-concept-preview summary { cursor: pointer; color: var(--ink); }
+.fv-concept-preview li + li { margin-top: 8px; }
+.fv-concept-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.fv-concept-portrait { position: relative; isolation: isolate; margin: 0; overflow: hidden; aspect-ratio: 4 / 5; border: 1px solid var(--line); border-radius: 44% 44% 22px 22px; background: radial-gradient(ellipse at 50% 26%, color-mix(in srgb, var(--acc) 32%, var(--sunk)), var(--sunk) 72%); }
+.fv-concept-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; animation: fv-concept-reveal .32s ease-out; }
+.fv-concept-portrait figcaption { position: absolute; inset: auto 0 0; padding: 48px 20px 20px; color: white; background: linear-gradient(transparent, #08080be8); font: 700 clamp(1.3rem, 3vw, 2.1rem) var(--font-display); }
+@keyframes fv-concept-reveal { from { opacity: 0; transform: scale(1.018); } to { opacity: 1; transform: scale(1); } }
+@media (min-width: 1000px) { [data-theme="rubra"] .fv-concept-entry { padding-inline-start: max(100px, var(--page-x)); } }
+@media (max-width: 720px) {
+  .fv-concept-entry { grid-template-columns: 1fr; gap: 20px; padding-top: calc(var(--topbar-h) + 20px); }
+  .fv-concept-portrait { width: min(100%, 320px); justify-self: center; aspect-ratio: 4 / 3; }
+}
+@media (prefers-reduced-motion: reduce) { .fv-concept-portrait img { animation: none; } .fv-concept-options > button { transition: none; } }

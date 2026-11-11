@@ -27,6 +27,9 @@ import { playLevel } from '@/lib/sfx';
 import { heroAvatar } from '@/lib/summary';
 import { RaceAura } from '@/components/animations/RaceAura';
 import { applyCreationConcept, CREATION_CONCEPTS, firstActions } from '@/engine/creationConcepts';
+import { getClass } from '@/data/classes';
+import { GlyphIcon } from '@/components/character/RaceIcon';
+import '@/styles/concept-entry.css';
 
 
 export function CharacterCreator() {
@@ -40,6 +43,8 @@ export function CharacterCreator() {
 
   const [step, setStep] = useState(0);
   const [conceptOpen, setConceptOpen] = useState(true);
+  const [conceptId, setConceptId] = useState<(typeof CREATION_CONCEPTS)[number]['id']>('guardian');
+  const concept = CREATION_CONCEPTS.find((c) => c.id === conceptId)!;
   // 1ª criação neste aparelho: tour guiado pelas partes da tela
   const startTour = useUiStore((s) => s.startTour);
   const creatorTourSeen = useUiStore((s) => !!s.toursSeen.creator || s.tipsOff);
@@ -169,6 +174,7 @@ export function CharacterCreator() {
 
   return (
     <Screen
+      scroll={conceptOpen}
       actions={
         <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
           Salvar e sair
@@ -180,12 +186,36 @@ export function CharacterCreator() {
         { label: 'Descartar este herói', icon: 'trash', onClick: discard, danger: true },
       ]}
     >
-      <RaceAura raceId={char.raceId} />
-      {conceptOpen ? <section className="fv-panel fv-experience" style={{ maxWidth: 760, margin: '24px auto' }}>
-        <h1>Que herói você quer jogar?</h1>
-        <p>Escolha uma ideia. Sugerimos atributos, perícias, idiomas, equipamento e magias; você pode revisar tudo nos próximos passos.</p>
-        <div className="fv-concept-options">{CREATION_CONCEPTS.map((c) => <button key={c.id} type="button" className="fv-concept-card" onClick={() => { update((draft) => applyCreationConcept(draft, c.id)); setConceptOpen(false); setStep(STEP_RACE); }}><b>{c.title}</b><span>{c.description}</span></button>)}</div>
-        <button type="button" className="fv-btn-ghost" onClick={() => setConceptOpen(false)}>Escolher tudo pelas regras completas</button>
+      {!conceptOpen && <RaceAura raceId={char.raceId} />}
+      {conceptOpen ? <section className="fv-concept-entry" aria-labelledby="fv-concept-title">
+        <div className="fv-concept-copy">
+          <h1 id="fv-concept-title">Que herói você quer jogar?</h1>
+          <p>Experimente um caminho para ver como ele joga. Você pode ajustar as escolhas depois.</p>
+          <div className="fv-concept-options" role="group" aria-label="Caminhos de herói">
+            {CREATION_CONCEPTS.map((c) => (
+              <button key={c.id} type="button" aria-pressed={c.id === conceptId} onClick={() => setConceptId(c.id)}>
+                <GlyphIcon name={`class-${c.classId}`} size={24} />
+                <span><b>{c.title}</b><small>{getClass(c.classId).label}</small></span>
+                <span aria-hidden>{c.id === conceptId ? '✓' : '›'}</span>
+              </button>
+            ))}
+          </div>
+          <div className="fv-concept-preview" aria-live="polite">
+            <p>{concept.description}</p>
+            <details key={concept.id}>
+              <summary>Como jogo com esse herói?</summary>
+              <ul>{firstActions(concept.classId).map((a) => <li key={a.title}><b>{a.title}:</b> {a.text}</li>)}</ul>
+            </details>
+          </div>
+          <div className="fv-concept-actions">
+            <button type="button" className="fv-btn-gold" onClick={() => { update((draft) => applyCreationConcept(draft, concept.id)); setConceptOpen(false); setStep(STEP_RACE); }}>Começar como {getClass(concept.classId).label}</button>
+            <button type="button" className="fv-btn-ghost" onClick={() => setConceptOpen(false)}>Escolher tudo pelas regras completas</button>
+          </div>
+        </div>
+        <figure className="fv-concept-portrait" aria-hidden="true">
+          <img key={concept.id} src={heroAvatar({ ...char, portrait: null, classId: concept.classId })} alt="" decoding="async" />
+          <figcaption>{getClass(concept.classId).label}</figcaption>
+        </figure>
       </section> : <div className="fv-forge">
         {/* capítulos (desktop): um diário de missão, clicável */}
         <nav className="fv-forge-rail" aria-label="Capítulos da criação">

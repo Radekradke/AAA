@@ -7,6 +7,8 @@ test('cria por conceito, troca o retrato e mantém acesso às regras', async ({ 
   await expect(page.getByRole('switch', { name: 'Palco das origens' })).toHaveCount(0);
   await page.goto('/criar');
   await page.getByRole('button', { name: 'Quero usar magia' }).click();
+  await expect(page.getByRole('button', { name: 'Quero usar magia' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Começar como Mago' }).click();
   await page.locator('.fv-foot-cta').click();
   await expect(page.getByRole('heading', { name: 'Caminho' })).toBeVisible();
   const portrait = page.locator('.fv-forge-hero img[alt="Retrato do herói"]');

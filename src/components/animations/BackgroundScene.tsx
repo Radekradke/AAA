@@ -52,7 +52,7 @@ export function BackgroundScene({ video = null, posters, videoOpacity = 0.5, dar
       {on && playlist ? (
         <VideoPlaylist list={list} posters={posters} opacity={videoOpacity} />
       ) : (
-        <LoopVideo src={on ? list[0] : null} opacity={videoOpacity} />
+        on ? <LoopVideo key={list[0]} src={list[0]} poster={posters?.[0]} opacity={videoOpacity} /> : null
       )}
       {/* escurecimento para legibilidade */}
       <div
@@ -122,8 +122,9 @@ export function startVideo(el: HTMLVideoElement | null) {
 }
 
 /** Um vídeo só, em loop (o fundo clássico). */
-function LoopVideo({ src, opacity }: { src: string | null; opacity: number }) {
+function LoopVideo({ src, poster, opacity }: { src: string; poster?: string; opacity: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
+  const [playing, setPlaying] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -137,7 +138,10 @@ function LoopVideo({ src, opacity }: { src: string | null; opacity: number }) {
       el.pause();
     }
   }, [src]);
-  return <video ref={ref} muted loop playsInline preload="none" style={{ ...videoStyle(src ? opacity : 0), transition: 'opacity .6s ease' }} />;
+  return <>
+    {poster && <img src={poster} alt="" style={videoStyle(opacity)} />}
+    <video ref={ref} muted loop playsInline preload="none" onPlaying={() => setPlaying(true)} style={{ ...videoStyle(playing ? opacity : 0), transition: 'opacity .6s ease' }} />
+  </>;
 }
 
 /** Fusão entre um clipe e o próximo (s). */
@@ -157,6 +161,9 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
   frontRef.current = front;
   const clip = useRef(start);
   const fading = useRef(false);
+  const [playing, setPlaying] = useState(false);
+  const fadeTimer = useRef<number>();
+  const generation = useRef(0);
 
   const load = (el: HTMLVideoElement | null, i: number) => {
     if (!el) return;
@@ -169,7 +176,6 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
 
   useEffect(() => {
     load(refs[0].current, start);
-    load(refs[1].current, start + 1);
     startVideo(refs[0].current);
     // vigia: se depois de uns segundos a cena da frente ainda não andou, tenta de novo
     const watchdog = window.setTimeout(() => {
@@ -182,35 +188,45 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
     };
     document.addEventListener('visibilitychange', onVis);
     return () => {
+      generation.current += 1;
+      window.clearTimeout(fadeTimer.current);
       window.clearTimeout(watchdog);
       document.removeEventListener('visibilitychange', onVis);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onTime = (layer: number) => () => {
+  const onTime = (layer: number) => async () => {
     const el = refs[layer].current;
-    if (!el || layer !== front || fading.current || !el.duration) return;
-    if (el.currentTime < el.duration - FADE) return;
-    // hora de fundir: a camada de trás (já carregada) começa do zero e vem para a frente
-    fading.current = true;
+    if (!el || layer !== frontRef.current || fading.current || !el.duration || document.hidden) return;
     const back = refs[1 - layer].current;
-    if (back) {
-      back.currentTime = 0;
-      startVideo(back);
+    if (!back) return;
+    if (el.currentTime >= el.duration - 5) load(back, clip.current + 1);
+    if (el.currentTime < el.duration - FADE) return;
+    // Mantém o último quadro se o próximo clipe ainda estiver carregando.
+    if (back.readyState < 3) return;
+    fading.current = true;
+    const attempt = generation.current;
+    back.currentTime = 0;
+    try {
+      await back.play();
+    } catch {
+      if (attempt === generation.current) fading.current = false;
+      return;
     }
+    if (attempt !== generation.current) return;
     clip.current += 1;
+    frontRef.current = 1 - layer;
     setFront(1 - layer);
-    window.setTimeout(() => {
+    fadeTimer.current = window.setTimeout(() => {
       fading.current = false;
-      // a que saiu de cena para e já carrega o clipe seguinte
       el.pause();
-      load(el, clip.current + 1);
     }, FADE * 1000 + 100);
   };
 
   return (
     <>
+      {posters?.[start] && <img src={posters[start]} alt="" style={videoStyle(opacity)} />}
       {refs.map((r, layer) => (
         <video
           key={layer}
@@ -218,9 +234,10 @@ function VideoPlaylist({ list, posters, opacity }: { list: readonly string[]; po
           muted
           playsInline
           preload="auto"
-          poster={layer === 0 ? posters?.[start % list.length] : undefined}
           onTimeUpdate={onTime(layer)}
-          style={{ ...videoStyle(layer === front ? opacity : 0), transition: `opacity ${FADE}s ease` }}
+          onPlaying={() => { if (layer === frontRef.current) setPlaying(true); }}
+          onCanPlay={() => { if (layer !== frontRef.current) void onTime(frontRef.current)(); }}
+          style={{ ...videoStyle(playing && layer === front ? opacity : 0), transition: `opacity ${FADE}s ease` }}
         />
       ))}
     </>
