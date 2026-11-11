@@ -107,6 +107,19 @@ function toolItemId(id: string): string | undefined {
   return tool.group === 'instrumento' ? `g-inst-${id.replace('-', '')}` : `g-tool-${id.split('-')[0].replace(/s$/, '')}`;
 }
 
+const SUBCLASS_ICON: Readonly<Record<string, string>> = {
+  life: 'gift-heart', light: 'gift-sun', war: 'swords', knowledge: 'spark',
+  nature: 'tree-face', tempest: 'gift-bolt', trickery: 'gift-mask',
+  berserker: 'sword', totem: 'bear-head', lore: 'quill', valor: 'banner',
+  land: 'stone-pile', moon: 'wolf-head', champion: 'banner', battlemaster: 'swords', eldritch: 'spark',
+  openhand: 'class-monk', shadow: 'bat', elements: 'tornado',
+  devotion: 'gift-sun', ancients: 'tree-face', vengeance: 'sword',
+  hunter: 'class-ranger', beastmaster: 'wolf-head', thief: 'chestOpen', assassin: 'sword', trickster: 'gift-mask',
+  draconic: 'dragon-head', wild: 'd20', archfey: 'fairy', fiend: 'evil-wings', oldone: 'tentacle-strike',
+  evocation: 'fire', abjuration: 'equipped', divination: 'owl', conjuration: 'spark',
+  enchantment: 'gift-heart', illusion: 'gift-mask', necromancy: 'ghost', transmutation: 'crystal-growth',
+};
+
 export function subclassLook(sub: Subclass): GiftLook {
   const lv1 = sub.features[1] ?? [];
   const facts: Fact[] = [];
@@ -127,11 +140,12 @@ export function subclassLook(sub: Subclass): GiftLook {
     .slice(0, 4)
     .map(([lv, names]) => `${lv}º ${names.filter((n) => !/^Magias de Domínio/.test(n)).join(', ')}`);
   if (later.length) facts.push({ label: 'Depois', value: later.join(' · ') });
-  return { icon: `class-${sub.classId}`, line: sub.desc, desc: sub.desc, facts };
+  return { icon: SUBCLASS_ICON[sub.id] ?? `class-${sub.classId}`, line: sub.desc, desc: sub.desc, facts };
 }
 
 export function optionLook(spec: ChoiceSpec, o: ChoiceOption): GiftLook {
-  const base: GiftLook = { icon: 'spark', line: o.tag ?? '', desc: o.desc, facts: [] };
+  const pactIcons: Readonly<Record<string, string>> = { blade: 'sword', chain: 'imp', tome: 'spark', talisman: 'crystal-growth' };
+  const base: GiftLook = { icon: spec.key === 'pact' ? pactIcons[o.id] ?? 'spark' : 'spark', line: o.tag ?? '', desc: o.desc, facts: [] };
   switch (spec.catalog) {
     case 'fightingStyle':
       return {
