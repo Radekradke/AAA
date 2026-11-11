@@ -21,8 +21,6 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
 
 /** As irmãs magas do menu: cada clipe toca até o fim e funde no da outra. */
-const IRMAS = ['/assets/irmas/irma-agua.mp4', '/assets/irmas/irma-ar.mp4'] as const;
-const IRMAS_POSTER = ['/assets/irmas/irma-agua.webp', '/assets/irmas/irma-ar.webp'] as const;
 
 interface MenuItem {
   key: string;
@@ -152,9 +150,9 @@ export function Home() {
   };
 
   return (
-    <Screen video={IRMAS} posters={IRMAS_POSTER} videoOpacity={1} darken={0.35}>
+    <Screen>
       {/* a maga fica à esquerda do vídeo; no PC o menu vai para o lado livre (direita) */}
-      <div className="fv-menu is-stage">
+      <div className="fv-menu">
         <header className="fv-menu-brand">
           <FichaVivaMark />
           <h1 className="fv-home-title fv-menu-title">FICHA&nbsp;VIVA</h1>
