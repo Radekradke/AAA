@@ -38,6 +38,22 @@ function dbError(error: { message: string }): Error {
   return new Error(error.message);
 }
 
+/** Jogador da mesa como o mestre vê (nome da conta, nunca o e-mail). */
+export interface RosterEntry {
+  userId: string;
+  name: string;
+  joinedAt: number;
+  /** Fichas que ele vinculou a esta mesa. */
+  heroes: number;
+}
+
+export const MEMBERS_SQL_MISSING = 'O banco ainda não tem a gestão de jogadores — rode supabase/mesa_membros.sql no Supabase (SQL Editor).';
+
+function membersError(error: { message: string }): Error {
+  if (/function .* does not exist|Could not find the function/i.test(error.message)) return new Error(MEMBERS_SQL_MISSING);
+  return dbError(error);
+}
+
 function token(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => b.toString(36).padStart(2, '0').slice(0, 1)).join('') +
     Date.now().toString(36).slice(-4);
@@ -133,6 +149,32 @@ export const campaignService = {
       id: String(m.id), campaignId: String(m.campaign_id), userId: String(m.user_id),
       role: m.role as CampaignMember['role'], joinedAt: Number(m.joined_at),
     }));
+  },
+
+  /** Jogadores da mesa com o nome da conta (só o mestre; supabase/mesa_membros.sql). */
+  async roster(campaignId: string): Promise<RosterEntry[]> {
+    const { data, error } = await sb().rpc('campaign_roster', { p_campaign: campaignId });
+    if (error) throw membersError(error);
+    return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+      userId: String(r.user_id),
+      name: String(r.display_name ?? 'Jogador'),
+      joinedAt: Number(r.joined_at) || 0,
+      heroes: Number(r.heroes) || 0,
+    }));
+  },
+
+  /** Jogador sai da mesa; as fichas que ele vinculou saem junto. */
+  async leaveCampaign(campaignId: string): Promise<void> {
+    await sessionUserId();
+    const { error } = await sb().rpc('leave_campaign', { p_campaign: campaignId });
+    if (error) throw membersError(error);
+  },
+
+  /** Mestre remove um jogador (e as fichas que ele vinculou à mesa). */
+  async removeMember(campaignId: string, userId: string): Promise<void> {
+    await sessionUserId();
+    const { error } = await sb().rpc('remove_campaign_member', { p_campaign: campaignId, p_user: userId });
+    if (error) throw membersError(error);
   },
 
   /** Jogador vincula a própria ficha à sala (a ficha precisa existir na nuvem). */

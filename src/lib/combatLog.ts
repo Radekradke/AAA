@@ -38,7 +38,7 @@ export function eventText(e: SessionEvent): string {
     case 'encounter_paused': return 'Combate pausado';
     case 'encounter_active': return 'Combate retomado';
     case 'encounter_finished': return `Fim do encontro — ${s(p.round, '0')} ${plural(p.round, 'rodada', 'rodadas')}`;
-    case 'roll': return `${s(p.who, '—')} · ${s(p.label, 'rolagem').replace(/^Rolagem /, '')}: ${s(p.total)}${p.crit ? ' (crítico!)' : p.fail ? ' (falha)' : ''}`;
+    case 'roll': return `${s(p.who, '—')} · ${s(p.label, 'rolagem').replace(/^Rolagem /, '')}: ${s(p.total)}${p.crit ? ' (crítico!)' : p.fail ? ' (falha)' : ''}${p.late ? ' · chegou atrasada' : ''}`;
     case 'hero_hp': return p.kind === 'heal' ? `${s(p.name)} recuperou ${s(p.amount)} PV` : `${s(p.name)} sofreu ${s(p.amount)} de dano${p.crit ? ' (crítico)' : ''}`;
     case 'hero_condition': return `${s(p.name)} ${p.on ? 'ficou' : 'não está mais'} ${s(p.condition).toLowerCase()}`;
     case 'attack': return strikeText(p as unknown as StrikeLog);

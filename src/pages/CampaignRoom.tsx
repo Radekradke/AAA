@@ -11,6 +11,8 @@ import type { CampaignNote } from '@/services/campaignService';
 import { DEFAULT_MASTER_PERMISSION } from '@/types/models';
 import type { MasterPermission } from '@/types/models';
 import { syncNow } from '@/services/offlineSyncService';
+import { toast } from '@/store/feedbackStore';
+import { useSaveStatusStore } from '@/store/saveStatusStore';
 import { derivedOf } from '@/lib/derivedCache';
 import { raceOf } from '@/data/races';
 import { getClass } from '@/data/classes';
@@ -30,6 +32,7 @@ import { InviteCard } from '@/components/campaign/InviteCard';
 import { SchemaNotice } from '@/components/campaign/SchemaNotice';
 import { AgendaCard } from '@/components/campaign/AgendaCard';
 import { DiscordCard } from '@/components/campaign/DiscordCard';
+import { LeaveCampaignButton, MembersCard } from '@/components/campaign/MembersCard';
 
 // bestiário (65 criaturas com ficha e arte): só o mestre vê, baixa sob demanda
 const BestiaryGallery = lazy(() => import('@/components/bestiary/BestiaryGallery').then((m) => ({ default: m.BestiaryGallery })));
@@ -90,16 +93,51 @@ export function CampaignRoom() {
     }
   }, [campaign, user, isMaster]);
 
-  const share = async (sheetId: string) => {
-    if (!id || !user) return;
-    await syncNow(user.id); // garante que a ficha está na nuvem antes de vincular
-    await campaignService.shareSheet(id, sheetId, user.id).catch((e) => setError(e.message));
-    load();
+  // ficha sendo vinculada/desvinculada agora (o botão mostra e não aceita toque duplo)
+  const [linking, setLinking] = useState<string | null>(null);
+  const heroName = (sheetId: string) => mySheets.find((c) => c.id === sheetId)?.name ?? 'Ficha';
+
+  const share = async (sheetId: string, permissions?: MasterPermission) => {
+    if (!id || !user || linking) return;
+    setLinking(sheetId);
+    try {
+      // a ficha precisa estar na nuvem para o mestre ver a cópia atual
+      await syncNow(user.id).catch(() => undefined);
+      const cloud = useSaveStatusStore.getState().cloud;
+      const behind = cloud === 'error' || cloud === 'offline' || cloud === 'conflict';
+      await campaignService.shareSheet(id, sheetId, user.id, permissions);
+      setError(null);
+      toast(
+        behind
+          ? `${heroName(sheetId)} vinculada. A cópia do mestre atualiza quando a sincronização voltar.`
+          : `${heroName(sheetId)} vinculada: o mestre já vê sua ficha.`,
+        { tone: behind ? 'info' : 'ok' },
+      );
+    } catch (e) {
+      toast(`Não consegui vincular: ${(e as Error).message}`, { tone: 'danger' });
+    } finally {
+      setLinking(null);
+      load();
+    }
   };
   const unshare = async (sheetId: string) => {
-    if (!id) return;
-    await campaignService.unshareSheet(id, sheetId).catch((e) => setError(e.message));
-    load();
+    if (!id || linking) return;
+    // guarda as permissões para o "Desfazer" devolver exatamente como estava
+    const before = shares.find((x) => x.share.sheetId === sheetId)?.share.permissions;
+    setLinking(sheetId);
+    try {
+      await campaignService.unshareSheet(id, sheetId);
+      setError(null);
+      toast(`${heroName(sheetId)} saiu desta mesa: o mestre não vê mais a ficha.`, {
+        tone: 'info',
+        action: { label: 'Desfazer', run: () => void share(sheetId, before ? { ...DEFAULT_MASTER_PERMISSION, ...before } : undefined) },
+      });
+    } catch (e) {
+      toast(`Não consegui desvincular: ${(e as Error).message}`, { tone: 'danger' });
+    } finally {
+      setLinking(null);
+      load();
+    }
   };
 
   const sharedIds = new Set(shares.map((s) => s.share.sheetId));
@@ -139,6 +177,9 @@ export function CampaignRoom() {
           <InviteCard invite={invite} campaignName={campaign.name} onNewCode={async () => setInvite(await campaignService.newCode(invite))} />
         )}
 
+        {/* jogadores (mestre): quem está na mesa e remover quem deixou o grupo */}
+        {isMaster && campaign && <MembersCard campaignId={campaign.id} version={shares.length} />}
+
         {/* jogador: vincular a própria ficha */}
         {!isMaster && campaign && (
           <div className="fv-panel" style={{ padding: 14, marginBottom: 16 }}>
@@ -146,13 +187,19 @@ export function CampaignRoom() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {mySheets.map((c) => {
                 const linked = sharedIds.has(c.id);
+                const busyHere = linking === c.id;
                 return (
                   <button
                     key={c.id}
+                    type="button"
+                    aria-pressed={linked}
+                    aria-busy={busyHere}
+                    disabled={!!linking}
+                    title={linked ? `Desvincular ${c.name} desta mesa` : `Vincular ${c.name} a esta mesa`}
                     onClick={() => (linked ? void unshare(c.id) : void share(c.id))}
                     style={{ cursor: 'pointer', fontSize: 12.5, fontWeight: 600, minHeight: 38, padding: '8px 14px', borderRadius: 999, border: '1px solid ' + (linked ? t.gold : t.line), background: linked ? hexA(t.gold, 0.12) : 'var(--sunk)', color: linked ? t.gold : 'var(--ink)' }}
                   >
-                    {linked ? '✓ ' : '+ '}{c.name}
+                    {busyHere ? (linked ? 'Desvinculando… ' : 'Vinculando… ') : linked ? '✓ ' : '+ '}{c.name}
                   </button>
                 );
               })}
@@ -177,6 +224,8 @@ export function CampaignRoom() {
                     {defs.map((d) => (
                       <button
                         key={d.key}
+                        type="button"
+                        aria-pressed={perms[d.key]}
                         onClick={() => setPerm(d.key)}
                         style={{ cursor: 'pointer', fontSize: 11, fontWeight: 600, minHeight: 32, padding: '5px 11px', borderRadius: 999, border: '1px solid ' + (perms[d.key] ? t.gold : t.line), background: perms[d.key] ? hexA(t.gold, 0.12) : 'var(--sunk)', color: perms[d.key] ? t.gold : 'var(--muted)' }}
                       >
@@ -271,6 +320,9 @@ export function CampaignRoom() {
             </div>
           </div>
         )}
+
+        {/* jogador: sair da mesa (fim da página, longe dos toques do dia a dia) */}
+        {!isMaster && campaign && <LeaveCampaignButton campaignId={campaign.id} campaignName={campaign.name} />}
       </div>
     </Screen>
   );

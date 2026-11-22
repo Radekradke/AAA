@@ -635,3 +635,20 @@ Rode `supabase/discord.sql` (depois do SQL base da seção 5). Pode rodar de nov
 - **Discord pessoal** (Configurações): o webhook fica só no aparelho do jogador, sem banco.
 
 `npm test` roda `supabase/__tests__/discord.sql.test.ts` num Postgres em memória (PGlite): só o mestre lê e grava, endereço inválido recusado.
+
+## 15. Jogadores da mesa — sair, remover e lista do mestre
+
+Rode `supabase/mesa_membros.sql` (depois do SQL base da seção 5 e de `multiplayer_session.sql`). Pode rodar de novo sem problema e não apaga dados.
+
+**Por quê:** quem entrava numa mesa ficava nela para sempre. O jogador não tinha como sair e o mestre não tinha como tirar quem deixou o grupo — a pessoa continuava vendo a sala, os NPCs e a sessão ao vivo.
+
+- **`leave_campaign(p_campaign)`** — o jogador sai da mesa. As fichas que ele vinculou saem junto (o mestre deixa de ver a cópia). O mestre não sai da própria mesa.
+- **`remove_campaign_member(p_campaign, p_user)`** — só o mestre; remove o jogador e as fichas que ele vinculou. Para impedir a volta, gere um código de convite novo (o antigo continua valendo).
+- **`campaign_roster(p_campaign)`** — só o mestre; lista os jogadores com o **nome da conta** (cadastro ou Google) e quantas fichas cada um vinculou. E-mails nunca saem do banco.
+- **Índice `session_events_campaign_type_idx`** — as "ordens do mestre" (dano, XP, itens) são buscadas por campanha + tipo; sem o índice, a busca varre todas as rolagens de todas as mesas.
+
+Ninguém apaga direto em `campaign_members` (continua sem policy de escrita): só por estas funções. Combatentes de um encontro aberto ficam onde estão — o mestre decide.
+
+No app: a sala da mesa ganha **Sair desta mesa** (jogador) e o painel **Jogadores** (mestre). **Sem este SQL**, os botões explicam qual arquivo rodar e o aviso de SQL faltando aponta este arquivo.
+
+`npm test` roda `supabase/__tests__/membros.sql.test.ts` num Postgres em memória (PGlite): só o mestre lista e remove, o jogador só sai sozinho, ficha vinculada sai junto, delete direto barrado pelo RLS.

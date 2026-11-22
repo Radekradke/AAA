@@ -11,6 +11,8 @@ import { hexA } from '@/lib/color';
 import { JoinByCode } from '@/components/campaign/JoinByCode';
 import '@/styles/session.css';
 import { isCloudAccount } from '@/lib/identity';
+import { rememberNext } from '@/lib/nextPath';
+import { sessionService } from '@/services/sessionService';
 
 /** Mesas/Campanhas: o mestre cria a sala; jogadores entram por convite. */
 export function Campaigns() {
@@ -25,9 +27,18 @@ export function Campaigns() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // mesas com sessão aberta agora: selo "Ao vivo" e o toque já entra na sessão
+  const [live, setLive] = useState<Set<string>>(new Set());
   const load = () => {
     if (!canCloud || !user) return;
-    campaignService.myCampaigns(user.id).then((r) => { setAsMaster(r.asMaster); setAsPlayer(r.asPlayer); }).catch((e) => setError(e.message));
+    campaignService
+      .myCampaigns(user.id)
+      .then((r) => {
+        setAsMaster(r.asMaster);
+        setAsPlayer(r.asPlayer);
+        return sessionService.liveIn([...r.asMaster, ...r.asPlayer].map((c) => c.id)).then(setLive);
+      })
+      .catch((e) => setError(e.message));
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(load, [canCloud, user?.id]);
@@ -63,8 +74,23 @@ export function Campaigns() {
           <EmptyState
             icon="banner"
             title="As mesas vivem na nuvem"
-            hint="Entre com uma conta (e-mail ou Google) para criar ou participar de uma mesa — o modo convidado/offline não alcança a sala."
-            action={<button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={() => navigate('/entrar')}>Entrar</button>}
+            hint={
+              user && !user.guest
+                ? 'Sua conta atual existe só neste aparelho. Entre com uma conta da nuvem (e-mail ou Google) para criar ou participar de uma mesa — seus heróis vêm junto.'
+                : 'Entre com uma conta (e-mail ou Google) para criar ou participar de uma mesa — o modo convidado/offline não alcança a sala.'
+            }
+            action={
+              <button
+                className="fv-btn-gold"
+                style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }}
+                onClick={() => {
+                  rememberNext('/mesas');
+                  navigate('/entrar');
+                }}
+              >
+                Entrar
+              </button>
+            }
           />
         )}
 
@@ -97,17 +123,28 @@ export function Campaigns() {
                   </div>
                 )}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
-                  {g.list.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => navigate(`/mesa/${c.id}`)}
-                      className="fv-surface"
-                      style={{ cursor: 'pointer', textAlign: 'left', padding: '14px 15px', border: '1px solid ' + hexA(t.gold, 0.3) }}
-                    >
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>{c.name}</div>
-                      <div style={{ marginTop: 4, fontSize: 11, color: g.role === 'Mestre' ? t.gold : 'var(--acc)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{g.role}</div>
-                    </button>
-                  ))}
+                  {g.list.map((c) => {
+                    const isLive = live.has(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => navigate(isLive ? `/mesa/${c.id}/jogar` : `/mesa/${c.id}`)}
+                        className={'fv-surface fv-camp-card' + (isLive ? ' is-live' : '')}
+                        aria-label={isLive ? `${c.name} — sessão ao vivo agora, entrar` : undefined}
+                        style={{ cursor: 'pointer', textAlign: 'left', padding: '14px 15px', border: '1px solid ' + hexA(t.gold, isLive ? 0.75 : 0.3) }}
+                      >
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>{c.name}</div>
+                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, color: g.role === 'Mestre' ? t.gold : 'var(--acc)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{g.role}</span>
+                          {isLive && (
+                            <span className="fv-camp-live">
+                              <i className="fv-live-dot is-connected" aria-hidden /> Ao vivo · entrar
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

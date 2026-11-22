@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { myActiveCombatant, resumeInfo, useSessionStore } from '@/store/sessionStore';
+import { myActiveCombatant, myOnDeckCombatant, resumeInfo, useSessionStore } from '@/store/sessionStore';
+import { useTurnTitle } from '@/hooks/useTurnTitle';
 import { useAuthStore } from '@/store/authStore';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { campaignService } from '@/services/campaignService';
@@ -26,6 +27,8 @@ export function SessionDock() {
   const combatants = useSessionStore((s) => s.combatants);
   const connection = useSessionStore((s) => s.connection);
   const mine = useSessionStore((s) => myActiveCombatant(s));
+  const onDeck = useSessionStore((s) => myOnDeckCombatant(s));
+  useTurnTitle();
 
   // reload fora da página da mesa: reconecta na última mesa
   useEffect(() => {
@@ -57,10 +60,10 @@ export function SessionDock() {
       <TableRollToast />
       <KillCreditPrompt />
       {!onLivePage && (
-        <button type="button" className={'fv-live-dock' + (mine ? ' is-mine' : '')} onClick={() => nav(`/mesa/${campaignId}/jogar`)} title="Voltar para a mesa ao vivo">
+        <button type="button" className={'fv-live-dock' + (mine ? ' is-mine' : onDeck ? ' is-next' : '')} onClick={() => nav(`/mesa/${campaignId}/jogar`)} title="Voltar para a mesa ao vivo">
           <i className={`fv-live-dot is-${connection}`} aria-hidden />
           <span>
-            <b>{mine ? 'SEU TURNO' : 'Mesa ao vivo'}</b>
+            <b>{mine ? 'SEU TURNO' : onDeck ? 'Você é o próximo' : 'Mesa ao vivo'}</b>
             <small>
               {enc && enc.status === 'active' && enc.round > 0
                 ? `Rodada ${enc.round}${active && !mine ? ` · vez de ${active.name}` : ''}`

@@ -80,6 +80,15 @@ export const sessionService = {
     return data ? mapSession(data) : null;
   },
 
+  /** Quais destas campanhas estão com sessão ao vivo agora (para a lista de mesas). */
+  async liveIn(campaignIds: readonly string[]): Promise<Set<string>> {
+    if (!campaignIds.length) return new Set();
+    const { data, error } = await sb()
+      .from('sessions').select('campaign_id').in('campaign_id', [...campaignIds]).in('status', ['active', 'paused']);
+    if (error) return new Set(); // sem a tabela (SQL da sessão não rodado) ou sem rede: só não mostra o selo
+    return new Set((data ?? []).map((r: { campaign_id: string }) => String(r.campaign_id)));
+  },
+
   async get(sessionId: string): Promise<GameSession | null> {
     const { data, error } = await sb().from('sessions').select('*').eq('id', sessionId).maybeSingle();
     if (error) throw new Error(error.message);

@@ -7,6 +7,7 @@ import { campaignService } from '@/services/campaignService';
 import { authService } from '@/services/authService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { normalizeCode } from '@/lib/inviteCode';
+import { rememberNext } from '@/lib/nextPath';
 import '@/styles/session.css';
 import { isCloudAccount } from '@/lib/identity';
 
@@ -46,6 +47,12 @@ export function JoinCampaign() {
   }, [token, user, navigate]);
 
   const needsLogin = !cloudEnabled() || !isCloudAccount(user);
+  // depois do login (inclusive Google, que sai do site) volta para ESTE convite
+  const goLogin = () => {
+    if (token) rememberNext(`/sala/${token}`);
+    navigate('/entrar');
+  };
+  const localAccount = !!user && !user.guest && !isCloudAccount(user);
 
   return (
     <Screen>
@@ -55,11 +62,19 @@ export function JoinCampaign() {
             <EmptyState
               icon="banner"
               title="Convite para uma mesa"
-              hint="Entre com sua conta (e-mail ou Google) para aceitar o convite — depois você volta direto para a sala."
+              hint={
+                !cloudEnabled()
+                  ? 'Este app está sem a nuvem configurada — mesas online não funcionam aqui.'
+                  : localAccount
+                    ? 'Sua conta atual existe só neste aparelho. Entre com uma conta da nuvem (e-mail ou Google) para aceitar — seus heróis vêm junto, e você volta direto para este convite.'
+                    : 'Entre com sua conta (e-mail ou Google) para aceitar o convite — depois você volta direto para a sala.'
+              }
               action={
-                <button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={() => navigate('/entrar')}>
-                  Entrar para aceitar
-                </button>
+                cloudEnabled() ? (
+                  <button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={goLogin}>
+                    Entrar para aceitar
+                  </button>
+                ) : undefined
               }
             />
           ) : error ? (
@@ -68,7 +83,7 @@ export function JoinCampaign() {
               title="Não foi possível entrar"
               hint={error}
               action={
-                <button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={() => navigate('/entrar')}>
+                <button className="fv-btn-gold" style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }} onClick={goLogin}>
                   Entrar novamente
                 </button>
               }

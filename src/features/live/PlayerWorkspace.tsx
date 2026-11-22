@@ -7,7 +7,7 @@ import { InitiativeButton } from '@/components/sheet/InitiativeButton';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
-import { myActiveCombatant, useSessionStore } from '@/store/sessionStore';
+import { myActiveCombatant, myOnDeckCombatant, useSessionStore } from '@/store/sessionStore';
 import { deriveCharacter } from '@/engine/dndRules';
 import { modStr } from '@/engine/dice';
 import { StageView } from '@/components/stage/StageView';
@@ -30,6 +30,7 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
   const enc = s.encounter;
   const active = enc?.activeCombatantId ? s.combatants.find((c) => c.id === enc.activeCombatantId) : null;
   const mineNow = myActiveCombatant(s);
+  const mineNext = myOnDeckCombatant(s);
 
   return (
     <div className="fv-live">
@@ -76,6 +77,11 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
                             {enc.status === 'active' && (mineNow ? 'Seu turno!' : active ? `Vez de ${active.name}` : '—')}
                             {enc.status === 'paused' && 'Combate pausado'}
                           </strong>
+                          {mineNext && (
+                            <small className="fv-live-next" role="status">
+                              Você é o próximo — já vá pensando na sua ação
+                            </small>
+                          )}
                         </div>
                         {/* celular: o mapa fica depois do turno e do herói — um toque leva até ele */}
                         {stageLive && (

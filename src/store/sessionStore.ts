@@ -9,7 +9,7 @@ import { sendRoll, setTableWebhook, tableWebhook } from '@/lib/discordRelay';
 import { relayable, type DiscordRoll } from '@/engine/discord';
 import type { LiveChannel } from '@/services/realtimeService';
 import { useCharacterStore } from './characterStore';
-import { rollEnemyInitiatives } from '@/engine/encounter';
+import { rollEnemyInitiatives, stepTurn } from '@/engine/encounter';
 import type { Combatant, ConnectionState, Encounter, EncounterStatus, EventVisibility, GameSession, PresencePlayer, SessionEvent, StrikeLog } from '@/types/session';
 import { useUiStore } from './uiStore';
 import { getItem } from '@/data/items';
@@ -19,6 +19,8 @@ import { tableHero } from '@/lib/tableHeroes';
 import { heroDice } from '@/data/diceTrophies';
 import { deathSaveOutcome, isDeathOutcome } from '@/engine/deathSave';
 import { deriveCharacter } from '@/engine/dndRules';
+import { onWake } from '@/lib/onWake';
+import { toast } from './feedbackStore';
 
 /**
  * Estado da MESA AO VIVO — separado da ficha de propósito.
@@ -276,6 +278,84 @@ let channel: LiveChannel | null = null;
 let channelSession: string | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let refreshSeq = 0;
+let stopWake: (() => void) | null = null;
+
+/**
+ * Rolagens que não chegaram à mesa (rede caiu, celular dormindo): ficam
+ * guardadas e vão assim que a conexão volta — antes, sumiam em silêncio e o
+ * jogador achava que o mestre tinha visto. Limite de quantidade e de idade:
+ * uma rolagem de meia hora atrás já não serve para a cena.
+ */
+export interface PendingRoll {
+  sessionId: string;
+  campaignId: string;
+  actorId: string;
+  payload: Record<string, unknown>;
+  visibility: EventVisibility;
+  at: number;
+}
+export const OUTBOX_MAX = 20;
+export const OUTBOX_TTL_MS = 10 * 60_000;
+let rollOutbox: PendingRoll[] = [];
+let outboxWarned = false;
+let flushing = false;
+
+/** Envia uma rolagem; se falhar, guarda para reenviar (e avisa uma vez). */
+export async function sendTableRoll(roll: PendingRoll): Promise<boolean> {
+  try {
+    await sessionService.log(roll.sessionId, roll.campaignId, roll.actorId, 'roll', roll.payload, roll.visibility);
+    return true;
+  } catch {
+    rollOutbox = [...rollOutbox, roll].slice(-OUTBOX_MAX);
+    if (!outboxWarned) {
+      outboxWarned = true;
+      toast('Sem conexão com a mesa: sua rolagem vai assim que a internet voltar.', { tone: 'info' });
+    }
+    return false;
+  }
+}
+
+/** Reenvia o que ficou pendente (na ordem). Para no primeiro erro e guarda o resto. */
+export async function flushRollOutbox(now = Date.now()): Promise<number> {
+  if (flushing || !rollOutbox.length) return 0;
+  flushing = true;
+  const queue = rollOutbox.filter((r) => now - r.at < OUTBOX_TTL_MS);
+  const expired = rollOutbox.length - queue.length;
+  rollOutbox = [];
+  let sent = 0;
+  try {
+    for (let i = 0; i < queue.length; i++) {
+      const r = queue[i];
+      try {
+        await sessionService.log(r.sessionId, r.campaignId, r.actorId, 'roll', { ...r.payload, late: true }, r.visibility);
+        sent++;
+      } catch {
+        rollOutbox = [...queue.slice(i), ...rollOutbox].slice(-OUTBOX_MAX);
+        return sent;
+      }
+    }
+    if (outboxWarned && (sent || expired)) {
+      outboxWarned = false;
+      toast(
+        sent
+          ? `Conexão de volta: ${sent === 1 ? 'sua rolagem chegou' : `${sent} rolagens chegaram`} à mesa.`
+          : 'Conexão de volta. As rolagens de mais de 10 minutos atrás não foram enviadas.',
+        { tone: sent ? 'ok' : 'info' },
+      );
+    }
+    return sent;
+  } finally {
+    flushing = false;
+  }
+}
+
+/** Rolagens esperando conexão (para a interface e os testes). */
+export const pendingRolls = (): readonly PendingRoll[] => rollOutbox;
+export function __resetRollOutbox() {
+  rollOutbox = [];
+  outboxWarned = false;
+  flushing = false;
+}
 
 /** Última mesa aberta — para o reload (ou a ficha) voltar para ela. */
 export function resumeInfo(): { campaignId: string; userId: string } | null {
@@ -301,6 +381,21 @@ export function myActiveCombatant(s: Pick<SessionState, 'encounter' | 'combatant
   if (!e || e.status !== 'active' || !e.activeCombatantId || !s.me) return null;
   const c = s.combatants.find((x) => x.id === e.activeCombatantId);
   return c && c.ownerId === s.me.userId ? c : null;
+}
+
+/**
+ * Meu combatente que joga LOGO DEPOIS do turno atual ("prepare-se"). Usa o
+ * mesmo passo do banco sobre o que eu enxergo — uma criatura oculta do mestre
+ * pode agir antes, e tudo bem: o aviso é um "fique pronto", não uma ordem.
+ */
+export function myOnDeckCombatant(s: Pick<SessionState, 'encounter' | 'combatants' | 'me'>): Combatant | null {
+  const e = s.encounter;
+  if (!e || e.status !== 'active' || !e.activeCombatantId || !s.me || myActiveCombatant(s)) return null;
+  const { nextId } = stepTurn(s.combatants, e.activeCombatantId, 1);
+  const next = nextId ? s.combatants.find((c) => c.id === nextId) : undefined;
+  if (!next || next.id === e.activeCombatantId) return null;
+  const slot = next.groupKey ? s.combatants.filter((c) => c.groupKey === next.groupKey) : [next];
+  return slot.find((c) => c.ownerId === s.me!.userId) ?? null;
 }
 
 export const useSessionStore = create<SessionState>()((set, get) => {
@@ -482,6 +577,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       } catch {
         /* ignora */
       }
+      // voltou do bolso / a rede voltou: leitura completa (o canal pode ter morrido calado)
+      stopWake?.();
+      stopWake = onWake(scheduleRefresh);
       await get().refresh();
       set({ loading: false });
     },
@@ -491,7 +589,11 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       channel = null;
       channelSession = null;
       stopLobbyWatch();
+      stopWake?.();
+      stopWake = null;
       if (refreshTimer) clearTimeout(refreshTimer);
+      rollOutbox = [];
+      outboxWarned = false;
       try {
         localStorage.removeItem(RESUME_KEY);
       } catch {
@@ -516,8 +618,10 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       const seq = ++refreshSeq;
       try {
         const session = await sessionService.live(campaignId);
-        const open = session ? await encounterService.open(session.id) : null;
-        const events = session ? await sessionService.events(session.id) : [];
+        // encontro e crônica dependem só da sessão: as duas leituras vão juntas
+        const [open, events] = session
+          ? await Promise.all([encounterService.open(session.id), sessionService.events(session.id)])
+          : [null, [] as SessionEvent[]];
         if (seq !== refreshSeq || get().campaignId !== campaignId) return; // resposta velha
         set({ session, encounter: open?.encounter ?? null, combatants: open?.combatants ?? [], events });
         if (!me.isMaster) scheduleVitalsSync();
@@ -537,8 +641,9 @@ export const useSessionStore = create<SessionState>()((set, get) => {
           // 20 / 1 natural e teste contra a morte de outro herói: o momento em tela cheia aparece para a mesa toda
           const epic = fresh
             .filter((e) => e.type === 'roll' && e.actorId !== me.userId)
-            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; sheetId?: string | null; who?: string; label?: string; death?: Record<string, unknown> })
-            .filter((p) => p.d20 && p.sheetId && (p.crit || p.fail || p.death))
+            .map((e) => e.payload as { d20?: boolean; crit?: boolean; fail?: boolean; late?: boolean; sheetId?: string | null; who?: string; label?: string; death?: Record<string, unknown> })
+            // rolagem que chegou atrasada (rede caiu) não interrompe a cena com tela cheia
+            .filter((p) => p.d20 && p.sheetId && !p.late && (p.crit || p.fail || p.death))
             .pop();
           const d = epic?.death;
           if (epic && d && isDeathOutcome(d.outcome)) {
@@ -567,6 +672,8 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (!topicSession) startLobbyWatch(campaignId, scheduleRefresh);
         else stopLobbyWatch();
         detectMyTurn();
+        // a leitura funcionou: a conexão voltou — manda as rolagens que ficaram presas
+        void flushRollOutbox();
       } catch (e) {
         if (seq === refreshSeq) set({ error: (e as Error).message });
       }
@@ -654,14 +761,19 @@ useUiStore.subscribe((s, prev) => {
   const dice = heroDice(hero)?.id;
   // teste contra a morte: a mesa vê o momento com os contadores (calculados antes da ficha gravar)
   const death = r.deathSave && hero ? { nat: r.rolls[0], ...deathSaveOutcome(hero.combat.deathSaves, r.rolls[0], r.total) } : undefined;
-  void sessionService
-    .log(st.session.id, st.campaignId, st.me.userId, 'roll', {
+  void sendTableRoll({
+    sessionId: st.session.id,
+    campaignId: st.campaignId,
+    actorId: st.me.userId,
+    visibility: st.rollVisibility,
+    at: Date.now(),
+    payload: {
       who, label: r.label, total: r.total, expr: r.expr, rolls: r.rolls.slice(0, 40), crit: r.crit, fail: r.fail, damage: !!r.damage,
       // ficha que rolou: golpe final no "aplicar em…" e o crítico cinematográfico
       sheetId: !st.me.isMaster ? r.charId ?? st.me.characterId ?? null : null, d20: r.sides === 20 && !r.damage && !r.ally,
       ...(r.cantrip && { cantrip: true }),
       ...(dice && { dice }),
       ...(death && { death }),
-    }, st.rollVisibility)
-    .catch(() => undefined);
+    },
+  });
 });

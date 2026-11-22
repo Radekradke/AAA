@@ -23,6 +23,7 @@ import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/master.css';
 import { isCloudAccount } from '@/lib/identity';
+import { rememberNext } from '@/lib/nextPath';
 
 /**
  * Mesa ao vivo (/mesa/:id/jogar): só o BOOTSTRAP — entra na campanha, liga
@@ -127,7 +128,21 @@ export function LiveSession() {
         <div className="fv-live">
           <section className="fv-panel fv-live-card fv-live-center">
             <div className="fv-label">Mesa ao vivo</div>
-            <p className="fv-live-hint">A sessão ao vivo precisa da nuvem e de uma conta (não funciona como convidado). Sua ficha continua funcionando offline normalmente.</p>
+            <p className="fv-live-hint">
+              A sessão ao vivo precisa de uma conta da nuvem (e-mail ou Google) — não funciona como convidado nem com conta só deste aparelho. Sua ficha continua funcionando offline normalmente.
+            </p>
+            {cloudEnabled() && (
+              <button
+                type="button"
+                className="fv-btn-gold"
+                onClick={() => {
+                  rememberNext(`/mesa/${id}/jogar`);
+                  nav('/entrar');
+                }}
+              >
+                Entrar com conta
+              </button>
+            )}
           </section>
         </div>
       </Screen>
