@@ -20,6 +20,8 @@ import { raceOf } from '@/data/races';
 import { derivedOf } from '@/lib/derivedCache';
 import type { Character } from '@/types/character';
 import { GuildDashboard } from '@/components/character/GuildDashboard';
+import { HeroRescueNotice } from '@/components/character/HeroRescueNotice';
+import { BackupReminder } from '@/components/character/BackupReminder';
 import { PasteImportModal } from '@/components/character/PasteImportModal';
 import { DdbImportModal } from '@/components/character/DdbImportModal';
 import { QuickHeroModal } from '@/components/character/QuickHeroModal';
@@ -89,6 +91,12 @@ export function CharacterSelect() {
           onImport={() => fileRef.current?.click()}
           onPaste={() => setPasting(true)}
           importError={importError}
+          notices={
+            <>
+              <HeroRescueNotice />
+              <BackupReminder />
+            </>
+          }
         />
       ) : (
       <div
@@ -116,6 +124,10 @@ export function CharacterSelect() {
           <p style={{ margin: 0, color: 'var(--muted)', fontSize: 15 }}>
             Escolha um personagem para jogar ou forje uma nova lenda.
           </p>
+        </div>
+        <div className="fv-rescue-slot">
+          <HeroRescueNotice />
+          <BackupReminder />
         </div>
 
         <div

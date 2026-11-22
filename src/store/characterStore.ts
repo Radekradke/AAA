@@ -141,6 +141,58 @@ export const useCharacterStore = create<CharacterState>()(
           if (!char) return null;
           return JSON.stringify(char, null, 2);
         },
+        adoptCharacters(ids, ownerId) {
+          const wanted = new Set(ids);
+          if (!wanted.size) return;
+          set((s) => ({
+            characters: s.characters.map((c) =>
+              wanted.has(c.id) && c.ownerId !== ownerId
+                ? // novo dono: para a nuvem dele, é uma ficha que ainda não subiu
+                  { ...c, ownerId, syncStatus: 'pending' as const, lastSyncedAt: undefined, syncBase: undefined }
+                : c,
+            ),
+          }));
+        },
+        restoreBackupCharacters(chars, ownerId, replaceIds) {
+          const replace = new Set(replaceIds);
+          let added = 0;
+          let replaced = 0;
+          set((s) => {
+            const next = [...s.characters];
+            const indexById = new Map(next.map((c, i) => [c.id, i]));
+            for (const raw of chars) {
+              const sameOwner = raw.ownerId === ownerId;
+              const incoming: Character = {
+                ...ensureCharacterV2(structuredClone(raw)),
+                ownerId,
+                syncStatus: 'pending',
+                // mesma conta: a versão da nuvem que o backup conhecia continua valendo;
+                // outro dono: para ele, a ficha é nova
+                syncBase: sameOwner ? raw.syncBase : undefined,
+                lastSyncedAt: sameOwner ? raw.lastSyncedAt : undefined,
+              };
+              const at = indexById.get(incoming.id);
+              if (at === undefined) {
+                indexById.set(incoming.id, next.length);
+                next.push(incoming);
+                added++;
+              } else if (replace.has(incoming.id)) {
+                const existing = next[at];
+                // substituir conta como edição deste aparelho: guarda o que ele sabe da nuvem
+                next[at] = {
+                  ...incoming,
+                  syncBase: existing.syncBase,
+                  lastSyncedAt: existing.lastSyncedAt,
+                  updatedAt: Math.max(Date.now(), existing.updatedAt + 1, (existing.syncBase ?? 0) + 1),
+                };
+                replaced++;
+              }
+            }
+            const restored = new Set(chars.map((c) => c.id));
+            return { characters: next, pendingDeletes: s.pendingDeletes.filter((id) => !restored.has(id)) };
+          });
+          return { added, replaced };
+        },
         ...combatActions(ctx),
         ...deedActions(ctx),
         ...inventoryActions(ctx),

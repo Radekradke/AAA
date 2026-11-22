@@ -26,6 +26,9 @@ export function importHeroText(text: string, ownerId: string): HeroImportResult 
   } catch {
     return { ok: false, error: 'Não consegui ler: confira se é o JSON da ficha (o texto entre { e }).' };
   }
+  if (raw && typeof raw === 'object' && (raw as { format?: unknown }).format === 'ficha-viva-backup') {
+    return { ok: false, error: 'Este arquivo é um backup completo. Para trazer os heróis dele, use Configurações → Backup → Restaurar backup.' };
+  }
   if (!isSimpleSheet(raw)) return importCharacter(json, ownerId);
   // ficha simples: monta com as regras da criação e entra como ficha completa
   const { char, warnings } = fromSimpleSheet(raw, ownerId);

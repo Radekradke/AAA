@@ -19,6 +19,7 @@ import { heroAvatar, heroFace, shortSubtitle } from '@/lib/summary';
 import type { UpcomingForMe } from '@/services/agendaService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
+import { isCloudAccount } from '@/lib/identity';
 
 /** As irmãs magas do menu: cada clipe toca até o fim e funde no da outra. */
 
@@ -59,7 +60,7 @@ export function Home() {
 
   // a próxima sessão marcada em qualquer mesa minha (sem o agenda.sql: nada aparece)
   useEffect(() => {
-    if (!user || user.guest || !cloudEnabled()) {
+    if (!user || !isCloudAccount(user) || !cloudEnabled()) {
       setNextSession(null);
       return;
     }

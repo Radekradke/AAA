@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { idbAvailable, idbDel, idbGet, idbSet } from '@/lib/storage/idb';
 import { getSupabase } from '@/services/supabaseClient';
 import { newId } from '@/store/character/ids';
+import { isCloudUserId } from '@/lib/identity';
 
 /**
  * Imagens das pistas do diário. NÃO ficam dentro da ficha (que sobe inteira a
@@ -33,7 +34,6 @@ async function del(k: string) {
   await idbDel(k).catch(() => undefined);
 }
 
-const CLOUD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const path = (userId: string, id: string) => `${userId}/${id}`;
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -77,7 +77,7 @@ export async function loadClueImage(id: string, userId?: string | null): Promise
   const local = await get<string>(key(id));
   if (local) return local;
   const sb = getSupabase();
-  if (!sb || !userId || !CLOUD_ID.test(userId)) return null;
+  if (!sb || !userId || !isCloudUserId(userId)) return null;
   const { data, error } = await sb.storage.from(BUCKET).download(path(userId, id));
   if (error || !data) return null;
   const url = await blobToDataUrl(data);
@@ -90,13 +90,13 @@ export async function forgetClueImage(id: string, userId?: string | null): Promi
   await del(key(id));
   await editQueue((q) => q.filter((x) => x !== id));
   const sb = getSupabase();
-  if (sb && userId && CLOUD_ID.test(userId)) await sb.storage.from(BUCKET).remove([path(userId, id)]).catch(() => undefined);
+  if (sb && userId && isCloudUserId(userId)) await sb.storage.from(BUCKET).remove([path(userId, id)]).catch(() => undefined);
 }
 
 /** Sobe as imagens que ainda não foram para a nuvem (chamado no fim de cada sincronização). */
 export async function flushClueImageUploads(userId: string): Promise<void> {
   const sb = getSupabase();
-  if (!sb || !CLOUD_ID.test(userId)) return;
+  if (!sb || !isCloudUserId(userId)) return;
   const pending = await queue();
   const done: string[] = [];
   let failed: string | null = null;
@@ -113,6 +113,35 @@ export async function flushClueImageUploads(userId: string): Promise<void> {
   }
   if (done.length) await editQueue((q) => q.filter((x) => !done.includes(x)));
   if (failed) throw new Error(`Imagens do diário ainda pendentes: ${failed}`);
+}
+
+/**
+ * Backup: as imagens das pistas (data URL por id). Busca neste aparelho e, se
+ * faltar alguma, na cópia privada da nuvem. As que não existem ficam de fora.
+ */
+export async function exportClueImages(ids: readonly string[], userId?: string | null): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  for (const id of new Set(ids)) {
+    const url = await loadClueImage(id, userId).catch(() => null);
+    if (url) out[id] = url;
+  }
+  return out;
+}
+
+/**
+ * Restauração: guarda as imagens que este aparelho não tem (e põe na fila de
+ * envio para a nuvem). As que já existem aqui não são tocadas. Devolve quantas entraram.
+ */
+export async function importClueImages(images: Readonly<Record<string, string>>): Promise<number> {
+  const added: string[] = [];
+  for (const [id, url] of Object.entries(images)) {
+    if (!/^[\w-]{1,80}$/.test(id) || typeof url !== 'string' || !url.startsWith('data:image/')) continue;
+    if (await get<string>(key(id))) continue;
+    await put(key(id), url);
+    added.push(id);
+  }
+  if (added.length) await editQueue((q) => [...q.filter((x) => !added.includes(x)), ...added]);
+  return added.length;
 }
 
 /** A imagem de uma pista para mostrar (null enquanto carrega ou se não houver). */

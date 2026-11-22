@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { deleteHeroWithUndo, duplicateHero } from '@/lib/heroActions';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Character } from '@/types/character';
 import type { Campaign } from '@/types/models';
@@ -16,6 +16,7 @@ import { getClass } from '@/data/classes';
 import { heroAvatar, heroPortraitPosition, heroSubtitle } from '@/lib/summary';
 import { Icon } from '@/components/ui/Icon';
 import { useInk } from '@/lib/contrast';
+import { isCloudAccount } from '@/lib/identity';
 
 interface GuildDashboardProps {
   heroes: Character[];
@@ -25,6 +26,8 @@ interface GuildDashboardProps {
   /** Colar a ficha gerada pelo ChatGPT (ou JSON exportado). */
   onPaste?: () => void;
   importError: string | null;
+  /** Avisos acima da coleção (ex.: heróis deste aparelho fora da lista). */
+  notices?: ReactNode;
 }
 
 /** Estado da vida em palavras: a cor nunca é a única pista. */
@@ -60,7 +63,7 @@ function initials(name: string): string {
  * recursos reais do herói ativo e — quando há mesas na nuvem — uma coluna
  * com as mesas do jogador.
  */
-export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, importError }: GuildDashboardProps) {
+export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, importError, notices }: GuildDashboardProps) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
   const currentId = useCharacterStore((s) => s.currentId);
@@ -68,7 +71,7 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, impor
   const [query, setQuery] = useState('');
   const [tables, setTables] = useState<{ c: Campaign; role: 'Mestre' | 'Jogador' }[]>([]);
 
-  const canCloud = cloudEnabled() && !user.guest;
+  const canCloud = cloudEnabled() && isCloudAccount(user);
   useEffect(() => {
     if (!canCloud) return;
     let alive = true;
@@ -103,6 +106,7 @@ export function GuildDashboard({ heroes, onOpen, onNew, onImport, onPaste, impor
           </svg>
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar herói" aria-label="Buscar herói pelo nome, espécie ou classe" />
         </label>
+        {notices}
       </header>
 
       <div className="fv-guild-main">

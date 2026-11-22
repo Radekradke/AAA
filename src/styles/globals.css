@@ -8929,3 +8929,81 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-quick-spells { margin: 0; }
 .fv-quick-actions { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
 .fv-quick-actions b { color: var(--ink); }
+
+/* ── resgate de heróis de outros perfis deste aparelho ── */
+.fv-rescue {
+  flex: 1 1 100%;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-color: color-mix(in srgb, var(--gold), transparent 55%);
+}
+.fv-rescue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.fv-rescue-head > div:first-child { flex: 1 1 280px; min-width: 0; }
+.fv-rescue h2 {
+  margin: 0;
+  font: 700 16px / 1.25 var(--font-display);
+  color: var(--ink);
+}
+.fv-rescue p { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.fv-rescue-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.fv-rescue-btn { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.fv-rescue-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fv-rescue-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--sunk);
+}
+.fv-rescue-name { display: flex; flex-direction: column; min-width: 0; }
+.fv-rescue-name b, .fv-rescue-name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-rescue-name b { color: var(--ink); font-size: 15px; }
+.fv-rescue-name small { color: var(--muted); font-size: 13px; }
+.fv-rescue-more {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0 4px;
+  margin-left: 6px;
+  background: none;
+  border: 0;
+  color: var(--gold);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.fv-rescue-elsewhere { font-size: 14px; }
+.fv-rescue-slot { display: flex; flex-direction: column; gap: 12px; margin-bottom: clamp(16px, 2.4vh, 24px); }
+.fv-rescue-slot:empty { display: none; }
+
+/* ── Configurações → Backup ── */
+.fv-set-state { font-size: 13px; font-weight: 600; color: var(--muted); }
+.fv-set-state.is-ok { color: var(--ok, #5fd38a); }
+.fv-restore { display: flex; flex-direction: column; gap: 14px; }
+.fv-restore-meta { margin: 0; color: var(--muted); font-size: 14px; }
+.fv-restore-meta b { color: var(--ink); }
+.fv-restore-counts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 14px; }
+.fv-restore-counts b { color: var(--ink); }
+.fv-restore-conflicts { margin: 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px; }
+.fv-restore-conflicts legend { padding: 0 6px; font-weight: 700; color: var(--ink); font-size: 14px; }
+.fv-restore-conflicts ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow: auto; }
+.fv-restore-conflicts li, .fv-restore-choice span { display: flex; flex-direction: column; }
+.fv-restore-conflicts li b, .fv-restore-choice b { color: var(--ink); font-size: 14px; }
+.fv-restore-conflicts small, .fv-restore-choice small { color: var(--muted); font-size: 13px; }
+.fv-restore-choice { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: var(--radius-md); cursor: pointer; }
+.fv-restore-choice:has(input:checked) { background: var(--sunk); }
+.fv-restore-choice input { margin-top: 3px; accent-color: var(--gold); width: 18px; height: 18px; }
+.fv-restore-skipped { padding: 10px 12px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--danger), transparent 92%); font-size: 13px; color: var(--muted); }
+.fv-restore-skipped b { color: var(--ink); }
+.fv-restore-skipped ul { margin: 6px 0 0; padding-left: 18px; }
+.fv-restore-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }

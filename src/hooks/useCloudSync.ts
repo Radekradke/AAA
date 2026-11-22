@@ -5,6 +5,7 @@ import { useSaveStatusStore } from '@/store/saveStatusStore';
 import { cloudEnabled, getSupabase } from '@/services/supabaseClient';
 import { syncNow } from '@/services/offlineSyncService';
 import { useOnlineStatus } from './useOnlineStatus';
+import { isCloudAccount } from '@/lib/identity';
 
 const SYNC_DEBOUNCE_MS = 4000;
 
@@ -19,7 +20,7 @@ export function useCloudSync(): void {
   const online = useOnlineStatus();
   // só sincroniza depois que as fichas locais carregaram do IndexedDB
   const hydrated = useCharactersHydrated();
-  const canSync = cloudEnabled() && !!user && !user.guest && hydrated;
+  const canSync = cloudEnabled() && isCloudAccount(user) && hydrated;
 
   // restaura a sessão persistida do Supabase (login lembrado entre visitas)
   useEffect(() => {
@@ -36,7 +37,7 @@ export function useCloudSync(): void {
   // RLS recusa. Detecta e pede login de novo — as fichas ficam no aparelho.
   useEffect(() => {
     // só contas da nuvem (id UUID); contas locais/offline não têm sessão Supabase
-    if (!canSync || !online || !/^[0-9a-f-]{36}$/i.test(user!.id)) return;
+    if (!canSync || !online) return;
     const sb = getSupabase();
     if (!sb) return;
     void sb.auth.getUser().then(({ data, error }) => {

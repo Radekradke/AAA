@@ -43,6 +43,7 @@ function Page({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoading />}>{children}</Suspense>;
 }
 import { useCloudSync } from '@/hooks/useCloudSync';
+import { useStorageProtection } from '@/hooks/useStorageProtection';
 import { useClueImageMigration } from '@/hooks/useClueImageMigration';
 import { PwaStatus } from '@/components/PwaStatus';
 import { FeedbackHost } from '@/components/feedback/FeedbackHost';
@@ -51,6 +52,7 @@ import { useUiStore } from '@/store/uiStore';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { watchCharacters } from '@/services/sheetHistory';
 import { startOnboardingSync } from '@/services/onboardingSync';
+import { isCloudAccount } from '@/lib/identity';
 
 // peças globais que quase nunca aparecem: baixam na primeira vez que precisam
 const SessionDock = lazy(() => import('@/components/session/SessionDock').then((m) => ({ default: m.SessionDock })));
@@ -100,6 +102,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 export function App() {
   const location = useLocation();
   useCloudSync(); // offline-first: sincroniza ao logar, reconectar e após edições
+  useStorageProtection(); // pede ao navegador para não apagar os heróis na faxina automática
   useClueImageMigration(); // imagens de pistas antigas saem de dentro da ficha
   useEffect(() => watchCharacters(useCharacterStore.subscribe), []); // histórico da ficha (versões no aparelho)
   useEffect(() => void import('@/lib/deedTracker').then((m) => m.startDeedTracker()), []); // feitos da carta (críticos, 0 PV e volta), sob demanda
@@ -110,7 +113,7 @@ export function App() {
   const showTour = useOnceTrue(useUiStore((s) => !!s.tour));
   const hasCinematic = useOnceTrue(useUiStore((s) => !!s.cinematic));
   // a mesa ao vivo só existe com conta na nuvem (convidado nunca baixa esse código)
-  const canLive = !!user && !user.guest && cloudEnabled();
+  const canLive = isCloudAccount(user) && cloudEnabled();
 
   return (
     <>

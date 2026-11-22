@@ -7,6 +7,7 @@ import { cloudEnabled, getSupabase } from '@/services/supabaseClient';
 import { campaignService } from '@/services/campaignService';
 import { useAuthStore } from '@/store/authStore';
 import { heroAvatar, shortSubtitle } from '@/lib/summary';
+import { isCloudAccount } from '@/lib/identity';
 
 /**
  * Heróis dos outros jogadores das mesmas campanhas desta ficha (para citar
@@ -24,7 +25,7 @@ export function useSheetHeroes(sheetId: string): Mentionable[] {
   });
   useEffect(() => {
     const client = getSupabase();
-    if (!cloudEnabled() || !client || !user || user.guest) return;
+    if (!cloudEnabled() || !client || !user || !isCloudAccount(user)) return;
     let alive = true;
     void (async () => {
       try {

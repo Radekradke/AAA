@@ -34,6 +34,7 @@ import { SpellThumb } from '@/components/spells/SpellThumb';
 import { spellArt, spellRarity } from '@/lib/spellArt';
 import { ConditionIcon, SchoolIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import '@/styles/search.css';
+import { isCloudAccount } from '@/lib/identity';
 
 type Ref =
   | { t: 'nav'; to: string; state?: unknown }
@@ -96,7 +97,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
 
   // mesas da conta (nuvem): carregam ao abrir a busca
   useEffect(() => {
-    if (!user || user.guest) return;
+    if (!user || !isCloudAccount(user)) return;
     let alive = true;
     void import('@/services/campaignService')
       .then(({ campaignService }) => campaignService.myCampaigns(user.id))

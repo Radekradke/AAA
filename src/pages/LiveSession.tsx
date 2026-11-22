@@ -22,6 +22,7 @@ import type { Campaign } from '@/types/models';
 import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/master.css';
+import { isCloudAccount } from '@/lib/identity';
 
 /**
  * Mesa ao vivo (/mesa/:id/jogar): só o BOOTSTRAP — entra na campanha, liga
@@ -38,7 +39,7 @@ export function LiveSession() {
   const [heroes, setHeroes] = useState<SharedHero[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const canPlay = cloudEnabled() && !!user && !user.guest;
+  const canPlay = cloudEnabled() && isCloudAccount(user);
   const isMaster = !!campaign && !!user && campaign.masterId === user.id;
   // uma única assinatura de NPCs para a tela inteira (o console repassa por contexto)
   const { npcs, secrets, reload: reloadNpcs } = useCampaignNpcs(campaign?.id, isMaster);

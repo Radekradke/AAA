@@ -8,6 +8,7 @@ import { TurnBanner } from './TurnBanner';
 import { TableRollToast } from './TableRollToast';
 import { KillCreditPrompt } from './KillCreditPrompt';
 import '@/styles/session.css';
+import { isCloudAccount } from '@/lib/identity';
 
 /**
  * Presença global da mesa ao vivo: enquanto estou numa sessão, uma pílula
@@ -28,7 +29,7 @@ export function SessionDock() {
 
   // reload fora da página da mesa: reconecta na última mesa
   useEffect(() => {
-    if (campaignId || !user || user.guest || !cloudEnabled()) return;
+    if (campaignId || !user || !isCloudAccount(user) || !cloudEnabled()) return;
     const info = resumeInfo();
     if (!info || info.userId !== user.id) return;
     let alive = true;

@@ -10,6 +10,7 @@ import { shareService, shareUrl } from '@/services/shareService';
 import type { SheetShare } from '@/services/shareService';
 import type { Character } from '@/types/character';
 import { characterFileName, downloadCharacterJson } from '@/lib/exportCharacter';
+import { isCloudAccount } from '@/lib/identity';
 
 /**
  * Compartilhar a ficha (botão de corrente no cabeçalho): primeiro a escolha —
@@ -20,7 +21,7 @@ import { characterFileName, downloadCharacterJson } from '@/lib/exportCharacter'
  */
 export function ShareSheetModal({ char, onClose }: { char: Character; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
-  const canCloud = cloudEnabled() && !!user && !user.guest;
+  const canCloud = cloudEnabled() && isCloudAccount(user);
   const [links, setLinks] = useState<SheetShare[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

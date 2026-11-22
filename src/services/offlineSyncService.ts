@@ -8,6 +8,7 @@ import { recordVersion } from './sheetHistory';
 import type { DiaryPart, DiaryRow } from './diaryCloud';
 import { cloudDiaryFor, diaryCloud, diaryPartOf, hasLegacyDiary, isEmptyDiaryPart, sameDiary, withDiary } from './diaryCloud';
 import { flushClueImageUploads } from '@/lib/clueImageStore';
+import { isCloudUserId } from '@/lib/identity';
 
 /**
  * Sincronização offline-first. A verdade local vive no IndexedDB; quando
@@ -58,9 +59,6 @@ type Outcome =
 
 let syncing = false;
 
-/** UUID do Supabase (id de conta na nuvem). Contas locais/convidado usam `u…`/`guest`. */
-const CLOUD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
  * Adoção: fichas criadas como convidado/conta local (ownerId não-UUID)
  * passam para o usuário da nuvem no primeiro login. É o que faz
@@ -68,17 +66,11 @@ const CLOUD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
  * funcionar — sem isso as fichas antigas ficam órfãs e nunca sobem.
  */
 export function adoptLocalCharacters(userId: string): boolean {
-  if (!CLOUD_ID.test(userId)) return false; // só adota para uma conta de nuvem
-  const { characters } = useCharacterStore.getState();
-  const orphans = characters.filter((c) => c.ownerId !== userId && !CLOUD_ID.test(c.ownerId));
+  if (!isCloudUserId(userId)) return false; // só adota para uma conta de nuvem
+  const store = useCharacterStore.getState();
+  const orphans = store.characters.filter((c) => c.ownerId !== userId && !isCloudUserId(c.ownerId));
   if (!orphans.length) return false;
-  useCharacterStore.setState({
-    characters: characters.map((c) =>
-      c.ownerId !== userId && !CLOUD_ID.test(c.ownerId)
-        ? { ...c, ownerId: userId, syncStatus: 'pending' as const, lastSyncedAt: undefined }
-        : c,
-    ),
-  });
+  store.adoptCharacters(orphans.map((c) => c.id), userId);
   return true;
 }
 

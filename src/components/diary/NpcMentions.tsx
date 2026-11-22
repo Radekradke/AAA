@@ -3,6 +3,7 @@ import { npcService } from '@/services/npcService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 import type { CampaignNpc } from '@/types/npc';
+import { isCloudAccount } from '@/lib/identity';
 
 /** NPCs revelados das mesas em que a ficha está (com cópia offline). */
 export function useSheetNpcs(sheetId: string): CampaignNpc[] {
@@ -15,7 +16,7 @@ export function useSheetNpcs(sheetId: string): CampaignNpc[] {
     }
   });
   useEffect(() => {
-    if (!cloudEnabled() || !user || user.guest) return;
+    if (!cloudEnabled() || !user || !isCloudAccount(user)) return;
     let alive = true;
     void npcService.forSheet(sheetId).then((l) => alive && setNpcs(l));
     return () => {

@@ -106,6 +106,37 @@ function adoptFromCharacters() {
   }
 }
 
+/**
+ * Junta uma biblioteca vinda de fora (backup) à deste aparelho: entra o que
+ * não existe aqui e o que é mais novo. Devolve quantos itens mudaram.
+ */
+export function mergeHomebrewLibrary(incoming: { races?: Race[]; spells?: Spell[]; feats?: Feat[] }): number {
+  const lib = useHomebrewStore.getState();
+  let count = 0;
+  const merge = <T extends { id: string; updatedAt?: number }>(current: T[], add: T[] | undefined, register: (x: T) => void, key: (x: T) => string) => {
+    if (!add?.length) return null;
+    const known = new Map(current.map((x) => [x.id, x]));
+    let changed = false;
+    for (const x of add) {
+      if (!x || typeof x.id !== 'string') continue;
+      const cur = known.get(x.id);
+      if (cur && (x.updatedAt ?? 0) <= (cur.updatedAt ?? 0)) continue;
+      register(x);
+      known.set(x.id, x);
+      changed = true;
+      count++;
+    }
+    return changed ? [...known.values()].sort(byName(key)) : null;
+  };
+  const races = merge(lib.races, incoming.races, registerRace, (r) => r.label);
+  const spells = merge(lib.spells, incoming.spells, registerSpell, (s) => s.name);
+  const feats = merge(lib.feats, incoming.feats, registerFeat, (f) => f.label);
+  if (races || spells || feats) {
+    useHomebrewStore.setState({ ...(races && { races }), ...(spells && { spells }), ...(feats && { feats }) });
+  }
+  return count;
+}
+
 /** Cada ficha leva consigo as magias e talentos homebrew que usa, na versão mais nova. */
 function syncEmbeds() {
   const store = useCharacterStore.getState();

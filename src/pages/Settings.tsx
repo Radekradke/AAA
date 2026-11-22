@@ -1,6 +1,5 @@
 import { WebhookField, WebhookHowTo } from '@/components/campaign/DiscordCard';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
 import { Icon } from '@/components/ui/Icon';
@@ -16,6 +15,8 @@ import { useInstallPrompt } from '@/lib/pwaInstall';
 import { THEMES } from '@/data/themes';
 import { rememberNext } from '@/lib/nextPath';
 import { wakeLockSupported } from '@/lib/wakeLock';
+import { SetRow } from '@/components/settings/SetRow';
+import { DataSection } from '@/components/settings/DataSection';
 
 /** Contador de artes: só baixa (catálogo de magias, itens e criaturas) quando abrir. */
 const ArtCounter = lazy(() => import('@/components/ArtCounter'));
@@ -24,6 +25,7 @@ const SECTIONS: { id: string; label: string; icon: IconName }[] = [
   { id: 'conta', label: 'Conta', icon: 'user' },
   { id: 'aparencia', label: 'Aparência', icon: 'palette' },
   { id: 'som', label: 'Som e música', icon: 'volume' },
+  { id: 'seguranca', label: 'Backup', icon: 'download' },
   { id: 'dados', label: 'Dados e mesa', icon: 'd20' },
   { id: 'livros', label: 'Livros', icon: 'book' },
   { id: 'app', label: 'App e ajuda', icon: 'help' },
@@ -56,18 +58,7 @@ function useActiveSection(ids: string[]): string {
 
 const SECTION_IDS = SECTIONS.map((s) => s.id);
 
-/** Uma linha de ajuste: título + explicação à esquerda, controle à direita. */
-function Row({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
-  return (
-    <div className="fv-set-row">
-      <div className="fv-set-row-text">
-        <b>{title}</b>
-        {hint && <small>{hint}</small>}
-      </div>
-      <div className="fv-set-row-ctl">{children}</div>
-    </div>
-  );
-}
+const Row = SetRow;
 
 function Switch({ on, label, onToggle }: { on: boolean; label: string; onToggle: () => void }) {
   return (
@@ -224,6 +215,8 @@ export function Settings() {
             </label>
           </Row>
         </section>
+
+        <DataSection iosNotInstalled={installer.needsIOSGuide} onIosGuide={() => setIosGuide(true)} />
 
         <section id="cfg-dados" className="fv-panel fv-set-card" aria-labelledby="cfg-dados-t">
           <h2 id="cfg-dados-t">Dados e mesa</h2>

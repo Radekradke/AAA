@@ -8,6 +8,7 @@ import { authService } from '@/services/authService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import { normalizeCode } from '@/lib/inviteCode';
 import '@/styles/session.css';
+import { isCloudAccount } from '@/lib/identity';
 
 /**
  * Entrada na sala: /sala/:token (link antigo) ou /sala/K7Q4-2MXP (código
@@ -22,7 +23,7 @@ export function JoinCampaign() {
 
   useEffect(() => {
     if (!token || triedRef.current) return;
-    if (!cloudEnabled() || !user || user.guest) return; // aguarda login real
+    if (!cloudEnabled() || !isCloudAccount(user)) return; // aguarda login real (conta da nuvem)
     triedRef.current = true;
     void (async () => {
       // o `user` fica salvo no aparelho, mas a sessão do Supabase pode ter
@@ -44,7 +45,7 @@ export function JoinCampaign() {
     })();
   }, [token, user, navigate]);
 
-  const needsLogin = !cloudEnabled() || !user || user.guest;
+  const needsLogin = !cloudEnabled() || !isCloudAccount(user);
 
   return (
     <Screen>

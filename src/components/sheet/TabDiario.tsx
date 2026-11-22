@@ -20,6 +20,7 @@ import type { DiaryNavApi } from '@/components/diary/DiaryNav';
 import '@/styles/session.css';
 import '@/styles/stage.css';
 import '@/styles/diary.css';
+import { isCloudAccount } from '@/lib/identity';
 
 /** Pistas (handouts) que o mestre entregou nas mesas desta ficha — com cópia offline. */
 function useSheetHandouts(sheetId: string): Handout[] {
@@ -32,7 +33,7 @@ function useSheetHandouts(sheetId: string): Handout[] {
     }
   });
   useEffect(() => {
-    if (!cloudEnabled() || !user || user.guest) return;
+    if (!cloudEnabled() || !user || !isCloudAccount(user)) return;
     let alive = true;
     void stageService.handoutsForSheet(sheetId).then((l) => alive && setList(l));
     return () => {

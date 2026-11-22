@@ -10,13 +10,14 @@ import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { JoinByCode } from '@/components/campaign/JoinByCode';
 import '@/styles/session.css';
+import { isCloudAccount } from '@/lib/identity';
 
 /** Mesas/Campanhas: o mestre cria a sala; jogadores entram por convite. */
 export function Campaigns() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const t = useTheme();
-  const canCloud = cloudEnabled() && !!user && !user.guest;
+  const canCloud = cloudEnabled() && isCloudAccount(user);
 
   const [asMaster, setAsMaster] = useState<Campaign[]>([]);
   const [asPlayer, setAsPlayer] = useState<Campaign[]>([]);

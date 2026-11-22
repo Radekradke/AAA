@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@/types/character';
 import { authService } from '@/services/authService';
+import { adoptGuestHeroes } from '@/lib/localProfiles';
+import { GUEST_ID } from '@/lib/identity';
 
 interface StoredAccount {
   id: string;
@@ -61,6 +63,8 @@ export const useAuthStore = create<AuthState>()(
           accounts: [...s.accounts, account],
           user: { id: account.id, name: account.name, email: account.email, guest: false },
         }));
+        // heróis criados como convidado vêm junto para a conta nova
+        adoptGuestHeroes(account.id);
         return { ok: true };
       },
 
@@ -79,6 +83,7 @@ export const useAuthStore = create<AuthState>()(
           }));
         }
         set({ user: { id: account.id, name: account.name, email: account.email, guest: false } });
+        adoptGuestHeroes(account.id);
         return { ok: true };
       },
     
@@ -87,7 +92,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginAsGuest() {
-        set({ user: { id: 'guest', name: 'Convidado', email: null, guest: true } });
+        set({ user: { id: GUEST_ID, name: 'Convidado', email: null, guest: true } });
       },
 
       logout() {

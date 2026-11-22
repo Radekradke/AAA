@@ -28,6 +28,16 @@ export interface CharacterState {
   duplicateCharacter: (id: string) => void;
   /** Ficha completa (JSON exportado). Texto colado/ficha simples: use lib/heroImport. */
   importCharacter: (json: string, ownerId: string) => { ok: boolean; error?: string; id?: string };
+  /**
+   * Passa fichas para outro dono (resgate de outro perfil deste aparelho,
+   * entrar numa conta). Ficam pendentes de sincronização com o novo dono.
+   */
+  adoptCharacters: (ids: string[], ownerId: string) => void;
+  /**
+   * Restauração de backup: adiciona as fichas (mantendo os ids) e substitui
+   * as de `replaceIds` que já existem. Já validadas por lib/backup.
+   */
+  restoreBackupCharacters: (chars: Character[], ownerId: string, replaceIds: string[]) => { added: number; replaced: number };
   exportCharacter: (id: string) => string | null;
 
   // ---- gameplay (operam no personagem informado) ----
