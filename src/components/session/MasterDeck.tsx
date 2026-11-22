@@ -7,6 +7,7 @@ import type { Character } from '@/types/character';
 import type { SharedCharacterSheet } from '@/types/models';
 import { MONSTER_BY_ID } from '@/data/bestiary';
 import { encounterBudget } from '@/engine/monsters';
+import { useShallow } from 'zustand/react/shallow';
 
 export interface SharedHero {
   share: SharedCharacterSheet;
@@ -55,7 +56,7 @@ const DIFF_CLASS: Record<string, string> = { trivial: 'is-trivial', fácil: 'is-
 
 /** Dificuldade do encontro (Guia do Mestre): heróis no encontro × monstros do bestiário. */
 export function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ encounter: st.encounter, combatants: st.combatants, busy: st.busy, awardXp: st.awardXp })));
   const levels = s.combatants
     .filter((c) => c.type === 'player')
     .map((c) => heroes.find((h) => h.share.sheetId === c.sheetId)?.snapshot?.level ?? 0)
@@ -91,7 +92,7 @@ export function EncounterDifficulty({ heroes }: { heroes: SharedHero[] }) {
  * heróis do encontro. O valor vai para a ficha de cada jogador sozinho.
  */
 export function XpAward() {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ encounter: st.encounter, combatants: st.combatants, busy: st.busy, awardXp: st.awardXp })));
   const heroes = s.combatants.filter((c) => c.type === 'player' && c.sheetId);
   const defeated = s.combatants.filter((c) => c.type !== 'player' && c.monsterRef && (c.hpCurrent ?? 1) <= 0);
   const pool = defeated.reduce((n, c) => n + (MONSTER_BY_ID[c.monsterRef!]?.xp ?? 0), 0);

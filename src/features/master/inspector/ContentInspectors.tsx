@@ -19,6 +19,7 @@ import { addToEncounter, npcToCombatant } from '../actions';
 import { TrayStar } from '../backstage/SessionPanel';
 import { keepNpc } from '../backstage/NpcsPanel';
 import { keepHandout, recipientsLabel } from '../backstage/HandoutsPanel';
+import { canDeliver, recipientsText, toggleRecipient } from '@/lib/handoutRecipients';
 
 /** Centro (em casas) da cena vista agora — onde um peão novo aparece. */
 function sceneCenter(): { sceneId: string; x: number; y: number } | null {
@@ -109,7 +110,11 @@ export function HandoutInspector({ id }: { id: string }) {
   const owners = [...new Map(heroes.map((x) => [x.share.ownerId, x])).values()];
   const [to, setTo] = useState<string[] | null>(h?.recipients ?? null);
   if (!h) return <p className="fv-bs-hint">Esta pista não existe mais.</p>;
-  const toggle = (uid: string) => setTo((cur) => (cur === null ? [uid] : cur.includes(uid) ? (cur.length > 1 ? cur.filter((x) => x !== uid) : null) : [...cur, uid]));
+  const toggle = (uid: string) => setTo((cur) => toggleRecipient(cur, uid));
+  const toLabel = recipientsText(to, (uid) => {
+    const o = owners.find((x) => x.share.ownerId === uid);
+    return o ? heroName(o) : 'jogador';
+  });
   return (
     <div className="fv-ins">
       <header className="fv-ins-head">
@@ -122,18 +127,23 @@ export function HandoutInspector({ id }: { id: string }) {
       {img.url && <img className="fv-ins-img" src={img.url} alt="" />}
       {h.body && <p className="fv-ins-text">{h.body}</p>}
       <div className="fv-ins-recips" role="group" aria-label="Para quem">
-        <button type="button" className={to === null ? 'is-on' : ''} onClick={() => setTo(null)}>
+        <button type="button" className={to === null ? 'is-on' : ''} aria-pressed={to === null} onClick={() => setTo(null)}>
           Todos
         </button>
         {owners.map((o) => (
-          <button key={o.share.ownerId} type="button" className={to?.includes(o.share.ownerId) ? 'is-on' : ''} onClick={() => toggle(o.share.ownerId)}>
+          <button key={o.share.ownerId} type="button" className={to?.includes(o.share.ownerId) ? 'is-on' : ''} aria-pressed={!!to?.includes(o.share.ownerId)} onClick={() => toggle(o.share.ownerId)}>
             {heroName(o)}
           </button>
         ))}
       </div>
       <div className="fv-ins-acts">
-        <button type="button" className="fv-btn-gold fv-bs-mini" onClick={() => void show(h.id, to).then(() => toast(`"${h.title}" entregue.`))}>
-          {h.shownAt ? 'Entregar de novo' : 'Mostrar agora'}
+        <button
+          type="button"
+          className="fv-btn-gold fv-bs-mini"
+          disabled={!canDeliver(to)}
+          onClick={() => void show(h.id, to).then(() => toast(`"${h.title}" entregue para ${toLabel}.`))}
+        >
+          {!canDeliver(to) ? 'Escolha quem recebe' : `${h.shownAt ? 'Entregar de novo' : 'Mostrar'} para ${toLabel}`}
         </button>
         {h.shownAt && (
           <button

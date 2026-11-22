@@ -1,5 +1,6 @@
 import { getSupabase } from './supabaseClient';
 import type { GameSession, SessionEvent, SessionStatus } from '@/types/session';
+import { isStaleSession } from '@/lib/sessionAge';
 
 /**
  * Sessão ao vivo (uma noite de jogo). ONLINE-FIRST: nada aqui passa pela
@@ -84,9 +85,11 @@ export const sessionService = {
   async liveIn(campaignIds: readonly string[]): Promise<Set<string>> {
     if (!campaignIds.length) return new Set();
     const { data, error } = await sb()
-      .from('sessions').select('campaign_id').in('campaign_id', [...campaignIds]).in('status', ['active', 'paused']);
+      .from('sessions').select('campaign_id, started_at, created_at').in('campaign_id', [...campaignIds]).in('status', ['active', 'paused']);
     if (error) return new Set(); // sem a tabela (SQL da sessão não rodado) ou sem rede: só não mostra o selo
-    return new Set((data ?? []).map((r: { campaign_id: string }) => String(r.campaign_id)));
+    // sessão esquecida aberta há dias não chama os jogadores para uma mesa vazia
+    const rows = (data ?? []) as { campaign_id: string; started_at: string | null; created_at: string }[];
+    return new Set(rows.filter((r) => !isStaleSession({ startedAt: r.started_at, createdAt: r.created_at })).map((r) => String(r.campaign_id)));
   },
 
   async get(sessionId: string): Promise<GameSession | null> {

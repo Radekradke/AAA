@@ -6,6 +6,7 @@ import { stageService } from '@/services/stageService';
 import { useStageStore } from '@/store/stageStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { Handout } from '@/types/stage';
+import { canDeliver, recipientsText, toggleRecipient } from '@/lib/handoutRecipients';
 import '@/styles/stage.css';
 
 /** Jogadores da mesa (dono → nomes dos heróis) para escolher quem recebe. */
@@ -49,7 +50,7 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
     if (ok) reset();
   };
 
-  const nameOf = (ids: string[] | null) => (ids === null ? 'todos' : ids.map((id) => players.find((p) => p.id === id)?.name ?? 'jogador').join(', ') || 'ninguém');
+  const nameOf = (ids: string[] | null) => recipientsText(ids, (id) => players.find((p) => p.id === id)?.name ?? 'jogador');
 
   return (
     <section className="fv-panel fv-live-card fv-handouts">
@@ -85,7 +86,7 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
         </div>
         <div className="fv-handout-to" role="group" aria-label="Quem recebe">
           <span>Para</span>
-          <button type="button" className={'fv-live-chip' + (to === null ? ' is-on' : '')} onClick={() => setTo(null)}>Todos</button>
+          <button type="button" className={'fv-live-chip' + (to === null ? ' is-on' : '')} aria-pressed={to === null} onClick={() => setTo(null)}>Todos</button>
           {players.map((p) => {
             const on = !!to?.includes(p.id);
             return (
@@ -94,11 +95,7 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
                 type="button"
                 className={'fv-live-chip' + (on ? ' is-on' : '')}
                 aria-pressed={on}
-                onClick={() => setTo((cur) => {
-                  const base = cur ?? [];
-                  const next = on ? base.filter((x) => x !== p.id) : [...base, p.id];
-                  return next.length ? next : null;
-                })}
+                onClick={() => setTo((cur) => toggleRecipient(cur, p.id))}
               >
                 {p.name}
               </button>
@@ -108,7 +105,9 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
         {err && <p className="fv-npc-editor-err" role="alert">{err}</p>}
         <div className="fv-handout-row is-end">
           <button type="button" className="fv-btn-ghost" disabled={st.busy || uploading} onClick={() => void create(false)}>Guardar na gaveta</button>
-          <button type="button" className="fv-btn-gold" disabled={st.busy || uploading} onClick={() => void create(true)}>Entregar agora</button>
+          <button type="button" className="fv-btn-gold" disabled={st.busy || uploading || !canDeliver(to)} onClick={() => void create(true)}>
+            {canDeliver(to) ? `Entregar para ${nameOf(to)}` : 'Escolha quem recebe'}
+          </button>
         </div>
       </div>
 
@@ -128,7 +127,7 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
               {h.shownAt ? (
                 <button type="button" className="fv-btn-ghost" disabled={st.busy} onClick={() => void st.run(() => stageService.hideHandout(h.id))}>Recolher</button>
               ) : (
-                <button type="button" className="fv-btn-gold" disabled={st.busy} onClick={() => void st.showHandout(h.id, h.recipients)}>Entregar ({nameOf(h.recipients)})</button>
+                <button type="button" className="fv-btn-gold" disabled={st.busy || !canDeliver(h.recipients)} onClick={() => void st.showHandout(h.id, h.recipients)}>Entregar ({nameOf(h.recipients)})</button>
               )}
               <button
                 type="button"

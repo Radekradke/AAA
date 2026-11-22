@@ -18,6 +18,7 @@ import { ContextInspector } from './inspector/ContextInspector';
 import { InitiativeDock } from './initiative/InitiativeDock';
 import { MasterQuickBar } from './quick/MasterQuickBar';
 import '@/styles/master.css';
+import { useShallow } from 'zustand/react/shallow';
 
 interface Props {
   campaign: Campaign;
@@ -36,7 +37,7 @@ interface Props {
  * No celular/tablet, Bastidores e Inspetor viram gavetas.
  */
 export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloadNpcs, loadError }: Props) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, encounter: st.encounter, combatants: st.combatants, connection: st.connection, error: st.error, clearError: st.clearError })));
   const m = useMasterStore();
   const stageError = useStageStore((st) => st.error);
 

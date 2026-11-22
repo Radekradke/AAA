@@ -12,6 +12,7 @@ import { useMaster, heroName } from '../context';
 import { useMasterStore } from '../masterStore';
 import { addToEncounter } from '../actions';
 import { NoteInput } from '../backstage/MasterNotesPanel';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * CRIAÇÃO RÁPIDA — reagir ao que a mesa inventou em poucos segundos.
@@ -175,14 +176,14 @@ export function QuickHandout({ onDone }: FormProps) {
         <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       </label>
       <div className="fv-ins-recips" role="group" aria-label="Mostrar para">
-        <button type="button" className={to === 'none' ? 'is-on' : ''} onClick={() => setTo('none')}>
+        <button type="button" className={to === 'none' ? 'is-on' : ''} aria-pressed={to === 'none'} onClick={() => setTo('none')}>
           Ninguém ainda
         </button>
-        <button type="button" className={to === 'all' ? 'is-on' : ''} onClick={() => setTo('all')}>
+        <button type="button" className={to === 'all' ? 'is-on' : ''} aria-pressed={to === 'all'} onClick={() => setTo('all')}>
           Todos
         </button>
         {owners.map((o) => (
-          <button key={o.share.ownerId} type="button" className={Array.isArray(to) && to.includes(o.share.ownerId) ? 'is-on' : ''} onClick={() => toggle(o.share.ownerId)}>
+          <button key={o.share.ownerId} type="button" className={Array.isArray(to) && to.includes(o.share.ownerId) ? 'is-on' : ''} aria-pressed={Array.isArray(to) && to.includes(o.share.ownerId)} onClick={() => toggle(o.share.ownerId)}>
             {heroName(o)}
           </button>
         ))}
@@ -248,7 +249,7 @@ export function QuickItem({ onDone }: FormProps) {
 }
 
 export function QuickEncounter({ onDone }: FormProps) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, encounter: st.encounter, busy: st.busy, refresh: st.refresh, createEncounter: st.createEncounter, addCombatants: st.addCombatants, giveItem: st.giveItem })));
   const { heroes } = useMaster();
   const [name, setName] = useState('');
   const [withHeroes, setWithHeroes] = useState(true);

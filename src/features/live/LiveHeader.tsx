@@ -1,5 +1,6 @@
 import { useSessionStore } from '@/store/sessionStore';
 import type { ConnectionState } from '@/types/session';
+import { useShallow } from 'zustand/react/shallow';
 
 export const CONN: Record<ConnectionState, string> = {
   idle: 'Fora da sessão',
@@ -44,7 +45,7 @@ export function OnlineList({ compact }: { compact?: boolean }) {
 
 /** Cabeçalho da mesa do JOGADOR: mesa, sessão, conexão, rolagens e quem está online. */
 export function LiveHeader({ campaignName }: { campaignName: string | null }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, online: st.online, connection: st.connection, rollVisibility: st.rollVisibility, setRollVisibility: st.setRollVisibility })));
   return (
     <header className="fv-live-head">
       <div className="fv-live-title">

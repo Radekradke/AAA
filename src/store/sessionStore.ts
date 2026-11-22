@@ -78,6 +78,8 @@ interface SessionState {
   updateCombatant: (id: string, patch: CombatantPatch) => Promise<void>;
   rollEnemies: (all?: boolean) => Promise<void>;
   setInitiative: (combatantId: string, value: number) => Promise<void>;
+  /** Mestre grava várias iniciativas de uma vez (um pedido, uma revisão). */
+  setInitiatives: (values: { id: string; value: number }[]) => Promise<void>;
   startCombat: () => Promise<void>;
   nextTurn: () => Promise<void>;
   prevTurn: () => Promise<void>;
@@ -398,6 +400,28 @@ export function myOnDeckCombatant(s: Pick<SessionState, 'encounter' | 'combatant
   return slot.find((c) => c.ownerId === s.me!.userId) ?? null;
 }
 
+/**
+ * Cada leitura do banco traz objetos novos, mesmo quando nada mudou — e cada
+ * rolagem de qualquer jogador dispara uma leitura. Aqui o que veio igual
+ * reaproveita o objeto antigo: a lista só muda de identidade se algo mudou de
+ * fato, e o mapa/iniciativa não redesenham à toa.
+ */
+const sameJson = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b);
+export function keepIfSame<T>(prev: T, next: T): T {
+  return sameJson(prev, next) ? prev : next;
+}
+export function shareList<T extends { id: string }>(prev: readonly T[], next: T[]): T[] {
+  const byId = new Map(prev.map((x) => [x.id, x]));
+  let changed = prev.length !== next.length;
+  const out = next.map((x, i) => {
+    const old = byId.get(x.id);
+    const keep = old && sameJson(old, x) ? old : x;
+    if (keep !== prev[i]) changed = true;
+    return keep;
+  });
+  return changed ? out : (prev as T[]);
+}
+
 export const useSessionStore = create<SessionState>()((set, get) => {
   /** Roda uma ação no banco; STALE_REVISION → recarrega e avisa. */
   const act = async (fn: () => Promise<unknown>) => {
@@ -623,7 +647,13 @@ export const useSessionStore = create<SessionState>()((set, get) => {
           ? await Promise.all([encounterService.open(session.id), sessionService.events(session.id)])
           : [null, [] as SessionEvent[]];
         if (seq !== refreshSeq || get().campaignId !== campaignId) return; // resposta velha
-        set({ session, encounter: open?.encounter ?? null, combatants: open?.combatants ?? [], events });
+        const prev = get();
+        set({
+          session: keepIfSame(prev.session, session),
+          encounter: keepIfSame(prev.encounter, open?.encounter ?? null),
+          combatants: shareList(prev.combatants, open?.combatants ?? []),
+          events: shareList(prev.events, events),
+        });
         if (!me.isMaster) scheduleVitalsSync();
 
         // eventos novos: rolagens da mesa (aviso) e ordens do mestre para a ficha
@@ -697,6 +727,10 @@ export const useSessionStore = create<SessionState>()((set, get) => {
         if (values.length) await encounterService.setInitiatives(get().encounter!.id, values);
       }),
     setInitiative: (combatantId, value) => act(() => encounterService.setInitiative(combatantId, value)),
+    setInitiatives: (values) =>
+      act(async () => {
+        if (values.length) await encounterService.setInitiatives(get().encounter!.id, values);
+      }),
     startCombat: () => act(() => encounterService.startCombat(get().encounter!)),
     nextTurn: () => act(() => encounterService.advance(get().encounter!, 1)),
     prevTurn: () => act(() => encounterService.advance(get().encounter!, -1)),

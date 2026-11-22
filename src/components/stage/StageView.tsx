@@ -20,6 +20,7 @@ import { stageDragProps } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { Scene, Token } from '@/types/stage';
 import '@/styles/stage.css';
+import { useShallow } from 'zustand/react/shallow';
 
 interface StageViewProps {
   isMaster: boolean;
@@ -67,7 +68,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
     }
   });
   const activeIds = ctx.activeIds(st.tokens);
-  const session = useSessionStore();
+  const session = useSessionStore(useShallow((st) => ({ busy: st.busy, updateCombatant: st.updateCombatant, nextTurn: st.nextTurn, sendHeroHp: st.sendHeroHp, targetId: st.targetId, setTarget: st.setTarget })));
   const targetIds = useMemo(
     () => new Set(st.tokens.filter((t) => session.targetId && ctx.combFor(t)?.id === session.targetId).map((t) => t.id)),
     [st.tokens, session.targetId, combatants], // eslint-disable-line react-hooks/exhaustive-deps
@@ -320,7 +321,7 @@ function CutsceneThumb({ scene, beat }: { scene: Scene; beat: number }) {
 /** Mestre: peão selecionado — tamanho, esconder, tirar do mapa. */
 function TokenBar({ token, combatant, onClose }: { token: Token | null; combatant: Combatant | null; onClose: () => void }) {
   const st = useStageStore();
-  const session = useSessionStore();
+  const session = useSessionStore(useShallow((st) => ({ busy: st.busy, updateCombatant: st.updateCombatant, nextTurn: st.nextTurn, sendHeroHp: st.sendHeroHp, targetId: st.targetId, setTarget: st.setTarget })));
   const [busy, setBusy] = useState(false);
   const [amount, setAmount] = useState('');
   if (!token) return null;

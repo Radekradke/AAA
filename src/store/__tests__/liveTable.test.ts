@@ -30,7 +30,7 @@ const storage = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: strin
 vi.stubGlobal('localStorage', storage);
 vi.stubGlobal('sessionStorage', storage);
 
-const { myOnDeckCombatant, sendTableRoll, flushRollOutbox, pendingRolls, __resetRollOutbox, OUTBOX_MAX, OUTBOX_TTL_MS } = await import('../sessionStore');
+const { myOnDeckCombatant, sendTableRoll, flushRollOutbox, pendingRolls, __resetRollOutbox, OUTBOX_MAX, OUTBOX_TTL_MS, shareList, keepIfSame } = await import('../sessionStore');
 const { eventText } = await import('@/lib/combatLog');
 
 const base = { encounterId: 'enc', sessionId: 'sess', campaignId: 'camp', monsterInstanceId: null, initiativeBonus: 0, hpCurrent: 10, hpMax: 10, armorClass: 12, conditions: [], hidden: false, groupKey: null, monsterRef: null, sheetId: null };
@@ -117,5 +117,26 @@ describe('rolagens sem conexão não somem', () => {
   it('a crônica mostra que a rolagem chegou atrasada', () => {
     const e = { id: 'e', sessionId: 's', type: 'roll', actorId: 'u1', targetId: null, visibility: 'public' as const, createdAt: '', payload: { who: 'Kael', label: 'Ataque', total: 17, late: true } };
     expect(eventText(e)).toBe('Kael · Ataque: 17 · chegou atrasada');
+  });
+});
+
+describe('leitura igual não redesenha a mesa', () => {
+  it('lista igual mantém a MESMA referência; item mudado troca só ele', () => {
+    const a = c('a', 1);
+    const b = c('b', 2);
+    const prev = [a, b];
+    const same = shareList(prev, [{ ...a }, { ...b }]);
+    expect(same).toBe(prev);
+    const changed = shareList(prev, [{ ...a }, { ...b, hpCurrent: 3 }]);
+    expect(changed).not.toBe(prev);
+    expect(changed[0]).toBe(a);
+    expect(changed[1]).not.toBe(b);
+    expect(shareList(prev, [{ ...a }])).toHaveLength(1);
+  });
+  it('objeto igual mantém a referência', () => {
+    const e = enc('a');
+    expect(keepIfSame(e, { ...e })).toBe(e);
+    expect(keepIfSame(e, { ...e, round: 2 })).not.toBe(e);
+    expect(keepIfSame(null, null)).toBeNull();
   });
 });

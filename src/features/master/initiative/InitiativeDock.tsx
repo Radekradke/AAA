@@ -4,9 +4,11 @@ import { useSessionStore } from '@/store/sessionStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { healthState } from '@/engine/encounter';
 import { useMasterStore } from '../masterStore';
+import { startCombatSmart } from '../actions';
 import { heroTitle } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
 import type { Combatant } from '@/types/session';
+import { useShallow } from 'zustand/react/shallow';
 
 /** Título do herói (ficha compartilhada da mesa). */
 const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.sheetId)) : null);
@@ -18,12 +20,28 @@ const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.s
  * (start_combat / advance_turn com revisão) — aqui só chama.
  */
 export function InitiativeDock() {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ encounter: st.encounter, combatants: st.combatants, busy: st.busy, startCombat: st.startCombat, nextTurn: st.nextTurn, prevTurn: st.prevTurn, setEncounterStatus: st.setEncounterStatus })));
   const select = useMasterStore((m) => m.select);
   const selection = useMasterStore((m) => m.selection);
   const enc = s.encounter;
   const rowRef = useRef<HTMLOListElement | null>(null);
   const order = [...s.combatants].sort((a, b) => a.turnOrder - b.turnOrder);
+
+  // atalhos do mestre no computador: Alt+. próximo turno, Alt+, turno anterior
+  // (Alt+seta é voltar/avançar página no navegador); nunca enquanto digita
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || (e.code !== 'Period' && e.code !== 'Comma')) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      const st = useSessionStore.getState();
+      if (st.encounter?.status !== 'active' || st.busy) return;
+      e.preventDefault();
+      void (e.code === 'Period' ? st.nextTurn() : st.prevTurn());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // o da vez fica sempre visível na faixa
   useEffect(() => {
@@ -77,17 +95,17 @@ export function InitiativeDock() {
         {enc.status === 'preparing' && (
           <>
             {noInit > 0 && <small className="fv-initdock-note">{noInit} sem iniciativa</small>}
-            <button type="button" className="fv-btn-gold fv-initdock-main" disabled={s.busy || s.combatants.length === 0} onClick={() => void s.startCombat()}>
+            <button type="button" className="fv-btn-gold fv-initdock-main" disabled={s.busy || s.combatants.length === 0} onClick={() => void startCombatSmart()}>
               Iniciar combate
             </button>
           </>
         )}
         {enc.status === 'active' && (
           <>
-            <button type="button" className="fv-btn-ghost fv-initdock-btn" disabled={s.busy} onClick={() => void s.prevTurn()} aria-label="Turno anterior">
+            <button type="button" className="fv-btn-ghost fv-initdock-btn" disabled={s.busy} onClick={() => void s.prevTurn()} aria-label="Turno anterior" title="Turno anterior (Alt+,)" aria-keyshortcuts="Alt+Comma">
               ◀
             </button>
-            <button type="button" className="fv-btn-gold fv-initdock-main" disabled={s.busy} onClick={() => void s.nextTurn()}>
+            <button type="button" className="fv-btn-gold fv-initdock-main" disabled={s.busy} onClick={() => void s.nextTurn()} title="Próximo turno (Alt+.)" aria-keyshortcuts="Alt+Period">
               Próximo ▶
             </button>
             <button type="button" className="fv-btn-ghost fv-initdock-btn" disabled={s.busy} onClick={() => void s.setEncounterStatus('paused')} aria-label="Pausar combate" title="Pausar">

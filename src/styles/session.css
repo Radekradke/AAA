@@ -1577,3 +1577,9 @@
 .fv-camp-card.is-live {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold), transparent 60%), 0 0 24px var(--bloom);
 }
+.fv-live-entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}

@@ -15,6 +15,7 @@ import { bestHunt, huntKnowledge } from '@/engine/hunts';
 import { HuntLore } from '@/components/bestiary/HuntLore';
 import type { Character } from '@/types/character';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
+import { useShallow } from 'zustand/react/shallow';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -124,7 +125,7 @@ function TrackRow({ row, isMaster, mine, hunted }: { row: InitiativeRow; isMaste
 
 /** Mestre: iniciativa, PV (aceita "-7"/"+5"), visibilidade e remover. */
 function MemberEditor({ c }: { c: Combatant }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ removeCombatant: st.removeCombatant, updateCombatant: st.updateCombatant, setInitiative: st.setInitiative, sendHeroHp: st.sendHeroHp, sendHeroCondition: st.sendHeroCondition })));
   const [init, setInit] = useState(c.initiative?.toString() ?? '');
   const [hp, setHp] = useState('');
   const applyHp = () => {

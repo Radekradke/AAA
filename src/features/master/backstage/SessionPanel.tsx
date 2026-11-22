@@ -11,13 +11,15 @@ import { useMasterStore } from '../masterStore';
 import type { Selection } from '../masterStore';
 import { useMaster } from '../context';
 import { hpWithUndo } from '../actions';
+import { isStaleSession, openForLabel, sessionOpenFor } from '@/lib/sessionAge';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * SESSÃO: abrir agora (improvisar), preparar para depois (sessão planejada
  * com bandeja), pausar/encerrar, quem vê as rolagens e a crônica curta.
  */
 export function SessionPanel() {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, combatants: st.combatants, events: st.events, busy: st.busy, refresh: st.refresh, startSession: st.startSession, setSessionStatus: st.setSessionStatus })));
   const m = useMasterStore();
   const { campaign } = useMaster();
   const [name, setName] = useState('');
@@ -47,6 +49,11 @@ export function SessionPanel() {
             <b>{live.name}</b>
             <span className={'fv-bs-pill' + (live.status === 'active' ? ' is-live' : '')}>{live.status === 'active' ? 'Ao vivo' : 'Pausada'}</span>
           </div>
+          {isStaleSession(live) && (
+            <p className="fv-bs-hint fv-bs-stale" role="status">
+              Aberta {openForLabel(sessionOpenFor(live))}. Se a noite de jogo já acabou, encerre — até lá os jogadores veem a mesa como ao vivo.
+            </p>
+          )}
           <RollVisibilityToggle isMaster />
           <div className="fv-bs-row">
             {live.status === 'active' ? (

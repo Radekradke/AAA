@@ -24,6 +24,7 @@ import '@/styles/stage.css';
 import '@/styles/master.css';
 import { isCloudAccount } from '@/lib/identity';
 import { rememberNext } from '@/lib/nextPath';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Mesa ao vivo (/mesa/:id/jogar): só o BOOTSTRAP — entra na campanha, liga
@@ -35,7 +36,7 @@ export function LiveSession() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
   const user = useAuthStore((u) => u.user);
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ me: st.me, session: st.session, encounter: st.encounter, loading: st.loading, join: st.join })));
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [heroes, setHeroes] = useState<SharedHero[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);

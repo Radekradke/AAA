@@ -12,6 +12,7 @@ import { useMaster } from '../context';
 import { useMasterStore } from '../masterStore';
 import { HeroSummary } from './HeroInspector';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
+import { useShallow } from 'zustand/react/shallow';
 
 const QUICK = [-10, -5, -1, 1, 5, 10];
 
@@ -68,7 +69,7 @@ export function HpControl({ c }: { c: Combatant }) {
 
 /** Combatente do encontro: PV, CA, iniciativa, condições, ocultar, remover, ficha do bestiário. */
 export function CombatantInspector({ c }: { c: Combatant }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ campaignId: st.campaignId, combatants: st.combatants, updateCombatant: st.updateCombatant, setInitiative: st.setInitiative, sendHeroCondition: st.sendHeroCondition, targetId: st.targetId, setTarget: st.setTarget })));
   const { npcs, reloadNpcs } = useMaster();
   const select = useMasterStore((m) => m.select);
   const [init, setInit] = useState(c.initiative?.toString() ?? '');
@@ -116,7 +117,14 @@ export function CombatantInspector({ c }: { c: Combatant }) {
             inputMode="numeric"
             value={init}
             onChange={(e) => setInit(e.target.value)}
-            onBlur={() => init.trim() !== '' && Number(init) !== c.initiative && void s.setInitiative(c.id, Number(init))}
+            onBlur={() => {
+              // só número inteiro (texto ou "12,5" não vão ao banco, que recusaria)
+              const n = Math.round(Number(init.trim().replace(',', '.')));
+              if (init.trim() === '' || !Number.isFinite(n)) return setInit(c.initiative === null ? '' : String(c.initiative));
+              const v = Math.max(-10, Math.min(60, n));
+              if (v !== c.initiative) void s.setInitiative(c.id, v);
+              setInit(String(v));
+            }}
             onKeyDown={(e) => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
             aria-label="Iniciativa"
           />

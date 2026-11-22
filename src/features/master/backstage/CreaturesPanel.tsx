@@ -9,6 +9,7 @@ import { TrayStar } from './SessionPanel';
 import { monsterLook } from '@/lib/monsterArt';
 import { useBestiaryStore } from '@/services/bestiaryService';
 import { MonsterPortrait } from '@/components/bestiary/MonsterPortrait';
+import { useShallow } from 'zustand/react/shallow';
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -20,7 +21,7 @@ const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCa
 export function CreaturesPanel() {
   const select = useMasterStore((m) => m.select);
   const openQuick = useMasterStore((m) => m.openQuick);
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ encounter: st.encounter, combatants: st.combatants, busy: st.busy, rollEnemies: st.rollEnemies })));
   const customs = useBestiaryStore((b) => b.customs);
   const [q, setQ] = useState('');
   const [qty, setQty] = useState(1);

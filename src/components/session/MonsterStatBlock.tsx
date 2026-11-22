@@ -14,6 +14,7 @@ import type { AbilityKey } from '@/types/dnd';
 import { tableHero } from '@/lib/tableHeroes';
 import { useCharacterStore } from '@/store/characterStore';
 import { heroDefenses } from '@/engine/heroDefenses';
+import { useShallow } from 'zustand/react/shallow';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
@@ -45,7 +46,7 @@ interface Strike {
  */
 export function MonsterStatBlock({ m, who, compact, attacker, targets }: { m: Monster; who?: string; compact?: boolean; attacker?: Combatant | null; targets?: Combatant[] }) {
   const pushRoll = useUiStore((s) => s.pushRoll);
-  const session = useSessionStore();
+  const session = useSessionStore(useShallow((st) => ({ targetId: st.targetId, setTarget: st.setTarget, changeHp: st.changeHp, logStrike: st.logStrike })));
   const [crit, setCrit] = useState<Record<string, boolean>>({});
   const [last, setLast] = useState<Strike | null>(null);
   const label = who ?? m.name;

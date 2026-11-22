@@ -1,13 +1,14 @@
 import { useSessionStore } from '@/store/sessionStore';
 import type { KillBy } from '@/store/sessionStore';
 import { encounterService } from '@/services/encounterService';
-import { toast } from '@/store/feedbackStore';
+import { confirmAction, toast } from '@/store/feedbackStore';
 import type { Combatant } from '@/types/session';
 import type { NewCombatant } from '@/services/encounterService';
 import type { CampaignNpc, NpcSecret } from '@/types/npc';
 import type { Character } from '@/types/character';
 import { deriveCharacter } from '@/engine/dndRules';
 import { MONSTER_BY_ID } from '@/data/bestiary';
+import { rollEnemyInitiatives, rollInitiative } from '@/engine/encounter';
 
 /**
  * Ações do mestre com DESFAZER (aviso com botão). Só onde desfazer é seguro e
@@ -124,4 +125,59 @@ export function npcToCombatant(n: CampaignNpc, secrets: Record<string, NpcSecret
     hidden: !n.revealed,
     monsterRef: st.monsterRef ?? null,
   };
+}
+
+/** "Kael", "Kael e Lyra", "Kael, Lyra e Tor". */
+export function namesList(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+}
+
+/**
+ * Quem ainda falta rolar ao apertar "Iniciar combate": criaturas o mestre
+ * rola sempre (uma rolagem por grupo, como no painel); heróis dependem da
+ * escolha dele (rolar por eles ou esperar os jogadores).
+ */
+export function missingInitiatives(list: Combatant[], rollHeroes: boolean, rand: () => number = Math.random): { id: string; value: number }[] {
+  const creatures = rollEnemyInitiatives(list, false, rand);
+  const heroes = rollHeroes
+    ? list.filter((c) => c.type === 'player' && c.initiative === null).map((c) => ({ id: c.id, value: rollInitiative(c.initiativeBonus, rand) }))
+    : [];
+  return [...creatures, ...heroes];
+}
+
+/**
+ * Iniciar combate sem deixar ninguém no fim da fila por esquecimento:
+ * criaturas sem iniciativa são roladas; heróis sem iniciativa, o mestre
+ * escolhe — rolar por eles agora ou esperar os jogadores rolarem na ficha.
+ */
+export async function startCombatSmart(): Promise<void> {
+  const s = useSessionStore.getState();
+  if (!s.encounter) return;
+  const heroes = s.combatants.filter((c) => c.type === 'player' && c.initiative === null);
+  let rollHeroes = false;
+  if (heroes.length) {
+    const names = heroes.map((c) => c.name);
+    rollHeroes = await confirmAction({
+      title: `${namesList(names)} ainda não ${names.length > 1 ? 'rolaram' : 'rolou'} iniciativa`,
+      message: 'Role por eles agora (d20 + bônus de iniciativa do herói) ou espere os jogadores rolarem na ficha — o combate começa quando você apertar de novo.',
+      confirmLabel: names.length > 1 ? 'Rolar por eles e começar' : 'Rolar e começar',
+      cancelLabel: 'Esperar',
+    });
+    if (!rollHeroes) return;
+  }
+  const values = missingInitiatives(s.combatants, rollHeroes);
+  if (values.length) {
+    await s.setInitiatives(values);
+    if (useSessionStore.getState().error) return;
+  }
+  await useSessionStore.getState().startCombat();
+  if (useSessionStore.getState().error || !values.length) return;
+  const byId = new Map(useSessionStore.getState().combatants.map((c) => [c.id, c]));
+  const heroText = heroes.filter((h) => values.some((v) => v.id === h.id)).map((h) => `${h.name} ${byId.get(h.id)?.initiative ?? ''}`.trim());
+  const creatureCount = values.length - heroText.length;
+  toast(
+    `Iniciativa rolada${creatureCount ? ` para ${creatureCount} criatura${creatureCount > 1 ? 's' : ''}` : ''}${heroText.length ? `${creatureCount ? ' e' : ''} para ${namesList(heroText)}` : ''}.`,
+    { tone: 'info' },
+  );
 }

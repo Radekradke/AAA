@@ -17,13 +17,14 @@ import { liveScene, useStageStore } from '@/store/stageStore';
 import type { CampaignNpc } from '@/types/npc';
 import type { Campaign } from '@/types/models';
 import { LiveHeader } from './LiveHeader';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Mesa do JOGADOR (a mesma de antes do console do mestre): o palco em
  * primeiro plano; herói, iniciativa, pistas e crônica embaixo.
  */
 export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaign: Campaign | null; heroes: SharedHero[]; npcs: CampaignNpc[]; loadError: string | null }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ campaignId: st.campaignId, me: st.me, session: st.session, encounter: st.encounter, combatants: st.combatants, events: st.events, loading: st.loading, error: st.error, setCharacter: st.setCharacter, clearError: st.clearError, setInitiative: st.setInitiative })));
   const user = useAuthStore((u) => u.user)!;
   const stageLive = useStageStore((st) => liveScene(st));
   const stageMissing = useStageStore((st) => st.missing);
@@ -119,7 +120,7 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
 
 /** Jogador: escolhe com qual herói está na mesa e rola a própria iniciativa. */
 function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ campaignId: st.campaignId, me: st.me, session: st.session, encounter: st.encounter, combatants: st.combatants, events: st.events, loading: st.loading, error: st.error, setCharacter: st.setCharacter, clearError: st.clearError, setInitiative: st.setInitiative })));
   const user = useAuthStore((u) => u.user)!;
   const characters = useCharacterStore((c) => c.characters);
   const { check } = useDiceRoller();

@@ -4,6 +4,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { EncounterDifficulty, XpAward, heroCombatant } from '@/components/session/MasterDeck';
 import { useMasterStore } from '../masterStore';
 import { useMaster, heroName } from '../context';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * ENCONTRO: os dois caminhos valem igual — preparar com nome e heróis, ou
@@ -11,7 +12,7 @@ import { useMaster, heroName } from '../context';
  * heróis, a dificuldade, o XP e quem está na luta (toque abre o inspetor).
  */
 export function EncounterPanel() {
-  const s = useSessionStore();
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, encounter: st.encounter, combatants: st.combatants, busy: st.busy, createEncounter: st.createEncounter, addCombatant: st.addCombatant, addCombatants: st.addCombatants })));
   const { heroes } = useMaster();
   const select = useMasterStore((m) => m.select);
   const [name, setName] = useState('');

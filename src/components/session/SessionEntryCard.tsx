@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { sessionService } from '@/services/sessionService';
 import { getSupabase } from '@/services/supabaseClient';
 import type { GameSession } from '@/types/session';
+import { confirmAction } from '@/store/feedbackStore';
+import { isStaleSession, openForLabel, sessionOpenFor } from '@/lib/sessionAge';
 
 /**
  * Entrada da sessão ao vivo na sala da campanha. Fica fora do
@@ -49,13 +51,42 @@ export function SessionEntryCard({ campaignId, isMaster }: { campaignId: string;
     }
   };
 
+  // sessão esquecida aberta: o mestre é lembrado de encerrar; o jogador não é chamado para uma mesa vazia
+  const stale = !!live && isStaleSession(live);
+  const finish = async () => {
+    if (!live) return;
+    const ok = await confirmAction({
+      title: 'Encerrar esta sessão?',
+      message: `Está aberta ${openForLabel(sessionOpenFor(live))}. O encontro aberto também termina; bandeja e notas ficam guardadas.`,
+      confirmLabel: 'Encerrar',
+      danger: true,
+    });
+    if (!ok) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await sessionService.setStatus(live.id, 'finished');
+      setLive(null);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <div className={'fv-panel fv-live-entry' + (live ? ' is-live' : '')}>
+    <div className={'fv-panel fv-live-entry' + (live && !stale ? ' is-live' : '')}>
       <div className="fv-live-entry-text">
-        <div className="fv-label">{live ? <><i className="fv-live-dot is-connected" aria-hidden /> Sessão ao vivo</> : 'Sessão de jogo'}</div>
+        <div className="fv-label">
+          {live && !stale ? <><i className="fv-live-dot is-connected" aria-hidden /> Sessão ao vivo</> : live ? 'Sessão aberta' : 'Sessão de jogo'}
+        </div>
         <b>{live ? live.name : isMaster ? 'Abra a sessão da noite' : checked ? 'Nenhuma sessão aberta agora' : '…'}</b>
         <small>
-          {live
+          {live && stale
+            ? isMaster
+              ? `Aberta ${openForLabel(sessionOpenFor(live))} — se a noite de jogo já acabou, encerre para a mesa não aparecer como ao vivo.`
+              : `Aberta ${openForLabel(sessionOpenFor(live))}. O mestre pode estar fora agora.`
+            : live
             ? 'Iniciativa compartilhada, rodadas e turnos em tempo real.'
             : isMaster
               ? 'Os jogadores entram, rolam iniciativa e veem a mesma ordem que você.'
@@ -63,7 +94,16 @@ export function SessionEntryCard({ campaignId, isMaster }: { campaignId: string;
         </small>
         {error && <small className="fv-live-entry-error">{error}</small>}
       </div>
-      {live ? (
+      {live && stale && isMaster ? (
+        <div className="fv-live-entry-actions">
+          <button type="button" className="fv-btn-ghost" disabled={busy} onClick={() => void finish()}>
+            {busy ? 'Encerrando…' : 'Encerrar sessão'}
+          </button>
+          <button type="button" className="fv-btn-gold fv-live-big" onClick={() => nav(`/mesa/${campaignId}/jogar`)}>
+            Voltar à mesa
+          </button>
+        </div>
+      ) : live ? (
         <button type="button" className="fv-btn-gold fv-live-big" onClick={() => nav(`/mesa/${campaignId}/jogar`)}>
           {isMaster ? 'Voltar à mesa' : 'Entrar na sessão'}
         </button>

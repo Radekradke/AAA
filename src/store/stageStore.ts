@@ -5,6 +5,7 @@ import { stageService } from '@/services/stageService';
 import type { NewToken, TokenPatch } from '@/services/stageService';
 import { PalcoSetupError } from '@/services/stageService';
 import type { FogConfig, Handout, LaserTrail, MapMark, Scene, StagePing, StageState, Token } from '@/types/stage';
+import { onWake } from '@/lib/onWake';
 
 /**
  * Espelho do PALCO da mesa (cena no ar, peões, handouts). Como a sessão: a
@@ -80,6 +81,7 @@ interface StageStore {
 
 let channel: RealtimeChannel | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
+let stopWake: (() => void) | null = null;
 let seq = 0;
 let lastDrag = 0;
 const PING_COLORS = ['#f5c542', '#5cc8ff', '#ff7a90', '#7dff9b', '#c49bff', '#ffa45c'];
@@ -203,6 +205,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
       get().close();
       set({ campaignId, isMaster, userId, who });
       subscribe(campaignId);
+      // celular voltou do bolso / rede voltou: o canal pode ter caído calado
+      stopWake = onWake(schedule);
       void get().refresh();
     },
 
@@ -210,6 +214,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
       const client = getSupabase();
       if (channel && client) void client.removeChannel(channel);
       channel = null;
+      stopWake?.();
+      stopWake = null;
       if (timer) clearTimeout(timer);
       set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null });
     },
