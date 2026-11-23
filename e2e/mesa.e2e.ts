@@ -11,6 +11,16 @@ test.describe('mesa (campanha)', () => {
     await expect(page.locator('svg.fv-qr')).toBeVisible();
   });
 
+  test('Discord da mesa: o botão Salvar tem tamanho de botão (B-010)', async ({ page }) => {
+    await signIn(page, 'master');
+    await installSupabase(page, 'master');
+    await page.goto(`/mesa/${C}`);
+    const salvar = page.locator('.fv-discord').getByRole('button', { name: 'Salvar' });
+    await expect(salvar).toBeVisible();
+    const box = await salvar.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(36);
+  });
+
   test('jogador entra digitando o código @celular', async ({ page }) => {
     await signIn(page, 'player');
     await installSupabase(page, 'player');

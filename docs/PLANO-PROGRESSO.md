@@ -30,7 +30,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.2 Evoluir
 - [x] 3.3 Ficha
 - [x] 3.4 Inventário + editor de item
-- [ ] 3.5 Sala da campanha
+- [x] 3.5 Sala da campanha
 - [ ] 3.6 Jogar, Magias, Descanso, Diário, Retrato
 - [ ] 3.7 Criação, Home, Heróis, Configurações
 - [ ] 3.8 Mesa ao vivo, palco, console do mestre
@@ -70,4 +70,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.2 Evoluir · PR #136 mergeado · TabEvoluir: 66 style={{…}} → 1 (largura da barra de XP); estilos em `src/styles/evoluir.css` com tokens; prints antes/depois (PC Véu Astral e Eclipse, celular, com talentos, subclasse e PV manual abertos): idênticos
 - 23/11 · 3.3 Ficha · PR #137 mergeado · TabFicha: 62 style={{…}} → 3 (cor de cada atributo e cor ajustada para leitura); estilos em `src/styles/ficha.css`; prints em 4 temas (Véu Astral, Eclipse, Ouro Velho, Guilda Rubra) e celular: idênticos. Achado B-009: temas que reconheciam peças pelo estilo inline — corrigido (inclui o ponto da Concentração da 3.1 no Ouro Velho)
 - 23/11 · 3.4a aba Inventário · PR #138 mergeado · TabInventario: 61 style={{…}} → 13 (cor da carga, da raridade e das moedas, e os brilhos que dependem delas); estilos em `src/styles/inventario.css`; o ponto da sintonia entrou na regra do Ouro Velho que apaga brilhos; prints em 4 temas (Mochila e Equipado, com itens raros, lendário, homebrew, cargas e sintonia) e celular: idênticos
-- 23/11 · 3.4b editor de item (Forja) · PR em revisão · ItemEditorModal: 39 style={{…}} → 0 (e os 30 rótulos com `style={label}` viraram classe); estilos em `src/styles/item-editor.css`; as caixas de marcar ganharam `aria-pressed`; prints da Forja com arma, armadura e item mágico em 4 temas e celular: idênticos
+- 23/11 · 3.4b editor de item (Forja) · PR #139 mergeado · ItemEditorModal: 39 style={{…}} → 0 (e os 30 rótulos com `style={label}` viraram classe); estilos em `src/styles/item-editor.css`; as caixas de marcar ganharam `aria-pressed`; prints da Forja com arma, armadura e item mágico em 4 temas e celular: idênticos
+- 23/11 · 3.5 Sala da campanha · PR em revisão · CampaignRoom: 57 style={{…}} → 4 (barra de PV e cor de cada atributo); estilos em `src/styles/campaign-room.css`; os botões de escolha (Nota/NPC/Missão) ganharam `aria-pressed`; prints de mestre e jogador em 4 temas e celular: idênticos, fora o botão corrigido. Achado B-010: "Salvar" do Discord da mesa espremido (24 px) — corrigido, com teste
