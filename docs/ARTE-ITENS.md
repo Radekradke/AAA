@@ -2,7 +2,7 @@
 
 Lista dos **344 itens base** da Ficha Viva (armas, armaduras, equipamento do Livro do Jogador e itens mágicos), com o nome de arquivo de cada um. É a arte que aparece por padrão para todo mundo, até o jogador enviar uma foto própria para o item.
 
-**Como usar:** gere a imagem e salve em `src/assets/itens/` com o nome da coluna **Arquivo** (ex.: `w-longsword.webp`). O app passa a usá-la sozinho:
+**Como usar:** gere a imagem e salve o original em `arte-original/itens/` com o nome da coluna **Arquivo** (ex.: `w-longsword.webp`); depois `npm run art -- itens` grava em `src/assets/itens/` a versão no tamanho do app (560×700). O app passa a usá-la sozinho:
 
 - na miniatura do card no inventário;
 - na carta ao lado dos detalhes (passar o mouse ou segurar no celular);
@@ -18,7 +18,7 @@ Armas e armaduras **+1, +2 e +3** usam a arte da base (ex.: a Espada Longa +2 us
 | Elemento | Como deve ser |
 | --- | --- |
 | **Traço** | Mesmo estilo dos retratos e do bestiário: ilustração anime/manhwa semi-realista, *splash art* de fantasia sombria, line art fina, cel shading com sombras duras. |
-| **Enquadramento** | Retrato **4:5** (480×600 basta; até 800×1000). O objeto **sozinho e inteiro**, centralizado, ocupando ~70% da altura. Armas longas na diagonal. |
+| **Enquadramento** | Retrato **4:5**, original a partir de 560×700. O objeto **sozinho e inteiro**, centralizado, ocupando ~70% da altura. Armas longas na diagonal. |
 | **Fundo** | Liso, **cinza-carvão escuro**, sem cenário, mesa ou moldura. A carta coloca a borda de metal e a cor da raridade por cima. |
 | **Luz** | Luz de recorte (rim light) para a silhueta ler bem na miniatura do inventário (~44 px). |
 | **Metal e materiais** | Materiais críveis (aço, couro, madeira, latão). Itens mágicos com um brilho discreto na cor da raridade: incomum verde, raro azul, muito raro roxo, lendário laranja-dourado. |

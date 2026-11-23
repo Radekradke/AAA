@@ -1,6 +1,7 @@
 /**
- * Arte das magias: basta soltar `src/assets/magias/<id>.webp`
- * (ex.: `sp-bolafogo.webp`, `phb-guiding-bolt.webp`) — o app pega sozinho e
+ * Arte das magias: `src/assets/magias/<id>.webp` já no tamanho do app
+ * (ex.: `sp-bolafogo.webp`, `phb-guiding-bolt.webp`), gerada de
+ * `arte-original/magias/` por `npm run art -- magias` — o app pega sozinho e
  * mostra a carta ao lado dos detalhes da magia. Veja docs/ARTE-MAGIAS.md
  * (a lista de todos os ids e o prompt de cada uma).
  */
