@@ -14,6 +14,7 @@ import './styles/globals.css';
 import './styles/experience.css';
 import './styles/mobile.css';
 import './styles/responsive.css';
+import './styles/ui.css';
 import { loadFixesCss, loadThemeCss, savedTheme } from './lib/themeCss';
 
 // Discord pessoal: o envio só carrega quando há um webhook (não pesa a primeira tela)

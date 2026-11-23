@@ -1,0 +1,286 @@
+/* ============================================================
+   FICHA VIVA — primitivos do design system (etapa 2.2)
+   Componentes em src/components/ui/{Button,Field,Choice}.tsx. Só tokens
+   (tokens.css): nada de cor fixa nem medida solta. Os primitivos reusam as
+   classes de sempre (fv-btn-gold, fv-input, fv-pill) e este arquivo só
+   acrescenta tamanho, estados e foco.
+   ============================================================ */
+
+/* ---------- foco de teclado (todos os primitivos) ---------- */
+:is(.fv-ui-btn, .fv-ui-iconbtn, .fv-ui-seg button, .fv-ui-tablist button, .fv-pill, .fv-ui-tabpanel):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Button ---------- */
+.fv-ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  line-height: 1.05;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  transition: transform var(--dur), box-shadow var(--dur), border-color var(--dur), background var(--dur), color var(--dur);
+}
+/* md: as medidas que o <Button> já tinha (os 12 usos não mudam) */
+.fv-ui-btn--md {
+  min-height: 38px;
+  padding: 11px 18px;
+  font-size: var(--text-sm);
+}
+.fv-ui-btn--md.fv-btn-gold {
+  padding: 14px 30px;
+  font-size: 15px;
+}
+.fv-ui-btn--sm {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+}
+.fv-ui-btn--lg {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+}
+.fv-ui-btn--block {
+  width: 100%;
+}
+.fv-ui-btn.fv-btn-ghost {
+  background: var(--color-surface);
+  backdrop-filter: blur(8px);
+}
+.fv-btn-accent {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  background: var(--accSoft);
+  backdrop-filter: blur(8px);
+}
+.fv-btn-accent:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-accent), transparent 50%);
+}
+.fv-ui-btn:not(.fv-btn-gold) {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.fv-ui-btn:disabled,
+.fv-ui-iconbtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+.fv-ui-btn.is-loading {
+  cursor: progress;
+}
+.fv-ui-btn--pulse {
+  animation: glowPulse 3.4s ease-in-out infinite;
+}
+.fv-ui-btn-icon {
+  display: inline-flex;
+  flex: none;
+}
+.fv-ui-btn-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-ui-spinner {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border-radius: var(--radius-pill);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: fv-ui-spin 0.8s linear infinite;
+}
+@keyframes fv-ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- IconButton ---------- */
+.fv-ui-iconbtn {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--radius-md);
+  line-height: 1;
+}
+.fv-ui-iconbtn--sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--text-sm);
+}
+.fv-ui-iconbtn--md {
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-lg);
+}
+.fv-ui-iconbtn--lg {
+  width: 52px;
+  height: 52px;
+  font-size: var(--text-xl);
+}
+.fv-ui-iconbtn.is-on {
+  color: var(--color-metal);
+  border-color: var(--color-metal);
+}
+
+/* ---------- Field ---------- */
+.fv-ui-field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.fv-ui-field-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.fv-ui-field-label small {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.fv-ui-field-hint,
+.fv-ui-field-error {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+.fv-ui-field-hint {
+  color: var(--color-text-muted);
+}
+.fv-ui-field-error {
+  color: var(--color-danger);
+}
+.fv-input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.fv-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Segmented ---------- */
+.fv-ui-seg {
+  display: inline-flex;
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.fv-ui-seg button {
+  flex: 1;
+  cursor: pointer;
+  border: 0;
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.fv-ui-seg--md button {
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+.fv-ui-seg--sm button {
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+.fv-ui-seg button + button {
+  border-left: 1px solid var(--color-border);
+}
+.fv-ui-seg button:hover:not(:disabled):not(.is-on) {
+  color: var(--color-text);
+}
+.fv-ui-seg button.is-on {
+  background: color-mix(in srgb, var(--color-metal), transparent 84%);
+  color: var(--color-metal);
+}
+.fv-ui-seg button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Badge ---------- */
+.fv-ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.fv-ui-badge--neutral {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: var(--sunk);
+}
+.fv-ui-badge--accent {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent), transparent 88%);
+}
+.fv-ui-badge--metal {
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal), transparent 88%);
+}
+.fv-ui-badge--danger {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger), transparent 88%);
+}
+.fv-ui-badge--ok {
+  color: var(--color-accent-2);
+  background: color-mix(in srgb, var(--color-accent-2), transparent 88%);
+}
+
+/* ---------- Tabs ---------- */
+.fv-ui-tablist {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-ui-tablist button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.fv-ui-tablist button:hover:not(:disabled) {
+  color: var(--color-text);
+}
+.fv-ui-tablist button.is-on {
+  color: var(--color-metal);
+  border-bottom-color: var(--color-metal);
+}
+.fv-ui-tablist button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.fv-ui-tabpanel {
+  padding-top: var(--space-4);
+  border-radius: var(--radius-sm);
+}
