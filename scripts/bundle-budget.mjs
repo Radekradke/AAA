@@ -16,17 +16,21 @@ if (!files.length) {
 }
 
 const kb = (n) => Math.round(n / 1024);
-const total = { js: 0, css: 0, gzip: 0 };
+const total = { js: 0, css: 0, gzip: 0, entry: 0 };
+// o script de entrada do app (index-*.js), sem as bibliotecas (vendor-*)
+const entryFile = files.find((f) => /\/index-[^/]+\.js$/.test(f));
 for (const f of files) {
   const path = join(dist, f);
   const raw = statSync(path).size;
   const gz = gzipSync(readFileSync(path)).length;
   total[f.endsWith('.css') ? 'css' : 'js'] += raw;
+  if (f === entryFile) total.entry = raw;
   total.gzip += gz;
   console.log(`${String(kb(raw)).padStart(6)} KB  ${String(kb(gz)).padStart(5)} KB gzip  ${f}`);
 }
 
 const checks = [
+  ['Entrada do app (index)', total.entry, budget.entryKB],
   ['JavaScript inicial', total.js, budget.jsKB],
   ['CSS inicial', total.css, budget.cssKB],
   ['Total comprimido (gzip)', total.gzip, budget.gzipKB],

@@ -1,30 +1,39 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
+import { loadCharacterActions, useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { heroAvatar } from '@/lib/summary';
 import { Home } from '@/pages/Home';
+import { loadAllIcons } from '@/components/ui/Icon';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+
+/**
+ * Telas que mexem nas fichas baixam junto as ações com as regras do jogo
+ * (fora do pacote de entrada): quando a tela abre, as ações já estão no store.
+ */
+const withRules = <M,>(page: Promise<M>) => Promise.all([page, loadCharacterActions(), loadAllIcons()]).then(([m]) => m);
+/** Janelas cheias de ícones (tutorial, tour): abrem com o conjunto completo já carregado. */
+const withIcons = <M,>(part: Promise<M>) => Promise.all([part, loadAllIcons()]).then(([m]) => m);
 
 // telas pesadas carregam só quando abertas (o pacote inicial fica bem menor);
 // o app instalado guarda todas no cache, então continuam funcionando offline
 // fora da tela inicial: cada tela baixa só quando alguém vai até ela
 const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login })));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback').then((m) => ({ default: m.AuthCallback })));
-const CharacterSelect = lazy(() => import('@/pages/CharacterSelect').then((m) => ({ default: m.CharacterSelect })));
-const CharacterCreator = lazy(() => import('@/pages/CharacterCreator').then((m) => ({ default: m.CharacterCreator })));
-const CharacterSheet = lazy(() => import('@/pages/CharacterSheet').then((m) => ({ default: m.CharacterSheet })));
-const Campaigns = lazy(() => import('@/pages/Campaigns').then((m) => ({ default: m.Campaigns })));
-const CampaignRoom = lazy(() => import('@/pages/CampaignRoom').then((m) => ({ default: m.CampaignRoom })));
-const JoinCampaign = lazy(() => import('@/pages/JoinCampaign').then((m) => ({ default: m.JoinCampaign })));
-const LiveSession = lazy(() => import('@/pages/LiveSession').then((m) => ({ default: m.LiveSession })));
-const PortraitWorkshop = lazy(() => import('@/pages/PortraitWorkshop').then((m) => ({ default: m.PortraitWorkshop })));
-const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
-const PrintSheet = lazy(() => import('@/pages/PrintSheet').then((m) => ({ default: m.PrintSheet })));
-const SharedSheet = lazy(() => import('@/pages/SharedSheet').then((m) => ({ default: m.SharedSheet })));
-const Continue = lazy(() => import('@/pages/Continue').then((m) => ({ default: m.Continue })));
-const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
+const CharacterSelect = lazy(() => withRules(import('@/pages/CharacterSelect')).then((m) => ({ default: m.CharacterSelect })));
+const CharacterCreator = lazy(() => withRules(import('@/pages/CharacterCreator')).then((m) => ({ default: m.CharacterCreator })));
+const CharacterSheet = lazy(() => withRules(import('@/pages/CharacterSheet')).then((m) => ({ default: m.CharacterSheet })));
+const Campaigns = lazy(() => withRules(import('@/pages/Campaigns')).then((m) => ({ default: m.Campaigns })));
+const CampaignRoom = lazy(() => withRules(import('@/pages/CampaignRoom')).then((m) => ({ default: m.CampaignRoom })));
+const JoinCampaign = lazy(() => withRules(import('@/pages/JoinCampaign')).then((m) => ({ default: m.JoinCampaign })));
+const LiveSession = lazy(() => withRules(import('@/pages/LiveSession')).then((m) => ({ default: m.LiveSession })));
+const PortraitWorkshop = lazy(() => withRules(import('@/pages/PortraitWorkshop')).then((m) => ({ default: m.PortraitWorkshop })));
+const Settings = lazy(() => withRules(import('@/pages/Settings')).then((m) => ({ default: m.Settings })));
+const PrintSheet = lazy(() => withRules(import('@/pages/PrintSheet')).then((m) => ({ default: m.PrintSheet })));
+const SharedSheet = lazy(() => withRules(import('@/pages/SharedSheet')).then((m) => ({ default: m.SharedSheet })));
+const Continue = lazy(() => withRules(import('@/pages/Continue')).then((m) => ({ default: m.Continue })));
+const Diagnostics = lazy(() => withRules(import('@/pages/Diagnostics')).then((m) => ({ default: m.Diagnostics })));
 // catálogo do design system: só existe em desenvolvimento (fora do build de produção)
 const DevUi = import.meta.env.DEV ? lazy(() => import('@/pages/DevUi').then((m) => ({ default: m.DevUi }))) : null;
 
@@ -57,10 +66,10 @@ import { startOnboardingSync } from '@/services/onboardingSync';
 import { isCloudAccount } from '@/lib/identity';
 
 // peças globais que quase nunca aparecem: baixam na primeira vez que precisam
-const SessionDock = lazy(() => import('@/components/session/SessionDock').then((m) => ({ default: m.SessionDock })));
-const Onboarding = lazy(() => import('@/components/Onboarding').then((m) => ({ default: m.Onboarding })));
-const CriticalCinematic = lazy(() => import('@/components/session/CriticalCinematic').then((m) => ({ default: m.CriticalCinematic })));
-const GuidedTour = lazy(() => import('@/components/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })));
+const SessionDock = lazy(() => withRules(import('@/components/session/SessionDock')).then((m) => ({ default: m.SessionDock })));
+const Onboarding = lazy(() => withIcons(import('@/components/Onboarding')).then((m) => ({ default: m.Onboarding })));
+const CriticalCinematic = lazy(() => withRules(import('@/components/session/CriticalCinematic')).then((m) => ({ default: m.CriticalCinematic })));
+const GuidedTour = lazy(() => withIcons(import('@/components/tour/GuidedTour')).then((m) => ({ default: m.GuidedTour })));
 
 /** Fica true para sempre depois da 1ª vez (o componente continua montado e anima a saída). */
 function useOnceTrue(flag: boolean): boolean {

@@ -8,6 +8,10 @@ const LOADERS = {
   sheet: () => import('@/pages/CharacterSheet'),
   creator: () => import('@/pages/CharacterCreator'),
   heroes: () => import('@/pages/CharacterSelect'),
+  // regras do jogo e ícones completos: fora do pacote de entrada (etapa 4.1);
+  // baixar aqui só põe no cache, as rotas instalam ao abrir
+  rules: () => import('@/store/character/heavy'),
+  icons: () => import('@/components/ui/gameIcons'),
 } as const;
 
 export type PrefetchKey = keyof typeof LOADERS;

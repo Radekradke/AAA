@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import '@/test/loadCharacterActions';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { useCharacterStore } from '@/store/characterStore';
 import { RACES } from '@/data/races';

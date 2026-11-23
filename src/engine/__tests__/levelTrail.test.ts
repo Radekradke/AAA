@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import '@/test/loadCharacterActions';
 import type { Character } from '@/types/character';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { autoTrail, runTrail } from '../levelTrail';

@@ -1,7 +1,36 @@
 import type { CSSProperties } from 'react';
-import { GAME_ICONS } from './gameIcons';
+import { useSyncExternalStore } from 'react';
+import { GAME_ICONS_CORE } from './gameIconsCore';
 
-type GameIconName = keyof typeof GAME_ICONS;
+type GameIconName = keyof typeof import('./gameIcons').GAME_ICONS;
+
+/**
+ * Os ícones do game-icons.net pesam ~70 KB. A tela inicial usa poucos
+ * (./gameIconsCore, no pacote de entrada); o conjunto completo baixa junto
+ * com as telas (loadAllIcons nas rotas) ou na primeira vez que um ícone de
+ * fora do núcleo aparece — aí o ícone surge quando o conjunto chega.
+ */
+let allIcons: Record<string, readonly string[]> | null = null;
+let loadingIcons: Promise<void> | null = null;
+const iconListeners = new Set<() => void>();
+
+export function loadAllIcons(): Promise<void> {
+  loadingIcons ??= import('./gameIcons').then((m) => {
+    allIcons = m.GAME_ICONS;
+    iconListeners.forEach((fn) => fn());
+  });
+  return loadingIcons;
+}
+
+const subscribeIcons = (fn: () => void) => {
+  iconListeners.add(fn);
+  return () => iconListeners.delete(fn);
+};
+
+function gamePaths(name: string): readonly string[] | null | undefined {
+  if (name in GAME_ICONS_CORE) return GAME_ICONS_CORE[name as keyof typeof GAME_ICONS_CORE];
+  return allIcons ? allIcons[name] : undefined;
+}
 
 export type IconName = GameIconName | 'star' | 'starFill' | 'more' | 'close' | 'image' | 'gear' | 'book' | 'logout' | 'link' | 'calendar' | 'search' | 'download' | 'home' | 'contrast' | 'user' | 'print' | 'history' | 'compass' | 'help' | 'sliders' | 'palette' | 'device' | 'trash' | 'copy';
 
@@ -162,10 +191,15 @@ const STROKE_PATHS: Record<Exclude<IconName, GameIconName>, React.ReactNode> = {
  * silhuetas preenchidas com cara de RPG; herdam a cor do texto.
  */
 export function Icon({ name, size = 18, color = 'currentColor', style, strokeWidth = 1.6, className }: IconProps) {
-  if (name in GAME_ICONS) {
+  // re-renderiza quando o conjunto completo chega
+  useSyncExternalStore(subscribeIcons, () => allIcons);
+  const isStroke = name in STROKE_PATHS;
+  if (!isStroke) {
+    const paths = gamePaths(name);
+    if (paths === undefined) void loadAllIcons();
     return (
       <svg width={size} height={size} viewBox="0 0 512 512" fill={color} aria-hidden className={className} style={{ flex: 'none', ...style }}>
-        {GAME_ICONS[name as GameIconName].map((d, i) => (
+        {(paths ?? []).map((d, i) => (
           <path key={i} d={d} />
         ))}
       </svg>

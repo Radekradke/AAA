@@ -1,6 +1,7 @@
 {
-  "_nota": "Limites do que a primeira abertura baixa (scripts/bundle-budget.mjs). Medido em 23/11/2026: JS 1115, CSS 236, gzip 400. A etapa 4.1 deve baixar estes números.",
-  "jsKB": 1150,
+  "_nota": "Limites do que a primeira abertura baixa (scripts/bundle-budget.mjs). Etapa 4.1 (23/11/2026): entrada do app 730 → 247 KB, JS inicial 1116 → 633 KB, gzip 401 → 243 KB. As regras do jogo, os dados e o conjunto completo de ícones baixam com as telas.",
+  "entryKB": 300,
+  "jsKB": 660,
   "cssKB": 245,
-  "gzipKB": 415
+  "gzipKB": 260
 }

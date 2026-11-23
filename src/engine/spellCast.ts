@@ -307,18 +307,8 @@ export function hpPool(sp: Spell, slotLevel: number): HpPool | null {
   return { count, sides: base.sides, bonus: 0, label: `${sp.name} · PV afetados`, effect: def.effect, immune: def.immune };
 }
 
-/** Quem é afetado: do menor PV ao maior, enquanto o total cobrir. */
-export function poolAffected(total: number, hps: number[]): { affected: number[]; spared: number[]; left: number } {
-  const sorted = hps.filter((h) => Number.isFinite(h) && h > 0).sort((a, b) => a - b);
-  const affected: number[] = [];
-  let left = total;
-  let i = 0;
-  for (; i < sorted.length && sorted[i] <= left; i++) {
-    affected.push(sorted[i]);
-    left -= sorted[i];
-  }
-  return { affected, spared: sorted.slice(i), left };
-}
+// em arquivo próprio: o aviso de conjuração (no pacote de entrada) usa só esta conta
+export { poolAffected } from './poolAffected';
 
 /** Dano do truque no nível do personagem, para o cartão ("2d8 radiante", "2× 1d10 energia"). */
 export function spellDamageLabel(sp: Spell, charLevel: number): string | null {

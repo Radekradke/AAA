@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import '@/test/loadCharacterActions';
 import { createDraftCharacter, finalizeCharacter } from '../characterBuilder';
 import { inspirationCount, inspirationMax, setInspirationCount, stacksInspiration, INSPIRATION_MAX } from '../inspiration';
 import { rollCheck } from '../dice';
