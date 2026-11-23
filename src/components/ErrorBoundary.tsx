@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { errorReport, isChunkLoadError, reloadOnceForStaleChunk, reportError } from '@/lib/errorReporter';
+import { errorReport, isChunkLoadError, isOffline, reloadOnceForStaleChunk, reportError } from '@/lib/errorReporter';
 import type { ErrorEntry } from '@/lib/errorReporter';
 
 interface Props {
@@ -39,6 +39,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private reset = () => this.setState({ error: null, entry: null, copied: false });
 
+  /** Pedaço que não baixou por falta de rede: recarrega sozinho quando a conexão volta. */
+  private onOnline = () => {
+    if (!this.props.silent && this.state.error && isChunkLoadError(this.state.error)) location.reload();
+  };
+
+  componentDidMount() {
+    window.addEventListener('online', this.onOnline);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('online', this.onOnline);
+  }
+
   private copy = async () => {
     const text = errorReport(this.state.entry ? [this.state.entry] : undefined);
     try {
@@ -54,17 +67,20 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children;
     if (this.props.silent) return null;
     const stale = isChunkLoadError(error);
+    const offline = stale && isOffline();
     return (
       <div className="fv-crash" role="alert">
         <div className="fv-crash-card">
           <span className="fv-crash-sigil" aria-hidden>
             ✦
           </span>
-          <h1>{stale ? 'O app foi atualizado' : 'Algo deu errado nesta tela'}</h1>
+          <h1>{offline ? 'Sem internet' : stale ? 'O app foi atualizado' : 'Algo deu errado nesta tela'}</h1>
           <p>
-            {stale
-              ? 'Uma versão nova do Ficha Viva saiu enquanto esta aba estava aberta. Recarregue para continuar.'
-              : 'Suas fichas estão salvas neste aparelho — nada foi perdido. Tente de novo ou recarregue o app.'}
+            {offline
+              ? 'Esta parte do app ainda não foi baixada e o aparelho está sem conexão. Suas fichas estão salvas neste aparelho. Quando a internet voltar, a tela recarrega sozinha.'
+              : stale
+                ? 'Uma versão nova do Ficha Viva saiu enquanto esta aba estava aberta. Recarregue para continuar.'
+                : 'Suas fichas estão salvas neste aparelho — nada foi perdido. Tente de novo ou recarregue o app.'}
           </p>
           <div className="fv-crash-actions">
             {!stale && (

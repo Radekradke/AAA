@@ -11,7 +11,7 @@ vi.stubGlobal('location', { pathname: '/ficha/x' });
 vi.stubGlobal('navigator', { userAgent: 'teste' });
 vi.mock('@/services/supabaseClient', () => ({ getSupabase: () => null }));
 
-const { reportError, recentErrors, clearErrors, isNoise, isChunkLoadError, errorReport } = await import('../errorReporter');
+const { reportError, recentErrors, clearErrors, isNoise, isChunkLoadError, errorReport, reloadOnceForStaleChunk, isOffline } = await import('../errorReporter');
 
 describe('captador de erros', () => {
   beforeEach(() => clearErrors());
@@ -47,5 +47,33 @@ describe('captador de erros', () => {
     for (let i = 0; i < 40; i++) reportError(new Error('erro ' + i));
     expect(recentErrors()).toHaveLength(30);
     expect(errorReport()).toContain('Ficha Viva — relatório de erros');
+  });
+});
+
+describe('pedaço de código que não baixou (B-005)', () => {
+  const session = new Map<string, string>();
+  const reload = vi.fn();
+  beforeEach(() => {
+    session.clear();
+    reload.mockClear();
+    vi.stubGlobal('sessionStorage', { getItem: (k: string) => session.get(k) ?? null, setItem: (k: string, v: string) => void session.set(k, v) });
+    vi.stubGlobal('location', { pathname: '/ficha/x', reload });
+  });
+
+  it('com internet: versão nova, recarrega uma vez', () => {
+    vi.stubGlobal('navigator', { userAgent: 'teste', onLine: true });
+    expect(isOffline()).toBe(false);
+    expect(reloadOnceForStaleChunk()).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    // segunda falha logo em seguida: deixa a tela de erro aparecer
+    expect(reloadOnceForStaleChunk()).toBe(false);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('sem internet: não recarrega (cairia na página "sem conexão" do navegador)', () => {
+    vi.stubGlobal('navigator', { userAgent: 'teste', onLine: false });
+    expect(isOffline()).toBe(true);
+    expect(reloadOnceForStaleChunk()).toBe(false);
+    expect(reload).not.toHaveBeenCalled();
   });
 });
