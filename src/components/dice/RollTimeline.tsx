@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { modStr } from '@/engine/dice';
 import { rollLogText, rollStats, rollTime } from '@/lib/rollLog';
 import type { Character } from '@/types/character';
+import '@/styles/dice.css';
 
 interface RollTimelineProps {
   /** Ficha dona do histórico (sem ficha = tudo). */
@@ -33,13 +34,13 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
     if (shown.length === 0) return null;
     return (
       <>
-        <div className="fv-label" style={{ margin: '13px 0 8px' }}>Últimas Rolagens</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className="fv-label fv-rolls-mini-label">Últimas Rolagens</div>
+        <div className="fv-rolls-mini">
           {shown.map((r) => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11.5, fontFamily: 'var(--font-num)' }}>
-              <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>{r.label}</span>
-              <span style={{ color: 'var(--muted)' }}>[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
-              <b style={{ color: rollColor(r), fontSize: 13 }}>{r.total}</b>
+            <div key={r.id} className="fv-rolls-mini-row">
+              <span className="fv-rolls-mini-name">{r.label}</span>
+              <span className="fv-rolls-mini-dice">[{r.rolls.join(', ')}]{r.modifier ? ` ${modStr(r.modifier)}` : ''}</span>
+              <b className={totalClass(r)}>{r.total}</b>
               {char && <RememberMoment char={char} rollId={r.id} title={r.label + ' · resultado ' + r.total} />}
             </div>
           ))}
@@ -65,11 +66,11 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+      <div className="fv-rolls-head">
         <div className="fv-label">Linha do tempo da sessão</div>
         {rolls.length > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
-            {stats.count} rolag. · <span style={{ color: 'var(--gold)' }}>{stats.crits} crít.</span> · <span style={{ color: 'var(--danger)' }}>{stats.fails} falhas</span>
+          <span className="fv-rolls-stats">
+            {stats.count} rolag. · <span className="is-crit">{stats.crits} crít.</span> · <span className="is-bad">{stats.fails} falhas</span>
           </span>
         )}
       </div>
@@ -78,30 +79,30 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
         <EmptyState icon="d20" title="Nenhuma rolagem ainda" hint="Tudo que você rolar na ficha aparece aqui, com horário — e continua aqui se a página recarregar." />
       ) : (
         <>
-          <ol style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 420, overflowY: 'auto' }}>
+          <ol className="fv-rolls">
             {shown.map((r) => (
-              <li key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: '1px solid var(--line)' }}>
-                <time style={{ flex: 'none', width: 40, fontSize: 10.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{rollTime(r.timestamp)}</time>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <li key={r.id} className="fv-rolls-row">
+                <time className="fv-rolls-time">{rollTime(r.timestamp)}</time>
+                <div className="fv-rolls-text">
+                  <div className="fv-rolls-name">
                     {r.label}
-                    {r.crit && <span style={tag('var(--gold)')}>CRÍTICO</span>}
-                    {r.fail && <span style={tag('var(--danger)')}>FALHA</span>}
+                    {r.crit && <span className="fv-rolls-tag">CRÍTICO</span>}
+                    {r.fail && <span className="fv-rolls-tag is-bad">FALHA</span>}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{r.expr} [{r.rolls.join(', ')}]</div>
+                  <div className="fv-rolls-expr">{r.expr} [{r.rolls.join(', ')}]</div>
                 </div>
-                <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 18, color: rollColor(r) }}>{r.total}</span>
+                <span className={totalClass(r)}>{r.total}</span>
                 {char && <RememberMoment char={char} rollId={r.id} title={r.label + ' · resultado ' + r.total} />}
               </li>
             ))}
           </ol>
-          <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="fv-rolls-actions">
             {char && (
-              <button onClick={saveToDiary} className="fv-btn-gold" style={{ flex: '1 1 160px', padding: '9px 12px', fontSize: 12.5 }}>
+              <button type="button" onClick={saveToDiary} className="fv-btn-gold fv-rolls-save">
                 {saved ? '✓ Anotado no Diário' : 'Anotar no Diário'}
               </button>
             )}
-            <button onClick={clear} style={{ flex: '0 1 auto', cursor: 'pointer', padding: '9px 14px', borderRadius: 999, border: '1px solid var(--line)', background: 'transparent', color: 'var(--muted)', fontSize: 12.5 }}>
+            <button type="button" onClick={clear} className="fv-rolls-clear">
               Limpar
             </button>
           </div>
@@ -111,10 +112,7 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
   );
 }
 
-function rollColor(r: { crit: boolean; fail: boolean; damage?: boolean }): string {
-  return r.crit ? 'var(--gold)' : r.fail || r.damage ? 'var(--danger)' : 'var(--ink)';
-}
-
-function tag(color: string): React.CSSProperties {
-  return { marginLeft: 7, fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color, border: `1px solid ${color}`, borderRadius: 4, padding: '1px 5px', verticalAlign: 'middle' };
+/** Cor do total: crítico em metal, falha e dano em perigo. */
+function totalClass(r: { crit: boolean; fail: boolean; damage?: boolean }): string {
+  return 'fv-roll-total' + (r.crit ? ' is-crit' : r.fail || r.damage ? ' is-bad' : '');
 }
