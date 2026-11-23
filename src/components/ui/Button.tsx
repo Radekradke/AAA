@@ -1,75 +1,72 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { forwardRef } from 'react';
 
-type Variant = 'gold' | 'ghost' | 'danger' | 'accent';
+export type ButtonVariant = 'gold' | 'ghost' | 'accent' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** gold = ação principal · ghost = secundária · accent = ação viva · danger = destrutiva */
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Mostra o giro e bloqueia o clique (aria-busy). */
+  loading?: boolean;
+  /** Ícone antes / depois do texto. */
+  icon?: ReactNode;
+  iconEnd?: ReactNode;
+  /** Ocupa toda a largura. */
+  block?: boolean;
+  /** Brilho que pulsa (chamada para a ação principal). */
   pulse?: boolean;
   children: ReactNode;
 }
 
-/** Botão AAA com variações de superfície e brilho mágico opcional. */
-export function Button({ variant = 'ghost', pulse, children, className = '', style, ...rest }: ButtonProps) {
-  const base: React.CSSProperties = {
-    cursor: 'pointer',
-    minHeight: 38,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    maxWidth: '100%',
-    fontFamily: variant === 'gold' ? 'var(--font-display)' : 'var(--font-body)',
-    fontWeight: variant === 'gold' ? 700 : 600,
-    letterSpacing: variant === 'gold' ? '0.08em' : '0.02em',
-    lineHeight: 1.05,
-    whiteSpace: 'nowrap',
-    borderRadius: 12,
-    transition: 'transform .2s, box-shadow .2s, border-color .2s, background .2s',
-    ...style,
-  };
+const VARIANT_CLASS: Record<ButtonVariant, string> = {
+  gold: 'fv-btn-gold',
+  ghost: 'fv-btn-ghost',
+  accent: 'fv-btn-accent',
+  danger: 'fv-btn-danger',
+};
 
-  const variants: Record<Variant, React.CSSProperties> = {
-    gold: {
-      color: 'var(--on-gold, #1a1206)',
-      padding: '14px 30px',
-      fontSize: 15,
-      border: '1px solid var(--goldB)',
-      background: 'linear-gradient(180deg, var(--goldB), var(--gold))',
-      boxShadow: '0 10px 28px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.6)',
-      animation: pulse ? 'glowPulse 3.4s ease-in-out infinite' : undefined,
-    },
-    ghost: {
-      color: 'var(--muted)',
-      padding: '11px 18px',
-      fontSize: 13,
-      border: '1px solid var(--line)',
-      background: 'var(--panel)',
-      backdropFilter: 'blur(8px)',
-    },
-    accent: {
-      color: 'var(--acc)',
-      padding: '11px 18px',
-      fontSize: 13,
-      border: '1px solid var(--line)',
-      background: 'var(--accSoft)',
-      backdropFilter: 'blur(8px)',
-    },
-    danger: {
-      color: 'var(--danger)',
-      padding: '11px 18px',
-      fontSize: 13,
-      border: '1px solid var(--danger)',
-      background: 'rgba(255,80,40,.1)',
-    },
-  };
-
+/**
+ * Botão do design system. Usa as classes de sempre (fv-btn-gold,
+ * fv-btn-ghost…) para ficar igual ao resto do app, e acrescenta tamanho,
+ * carregando, ícone e foco de teclado (src/styles/ui.css).
+ */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'ghost', size = 'md', loading, icon, iconEnd, block, pulse, children, className = '', disabled, type = 'button', ...rest },
+  ref,
+) {
+  const cls = ['fv-ui-btn', VARIANT_CLASS[variant], `fv-ui-btn--${size}`, block && 'fv-ui-btn--block', pulse && 'fv-ui-btn--pulse', loading && 'is-loading', className]
+    .filter(Boolean)
+    .join(' ');
   return (
-    <button
-      className={`fv-btn is-${variant} ${className}`.trim()}
-      style={{ ...base, ...variants[variant], opacity: rest.disabled ? 0.55 : undefined }}
-      {...rest}
-    >
-      {children}
+    <button ref={ref} type={type} className={cls} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
+      {loading ? <span className="fv-ui-spinner" aria-hidden /> : icon && <span className="fv-ui-btn-icon" aria-hidden>{icon}</span>}
+      <span className="fv-ui-btn-label">{children}</span>
+      {iconEnd && !loading && <span className="fv-ui-btn-icon" aria-hidden>{iconEnd}</span>}
     </button>
   );
+});
+
+export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+  /** Nome falado pelo leitor de tela e mostrado na dica (obrigatório). */
+  label: string;
+  icon: ReactNode;
+  variant?: 'ghost' | 'accent' | 'danger';
+  size?: ButtonSize;
+  /** Botão liga/desliga: aria-pressed. */
+  pressed?: boolean;
 }
+
+/** Botão só de ícone: sempre com nome acessível e alvo de toque de 44 px no tamanho md. */
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { label, icon, variant = 'ghost', size = 'md', pressed, className = '', type = 'button', title, ...rest },
+  ref,
+) {
+  const cls = ['fv-ui-iconbtn', VARIANT_CLASS[variant], `fv-ui-iconbtn--${size}`, pressed && 'is-on', className].filter(Boolean).join(' ');
+  return (
+    <button ref={ref} type={type} className={cls} aria-label={label} title={title ?? label} aria-pressed={pressed} {...rest}>
+      <span aria-hidden>{icon}</span>
+    </button>
+  );
+});
