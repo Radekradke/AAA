@@ -37,6 +37,7 @@ import { useInk } from '@/lib/contrast';
 import { deathSaveOutcome } from '@/engine/deathSave';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
 import { pressable } from '@/lib/pressable';
+import '@/styles/jogar.css';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -109,9 +110,9 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             </div>
           </LoreTooltip>
           <div className="fv-hp-meter">
-            <div className="fv-hp-bar" style={{ height: 18 }}>
+            <div className="fv-hp-bar">
               <HpTrail key={char.id} pct={pct} />
-              <div style={{ position: 'relative', zIndex: 1, width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}`, transition: 'width .4s cubic-bezier(.2,.8,.2,1)' }} />
+              <div className="fv-mesa-hpfill" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 16px ${hexA(hpColor, 0.7)}` }} />
               <div aria-hidden className="fv-hp-notches" />
             </div>
             <div className="fv-hp-btns">
@@ -192,21 +193,6 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                 className={'fv-turn-btn' + (used ? ' is-used' : '')}
                 aria-pressed={used}
                 onClick={() => store.toggleTurn(char.id, d.k)}
-                style={{
-                  cursor: 'pointer',
-                  flex: '1 1 80px',
-                  minHeight: 36,
-                  padding: '6px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.5)),
-                  background: used ? 'var(--sunk-deep)' : 'var(--lift)',
-                  color: used ? 'var(--muted)' : 'var(--ink)',
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  textDecoration: used ? 'line-through' : 'none',
-                  transition: '.2s',
-                }}
               >
                 {used && <i className="fv-tick" aria-hidden>✓ </i>}
                 {d.label}
@@ -313,18 +299,10 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
               <button
                 key={a.key}
                 onClick={() => checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save)}
-                style={{
-                  cursor: 'pointer',
-                  padding: '8px 4px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid ' + (a.saveProf ? hexA(t.gold, 0.5) : t.line),
-                  background: a.saveProf ? hexA(t.gold, 0.08) : 'var(--sunk)',
-                  textAlign: 'center',
-                  transition: '.2s',
-                }}
+                className={'fv-mesa-save' + (a.saveProf ? ' is-prof' : '')}
               >
-                <div style={{ fontSize: 10, letterSpacing: '.08em', color: a.saveProf ? t.gold : 'var(--muted)' }}>{ABILITY_SHORT[a.key]}</div>
-                <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{modStr(a.save)}</div>
+                <div className="fv-mesa-save-key">{ABILITY_SHORT[a.key]}</div>
+                <div className="fv-mesa-save-val">{modStr(a.save)}</div>
               </button>
             ))}
           </div>
@@ -339,9 +317,9 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
               <button
                 key={sk.key}
                 onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus, { skill: sk.key, proficient: sk.proficient, speed: derived.speed })}
-                style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)), background: sk.expertise ? hexA(t.gold, 0.13) : hexA(t.gold, 0.07), color: 'var(--ink)', transition: '.2s' }}
+                className={'fv-mesa-skill' + (sk.expertise ? ' is-expert' : '')}
               >
-                {sk.label} <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
+                {sk.label} <b>{modStr(sk.bonus)}</b>
                 {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}> desv.</span>}
               </button>
             ))}
@@ -357,10 +335,10 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                     <button
                       key={tool.id}
                       onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total, { proficient: true })}
-                      style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, minHeight: 32, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : hexA(t.acc, 0.4)), background: tool.expertise ? hexA(t.gold, 0.1) : 'var(--lift)', color: 'var(--ink)', transition: '.2s' }}
+                      className={'fv-mesa-skill is-tool' + (tool.expertise ? ' is-expert' : '')}
                     >
                       {tool.label} <span className="fv-mesa-chip-ab">{ABILITY_SHORT[chk.ability]}</span>{' '}
-                      <b style={{ color: tool.expertise ? t.gold : t.acc, fontFamily: 'var(--font-num)' }}>{modStr(chk.total)}</b>
+                      <b>{modStr(chk.total)}</b>
                     </button>
                   );
                 })}
@@ -399,7 +377,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                         <span
                           key={i}
                           {...pressable(() => store.toggleSpellSlot(char.id, lv, i + 1), `Espaço de ${lv}º círculo ${i + 1}: ${filled ? 'livre' : 'gasto'}`)}
-                          style={{ cursor: 'pointer', width: 15, height: 15, transform: 'rotate(45deg)', borderRadius: 3, border: '1px solid ' + (filled ? t.acc : t.line), background: filled ? hexA(t.acc, 0.85) : 'transparent', boxShadow: filled ? '0 0 8px ' + hexA(t.acc, 0.6) : 'none' }}
+                          className={'fv-mesa-slot' + (filled ? ' is-on' : '')}
                         />
                       );
                     })}
@@ -445,7 +423,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                     {res.die && <span className="fv-mesa-res-die">{res.die}</span>}
                   </span>
                 </LoreTooltip>
-                <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 14, color: res.unlimited || left > 0 ? t.gold : 'var(--muted)' }}>
+                <span className={'fv-mesa-res-left' + (res.unlimited || left > 0 ? ' is-on' : '')}>
                   {res.unlimited ? '∞' : `${left}/${res.max}`}
                 </span>
                 {!res.unlimited && (
@@ -458,10 +436,10 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             );
           })}
           <div className="fv-mesa-rests">
-            <button onClick={() => setRestPreview('short')} style={{ ...restBtn, borderColor: t.acc, color: t.acc }}>
+            <button type="button" className="fv-mesa-rest" onClick={() => setRestPreview('short')}>
               <Icon name="moon" size={14} /> Descanso Curto
             </button>
-            <button onClick={() => setRestPreview('long')} style={{ ...restBtn, borderColor: t.gold, color: t.gold, background: hexA(t.gold, 0.08) }}>
+            <button type="button" className="fv-mesa-rest is-long" onClick={() => setRestPreview('long')}>
               <Icon name="moon" size={14} /> Descanso Longo
             </button>
           </div>
@@ -503,44 +481,18 @@ function QuickBtn({ children, color, strong, onClick }: { children: React.ReactN
 function DeathPips({ label, color, value, onSet }: { label: string; color: string; value: number; onSet: (n: number) => void }) {
   const ink = useInk();
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 11, color: ink(color) }}>{label}</span>
+    <div className="fv-mesa-pips" style={{ '--c': color } as React.CSSProperties}>
+      <span className="fv-mesa-pips-label" style={{ color: ink(color) }}>{label}</span>
       {[1, 2, 3].map((n) => (
         <span
           key={n}
           {...pressable(() => onSet(n), `${label}: ${n}`)}
-          style={{
-            cursor: 'pointer',
-            width: 15,
-            height: 15,
-            borderRadius: 999,
-            border: '1px solid ' + (value >= n ? color : 'var(--line)'),
-            background: value >= n ? color : 'transparent',
-            boxShadow: value >= n ? `0 0 8px ${hexA(color, 0.6)}` : 'none',
-          }}
+          className={'fv-mesa-pip' + (value >= n ? ' is-on' : '')}
         />
       ))}
     </div>
   );
 }
-
-const restBtn: CSSProperties = {
-  cursor: 'pointer',
-  flex: 1,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  minHeight: 40,
-  padding: '8px 10px',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid',
-  background: 'var(--sunk)',
-  fontFamily: 'var(--font-display)',
-  fontWeight: 700,
-  fontSize: 12.5,
-  transition: '.2s',
-};
 
 function atkBtn(color: string): CSSProperties {
   return {

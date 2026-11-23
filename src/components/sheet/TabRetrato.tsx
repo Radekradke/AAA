@@ -84,14 +84,16 @@ function Vitrine({ char, derived }: TabProps) {
 
   const feats = char.feats.map((id) => getFeat(id)?.label).filter((x): x is string => !!x);
   const skills = derived.skills.filter((s) => s.proficient);
+  // a conta usa só o equipado e o inventário; com eles em variáveis próprias, o lint vê as dependências completas (B-003)
+  const { equipped: slots, inventory } = char;
   const equipped = useMemo(() => {
-    const uids = Object.values(char.equipped).filter((u): u is string => !!u);
-    const held = Array.from(new Set(uids)).map((u) => char.inventory.find((i) => i.uid === u)).filter((i) => !!i);
+    const uids = Object.values(slots).filter((u): u is string => !!u);
+    const held = Array.from(new Set(uids)).map((u) => inventory.find((i) => i.uid === u)).filter((i) => !!i);
     // vestidos, partes do corpo, sintonizados e favoritos
-    const onHero = (i: (typeof char.inventory)[number]) => i.wear === 'body' || (i.wear === 'worn' && i.worn) || i.attuned || i.favorite;
-    const special = char.inventory.filter((i) => onHero(i) && !uids.includes(i.uid));
+    const onHero = (i: (typeof inventory)[number]) => i.wear === 'body' || (i.wear === 'worn' && i.worn) || i.attuned || i.favorite;
+    const special = inventory.filter((i) => onHero(i) && !uids.includes(i.uid));
     return [...held, ...special];
-  }, [char.equipped, char.inventory]);
+  }, [slots, inventory]);
   // relíquias: só os itens com arte viram carta (sem foto, não aparece)
   const relics = useMemo(() => char.inventory.filter((i) => cardArt(i)), [char.inventory]);
   const spells = useMemo(() => {

@@ -1,0 +1,83 @@
+/* Aba Descanso (etapa 3.6). Valores que estavam inline em TabDescanso.tsx. */
+
+.fv-rest {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-rest-title {
+  margin-bottom: 13px;
+}
+.fv-rest-kinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 14px;
+}
+.fv-rest-kind {
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  padding: var(--space-4) 18px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  transition: 0.25s;
+}
+.fv-rest-kind.is-long {
+  border-color: var(--goldB);
+  background: linear-gradient(160deg, rgba(255, 224, 138, 0.14), rgba(255, 224, 138, 0.04));
+  box-shadow: 0 0 26px var(--bloom);
+}
+.fv-rest-kind-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--color-accent);
+}
+.fv-rest-kind.is-long .fv-rest-kind-name {
+  color: var(--color-metal);
+}
+.fv-rest-kind-desc {
+  margin-top: 5px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.fv-rest-hint {
+  margin-top: 13px;
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  font-family: var(--font-num);
+}
+.fv-rest-tip {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+.fv-rest-conds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.fv-rest-cond {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  min-height: 34px;
+  padding: var(--space-2) 15px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--sunk);
+  transition: 0.2s;
+}
+.fv-rest-cond.is-on {
+  border-color: var(--color-danger);
+  color: white;
+  background: color-mix(in srgb, var(--color-danger) 22%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
