@@ -9,6 +9,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 import { rememberNext } from '@/lib/nextPath';
 import { toast } from '@/store/feedbackStore';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 
 interface Step {
   icon: IconName;
@@ -110,7 +111,11 @@ export function Onboarding() {
   const [i, setI] = useState(0);
   const [dir, setDir] = useState(1);
   const primaryRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const last = i === STEPS.length - 1;
+  // foco preso na janela, Esc fecha e o foco volta para quem abriu (B-008).
+  // Vem antes do foco no botão principal, para guardar quem abriu.
+  useDialogFocus(dialogRef, open, close);
 
   // sempre recomeça do primeiro passo
   useEffect(() => {
@@ -126,8 +131,7 @@ export function Onboarding() {
     if (!open) return;
     primaryRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
-      else if (e.key === 'ArrowRight') goTo(i + 1);
+      if (e.key === 'ArrowRight') goTo(i + 1);
       else if (e.key === 'ArrowLeft') goTo(i - 1);
     };
     window.addEventListener('keydown', onKey);
@@ -156,6 +160,8 @@ export function Onboarding() {
           onClick={close}
         >
           <m.div
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="fv-onb-title"

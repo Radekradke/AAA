@@ -83,7 +83,7 @@ export function StepSkills({ char, update }: StepProps) {
 
       {/* já treinadas: antecedente, linhagem e ferramentas */}
       <SectionTitle>Já treinadas</SectionTitle>
-      <div className="fv-pills" style={{ marginBottom: 18 }}>
+      <div className="fv-pills is-spaced">
         {[...granted].map((k) => (
           <LoreTooltip key={k} info={skillLore(k, 0, true)}>
             <span className="fv-pill is-on is-static">
@@ -117,7 +117,7 @@ export function StepSkills({ char, update }: StepProps) {
       {slots > 0 && (
         <>
           <SectionTitle right={<Counter left={slots - used} total={slots} />}>Especialização — bônus em dobro</SectionTitle>
-          <div className="fv-pills" role="group" aria-label="Especialização" style={{ marginBottom: 18 }}>
+          <div className="fv-pills is-spaced" role="group" aria-label="Especialização">
             {/* inclui uma Especialização que perdeu a perícia (trocou o antecedente), para poder tirar */}
             {[...new Set([...proficientNow, ...(char.skillExpertise ?? [])])].map((key) => {
               const on = (char.skillExpertise ?? []).includes(key);

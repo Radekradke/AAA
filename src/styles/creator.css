@@ -1,0 +1,30 @@
+/* Criação (etapa 3.7). Valores que estavam inline em CharacterCreator.tsx e
+   nas etapas (StepAwaken, StepSkills, StepGear). */
+
+.fv-forge-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+.fv-ui-btn.fv-forge-exit {
+  font-size: 12.5px;
+}
+/* na primeira etapa o Voltar some, mas guarda o lugar no rodapé */
+.fv-btn-ghost.fv-foot-back:disabled {
+  visibility: hidden;
+}
+.fv-help-cursor {
+  cursor: help;
+}
+.fv-input.fv-awaken-concept {
+  resize: none;
+  line-height: 1.5;
+}
+.fv-pills.is-spaced {
+  margin-bottom: 18px;
+}
+.fv-step-note.is-tight {
+  margin: 10px 0 0;
+}

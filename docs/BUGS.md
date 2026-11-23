@@ -42,7 +42,9 @@ Copie o modelo para a seção certa, com o próximo número livre:
 - **Acontece:**
   - **Foco:** essas 5 janelas declaram `aria-modal`, mas o Tab escapa para a página de trás.
   - **Esc:** das 7 janelas presas a botões, 3 não fecham com Esc (ações de ataque, conjurar, crédito de abate). As outras 4 fecham, cada uma do seu jeito.
-- **Status:** Aberto. Os substitutos existem (`Modal`, `Sheet`, `Popover` em `src/components/ui/`). A troca acontece tela por tela na etapa 3; a tabela está em `docs/DESIGN-TOKENS.md`.
+- **Status:** Aberto, em partes:
+  - **Corrigido na 3.7:** Onboarding, Tutorial guiado e Dons da criação no celular usam `useDialogFocus`: foco preso, Esc fecha e o foco volta para quem abriu. O visual não mudou. Teste: `e2e/foco-janelas.e2e.ts` (reprova sem a correção).
+  - **Falta:** Cena e Bastidores do mestre (3.8); as 3 janelas presas a botões sem Esc (ações de ataque, conjurar, crédito de abate).
 
 ### B-002 · Alertas de segurança só nas ferramentas de desenvolvimento
 - **Prioridade:** P3

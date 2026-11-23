@@ -31,6 +31,7 @@ import { applyCreationConcept, CREATION_CONCEPTS, firstActions } from '@/engine/
 import { getClass } from '@/data/classes';
 import { GlyphIcon } from '@/components/character/RaceIcon';
 import '@/styles/concept-entry.css';
+import '@/styles/creator.css';
 
 
 export function CharacterCreator() {
@@ -107,7 +108,7 @@ export function CharacterCreator() {
   if (!char) {
     return (
       <Screen>
-        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: 'var(--muted)' }}>
+        <div className="fv-forge-loading">
           Preparando a forja de heróis…
         </div>
       </Screen>
@@ -178,7 +179,7 @@ export function CharacterCreator() {
     <Screen
       scroll={conceptOpen}
       actions={
-        <Button onClick={saveAndExit} style={{ fontSize: 12.5 }}>
+        <Button className="fv-forge-exit" onClick={saveAndExit}>
           Salvar e sair
         </Button>
       }
@@ -275,7 +276,7 @@ export function CharacterCreator() {
         </aside>
 
         <footer className={'fv-forge-foot' + (isLast ? ' is-last' : '')}>
-          <button type="button" className="fv-btn-ghost fv-foot-back" onClick={prev} disabled={step === 0} style={{ visibility: step === 0 ? 'hidden' : 'visible' }}>
+          <button type="button" className="fv-btn-ghost fv-foot-back" onClick={prev} disabled={step === 0}>
             ‹ Voltar
           </button>
 
