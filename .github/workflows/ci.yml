@@ -32,6 +32,8 @@ jobs:
         run: npm test
       - name: Build de produção
         run: npm run build
+      - name: Orçamento do pacote inicial
+        run: npm run budget
 
   e2e:
     name: Ponta a ponta (Playwright)
