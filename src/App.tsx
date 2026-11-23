@@ -25,6 +25,8 @@ const PrintSheet = lazy(() => import('@/pages/PrintSheet').then((m) => ({ defaul
 const SharedSheet = lazy(() => import('@/pages/SharedSheet').then((m) => ({ default: m.SharedSheet })));
 const Continue = lazy(() => import('@/pages/Continue').then((m) => ({ default: m.Continue })));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics').then((m) => ({ default: m.Diagnostics })));
+// catálogo do design system: só existe em desenvolvimento (fora do build de produção)
+const DevUi = import.meta.env.DEV ? lazy(() => import('@/pages/DevUi').then((m) => ({ default: m.DevUi }))) : null;
 
 /** Enquanto a tela baixa: o sigilo pulsando (só aparece se demorar, sem piscar). */
 function PageLoading() {
@@ -148,6 +150,7 @@ export function App() {
         <Route path="/diagnostico" element={<Page><Diagnostics /></Page>} />
         <Route path="/retratos" element={<Page><PortraitWorkshop /></Page>} />
         <Route path="/config" element={<Page><Settings /></Page>} />
+        {DevUi && <Route path="/dev/ui" element={<Page><DevUi /></Page>} />}
         <Route
           path="/personagens"
           element={

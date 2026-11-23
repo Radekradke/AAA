@@ -68,3 +68,27 @@ Componentes em `src/components/ui/`, estilos em `src/styles/ui.css` (só tokens)
 | `Panel` | `Panel.tsx` | painel de sempre (fica como está até a etapa 3) |
 
 Foco de teclado: todos os primitivos usam `--focus-ring` no `:focus-visible`.
+
+## Camadas (etapa 2.3)
+Componentes em `src/components/ui/Layers.tsx` (estilos em `src/styles/layers.css`, que só baixa com quem usa) e `Modal.tsx`. Mesmas regras para todas: **Esc fecha a de cima, o foco volta para quem abriu, e o leitor de tela sabe o que é cada uma.**
+
+| Camada | Quando usar | Comportamento |
+|---|---|---|
+| `Modal` | decisão ou formulário que bloqueia a página | foco preso, Esc e ✕ fecham, fundo fecha só sem formulário |
+| `Sheet` | painel de ações/edição (sobe de baixo no celular, entra pela direita no PC) | foco preso, Esc, fundo e ✕ fecham |
+| `Popover` | janela pequena presa a um botão (rolar dano, acertou?, conjurar) | não bloqueia; abre embaixo e vira para cima se não couber; Esc devolve o foco ao botão; toque fora fecha; `aria-expanded` no botão |
+| `Tooltip` | dica curta, sem botões dentro | aparece no mouse (com atraso) e no foco; `aria-describedby`; Esc esconde |
+| Toast | aviso que some sozinho | `toast()` de `@/store/feedbackStore` (já tinha `aria-live` e fechar) |
+
+### As 15 janelas feitas à mão → substituto
+A migração acontece tela por tela na etapa 3. Pendências de acessibilidade em `docs/BUGS.md` (B-008).
+
+| Janela | Hoje | Substituto |
+|---|---|---|
+| Onboarding, Tutorial guiado (GuidedTour), Cena (CutsceneOverlay), Bastidores do mestre (BackstageOverlay) | tela cheia com `aria-modal`, **sem foco preso** | `Modal` (ou `useDialogFocus` direto, se o visual for de tela cheia) |
+| Dons da criação no celular (StepGifts) | painel de baixo com `aria-modal`, **sem foco preso** | `Sheet` |
+| Busca (SearchPalette), Retrato e cartas (TabRetrato, RetratoCartas), Confirmações (FeedbackHost) | já usam `useDialogFocus` | ficam; só trocam o visual na etapa 3 |
+| Ações de ataque (AttackActions), Conjurar (SpellCastButton), Modo de rolagem (RollModeToggle), Música (MusicControl), Anotação rápida (QuickNote), Barra rápida do mestre (MasterQuickBar), Crédito de abate (KillCreditPrompt) | janelas presas a botões, cada uma fecha de um jeito | `Popover` |
+
+## Catálogo (etapa 2.4)
+`/dev/ui`, só em desenvolvimento (`npm run dev`; não entra no build de produção). Mostra todos os primitivos e camadas, com troca de tema e de modo claro/escuro. É também o palco dos testes `e2e/design-system.e2e.ts`.

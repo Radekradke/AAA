@@ -26,6 +26,16 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Abertos
 
+### B-008 · Janelas feitas à mão sem foco preso ou sem Esc
+- **Prioridade:** P2
+- **Área:** Acessibilidade (teclado e leitor de tela)
+- **Passos:** abrir com o teclado o Onboarding, o Tutorial guiado, uma Cena do mestre, os Bastidores ou os Dons da criação no celular, e apertar Tab várias vezes.
+- **Esperado:** o foco fica dentro da janela e volta para quem abriu ao fechar, como no `Modal`.
+- **Acontece:**
+  - **Foco:** essas 5 janelas declaram `aria-modal`, mas o Tab escapa para a página de trás.
+  - **Esc:** das 7 janelas presas a botões, 3 não fecham com Esc (ações de ataque, conjurar, crédito de abate). As outras 4 fecham, cada uma do seu jeito.
+- **Status:** Aberto. Os substitutos existem (`Modal`, `Sheet`, `Popover` em `src/components/ui/`). A troca acontece tela por tela na etapa 3; a tabela está em `docs/DESIGN-TOKENS.md`.
+
 ### B-002 · Alertas de segurança só nas ferramentas de desenvolvimento
 - **Prioridade:** P3
 - **Área:** Dependências

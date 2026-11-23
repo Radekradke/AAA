@@ -1,0 +1,159 @@
+/* Camadas do design system (etapa 2.3) — Sheet, Popover, Tooltip.
+   Importado por src/components/ui/Layers.tsx: só baixa com quem usa. */
+
+/* ---------- Sheet ---------- */
+.fv-ui-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  background: color-mix(in srgb, var(--color-bg), transparent 30%);
+  backdrop-filter: blur(4px);
+}
+.fv-ui-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100dvh;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-2);
+  outline: none;
+}
+.fv-ui-sheet--bottom,
+.fv-ui-sheet--auto {
+  margin-top: auto;
+  width: 100%;
+  max-height: 88dvh;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: fv-ui-sheet-up var(--dur) var(--ease-out);
+}
+.fv-ui-sheet--right {
+  margin-left: auto;
+  width: min(440px, 100%);
+  height: 100dvh;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  animation: fv-ui-sheet-left var(--dur) var(--ease-out);
+}
+@media (min-width: 900px) {
+  .fv-ui-sheet--auto {
+    margin: 0 0 0 auto;
+    width: min(440px, 100%);
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    animation-name: fv-ui-sheet-left;
+  }
+}
+@keyframes fv-ui-sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@keyframes fv-ui-sheet-left {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.fv-ui-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-ui-sheet-head h2 {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-text);
+}
+.fv-ui-sheet-close {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.fv-ui-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-4);
+}
+.fv-ui-sheet-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---------- Popover ---------- */
+.fv-ui-popover-anchor,
+.fv-ui-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.fv-ui-popover {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  z-index: var(--z-popover);
+  min-width: 220px;
+  max-width: min(340px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  outline: none;
+  animation: fv-ui-pop-in var(--dur-fast) var(--ease-out);
+}
+.fv-ui-popover--start {
+  left: 0;
+}
+.fv-ui-popover--end {
+  right: 0;
+}
+.fv-ui-popover.is-up {
+  top: auto;
+  bottom: calc(100% + var(--space-2));
+}
+@keyframes fv-ui-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* ---------- Tooltip ---------- */
+.fv-ui-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: var(--z-popover);
+  width: max-content;
+  max-width: 260px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.fv-ui-tooltip[hidden] {
+  display: none;
+}
