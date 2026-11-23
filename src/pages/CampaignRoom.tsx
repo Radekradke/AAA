@@ -20,14 +20,13 @@ import { ABILITY_SHORT, ABILITY_COLORS } from '@/data/skills';
 import { modStr } from '@/engine/dice';
 import type { Campaign, InviteLink, SharedCharacterSheet } from '@/types/models';
 import type { Character } from '@/types/character';
-import { useTheme } from '@/lib/useTheme';
 import { useInk } from '@/lib/contrast';
-import { hexA } from '@/lib/color';
 import { Icon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 import { NpcGallery } from '@/components/campaign/NpcGallery';
 import '@/styles/session.css';
 import '@/styles/stage.css';
+import '@/styles/campaign-room.css';
 import { InviteCard } from '@/components/campaign/InviteCard';
 import { SchemaNotice } from '@/components/campaign/SchemaNotice';
 import { AgendaCard } from '@/components/campaign/AgendaCard';
@@ -47,7 +46,6 @@ export function CampaignRoom() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const characters = useCharacterStore((s) => s.characters);
-  const t = useTheme();
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [invite, setInvite] = useState<InviteLink | null>(null);
@@ -143,13 +141,13 @@ export function CampaignRoom() {
   const sharedIds = new Set(shares.map((s) => s.share.sheetId));
 
   return (
-    <Screen scroll actions={<Button className="fv-below-nav" onClick={() => navigate('/mesas')} style={{ fontSize: 12.5 }}>‹ Mesas</Button>}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
-        <div className="fv-label" style={{ marginBottom: 4 }}>{isMaster ? 'Você comanda esta mesa' : 'Mesa de campanha'}</div>
-        <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(21px,3.6vw,28px)', color: 'var(--ink)' }}>
+    <Screen scroll actions={<Button className="fv-below-nav fv-room-back" onClick={() => navigate('/mesas')}>‹ Mesas</Button>}>
+      <div className="fv-room">
+        <div className="fv-label fv-room-kicker">{isMaster ? 'Você comanda esta mesa' : 'Mesa de campanha'}</div>
+        <h1 className="fv-room-title">
           {campaign?.name ?? 'Carregando…'}
         </h1>
-        {error && <div style={{ marginBottom: 12, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+        {error && <div className="fv-room-error">{error}</div>}
 
         {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
         {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
@@ -182,9 +180,9 @@ export function CampaignRoom() {
 
         {/* jogador: vincular a própria ficha */}
         {!isMaster && campaign && (
-          <div className="fv-panel" style={{ padding: 14, marginBottom: 16 }}>
-            <div className="fv-label" style={{ marginBottom: 9 }}>Suas fichas nesta mesa</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="fv-panel fv-room-mine">
+            <div className="fv-label fv-room-mine-label">Suas fichas nesta mesa</div>
+            <div className="fv-room-wrap">
               {mySheets.map((c) => {
                 const linked = sharedIds.has(c.id);
                 const busyHere = linking === c.id;
@@ -197,13 +195,13 @@ export function CampaignRoom() {
                     disabled={!!linking}
                     title={linked ? `Desvincular ${c.name} desta mesa` : `Vincular ${c.name} a esta mesa`}
                     onClick={() => (linked ? void unshare(c.id) : void share(c.id))}
-                    style={{ cursor: 'pointer', fontSize: 12.5, fontWeight: 600, minHeight: 38, padding: '8px 14px', borderRadius: 999, border: '1px solid ' + (linked ? t.gold : t.line), background: linked ? hexA(t.gold, 0.12) : 'var(--sunk)', color: linked ? t.gold : 'var(--ink)' }}
+                    className="fv-room-pill"
                   >
                     {busyHere ? (linked ? 'Desvinculando… ' : 'Vinculando… ') : linked ? '✓ ' : '+ '}{c.name}
                   </button>
                 );
               })}
-              {mySheets.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Crie um herói primeiro na tela de personagens.</span>}
+              {mySheets.length === 0 && <span className="fv-room-muted">Crie um herói primeiro na tela de personagens.</span>}
             </div>
             {/* permissões granulares por ficha vinculada — você decide o que o mestre pode */}
             {shares.filter((s) => s.share.ownerId === user?.id).map(({ share }) => {
@@ -218,16 +216,16 @@ export function CampaignRoom() {
                 { key: 'editProgression', label: 'XP/Nível' },
               ];
               return (
-                <div key={share.id} style={{ marginTop: 10, paddingTop: 9, borderTop: '1px solid var(--line)' }}>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>O mestre pode em <b style={{ color: 'var(--ink)' }}>{sheetName}</b>:</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div key={share.id} className="fv-room-perms">
+                  <div className="fv-room-perms-head">O mestre pode em <b>{sheetName}</b>:</div>
+                  <div className="fv-room-wrap is-tight">
                     {defs.map((d) => (
                       <button
                         key={d.key}
                         type="button"
                         aria-pressed={perms[d.key]}
                         onClick={() => setPerm(d.key)}
-                        style={{ cursor: 'pointer', fontSize: 11, fontWeight: 600, minHeight: 32, padding: '5px 11px', borderRadius: 999, border: '1px solid ' + (perms[d.key] ? t.gold : t.line), background: perms[d.key] ? hexA(t.gold, 0.12) : 'var(--sunk)', color: perms[d.key] ? t.gold : 'var(--muted)' }}
+                        className="fv-room-pill is-small"
                       >
                         {perms[d.key] ? '✓ ' : ''}{d.label}
                       </button>
@@ -236,21 +234,21 @@ export function CampaignRoom() {
                 </div>
               );
             })}
-            <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>
+            <p className="fv-room-help">
               Ao vincular, o mestre passa a ver uma cópia da sua ficha (atributos, PV, CA, recursos), atualizada quando você sincroniza. O seu Diário continua só seu. Desvincule quando quiser.
             </p>
           </div>
         )}
 
         {/* fichas da mesa */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
+        <div className="fv-room-head">
           <div className="fv-label">Heróis da mesa · {shares.length}</div>
-          <button type="button" className="fv-textlink" onClick={load} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 12, fontWeight: 600 }}>↺ Atualizar</button>
+          <button type="button" className="fv-textlink fv-room-refresh" onClick={load}>↺ Atualizar</button>
         </div>
         {shares.length === 0 && (
           <EmptyState icon="crest" title="Nenhuma ficha vinculada ainda" hint={isMaster ? 'Envie o link de convite — quando os jogadores vincularem as fichas, elas aparecem aqui ao vivo.' : 'Vincule sua ficha acima para o mestre acompanhar.'} />
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 265px), 1fr))', gap: 12 }}>
+        <div className="fv-room-sheets">
           {shares.map(({ share, snapshot }) => (
             <SheetCard key={share.id} snapshot={snapshot} mine={share.ownerId === user?.id} />
           ))}
@@ -258,7 +256,7 @@ export function CampaignRoom() {
 
         {/* NPCs da campanha: retrato + o que os jogadores sabem; segredos só do mestre */}
         {campaign && user && !user.guest && (
-          <div style={{ marginTop: 22 }}>
+          <div className="fv-room-section">
             <NpcGallery campaignId={campaign.id} isMaster={isMaster} masterSheets={isMaster ? mySheets : []} />
           </div>
         )}
@@ -272,20 +270,20 @@ export function CampaignRoom() {
 
         {/* Crônica da Mesa: notas, NPCs e missões (mestre escreve, todos leem) */}
         {campaign && (
-          <div style={{ marginTop: 22 }}>
-            <div className="fv-label" style={{ marginBottom: 10 }}>Crônica da Mesa · {notes.length}</div>
+          <div className="fv-room-section">
+            <div className="fv-label fv-room-section-label">Crônica da Mesa · {notes.length}</div>
             {isMaster && (
-              <div className="fv-panel" style={{ padding: 13, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className="fv-panel fv-room-compose">
+                <div className="fv-room-wrap">
                   {(['nota', 'npc', 'missao'] as const).map((k) => (
-                    <button key={k} onClick={() => setNoteKind(k)} style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 700, minHeight: 32, padding: '5px 13px', borderRadius: 999, border: '1px solid ' + (noteKind === k ? t.gold : t.line), background: noteKind === k ? hexA(t.gold, 0.12) : 'transparent', color: noteKind === k ? t.gold : 'var(--muted)' }}>
+                    <button key={k} type="button" aria-pressed={noteKind === k} onClick={() => setNoteKind(k)} className="fv-room-pill is-kind">
                       {k === 'nota' ? 'Nota' : k === 'npc' ? 'NPC' : 'Missão'}
                     </button>
                   ))}
-                  <input className="fv-input" placeholder="Título (obrigatório)" aria-label="Título da nota" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ flex: '1 1 160px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                  <input className="fv-input" placeholder="Título (obrigatório)" aria-label="Título da nota" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <input className="fv-input" placeholder="Detalhes (opcional)" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} style={{ flex: '1 1 220px', minHeight: 38, padding: '7px 12px', fontSize: 13 }} />
+                <div className="fv-room-wrap">
+                  <input className="fv-input is-wide" placeholder="Detalhes (opcional)" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} />
                   <button
                     onClick={() => {
                       if (!noteTitle.trim() || !user) return;
@@ -293,30 +291,30 @@ export function CampaignRoom() {
                     }}
                     disabled={!noteTitle.trim()}
                     title={noteTitle.trim() ? 'Registrar na crônica da mesa' : 'Escreva um título para registrar'}
-                    className="fv-btn-gold"
-                    style={{ minHeight: 38, padding: '0 18px', fontSize: 13, opacity: noteTitle.trim() ? 1 : 0.5 }}
+                    type="button"
+                    className="fv-btn-gold fv-room-save"
                   >
                     Registrar
                   </button>
                 </div>
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: 9 }}>
+            <div className="fv-room-notes">
               {notes.map((n) => (
-                <div key={n.id} className="fv-surface" style={{ padding: '11px 13px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.1em', color: n.kind === 'missao' ? t.gold : n.kind === 'npc' ? t.acc : 'var(--muted)' }}>
+                <div key={n.id} className="fv-surface fv-room-note">
+                  <div className="fv-room-note-top">
+                    <span className={'fv-room-note-kind is-' + n.kind}>
                       {n.kind === 'nota' ? 'NOTA' : n.kind === 'npc' ? 'NPC' : 'MISSÃO'}
                     </span>
                     {isMaster && (
-                      <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12 }}>✕</button>
+                      <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" className="fv-room-note-del">✕</button>
                     )}
                   </div>
-                  <div style={{ marginTop: 3, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{n.title}</div>
-                  {n.body && <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.5, color: 'var(--muted)' }}>{n.body}</div>}
+                  <div className="fv-room-note-title">{n.title}</div>
+                  {n.body && <div className="fv-room-note-body">{n.body}</div>}
                 </div>
               ))}
-              {notes.length === 0 && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{isMaster ? 'Registre a primeira nota, NPC ou missão da campanha.' : 'O mestre ainda não registrou nada.'}</span>}
+              {notes.length === 0 && <span className="fv-room-muted">{isMaster ? 'Registre a primeira nota, NPC ou missão da campanha.' : 'O mestre ainda não registrou nada.'}</span>}
             </div>
           </div>
         )}
@@ -330,11 +328,10 @@ export function CampaignRoom() {
 
 /** Card vivo da ficha compartilhada (leitura, estilo aba Mesa). */
 function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boolean }) {
-  const t = useTheme();
   const ink = useInk();
   if (!snapshot) {
     return (
-      <div className="fv-surface" style={{ padding: 14, fontSize: 12.5, color: 'var(--muted)' }}>
+      <div className="fv-surface fv-room-sheet-wait">
         Ficha vinculada, mas ainda não chegou à nuvem. Peça ao jogador para abrir o app com internet.
       </div>
     );
@@ -343,43 +340,43 @@ function SheetCard({ snapshot, mine }: { snapshot: Character | null; mine: boole
   const pct = Math.max(0, Math.min(100, Math.round((snapshot.hpCurrent / Math.max(1, d.maxHp)) * 100)));
   const hpColor = pct >= 60 ? '#3FC56B' : pct >= 30 ? '#E0A93E' : '#FF4D3A';
   return (
-    <div className="fv-surface" style={{ padding: '13px 14px', border: '1px solid ' + hexA(mine ? t.acc : t.gold, 0.35) }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
-        <div style={{ minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <div className={'fv-surface fv-room-sheet' + (mine ? ' is-mine' : '')}>
+      <div className="fv-room-sheet-top">
+        <div className="fv-room-sheet-name">
           {snapshot.name}
         </div>
-        {mine && <span style={{ flex: 'none', fontSize: 9, letterSpacing: '.1em', color: t.acc }}>SUA</span>}
+        {mine && <span className="fv-room-sheet-mine">SUA</span>}
       </div>
-      <div style={{ marginTop: 2, fontSize: 11, color: 'var(--acc)' }}>
+      <div className="fv-room-sheet-sub">
         {raceOf(snapshot).label}{raceOf(snapshot).homebrew ? ' (homebrew)' : ''} · {getClass(snapshot.classId).label} · Nível {snapshot.level}
       </div>
       {/* PV */}
-      <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 17, color: ink(hpColor) }}>
-          {snapshot.hpCurrent}<span style={{ fontSize: '.65em', color: 'var(--muted)' }}>/{d.maxHp}</span>
+      <div className="fv-room-sheet-hp">
+        <span className="fv-room-sheet-hpnum" style={{ color: ink(hpColor) }}>
+          {snapshot.hpCurrent}<span>/{d.maxHp}</span>
         </span>
-        <div style={{ flex: 1, height: 8, borderRadius: 3, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
-          <div style={{ width: `${pct}%`, height: '100%', background: hpColor, transition: 'width .3s' }} />
+        <div className="fv-room-sheet-bar">
+          <div style={{ width: `${pct}%`, background: hpColor }} />
         </div>
-        <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>CA <b style={{ color: 'var(--ink)' }}>{d.ac}</b></span>
+        <span className="fv-room-sheet-meta">CA <b>{d.ac}</b></span>
       </div>
       {/* atributos */}
-      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
+      <div className="fv-room-sheet-abs">
         {d.abilityList.map((a) => (
-          <div key={a.key} style={{ textAlign: 'center', padding: '3px 0', borderRadius: 4, background: hexA(ABILITY_COLORS[a.key], 0.09) }}>
-            <div style={{ fontSize: 7.5, fontFamily: 'var(--font-num)', color: ink(ABILITY_COLORS[a.key]) }}>{ABILITY_SHORT[a.key]}</div>
-            <div style={{ fontSize: 11.5, fontFamily: 'var(--font-num)', fontWeight: 700, color: 'var(--ink)' }}>{modStr(a.mod)}</div>
+          <div key={a.key} className="fv-room-sheet-ab" style={{ '--ab': ABILITY_COLORS[a.key] } as React.CSSProperties}>
+            <div className="fv-room-sheet-ab-key" style={{ color: ink(ABILITY_COLORS[a.key]) }}>{ABILITY_SHORT[a.key]}</div>
+            <div className="fv-room-sheet-ab-mod">{modStr(a.mod)}</div>
           </div>
         ))}
       </div>
       {snapshot.combat.conditions.length > 0 && (
-        <div style={{ marginTop: 7, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div className="fv-room-sheet-conds">
           {snapshot.combat.conditions.map((c) => (
-            <span key={c} style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 999, border: '1px solid ' + hexA(t.danger, 0.5), color: t.danger }}>{c}</span>
+            <span key={c} className="fv-room-sheet-cond">{c}</span>
           ))}
         </div>
       )}
-      <div style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--muted)' }}>
+      <div className="fv-room-sheet-foot">
         <Icon name="moon" size={10} /> Desloc. {String(d.speed).replace('.', ',')} m · Percep. passiva {d.passivePerception} · Prof. {modStr(d.proficiency)}
       </div>
     </div>

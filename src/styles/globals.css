@@ -8870,6 +8870,8 @@ html[data-mode='light'] .fv-rule-tag.is-ajuste { color: #a64b00; }
 .fv-discord-hint { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 .fv-discord-field { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .fv-discord-field .fv-input { flex: 1 1 260px; min-width: 0; }
+/* o botão dourado não tem tamanho próprio: sem isto ficava espremido (B-010) */
+.fv-discord-field .fv-btn-gold { min-height: 36px; padding: 0 16px; font-size: 13px; }
 .fv-discord-saved { flex: 1 1 200px; font-size: 13px; color: var(--ink); font-family: var(--font-num); }
 .fv-discord-bad { flex-basis: 100%; color: var(--danger); font-size: 12px; }
 .fv-discord-how { font-size: 12.5px; color: var(--muted); }

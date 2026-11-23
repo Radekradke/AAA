@@ -83,7 +83,7 @@
   "src/features/master/initiative/InitiativeDock.tsx": {"style":1,"hex":0},
   "src/features/master/inspector/CombatantInspector.tsx": {"style":1,"hex":0},
   "src/pages/AuthCallback.tsx": {"style":5,"hex":0},
-  "src/pages/CampaignRoom.tsx": {"style":57,"hex":3},
+  "src/pages/CampaignRoom.tsx": {"style":4,"hex":3},
   "src/pages/Campaigns.tsx": {"style":18,"hex":0},
   "src/pages/CharacterCreator.tsx": {"style":4,"hex":0},
   "src/pages/CharacterSelect.tsx": {"style":28,"hex":2},
