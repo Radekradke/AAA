@@ -1,0 +1,149 @@
+/* Forja / editor de item (etapa 3.4). Valores que estavam inline em
+   ItemEditorModal.tsx. Os estilos da arte, do "como se usa" e das
+   resistências continuam em globals.css (.fv-forge-*). */
+
+.fv-forge-label {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 5px;
+}
+.fv-forge-mt11 {
+  margin-top: 11px;
+}
+.fv-forge-mt13 {
+  margin-top: 13px;
+}
+.fv-forge-block {
+  display: block;
+}
+.fv-forge-full {
+  grid-column: 1 / -1;
+}
+
+/* grades de campos: a largura mínima de cada coluna muda por seção */
+.fv-forge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--col, 150px)), 1fr));
+  gap: 11px;
+}
+.fv-forge-grid.is-sm {
+  --col: 120px;
+}
+.fv-forge-grid.is-md {
+  --col: 160px;
+}
+
+.fv-forge-display {
+  font-family: var(--font-display);
+}
+.fv-forge-dice {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.fv-forge-dice-n {
+  width: 54px;
+  text-align: center;
+}
+.fv-forge-dice-d {
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-forge-grow {
+  flex: 1;
+  min-width: 0;
+}
+.fv-forge-setval {
+  width: 56px;
+  text-align: center;
+}
+.fv-forge-note {
+  resize: none;
+}
+
+/* seções com moldura dourada */
+.fv-forge-set {
+  margin-top: 13px;
+  padding: 12px 13px 13px;
+  border: 1px solid color-mix(in srgb, var(--color-metal) 30%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-metal) 4%, transparent);
+}
+.fv-forge-legend {
+  padding: 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-metal);
+}
+.fv-forge-help {
+  margin: 9px 0 0;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+.fv-forge-help b {
+  color: var(--color-text);
+}
+.fv-forge-error {
+  margin-top: 10px;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* rodapé */
+.fv-btn-gold.fv-forge-save {
+  flex: 1;
+  min-height: 46px;
+  font-size: 15px;
+}
+.fv-forge-cancel {
+  cursor: pointer;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: var(--text-md);
+}
+
+/* caixa de marcar (losango) */
+.fv-forge-check {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  align-self: end;
+  min-height: 46px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+}
+.fv-forge-check.is-on {
+  border-color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 10%, transparent);
+  color: var(--color-metal);
+}
+.fv-forge-check-mark {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  transform: rotate(45deg);
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+.fv-forge-check.is-on .fv-forge-check-mark {
+  border-color: var(--color-metal);
+  background: var(--color-metal);
+}
