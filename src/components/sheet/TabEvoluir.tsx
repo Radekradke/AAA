@@ -1,6 +1,7 @@
 import { xpProgress } from '@/engine/xp';
 import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
+import '@/styles/evoluir.css';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
 import { Icon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
@@ -8,7 +9,6 @@ import { passiveLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
 import { TableRulesPanel } from './TableRulesPanel';
 import { rulesSummary } from '@/engine/tableRules';
-import { hexA } from '@/lib/color';
 import { useCharacterStore } from '@/store/characterStore';
 import { useSourceOn } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
@@ -210,34 +210,20 @@ export function TabEvoluir({ char, derived }: TabProps) {
     setAsiPicks((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k].slice(-limit)));
   };
 
-  const seg = (active: boolean): React.CSSProperties => ({
-    cursor: 'pointer',
-    flex: 1,
-    minHeight: 42,
-    padding: '8px 10px',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid ' + (active ? t.gold : t.line),
-    background: active ? hexA(t.gold, 0.12) : 'var(--sunk)',
-    color: active ? t.gold : 'var(--muted)',
-    fontFamily: 'var(--font-display)',
-    fontWeight: 600,
-    fontSize: 12.5,
-    transition: '.2s',
-  });
+  /** Botão de opção (classe, PV, subclasse, ASI, talento): ligado fica dourado. */
+  const seg = (active: boolean, extra = '') => 'fv-evo-seg' + (active ? ' is-on' : '') + (extra ? ' ' + extra : '');
 
   return (
-    <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(13px,1.5vw,18px)' }}>
+    <div className="animate-riseIn fv-evo">
       <PendingChoices char={char} />
       {/* status + configurações da campanha */}
       <Panel>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="fv-evo-head">
+          <div className="fv-evo-head-id">
             <Icon name="levelup" size={26} color={t.gold} />
             <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: 'var(--ink)', lineHeight: 1 }}>
-                Evolução do Herói
-              </div>
-              <div style={{ marginTop: 4, fontSize: 12, color: 'var(--muted)' }}>
+              <div className="fv-evo-title">Evolução do Herói</div>
+              <div className="fv-evo-subtitle">
                 {char.classLevels.map((cl) => `${getClass(cl.classId).label} ${cl.level}`).join(' · ')} — Nível total {char.level}
               </div>
             </div>
@@ -250,11 +236,11 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
       {/* plano do próximo nível (o "+" do cabeçalho rola até aqui) */}
       {!atCap && (
-        <div id="fv-subir" style={{ scrollMarginTop: 90 }}>
+        <div id="fv-subir" className="fv-evo-anchor">
         <Panel>
           <SectionLabel
             right={
-              <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: profNext > profNow ? t.gold : 'var(--muted)' }}>
+              <span className={'fv-evo-prof' + (profNext > profNow ? ' is-up' : '')}>
                 Proficiência {modStr(profNow)}{profNext > profNow ? ` → ${modStr(profNext)}` : ''}
               </span>
             }
@@ -262,18 +248,18 @@ export function TabEvoluir({ char, derived }: TabProps) {
             Subir para o Nível {newLevel}
           </SectionLabel>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: 14 }}>
+          <div className="fv-evo-plan">
             {/* classe */}
             <div>
-              <div style={microLabel}>Classe que evolui {campaign.allowMulticlass ? '' : '(multiclasse desativada)'}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <div className="fv-evo-micro">Classe que evolui {campaign.allowMulticlass ? '' : '(multiclasse desativada)'}</div>
+              <div className="fv-evo-col">
                 {(campaign.allowMulticlass ? CLASSES : CLASSES.filter((c) => c.id === char.classId)).map((c) => {
                   const active = classId === c.id;
                   const lvl = classLevelOf(char, c.id);
                   return (
-                    <button key={c.id} onClick={() => { setClassId(c.id); setHpRoll(null); }} style={{ ...seg(active), display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left' }}>
+                    <button key={c.id} onClick={() => { setClassId(c.id); setHpRoll(null); }} className={seg(active, 'is-row')}>
                       <span>{c.label}{lvl ? ` (${lvl} → ${lvl + 1})` : ' (novo)'}</span>
-                      <span style={{ fontFamily: 'var(--font-num)', fontSize: 11 }}>d{c.hitDie}</span>
+                      <span className="fv-evo-die">d{c.hitDie}</span>
                     </button>
                   );
                 })}
@@ -282,34 +268,33 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
             {/* PV do nível */}
             <div>
-              <div style={microLabel}>Pontos de vida do nível (d{cls.hitDie} + CON {modStr(conMod)})</div>
-              <div style={{ display: 'flex', gap: 7 }}>
-                <button style={seg(hpMethod === 'media')} onClick={() => setHpMethod('media')}>Média ({averageHp(cls.hitDie)})</button>
-                <button style={seg(hpMethod === 'rolagem')} onClick={() => setHpMethod('rolagem')}>Rolar</button>
-                <button style={seg(hpMethod === 'manual')} onClick={() => setHpMethod('manual')}>Manual</button>
+              <div className="fv-evo-micro">Pontos de vida do nível (d{cls.hitDie} + CON {modStr(conMod)})</div>
+              <div className="fv-evo-row">
+                <button className={seg(hpMethod === 'media')} onClick={() => setHpMethod('media')}>Média ({averageHp(cls.hitDie)})</button>
+                <button className={seg(hpMethod === 'rolagem')} onClick={() => setHpMethod('rolagem')}>Rolar</button>
+                <button className={seg(hpMethod === 'manual')} onClick={() => setHpMethod('manual')}>Manual</button>
               </div>
               {hpMethod === 'rolagem' && (
-                <div style={{ marginTop: 9, display: 'flex', gap: 9, alignItems: 'center' }}>
-                  <button onClick={rollHitDie} className="fv-btn-gold" style={{ padding: '10px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <div className="fv-evo-roll">
+                  <button onClick={rollHitDie} className="fv-btn-gold fv-evo-roll-btn">
                     <Icon name="d20" size={16} /> Rolar d{cls.hitDie}
                   </button>
-                  <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 20, color: hpRoll ? t.gold : 'var(--muted)' }}>
+                  <span className={'fv-evo-roll-value' + (hpRoll ? ' is-on' : '')}>
                     {hpRoll ?? '—'}
                   </span>
                 </div>
               )}
               {hpMethod === 'manual' && (
                 <input
-                  className="fv-input"
-                  style={{ marginTop: 9, maxWidth: 140, textAlign: 'center', fontFamily: 'var(--font-num)' }}
+                  className="fv-input fv-evo-hp-input"
                   inputMode="numeric"
                   placeholder={`1–${cls.hitDie}`}
                   value={hpManual}
                   onChange={(e) => setHpManual(e.target.value)}
                 />
               )}
-              <div style={{ marginTop: 9, fontSize: 12, color: 'var(--muted)' }}>
-                Ganho total: <b style={{ color: 'var(--ink)', fontFamily: 'var(--font-num)' }}>{Math.max(0, hpValue) + conMod}</b> PV
+              <div className="fv-evo-gain">
+                Ganho total: <b>{Math.max(0, hpValue) + conMod}</b> PV
                 ({hpValue || '?'} + {conMod} CON)
               </div>
             </div>
@@ -317,15 +302,15 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
           {/* subclasse no nível certo */}
           {needsSubclass && newClassLevel >= subLevel && (
-            <div style={{ marginTop: 16 }}>
-              <div style={microLabel}>Subclasse de {cls.label} (nível {subLevel})</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 9 }}>
+            <div className="fv-evo-block">
+              <div className="fv-evo-micro">Subclasse de {cls.label} (nível {subLevel})</div>
+              <div className="fv-evo-subs">
                 {subclassesFor(classId).map((sub) => {
                   const active = subPick === sub.id;
                   return (
-                    <button key={sub.id} onClick={() => setSubPick(sub.id)} style={{ ...seg(active), textAlign: 'left', minHeight: 58 }}>
-                      <div style={{ fontSize: 13.5, color: active ? t.gold : 'var(--ink)' }}>{sub.label}</div>
-                      <div style={{ marginTop: 3, fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>{sub.desc}</div>
+                    <button key={sub.id} onClick={() => setSubPick(sub.id)} className={seg(active, 'is-card is-sub')}>
+                      <div className="fv-evo-card-title">{sub.label}</div>
+                      <div className="fv-evo-card-desc">{sub.desc}</div>
                     </button>
                   );
                 })}
@@ -352,25 +337,25 @@ export function TabEvoluir({ char, derived }: TabProps) {
           ))}
 
           {spellNews && (
-            <div className="fv-spell-warn" style={{ marginTop: 16, borderColor: 'var(--line-strong)' }}>
-              <b style={{ color: 'var(--acc)' }}>Magias:</b> {spellNews} Escolha na aba Magias depois de confirmar.
+            <div className="fv-spell-warn fv-evo-spells">
+              <b>Magias:</b> {spellNews} Escolha na aba Magias depois de confirmar.
             </div>
           )}
 
           {/* ASI / talento no nível certo */}
           {asiHere && (
-            <div style={{ marginTop: 16 }}>
-              <div style={microLabel}>Aumento de Atributo ou Talento (nível {newClassLevel} de {cls.label})</div>
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                <button style={{ ...seg(asiMode === 'plus2'), flex: 'none', padding: '8px 16px' }} onClick={() => { setAsiMode('plus2'); setAsiPicks([]); }}>+2 em um atributo</button>
-                <button style={{ ...seg(asiMode === 'plus11'), flex: 'none', padding: '8px 16px' }} onClick={() => { setAsiMode('plus11'); setAsiPicks([]); }}>+1 em dois atributos</button>
+            <div className="fv-evo-block">
+              <div className="fv-evo-micro">Aumento de Atributo ou Talento (nível {newClassLevel} de {cls.label})</div>
+              <div className="fv-evo-wrap">
+                <button className={seg(asiMode === 'plus2', 'is-pill')} onClick={() => { setAsiMode('plus2'); setAsiPicks([]); }}>+2 em um atributo</button>
+                <button className={seg(asiMode === 'plus11', 'is-pill')} onClick={() => { setAsiMode('plus11'); setAsiPicks([]); }}>+1 em dois atributos</button>
                 {campaign.allowFeats && (
-                  <button style={{ ...seg(asiMode === 'feat'), flex: 'none', padding: '8px 16px' }} onClick={() => setAsiMode('feat')}>Talento</button>
+                  <button className={seg(asiMode === 'feat', 'is-pill')} onClick={() => setAsiMode('feat')}>Talento</button>
                 )}
               </div>
 
               {(asiMode === 'plus2' || asiMode === 'plus11') && (
-                <div style={{ marginTop: 10, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                <div className="fv-evo-wrap fv-evo-mt10">
                   {ABILITY_KEYS.map((k) => {
                     const active = asiPicks.includes(k);
                     const inc = asiMode === 'plus2' ? 2 : 1;
@@ -380,12 +365,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                         key={k}
                         onClick={() => !wouldExceed && toggleAsiPick(k)}
                         disabled={wouldExceed && !active}
-                        style={{
-                          ...seg(active),
-                          flex: 'none',
-                          padding: '8px 13px',
-                          opacity: wouldExceed && !active ? 0.4 : 1,
-                        }}
+                        className={seg(active, 'is-ability' + (wouldExceed && !active ? ' is-dim' : ''))}
                         title={wouldExceed ? `${ABILITY_LABELS[k]} passaria de 20` : ABILITY_LABELS[k]}
                       >
                         {ABILITY_SHORT[k]} {totals[k]} → {Math.min(20, totals[k] + (active ? inc : inc))}
@@ -396,17 +376,17 @@ export function TabEvoluir({ char, derived }: TabProps) {
               )}
 
               {asiMode === 'feat' && (
-                <div style={{ marginTop: 10 }}>
+                <div className="fv-evo-mt10">
                   {(['PHB 2014', 'XGE', 'TCE', 'Homebrew'] as const).filter((source) => sourceOn(source)).map((source) => {
                     const list = FEATS.filter((f) => f.source === source && !char.feats.includes(f.id));
                     if (list.length === 0) return null;
                     return (
-                      <div key={source} style={{ marginBottom: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 8px' }}>
-                          <span style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--acc)' }}>
+                      <div key={source} className="fv-evo-source">
+                        <div className="fv-evo-source-head">
+                          <span className="fv-evo-source-name">
                             {source === 'PHB 2014' ? 'LIVRO DO JOGADOR 2014' : source === 'XGE' ? 'GUIA DE XANATHAR (RACIAIS)' : source === 'TCE' ? 'CALDEIRÃO DE TASHA' : 'SEUS TALENTOS (HOMEBREW)'}
                           </span>
-                          <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
+                          <span aria-hidden className="fv-evo-source-rule" />
                           {source === 'Homebrew' && (
                             <span className="fv-hb-lib">
                               {list.map((f) => (
@@ -415,7 +395,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                             </span>
                           )}
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 8 }}>
+                        <div className="fv-evo-feats">
                           {list.map((f) => {
                             const active = featId === f.id;
                             const issue = featPrereqIssue(char, f);
@@ -433,17 +413,17 @@ export function TabEvoluir({ char, derived }: TabProps) {
                                 <button
                                   onClick={() => { if (!issue) { setFeatId(f.id); setFeatAbility(''); } }}
                                   disabled={!!issue}
-                                  style={{ ...seg(active), width: '100%', textAlign: 'left', minHeight: 52, opacity: issue ? 0.42 : 1, cursor: issue ? 'not-allowed' : 'pointer' }}
+                                  className={seg(active, 'is-card is-feat' + (issue ? ' is-blocked' : ''))}
                                 >
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, alignItems: 'baseline' }}>
-                                    <span style={{ fontSize: 13, color: active ? t.gold : 'var(--ink)' }}>{f.label}</span>
+                                  <div className="fv-evo-feat-top">
+                                    <span className="fv-evo-feat-name">{f.label}</span>
                                     {f.prereq && (
-                                      <span style={{ flex: 'none', fontSize: 8.5, letterSpacing: '.08em', color: issue ? t.danger : 'var(--muted)', fontFamily: 'var(--font-num)' }}>
+                                      <span className="fv-evo-req">
                                         REQ
                                       </span>
                                     )}
                                   </div>
-                                  <div style={{ marginTop: 2, fontSize: 10.5, color: 'var(--muted)', fontFamily: 'var(--font-body)', fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
+                                  <div className="fv-evo-feat-desc">{f.desc}</div>
                                 </button>
                               </LoreTooltip>
                             );
@@ -456,10 +436,10 @@ export function TabEvoluir({ char, derived }: TabProps) {
                     ✦ Criar talento homebrew
                   </button>
                   {featId && getFeat(featId)?.abilityChoice && (
-                    <div style={{ marginTop: 9, display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>+1 em:</span>
+                    <div className="fv-evo-wrap fv-evo-featabil">
+                      <span className="fv-evo-featabil-label">+1 em:</span>
                       {getFeat(featId)!.abilityChoice!.map((k) => (
-                        <button key={k} onClick={() => setFeatAbility(k)} disabled={totals[k] >= 20} style={{ ...seg(featAbility === k), flex: 'none', padding: '7px 12px', opacity: totals[k] >= 20 ? 0.4 : 1 }}>
+                        <button key={k} onClick={() => setFeatAbility(k)} disabled={totals[k] >= 20} className={seg(featAbility === k, 'is-mini' + (totals[k] >= 20 ? ' is-dim' : ''))}>
                           {ABILITY_SHORT[k]}
                         </button>
                       ))}
@@ -472,9 +452,9 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
           {/* características ganhas */}
           {features.length > 0 && (
-            <div style={{ marginTop: 16 }}>
-              <div style={microLabel}>Você desbloqueia neste nível</div>
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            <div className="fv-evo-block">
+              <div className="fv-evo-micro">Você desbloqueia neste nível</div>
+              <div className="fv-evo-wrap">
                 {features.map((f) => (
                   <span key={f} className="fv-chip fv-chip-gold">{f}</span>
                 ))}
@@ -484,17 +464,16 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
           {/* validação + confirmar */}
           {errors.length > 0 && (
-            <div style={{ marginTop: 14, padding: '10px 13px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.danger, 0.45), background: hexA(t.danger, 0.08) }}>
+            <div className="fv-evo-errors">
               {errors.map((e) => (
-                <div key={e} style={{ fontSize: 12.5, color: t.danger, fontWeight: 600 }}>• {e}</div>
+                <div key={e}>• {e}</div>
               ))}
             </div>
           )}
           <button
             onClick={confirm}
             disabled={errors.length > 0 || pendingChoice}
-            className="fv-btn-gold"
-            style={{ marginTop: 16, width: '100%', padding: 14, fontSize: 15, opacity: errors.length > 0 || pendingChoice ? 0.45 : 1 }}
+            className={'fv-btn-gold fv-evo-confirm' + (errors.length > 0 || pendingChoice ? ' is-dim' : '')}
           >
             Confirmar Evolução para o Nível {newLevel}
           </button>
@@ -504,7 +483,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
       {atCap && (
         <Panel>
-          <div style={{ textAlign: 'center', padding: '14px 0', fontFamily: 'var(--font-display)', fontSize: 17, color: t.gold }}>
+          <div className="fv-evo-cap">
             Lenda consolidada — nível máximo {MAX_LEVEL} alcançado.
           </div>
         </Panel>
@@ -515,12 +494,12 @@ export function TabEvoluir({ char, derived }: TabProps) {
 
       <Panel>
         <SectionLabel>Linha do Tempo da Evolução</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <div className="fv-evo-timeline">
           {[...char.levelHistory].reverse().map((r) => (
             <TimelineEntry key={r.level} record={r} conMod={conMod} />
           ))}
           {char.levelHistory.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--muted)' }}>Sem registros ainda — evolua o personagem para começar a crônica.</div>
+            <div className="fv-evo-empty">Sem registros ainda — evolua o personagem para começar a crônica.</div>
           )}
         </div>
       </Panel>
@@ -528,14 +507,6 @@ export function TabEvoluir({ char, derived }: TabProps) {
     </div>
   );
 }
-
-const microLabel: React.CSSProperties = {
-  fontSize: 10.5,
-  letterSpacing: '.12em',
-  textTransform: 'uppercase',
-  color: 'var(--muted)',
-  marginBottom: 8,
-};
 
 /** Atalho para o painel de regras: diz de cara se a ficha está no 2014 puro. */
 function RulesLink({ char }: { char: Character }) {
@@ -553,7 +524,6 @@ function RulesLink({ char }: { char: Character }) {
 }
 
 function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: number }) {
-  const t = useTheme();
   const cls = getClass(record.classId);
   const sub = getSubclass(record.subclassId);
   const asiText =
@@ -566,56 +536,29 @@ function TimelineEntry({ record, conMod }: { record: LevelUpRecord; conMod: numb
   const methodLabel = record.hpMethod === 'media' ? 'média' : record.hpMethod === 'rolagem' ? 'rolagem' : 'manual';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 12,
-        padding: '11px 13px',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--line)',
-        borderLeft: '3px solid ' + t.gold,
-        background: 'var(--sunk)',
-      }}
-    >
-      <div
-        style={{
-          flex: 'none',
-          width: 40,
-          height: 40,
-          display: 'grid',
-          placeItems: 'center',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid ' + hexA(t.gold, 0.4),
-          background: hexA(t.gold, 0.08),
-          fontFamily: 'var(--font-num)',
-          fontWeight: 700,
-          fontSize: 16,
-          color: t.gold,
-        }}
-      >
-        {record.level}
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14.5, color: 'var(--ink)' }}>
+    <div className="fv-evo-entry">
+      <div className="fv-evo-entry-level">{record.level}</div>
+      <div className="fv-evo-min0">
+        <div className="fv-evo-entry-title">
           Nível {record.level} — {cls.label} {record.classLevel}
-          {record.synthetic && <span style={{ marginLeft: 8, fontSize: 9.5, letterSpacing: '.08em', color: 'var(--muted)', textTransform: 'uppercase' }}>migrado (média)</span>}
+          {record.synthetic && <span className="fv-evo-entry-tag">migrado (média)</span>}
         </div>
-        <div style={{ marginTop: 3, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
+        <div className="fv-evo-entry-hp">
           {hpLabel}: {record.hpValue} ({methodLabel}) {conMod >= 0 ? '+' : ''}{conMod} CON
         </div>
         {record.choices && Object.entries(record.choices).map(([key, ids]) => (
-          <div key={key} style={{ marginTop: 3, fontSize: 12, color: 'var(--acc)' }}>
+          <div key={key} className="fv-evo-entry-line is-acc">
             {ids.map((id) => optionLabel(key, id)).join(', ')}
           </div>
         ))}
         {sub && record.subclassId && (
-          <div style={{ marginTop: 3, fontSize: 12, color: t.gold }}>Subclasse escolhida: {sub.label}</div>
+          <div className="fv-evo-entry-line is-gold">Subclasse escolhida: {sub.label}</div>
         )}
-        {asiText && <div style={{ marginTop: 3, fontSize: 12, color: t.gold }}>{asiText}</div>}
+        {asiText && <div className="fv-evo-entry-line is-gold">{asiText}</div>}
         {record.features.length > 0 && (
-          <div style={{ marginTop: 6, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          <div className="fv-evo-entry-feats">
             {record.features.map((f) => (
-              <span key={f} className="fv-chip" style={{ fontSize: 10.5, padding: '3px 8px' }}>{f}</span>
+              <span key={f} className="fv-chip fv-evo-entry-chip">{f}</span>
             ))}
           </div>
         )}

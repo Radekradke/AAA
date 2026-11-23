@@ -1,0 +1,375 @@
+/* Aba Evoluir (etapa 3.2). Valores que estavam inline em TabEvoluir.tsx. */
+
+.fv-evo {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(13px, 1.5vw, 18px);
+}
+
+/* ---------- cabeçalho ---------- */
+.fv-evo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.fv-evo-head-id {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.fv-evo-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  line-height: 1;
+}
+.fv-evo-subtitle {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-evo-anchor {
+  scroll-margin-top: 90px;
+}
+.fv-evo-prof {
+  font-family: var(--font-num);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-evo-prof.is-up {
+  color: var(--color-metal);
+}
+
+/* ---------- plano do próximo nível ---------- */
+.fv-evo-plan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 14px;
+}
+.fv-evo-micro {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.fv-evo-col {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.fv-evo-row {
+  display: flex;
+  gap: 7px;
+}
+.fv-evo-wrap {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.fv-evo-block {
+  margin-top: var(--space-4);
+}
+.fv-evo-mt10 {
+  margin-top: 10px;
+}
+.fv-evo-min0 {
+  min-width: 0;
+}
+
+/* botão de opção: classe, PV, subclasse, ASI, talento */
+.fv-evo-seg {
+  cursor: pointer;
+  flex: 1;
+  min-height: 42px;
+  padding: var(--space-2) 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12.5px;
+  transition: 0.2s;
+}
+.fv-evo-seg.is-on {
+  border-color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 12%, transparent);
+  color: var(--color-metal);
+}
+.fv-evo-seg.is-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+.fv-evo-seg.is-card {
+  text-align: left;
+}
+.fv-evo-seg.is-sub {
+  min-height: 58px;
+}
+.fv-evo-seg.is-feat {
+  width: 100%;
+  min-height: 52px;
+}
+.fv-evo-seg.is-pill {
+  flex: none;
+  padding: var(--space-2) var(--space-4);
+}
+.fv-evo-seg.is-ability {
+  flex: none;
+  padding: var(--space-2) 13px;
+}
+.fv-evo-seg.is-mini {
+  flex: none;
+  padding: 7px var(--space-3);
+}
+.fv-evo-seg.is-dim {
+  opacity: 0.4;
+}
+.fv-evo-seg.is-blocked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.fv-evo-die {
+  font-family: var(--font-num);
+  font-size: var(--text-2xs);
+}
+.fv-evo-card-title {
+  font-size: 13.5px;
+  color: var(--color-text);
+}
+.fv-evo-seg.is-on .fv-evo-card-title,
+.fv-evo-seg.is-on .fv-evo-feat-name {
+  color: var(--color-metal);
+}
+.fv-evo-card-desc {
+  margin-top: 3px;
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* PV do nível */
+.fv-evo-roll {
+  margin-top: 9px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.fv-btn-gold.fv-evo-roll-btn {
+  padding: 10px var(--space-4);
+  font-size: var(--text-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.fv-evo-roll-value {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  color: var(--color-text-muted);
+}
+.fv-evo-roll-value.is-on {
+  color: var(--color-metal);
+}
+.fv-input.fv-evo-hp-input {
+  margin-top: 9px;
+  max-width: 140px;
+  text-align: center;
+  font-family: var(--font-num);
+}
+.fv-evo-gain {
+  margin-top: 9px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-evo-gain b {
+  color: var(--color-text);
+  font-family: var(--font-num);
+}
+
+.fv-evo-subs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 9px;
+}
+.fv-spell-warn.fv-evo-spells {
+  margin-top: var(--space-4);
+  border-color: var(--color-border-strong);
+}
+.fv-evo-spells b {
+  color: var(--color-accent);
+}
+
+/* talentos */
+.fv-evo-source {
+  margin-bottom: 10px;
+}
+.fv-evo-source-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 var(--space-2);
+}
+.fv-evo-source-name {
+  font-family: var(--font-num);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+.fv-evo-source-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-border), transparent);
+}
+.fv-evo-feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: var(--space-2);
+}
+.fv-evo-feat-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: baseline;
+}
+.fv-evo-feat-name {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+.fv-evo-req {
+  flex: none;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-evo-seg.is-blocked .fv-evo-req {
+  color: var(--color-danger);
+}
+.fv-evo-feat-desc {
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-evo-featabil {
+  margin-top: 9px;
+  align-items: center;
+}
+.fv-evo-featabil-label {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+/* validação e confirmar */
+.fv-evo-errors {
+  margin-top: 14px;
+  padding: 10px 13px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  font-size: 12.5px;
+  color: var(--color-danger);
+  font-weight: 600;
+}
+.fv-btn-gold.fv-evo-confirm {
+  margin-top: var(--space-4);
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+}
+.fv-evo-confirm.is-dim {
+  opacity: 0.45;
+}
+.fv-evo-cap {
+  text-align: center;
+  padding: 14px 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--color-metal);
+}
+
+/* ---------- linha do tempo ---------- */
+.fv-evo-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.fv-evo-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.fv-evo-entry {
+  display: flex;
+  gap: var(--space-3);
+  padding: 11px 13px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-metal);
+  background: var(--sunk);
+}
+.fv-evo-entry-level {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-metal) 40%, transparent);
+  background: color-mix(in srgb, var(--color-metal) 8%, transparent);
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--color-metal);
+}
+.fv-evo-entry-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--color-text);
+}
+.fv-evo-entry-tag {
+  margin-left: var(--space-2);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.fv-evo-entry-hp {
+  margin-top: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-evo-entry-line {
+  margin-top: 3px;
+  font-size: var(--text-xs);
+}
+.fv-evo-entry-line.is-acc {
+  color: var(--color-accent);
+}
+.fv-evo-entry-line.is-gold {
+  color: var(--color-metal);
+}
+.fv-evo-entry-feats {
+  margin-top: 6px;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.fv-chip.fv-evo-entry-chip {
+  font-size: 10.5px;
+  padding: 3px var(--space-2);
+}
