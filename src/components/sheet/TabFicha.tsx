@@ -3,7 +3,6 @@ import { useState } from 'react';
 import type { TabProps } from './tabProps';
 import { Panel } from '@/components/ui/Panel';
 import { useTilt } from '@/lib/useTilt';
-import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { useCharacterStore } from '@/store/characterStore';
@@ -23,6 +22,7 @@ import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
 import { useInk } from '@/lib/contrast';
 import { pressable } from '@/lib/pressable';
+import '@/styles/ficha.css';
 
 /**
  * Aba Ficha — identidade de HUD: os 6 atributos na mesma linha (desktop)
@@ -31,7 +31,6 @@ import { pressable } from '@/lib/pressable';
  * idiomas e sentidos numa área própria.
  */
 export function TabFicha({ char, derived }: TabProps) {
-  const t = useTheme();
   const ink = useInk();
   const tilt = useTilt();
   const { checkFor } = useDiceRoller();
@@ -44,10 +43,10 @@ export function TabFicha({ char, derived }: TabProps) {
   const canExpertiseTools = expertiseSlots(char) > 0;
 
   return (
-    <div className="animate-riseIn" style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(13px,1.5vw,18px)' }}>
+    <div className="animate-riseIn fv-ficha">
       {/* ===== faixa de atributos: 6 placas, número em d20 ===== */}
-      <Panel style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
-        <div className="fv-label" style={{ marginBottom: 12 }}>Atributos &amp; Resistências</div>
+      <Panel>
+        <div className="fv-label fv-ficha-mb12">Atributos &amp; Resistências</div>
         <div className="fv-ability-row">
           {derived.abilityList.map((a) => {
             const color = ABILITY_COLORS[a.key];
@@ -57,50 +56,30 @@ export function TabFicha({ char, derived }: TabProps) {
                   {...pressable(() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod))}
                   onMouseMove={tilt.onMouseMove}
                   onMouseLeave={tilt.onMouseLeave}
-                  style={{
-                    cursor: 'pointer',
-                    position: 'relative',
-                    background: `linear-gradient(180deg, ${hexA(color, 0.1)}, var(--sunk))`,
-                    border: '1px solid ' + hexA(color, 0.28),
-                    borderTop: `2px solid ${a.saveProf ? t.gold : hexA(color, 0.65)}`,
-                    clipPath: 'polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px)',
-                    padding: '11px 6px 9px',
-                    textAlign: 'center',
-                    transition: '.2s',
-                  }}
+                  className={'fv-ficha-ab' + (a.saveProf ? ' is-prof' : '')}
+                  style={{ '--ab': color } as React.CSSProperties}
                 >
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.14em', color: ink(color) }}>
+                  <div className="fv-ficha-ab-key" style={{ color: ink(color) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
                   {/* modificador dentro de um d20 na cor do atributo */}
-                  <div style={{ position: 'relative', width: 64, height: 62, margin: '4px auto 0' }}>
-                    <svg viewBox="0 0 64 62" width="64" height="62" aria-hidden style={{ position: 'absolute', inset: 0, filter: `drop-shadow(0 0 10px ${hexA(color, 0.35)})` }}>
+                  <div className="fv-ficha-d20">
+                    <svg viewBox="0 0 64 62" width="64" height="62" aria-hidden>
                       <polygon points="32,2 58,17 58,45 32,60 6,45 6,17" fill={hexA(color, 0.12)} stroke={color} strokeWidth="1.4" />
                       <polygon points="32,10 50,41 14,41" fill="none" stroke={hexA(color, 0.5)} strokeWidth="1" />
                       <path d="M32 2 L32 10 M58 17 L50 41 M6 17 L14 41 M32 60 L50 41 M32 60 L14 41 M58 45 L50 41 M6 45 L14 41" stroke={hexA(color, 0.4)} strokeWidth="1" />
                     </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 24, color: 'var(--ink)', textShadow: `0 0 14px ${hexA(color, 0.7)}` }}>
+                    <div className="fv-ficha-d20-mod">
                       {modStr(a.mod)}
                     </div>
                   </div>
-                  <div style={{ marginTop: 3, fontFamily: 'var(--font-num)', fontSize: 11.5, color: 'var(--muted)' }}>
-                    valor <b style={{ color: 'var(--ink)' }}>{a.total}</b>
+                  <div className="fv-ficha-ab-value">
+                    valor <b>{a.total}</b>
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
                     <div
                       {...pressable((e) => { e.stopPropagation(); checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }, `Salvaguarda de ${ABILITY_LABELS[a.key]}`)}
-                      style={{
-                        marginTop: 7,
-                        fontSize: 10,
-                        fontFamily: 'var(--font-num)',
-                        letterSpacing: '.05em',
-                        padding: '4px 0',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        color: a.saveProf ? 'var(--on-gold, #140d04)' : 'var(--muted)',
-                        background: a.saveProf ? t.gold : 'rgba(255,255,255,.05)',
-                        border: '1px solid ' + (a.saveProf ? t.gold : t.line),
-                      }}
+                      className="fv-ficha-save"
                     >
                       RESIST {modStr(a.save)}
                     </div>
@@ -110,7 +89,7 @@ export function TabFicha({ char, derived }: TabProps) {
             );
           })}
         </div>
-        <div style={{ marginTop: 10, fontSize: 11, color: 'var(--muted)', textAlign: 'center' }}>
+        <div className="fv-ficha-hint">
           Clique na placa para rolar 1d20 · barra dourada = resistência proficiente
         </div>
       </Panel>
@@ -118,58 +97,43 @@ export function TabFicha({ char, derived }: TabProps) {
       {/* PC: perícias e características à esquerda, proficiências à direita (sem buraco sob as perícias) */}
       <div className="fv-ficha-grid">
         {/* ===== perícias: treinadas à vista + modal com as 18 ===== */}
-        <Panel className="fv-ficha-skills" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+        <Panel className="fv-ficha-skills">
+          <div className="fv-ficha-skills-head">
             <div className="fv-label">Perícias</div>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
-              <span style={{ cursor: 'help', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
-                Percepção Passiva <b style={{ color: t.gold }}>{derived.passivePerception}</b>
+              <span className="fv-ficha-passive">
+                Percepção Passiva <b>{derived.passivePerception}</b>
               </span>
             </LoreTooltip>
           </div>
-          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          <div className="fv-ficha-wrap7">
             {trained.map((sk) => (
               <LoreTooltip key={sk.key} info={skillLore(sk.key, sk.bonus, true, sk.expertise)}>
                 <button
                   onClick={() => checkFor(char, 'check', sk.ability, sk.label, sk.bonus, { skill: sk.key, proficient: sk.proficient, speed: derived.speed })}
-                  style={{
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 7,
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    minHeight: 34,
-                    padding: '6px 12px',
-                    borderRadius: 999,
-                    border: '1px solid ' + (sk.expertise ? t.gold : hexA(t.gold, 0.4)),
-                    background: sk.expertise ? hexA(t.gold, 0.14) : hexA(t.gold, 0.06),
-                    color: 'var(--ink)',
-                    transition: '.2s',
-                  }}
+                  className={'fv-ficha-skill' + (sk.expertise ? ' is-expert' : '')}
                 >
-                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 9.5, color: ink(ABILITY_COLORS[sk.ability]) }}>{ABILITY_SHORT[sk.ability]}</span>
+                  <span className="fv-ficha-skill-ab" style={{ color: ink(ABILITY_COLORS[sk.ability]) }}>{ABILITY_SHORT[sk.ability]}</span>
                   {sk.label}
-                  <b style={{ color: t.gold, fontFamily: 'var(--font-num)' }}>{modStr(sk.bonus)}</b>
-                  {sk.expertise && <span style={{ fontSize: 9, color: t.gold }}>★×2</span>}
+                  <b className="fv-ficha-skill-bonus">{modStr(sk.bonus)}</b>
+                  {sk.expertise && <span className="fv-ficha-skill-x2">★×2</span>}
                   {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
               </LoreTooltip>
             ))}
-            {trained.length === 0 && <span style={{ fontSize: 13, color: 'var(--muted)' }}>Nenhuma perícia treinada ainda.</span>}
+            {trained.length === 0 && <span className="fv-ficha-empty">Nenhuma perícia treinada ainda.</span>}
           </div>
           <button
             onClick={() => setSkillsOpen(true)}
-            className="fv-btn-ghost"
-            style={{ marginTop: 13, width: '100%', minHeight: 40, fontSize: 13 }}
+            className="fv-btn-ghost fv-ficha-allskills"
           >
             Ver todas as 18 perícias ›
           </button>
         </Panel>
 
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
-        <Panel className="fv-ficha-profs" style={{ padding: 'clamp(14px,1.6vw,18px)' }}>
-          <div className="fv-label" style={{ marginBottom: 11 }}>Proficiências &amp; Ferramentas</div>
+        <Panel className="fv-ficha-profs">
+          <div className="fv-label fv-ficha-mb11">Proficiências &amp; Ferramentas</div>
           {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
           <dl className="fv-profs">
             <div><dt>Armaduras</dt><dd>{derived.weaponArmorProfs.armor}</dd></div>
@@ -177,69 +141,67 @@ export function TabFicha({ char, derived }: TabProps) {
           </dl>
           {/* Concedido pela subclasse: proficiências e crítico ampliado */}
           {(derived.grantedProficiencies.length > 0 || derived.critMin < 20) && (
-            <div style={{ marginBottom: 11, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.35), background: 'var(--lift)' }}>
+            <div className="fv-ficha-granted">
               {derived.subclassLabel && (
-                <div style={{ fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--acc)', marginBottom: 6 }}>{derived.subclassLabel}</div>
+                <div className="fv-ficha-granted-from">{derived.subclassLabel}</div>
               )}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="fv-ficha-wrap6">
                 {derived.grantedProficiencies.map((pf) => (
-                  <span key={pf} className="fv-chip" style={{ fontSize: 11, color: 'var(--ink)' }}>{pf}</span>
+                  <span key={pf} className="fv-chip fv-ficha-chip is-small">{pf}</span>
                 ))}
                 {derived.critMin < 20 && (
-                  <span className="fv-chip fv-chip-gold" style={{ fontSize: 11 }}>Crítico {derived.critMin}–20</span>
+                  <span className="fv-chip fv-chip-gold fv-ficha-chip-sm">Crítico {derived.critMin}–20</span>
                 )}
               </div>
             </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div className="fv-ficha-tools">
             {(char.toolProfs ?? []).map((tool) => {
               const chk = calculateToolCheck(char, tool);
               return (
-                <div key={tool.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.07) : 'var(--sunk)' }}>
+                <div key={tool.id} className={'fv-ficha-tool' + (tool.expertise ? ' is-expert' : '')}>
                   <LoreTooltip info={passiveLore(tool.label, `${ABILITY_SHORT[chk.ability]} ${modStr(chk.total)}${tool.expertise ? ' · Expertise' : ''}`, `1d20 + ${ABILITY_SHORT[chk.ability]} (${modStr(chk.abilityMod)}) + proficiência (${modStr(chk.proficiency)})${tool.expertise ? ` + expertise (${modStr(chk.expertiseBonus)})` : ''}. Ferramenta não soma perícia — é independente de Prestidigitação.${tool.source ? ` Origem: ${tool.source}.` : ''}`, ['Ferramenta', 'Ver cálculo'])}>
-                    <span style={{ cursor: 'help', flex: 1, minWidth: 120, fontSize: 13, color: 'var(--ink)' }}>
+                    <span className="fv-ficha-tool-name">
                       {tool.label}
-                      {tool.source && <span style={{ marginLeft: 7, fontSize: 10, color: 'var(--muted)' }}>({tool.source})</span>}
+                      {tool.source && <span className="fv-ficha-tool-src">({tool.source})</span>}
                     </span>
                   </LoreTooltip>
                   {/* o mestre pode pedir outro atributo: troque na hora */}
                   <select
-                    className="fv-input"
+                    className="fv-input fv-ficha-tool-ab"
                     value={tool.ability ?? chk.ability}
                     onChange={(e) => store.setToolAbility(char.id, tool.id, e.target.value as AbilityKey)}
                     aria-label={`Atributo de ${tool.label}`}
-                    style={{ width: 74, minHeight: 34, padding: '4px 26px 4px 8px', fontSize: 12, fontFamily: 'var(--font-num)' }}
                   >
                     {ABILITY_KEYS.map((k) => <option key={k} value={k}>{ABILITY_SHORT[k]}</option>)}
                   </select>
                   {canExpertiseTools && tool.id === 'thieves-tools' && (
                     <button
                       onClick={() => store.toggleToolExpertise(char.id, tool.id)}
-                      style={{ cursor: 'pointer', fontSize: 10, fontWeight: 700, minHeight: 34, padding: '4px 9px', borderRadius: 999, border: '1px solid ' + (tool.expertise ? t.gold : t.line), background: tool.expertise ? hexA(t.gold, 0.16) : 'transparent', color: tool.expertise ? t.gold : 'var(--muted)' }}
+                      className={'fv-ficha-tool-x' + (tool.expertise ? ' is-on' : '')}
                     >
                       {tool.expertise ? '★ Expertise' : 'Expertise'}
                     </button>
                   )}
                   <button
                     onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total, { proficient: true })}
-                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + hexA(t.gold, 0.5), background: hexA(t.gold, 0.08), color: t.gold, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
+                    className="fv-ficha-tool-roll"
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
-                  <button className="fv-chip-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+                  <button className="fv-chip-remove fv-ficha-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`}>✕</button>
                 </div>
               );
             })}
             {(char.toolProfs ?? []).length === 0 && (
-              <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>Sem proficiências com ferramentas ainda.</div>
+              <div className="fv-ficha-empty is-sm">Sem proficiências com ferramentas ainda.</div>
             )}
-            <div style={{ display: 'flex', gap: 7 }}>
+            <div className="fv-ficha-add">
               <select
-                className="fv-input"
+                className="fv-input fv-ficha-add-select"
                 value={toolPick}
                 onChange={(e) => setToolPick(e.target.value)}
                 aria-label="Adicionar proficiência com ferramenta"
-                style={{ flex: 1, minHeight: 40, padding: '8px 34px 8px 12px', fontSize: 13 }}
               >
                 <option value="">Adicionar ferramenta…</option>
                 {(['kit', 'artesao', 'instrumento', 'jogo', 'veiculo'] as const).map((g) => (
@@ -256,44 +218,41 @@ export function TabFicha({ char, derived }: TabProps) {
                   store.addToolProf(char.id, { id: toolPick, label: toolLabel(toolPick), source: 'manual' });
                   setToolPick('');
                 }}
-                className="fv-btn-gold"
+                className="fv-btn-gold fv-ficha-add-btn"
                 disabled={!toolPick}
-                style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: toolPick ? 1 : 0.45, cursor: toolPick ? 'pointer' : 'default' }}
               >
                 Adicionar
               </button>
             </div>
           </div>
 
-          <div className="fv-label" style={{ margin: '15px 0 9px' }}>Idiomas</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="fv-label fv-ficha-section">Idiomas</div>
+          <div className="fv-ficha-wrap6">
             {derived.languages.map((lang) => {
               const extra = (char.extraLanguages ?? []).includes(lang);
               return (
-                <span key={lang} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
+                <span key={lang} className="fv-chip fv-ficha-chip">
                   {lang}
                   {extra && (
-                    <button className="fv-chip-remove" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, padding: 0 }}>✕</button>
+                    <button className="fv-chip-remove fv-ficha-remove is-sm" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`}>✕</button>
                   )}
                 </span>
               );
             })}
           </div>
-          <div style={{ display: 'flex', gap: 7, marginTop: 9 }}>
+          <div className="fv-ficha-add fv-ficha-mt9">
             <input
-              className="fv-input"
+              className="fv-input fv-ficha-add-input"
               placeholder="Novo idioma (Élfico, Anão…)"
               list="fv-lang-options"
               value={langDraft}
               onChange={(e) => setLangDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { store.addLanguage(char.id, langDraft); setLangDraft(''); } }}
-              style={{ flex: 1, minHeight: 40, padding: '8px 12px', fontSize: 13 }}
             />
             <button
               onClick={() => { store.addLanguage(char.id, langDraft); setLangDraft(''); }}
-              className="fv-btn-gold"
+              className="fv-btn-gold fv-ficha-add-btn"
               disabled={!langDraft.trim()}
-              style={{ minHeight: 40, padding: '0 16px', fontSize: 12.5, opacity: langDraft.trim() ? 1 : 0.45, cursor: langDraft.trim() ? 'pointer' : 'default' }}
             >
               Adicionar
             </button>
@@ -303,16 +262,16 @@ export function TabFicha({ char, derived }: TabProps) {
             {LANGUAGE_OPTIONS.map((o) => <option key={o.id} value={o.label} />)}
           </datalist>
 
-          <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos Passivos</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="fv-label fv-ficha-section">Sentidos Passivos</div>
+          <div className="fv-ficha-wrap6">
             {([
               { label: 'Percepção', value: derived.passivePerception, desc: 'O DM usa contra Furtividade e para notar perigos sem você rolar.' },
               { label: 'Investigação', value: derived.passiveInvestigation, desc: 'Percepção lógica passiva — notar pistas e detalhes sem rolar.' },
               { label: 'Intuição', value: derived.passiveInsight, desc: 'Leitura passiva de intenções e mentiras.' },
             ] as const).map((pas) => (
               <LoreTooltip key={pas.label} info={passiveLore(`${pas.label} Passiva`, String(pas.value), `10 + bônus de ${pas.label}. ${pas.desc}`, ['Passivo'])}>
-                <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)', gap: 6 }}>
-                  {pas.label} <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{pas.value}</b>
+                <span className="fv-chip fv-ficha-chip is-help">
+                  {pas.label} <b className="fv-ficha-gold-num">{pas.value}</b>
                 </span>
               </LoreTooltip>
             ))}
@@ -320,21 +279,21 @@ export function TabFicha({ char, derived }: TabProps) {
 
           {(derived.darkvision || derived.blindsense || derived.resistances.length > 0) && (
             <>
-              <div className="fv-label" style={{ margin: '15px 0 9px' }}>Sentidos &amp; Resistências</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="fv-label fv-ficha-section">Sentidos &amp; Resistências</div>
+              <div className="fv-ficha-wrap6">
                 {derived.darkvision && (
                   <LoreTooltip info={passiveLore('Visão no Escuro', `${derived.darkvision.range} m`, `Enxerga na penumbra como se fosse luz e no escuro como penumbra (tons de cinza). Origem: ${derived.darkvision.source}.`, ['Sentido'])}>
-                    <span className="fv-chip fv-chip-gold" style={{ cursor: 'help' }}>Visão no Escuro {derived.darkvision.range} m</span>
+                    <span className="fv-chip fv-chip-gold fv-ficha-help">Visão no Escuro {derived.darkvision.range} m</span>
                   </LoreTooltip>
                 )}
                 {derived.blindsense && (
                   <LoreTooltip info={passiveLore('Sentido Cego', `${derived.blindsense} m`, 'Se puder ouvir, você sabe onde está qualquer criatura escondida ou invisível a até 3 m (Ladino 14º).', ['Sentido'])}>
-                    <span className="fv-chip fv-chip-gold" style={{ cursor: 'help' }}>Sentido Cego {derived.blindsense} m</span>
+                    <span className="fv-chip fv-chip-gold fv-ficha-help">Sentido Cego {derived.blindsense} m</span>
                   </LoreTooltip>
                 )}
                 {derived.resistances.map((r) => (
                   <LoreTooltip key={r.value} info={passiveLore(`Resistência: ${r.value}`, r.source, 'Dano desse tipo é reduzido à metade.', ['Resistência'])}>
-                    <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>{r.value}</span>
+                    <span className="fv-chip fv-ficha-chip is-help">{r.value}</span>
                   </LoreTooltip>
                 ))}
               </div>
@@ -363,19 +322,19 @@ function RaceTraits({ char }: { char: TabProps['char'] }) {
   if (!names.length && !details.length) return null;
   return (
     <>
-      <div className="fv-label" style={{ margin: '15px 0 9px' }}>
+      <div className="fv-label fv-ficha-section">
         Traços de {race.label}
         {race.homebrew && <span className="fv-hb-badge is-small" title={race.author ? `Raça homebrew criada por ${race.author}` : 'Raça homebrew'}>homebrew</span>}
       </div>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <div className="fv-ficha-wrap6">
         {names.map((n) => {
           const d = details.find((t) => t.name === n)?.desc || raceTraitInfo(n);
           return d ? (
             <LoreTooltip key={n} info={passiveLore(n, race.label, d, [race.homebrew ? 'Homebrew' : 'Traço racial'])}>
-              <span className="fv-chip" style={{ cursor: 'help', color: 'var(--ink)' }}>{n}</span>
+              <span className="fv-chip fv-ficha-chip is-help">{n}</span>
             </LoreTooltip>
           ) : (
-            <span key={n} className="fv-chip" style={{ color: 'var(--ink)' }}>{n}</span>
+            <span key={n} className="fv-chip fv-ficha-chip">{n}</span>
           );
         })}
       </div>

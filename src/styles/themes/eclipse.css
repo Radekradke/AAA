@@ -376,7 +376,7 @@
   border-color: var(--ecl-paper);
   box-shadow: none;
 }
-[data-theme='eclipse'] .fv-ability-row [style*='clip-path'] {
+[data-theme='eclipse'] .fv-ability-row .fv-ficha-ab {
   background: var(--panel) !important;
   border-color: var(--line) !important;
   border-top-color: var(--line-strong) !important;
