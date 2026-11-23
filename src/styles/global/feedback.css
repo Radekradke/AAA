@@ -1276,7 +1276,8 @@ select optgroup {
   border: 1px solid var(--line);
   background: var(--sunk);
 }
-.fv-rest-dice b {
+.fv-rest-dice :is(b, .fv-rest-dice-title) {
+  margin: 0;
   display: block;
   font: 700 15px var(--font-display);
   color: var(--ink);

@@ -21,7 +21,6 @@ import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
 import { useInk } from '@/lib/contrast';
-import { pressable } from '@/lib/pressable';
 import '@/styles/ficha.css';
 
 /**
@@ -46,19 +45,25 @@ export function TabFicha({ char, derived }: TabProps) {
     <div className="animate-riseIn fv-ficha">
       {/* ===== faixa de atributos: 6 placas, número em d20 ===== */}
       <Panel>
-        <div className="fv-label fv-ficha-mb12">Atributos &amp; Resistências</div>
+        <h2 className="fv-label fv-ficha-mb12">Atributos &amp; Resistências</h2>
         <div className="fv-ability-row">
           {derived.abilityList.map((a) => {
             const color = ABILITY_COLORS[a.key];
             return (
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <div
-                  {...pressable(() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod))}
                   onMouseMove={tilt.onMouseMove}
                   onMouseLeave={tilt.onMouseLeave}
                   className={'fv-ficha-ab' + (a.saveProf ? ' is-prof' : '')}
                   style={{ '--ab': color } as React.CSSProperties}
                 >
+                  {/* o teste é um botão que cobre a placa inteira (clicar em qualquer ponto rola); a salvaguarda fica por cima */}
+                  <button
+                    type="button"
+                    className="fv-ficha-ab-roll"
+                    aria-label={`Teste de ${ABILITY_LABELS[a.key]} ${modStr(a.mod)}, valor ${a.total}`}
+                    onClick={() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
+                  />
                   <div className="fv-ficha-ab-key" style={{ color: ink(color) }}>
                     {ABILITY_SHORT[a.key]}
                   </div>
@@ -77,12 +82,14 @@ export function TabFicha({ char, derived }: TabProps) {
                     valor <b>{a.total}</b>
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
-                    <div
-                      {...pressable((e) => { e.stopPropagation(); checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }, `Salvaguarda de ${ABILITY_LABELS[a.key]}`)}
+                    <button
+                      type="button"
+                      onClick={() => checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save)}
+                      aria-label={`Salvaguarda de ${ABILITY_LABELS[a.key]} ${modStr(a.save)}${a.saveProf ? ', proficiente' : ''}`}
                       className="fv-ficha-save"
                     >
                       RESIST {modStr(a.save)}
-                    </div>
+                    </button>
                   </LoreTooltip>
                 </div>
               </LoreTooltip>
@@ -99,7 +106,7 @@ export function TabFicha({ char, derived }: TabProps) {
         {/* ===== perícias: treinadas à vista + modal com as 18 ===== */}
         <Panel className="fv-ficha-skills">
           <div className="fv-ficha-skills-head">
-            <div className="fv-label">Perícias</div>
+            <h2 className="fv-label">Perícias</h2>
             <LoreTooltip info={calcLore('Percepção Passiva', derived.breakdowns.passivePerception)}>
               <span className="fv-ficha-passive">
                 Percepção Passiva <b>{derived.passivePerception}</b>
@@ -133,7 +140,7 @@ export function TabFicha({ char, derived }: TabProps) {
 
         {/* ===== proficiências, ferramentas, idiomas e sentidos ===== */}
         <Panel className="fv-ficha-profs">
-          <div className="fv-label fv-ficha-mb11">Proficiências &amp; Ferramentas</div>
+          <h2 className="fv-label fv-ficha-mb11">Proficiências &amp; Ferramentas</h2>
           {/* armaduras e armas que o herói sabe usar (classe, raça, subclasse, talentos) */}
           <dl className="fv-profs">
             <div><dt>Armaduras</dt><dd>{derived.weaponArmorProfs.armor}</dd></div>
@@ -179,6 +186,7 @@ export function TabFicha({ char, derived }: TabProps) {
                     <button
                       onClick={() => store.toggleToolExpertise(char.id, tool.id)}
                       className={'fv-ficha-tool-x' + (tool.expertise ? ' is-on' : '')}
+                      aria-pressed={!!tool.expertise}
                     >
                       {tool.expertise ? '★ Expertise' : 'Expertise'}
                     </button>
@@ -186,6 +194,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   <button
                     onClick={() => checkFor(char, 'check', chk.ability, `${tool.label} (${ABILITY_SHORT[chk.ability]})`, chk.total, { proficient: true })}
                     className="fv-ficha-tool-roll"
+                    aria-label={`Rolar ${tool.label} ${modStr(chk.total)}`}
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
@@ -221,12 +230,12 @@ export function TabFicha({ char, derived }: TabProps) {
                 className="fv-btn-gold fv-ficha-add-btn"
                 disabled={!toolPick}
               >
-                Adicionar
+                Adicionar<span className="fv-sr-only"> ferramenta</span>
               </button>
             </div>
           </div>
 
-          <div className="fv-label fv-ficha-section">Idiomas</div>
+          <h3 className="fv-label fv-ficha-section">Idiomas</h3>
           <div className="fv-ficha-wrap6">
             {derived.languages.map((lang) => {
               const extra = (char.extraLanguages ?? []).includes(lang);
@@ -254,7 +263,7 @@ export function TabFicha({ char, derived }: TabProps) {
               className="fv-btn-gold fv-ficha-add-btn"
               disabled={!langDraft.trim()}
             >
-              Adicionar
+              Adicionar<span className="fv-sr-only"> idioma</span>
             </button>
           </div>
 
@@ -262,7 +271,7 @@ export function TabFicha({ char, derived }: TabProps) {
             {LANGUAGE_OPTIONS.map((o) => <option key={o.id} value={o.label} />)}
           </datalist>
 
-          <div className="fv-label fv-ficha-section">Sentidos Passivos</div>
+          <h3 className="fv-label fv-ficha-section">Sentidos Passivos</h3>
           <div className="fv-ficha-wrap6">
             {([
               { label: 'Percepção', value: derived.passivePerception, desc: 'O DM usa contra Furtividade e para notar perigos sem você rolar.' },
@@ -279,7 +288,7 @@ export function TabFicha({ char, derived }: TabProps) {
 
           {(derived.darkvision || derived.blindsense || derived.resistances.length > 0) && (
             <>
-              <div className="fv-label fv-ficha-section">Sentidos &amp; Resistências</div>
+              <h3 className="fv-label fv-ficha-section">Sentidos &amp; Resistências</h3>
               <div className="fv-ficha-wrap6">
                 {derived.darkvision && (
                   <LoreTooltip info={passiveLore('Visão no Escuro', `${derived.darkvision.range} m`, `Enxerga na penumbra como se fosse luz e no escuro como penumbra (tons de cinza). Origem: ${derived.darkvision.source}.`, ['Sentido'])}>
@@ -322,10 +331,10 @@ function RaceTraits({ char }: { char: TabProps['char'] }) {
   if (!names.length && !details.length) return null;
   return (
     <>
-      <div className="fv-label fv-ficha-section">
+      <h3 className="fv-label fv-ficha-section">
         Traços de {race.label}
         {race.homebrew && <span className="fv-hb-badge is-small" title={race.author ? `Raça homebrew criada por ${race.author}` : 'Raça homebrew'}>homebrew</span>}
-      </div>
+      </h3>
       <div className="fv-ficha-wrap6">
         {names.map((n) => {
           const d = details.find((t) => t.name === n)?.desc || raceTraitInfo(n);

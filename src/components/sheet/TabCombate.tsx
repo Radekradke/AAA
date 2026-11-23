@@ -150,9 +150,13 @@ export function TabCombate({ char, derived }: TabProps) {
       <Panel full>
         <div className="fv-combat-hp-head">
           <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
-            <div className="fv-label fv-combat-help">Pontos de Vida</div>
+            <h2 className="fv-label fv-combat-help">Pontos de Vida</h2>
           </LoreTooltip>
-          <div key={hpFx.pulse?.id} className={'fv-hp-num fv-combat-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
+          <p className="fv-sr-only" aria-live="polite">
+            Pontos de vida: {char.hpCurrent} de {hpMax}
+            {char.combat.hpTemp > 0 ? `, mais ${char.combat.hpTemp} temporários` : ''}
+          </p>
+          <div aria-hidden key={hpFx.pulse?.id} className={'fv-hp-num fv-combat-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
             <HpPops pops={hpFx.pops} />
             {char.hpCurrent}
             <span className="fv-combat-hp-max"> / {hpMax}</span>
@@ -166,21 +170,22 @@ export function TabCombate({ char, derived }: TabProps) {
           />
           {/* entalhes de HUD a cada 10% */}
           <div aria-hidden className="fv-hp-notches" />
-          <div className="fv-combat-hpbar-over">
+          <div className="fv-combat-hpbar-over" aria-hidden>
             <span className="fv-hp-bar-label">{pct}%</span>
           </div>
         </div>
         <div className="fv-combat-hp-actions">
-          <HpBtn label="−5 Dano" color="var(--danger)" strong onClick={() => dealDamage(5)} />
-          <HpBtn label="−1" color="var(--danger)" onClick={() => dealDamage(1)} />
-          <HpBtn label="+1" color="#3FC56B" onClick={() => store.heal(char.id, 1)} />
-          <HpBtn label="+5 Cura" color="#3FC56B" strong onClick={() => store.heal(char.id, 5)} />
+          <HpBtn label="−5 Dano" name="Sofrer 5 de dano" color="var(--danger)" strong onClick={() => dealDamage(5)} />
+          <HpBtn label="−1" name="Sofrer 1 de dano" color="var(--danger)" onClick={() => dealDamage(1)} />
+          <HpBtn label="+1" name="Curar 1 PV" color="#3FC56B" onClick={() => store.heal(char.id, 1)} />
+          <HpBtn label="+5 Cura" name="Curar 5 PV" color="#3FC56B" strong onClick={() => store.heal(char.id, 5)} />
           <div className="fv-combat-temp">
             PV Temp.
             <button
               onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}
               onContextMenu={(e) => { e.preventDefault(); store.setTempHp(char.id, 0); }}
               title="Clique: +5 · clique direito: zerar"
+              aria-label={`PV temporários: ${char.combat.hpTemp}. Ganhar mais 5`}
               className="fv-combat-temp-btn"
             >
               {char.combat.hpTemp}
@@ -302,7 +307,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
       {/* Ataques */}
       <Panel>
-        <div className="fv-label fv-combat-mb6">Ataques</div>
+        <h2 className="fv-label fv-combat-mb6">Ataques</h2>
         <ExtraAttackNote char={char} />
         {derived.attacks.length === 0 && (
           <EmptyState
@@ -335,7 +340,7 @@ export function TabCombate({ char, derived }: TabProps) {
       <Panel>
         <InitiativeButton char={char} derived={derived} />
         <div className="fv-combat-turn-head">
-          <div className="fv-label">Economia de Turno</div>
+          <h2 className="fv-label">Economia de Turno</h2>
           <button onClick={() => store.resetTurn(char.id)} className="fv-combat-link">
             <span aria-hidden>↺ </span>Novo turno
           </button>
@@ -359,21 +364,21 @@ export function TabCombate({ char, derived }: TabProps) {
         </div>
         <div className="fv-combat-move">
           <div>
-            <div className="fv-combat-title">Movimento</div>
+            <h3 className="fv-combat-title">Movimento</h3>
             <div className="fv-combat-sub">
               {moveLeft} m de {moveMax.toString().replace('.', ',')} m{char.combat.turn.dash ? ' (Disparada)' : ''}
             </div>
           </div>
           <div className="fv-combat-row6">
-            <button onClick={() => store.adjustMove(char.id, -1.5)} className="fv-combat-move-btn">−1,5</button>
-            <button onClick={() => store.adjustMove(char.id, 1.5)} className="fv-combat-move-btn is-acc">+1,5</button>
+            <button type="button" onClick={() => store.adjustMove(char.id, -1.5)} className="fv-combat-move-btn" aria-label="Devolver 1,5 m de movimento">−1,5</button>
+            <button type="button" onClick={() => store.adjustMove(char.id, 1.5)} className="fv-combat-move-btn is-acc" aria-label="Andar 1,5 m">+1,5</button>
           </div>
         </div>
       </Panel>
 
       {/* Recursos */}
       <Panel>
-        <div className="fv-label fv-combat-mb13">Recursos de Combate</div>
+        <h2 className="fv-label fv-combat-mb13">Recursos de Combate</h2>
 
         {characterResources(char).map((res) => {
           const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
@@ -390,6 +395,7 @@ export function TabCombate({ char, derived }: TabProps) {
                 <button
                   disabled={res.unlimited}
                   onClick={() => store.setResource(char.id, res.id, left > 0 ? left - 1 : res.max)}
+                  aria-label={res.unlimited ? `${res.label}: ilimitado` : `${res.label}: ${left} de ${res.max}. ${left > 0 ? 'Usar um' : 'Recarregar'}`}
                   className={'fv-combat-res-btn' + (res.unlimited || left > 0 ? ' is-on' : '') + (res.unlimited ? ' is-unlimited' : '')}
                 >
                   {res.unlimited ? '∞' : `${left} / ${res.max}`}
@@ -402,7 +408,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Dados de Vida */}
         <div className="fv-combat-res">
           <div>
-            <div className="fv-combat-title">Dados de Vida</div>
+            <h3 className="fv-combat-title">Dados de Vida</h3>
             <div className="fv-combat-sub">{derived.hitDiceMax}d{derived.hitDie} · gaste no descanso</div>
           </div>
           <div className="fv-combat-row6">
@@ -423,7 +429,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Resgate da Morte */}
         <div className="fv-combat-block">
-          <div className="fv-combat-title fv-combat-mb9">Resgate da Morte</div>
+          <h3 className="fv-combat-title fv-combat-mb9">Resgate da Morte</h3>
           <div className="fv-combat-death">
             <DeathRow label="Sucesso" color="#3FC56B" value={char.combat.deathSaves.success} onClick={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathRow label="Falha" color={t.danger} value={char.combat.deathSaves.fail} onClick={(n) => store.setDeathSave(char.id, 'fail', n)} />
@@ -433,7 +439,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {/* Exaustão (0–6, PHB 2014) */}
         <div className="fv-combat-block is-sep">
           <div className="fv-combat-exh-head">
-            <div className="fv-combat-title">Exaustão</div>
+            <h3 className="fv-combat-title">Exaustão</h3>
             <span className={'fv-combat-exh-effect' + (exhaustion >= 4 ? ' is-danger' : '')}>{EXHAUSTION_EFFECT[exhaustion]}</span>
           </div>
           <div className="fv-combat-exh">
@@ -459,10 +465,13 @@ export function TabCombate({ char, derived }: TabProps) {
   );
 }
 
-function HpBtn({ label, color, strong, onClick }: { label: string; color: string; strong?: boolean; onClick: () => void }) {
+/** `name`: o que o leitor de tela diz ("Sofrer 1 de dano"), quando o texto curto ("−1") não basta. */
+function HpBtn({ label, name, color, strong, onClick }: { label: string; name?: string; color: string; strong?: boolean; onClick: () => void }) {
   const ink = useInk();
   return (
     <button
+      type="button"
+      aria-label={name}
       onClick={onClick}
       className={'fv-combat-hp-btn' + (strong ? ' is-strong' : '')}
       style={{ color: ink(color), border: '1px solid ' + (strong ? color : hexA(color, 0.4)), background: strong ? hexA(color, 0.1) : 'transparent' }}
