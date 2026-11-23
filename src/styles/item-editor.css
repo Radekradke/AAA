@@ -1,6 +1,6 @@
 /* Forja / editor de item (etapa 3.4). Valores que estavam inline em
    ItemEditorModal.tsx. Os estilos da arte, do "como se usa" e das
-   resistências continuam em globals.css (.fv-forge-*). */
+   resistências continuam em global/feedback.css (.fv-forge-*). */
 
 .fv-forge-label {
   display: block;

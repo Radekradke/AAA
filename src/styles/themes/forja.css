@@ -141,7 +141,7 @@
   transform: none;
   background: linear-gradient(180deg, #ffe9b8, #ffb24a 50%, var(--acc));
 }
-[data-theme='brasa'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-topbar-pill, .fv-pill) {
+[data-theme='brasa'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-pill) {
   border-radius: 0 !important;
   clip-path: var(--chamfer-sm);
   font-family: var(--font-stamp);
@@ -162,20 +162,6 @@
 }
 
 /* marca: porca sextavada */
-[data-theme='brasa'] .fv-topbar-logo {
-  transform: none;
-  border: 0;
-  border-radius: 0;
-  clip-path: var(--hex);
-  width: 34px;
-  background: linear-gradient(180deg, var(--goldB), var(--gold));
-  box-shadow: none;
-}
-[data-theme='brasa'] .fv-topbar-logo span {
-  transform: none;
-  color: var(--on-gold);
-  font-weight: 800;
-}
 
 /* ---------- menu principal: chapas pesadas com rebites ---------- */
 [data-theme='brasa'] .fv-menu-title {
@@ -439,7 +425,7 @@
 }
 
 /* o recorte (chanfro/hexágono) cortaria o anel de foco de fora: desenha por dentro */
-[data-theme='brasa'] :is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-topbar-pill, .fv-pill, .fv-menu-item, .fv-sheet-tab, .fv-stat-chip, .fv-mabil, .fv-option):focus-visible {
+[data-theme='brasa'] :is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-hpq, .fv-turn-btn, .fv-pill, .fv-menu-item, .fv-sheet-tab, .fv-stat-chip, .fv-mabil, .fv-option):focus-visible {
   outline: 2px solid var(--goldB);
   outline-offset: -4px;
 }

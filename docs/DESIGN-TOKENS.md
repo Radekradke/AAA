@@ -107,3 +107,9 @@ Ficam de fora as paletas (`src/styles/themes/`, `tokens.css`, `src/data/themes.t
 - **Limpou um arquivo (a etapa 3 inteira):** rode `npm run debt -- --update` no mesmo PR para baixar o registro. O registro só desce.
 
 Registro de 23/11/2026: **857** `style={{…}}` e **569** cores fixas fora das paletas.
+
+## Onde mora o CSS (etapa 3.9)
+- `src/styles/globals.css`: base do Tailwind, variáveis, animações e a camada de componentes (`@layer components`).
+- `src/styles/global/*.css`: o resto do antigo `globals.css`, em 7 partes. O `main.tsx` importa todas logo depois do `globals.css`, **na ordem**: trocar a ordem muda a cascata.
+- Telas migradas na etapa 3: um arquivo por tela (`combat.css`, `ficha.css`, `inventario.css`…), importado pelo próprio componente; só baixa com a tela.
+- Classe que deixa de ser usada sai do CSS no mesmo PR.

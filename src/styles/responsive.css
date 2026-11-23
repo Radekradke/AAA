@@ -39,10 +39,6 @@ html[data-theme] :is(.fv-mabil-key, .fv-mesa-chip-ab) {
     width: 34px;
     height: 34px;
   }
-  html[data-theme] .fv-topbar-logo {
-    width: 26px;
-    height: 26px;
-  }
   /* modo de rolagem: só o ícone (o rótulo volta no balão ao tocar) */
   html[data-theme] .fv-rollmode-btn {
     min-height: 34px;

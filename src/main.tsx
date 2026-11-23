@@ -11,6 +11,14 @@ import { useUiStore } from './store/uiStore';
 import './styles/fonts';
 import './styles/tokens.css';
 import './styles/globals.css';
+// o antigo globals.css, em partes: a ordem é a da cascata, não mude
+import './styles/global/sheet.css';
+import './styles/global/creation.css';
+import './styles/global/features.css';
+import './styles/global/themes-finish.css';
+import './styles/global/home-settings.css';
+import './styles/global/feedback.css';
+import './styles/global/spells.css';
 import './styles/experience.css';
 import './styles/mobile.css';
 import './styles/responsive.css';

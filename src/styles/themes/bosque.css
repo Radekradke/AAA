@@ -126,7 +126,7 @@
 [data-theme='verdejante'] .fv-btn-gold:hover:not(:disabled) {
   transform: translateY(-1px) rotate(-0.4deg);
 }
-[data-theme='verdejante'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, .fv-topbar-pill, .fv-hpq, .fv-turn-btn, .fv-seg) {
+[data-theme='verdejante'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, .fv-hpq, .fv-turn-btn, .fv-seg) {
   border-radius: var(--leaf-sm) !important;
 }
 [data-theme='verdejante'] .fv-input {
@@ -142,12 +142,6 @@
 }
 
 /* marca: uma folha */
-[data-theme='verdejante'] .fv-topbar-logo {
-  transform: rotate(45deg);
-  border-radius: 999px 4px 999px 4px;
-  border-color: var(--acc);
-  background: color-mix(in srgb, var(--acc), transparent 85%);
-}
 
 /* ---------- menu: galhos escalonados ---------- */
 [data-theme='verdejante'] .fv-menu-title {
