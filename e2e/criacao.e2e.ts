@@ -166,4 +166,22 @@ test.describe('criação de herói', () => {
     await expect(grupo.getByRole('button', { name: /^Alaúde/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.fv-gift-stop')).toContainText('1 de 3');
   });
+
+  test('Ladino: Especialização é um grupo com nome e respeita as 2 vagas', async ({ page }) => {
+    await signIn(page, 'guest');
+    await page.goto('/criar');
+    await chooseFullRules(page);
+    await page.locator('.fv-foot-cta').click(); // Caminho
+    await page.locator('.fv-forge-main').getByRole('button', { name: /^Ladino/ }).first().click();
+    await page.getByRole('button', { name: /^Perícias/ }).first().click();
+    const livres = page.locator('.fv-skill:not(.is-on)');
+    for (let i = 0; i < 4; i++) await livres.first().click();
+    const esp = page.getByRole('group', { name: 'Especialização' });
+    const opcoes = esp.getByRole('button', { pressed: false });
+    await opcoes.first().click();
+    await opcoes.first().click();
+    await expect(esp.getByRole('button', { pressed: true })).toHaveCount(2);
+    // vagas cheias: o resto fica desligado
+    await expect(esp.locator('button[aria-pressed="false"]:not([disabled])')).toHaveCount(0);
+  });
 });

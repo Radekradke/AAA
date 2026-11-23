@@ -12,7 +12,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 0.5 Registro de bugs (`docs/BUGS.md`)
 
 ## Etapa 1 — Caça a bugs
-- [ ] 1.1 Criação
+- [~] 1.1 Criação
 - [ ] 1.2 Ficha: Jogar, Combate, Magias, Inventário
 - [ ] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
 - [ ] 1.4 Mesa ao vivo, palco, mapa, NPCs, bestiário

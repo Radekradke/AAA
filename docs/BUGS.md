@@ -48,6 +48,14 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
+### B-004 · Criação: opções de Especialização do Ladino sem nome de grupo
+- **Prioridade:** P3
+- **Área:** Criação › Perícias
+- **Passos:** 1. Criar um Ladino. 2. Etapa Perícias. 3. Navegar com leitor de tela até "Especialização".
+- **Esperado:** as opções formam um grupo com nome, como as outras escolhas da criação.
+- **Acontece:** os botões de Especialização ficavam soltos. O leitor de tela não dizia a que eles pertenciam.
+- **Status:** Corrigido: `role="group"` com nome "Especialização" em `StepSkills.tsx`. Teste: `e2e/criacao.e2e.ts` › "Ladino: Especialização é um grupo com nome…".
+
 ### B-001 · Patrulheiro: ficha cobrava idioma de inimigo favorito que não fala
 - **Prioridade:** P1
 - **Área:** Ficha › Evoluir
