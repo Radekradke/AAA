@@ -35,7 +35,6 @@
   "src/components/feedback/FeedbackHost.tsx": {"style":1,"hex":0},
   "src/components/inventory/AddItemPicker.tsx": {"style":13,"hex":0},
   "src/components/inventory/CoinsModal.tsx": {"style":12,"hex":6},
-  "src/components/inventory/ItemEditorModal.tsx": {"style":39,"hex":0},
   "src/components/layout/Screen.tsx": {"style":1,"hex":0},
   "src/components/layout/ThemePickerModal.tsx": {"style":9,"hex":0},
   "src/components/layout/TopBar.tsx": {"style":5,"hex":0},
