@@ -1,0 +1,174 @@
+/* Aba Jogar (etapa 3.6). Valores que estavam inline em TabMesa.tsx.
+   "body .fv-mesa" antes da classe: os temas estilizam .fv-turn-btn e
+   outros botões com [data-theme] e o inline ganhava deles; assim continua. */
+
+body .fv-mesa .fv-hp-bar {
+  height: 18px;
+}
+.fv-mesa-hpfill {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* testes contra a morte */
+.fv-mesa-pips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fv-mesa-pips-label {
+  font-size: var(--text-2xs);
+}
+.fv-mesa-pip {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+.fv-mesa-pip.is-on {
+  border-color: var(--c);
+  background: var(--c);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent);
+}
+
+/* ação, bônus, reação */
+body .fv-mesa .fv-turn-btn {
+  cursor: pointer;
+  flex: 1 1 80px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: var(--lift);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  text-decoration: none;
+  transition: 0.2s;
+}
+body .fv-mesa .fv-turn-btn.is-used {
+  border-color: var(--color-border);
+  background: var(--sunk-deep);
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* salvaguardas */
+body .fv-mesa .fv-mesa-save {
+  cursor: pointer;
+  padding: var(--space-2) var(--space-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  text-align: center;
+  transition: 0.2s;
+}
+body .fv-mesa .fv-mesa-save.is-prof {
+  border-color: color-mix(in srgb, var(--color-metal) 50%, transparent);
+  background: color-mix(in srgb, var(--color-metal) 8%, transparent);
+}
+.fv-mesa-save-key {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+.fv-mesa-save.is-prof .fv-mesa-save-key {
+  color: var(--color-metal);
+}
+.fv-mesa-save-val {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+/* perícias e ferramentas */
+body .fv-mesa .fv-mesa-skill {
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--color-metal) 40%, transparent);
+  background: color-mix(in srgb, var(--color-metal) 7%, transparent);
+  color: var(--color-text);
+  transition: 0.2s;
+}
+body .fv-mesa .fv-mesa-skill.is-expert {
+  border-color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 13%, transparent);
+}
+body .fv-mesa .fv-mesa-skill.is-tool {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: var(--lift);
+}
+body .fv-mesa .fv-mesa-skill.is-tool.is-expert {
+  border-color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 10%, transparent);
+}
+.fv-mesa-skill b {
+  color: var(--color-metal);
+  font-family: var(--font-num);
+}
+.fv-mesa-skill.is-tool b {
+  color: var(--color-accent);
+}
+.fv-mesa-skill.is-tool.is-expert b {
+  color: var(--color-metal);
+}
+
+/* espaços de magia */
+.fv-mesa-slot {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  transform: rotate(45deg);
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+.fv-mesa-slot.is-on {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 85%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+/* recursos e descansos */
+.fv-mesa-res-left {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--color-text-muted);
+}
+.fv-mesa-res-left.is-on {
+  color: var(--color-metal);
+}
+body .fv-mesa .fv-mesa-rest {
+  cursor: pointer;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: var(--space-2) 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  background: var(--sunk);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  transition: 0.2s;
+}
+body .fv-mesa .fv-mesa-rest.is-long {
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 8%, transparent);
+}

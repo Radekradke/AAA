@@ -46,6 +46,8 @@ Copie o modelo para a seção certa, com o próximo número livre:
   - `esbuild` do `vite`: corrigido no vite 8, que é uma versão maior.
 - **Status:** Aberto. Subir junto com a etapa 4, testando build e testes.
 
+## Corrigidos
+
 ### B-003 · Memorizações das abas Magias e Retrato ignoram parte da ficha
 - **Prioridade:** P3
 - **Área:** Ficha › Magias, Retrato
@@ -54,11 +56,10 @@ Copie o modelo para a seção certa, com o próximo número livre:
   - `TabRetrato.tsx` linha 94.
 - **Esperado:** dependências completas ou o motivo escrito na linha.
 - **Acontece:** os `useMemo` dependem só de campos escolhidos da ficha, de propósito, para não recalcular a cada mudança. Se outro campo usado lá dentro mudar, a tela pode mostrar um valor antigo.
-- **Status:** Aberto, metade corrigida:
-  - **Magias (3.6a):** corrigido. As três contas passam a depender da ficha inteira; são baratas, então não vale arriscar valor antigo. `packs` e `hbSpells` ficam na lista com o motivo escrito na linha (mudam a lista global de magias que a função lê).
-  - **Retrato:** falta, na 3.6b.
-
-## Corrigidos
+- **Status:** Corrigido na 3.6:
+  - **Magias (3.6a):** as três contas passam a depender da ficha inteira; são baratas, então não vale arriscar valor antigo. `packs` e `hbSpells` ficam na lista com o motivo escrito na linha (mudam a lista global de magias que a função lê).
+  - **Retrato (3.6b):** a conta já usava só o equipado e o inventário; o aviso vinha de `typeof char.inventory`. Com os dois em variáveis próprias, as dependências ficam completas.
+  - `npm run lint` passa a aceitar **0** avisos (era 10), para nenhum voltar.
 
 ### B-010 · Discord da mesa: botão "Salvar" espremido
 - **Prioridade:** P3

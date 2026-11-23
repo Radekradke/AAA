@@ -31,7 +31,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.3 Ficha
 - [x] 3.4 Inventário + editor de item
 - [x] 3.5 Sala da campanha
-- [~] 3.6 Jogar, Magias, Descanso, Diário, Retrato (Magias feita)
+- [x] 3.6 Jogar, Magias, Descanso, Diário, Retrato
 - [ ] 3.7 Criação, Home, Heróis, Configurações
 - [ ] 3.8 Mesa ao vivo, palco, console do mestre
 - [ ] 3.9 Quebrar o `globals.css` e apagar CSS sem uso
@@ -73,3 +73,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.4b editor de item (Forja) · PR #139 mergeado · ItemEditorModal: 39 style={{…}} → 0 (e os 30 rótulos com `style={label}` viraram classe); estilos em `src/styles/item-editor.css`; as caixas de marcar ganharam `aria-pressed`; prints da Forja com arma, armadura e item mágico em 4 temas e celular: idênticos
 - 23/11 · 3.5 Sala da campanha · PR #140 mergeado · CampaignRoom: 57 style={{…}} → 4 (barra de PV e cor de cada atributo); estilos em `src/styles/campaign-room.css`; os botões de escolha (Nota/NPC/Missão) ganharam `aria-pressed`; prints de mestre e jogador em 4 temas e celular: idênticos, fora o botão corrigido. Achado B-010: "Salvar" do Discord da mesa espremido (24 px) — corrigido, com teste
 - 23/11 · 3.6a Magias · PR em revisão · TabMagias: 29 style={{…}} → 4 e SpellLibrary: 17 → 5 (cor de cada etiqueta, a arte de fundo da magia); estilos em `src/styles/magias.css` e `src/styles/spell-library.css`; os losangos dos espaços entraram na regra do Ouro Velho que apaga brilhos; prints em 4 temas, celular e na biblioteca (fechada e com uma magia aberta): idênticos. B-003 corrigido na aba Magias (lint: 4 avisos → 1, o do Retrato)
+- 23/11 · 3.6b Jogar, Descanso, Retrato e Diário · PR em revisão · TabMesa: 22 style={{…}} → 8 (cor da vida, barra de PV, cor de cada atributo e botão, arte das magias, ataques que vão para outro componente) e TabDescanso: 13 → 0; estilos em `src/styles/jogar.css` e `src/styles/descanso.css`; Retrato e Diário já só tinham valores dinâmicos; prints da aba Jogar nos 8 temas (também com o herói caindo) e do Descanso em 5 temas, PC e celular: idênticos. B-003 fechado; lint passa a aceitar 0 avisos

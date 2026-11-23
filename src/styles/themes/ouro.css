@@ -46,6 +46,10 @@
 [data-theme='ouro'] .fv-combat-conc-dot,
 [data-theme='ouro'] .fv-inv-attune.is-on .fv-inv-attune-dot,
 [data-theme='ouro'] .fv-mag-slot.is-on,
+[data-theme='ouro'] .fv-mesa-slot.is-on,
+[data-theme='ouro'] .fv-mesa-pip.is-on,
+[data-theme='ouro'] .fv-rest-kind.is-long,
+[data-theme='ouro'] .fv-rest-cond.is-on,
 [data-theme='ouro'] .fv-option.is-selected,
 [data-theme='ouro'] .fv-btn-gold,
 [data-theme='ouro'] .fv-btn-gold:hover {
