@@ -26,6 +26,14 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Abertos
 
+### B-011 · Card do herói ignora o formato definido por 4 temas
+- **Prioridade:** P3 (decisão de visual)
+- **Área:** Seus Heróis › card do herói · Temas Véu Astral, Verdejante, Corte Carmesim, Brasa
+- **Passos:** abrir Seus Heróis em um desses temas.
+- **Esperado:** o card segue o formato do tema: cantos de 30 px (Véu Astral), folha (Verdejante), arco (Corte Carmesim), canto reto (Brasa).
+- **Acontece:** o card sempre sai com cantos de 16 px. O estilo inline (`borderRadius: 16`) ganhava das regras `[data-theme] .fv-hero-card`, que nunca valeram.
+- **Status:** Aberto, para o André decidir. A migração da 3.7 manteve o visual de hoje (16 px), usando `#fv-conteudo` no seletor. Para ligar o formato dos temas, basta tirar `border-radius` de `#fv-conteudo .fv-heroes .fv-hero-card` em `src/styles/heroes.css`.
+
 ### B-008 · Janelas feitas à mão sem foco preso ou sem Esc
 - **Prioridade:** P2
 - **Área:** Acessibilidade (teclado e leitor de tela)

@@ -1,0 +1,179 @@
+/* Tela Seus Heróis (etapa 3.7). Valores que estavam inline em
+   CharacterSelect.tsx. O card do herói, o card "Novo Personagem" e o título
+   usam #fv-conteudo no seletor: os temas definem esses três com
+   [data-theme] e o estilo inline sempre ganhava deles (ver B-011). */
+
+.fv-heroes {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(72px, 10vh, 104px) clamp(16px, 4vw, 40px) 56px;
+}
+.fv-heroes-head {
+  margin-bottom: clamp(20px, 3vh, 32px);
+}
+#fv-conteudo .fv-heroes .fv-page-title {
+  margin: 6px 0 var(--space-1);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4.5vw, 44px);
+  color: var(--color-text);
+  text-shadow: 0 0 30px var(--bloom);
+}
+.fv-heroes-lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+.fv-heroes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: clamp(14px, 2vw, 20px);
+}
+
+/* card "Novo Personagem" */
+#fv-conteudo .fv-heroes .fv-new-hero {
+  cursor: pointer;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--color-metal) 50%, transparent);
+  background: linear-gradient(160deg, var(--panel), var(--panel2));
+  box-shadow: inset 0 0 30px color-mix(in srgb, var(--color-metal) 6%, transparent);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
+  transform-style: preserve-3d;
+}
+#fv-conteudo .fv-heroes .fv-new-hero-plus {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-metal);
+  color: var(--color-metal);
+  font-size: 28px;
+  font-family: var(--font-display);
+  box-shadow: 0 0 24px var(--bloom);
+}
+.fv-new-hero-title {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--color-metal);
+}
+.fv-new-hero-sub {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+/* card do herói (a cor da classe chega como --jewel) */
+#fv-conteudo .fv-heroes .fv-hero-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(160deg, var(--panel), var(--panel2));
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 40px color-mix(in srgb, var(--jewel) 8%, transparent);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
+  transform-style: preserve-3d;
+}
+.fv-hero-card-main {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  padding: 18px;
+  position: relative;
+  z-index: 1;
+}
+.fv-hero-card-top {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.fv-hero-card-avatar {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--race);
+  box-shadow: 0 0 24px var(--bloom);
+}
+.fv-hero-card-avatar > div {
+  width: 100%;
+  height: 100%;
+}
+.fv-hero-card-text {
+  min-width: 0;
+}
+.fv-hero-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-hero-card-sub {
+  margin-top: 3px;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+.fv-hero-card-stats {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+/* placa escura sobre a arte em qualquer modo: texto sempre claro */
+.fv-hero-card-stat {
+  flex: 1;
+  text-align: center;
+  padding: 9px var(--space-1);
+  border-radius: 11px;
+  background: rgba(6, 8, 12, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border);
+}
+.fv-hero-card-stat-v {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 16px;
+  color: rgb(244, 241, 234);
+}
+.fv-hero-card-stat-k {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgb(221, 214, 201);
+  margin-top: 2px;
+}
+
+.fv-heroes-empty {
+  margin-top: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+.fv-heroes-empty b {
+  color: var(--color-metal);
+}
+.fv-heroes-tools {
+  margin-top: 28px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.fv-heroes-error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}

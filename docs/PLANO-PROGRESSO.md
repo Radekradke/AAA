@@ -32,7 +32,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.4 Inventário + editor de item
 - [x] 3.5 Sala da campanha
 - [x] 3.6 Jogar, Magias, Descanso, Diário, Retrato
-- [ ] 3.7 Criação, Home, Heróis, Configurações
+- [~] 3.7 Criação, Home, Heróis, Configurações (Heróis feita)
 - [ ] 3.8 Mesa ao vivo, palco, console do mestre
 - [ ] 3.9 Quebrar o `globals.css` e apagar CSS sem uso
 
@@ -74,3 +74,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.5 Sala da campanha · PR #140 mergeado · CampaignRoom: 57 style={{…}} → 4 (barra de PV e cor de cada atributo); estilos em `src/styles/campaign-room.css`; os botões de escolha (Nota/NPC/Missão) ganharam `aria-pressed`; prints de mestre e jogador em 4 temas e celular: idênticos, fora o botão corrigido. Achado B-010: "Salvar" do Discord da mesa espremido (24 px) — corrigido, com teste
 - 23/11 · 3.6a Magias · PR #141 mergeado · TabMagias: 29 style={{…}} → 4 e SpellLibrary: 17 → 5 (cor de cada etiqueta, a arte de fundo da magia); estilos em `src/styles/magias.css` e `src/styles/spell-library.css`; os losangos dos espaços entraram na regra do Ouro Velho que apaga brilhos; prints em 4 temas, celular e na biblioteca (fechada e com uma magia aberta): idênticos. B-003 corrigido na aba Magias (lint: 4 avisos → 1, o do Retrato)
 - 23/11 · 3.6b Jogar, Descanso, Retrato e Diário · PR em revisão · TabMesa: 22 style={{…}} → 8 (cor da vida, barra de PV, cor de cada atributo e botão, arte das magias, ataques que vão para outro componente) e TabDescanso: 13 → 0; estilos em `src/styles/jogar.css` e `src/styles/descanso.css`; Retrato e Diário já só tinham valores dinâmicos; prints da aba Jogar nos 8 temas (também com o herói caindo) e do Descanso em 5 temas, PC e celular: idênticos. B-003 fechado; lint passa a aceitar 0 avisos
+- 23/11 · 3.7a Heróis · PR em revisão · CharacterSelect: 28 style={{…}} → 5 (arte, rosto e cor de cada herói) e CharacterEditModal: 27 → 1 (rosto); estilos em `src/styles/heroes.css` e `src/styles/hero-edit.css`; botões de nível e atributo ganharam nome para o leitor de tela e as perícias `aria-pressed`; prints de Seus Heróis em 7 temas e celular, e da janela Editar herói em 5 temas: idênticos. Achados: tokens não seguiam a paleta local do Eclipse (corrigido em `tokens.css`, conferido na criação e na ficha) e B-011 (formato do card do herói definido por 4 temas nunca valeu; aberto para o André decidir)

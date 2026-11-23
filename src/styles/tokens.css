@@ -52,8 +52,12 @@
   --z-toast: 200;
 }
 
-/* Cores por PAPEL: apontam para a paleta do tema e do modo ativos */
-[data-theme] {
+/* Cores por PAPEL: apontam para a paleta do tema e do modo ativos.
+   Um token é calculado onde é declarado. O Eclipse troca a paleta só dentro
+   de alguns blocos (eclipse.css: card do herói, cabeçalho da ficha…); sem
+   redeclarar ali, o token ficaria com a cor de fora do bloco. */
+[data-theme],
+[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
   --color-bg: var(--bg);
   --color-surface: var(--panel);
   --color-surface-2: var(--panel2);
