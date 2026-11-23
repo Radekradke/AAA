@@ -29,7 +29,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.1 Combate
 - [x] 3.2 Evoluir
 - [x] 3.3 Ficha
-- [ ] 3.4 Inventário + editor de item
+- [~] 3.4 Inventário + editor de item (aba feita; falta o editor)
 - [ ] 3.5 Sala da campanha
 - [ ] 3.6 Jogar, Magias, Descanso, Diário, Retrato
 - [ ] 3.7 Criação, Home, Heróis, Configurações
@@ -69,3 +69,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.1 Combate · PR #135 mergeado · TabCombate: 70 style={{…}} → 4 (só os que mudam na hora); as 9 cores fixas (verde de cura, âmbar da exaustão) ficam para quando houver tokens de cura/aviso; estilos em `src/styles/combat.css` com tokens; prints antes/depois: Eclipse idêntico, Véu Astral 0,01% (fundo animado), PC e celular
 - 23/11 · 3.2 Evoluir · PR #136 mergeado · TabEvoluir: 66 style={{…}} → 1 (largura da barra de XP); estilos em `src/styles/evoluir.css` com tokens; prints antes/depois (PC Véu Astral e Eclipse, celular, com talentos, subclasse e PV manual abertos): idênticos
 - 23/11 · 3.3 Ficha · PR #137 mergeado · TabFicha: 62 style={{…}} → 3 (cor de cada atributo e cor ajustada para leitura); estilos em `src/styles/ficha.css`; prints em 4 temas (Véu Astral, Eclipse, Ouro Velho, Guilda Rubra) e celular: idênticos. Achado B-009: temas que reconheciam peças pelo estilo inline — corrigido (inclui o ponto da Concentração da 3.1 no Ouro Velho)
+- 23/11 · 3.4a aba Inventário · PR em revisão · TabInventario: 61 style={{…}} → 13 (cor da carga, da raridade e das moedas, e os brilhos que dependem delas); estilos em `src/styles/inventario.css`; o ponto da sintonia entrou na regra do Ouro Velho que apaga brilhos; prints em 4 temas (Mochila e Equipado, com itens raros, lendário, homebrew, cargas e sintonia) e celular: idênticos. Falta o editor de item (3.4b)
