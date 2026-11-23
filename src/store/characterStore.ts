@@ -1,23 +1,80 @@
-import { finalizeWithTrail } from '@/engine/levelTrail';
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { idbStateStorage } from '@/lib/storage/zustandIdb';
 import type { Character } from '@/types/character';
-import { createDraftCharacter, emptyCombat } from '@/engine/characterBuilder';
-import { deriveCharacter } from '@/engine/dndRules';
-import { ensureCharacterV2 } from '@/engine/levelUp';
-import type { CharacterState, Recipe } from './character/types';
-import { deedActions } from './character/deeds';
+import type { CharacterState, Recipe, StoreCtx } from './character/types';
+import { HEAVY_ACTIONS } from './character/heavyKeys';
+import type { HeavyAction } from './character/heavyKeys';
 import { newId } from './character/ids';
-import { combatActions } from './character/combat';
-import { inventoryActions } from './character/inventory';
-import { proficienciesActions } from './character/proficiencies';
-import { spellsActions } from './character/spells';
-import { progressionActions } from './character/progression';
-import { characterImportError } from '@/engine/characterImport';
 
 export type { CharacterState } from './character/types';
+
+/**
+ * As ações que usam as regras do jogo (./character/heavy) não entram no
+ * pacote de entrada. Até carregarem, cada uma é um aviso: chamar antes é
+ * erro de quem chamou (a rota tem de usar loadCharacterActions).
+ */
+const notLoaded = Object.fromEntries(
+  HEAVY_ACTIONS.map((name) => [
+    name,
+    () => {
+      throw new Error(`Ação "${name}" chamada antes de carregar as regras: use loadCharacterActions() antes.`);
+    },
+  ]),
+) as unknown as Pick<CharacterState, HeavyAction>;
+
+let storeCtx: StoreCtx | null = null;
+let loading: Promise<void> | null = null;
+
+/** Resolve quando as fichas já vieram do IndexedDB. */
+function whenHydrated(): Promise<void> {
+  if (useCharacterStore.persist.hasHydrated()) return Promise.resolve();
+  return new Promise((done) => {
+    const stop = useCharacterStore.persist.onFinishHydration(() => {
+      stop();
+      done();
+    });
+  });
+}
+
+/**
+ * Carrega as ações com regras e as instala no store (uma vez só).
+ * Espera a hidratação: instalar é um setState, e o persist grava a cada
+ * setState. Antes de hidratar, gravaria a lista vazia por cima dos heróis.
+ */
+export function loadCharacterActions(): Promise<void> {
+  loading ??= Promise.all([import('./character/heavy'), whenHydrated()]).then(([{ heavyCharacterActions }]) => {
+    useCharacterStore.setState(heavyCharacterActions(storeCtx!));
+  });
+  return loading;
+}
+
+const CHARACTERS_VERSION = 4;
+const jsonStorage = createJSONStorage<CharacterState>(() => idbStateStorage)!;
+
+/**
+ * Lê as fichas e, se vierem de um schema antigo, migra antes de entregar.
+ * As regras (ensureCharacterV2) só baixam quando há o que migrar: quem já
+ * está no schema atual abre o app sem elas.
+ */
+const migratingStorage: typeof jsonStorage = {
+  ...jsonStorage,
+  async getItem(name) {
+    const stored = await jsonStorage.getItem(name);
+    if (!stored || typeof stored.version !== 'number' || stored.version >= CHARACTERS_VERSION) return stored;
+    const { ensureCharacterV2 } = await import('@/engine/levelUp');
+    const state = stored.state as { characters?: Character[]; pendingDeletes?: string[] };
+    return {
+      version: CHARACTERS_VERSION,
+      state: {
+        ...stored.state,
+        pendingDeletes: state.pendingDeletes ?? [],
+        characters: (state.characters ?? []).map((c) => ensureCharacterV2(c)),
+      },
+    };
+  },
+};
 
 export const useCharacterStore = create<CharacterState>()(
   persist(
@@ -36,7 +93,7 @@ export const useCharacterStore = create<CharacterState>()(
           }),
         }));
 
-      const ctx = { set, get, mutate };
+      storeCtx = { set, get, mutate };
       return {
         characters: [],
         currentId: null,
@@ -55,31 +112,12 @@ export const useCharacterStore = create<CharacterState>()(
           set({ currentId: id });
         },
 
-        startDraft(input) {
-          const draft = createDraftCharacter(input);
-          set((s) => ({ characters: [...s.characters, draft], currentId: draft.id }));
-          return draft.id;
-        },
         saveDraft(recipe) {
           const id = get().currentId;
           if (id) mutate(id, recipe);
         },
         updateCharacter(id, recipe) {
           mutate(id, recipe);
-        },
-        finalizeDraft(id) {
-          set((state) => ({
-            characters: state.characters.map((c) => (c.id === id ? finalizeWithTrail(c) : c)),
-            currentId: id,
-          }));
-          // garante PV cheio ao despertar
-          const char = get().getCharacter(id);
-          if (char) {
-            const d = deriveCharacter(char);
-            mutate(id, (c) => {
-              c.hpCurrent = d.maxHp;
-            });
-          }
         },
         deleteCharacter(id) {
           set((s) => ({
@@ -105,37 +143,6 @@ export const useCharacterStore = create<CharacterState>()(
           copy.updatedAt = Date.now();
           set((s) => ({ characters: [...s.characters, copy] }));
         },
-        importCharacter(json, ownerId) {
-          try {
-            const base = createDraftCharacter({ ownerId });
-            const input: unknown = JSON.parse(json);
-            const error = characterImportError(input, base);
-            if (error) return { ok: false, error };
-            const parsed = input as Partial<Character>;
-            const merged: Character = {
-              ...base,
-              ...parsed,
-              id: newId('pc'),
-              ownerId,
-              draft: false,
-              combat: { ...emptyCombat(), ...(parsed.combat ?? {}) },
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-              syncStatus: 'pending',
-              syncBase: undefined,
-              lastSyncedAt: undefined,
-            } as Character;
-            const migrated = ensureCharacterV2(merged);
-            const calculated = deriveCharacter(migrated); // valida também a composição antes de persistir
-            if (![calculated.maxHp, calculated.ac, ...Object.values(calculated.abilities).map((a) => a.total)].every(Number.isFinite)) {
-              return { ok: false, error: 'A ficha contém atributos ou modificadores inválidos.' };
-            }
-            set((s) => ({ characters: [...s.characters, migrated], currentId: migrated.id }));
-            return { ok: true, id: migrated.id };
-          } catch {
-            return { ok: false, error: 'Não consegui ler: confira se é o JSON da ficha (o texto entre { e }).' };
-          }
-        },
         exportCharacter(id) {
           const char = get().getCharacter(id);
           if (!char) return null;
@@ -153,68 +160,21 @@ export const useCharacterStore = create<CharacterState>()(
             ),
           }));
         },
-        restoreBackupCharacters(chars, ownerId, replaceIds) {
-          const replace = new Set(replaceIds);
-          let added = 0;
-          let replaced = 0;
-          set((s) => {
-            const next = [...s.characters];
-            const indexById = new Map(next.map((c, i) => [c.id, i]));
-            for (const raw of chars) {
-              const sameOwner = raw.ownerId === ownerId;
-              const incoming: Character = {
-                ...ensureCharacterV2(structuredClone(raw)),
-                ownerId,
-                syncStatus: 'pending',
-                // mesma conta: a versão da nuvem que o backup conhecia continua valendo;
-                // outro dono: para ele, a ficha é nova
-                syncBase: sameOwner ? raw.syncBase : undefined,
-                lastSyncedAt: sameOwner ? raw.lastSyncedAt : undefined,
-              };
-              const at = indexById.get(incoming.id);
-              if (at === undefined) {
-                indexById.set(incoming.id, next.length);
-                next.push(incoming);
-                added++;
-              } else if (replace.has(incoming.id)) {
-                const existing = next[at];
-                // substituir conta como edição deste aparelho: guarda o que ele sabe da nuvem
-                next[at] = {
-                  ...incoming,
-                  syncBase: existing.syncBase,
-                  lastSyncedAt: existing.lastSyncedAt,
-                  updatedAt: Math.max(Date.now(), existing.updatedAt + 1, (existing.syncBase ?? 0) + 1),
-                };
-                replaced++;
-              }
-            }
-            const restored = new Set(chars.map((c) => c.id));
-            return { characters: next, pendingDeletes: s.pendingDeletes.filter((id) => !restored.has(id)) };
-          });
-          return { added, replaced };
-        },
-        ...combatActions(ctx),
-        ...deedActions(ctx),
-        ...inventoryActions(ctx),
-        ...proficienciesActions(ctx),
-        ...spellsActions(ctx),
-        ...progressionActions(ctx),
+        ...notLoaded,
       };
     },
     {
       name: 'fv-characters',
-      version: 4,
+      version: CHARACTERS_VERSION,
       // persistência principal em IndexedDB (autosave com debounce);
       // migra o dado antigo do localStorage automaticamente
-      storage: createJSONStorage(() => idbStateStorage),
-      // migração segura: fichas antigas ganham subclasses por classe no schema v4
+      storage: migratingStorage,
+      // migração segura: fichas antigas ganham subclasses por classe no schema v4.
+      // Quem migra é a leitura (migratingStorage): ela pode esperar as regras
+      // baixarem, e o migrate do persist não espera promessas (zustand 4.5).
       migrate: (persisted) => {
         const state = persisted as { characters?: Character[]; currentId?: string | null; pendingDeletes?: string[] };
-        return {
-          ...state,
-          pendingDeletes: state.pendingDeletes ?? [],
-          characters: (state.characters ?? []).map((c) => ensureCharacterV2(c)),
-        };
+        return { ...state, pendingDeletes: state.pendingDeletes ?? [] } as CharacterState;
       },
     },
   ),

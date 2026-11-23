@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import '@/test/loadCharacterActions';
 import { useCharacterStore } from '../characterStore';
 import { createDraftCharacter, finalizeCharacter } from '@/engine/characterBuilder';
 import { deriveCharacter } from '@/engine/dndRules';

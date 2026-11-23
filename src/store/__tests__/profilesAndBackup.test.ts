@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import '@/test/loadCharacterActions';
 import { useCharacterStore } from '../characterStore';
 import { createDraftCharacter, finalizeCharacter } from '@/engine/characterBuilder';
 import type { Character } from '@/types/character';

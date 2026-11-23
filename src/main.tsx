@@ -6,7 +6,6 @@ import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { installGlobalErrorHandlers } from './lib/errorReporter';
 import { installCardTilt } from './lib/cardTilt';
-import './store/homebrewStore';
 import { useUiStore } from './store/uiStore';
 import './styles/fonts';
 import './styles/tokens.css';

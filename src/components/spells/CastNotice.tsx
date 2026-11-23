@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
-import { poolAffected } from '@/engine/spellCast';
+import { poolAffected } from '@/engine/poolAffected';
 import { useUiStore } from '@/store/uiStore';
 
 /**

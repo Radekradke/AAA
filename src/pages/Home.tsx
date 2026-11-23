@@ -42,7 +42,7 @@ export function Home() {
   const logout = useAuthStore((s) => s.logout);
   const bump = useUiStore((s) => s.bump);
   // próximas telas prováveis: lista de heróis e a ficha (baixadas com o aparelho ocioso)
-  useEffect(() => prefetchOnIdle('heroes', 'sheet'), []);
+  useEffect(() => prefetchOnIdle('heroes', 'sheet', 'rules', 'icons'), []);
   const onboarded = useUiStore((s) => s.onboarded || s.tipsOff);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const characters = useCharacterStore((s) => s.characters);

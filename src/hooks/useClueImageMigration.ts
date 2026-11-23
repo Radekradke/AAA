@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
+import { loadCharacterActions, useCharacterStore, useCharactersHydrated } from '@/store/characterStore';
 import { saveClueImage } from '@/lib/clueImageStore';
 import type { Character } from '@/types/character';
 
@@ -20,7 +20,10 @@ export function useClueImageMigration(): void {
       if (running) return;
       running = true;
       try {
-        for (const c of useCharacterStore.getState().characters.filter(hasInline)) {
+        const old = useCharacterStore.getState().characters.filter(hasInline);
+        // updateDiary mora com as ações das regras: só baixa se houver o que migrar
+        if (old.length) await loadCharacterActions();
+        for (const c of old) {
           const ids = new Map<string, string>();
           for (const x of c.diary!.clues) if (x.image) ids.set(x.id, await saveClueImage(x.image));
           useCharacterStore.getState().updateDiary(c.id, (d) => {
