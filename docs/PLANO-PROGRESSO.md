@@ -12,7 +12,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 0.5 Registro de bugs (`docs/BUGS.md`)
 
 ## Etapa 1 — Caça a bugs
-- [ ] 1.1 Criação
+- [~] 1.1 Criação
 - [ ] 1.2 Ficha: Jogar, Combate, Magias, Inventário
 - [ ] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
 - [ ] 1.4 Mesa ao vivo, palco, mapa, NPCs, bestiário
@@ -56,4 +56,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 0.1 lint · PR #122 mergeado · 0 erros de lint, 1012 unidade, 187 ponta a ponta
 - 23/11 · 0.2 dependências · PR #123 mergeado · react-router 6.30 → 7.18 (a 6 não tem correção); 0 alertas de produção. Restam 2 alertas só de desenvolvimento (vitest, esbuild do vite), que pedem versões maiores: ficam no registro de bugs
 - 23/11 · 0.3–0.5 · PR #124 mergeado · orçamento do pacote (JS 1150 / CSS 245 / gzip 415 KB) no CI; fumaça das 16 páginas, 32/32 (PC e celular); `docs/BUGS.md` com 3 bugs abertos
-- 23/11 · B-001 (etapa 1, achado da 0.5) · PR aberto · Patrulheiro deixa de dever idioma de inimigo que não fala; 1013 unidade
+- 23/11 · B-001 (etapa 1, achado da 0.5) · PR #125 mergeado · Patrulheiro deixa de dever idioma de inimigo que não fala; 1013 unidade
+- 23/11 · 1.1 criação · PR aberto · varredura do motor: 1.440 heróis (12 classes × 20 níveis × 6 sementes) sem problema; criador inteiro guiado por robô em 12 classes × níveis 1 e 6, PC e celular: 48/48, sem erro no console; fichas de 36 heróis com todas as abas abertas: limpo; 1 achado de acessibilidade (B-004) corrigido
