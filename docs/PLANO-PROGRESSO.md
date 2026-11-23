@@ -27,7 +27,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 
 ## Etapa 3 — Migração tela por tela
 - [x] 3.1 Combate
-- [ ] 3.2 Evoluir
+- [~] 3.2 Evoluir
 - [ ] 3.3 Ficha
 - [ ] 3.4 Inventário + editor de item
 - [ ] 3.5 Sala da campanha
@@ -67,3 +67,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 2.3 camadas + 2.4 catálogo · PR #133 mergeado · Sheet, Popover e Tooltip (com Modal e Toast, mesmas regras de Esc e foco); catálogo `/dev/ui` só em desenvolvimento, com os 8 temas × claro/escuro; 9 testes de ponta a ponta de teclado; auditoria das 15 janelas feitas à mão com o substituto de cada uma (pendências no B-008)
 - 23/11 · 2.5 guarda · PR #134 mergeado · `npm run debt` no CI: por arquivo, style={{…}} e cor fixa só podem diminuir (registro: 857 e 569); conferido que reprova ao acrescentar um
 - 23/11 · 3.1 Combate · PR #135 mergeado · TabCombate: 70 style={{…}} → 4 (só os que mudam na hora); as 9 cores fixas (verde de cura, âmbar da exaustão) ficam para quando houver tokens de cura/aviso; estilos em `src/styles/combat.css` com tokens; prints antes/depois: Eclipse idêntico, Véu Astral 0,01% (fundo animado), PC e celular
+- 23/11 · 3.2 Evoluir · PR aberto · TabEvoluir: 66 style={{…}} → 1 (largura da barra de XP); estilos em `src/styles/evoluir.css` com tokens; prints antes/depois (PC Véu Astral e Eclipse, celular, com talentos, subclasse e PV manual abertos): idênticos
