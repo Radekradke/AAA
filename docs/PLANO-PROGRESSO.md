@@ -21,9 +21,9 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 ## Etapa 2 — Design system
 - [x] 2.1 Tokens
 - [x] 2.2 Primitivos
-- [~] 2.3 Camadas (Modal, Sheet, Popover, Tooltip, Toast)
-- [~] 2.4 Catálogo `/dev/ui`
-- [ ] 2.5 Guarda contra cor fixa e estilo solto
+- [x] 2.3 Camadas (Modal, Sheet, Popover, Tooltip, Toast)
+- [x] 2.4 Catálogo `/dev/ui`
+- [~] 2.5 Guarda contra cor fixa e estilo solto
 
 ## Etapa 3 — Migração tela por tela
 - [ ] 3.1 Combate
@@ -64,4 +64,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 1.5 conta, sincronização, offline, importação/exportação, impressão · PR #130 mergeado · backup baixado e restaurado em outro aparelho: ok; edição sem rede fica "1 pendente" e sincroniza ao voltar: ok; teste macaco em Configurações, Entrar, Diagnóstico e Impressão (PC e celular): limpo; 1 bug achado e corrigido (B-005: sem internet, pedaço que não baixou fazia a página sumir)
 - 23/11 · 2.1 tokens · PR #131 mergeado · `src/styles/tokens.css` (cor por papel, espaço 4 px, 7 tamanhos de texto, cantos, movimento, camadas) + `docs/DESIGN-TOKENS.md`; teste de contraste AA em 8 temas × 2 modos achou 1 falha (B-006, corrigida); rodada completa de ponta a ponta achou o B-007 (corrida da tela cheia do mapa, já existia), corrigido
 - 23/11 · 2.2 primitivos · PR #132 mergeado · Button (tamanhos, carregando, ícone), IconButton, Field/Input/Select/Textarea, Segmented, Chip, Badge, Tabs em `src/components/ui/` + `src/styles/ui.css` (só tokens); 16 testes de marcação/ARIA e de teclado; os 12 `<Button>` antigos iguais, exceto o canto, que passa a seguir o tema como os outros 238 botões
-- 23/11 · 2.3 camadas + 2.4 catálogo · PR aberto · Sheet, Popover e Tooltip (com Modal e Toast, mesmas regras de Esc e foco); catálogo `/dev/ui` só em desenvolvimento, com os 8 temas × claro/escuro; 9 testes de ponta a ponta de teclado; auditoria das 15 janelas feitas à mão com o substituto de cada uma (pendências no B-008)
+- 23/11 · 2.3 camadas + 2.4 catálogo · PR #133 mergeado · Sheet, Popover e Tooltip (com Modal e Toast, mesmas regras de Esc e foco); catálogo `/dev/ui` só em desenvolvimento, com os 8 temas × claro/escuro; 9 testes de ponta a ponta de teclado; auditoria das 15 janelas feitas à mão com o substituto de cada uma (pendências no B-008)
+- 23/11 · 2.5 guarda · PR aberto · `npm run debt` no CI: por arquivo, style={{…}} e cor fixa só podem diminuir (registro: 857 e 569); conferido que reprova ao acrescentar um
