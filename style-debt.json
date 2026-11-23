@@ -95,7 +95,14 @@
   "src/styles/contrast.css": {"style":0,"hex":36},
   "src/styles/diary.css": {"style":0,"hex":22},
   "src/styles/diechip.css": {"style":0,"hex":2},
-  "src/styles/globals.css": {"style":0,"hex":119},
+  "src/styles/global/creation.css": {"style":0,"hex":11},
+  "src/styles/global/features.css": {"style":0,"hex":15},
+  "src/styles/global/feedback.css": {"style":0,"hex":33},
+  "src/styles/global/home-settings.css": {"style":0,"hex":8},
+  "src/styles/global/sheet.css": {"style":0,"hex":8},
+  "src/styles/global/spells.css": {"style":0,"hex":19},
+  "src/styles/global/themes-finish.css": {"style":0,"hex":22},
+  "src/styles/globals.css": {"style":0,"hex":3},
   "src/styles/master.css": {"style":0,"hex":12},
   "src/styles/polish.css": {"style":0,"hex":12},
   "src/styles/print.css": {"style":0,"hex":24},
@@ -103,5 +110,5 @@
   "src/styles/search.css": {"style":0,"hex":1},
   "src/styles/session.css": {"style":0,"hex":19},
   "src/styles/sheet-illustrated.css": {"style":0,"hex":4},
-  "src/styles/stage.css": {"style":0,"hex":60}
+  "src/styles/stage.css": {"style":0,"hex":59}
 }

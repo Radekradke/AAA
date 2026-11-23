@@ -73,7 +73,6 @@ html[data-mode='light'] .fv-live-online li.is-master .fv-live-avatar {
   background: color-mix(in oklab, var(--gold), #000 18%);
 }
 
-
 /* ----- criação ----- */
 /* sobrancelha "Linhagem/Caminho" na cor da opção escolhida */
 [data-mode='light'] .fv-detail-eyebrow {
@@ -187,10 +186,10 @@ html[data-mode='light'] .fv-npc-card-text em {
 
 /* ----- Eclipse: blocos que invertem (cards, cabeçalho, trilha) ----- */
 /* claro: blocos pretos → vermelho claro; escuro: blocos de papel → vermelho fundo */
-[data-theme='eclipse'][data-mode='light'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+[data-theme='eclipse'][data-mode='light'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected) {
   --danger: #ff8f80;
 }
-[data-theme='eclipse'][data-mode='dark'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+[data-theme='eclipse'][data-mode='dark'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected) {
   --danger: #a62a1e;
 }
 

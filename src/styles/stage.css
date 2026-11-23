@@ -18,56 +18,6 @@
 }
 
 /* ---------- abas da cabine do mestre ---------- */
-.fv-live-tabs {
-  position: sticky;
-  top: calc(env(safe-area-inset-top, 0px) + 64px);
-  z-index: 20;
-  display: flex;
-  gap: 4px;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 0 14px;
-  padding: 4px;
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--panel2), transparent 8%);
-  backdrop-filter: blur(10px);
-  scrollbar-width: none;
-}
-.fv-live-tabs::-webkit-scrollbar { display: none; }
-.fv-live-tabs button {
-  position: relative;
-  flex: none;
-  min-height: 38px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 13.5px;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-.fv-live-tabs button:hover { color: var(--ink); }
-.fv-live-tabs button.is-on {
-  color: var(--bg, #0b0f1c);
-  background: var(--gold);
-}
-.fv-live-tabs button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
-.fv-live-tabs-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-left: 7px;
-  vertical-align: 2px;
-  border-radius: 50%;
-  background: var(--stage-live);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage-live), transparent 70%);
-}
-.fv-live-tabs-dot.is-combat { background: var(--live-warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--live-warn), transparent 70%); }
 .fv-live-grid.is-stage { grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1fr); }
 @media (max-width: 980px) {
   .fv-live-grid.is-stage { grid-template-columns: minmax(0, 1fr); }

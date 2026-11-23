@@ -5,10 +5,6 @@
 .fv-experience-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .fv-experience-actions button { min-height: 36px; }
 .fv-concept-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin: 22px 0; }
-.fv-concept-card { padding: 20px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--sunk); color: var(--ink); text-align: left; cursor: pointer; line-height: 1.6; }
-.fv-concept-card b, .fv-concept-card span { display: block; }
-.fv-concept-card span { font-size: 13px; margin-top: 12px; color: var(--muted); }
-.fv-concept-card:hover, .fv-concept-card:focus-visible { border-color: var(--gold); background: var(--panel); }
 .fv-action-guide { margin-bottom: 14px; font-size: 13px; }
 .fv-action-guide summary { cursor: pointer; font-weight: 600; min-height: 32px; }
 .fv-experience-table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 12px 0; table-layout: fixed; }

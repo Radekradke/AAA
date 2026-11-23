@@ -48,7 +48,7 @@
   --ecl-black: #111111;
   --ecl-paper: #f3f2ee;
 }
-[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected) {
   --ink: #f3f2ee;
   --muted: #a3a19b;
   --panel: #1b1b1b;
@@ -98,19 +98,7 @@
 [data-theme='eclipse'] .fv-topbar {
   background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg), transparent 12%) 64%, transparent 100%);
 }
-[data-theme='eclipse'] .fv-topbar-logo {
-  transform: none;
-  border: 0;
-  border-radius: 999px;
-  background: var(--ecl-black);
-  box-shadow: none;
-}
-[data-theme='eclipse'] .fv-topbar-logo span {
-  transform: none;
-  color: var(--ecl-paper);
-  font-weight: 800;
-}
-[data-theme='eclipse'] :is(.fv-topbar-icon, .fv-topbar-pill) {
+[data-theme='eclipse'] :is(.fv-topbar-icon) {
   backdrop-filter: none;
   background: var(--panel);
   border-color: var(--line-strong);
@@ -428,13 +416,6 @@
   font-size: clamp(48px, 7vw, 92px) !important;
   margin: 10px 0 14px !important;
 }
-[data-theme='eclipse'] .fv-home-cta {
-  border-radius: 999px !important;
-  background: var(--ecl-black) !important;
-  border-color: var(--ecl-black) !important;
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ecl-black), transparent 92%) !important;
-  animation: none !important;
-}
 [data-theme='eclipse'] .fv-mobile-nav {
   left: 10px;
   right: 10px;
@@ -592,9 +573,6 @@
 [data-theme='eclipse'] .fv-menu-item.is-primary .fv-menu-icon {
   background: rgba(255, 255, 255, 0.08);
 }
-[data-theme='eclipse'] .fv-menu-sigil {
-  color: var(--ink);
-}
 [data-theme='eclipse'] .fv-onb-art {
   background: var(--ecl-black);
   --gold: #f3f2ee;
@@ -633,7 +611,7 @@
     radial-gradient(60% 45% at 10% 100%, rgba(0, 0, 0, 0.4), transparent 70%);
   color-scheme: dark;
 }
-[data-theme='eclipse'][data-mode='dark'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+[data-theme='eclipse'][data-mode='dark'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected) {
   --ink: #121212;
   --muted: #5f5d58;
   --panel: #e9e7e2;

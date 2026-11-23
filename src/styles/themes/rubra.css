@@ -37,18 +37,6 @@
     radial-gradient(70% 55% at 30% -10%, rgba(242, 102, 90, 0.16), transparent 64%),
     radial-gradient(60% 50% at 100% 110%, rgba(120, 30, 50, 0.4), transparent 66%);
 }
-[data-theme='rubra'] .fv-topbar-logo {
-  transform: none;
-  border: 0;
-  border-radius: 11px;
-  background: var(--acc);
-  box-shadow: 0 6px 18px -6px var(--acc);
-}
-[data-theme='rubra'] .fv-topbar-logo span {
-  transform: none;
-  color: var(--on-gold);
-  font-weight: 700;
-}
 [data-theme='rubra'] .fv-panel {
   border-radius: var(--radius-lg);
   background: linear-gradient(160deg, color-mix(in srgb, var(--panel), #fff 3%), var(--panel2));
@@ -150,11 +138,6 @@
     border: 1px solid var(--line);
     background: color-mix(in srgb, var(--panel2), transparent 3%);
     box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
-  }
-}
-@media (max-width: 1023.98px) {
-  [data-theme='rubra'] .fv-guild-nav.is-hub .fv-guild-brand {
-    display: none;
   }
 }
 @media (max-width: 1023.98px) {

@@ -146,7 +146,7 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc), transparent 70%);
   transform: none;
 }
-[data-theme='frio'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, .fv-input, .fv-topbar-pill, .fv-topbar-icon, .fv-seg, .fv-option, .fv-menu-item, .fv-menu-icon, .fv-menu-face, .fv-hero-card, .fv-modal, .fv-stat-chip, .fv-mabil, .fv-hpq, .fv-turn-btn) {
+[data-theme='frio'] :is(.fv-btn-ghost, .fv-btn-danger, .fv-pill, .fv-input, .fv-topbar-icon, .fv-seg, .fv-option, .fv-menu-item, .fv-menu-icon, .fv-menu-face, .fv-hero-card, .fv-modal, .fv-stat-chip, .fv-mabil, .fv-hpq, .fv-turn-btn) {
   border-radius: var(--radius-sm) !important;
 }
 [data-theme='frio'] .fv-btn-ghost {
@@ -160,20 +160,6 @@
 }
 
 /* marca: retículo de luneta */
-[data-theme='frio'] .fv-topbar-logo {
-  transform: none;
-  border-radius: 999px;
-  border-color: var(--gold);
-  box-shadow: none;
-  background:
-    linear-gradient(var(--line-strong), var(--line-strong)) 50% 0 / 1px 7px no-repeat,
-    linear-gradient(var(--line-strong), var(--line-strong)) 50% 100% / 1px 7px no-repeat,
-    linear-gradient(var(--line-strong), var(--line-strong)) 0 50% / 7px 1px no-repeat,
-    linear-gradient(var(--line-strong), var(--line-strong)) 100% 50% / 7px 1px no-repeat;
-}
-[data-theme='frio'] .fv-topbar-logo span {
-  transform: none;
-}
 
 /* ---------- menu principal: painel de instrumentos (lista com índice) ---------- */
 [data-theme='frio'] .fv-menu-title {

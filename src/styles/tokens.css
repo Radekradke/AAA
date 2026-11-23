@@ -57,7 +57,7 @@
    de alguns blocos (eclipse.css: card do herói, cabeçalho da ficha…); sem
    redeclarar ali, o token ficaria com a cor de fora do bloco. */
 [data-theme],
-[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected, .fv-ecl-dark) {
+[data-theme='eclipse'] :is(.fv-forge-rail, .fv-forge-hero, .fv-sheet-head, .fv-sheet-tabs, .fv-hero-card, .fv-option.is-selected) {
   --color-bg: var(--bg);
   --color-surface: var(--panel);
   --color-surface-2: var(--panel2);

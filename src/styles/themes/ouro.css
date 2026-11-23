@@ -36,7 +36,7 @@
   /* fundo chapado com uma vinheta quase imperceptível */
   --scene: radial-gradient(120% 70% at 50% 0%, rgba(239, 227, 194, 0.035), transparent 60%);
 }
-[data-theme='ouro'] :is(button, input, select, textarea, .fv-panel, .fv-surface, .fv-panel-soft, .fv-option, .fv-chip, .fv-pill, .fv-seg, .fv-modal, .fv-topbar-menu, .fv-skill, .fv-pack, .fv-counter, .fv-hb-chip) {
+[data-theme='ouro'] :is(button, input, select, textarea, .fv-panel, .fv-surface, .fv-option, .fv-chip, .fv-pill, .fv-seg, .fv-modal, .fv-topbar-menu, .fv-skill, .fv-pack, .fv-counter, .fv-hb-chip) {
   border-radius: 2px !important;
 }
 [data-theme='ouro'] * {
@@ -57,8 +57,7 @@
 [data-theme='ouro'] .fv-btn-gold:hover {
   box-shadow: none !important;
 }
-[data-theme='ouro'] .fv-topbar-icon,
-[data-theme='ouro'] .fv-topbar-pill {
+[data-theme='ouro'] .fv-topbar-icon {
   backdrop-filter: none;
 }
 [data-theme='ouro'] .fv-panel {
@@ -71,7 +70,7 @@
   right: 0;
   opacity: 0.55;
 }
-[data-theme='ouro'] :is(h1, h2, h3, h4, .fv-label, .fv-facts-title, .fv-step-title, .fv-modal-head h2) {
+[data-theme='ouro'] :is(h1, h2, h3, h4, .fv-label, .fv-facts-title, .fv-modal-head h2) {
   font-family: var(--font-display);
   letter-spacing: 0.14em;
   text-transform: uppercase;

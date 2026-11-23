@@ -1,0 +1,567 @@
+/* Iniciativa, companheiro, conjurar, cargas, trilha sonora, oficina de retratos, homebrew e pacotes.
+   Parte do antigo globals.css, na mesma ordem (main.tsx importa todos em sequência;
+   mudar a ordem muda a cascata). */
+
+/* ===== Botão Rolar Iniciativa ===== */
+.fv-init-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--acc) 55%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 16%, var(--panel)), var(--panel));
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.fv-init-btn:hover { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 18%, transparent); }
+.fv-init-btn:active { transform: translateY(1px); }
+.fv-init-btn:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.fv-init-btn-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  font-size: 16px;
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent);
+}
+.fv-init-btn-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; flex: 1; }
+.fv-init-btn-text b { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.04em; }
+.fv-init-btn-text small { font-family: var(--font-num); font-size: 11px; color: var(--muted); }
+.fv-init-btn-last {
+  flex: none;
+  min-width: 38px;
+  padding: 4px 8px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+}
+.fv-init-btn.is-compact { width: auto; flex: 1 1 170px; min-height: 36px; padding: 4px 10px 4px 6px; gap: 8px; }
+.fv-init-btn.is-compact .fv-init-btn-icon { width: 26px; height: 26px; font-size: 13px; }
+.fv-init-btn.is-compact .fv-init-btn-text b { font-size: 12px; }
+.fv-init-btn.is-compact .fv-init-btn-last { font-size: 15px; min-width: 32px; padding: 2px 6px; }
+@media (prefers-reduced-motion: reduce) { .fv-init-btn { transition: none; } }
+
+/* ===== Companheiro de Patrulheiro ===== */
+.fv-companion-tag { font-size: 11px; color: var(--muted); font-family: var(--font-num); }
+.fv-companion-head { display: flex; gap: 8px; margin-bottom: 12px; }
+.fv-companion-name { flex: 1 1 60%; min-width: 0; font-family: var(--font-display); font-size: 15px; }
+.fv-companion-kind { flex: 1 1 40%; min-width: 0; font-size: 12.5px; }
+.fv-companion-stats { display: grid; grid-template-columns: 1fr 1.6fr 1.2fr; gap: 8px; }
+.fv-companion-stat {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 64px; padding: 8px 6px; border-radius: var(--radius-md);
+  border: 1px solid var(--line); background: var(--lift);
+}
+.fv-companion-stat > b { font-family: var(--font-num); font-size: 20px; color: var(--ink); line-height: 1; }
+.fv-companion-stat > span { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.fv-companion-speed { font-size: 12px !important; text-align: center; line-height: 1.25 !important; }
+.fv-companion-hp-row { display: flex; align-items: center; gap: 10px; }
+.fv-companion-hp-row b { font-family: var(--font-num); font-size: 20px; }
+.fv-companion-hp-row small { font-size: 12px; color: var(--muted); }
+.fv-companion-hp-row button {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: 700;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+}
+.fv-companion-hp-row button:hover { border-color: var(--acc); color: var(--acc); }
+.fv-companion-bar { display: block; width: 100%; height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.fv-companion-bar i { display: block; height: 100%; background: var(--good, #3fc56b); transition: width 0.25s; }
+.fv-companion-abil { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 8px; }
+.fv-companion-abil button {
+  display: flex; flex-direction: column; align-items: center; padding: 5px 0; cursor: pointer;
+  border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink);
+}
+.fv-companion-abil button span { font-size: 9px; letter-spacing: 0.1em; color: var(--muted); }
+.fv-companion-abil button b { font-family: var(--font-num); font-size: 13px; }
+.fv-companion-abil button:hover { border-color: var(--acc); }
+.fv-companion-attacks { margin-top: 10px; }
+.fv-companion-attack { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.fv-companion-attack-name { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--ink); }
+.fv-companion-attack-note { font-size: 11px; color: var(--muted); }
+.fv-companion-hit, .fv-companion-dmg {
+  cursor: pointer; font-family: var(--font-num); font-weight: 700; padding: 6px 11px; border-radius: 10px; background: transparent;
+}
+.fv-companion-hit { color: var(--gold); border: 1px solid var(--line); font-size: 15px; }
+.fv-companion-dmg { color: var(--danger); border: 1px solid rgba(255, 80, 40, 0.35); font-size: 12.5px; }
+.fv-companion-note { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.fv-companion-perks { margin: 10px 0 0; padding-left: 16px; display: grid; gap: 5px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.fv-companion-perks b { color: var(--ink); }
+
+/* ===== Conjurar magia ===== */
+.fv-cast { position: relative; display: inline-flex; flex: none; }
+.fv-cast-btn {
+  cursor: pointer; min-height: 30px; padding: 4px 11px; border-radius: 999px; font-weight: 700; font-size: 11.5px;
+  border: 1px solid color-mix(in srgb, var(--acc) 60%, transparent); color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 10%, transparent); white-space: nowrap;
+}
+.fv-cast-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--acc) 18%, transparent); }
+.fv-cast-btn:disabled { opacity: 0.4; border-color: var(--line); color: var(--muted); background: transparent; }
+.fv-cast-btn.is-compact { min-height: 26px; padding: 2px 9px; font-size: 11px; }
+.fv-cast-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px; border-radius: var(--radius-md);
+  /* nunca maior que a tela: o resto rola por dentro (o botão de rolar não some) */
+  max-height: min(72vh, 560px); overflow-y: auto; overscroll-behavior: contain;
+}
+/* sem espaço embaixo: abre para cima do botão */
+.fv-cast-pop.is-up { top: auto; bottom: calc(100% + 6px); }
+.fv-cast-pop-title { padding: 4px 8px 6px; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.fv-cast-pop button {
+  cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 9px;
+  border-radius: var(--radius-sm); border: 1px solid transparent; background: transparent; color: var(--ink); font-weight: 600; font-size: 13px; text-align: left;
+}
+.fv-cast-pop button:hover { background: var(--lift); border-color: var(--line); }
+.fv-cast-pop button small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.fv-cast-pop-empty { padding: 6px 9px; font-size: 12px; color: var(--muted); }
+
+/* ===== Cajados e varinhas: cargas compartilhadas ===== */
+.fv-charge-items { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.fv-charge-item { border: 1px solid color-mix(in srgb, var(--acc), transparent 62%); border-radius: var(--radius-md); background: var(--lift); padding: 10px 12px; }
+.fv-charge-item header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.fv-charge-item header b { font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.fv-charge-count { display: inline-flex; align-items: center; gap: 8px; font: 600 12px var(--font-num); color: var(--gold); }
+.fv-charge-pips { display: inline-flex; gap: 3px; flex-wrap: wrap; max-width: 140px; }
+.fv-charge-pips i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--gold), transparent 30%); }
+.fv-charge-pips i.is-on { background: var(--gold); box-shadow: 0 0 6px color-mix(in srgb, var(--gold), transparent 50%); }
+.fv-charge-item ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.fv-charge-item li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+.fv-charge-item li:first-child { border-top: 0; }
+.fv-charge-item li.is-short .fv-charge-spell > span { color: var(--muted); }
+.fv-charge-spell { display: flex; flex-direction: column; cursor: help; min-width: 0; }
+.fv-charge-spell > span { font-size: 14px; color: var(--ink); }
+.fv-charge-spell small { font-size: 11px; color: var(--muted); }
+.fv-charge-foot { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+.fv-inv-charges { margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fv-inv-charges-n { font: 600 11.5px var(--font-num); color: var(--gold); }
+.fv-inv-charges button { cursor: pointer; min-width: 30px; min-height: 28px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 11px var(--font-num); }
+.fv-inv-charges button:disabled { opacity: 0.4; cursor: not-allowed; }
+.fv-inv-charges button:not(:disabled):hover { border-color: var(--gold); color: var(--gold); }
+.fv-spell-block-reason { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); white-space: normal; }
+.fv-spell-rule-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.fv-spell-rule-text { margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.fv-spell-free {
+  margin-left: auto; cursor: pointer; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent; color: var(--muted);
+}
+.fv-spell-free.is-on { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.fv-mesa-spells { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.fv-mesa-spell { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 6px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--sunk); }
+.fv-mesa-spell-lv { flex: none; width: 20px; text-align: center; font-family: var(--font-num); font-size: 11px; font-weight: 700; color: var(--acc); }
+.fv-mesa-spell-name { display: block; font-size: 12.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.fv-mesa-spell-more { font-size: 11px; color: var(--muted); padding: 2px 6px; }
+
+/* ===== Trilha sonora ===== */
+.fv-music { position: relative; }
+.fv-music-btn { position: relative; }
+.fv-music-btn.is-on { border-color: var(--gold); color: var(--gold); }
+.fv-music-glyph { font-size: 17px; line-height: 1; }
+.fv-music-eq { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; align-items: flex-end; height: 7px; }
+.fv-music-eq i { width: 2px; background: var(--gold); border-radius: 1px; animation: fvEq 0.9s ease-in-out infinite; }
+.fv-music-eq i:nth-child(2) { animation-delay: -0.3s; }
+.fv-music-eq i:nth-child(3) { animation-delay: -0.6s; }
+@keyframes fvEq { 0%, 100% { height: 2px; } 50% { height: 7px; } }
+.fv-music-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; width: min(330px, calc(100vw - 24px)); max-width: none;
+  padding: 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+.fv-music-now { display: flex; align-items: center; gap: 10px; }
+.fv-music-play {
+  flex: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 14px; font-weight: 700;
+  color: var(--on-gold, #1a1206); border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
+}
+.fv-music-next { flex: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+.fv-music-next:hover { border-color: var(--gold); color: var(--gold); }
+.fv-music-title { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.fv-music-title b { font-family: var(--font-display); font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fv-music-title small { font-size: 11px; color: var(--muted); }
+.fv-music-moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fv-music-mood {
+  cursor: pointer; padding: 8px 6px; border-radius: var(--radius-md); border: 1px solid var(--line);
+  background: var(--sunk); color: var(--ink); font-size: 12px; font-weight: 600; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fv-music-mood.is-on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold); }
+/* faixas do ambiente escolhido: toque para tocar uma específica */
+.fv-music-list { list-style: none; margin: 0; padding: 0; max-height: min(220px, 34vh); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 4px; }
+.fv-music-track {
+  width: 100%; display: grid; grid-template-columns: 14px 1fr; column-gap: 8px; align-items: baseline; text-align: left; cursor: pointer;
+  padding: 6px 8px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink);
+}
+.fv-music-track:hover { background: var(--sunk); }
+.fv-music-track span { color: var(--muted); font-size: 11px; }
+.fv-music-track b { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fv-music-track small { grid-column: 2; font-size: 10.5px; color: var(--muted); }
+.fv-music-track.is-on b, .fv-music-track.is-on span { color: var(--gold); }
+.fv-music-vol { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.fv-music-vol input { flex: 1; accent-color: var(--gold); }
+.fv-music-vol b { width: 36px; text-align: right; color: var(--ink); font-family: var(--font-num); }
+.fv-music-credit { margin: 0; font-size: 10.5px; line-height: 1.45; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .fv-music-eq i { animation: none; height: 5px; } }
+@media (max-width: 640px) {
+  .fv-music-pop { position: fixed; top: calc(var(--topbar-h) - 4px); left: 12px; right: 12px; width: auto; }
+}
+
+/* ===== Oficina de Retratos ===== */
+.fv-workshop { max-width: 1040px; margin: 0 auto; padding: clamp(80px, 11vh, 110px) var(--page-x) 48px; display: flex; flex-direction: column; gap: 14px; }
+.fv-workshop-text { margin: 0 0 8px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.fv-workshop-steps { margin: 0; padding-left: 20px; list-style: decimal; display: grid; gap: 6px; font-size: 13px; color: var(--ink); line-height: 1.5; }
+.fv-workshop-steps code, .fv-workshop-text code { font-size: 12px; padding: 1px 5px; border-radius: 4px; background: var(--sunk); color: var(--gold); }
+.fv-workshop-status { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.fv-workshop-class { display: flex; flex-direction: column; gap: 5px; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); }
+.fv-workshop-class b { font-family: var(--font-display); font-size: 13px; color: var(--ink); }
+.fv-workshop-slot { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--danger); }
+.fv-workshop-slot img { width: 22px; height: 29px; object-fit: cover; border-radius: 4px; }
+.fv-workshop-slot.is-ok { color: var(--muted); }
+.fv-workshop-slot.is-new { color: var(--acc); font-weight: 700; }
+.fv-workshop-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 130px; cursor: pointer;
+  border-radius: var(--radius-lg); border: 2px dashed var(--line-strong); background: var(--sunk); text-align: center; padding: 16px;
+}
+.fv-workshop-drop b { font-family: var(--font-display); font-size: 17px; color: var(--gold); }
+.fv-workshop-drop span { font-size: 12.5px; color: var(--muted); }
+.fv-workshop-drop.is-drag { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+.fv-workshop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.fv-workshop-item { display: flex; flex-direction: column; gap: 10px; }
+.fv-workshop-preview { position: relative; aspect-ratio: 3 / 4; border-radius: var(--radius-md); overflow: hidden; background: var(--sunk); cursor: crosshair; }
+.fv-workshop-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fv-workshop-wait { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: var(--muted); padding: 10px; text-align: center; }
+.fv-workshop-face { position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; border: 2px solid var(--gold); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5); pointer-events: none; }
+.fv-workshop-meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fv-workshop-meta small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fv-workshop-meta small b { color: var(--acc); }
+.fv-workshop-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fv-workshop-selects .fv-input { padding: 8px 30px 8px 10px; font-size: 13px; }
+.fv-workshop-warn { color: var(--danger) !important; }
+.fv-workshop-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fv-workshop-actions .fv-btn-gold { min-height: 46px; padding: 0 22px; font-size: 14px; }
+.fv-workshop-actions .fv-btn-gold:disabled { opacity: 0.45; }
+.fv-workshop-actions span { font-size: 12.5px; color: var(--muted); }
+
+/* Conjurar: tipo de dano à escolha e "acertou?" das magias de ataque */
+.fv-cast-types { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 4px 6px; max-width: 240px; }
+.fv-cast-pop .fv-cast-types button {
+  flex-direction: row; padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+  border: 1px solid var(--line); color: var(--muted); text-transform: capitalize;
+}
+.fv-cast-pop .fv-cast-types button.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.fv-cast-btn.is-pending { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px var(--bloom); }
+.fv-cast-hit { min-width: 240px; gap: 6px; padding: 8px; }
+.fv-cast-hit-head { display: flex; align-items: center; justify-content: space-between; }
+.fv-cast-pop .fv-cast-hit-close { padding: 2px 8px; font-size: 16px; color: var(--muted); }
+.fv-cast-hit-ac { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.fv-cast-hit-ac small { font-weight: 500; font-size: 10.5px; }
+.fv-cast-hit-ac .fv-input { width: 52px; margin-left: auto; padding: 5px 8px; font-size: 13px; text-align: center; }
+.fv-cast-hit-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 6px;
+  border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--sunk);
+}
+.fv-cast-hit-row.is-hit, .fv-cast-hit-row.is-crit { border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
+.fv-cast-hit-row.is-miss { opacity: 0.6; }
+.fv-cast-hit-total { display: flex; align-items: baseline; gap: 6px; }
+.fv-cast-hit-total small { font-size: 10.5px; color: var(--muted); }
+.fv-cast-hit-total b { font-family: var(--font-num); font-size: 18px; color: var(--ink); }
+.fv-cast-hit-row.is-crit b { color: var(--gold); }
+.fv-cast-hit-total em { font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--gold); }
+.fv-cast-hit-row.is-miss em { color: var(--danger); }
+.fv-cast-hit-pick { display: flex; gap: 4px; }
+.fv-cast-pop .fv-cast-hit-pick button { flex-direction: row; padding: 4px 9px; font-size: 11.5px; border: 1px solid var(--line); }
+.fv-cast-pop .fv-cast-hit-pick button.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.fv-cast-pop .fv-cast-hit-go {
+  align-items: center; margin-top: 2px; padding: 8px 10px; border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+.fv-cast-pop .fv-cast-hit-go:disabled { cursor: default; opacity: 0.5; color: var(--muted); border-color: var(--line); background: transparent; }
+.fv-cast-hit-note { padding: 2px 4px; font-size: 11px; line-height: 1.4; color: var(--muted); }
+
+/* Ataque com arma: "acertou?" e dano extra (Furtivo, Destruição Divina, Bruxaria, Marca, Fúria) */
+.fv-atk { gap: 9px; align-items: center; }
+.fv-atk-pop { min-width: 270px; max-width: min(330px, calc(100vw - 32px)); }
+.fv-atk-row { display: flex; gap: 6px; }
+.fv-atk-row .fv-cast-hit-go { flex: 1; }
+.fv-cast-pop .fv-atk-miss { flex-direction: row; align-items: center; padding: 8px 12px; border: 1px solid var(--line); color: var(--muted); }
+.fv-atk-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.fv-atk-group { display: flex; flex-direction: column; gap: 5px; padding: 6px 4px 2px; border-top: 1px solid var(--line); }
+.fv-atk-group small { font-size: 10.5px; letter-spacing: 0.06em; color: var(--muted); }
+.fv-cast-pop .fv-atk-chip {
+  flex-direction: row; align-items: center; padding: 5px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.fv-cast-pop .fv-atk-chip.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.fv-cast-pop .fv-atk-chip:disabled { opacity: 0.45; cursor: default; }
+.fv-druid-pick { display: flex; gap: 6px; flex-wrap: wrap; align-items: stretch; margin: 8px 0; }
+.fv-druid-pick select { flex: 1 1 220px; width: auto; min-height: 40px; }
+.fv-druid-form { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: var(--radius-md); background: color-mix(in srgb, var(--gold) 6%, transparent); }
+.fv-druid-form-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.fv-druid-form-head b { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.fv-druid-form-head span, .fv-druid-multi { font-size: 11.5px; color: var(--muted); }
+.fv-druid-hp { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 12px; color: var(--muted); }
+.fv-druid-hp b { font-family: var(--font-num); font-size: 18px; color: var(--gold); }
+.fv-druid-abil { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--font-num); font-size: 11.5px; color: var(--muted); }
+.fv-druid-abil span { padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; }
+.fv-druid-slot { width: auto; min-height: 38px; }
+.fv-wiz-recovery { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.fv-wiz-recovery > span:first-child:not(.fv-wiz-pick) { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-wiz-recovery select { width: auto; min-height: 38px; }
+.fv-wiz-pick { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-num); font-size: 12px; }
+.fv-wiz-pick button { min-width: 28px; min-height: 28px; border-radius: 999px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.fv-wiz-pick b { min-width: 14px; text-align: center; color: var(--gold); }
+.fv-wiz-check { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.fv-sorc-font { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.fv-sorc-font > span { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.fv-sorc-font select, .fv-sorc-twin { width: auto; min-height: 38px; }
+.fv-ranger-primeval { display: inline-flex; align-items: stretch; gap: 6px; flex-wrap: wrap; }
+.fv-ranger-primeval select { width: auto; min-height: 38px; }
+.fv-inv-offhand { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); padding: 4px 9px; border: 1px dashed color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 999px; }
+.fv-atk-power {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-width: 34px; min-height: 38px; padding: 3px 6px; border-radius: 9px; cursor: pointer;
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, var(--line)); background: transparent;
+  color: var(--muted); font-family: var(--font-num); font-size: 10.5px; line-height: 1.05;
+}
+.fv-atk-power b { font-weight: 700; }
+.fv-atk-power.is-on { border-style: solid; border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.fv-atk-power:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-atk-fixed { font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--gold) 50%, transparent); color: var(--gold); }
+
+/* Adicionar item: subgrupos, encantamento +1/+2/+3 e sintonia */
+.fv-picker-subs { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: thin; }
+.fv-picker-subs button, .fv-picker-enchant button {
+  flex: none; cursor: pointer; font-size: 11.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--muted); white-space: nowrap;
+}
+.fv-picker-subs button.is-on, .fv-picker-enchant button.is-on { color: var(--gold); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.fv-picker-enchant { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding: 8px 10px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--gold) 40%, transparent); }
+.fv-picker-enchant > span { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.fv-picker-enchant small { font-size: 11px; color: var(--gold); }
+.fv-picker-added { position: sticky; top: 0; z-index: 2; margin-bottom: 8px; padding: 7px 12px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; color: #3FC56B; background: color-mix(in srgb, #3FC56B 12%, var(--panel)); border: 1px solid color-mix(in srgb, #3FC56B 40%, transparent); }
+.fv-picker-attune { margin-left: 7px; font-family: var(--font-body); font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: 0.8; vertical-align: middle; }
+
+/* Aviso de conjuração (toda magia, inclusive truques sem rolagem) */
+.fv-castnote {
+  /* canto inferior direito: não cobre a CA/PV do cabeçalho, que é o que muda */
+  position: fixed; z-index: 150; right: 20px; bottom: 20px;
+  width: min(420px, calc(100vw - 24px)); display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 12px 14px;
+  border-radius: var(--radius-lg); color: var(--ink);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--panel) 96%, var(--acc)), var(--panel2));
+  border: 1px solid color-mix(in srgb, var(--acc) 55%, transparent);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 32px color-mix(in srgb, var(--acc) 22%, transparent);
+}
+.fv-castnote-sigil {
+  position: relative; flex: none; width: 38px; height: 38px; display: grid; place-items: center;
+  font-size: 17px; color: var(--acc); text-shadow: 0 0 12px var(--acc);
+}
+.fv-castnote-sigil i {
+  position: absolute; inset: 0; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--acc) 70%, transparent);
+  animation: fv-castnote-spin 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+@keyframes fv-castnote-spin { from { transform: rotate(-120deg) scale(0.6); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+.fv-castnote-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-castnote-body b { font-family: var(--font-display); font-size: 16px; line-height: 1.15; }
+.fv-castnote-body small { font-size: 11.5px; color: var(--muted); }
+.fv-castnote-line { font-size: 12.5px; color: var(--ink); }
+.fv-castnote-line::before { content: '› '; color: var(--acc); }
+.fv-castnote-warn { font-size: 11.5px; color: #E0A93E; }
+.fv-castnote-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.fv-castnote-actions button {
+  cursor: pointer; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--sunk); color: var(--muted);
+}
+.fv-castnote-actions button.is-primary { color: var(--on-gold, #1a1206); border-color: var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold)); }
+.fv-castnote-close { flex: none; cursor: pointer; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 4px; }
+@media (prefers-reduced-motion: reduce) { .fv-castnote-sigil i { animation: none; } }
+@media (max-width: 760px) { .fv-castnote { right: 12px; bottom: calc(86px + env(safe-area-inset-bottom)); } }
+
+/* botão Conjurar: acabou de ser usado / já usado neste turno */
+.fv-cast-btn.is-cast { animation: fv-cast-flash 0.9s ease-out 1; }
+@keyframes fv-cast-flash {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 70%, transparent); background: color-mix(in srgb, var(--acc) 35%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+.fv-cast-btn.is-used { border-style: dashed; opacity: 0.85; }
+.fv-cast-btn.is-used::after { content: ' ✓'; }
+@media (prefers-reduced-motion: reduce) { .fv-cast-btn.is-cast { animation: none; } }
+
+/* efeitos de magia ativos (aba Combate / Mesa) */
+/* Sono / Leque Cromático: calculadora de quem é afetado */
+.fv-castnote-pool { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--sunk); border: 1px solid var(--line); }
+.fv-castnote-pool-total { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.fv-castnote-pool-total b { font-family: var(--font-num); font-size: 18px; color: var(--acc); margin-right: 2px; }
+.fv-castnote-pool label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.fv-castnote-pool .fv-input { padding: 7px 10px; font-size: 13.5px; }
+.fv-castnote-pool-res { font-size: 12.5px; color: var(--ink); }
+.fv-castnote-pool-res b { color: var(--gold); }
+.fv-castnote-pool small { font-size: 11px; color: var(--muted); }
+
+/* XP na aba Evoluir */
+.fv-xp { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; }
+.fv-xp-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+.fv-xp-top .fv-label { font-size: 11px; }
+.fv-xp-top b { font-family: var(--font-num); font-size: 16px; color: var(--gold); }
+.fv-xp-top small { font-size: 11.5px; color: var(--muted); }
+.fv-xp-top em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #3FC56B; }
+.fv-xp-bar { height: 6px; border-radius: 999px; background: var(--sunk-deep); overflow: hidden; }
+.fv-xp-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--acc), var(--gold)); }
+.fv-xp-add { display: flex; gap: 6px; max-width: 240px; }
+.fv-xp-add .fv-input { padding: 6px 10px; font-size: 13px; }
+.fv-xp-add button { cursor: pointer; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); color: var(--ink); font-weight: 600; font-size: 12px; }
+.fv-xp-add button:disabled { opacity: 0.5; cursor: default; }
+
+/* ============================================================
+   HOMEBREW — raças criadas pelo jogador
+   ============================================================ */
+.fv-hb-head { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 8px; }
+.fv-hb-head small { font-size: 11.5px; color: var(--muted); }
+.fv-hb-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  border: 1px dashed var(--gold); color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 90%);
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.fv-hb-badge.is-small { margin-left: 8px; padding: 1px 7px; font-size: 9px; vertical-align: 1px; }
+.fv-hb-new { border-style: dashed !important; justify-content: center; align-items: center; text-align: center; }
+.fv-hb-plus { font-size: 26px; line-height: 1; color: var(--gold); font-weight: 300; }
+.fv-hb-traits { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink); }
+.fv-hb-traits p { margin: 0; }
+.fv-hb-traits em { color: var(--muted); }
+.fv-hb-edit { margin-top: 10px; min-height: 34px; padding: 0 14px; font-size: 12.5px; }
+
+.fv-hb { display: flex; flex-direction: column; gap: 14px; }
+.fv-hb-templates { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px; border-radius: var(--radius-md); border: 1px dashed var(--line-strong); }
+.fv-hb-templates span { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.fv-hb-templates button { min-height: 34px; padding: 0 12px; border-radius: 999px; cursor: pointer; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font-size: 12.5px; font-weight: 600; }
+.fv-hb-templates button:hover { border-color: var(--gold); }
+.fv-hb-templates select { flex: 1 1 180px; min-height: 34px; padding: 4px 10px; font-size: 12.5px; }
+.fv-hb-sec { display: flex; flex-direction: column; gap: 8px; }
+.fv-hb-sec h4 { margin: 0; font-family: var(--font-display); font-size: 14px; color: var(--ink); letter-spacing: 0.03em; }
+.fv-hb-sec h4 small { margin-left: 8px; font-family: inherit; font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.fv-hb-sec h4 small.is-warn { color: var(--live-warn, #ffc857); }
+.fv-hb-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.fv-hb-name { flex: 1 1 220px; font-size: 15px; }
+.fv-hb-colors { display: flex; gap: 5px; }
+.fv-hb-colors button { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.fv-hb-colors button.is-on { border-color: #fff; box-shadow: 0 0 0 2px var(--gold); }
+.fv-hb-abil { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 560px) { .fv-hb-abil { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.fv-hb-step { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 2px; padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--lift); text-align: center; }
+.fv-hb-step > span { grid-column: 1 / -1; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
+.fv-hb-step b { font-family: var(--font-num); font-size: 17px; color: var(--gold); min-width: 2ch; }
+.fv-hb-step button { height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); cursor: pointer; font-size: 15px; }
+.fv-hb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.fv-hb-grid label, .fv-hb-inline { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+.fv-hb-grid .fv-live-seg, .fv-hb-inline .fv-live-seg { grid-column: auto; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.fv-hb-grid .fv-live-seg button, .fv-hb-inline .fv-live-seg button { min-width: 44px; min-height: 32px; font-size: 12.5px; }
+.fv-hb-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.fv-hb-chips form { display: inline-flex; }
+.fv-hb-chips input { width: 150px; min-height: 30px; padding: 3px 10px; font-size: 12.5px; }
+.fv-hb-chip { min-height: 30px; padding: 0 10px; border-radius: 999px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 12px; }
+.fv-hb-chip.is-on { border-color: var(--gold); color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 88%); font-weight: 700; }
+.fv-hb-chip:focus-visible, .fv-hb-step button:focus-visible, .fv-hb-colors button:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+.fv-hb-trait { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 8px 34px 8px 8px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--lift); }
+.fv-hb-x { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 6px; border: 0; background: transparent; color: var(--muted); font-size: 18px; cursor: pointer; }
+.fv-hb-warn { list-style: none; margin: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; border-radius: var(--radius-md); border: 1px solid color-mix(in srgb, #ffc857, transparent 55%); background: color-mix(in srgb, #ffc857, transparent 90%); font-size: 12.5px; color: var(--ink); }
+.fv-hb-warn li::before { content: '⚠ '; color: #ffc857; }
+.fv-hb-warn li.is-info::before { content: 'ⓘ '; color: var(--acc); }
+.fv-hb-note { font-size: 12px; color: var(--muted); }
+.fv-hb-grid label.fv-hb-check { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); min-height: 44px; }
+.fv-hb-check input { width: 18px; height: 18px; accent-color: var(--acc); }
+.fv-hb-pair { display: flex; gap: 6px; }
+.fv-hb-pair > * { flex: 1; min-width: 0; }
+.fv-hb-auto { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--ink); }
+.fv-hb-auto b { color: var(--acc); font-weight: 600; }
+.fv-hb-warn li.is-error::before { content: '✕ '; color: var(--danger); }
+.fv-hb-lib { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.fv-hb-templates.is-presets button.is-on { border-color: var(--gold); color: var(--gold); }
+.fv-hb-templates small { font-size: 10.5px; color: var(--muted); font-weight: 500; }
+.fv-hb-source { margin: 0; font-size: 12px; color: var(--muted); }
+.fv-hb-source b { color: var(--ink); }
+.fv-detail .fv-hb-source { margin-top: 8px; }
+.fv-hb-sub { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 12px; border-radius: var(--radius-lg); border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--lift), transparent 30%); }
+.fv-hb-sub > .fv-hb-name { flex: none; margin-right: 34px; font-size: 15px; }
+.fv-hb-abil.is-mini .fv-hb-step { padding: 4px; }
+.fv-hb-abil.is-mini .fv-hb-step b { font-size: 14px; }
+.fv-hb-abil.is-mini .fv-hb-step button { height: 24px; }
+
+/* ===== Falas dos heróis (passo da classe) ===== */
+.fv-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.fv-voice-play {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font-size: 12.5px; font-weight: 700; color: var(--on-gold, #1a1206); border: 1px solid var(--goldB); background: linear-gradient(180deg, var(--goldB), var(--gold));
+}
+.fv-voice-play.is-on { color: var(--gold); background: color-mix(in srgb, var(--gold), transparent 85%); }
+.fv-voice-play:disabled { opacity: 0.45; cursor: not-allowed; }
+.fv-voice-mute { min-height: 36px; padding: 0 10px; border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; text-decoration: underline dotted; }
+.fv-voice-mute[aria-pressed='true'] { color: var(--gold); }
+.fv-voice-none { font-size: 12px; color: var(--muted); font-style: italic; }
+.fv-voice-eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 10px; }
+.fv-voice-eq i { width: 2px; background: currentColor; border-radius: 1px; animation: fvEq 0.9s ease-in-out infinite; }
+.fv-voice-eq i:nth-child(2) { animation-delay: -0.3s; }
+.fv-voice-eq i:nth-child(3) { animation-delay: -0.6s; }
+@media (prefers-reduced-motion: reduce) { .fv-voice-eq i { animation: none; height: 6px; } }
+
+/* ===== Idiomas à escolha (passo Passado) ===== */
+.fv-langs .fv-facts-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fv-langs-why { display: block; margin: 2px 0 8px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.fv-detail-due {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--acc);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.fv-langs .fv-pill:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== Proficiências com armas e armaduras (ficha) ===== */
+.fv-profs { display: grid; gap: 6px; margin: 0 0 11px; }
+.fv-profs > div { display: grid; grid-template-columns: 88px 1fr; gap: 8px; font-size: 12.5px; line-height: 1.45; }
+.fv-profs dt { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding-top: 1px; }
+.fv-profs dd { margin: 0; color: var(--ink); }
+
+/* marcador de desvantagem automática nas perícias */
+.fv-disadv { font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--danger, #d0605e); text-transform: none; }
+
+/* ===== Pacotes de conteúdo ===== */
+.fv-packs-intro { margin: 0 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.fv-packs-intro b { color: var(--ink); }
+.fv-packs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fv-pack { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--sunk); transition: border-color 0.2s, background 0.2s; }
+.fv-pack.is-on { border-color: color-mix(in srgb, var(--gold), transparent 45%); background: color-mix(in srgb, var(--gold), transparent 92%); }
+.fv-pack-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fv-pack-text b { font-family: var(--font-display); font-size: 14px; color: var(--ink); }
+.fv-pack-text small { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.fv-switch { flex: none; position: relative; width: 44px; height: 26px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--sunk-deep); cursor: pointer; transition: background 0.2s; }
+.fv-switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
+.fv-switch[aria-checked='true'] { background: color-mix(in srgb, var(--gold), transparent 55%); }
+.fv-switch[aria-checked='true'] span { transform: translateX(18px); background: var(--gold); }
+.fv-switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-packs-note { margin: 12px 0 0; font-size: 11.5px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .fv-switch span, .fv-pack { transition: none; } }
+
+/* ===== Origem personalizada (Tasha) ===== */
+.fv-origin { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.fv-origin-toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.fv-origin-toggle input { margin-top: 3px; accent-color: var(--gold); width: 16px; height: 16px; }
+.fv-origin-toggle span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); }
+.fv-origin-toggle small { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc); }
+.fv-origin-toggle em { font-style: normal; font-size: 12px; color: var(--muted); }
+.fv-origin-body { display: grid; gap: 10px; margin-top: 10px; }
+.fv-origin-row { display: grid; gap: 6px; }
+.fv-origin-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.fv-origin-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+.fv-origin-field { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); }
+.fv-origin-field b { font-family: var(--font-num); color: var(--gold); }
+.fv-origin-field .fv-input { min-height: 34px; padding: 4px 28px 4px 10px; font-size: 12.5px; width: auto; }

@@ -584,7 +584,7 @@
 .fv-ins-res { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; }
 .fv-ins-res li { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); }
 .fv-ins-res li b { color: var(--ink); font-variant-numeric: tabular-nums; }
-.fv-inspector-body .fv-monster-sheet,
+
 .fv-inspector-body .fv-panel { box-shadow: none; }
 
 /* ---------- faixa de iniciativa ---------- */

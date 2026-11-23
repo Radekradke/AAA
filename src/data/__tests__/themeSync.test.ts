@@ -9,7 +9,7 @@ import type { ThemeMode, ThemeName } from '@/types/dnd';
  * tela) e o JS (estilos inline, prévias do seletor). Este teste garante que
  * os dois contam a mesma história em cada tema e em cada modo.
  */
-const css = ['globals.css', 'themes/astral.css', 'themes/noite.css', 'themes/forja.css', 'themes/bosque.css', 'themes/corte.css', 'themes/ouro.css', 'themes/eclipse.css', 'themes/rubra.css', 'themes/modes.css']
+const css = ['globals.css', 'global/sheet.css', 'global/creation.css', 'global/features.css', 'global/themes-finish.css', 'global/home-settings.css', 'global/feedback.css', 'global/spells.css', 'themes/astral.css', 'themes/noite.css', 'themes/forja.css', 'themes/bosque.css', 'themes/corte.css', 'themes/ouro.css', 'themes/eclipse.css', 'themes/rubra.css', 'themes/modes.css']
   .map((f) => readFileSync(resolve(__dirname, '../../styles', f), 'utf8'))
   .join('\n');
 

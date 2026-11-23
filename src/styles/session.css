@@ -192,9 +192,6 @@
   max-width: 620px;
   margin: 10px auto;
 }
-.fv-live-center .fv-live-inline {
-  width: 100%;
-}
 .fv-live-hint {
   margin: 0;
   font-size: 12.5px;
@@ -216,29 +213,13 @@
   opacity: 0.5;
   cursor: default;
 }
-.fv-live-inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.fv-live-inline .fv-input {
-  flex: 1 1 200px;
-  padding: 10px 13px;
-  font-size: 14px;
-}
-.fv-live-inline > button {
-  min-height: 42px;
-  padding: 0 16px;
-  font-size: 13px;
-}
 .fv-live-big {
   min-height: 46px;
   padding: 0 22px;
   font-size: 14px;
 }
 .fv-live .fv-btn-gold:disabled,
-.fv-live .fv-btn-ghost:disabled,
-.fv-live-turnbar button:disabled {
+.fv-live .fv-btn-ghost:disabled {
   opacity: 0.45;
   cursor: default;
   transform: none;
@@ -533,8 +514,7 @@
   font-weight: 700;
   color: var(--ink);
 }
-.fv-live-member label,
-.fv-live-form label {
+.fv-live-member label {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -555,19 +535,6 @@
 }
 
 /* ---------- formulário de criatura ---------- */
-.fv-live-form {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  align-items: end;
-}
-.fv-live-form .fv-input {
-  padding: 8px 10px;
-  font-size: 13.5px;
-}
-.fv-live-f-name {
-  grid-column: 1 / 3;
-}
 .fv-live-seg {
   grid-column: 3 / 5;
   display: flex;
@@ -588,24 +555,6 @@
 .fv-live-seg button.is-on {
   background: color-mix(in srgb, var(--gold), transparent 84%);
   color: var(--gold);
-}
-.fv-live-checks {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-}
-.fv-live-checks label {
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  letter-spacing: 0;
-}
-.fv-live-form > button[type='submit'] {
-  grid-column: 1 / -1;
-  min-height: 42px;
-  font-size: 13px;
 }
 
 /* ---------- jogador ---------- */
@@ -813,50 +762,8 @@
   letter-spacing: 0.1em;
   color: var(--acc2);
 }
-.fv-live-session-ctl {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.fv-live-session-ctl button {
-  flex: 1 1 140px;
-  min-height: 38px;
-  font-size: 12.5px;
-}
 
 /* ---------- barra de turno do mestre ---------- */
-.fv-live-turnbar {
-  position: fixed;
-  left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: min(640px, calc(100% - 24px));
-  padding: 8px;
-  border-radius: calc(var(--radius-lg) + 4px);
-  background: color-mix(in srgb, var(--panel2), transparent 6%);
-  border: 1px solid var(--line-strong);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-.fv-live-turnbar .fv-btn-gold {
-  flex: 1;
-  white-space: nowrap;
-}
-.fv-live-turnbar .fv-btn-ghost {
-  min-height: 46px;
-  padding: 0 14px;
-  font-size: 13px;
-}
-.fv-live-turnbar-note {
-  flex: 1;
-  font-size: 12px;
-  color: var(--muted);
-  padding-left: 6px;
-}
 
 /* ---------- card na sala da campanha ---------- */
 .fv-live-entry {
@@ -1018,13 +925,7 @@
 }
 
 @media (max-width: 640px) {
-  .fv-live-wide {
-    display: none;
-  }
-  .fv-live-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .fv-live-f-name,
+
   .fv-live-seg {
     grid-column: 1 / -1;
   }
@@ -1037,9 +938,6 @@
   }
   .fv-live-row-stats {
     display: none;
-  }
-  .fv-live-turnbar .fv-btn-ghost {
-    padding: 0 10px;
   }
   .fv-live-dock {
     right: 10px;
@@ -1081,10 +979,9 @@
 .fv-bestiary-foot .fv-btn-gold { margin-left: auto; min-height: 40px; padding: 0 16px; font-size: 13px; }
 .fv-bestiary-check { font-size: 12px; }
 .fv-bestiary-credit { font-size: 10.5px; color: var(--muted); }
-.fv-bestiary-card .fv-btn-gold { min-height: 40px; font-size: 13px; }
 
 .fv-mstat { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--panel2), transparent 20%); }
-.fv-live-turncard .fv-mstat, .fv-live-row-edit .fv-mstat { border: 1px solid var(--line); border-radius: var(--radius-md); }
+.fv-live-row-edit .fv-mstat { border: 1px solid var(--line); border-radius: var(--radius-md); }
 .fv-mstat-head b { display: block; font-family: var(--font-display); font-size: 18px; color: var(--gold); }
 .fv-mstat-head small { font-size: 11.5px; color: var(--muted); font-style: italic; }
 .fv-mstat-core { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink); }
@@ -1235,8 +1132,6 @@
 .fv-npc-editor-foot .fv-btn-gold { margin-left: auto; min-height: 40px; padding: 0 20px; }
 .fv-npc-editor-foot .fv-btn-ghost { min-height: 40px; padding: 0 14px; }
 .fv-npc-editor-err { font-size: 12px; color: var(--danger); }
-.fv-npc-chip { display: inline-flex; align-items: center; gap: 6px; }
-.fv-npc-chip .fv-npc-avatar { border-radius: 50%; }
 
 /* ---------- diário: @ para citar NPC e retrato ao passar o mouse ---------- */
 .fv-mention { position: relative; display: block; }
@@ -1253,8 +1148,6 @@
 .fv-mention-list .fv-npc-avatar { border-radius: 50%; }
 .fv-mention-list b { display: block; font-size: 13px; }
 .fv-mention-list small { display: block; font-size: 11px; color: var(--muted); }
-.fv-npc-cited { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
-.fv-npc-cited > span:first-child { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .fv-npc-mention {
   position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; cursor: default;
   border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold), transparent 55%); background: color-mix(in srgb, var(--gold), transparent 90%);

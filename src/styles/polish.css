@@ -18,10 +18,10 @@
 }
 
 /* ---------- botões: afundam ao tocar ---------- */
-:where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action) {
+:where(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action) {
   -webkit-tap-highlight-color: transparent;
 }
-:where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action):active:not(:disabled) {
+:where(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip, .fv-ins-hp-btns button, .fv-quickbar-btns button, .fv-ins-conds button, .fv-ins-recips button, .fv-bs-mini, .fv-toast-action):active:not(:disabled) {
   transform: translateY(1px) scale(0.97);
   transition-duration: var(--dur-press);
 }
@@ -30,7 +30,7 @@
   transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast) var(--ease-out);
 }
 /* desabilitado é desabilitado: sem brilho nem lift no hover */
-:is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-btn):disabled {
+:is(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger):disabled {
   cursor: not-allowed;
   filter: saturate(0.6);
 }
@@ -199,7 +199,7 @@ label:focus-within > small {
     animation: none !important;
   }
   .fv-hp-trail { transition: none; }
-  :where(.fv-btn, .fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip):active:not(:disabled) { transform: none; }
+  :where(.fv-btn-gold, .fv-btn-ghost, .fv-btn-danger, .fv-chip, .fv-live-chip, .fv-turn-btn, .fv-initdock-chip):active:not(:disabled) { transform: none; }
   /* sem animação, a barra do Desfazer some: o texto e o botão bastam */
   .fv-toast-time { display: none; }
 }
