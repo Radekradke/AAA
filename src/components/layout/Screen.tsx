@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode, UIEvent } from 'react';
 import { m } from 'framer-motion';
 import { AppShell } from './AppShell';
@@ -21,11 +21,23 @@ interface ScreenProps {
 }
 
 /**
+ * A primeira tela depois de abrir o app entra sem a animação: a tela de
+ * abertura já fez esse papel, e começar em opacidade 0 deixava um vazio entre
+ * a abertura e o menu (e atrasava o LCP em ~0,5 s no celular). Trocar de tela
+ * continua com a entrada cinematográfica.
+ */
+let booted = false;
+
+/**
  * Tela completa: casca + barra superior + área de conteúdo com entrada
  * cinematográfica. Base de todas as páginas.
  */
 export function Screen({ children, actions, menu, video, posters, videoOpacity, darken, scroll }: ScreenProps) {
   const theme = useUiStore((s) => s.theme);
+  const [firstScreen] = useState(() => !booted);
+  useEffect(() => {
+    booted = true;
+  }, []);
   // a barra do topo ganha fundo quando o conteúdo rola por baixo dela (só muda o estado ao cruzar o limite)
   const [scrolled, setScrolled] = useState(false);
   const frame = useRef(0);
@@ -46,7 +58,7 @@ export function Screen({ children, actions, menu, video, posters, videoOpacity, 
       {/* só opacidade + transform (GPU): blur na tela inteira custava quadros no
           celular e o filter residual virava bloco de contenção para position:fixed */}
       <m.div
-        initial={{ opacity: 0, scale: 1.035, y: 10 }}
+        initial={firstScreen ? false : { opacity: 0, scale: 1.035, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.99 }}
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}

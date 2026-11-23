@@ -3,6 +3,7 @@ import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
+import { THEME_PRELOAD } from './src/lib/themePreload';
 
 /**
  * Abre a conexão (DNS + TLS) com o Supabase enquanto o JS ainda baixa: o
@@ -47,6 +48,40 @@ function versionFile(): Plugin {
   };
 }
 
+/**
+ * Tela inicial mais rápida (LCP): o tema só era pedido depois que o JS rodava,
+ * e a fonte do título só depois do tema — o título repintava ~1 s depois da
+ * primeira pintura. Aqui o build grava no index.html, para cada tema, o CSS
+ * dele e a fonte do título da tela inicial; o script de abertura (que já sabe
+ * o tema salvo) pede os dois com <link rel="preload"> enquanto o JS baixa.
+ * Preload não entra na cascata: themeCss.ts continua pondo a folha no lugar
+ * certo, e ela já chega do cache. Falta de arquivo quebra o build (renomearam
+ * um tema ou uma fonte: atualizar o mapa em src/lib/themePreload.ts).
+ */
+function themePreload(): Plugin {
+  return {
+    name: 'fv-theme-preload',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html;
+        const files = Object.keys(ctx.bundle);
+        const find = (name: string, ext: string) => {
+          const re = new RegExp(`^static/${name}-[\\w-]{8}\\.${ext}$`);
+          const f = files.find((x) => re.test(x));
+          if (!f) throw new Error(`fv-theme-preload: não achei static/${name}-*.${ext} no build`);
+          return '/' + f;
+        };
+        const map: Record<string, string[]> = { fixes: [find('fixes', 'css')] };
+        for (const [theme, [css, font]] of Object.entries(THEME_PRELOAD)) map[theme] = [find(css, 'css'), find(font, 'woff2')];
+        if (!html.includes('/*FV_PRELOAD*/{}')) throw new Error('fv-theme-preload: marcador /*FV_PRELOAD*/{} sumiu do index.html');
+        return html.replace('/*FV_PRELOAD*/{}', JSON.stringify(map));
+      },
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
@@ -57,6 +92,7 @@ export default defineConfig({
     react(),
     preconnectSupabase(),
     versionFile(),
+    themePreload(),
     // App instalável e offline (mesa de RPG costuma ter sinal ruim).
     // O service worker guarda o app inteiro; as fichas já vivem no IndexedDB.
     VitePWA({

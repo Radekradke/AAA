@@ -16,7 +16,8 @@
     "lint": "eslint . --max-warnings 0",
     "budget": "node scripts/bundle-budget.mjs",
     "debt": "node scripts/style-debt.mjs",
-    "art": "node scripts/art-sizes.mjs"
+    "art": "node scripts/art-sizes.mjs",
+    "vitals": "node scripts/web-vitals.mjs"
   },
   "dependencies": {
     "@3d-dice/dice-box-threejs": "^0.0.12",
