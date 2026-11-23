@@ -13,8 +13,8 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 
 ## Etapa 1 — Caça a bugs
 - [x] 1.1 Criação
-- [~] 1.2 Ficha: Jogar, Combate, Magias, Inventário
-- [ ] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
+- [x] 1.2 Ficha: Jogar, Combate, Magias, Inventário
+- [~] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
 - [ ] 1.4 Mesa ao vivo, palco, mapa, NPCs, bestiário
 - [ ] 1.5 Conta, sincronização, offline, importação/exportação, impressão
 
@@ -58,4 +58,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 0.3–0.5 · PR #124 mergeado · orçamento do pacote (JS 1150 / CSS 245 / gzip 415 KB) no CI; fumaça das 16 páginas, 32/32 (PC e celular); `docs/BUGS.md` com 3 bugs abertos
 - 23/11 · B-001 (etapa 1, achado da 0.5) · PR #125 mergeado · Patrulheiro deixa de dever idioma de inimigo que não fala; 1013 unidade
 - 23/11 · 1.1 criação · PR #126 mergeado · varredura do motor: 1.440 heróis (12 classes × 20 níveis × 6 sementes) sem problema; criador inteiro guiado por robô em 12 classes × níveis 1 e 6, PC e celular: 48/48, sem erro no console; fichas de 36 heróis com todas as abas abertas: limpo; 1 achado de acessibilidade (B-004) corrigido
-- 23/11 · 1.2 Jogar, Combate, Magias, Inventário · PR aberto · teste macaco (clica em todo botão de cada aba, fecha o que abre e volta se navegar) em 12 classes: ~1.700 cliques, sem tela de erro e sem erro no console; app responde em 30–150 ms por clique. Nenhum bug novo
+- 23/11 · 1.2 Jogar, Combate, Magias, Inventário · PR #127 mergeado · teste macaco (clica em todo botão de cada aba, fecha o que abre e volta se navegar) em 12 classes: ~1.700 cliques, sem tela de erro e sem erro no console; app responde em 30–150 ms por clique. Nenhum bug novo
+- 23/11 · 1.3 Evoluir, Descanso, Diário, Retrato, Dados · PR aberto · teste macaco por rótulo (só o conteúdo da aba) em 6 classes, PC e celular: ~600 cliques, sem tela de erro e sem erro no console. Nenhum bug novo. Pendência de cobertura: o Retrato troca de vista no 1º clique, então foi pouco exercitado — vira item da 1.5/5.x
