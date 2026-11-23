@@ -57,7 +57,7 @@
   "src/components/sheet/TabCombate.tsx": {"style":4,"hex":9},
   "src/components/sheet/TabDescanso.tsx": {"style":13,"hex":1},
   "src/components/sheet/TabEvoluir.tsx": {"style":1,"hex":0},
-  "src/components/sheet/TabFicha.tsx": {"style":62,"hex":0},
+  "src/components/sheet/TabFicha.tsx": {"style":3,"hex":0},
   "src/components/sheet/TabInventario.tsx": {"style":61,"hex":8},
   "src/components/sheet/TabMagias.tsx": {"style":29,"hex":6},
   "src/components/sheet/TabMesa.tsx": {"style":22,"hex":6},

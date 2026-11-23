@@ -86,7 +86,7 @@
 [data-theme='rubra'] .fv-forge-rail button.is-current {
   border-radius: 999px;
 }
-[data-theme='rubra'] .fv-ability-row [style*='clip-path'] {
+[data-theme='rubra'] .fv-ability-row .fv-ficha-ab {
   clip-path: none !important;
   border-radius: 18px;
 }

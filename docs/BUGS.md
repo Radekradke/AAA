@@ -58,6 +58,17 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
+### B-009 · Temas que reconheciam peças pelo estilo inline deixavam de achá-las após a migração
+- **Prioridade:** P3
+- **Área:** Temas (Eclipse, Ouro Velho, Guilda Rubra) · Etapa 3
+- **Passos:** abrir a aba Ficha no Eclipse, Ouro Velho ou Guilda Rubra depois de migrar a aba para classes; ou ligar a Concentração na aba Combate no Ouro Velho.
+- **Esperado:** o visual do tema continua o mesmo.
+- **Acontece:** esses temas acham as placas de atributo e os brilhos pelo texto do estilo inline (`[style*='clip-path']`, `[style*='0px 0px']`). Quando o estilo vira classe, a regra do tema para de pegar:
+  - as placas da Ficha voltariam ao corte e às cores padrão;
+  - o ponto da Concentração (migrado na 3.1) voltou a brilhar no Ouro Velho.
+- **Status:** Corrigido na 3.3. As regras dos temas apontam para as classes (`.fv-ficha-ab`, `.fv-combat-conc-dot`). Conferido com prints nos 4 temas e com `toHaveCSS` no ponto da Concentração.
+- **Para as próximas telas:** antes de migrar, procurar `[style*=` nos temas. Ainda resta `[style*='0px 0px']` no Ouro Velho, que pega os brilhos inline que sobraram.
+
 ### B-007 · Mapa: Esc e logo F não voltava para tela cheia
 - **Prioridade:** P3
 - **Área:** Mesa ao vivo › Mapa

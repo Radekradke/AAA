@@ -43,6 +43,7 @@
   text-shadow: none !important;
 }
 [data-theme='ouro'] [style*='0px 0px'],
+[data-theme='ouro'] .fv-combat-conc-dot,
 [data-theme='ouro'] .fv-option.is-selected,
 [data-theme='ouro'] .fv-btn-gold,
 [data-theme='ouro'] .fv-btn-gold:hover {
@@ -107,7 +108,7 @@
 [data-theme='ouro'] :focus-visible {
   border-radius: 0;
 }
-[data-theme='ouro'] .fv-ability-row [style*='clip-path'] {
+[data-theme='ouro'] .fv-ability-row .fv-ficha-ab {
   background: var(--panel2) !important;
   border-color: var(--line) !important;
   clip-path: none !important;
