@@ -15,7 +15,8 @@
     "docs:chatgpt": "UPDATE_GUIDE=1 vitest run src/lib/__tests__/chatgptGuide.test.ts",
     "lint": "eslint . --max-warnings 0",
     "budget": "node scripts/bundle-budget.mjs",
-    "debt": "node scripts/style-debt.mjs"
+    "debt": "node scripts/style-debt.mjs",
+    "art": "node scripts/art-sizes.mjs"
   },
   "dependencies": {
     "@3d-dice/dice-box-threejs": "^0.0.12",

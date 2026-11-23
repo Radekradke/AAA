@@ -1,8 +1,9 @@
 import type { InventoryItem } from '@/types/character';
 
 /**
- * Arte padrão dos itens do catálogo: basta soltar `src/assets/itens/<id>.webp`
- * (ex.: `w-longsword.webp`, `a-chain-mail.webp`) — o app pega sozinho.
+ * Arte padrão dos itens do catálogo: `src/assets/itens/<id>.webp` já no tamanho
+ * do app (ex.: `w-longsword.webp`, `a-chain-mail.webp`), gerada de
+ * `arte-original/itens/` por `npm run art -- itens` — o app pega sozinho.
  * Veja docs/ARTE-ITENS.md (a lista de todos os ids). A foto que o jogador
  * enviar para o item na ficha sempre vence a padrão.
  */

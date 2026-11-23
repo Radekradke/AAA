@@ -46,6 +46,14 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
+### B-012 · Couro Batido e Cinto do Gigante do Fogo com arte quebrada
+- **Prioridade:** P3
+- **Área:** Inventário, detalhes do item, busca
+- **Passos:** procurar "Couro Batido" ou "Cinto de Força de Gigante do Fogo" na busca, ou ter um deles no inventário.
+- **Esperado:** a carta com a arte do item, ou a carta sem arte (como os itens que ainda não têm imagem).
+- **Acontece:** `a-studded.webp` e `m-belt-fire.webp` chegaram vazios (0 bytes) no envio das fotos de equipamento; o app achava o arquivo e mostrava imagem quebrada.
+- **Status:** Corrigido na 4.2: os dois arquivos vazios saíram (os itens voltam a ficar sem arte até a imagem ser gerada de novo, ver `docs/ARTE-ITENS.md`). Teste: `src/lib/__tests__/artAssets.test.ts` reprova imagem vazia ou que não é WebP em qualquer pasta de `src/assets`, e `npm run art` para com erro se o original estiver vazio.
+
 ### B-008 · Janelas feitas à mão sem foco preso ou sem Esc
 - **Prioridade:** P2
 - **Área:** Acessibilidade (teclado e leitor de tela)

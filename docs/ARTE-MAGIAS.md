@@ -2,7 +2,7 @@
 
 Lista das **476 magias** da Ficha Viva (Livro do Jogador, Xanathar e Tasha), com o nome de arquivo e o nome em inglês de cada uma, que é o que vai no prompt. A arte aparece para todo mundo como a carta da magia.
 
-**Como usar:** gere a imagem e salve em `src/assets/magias/` com o nome da coluna **Arquivo** (ex.: `sp-bolafogo.webp`). O app passa a usá-la sozinho:
+**Como usar:** gere a imagem e salve o original em `arte-original/magias/` com o nome da coluna **Arquivo** (ex.: `sp-bolafogo.webp`); depois `npm run art -- magias` grava em `src/assets/magias/` a versão no tamanho do app (560×700). O app passa a usá-la sozinho:
 
 - na carta ao lado dos detalhes da magia (passar o mouse ou segurar no celular);
 - na aba **Magias**, no **Jogar** e nas magias concedidas por itens.
@@ -17,7 +17,7 @@ A moldura da carta segue o círculo, nas mesmas cores de raridade dos itens: tru
 | --- | --- |
 | **Traço** | O mesmo dos retratos, do bestiário e dos itens: ilustração anime/manhwa semi-realista, *splash art* de fantasia sombria, line art fina, cel shading com sombras duras. |
 | **Assunto** | **O efeito da magia** em primeiro plano: a explosão, o raio, o escudo, a runa, a criatura invocada. Pode ter **mãos ou uma silhueta pequena e sem rosto** só quando a magia precisa de um conjurador ou de um alvo para ser entendida (ex.: Imobilizar Pessoa). Nunca um personagem reconhecível. |
-| **Enquadramento** | Retrato **4:5** (480×600 basta; até 800×1000). O efeito centralizado, ocupando ~70% da altura, lendo bem em miniatura. |
+| **Enquadramento** | Retrato **4:5**, original em qualquer tamanho a partir de 560×700 (vai para `arte-original/magias/`; `npm run art -- magias` gera a versão do app). O efeito centralizado, ocupando ~70% da altura, lendo bem em miniatura. |
 | **Fundo** | Escuro e simples (**cinza-carvão** a quase preto), sem cenário detalhado. A própria luz da magia ilumina a cena. A carta coloca a borda e a cor do círculo por cima. |
 | **Cor** | A cor-guia da **escola** (tabela abaixo) domina; o elemento do dano manda quando existir (fogo laranja, frio azul-gelo, raio branco-azulado, ácido verde-limão, veneno verde-escuro, necrótico verde-doentio, radiante dourado, trovão azul-acinzentado com ondas, energia violeta). |
 | **Proibido** | Texto, letras legíveis, logo, assinatura, moldura desenhada, personagem com rosto. |
