@@ -26,6 +26,15 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Abertos
 
+### B-013 · Ficha e Seus heróis demoram ~6 s na primeira visita em 4G lenta
+- **Prioridade:** P2
+- **Área:** Desempenho › Ficha, Seus heróis
+- **Passos:** `npm run build && npm run vitals` (celular médio, 4G lenta, sem cache).
+- **Esperado:** LCP < 2,5 s, como a tela inicial (2,2 s).
+- **Acontece:** LCP 6,0 s na ficha e 6,4 s em Seus heróis. A tela só desenha depois de baixar ~600 KB de código da rota, e a arte do herói divide a rede com ele. Com o app já aberto antes (service worker), 1,4 s e 1,0 s.
+- **Candidatos (medido na 4.3):** `CharacterSheet` 124 KB; `levelUp` 49 KB, `spells` 42 KB e `ChoicePicker` 49 KB baixam antes da primeira aba aparecer; `gameIcons` 31 KB (todos os ícones, via `withRules`); `spellArt` 18 KB (o mapa das 476 artes). Separar o que a primeira aba não usa, como na 4.1.
+- **Status:** Aberto (etapa 4; detalhes em `docs/DESEMPENHO.md`).
+
 ### B-011 · Card do herói ignora o formato definido por 4 temas
 - **Prioridade:** P3 (decisão de visual)
 - **Área:** Seus Heróis › card do herói · Temas Véu Astral, Verdejante, Corte Carmesim, Brasa
