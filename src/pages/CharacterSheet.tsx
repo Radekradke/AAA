@@ -3,6 +3,7 @@ import { toast } from '@/store/feedbackStore';
 import { itemGrantedSpells } from '@/engine/spellcasting';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/Button';
 import { useCharacterStore } from '@/store/characterStore';
 import { deriveCharacter } from '@/engine/dndRules';
@@ -187,9 +188,11 @@ export function CharacterSheet() {
       <MobileNav active={activeTab} onSelect={setTab} isCaster={isCaster} />
       <SheetShortcuts char={char} derived={derived} />
       {/* anotação rápida em qualquer aba: vai para os Rabiscos do Diário */}
-      <Suspense fallback={null}>
-        <QuickNote char={char} />
-      </Suspense>
+      <ErrorBoundary scope="anotacao-rapida" silent>
+        <Suspense fallback={null}>
+          <QuickNote char={char} />
+        </Suspense>
+      </ErrorBoundary>
 
       {editing && <CharacterEditModal char={char} onClose={() => setEditing(false)} />}
       {sharing && (

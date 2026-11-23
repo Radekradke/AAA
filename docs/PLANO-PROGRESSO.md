@@ -16,7 +16,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 1.2 Ficha: Jogar, Combate, Magias, Inventário
 - [x] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
 - [x] 1.4 Mesa ao vivo, palco, mapa, NPCs, bestiário
-- [ ] 1.5 Conta, sincronização, offline, importação/exportação, impressão
+- [~] 1.5 Conta, sincronização, offline, importação/exportação, impressão
 
 ## Etapa 2 — Design system
 - [ ] 2.1 Tokens
@@ -61,3 +61,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 1.2 Jogar, Combate, Magias, Inventário · PR #127 mergeado · teste macaco (clica em todo botão de cada aba, fecha o que abre e volta se navegar) em 12 classes: ~1.700 cliques, sem tela de erro e sem erro no console; app responde em 30–150 ms por clique. Nenhum bug novo
 - 23/11 · 1.3 Evoluir, Descanso, Diário, Retrato, Dados · PR #128 mergeado · teste macaco por rótulo (só o conteúdo da aba) em 6 classes, PC e celular: ~600 cliques, sem tela de erro e sem erro no console. Nenhum bug novo. Pendência de cobertura: o Retrato troca de vista no 1º clique, então foi pouco exercitado — vira item da 1.5/5.x
 - 23/11 · 1.4 mesa ao vivo, palco, mapa, NPCs, bestiário · PR #129 mergeado · teste macaco como mestre e jogador (sala da campanha, mesa ao vivo, lista de mesas), PC e celular: ~170 cliques, sem tela de erro e sem erro no console. Nenhum bug novo. Pouca cobertura na sala vista pelo jogador (o 1º clique troca de vista) — fica para 5.x
+- 23/11 · 1.5 conta, sincronização, offline, importação/exportação, impressão · PR aberto · backup baixado e restaurado em outro aparelho: ok; edição sem rede fica "1 pendente" e sincroniza ao voltar: ok; teste macaco em Configurações, Entrar, Diagnóstico e Impressão (PC e celular): limpo; 1 bug achado e corrigido (B-005: sem internet, pedaço que não baixou fazia a página sumir)

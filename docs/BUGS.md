@@ -48,6 +48,18 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
+### B-005 · Sem internet, pedaço do app que não baixou fazia a página sumir
+- **Prioridade:** P2
+- **Área:** Offline
+- **Passos:** 1. Abrir a ficha num aparelho sem o app em cache: primeira visita, aba anônima ou cache limpo pelo celular. 2. Ficar sem internet antes de um pedaço do app terminar de baixar. Exemplos: a anotação rápida, ou uma página ainda não aberta.
+- **Esperado:** a ficha continua na tela e o app avisa que está sem conexão.
+- **Acontece:** o app tratava a falha como "versão nova" e recarregava a página. Sem rede, caía na tela "sem conexão" do navegador e o app sumia. Na tela de erro, a mensagem dizia "O app foi atualizado".
+- **Status:** Corrigido:
+  - `reloadOnceForStaleChunk` não recarrega sem rede;
+  - a tela de erro diz "Sem internet" e recarrega sozinha quando a conexão volta;
+  - a anotação rápida fica numa guarda silenciosa.
+  - Testes: `e2e/offline.e2e.ts` e `errorReporter.test.ts` › "pedaço de código que não baixou".
+
 ### B-004 · Criação: opções de Especialização do Ladino sem nome de grupo
 - **Prioridade:** P3
 - **Área:** Criação › Perícias

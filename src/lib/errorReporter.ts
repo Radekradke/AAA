@@ -149,6 +149,9 @@ export function errorReport(list: ErrorEntry[] = load()): string {
  * site com a aba aberta). Na segunda vez deixa a tela de erro aparecer.
  */
 export function reloadOnceForStaleChunk(): boolean {
+  // sem internet o pedaço não falta por versão nova: recarregar levaria à página
+  // "sem conexão" do navegador e o app sumiria. Quem trata é a tela de erro.
+  if (isOffline()) return false;
   try {
     const k = 'fv-chunk-reload';
     const last = Number(sessionStorage.getItem(k) || 0);
@@ -159,6 +162,11 @@ export function reloadOnceForStaleChunk(): boolean {
   }
   location.reload();
   return true;
+}
+
+/** O navegador diz que está sem rede (falha de pedaço por conexão, não por versão). */
+export function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
 }
 
 /** Erros fora do React (eventos, timers, promessas sem catch). */
