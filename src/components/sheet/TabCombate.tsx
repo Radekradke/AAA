@@ -36,6 +36,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { pressable } from '@/lib/pressable';
+import '@/styles/combat.css';
 
 /** Efeito acumulado de cada nível de exaustão (PHB 2014). */
 const EXHAUSTION_EFFECT: Record<number, string> = {
@@ -143,54 +144,44 @@ export function TabCombate({ char, derived }: TabProps) {
   };
 
   return (
-    <div
-      className="animate-riseIn"
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}
-    >
+    <div className="animate-riseIn fv-combat">
       <WhoAmI char={char} />
       {/* Vitalidade */}
       <Panel full>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 10 }}>
+        <div className="fv-combat-hp-head">
           <LoreTooltip info={calcLore('PV máximo', derived.breakdowns.maxHp, { intro: 'Como o PV máximo foi construído, nível a nível.' })}>
-            <div className="fv-label" style={{ cursor: 'help' }}>Pontos de Vida</div>
+            <div className="fv-label fv-combat-help">Pontos de Vida</div>
           </LoreTooltip>
-          <div key={hpFx.pulse?.id} className={'fv-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 'clamp(26px,4vw,38px)', lineHeight: 1, color: ink(hpColor, 3.2) }}>
+          <div key={hpFx.pulse?.id} className={'fv-hp-num fv-combat-hp-num' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
             <HpPops pops={hpFx.pops} />
             {char.hpCurrent}
-            <span style={{ fontSize: '.5em', color: 'var(--muted)' }}> / {hpMax}</span>
+            <span className="fv-combat-hp-max"> / {hpMax}</span>
           </div>
         </div>
-        <div className="fv-hp-bar" style={{ marginTop: 12, height: 'clamp(20px,2.6vw,26px)' }}>
+        <div className="fv-hp-bar fv-combat-hpbar">
           <HpTrail key={char.id} pct={pct} />
           <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              width: `${pct}%`,
-              height: '100%',
-              background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`,
-              boxShadow: `0 0 18px ${hexA(hpColor, 0.7)}`,
-              transition: 'width .45s cubic-bezier(.2,.8,.2,1), background .4s',
-            }}
+            className="fv-combat-hpfill"
+            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${hexA(hpColor, 0.6)}, ${hpColor})`, boxShadow: `0 0 18px ${hexA(hpColor, 0.7)}` }}
           />
           {/* entalhes de HUD a cada 10% */}
           <div aria-hidden className="fv-hp-notches" />
-          <div style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 12, letterSpacing: '.1em' }}>
+          <div className="fv-combat-hpbar-over">
             <span className="fv-hp-bar-label">{pct}%</span>
           </div>
         </div>
-        <div style={{ marginTop: 14, display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="fv-combat-hp-actions">
           <HpBtn label="−5 Dano" color="var(--danger)" strong onClick={() => dealDamage(5)} />
           <HpBtn label="−1" color="var(--danger)" onClick={() => dealDamage(1)} />
           <HpBtn label="+1" color="#3FC56B" onClick={() => store.heal(char.id, 1)} />
           <HpBtn label="+5 Cura" color="#3FC56B" strong onClick={() => store.heal(char.id, 5)} />
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: 'var(--muted)' }}>
+          <div className="fv-combat-temp">
             PV Temp.
             <button
               onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}
               onContextMenu={(e) => { e.preventDefault(); store.setTempHp(char.id, 0); }}
               title="Clique: +5 · clique direito: zerar"
-              style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, color: 'var(--ink)', fontSize: 15, background: 'var(--sunk)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 10px' }}
+              className="fv-combat-temp-btn"
             >
               {char.combat.hpTemp}
             </button>
@@ -198,7 +189,7 @@ export function TabCombate({ char, derived }: TabProps) {
         </div>
 
         {/* dano/cura por valor exato */}
-        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="fv-combat-amt">
           <input
             value={amt}
             onChange={(e) => setAmt(e.target.value.replace(/[^0-9]/g, ''))}
@@ -206,8 +197,7 @@ export function TabCombate({ char, derived }: TabProps) {
             inputMode="numeric"
             placeholder="Qtd."
             aria-label="Valor de dano ou cura"
-            className="fv-input fv-amt-input"
-            style={{ width: 92, minHeight: 40, textAlign: 'center', fontFamily: 'var(--font-num)', fontWeight: 700 }}
+            className="fv-input fv-amt-input fv-combat-amt-input"
           />
           <button onClick={() => applyAmount(false)} disabled={!amt} style={amtBtn('var(--danger)', !!amt)}>Aplicar dano</button>
           <button onClick={() => applyAmount(true)} disabled={!amt} style={amtBtn('#3FC56B', !!amt, ink('#3FC56B'))}>Curar</button>
@@ -215,7 +205,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Fúria: o dano físico (ou todo, com o Urso) cai pela metade */}
         {barb?.raging && (
-          <div style={{ marginTop: 8 }}>
+          <div className="fv-combat-mt8">
             <button type="button" className={'fv-resist-chip' + (rageHalf ? ' is-on' : '')} aria-pressed={rageHalf} onClick={() => setRageHalf((v) => !v)} title="Desligue se o dano não for coberto pela resistência da Fúria">
               {rageHalf ? '✓ ' : ''}Resistência da Fúria: metade do dano ({barb.resistance})
             </button>
@@ -224,7 +214,7 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Ladino/Monge/Caçador: defesas que cortam o próximo dano */}
         {(uncannyOk || evasionOk || monk?.deflectBonus != null) && (
-          <div className="fv-defense-chips" style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="fv-defense-chips fv-combat-chips">
             {monk?.deflectBonus != null && (
               <button type="button" className={'fv-resist-chip' + (monkReduce === 'deflect' ? ' is-on' : '')} aria-pressed={monkReduce === 'deflect'} disabled={char.combat.turn.reaction} onClick={() => setMonkReduce((v) => (v === 'deflect' ? null : 'deflect'))} title="Reação: um ataque à distância com arma o acertou — reduz o dano em 1d10 + DES + nível de monge.">
                 {monkReduce === 'deflect' ? '✓ ' : ''}Defletir Projéteis: −1d10+{monk.deflectBonus}
@@ -255,33 +245,33 @@ export function TabCombate({ char, derived }: TabProps) {
 
         {/* Fúria Implacável (Bárbaro 11º): caiu a 0 PV em Fúria */}
         {relentlessDC !== null && (
-          <div role="alert" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid #ff5a36', background: 'var(--lift)' }}>
-            <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
-              Fúria Implacável: salvaguarda de <b>Constituição</b> CD <b style={{ fontFamily: 'var(--font-num)' }}>{relentlessDC}</b> para ficar com 1 PV
+          <div role="alert" className="fv-combat-callout is-rage">
+            <span className="fv-combat-callout-text">
+              Fúria Implacável: salvaguarda de <b>Constituição</b> CD <b className="fv-num">{relentlessDC}</b> para ficar com 1 PV
             </span>
             <button type="button" onClick={rollRelentless} className="fv-rage-end">Rolar {modStr(derived.abilities.con.save)}</button>
-            <button onClick={() => setRelentlessDC(null)} aria-label="Dispensar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+            <button onClick={() => setRelentlessDC(null)} aria-label="Dispensar" className="fv-combat-dismiss">✕</button>
           </div>
         )}
 
         {/* lembrete: salvaguarda de Concentração após sofrer dano */}
         {concentrating && concDC !== null && (
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 12px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc, 0.6), background: 'var(--lift)' }}>
-            <span style={{ flex: 1, minWidth: 160, fontSize: 12.5, color: 'var(--ink)' }}>
-              Concentração: salvaguarda de <b>Constituição</b> CD <b style={{ color: t.acc, fontFamily: 'var(--font-num)' }}>{concDC}</b>
+          <div className="fv-combat-callout is-conc">
+            <span className="fv-combat-callout-text">
+              Concentração: salvaguarda de <b>Constituição</b> CD <b className="fv-num fv-combat-acc">{concDC}</b>
             </span>
             <button
               onClick={() => { check(`Concentração · CON (CD ${concDC})`, derived.abilities.con.save); setConcDC(null); }}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '5px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid ' + t.acc, background: 'var(--lift)', color: t.acc, fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13 }}
+              className="fv-combat-conc-roll"
             >
               Rolar {modStr(derived.abilities.con.save)}
             </button>
-            <button onClick={() => setConcDC(null)} aria-label="Dispensar" style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14 }}>✕</button>
+            <button onClick={() => setConcDC(null)} aria-label="Dispensar" className="fv-combat-dismiss">✕</button>
           </div>
         )}
 
         {/* magias e efeitos ligados (Armadura Arcana, Escudo, Auxílio, Bruxaria…) */}
-        <div style={{ marginTop: 12 }}><ActiveEffects char={char} /></div>
+        <div className="fv-combat-mt12"><ActiveEffects char={char} /></div>
         <RagePanel char={char} />
         <FighterPanel char={char} />
         <RoguePanel char={char} derived={derived} />
@@ -299,37 +289,20 @@ export function TabCombate({ char, derived }: TabProps) {
         <LoreTooltip info={passiveLore('Concentração', concentrating ? 'Ativa' : 'Inativa', 'Muitas magias exigem concentração. Ao sofrer dano, faça uma salvaguarda de Constituição (CD 10 ou metade do dano, o que for maior) ou a magia termina. Só é possível concentrar em uma magia por vez. Cair a 0 PV rompe a concentração.', ['Conjuração'])} anchorStyle={{ display: 'block' }}>
           <button
             onClick={() => store.toggleConcentration(char.id)}
-            className={concentrating ? 'animate-glowPulse' : undefined}
-            style={{
-              marginTop: 12,
-              width: '100%',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              minHeight: 44,
-              padding: '10px 14px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid ' + (concentrating ? t.acc : t.line),
-              background: concentrating ? 'var(--lift)' : 'var(--sunk)',
-              color: concentrating ? t.acc : t.muted,
-              fontFamily: 'var(--font-display)',
-              fontSize: 14,
-              transition: '.2s',
-            }}
+            className={'fv-combat-conc' + (concentrating ? ' is-on animate-glowPulse' : '')}
           >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <span style={{ width: 11, height: 11, borderRadius: 999, background: concentrating ? t.acc : 'transparent', border: '1px solid ' + (concentrating ? t.acc : t.muted), boxShadow: concentrating ? `0 0 10px ${t.acc}` : 'none', transition: '.2s' }} />
+            <span className="fv-combat-conc-label">
+              <span className="fv-combat-conc-dot" />
               {concentrating ? 'Concentrando numa magia' : 'Concentração'}
             </span>
-            <span style={{ fontFamily: 'var(--font-num)', fontSize: 11.5 }}>{concentrating ? 'romper' : 'inativa'}</span>
+            <span className="fv-combat-conc-state">{concentrating ? 'romper' : 'inativa'}</span>
           </button>
         </LoreTooltip>
       </Panel>
 
       {/* Ataques */}
       <Panel>
-        <div className="fv-label" style={{ marginBottom: 6 }}>Ataques</div>
+        <div className="fv-label fv-combat-mb6">Ataques</div>
         <ExtraAttackNote char={char} />
         {derived.attacks.length === 0 && (
           <EmptyState
@@ -339,10 +312,10 @@ export function TabCombate({ char, derived }: TabProps) {
           />
         )}
         {derived.attacks.map((atk) => (
-          <div key={atk.uid} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{atk.name} <CritBadge atk={atk} /> <AmmoBadge char={char} atk={atk} /></div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>{atk.note}</div>
+          <div key={atk.uid} className="fv-combat-atk">
+            <div className="fv-combat-grow">
+              <div className="fv-combat-atk-name">{atk.name} <CritBadge atk={atk} /> <AmmoBadge char={char} atk={atk} /></div>
+              <div className="fv-combat-atk-note">{atk.note}</div>
             </div>
             <AttackActions
               char={char}
@@ -361,13 +334,13 @@ export function TabCombate({ char, derived }: TabProps) {
       {/* Economia de Turno */}
       <Panel>
         <InitiativeButton char={char} derived={derived} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 13, marginTop: 14 }}>
+        <div className="fv-combat-turn-head">
           <div className="fv-label">Economia de Turno</div>
-          <button onClick={() => store.resetTurn(char.id)} style={{ cursor: 'pointer', fontSize: 11, color: 'var(--acc)', background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 600 }}>
+          <button onClick={() => store.resetTurn(char.id)} className="fv-combat-link">
             ↺ Novo turno
           </button>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <div className="fv-combat-stack">
           {turnDefs.map((d) => {
             const used = char.combat.turn[d.k];
             return (
@@ -376,64 +349,48 @@ export function TabCombate({ char, derived }: TabProps) {
                   className={'fv-turn-btn' + (used ? ' is-used' : '')}
                   aria-pressed={used}
                   onClick={() => store.toggleTurn(char.id, d.k)}
-                  style={{
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                  minHeight: 46,
-                  padding: '11px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid ' + (used ? t.line : hexA(t.acc, 0.45)),
-                  background: used ? 'var(--sunk)' : 'var(--lift)',
-                  color: used ? t.muted : t.ink,
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 14.5,
-                  transition: '.2s',
-                }}
                 >
-                  <span style={{ textDecoration: used ? 'line-through' : 'none' }}>{used && <i className="fv-tick" aria-hidden>✓ </i>}{d.label}</span>
-                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: used ? t.muted : t.acc }}>{used ? 'Usada' : 'Disponível'}</span>
+                  <span className="fv-turn-label">{used && <i className="fv-tick" aria-hidden>✓ </i>}{d.label}</span>
+                  <span className="fv-turn-state">{used ? 'Usada' : 'Disponível'}</span>
                 </button>
               </LoreTooltip>
             );
           })}
         </div>
-        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="fv-combat-move">
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Movimento</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+            <div className="fv-combat-title">Movimento</div>
+            <div className="fv-combat-sub">
               {moveLeft} m de {moveMax.toString().replace('.', ',')} m{char.combat.turn.dash ? ' (Disparada)' : ''}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => store.adjustMove(char.id, -1.5)} style={moveBtn(false)}>−1,5</button>
-            <button onClick={() => store.adjustMove(char.id, 1.5)} style={moveBtn(true)}>+1,5</button>
+          <div className="fv-combat-row6">
+            <button onClick={() => store.adjustMove(char.id, -1.5)} className="fv-combat-move-btn">−1,5</button>
+            <button onClick={() => store.adjustMove(char.id, 1.5)} className="fv-combat-move-btn is-acc">+1,5</button>
           </div>
         </div>
       </Panel>
 
       {/* Recursos */}
       <Panel>
-        <div className="fv-label" style={{ marginBottom: 13 }}>Recursos de Combate</div>
+        <div className="fv-label fv-combat-mb13">Recursos de Combate</div>
 
         {characterResources(char).map((res) => {
           const left = Math.min(res.max, char.combat.resources[res.id] ?? res.max);
           return (
-            <div key={res.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>
+            <div key={res.id} className="fv-combat-res">
+              <div className="fv-combat-min0">
+                <div className="fv-combat-title">
                   {res.label}
-                  {res.die && <span style={{ marginLeft: 6, fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>{res.die}</span>}
+                  {res.die && <span className="fv-combat-res-die">{res.die}</span>}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
+                <div className="fv-combat-sub">{res.desc} · recarga {res.recharge === 'short' ? 'curta' : 'longa'}</div>
               </div>
               <LoreTooltip info={passiveLore(res.label, res.unlimited ? 'ilimitado' : `${left}/${res.max}`, `${res.desc}. Recarrega em descanso ${res.recharge === 'short' ? 'curto' : 'longo'}.`, ['Recurso de classe'])}>
                 <button
                   disabled={res.unlimited}
                   onClick={() => store.setResource(char.id, res.id, left > 0 ? left - 1 : res.max)}
-                  style={{ cursor: res.unlimited ? 'default' : 'pointer', flex: 'none', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1px solid ' + (res.unlimited || left > 0 ? t.gold : t.line), color: res.unlimited || left > 0 ? t.gold : t.muted, background: 'var(--lift)' }}
+                  className={'fv-combat-res-btn' + (res.unlimited || left > 0 ? ' is-on' : '') + (res.unlimited ? ' is-unlimited' : '')}
                 >
                   {res.unlimited ? '∞' : `${left} / ${res.max}`}
                 </button>
@@ -443,43 +400,43 @@ export function TabCombate({ char, derived }: TabProps) {
         })}
 
         {/* Dados de Vida */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid var(--line)' }}>
+        <div className="fv-combat-res">
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Dados de Vida</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{derived.hitDiceMax}d{derived.hitDie} · gaste no descanso</div>
+            <div className="fv-combat-title">Dados de Vida</div>
+            <div className="fv-combat-sub">{derived.hitDiceMax}d{derived.hitDie} · gaste no descanso</div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="fv-combat-row6">
             <LoreTooltip info={passiveLore('Dado de Vida', `${derived.hitDiceMax}d${derived.hitDie}`, 'Durante um descanso curto, gaste um dado de vida para rolar cura e somar Constituição. Descanso longo recupera parte deles.', ['Descanso', 'Cura'])}>
               <button
                 onClick={() => spendHitDie?.()}
                 disabled={!spendHitDie}
-                style={{ cursor: 'pointer', fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 13, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', color: 'var(--acc)', background: 'var(--sunk)' }}
+                className="fv-combat-hd-btn"
               >
                 Gastar
               </button>
             </LoreTooltip>
-            <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 15, color: 'var(--ink)', padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
+            <div className="fv-combat-hd-count">
               {char.combat.hitDiceRemaining} / {derived.hitDiceMax}
             </div>
           </div>
         </div>
 
         {/* Resgate da Morte */}
-        <div style={{ padding: '13px 0 2px' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)', marginBottom: 9 }}>Resgate da Morte</div>
-          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+        <div className="fv-combat-block">
+          <div className="fv-combat-title fv-combat-mb9">Resgate da Morte</div>
+          <div className="fv-combat-death">
             <DeathRow label="Sucesso" color="#3FC56B" value={char.combat.deathSaves.success} onClick={(n) => store.setDeathSave(char.id, 'success', n)} />
             <DeathRow label="Falha" color={t.danger} value={char.combat.deathSaves.fail} onClick={(n) => store.setDeathSave(char.id, 'fail', n)} />
           </div>
         </div>
 
         {/* Exaustão (0–6, PHB 2014) */}
-        <div style={{ padding: '13px 0 2px', borderTop: '1px solid var(--line)', marginTop: 6 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--ink)' }}>Exaustão</div>
-            <span style={{ fontSize: 11, color: exhaustion >= 4 ? t.danger : 'var(--muted)', fontWeight: 600 }}>{EXHAUSTION_EFFECT[exhaustion]}</span>
+        <div className="fv-combat-block is-sep">
+          <div className="fv-combat-exh-head">
+            <div className="fv-combat-title">Exaustão</div>
+            <span className={'fv-combat-exh-effect' + (exhaustion >= 4 ? ' is-danger' : '')}>{EXHAUSTION_EFFECT[exhaustion]}</span>
           </div>
-          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          <div className="fv-combat-exh">
             {[1, 2, 3, 4, 5, 6].map((n) => {
               const on = exhaustion >= n;
               const col = n >= 5 ? t.danger : n >= 3 ? '#E0A93E' : t.acc;
@@ -487,22 +444,8 @@ export function TabCombate({ char, derived }: TabProps) {
                 <LoreTooltip key={n} info={passiveLore(`Exaustão · nível ${n}`, EXHAUSTION_EFFECT[n], 'A exaustão acumula em níveis (1–6). Cada nível soma-se aos anteriores. Um descanso longo remove 1 nível. Clique num nível para defini-lo; clique nele de novo para recuar.', ['Condição'])}>
                   <span
                     {...pressable(() => store.setExhaustion(char.id, n), `Exaustão nível ${n}`)}
-                    style={{
-                      cursor: 'pointer',
-                      width: 26,
-                      height: 26,
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontFamily: 'var(--font-num)',
-                      fontWeight: 700,
-                      fontSize: 12,
-                      borderRadius: 7,
-                      border: '1px solid ' + (on ? col : 'var(--line)'),
-                      background: on ? hexA(col, 0.16) : 'var(--sunk)',
-                      color: on ? col : 'var(--muted)',
-                      boxShadow: on ? `0 0 9px ${hexA(col, 0.5)}` : 'none',
-                      transition: '.2s',
-                    }}
+                    className="fv-combat-exh-pip"
+                    style={on ? { border: '1px solid ' + col, background: hexA(col, 0.16), color: col, boxShadow: `0 0 9px ${hexA(col, 0.5)}` } : undefined}
                   >
                     {n}
                   </span>
@@ -521,19 +464,8 @@ function HpBtn({ label, color, strong, onClick }: { label: string; color: string
   return (
     <button
       onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        fontFamily: 'var(--font-num)',
-        fontWeight: 700,
-        fontSize: 14,
-        color: ink(color),
-        minHeight: 40,
-        padding: strong ? '9px 16px' : '9px 14px',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid ' + (strong ? color : hexA(color, 0.4)),
-        background: strong ? hexA(color, 0.1) : 'transparent',
-        transition: '.2s',
-      }}
+      className={'fv-combat-hp-btn' + (strong ? ' is-strong' : '')}
+      style={{ color: ink(color), border: '1px solid ' + (strong ? color : hexA(color, 0.4)), background: strong ? hexA(color, 0.1) : 'transparent' }}
     >
       {label}
     </button>
@@ -558,40 +490,17 @@ function amtBtn(color: string, enabled: boolean, text: string = color): React.CS
   };
 }
 
-function moveBtn(accent: boolean): React.CSSProperties {
-  return {
-    cursor: 'pointer',
-    fontFamily: 'var(--font-num)',
-    fontWeight: 700,
-    fontSize: 13,
-    color: accent ? 'var(--acc)' : 'var(--ink)',
-    width: 46,
-    padding: '8px 0',
-    borderRadius: 9,
-    border: '1px solid var(--line)',
-    background: 'var(--sunk)',
-  };
-}
-
 function DeathRow({ label, color, value, onClick }: { label: string; color: string; value: number; onClick: (n: number) => void }) {
   const ink = useInk();
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-      <span style={{ fontSize: 11, color: ink(color) }}>{label}</span>
+    <div className="fv-combat-death-row">
+      <span className="fv-combat-death-label" style={{ color: ink(color) }}>{label}</span>
       {[1, 2, 3].map((n) => (
         <span
           key={n}
           {...pressable(() => onClick(n), `${label}: ${n}`)}
-          style={{
-            cursor: 'pointer',
-            width: 17,
-            height: 17,
-            borderRadius: 999,
-            border: '1px solid ' + (value >= n ? color : 'var(--line)'),
-            background: value >= n ? color : 'transparent',
-            boxShadow: value >= n ? `0 0 9px ${hexA(color, 0.6)}` : 'none',
-            transition: '.2s',
-          }}
+          className="fv-combat-death-pip"
+          style={value >= n ? { border: '1px solid ' + color, background: color, boxShadow: `0 0 9px ${hexA(color, 0.6)}` } : undefined}
         />
       ))}
     </div>
