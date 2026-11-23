@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react';
 import type { LoreInfo } from '@/lib/lore';
@@ -43,6 +43,12 @@ export function ItemArtCard({ src, rarity, size }: { src: string | null | undefi
 /** BG3-like lore popover: hover/focus on desktop, first tap on mobile. */
 export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreTooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
+  // a dica embrulha um botão (CA, iniciativa, atributo…)? Então o botão abre a dica ao receber o foco
+  // (o focus do React sobe) e a âncora não vira uma parada a mais no Tab
+  const [wrapsControl, setWrapsControl] = useState(false);
+  useLayoutEffect(() => {
+    setWrapsControl(!!anchorRef.current?.querySelector('button, a[href], input, select, textarea, [tabindex]'));
+  }, [children]);
   const tipRef = useRef<HTMLDivElement | null>(null);
   const pointerRef = useRef<Point | null>(null);
   const [open, setOpen] = useState(false);
@@ -187,8 +193,8 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     <span
       ref={anchorRef}
       className="fv-lore-anchor"
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- âncora da dica precisa de foco para abrir pelo teclado
-      tabIndex={0}
+      // âncora sem controle dentro precisa de foco para a dica abrir pelo teclado
+      tabIndex={wrapsControl ? undefined : 0}
       aria-label={`${info.title}: ${info.body}`}
       onPointerOver={(e) => {
         if (e.pointerType !== 'touch' && !isCoarsePointer()) show(false, { x: e.clientX, y: e.clientY });

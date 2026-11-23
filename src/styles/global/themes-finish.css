@@ -433,6 +433,8 @@
 }
 .fv-guild-search:focus-within {
   border-color: var(--acc);
+  /* só a cor da borda (1 px) era pouco para ver onde está o foco */
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--acc) 55%, transparent);
 }
 .fv-guild-search input {
   flex: 1;
