@@ -28,6 +28,8 @@ jobs:
         run: npm run typecheck
       - name: Lint (ESLint)
         run: npm run lint
+      - name: Dívida de estilo não cresce (cor fixa e style solto)
+        run: npm run debt
       - name: Testes de unidade e SQL (Vitest + PGlite)
         run: npm test
       - name: Build de produção

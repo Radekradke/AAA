@@ -92,3 +92,15 @@ A migração acontece tela por tela na etapa 3. Pendências de acessibilidade em
 
 ## Catálogo (etapa 2.4)
 `/dev/ui`, só em desenvolvimento (`npm run dev`; não entra no build de produção). Mostra todos os primitivos e camadas, com troca de tema e de modo claro/escuro. É também o palco dos testes `e2e/design-system.e2e.ts`.
+
+## Guarda (etapa 2.5)
+`npm run debt` (`scripts/style-debt.mjs`), no CI logo depois do lint. Conta, por arquivo:
+- `style={{…}}` nos componentes;
+- cores fixas (`#rrggbb`) nos componentes e no CSS.
+
+Ficam de fora as paletas (`src/styles/themes/`, `tokens.css`, `src/data/themes.ts`) e os testes. Compara com `style-debt.json`:
+- **Algum arquivo passou do registrado:** o CI reprova e aponta o arquivo.
+- **Arquivo novo:** começa em zero.
+- **Limpou um arquivo (a etapa 3 inteira):** rode `npm run debt -- --update` no mesmo PR para baixar o registro. O registro só desce.
+
+Registro de 23/11/2026: **857** `style={{…}}` e **569** cores fixas fora das paletas.

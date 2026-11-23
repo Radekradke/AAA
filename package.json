@@ -14,7 +14,8 @@
     "e2e:ui": "playwright test --ui",
     "docs:chatgpt": "UPDATE_GUIDE=1 vitest run src/lib/__tests__/chatgptGuide.test.ts",
     "lint": "eslint . --max-warnings 10",
-    "budget": "node scripts/bundle-budget.mjs"
+    "budget": "node scripts/bundle-budget.mjs",
+    "debt": "node scripts/style-debt.mjs"
   },
   "dependencies": {
     "@3d-dice/dice-box-threejs": "^0.0.12",
