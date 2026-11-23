@@ -30,6 +30,9 @@ Os tokens são os nomes que componentes novos e telas migradas (etapa 3) usam. A
 - texto sobre os botões de ação e de metal: pelo menos 4,5:1;
 - ação, metal e perigo sobre superfície: pelo menos 3:1.
 
+### Blocos com paleta própria (Eclipse)
+O Eclipse troca a paleta só dentro de alguns blocos (card do herói, cabeçalho e abas da ficha, trilho da criação, opção escolhida). Um token é calculado onde é declarado, então `tokens.css` redeclara os tokens de cor nesses blocos. Se um tema novo fizer o mesmo, acrescente o bloco à lista em `tokens.css`.
+
 ## Escalas
 | Escala | Tokens |
 |---|---|

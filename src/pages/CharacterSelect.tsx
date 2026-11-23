@@ -12,8 +12,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCharacterStore } from '@/store/characterStore';
 import { useUiStore } from '@/store/uiStore';
 import { useTilt } from '@/lib/useTilt';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
+import '@/styles/heroes.css';
 import { shortSubtitle, heroAvatar, heroFace, heroPortraitPosition } from '@/lib/summary';
 import { getClass } from '@/data/classes';
 import { raceOf } from '@/data/races';
@@ -34,7 +33,6 @@ export function CharacterSelect() {
   const theme = useUiStore((s) => s.theme);
   // tocar num herói abre a ficha na hora: o pedaço dela já vem com o aparelho ocioso
   useEffect(() => prefetchOnIdle('sheet', 'creator'), []);
-  const t = useTheme();
   const tilt = useTilt();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -99,29 +97,13 @@ export function CharacterSelect() {
           }
         />
       ) : (
-      <div
-        style={{
-          maxWidth: 1080,
-          margin: '0 auto',
-          padding: 'clamp(72px,10vh,104px) clamp(16px,4vw,40px) 56px',
-        }}
-      >
-        <div style={{ marginBottom: 'clamp(20px,3vh,32px)' }}>
+      <div className="fv-heroes">
+        <div className="fv-heroes-head">
           <div className="fv-label">Bem-vindo, {user.name}</div>
-          <h1
-            className="fv-page-title"
-            style={{
-              margin: '6px 0 4px',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 700,
-              fontSize: 'clamp(28px,4.5vw,44px)',
-              color: 'var(--ink)',
-              textShadow: '0 0 30px var(--bloom)',
-            }}
-          >
+          <h1 className="fv-page-title">
             Seus Heróis
           </h1>
-          <p style={{ margin: 0, color: 'var(--muted)', fontSize: 15 }}>
+          <p className="fv-heroes-lead">
             Escolha um personagem para jogar ou forje uma nova lenda.
           </p>
         </div>
@@ -130,55 +112,20 @@ export function CharacterSelect() {
           <BackupReminder />
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
-            gap: 'clamp(14px,2vw,20px)',
-          }}
-        >
+        <div className="fv-heroes-grid">
           {/* card criar novo */}
           <button
             className="fv-new-hero"
             onClick={() => { bump(1); navigate('/criar'); }}
             onMouseMove={tilt.onMouseMove}
             onMouseLeave={tilt.onMouseLeave}
-            style={{
-              cursor: 'pointer',
-              minHeight: 200,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 12,
-              borderRadius: 16,
-              border: '1px dashed ' + hexA(t.gold, 0.5),
-              background: 'linear-gradient(160deg, var(--panel), var(--panel2))',
-              boxShadow: 'inset 0 0 30px ' + hexA(t.gold, 0.06),
-              transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .3s',
-              transformStyle: 'preserve-3d',
-            }}
           >
-            <div
-              className="fv-new-hero-plus"
-              style={{
-                width: 54,
-                height: 54,
-                borderRadius: 999,
-                display: 'grid',
-                placeItems: 'center',
-                border: '1px solid var(--gold)',
-                color: 'var(--gold)',
-                fontSize: 28,
-                fontFamily: 'var(--font-display)',
-                boxShadow: '0 0 24px var(--bloom)',
-              }}
-            >
+            <div className="fv-new-hero-plus">
               +
             </div>
             <span className="fv-new-hero-text">
-              <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>Novo Personagem</span>
-              <span style={{ display: 'block', marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>Criação interativa, capítulo a capítulo</span>
+              <span className="fv-new-hero-title">Novo Personagem</span>
+              <span className="fv-new-hero-sub">Criação interativa, capítulo a capítulo</span>
             </span>
           </button>
 
@@ -192,16 +139,7 @@ export function CharacterSelect() {
                 className="fv-hero-card"
                 onMouseMove={tilt.onMouseMove}
                 onMouseLeave={tilt.onMouseLeave}
-                style={{
-                  position: 'relative',
-                  borderRadius: 16,
-                  overflow: 'hidden',
-                  border: '1px solid var(--line)',
-                  background: 'linear-gradient(160deg, var(--panel), var(--panel2))',
-                  boxShadow: '0 16px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 40px ' + hexA(cls.jewel, 0.08),
-                  transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .3s',
-                  transformStyle: 'preserve-3d',
-                }}
+                style={{ '--jewel': cls.jewel } as React.CSSProperties}
               >
                 {/* arte do herói ao fundo, esmaecendo para a esquerda (estilo seleção de personagem) */}
                 <div
@@ -209,79 +147,37 @@ export function CharacterSelect() {
                   className="fv-hero-card-art"
                   style={{ backgroundImage: `url("${heroAvatar(c)}")`, backgroundPosition: heroPortraitPosition(c) }}
                 />
-                <button
-                  onClick={() => open(c)}
-                  style={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'block', width: '100%', padding: 18, position: 'relative', zIndex: 1 }}
-                >
-                  <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                <button type="button" className="fv-hero-card-main" onClick={() => open(c)}>
+                  <div className="fv-hero-card-top">
                     <span className="fv-hero-card-face">
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: 64,
-                        height: 64,
-                        flex: 'none',
-                        borderRadius: 999,
-                        overflow: 'hidden',
-                        border: '1px solid ' + race.jewel,
-                        boxShadow: '0 0 24px var(--bloom)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          backgroundImage: `url("${heroAvatar(c)}")`,
-                          ...heroFace(c),
-                        }}
-                      />
+                    <div className="fv-hero-card-avatar" style={{ '--race': race.jewel } as React.CSSProperties}>
+                      <div style={{ backgroundImage: `url("${heroAvatar(c)}")`, ...heroFace(c) }} />
                     </div>
                       {/* selo discreto da raça (a classe já aparece na arte) */}
                       <span className="fv-hero-card-race" style={{ color: race.jewel }} title={race.label} aria-hidden>
                         <Icon name={raceIcon(race)} size={13} />
                       </span>
                     </span>
-                    <div style={{ minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          fontWeight: 700,
-                          fontSize: 19,
-                          color: 'var(--ink)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
+                    <div className="fv-hero-card-text">
+                      <div className="fv-hero-card-name">
                         {c.name}
                       </div>
-                      <div style={{ marginTop: 3, fontSize: 13, color: 'var(--acc)' }}>{shortSubtitle(c)}</div>
+                      <div className="fv-hero-card-sub">{shortSubtitle(c)}</div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                  <div className="fv-hero-card-stats">
                     {[
                       { k: 'CA', v: d.ac },
                       { k: 'PV', v: `${c.hpCurrent}/${d.maxHp}` },
                       { k: 'PROF', v: `+${d.proficiency}` },
                     ].map((stat) => (
-                      <div
-                        key={stat.k}
-                        style={{
-                          flex: 1,
-                          textAlign: 'center',
-                          padding: '9px 4px',
-                          borderRadius: 11,
-                          background: 'rgba(6,8,12,.8)',
-                          backdropFilter: 'blur(4px)',
-                          border: '1px solid var(--line)',
-                        }}
-                      >
+                      <div key={stat.k} className="fv-hero-card-stat">
                         {/* placa escura sobre a arte em qualquer modo: texto sempre claro */}
-                        <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 16, color: '#f4f1ea' }}>
+                        <div className="fv-hero-card-stat-v">
                           {stat.v}
                         </div>
-                        <div style={{ fontSize: 9, letterSpacing: '.1em', color: '#ddd6c9', marginTop: 2 }}>
+                        <div className="fv-hero-card-stat-k">
                           {stat.k}
                         </div>
                       </div>
@@ -304,22 +200,22 @@ export function CharacterSelect() {
         </div>
 
         {mine.length === 0 && (
-          <p style={{ marginTop: 24, color: 'var(--muted)', fontSize: 14 }}>
-            Você ainda não tem heróis. Clique em <b style={{ color: 'var(--gold)' }}>Novo Personagem</b> para
+          <p className="fv-heroes-empty">
+            Você ainda não tem heróis. Clique em <b>Novo Personagem</b> para
             começar — ou importe um personagem salvo em JSON.
           </p>
         )}
 
-        <div style={{ marginTop: 28, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="fv-heroes-tools">
           <Button onClick={() => fileRef.current?.click()}>Importar personagem (JSON)</Button>
           <Button onClick={() => setPasting(true)}>Colar ficha (ChatGPT)</Button>
           <Button onClick={() => setDdb(true)}>Importar do D&amp;D Beyond</Button>
           <Button onClick={() => setQuick(true)}>Herói rápido (one-shot)</Button>
-          {importError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{importError}</span>}
+          {importError && <span className="fv-heroes-error">{importError}</span>}
         </div>
       </div>
       )}
-      <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} style={{ display: 'none' }} />
+      <input ref={fileRef} type="file" accept="application/json,.json" onChange={onImport} hidden />
       {quick && (
         <QuickHeroModal
           ownerId={user.id}

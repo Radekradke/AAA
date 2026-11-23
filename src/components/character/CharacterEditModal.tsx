@@ -10,8 +10,7 @@ import { subclassesFor } from '@/data/subclasses';
 import { subclassLevelFor } from '@/engine/levelUp';
 import { racialBonusFor, abilityModifier } from '@/engine/modifiers';
 import { modStr } from '@/engine/dice';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
+import '@/styles/hero-edit.css';
 import { Modal } from '@/components/ui/Modal';
 import { PortraitPicker } from '@/components/character/PortraitPicker';
 import { heroAvatar, heroFace } from '@/lib/summary';
@@ -23,7 +22,6 @@ interface Props {
 
 /** Edição da ficha após criada: arte, identidade, nível, atributos e perícias. */
 export function CharacterEditModal({ char, onClose }: Props) {
-  const t = useTheme();
   const { editCharacter, setLevel, updateCharacter } = useCharacterStore();
   const derived = deriveCharacter(char);
 
@@ -39,8 +37,6 @@ export function CharacterEditModal({ char, onClose }: Props) {
   const subLevel = subclassLevelFor(char.classId);
   const canPickSub = char.level >= subLevel && subs.length > 0;
 
-  const label: React.CSSProperties = { display: 'block', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 };
-
   return (
     <Modal
       title="Editar herói"
@@ -48,7 +44,7 @@ export function CharacterEditModal({ char, onClose }: Props) {
       onClose={onClose}
       maxWidth={640}
       footer={
-        <button onClick={onClose} className="fv-btn-gold" style={{ flex: 1, minHeight: 46, fontSize: 15 }}>
+        <button type="button" onClick={onClose} className="fv-btn-gold fv-hedit-done">
           Concluir
         </button>
       }
@@ -57,88 +53,87 @@ export function CharacterEditModal({ char, onClose }: Props) {
         <div className="fv-edit-art">
           <div className="fv-edit-art-face" style={{ backgroundImage: `url("${heroAvatar(char)}")`, ...heroFace(char) }} aria-hidden />
           <div className="fv-edit-art-body">
-            <span style={label}>Arte do personagem</span>
+            <span className="fv-hedit-label">Arte do personagem</span>
             <p>{char.portrait ? 'Usando a sua arte. Troque ou volte à arte padrão da classe.' : 'Usando a arte padrão da classe. Envie a sua (PNG, JPG ou WebP) — fundo branco liso é recortado.'}</p>
             <PortraitPicker portrait={char.portrait} onChange={(url) => updateCharacter(char.id, (c) => { c.portrait = url; })} />
           </div>
         </div>
 
         {/* identidade */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+        <div className="fv-hedit-id">
           <label>
-            <span style={label}>Nome</span>
+            <span className="fv-hedit-label">Nome</span>
             <input className="fv-input" value={char.name} onChange={(e) => editCharacter(char.id, { name: e.target.value })} />
           </label>
           <label>
-            <span style={label}>Antecedente</span>
+            <span className="fv-hedit-label">Antecedente</span>
             <select className="fv-input" value={char.backgroundId} onChange={(e) => editCharacter(char.id, { backgroundId: e.target.value })}>
               {BACKGROUNDS.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
             </select>
           </label>
           <label>
-            <span style={label}>Alinhamento</span>
+            <span className="fv-hedit-label">Alinhamento</span>
             <input className="fv-input" value={char.alignment} onChange={(e) => editCharacter(char.id, { alignment: e.target.value })} />
           </label>
         </div>
 
         {/* nível */}
-        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderRadius: 13, border: '1px solid var(--line)', background: 'var(--sunk)' }}>
+        <div className="fv-hedit-level">
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--gold)' }}>Nível {char.level}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>Proficiência {modStr(derived.proficiency)} · PV máx. {derived.maxHp}</div>
+            <div className="fv-hedit-level-name">Nível {char.level}</div>
+            <div className="fv-hedit-level-sub">Proficiência {modStr(derived.proficiency)} · PV máx. {derived.maxHp}</div>
           </div>
-          <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-            <button onClick={() => setLevel(char.id, char.level - 1)} style={stepBtn(false)}>−</button>
-            <span style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', minWidth: 30, textAlign: 'center' }}>{char.level}</span>
-            <button onClick={() => setLevel(char.id, char.level + 1)} style={stepBtn(true)}>+</button>
+          <div className="fv-hedit-level-ctl">
+            <button type="button" className="fv-hedit-step" onClick={() => setLevel(char.id, char.level - 1)} aria-label="Baixar um nível">−</button>
+            <span className="fv-hedit-level-n">{char.level}</span>
+            <button type="button" className="fv-hedit-step is-up" onClick={() => setLevel(char.id, char.level + 1)} aria-label="Subir um nível">+</button>
           </div>
         </div>
 
         {/* subclasse */}
         {subs.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <label style={{ display: 'block' }}>
-              <span style={label}>Subclasse {canPickSub ? '' : `(escolhida no nível ${subLevel})`}</span>
+          <div className="fv-hedit-section">
+            <label className="fv-hedit-block">
+              <span className="fv-hedit-label">Subclasse {canPickSub ? '' : `(escolhida no nível ${subLevel})`}</span>
               <select
-                className="fv-input"
+                className="fv-input fv-hedit-sub"
                 value={char.subclassId ?? ''}
                 disabled={!canPickSub}
                 onChange={(e) => editCharacter(char.id, { subclassId: e.target.value || null })}
-                style={{ opacity: canPickSub ? 1 : 0.55 }}
               >
                 <option value="">— nenhuma —</option>
                 {subs.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </label>
             {derived.grantedProficiencies.length > 0 && (
-              <div style={{ marginTop: 7, fontSize: 11.5, color: 'var(--muted)' }}>
-                Concede: <b style={{ color: 'var(--acc)' }}>{derived.grantedProficiencies.join(' · ')}</b>
+              <div className="fv-hedit-note is-first">
+                Concede: <b className="is-acc">{derived.grantedProficiencies.join(' · ')}</b>
               </div>
             )}
             {derived.critMin < 20 && (
-              <div style={{ marginTop: 4, fontSize: 11.5, color: 'var(--muted)' }}>
-                Crítico ampliado: acerto crítico em <b style={{ color: 'var(--gold)' }}>{derived.critMin}–20</b>.
+              <div className="fv-hedit-note">
+                Crítico ampliado: acerto crítico em <b>{derived.critMin}–20</b>.
               </div>
             )}
           </div>
         )}
 
         {/* atributos */}
-        <div style={{ marginTop: 16 }}>
-          <div className="fv-label" style={{ marginBottom: 10 }}>Atributos (valor base)</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 10 }}>
+        <div className="fv-hedit-section">
+          <div className="fv-label fv-hedit-section-label">Atributos (valor base)</div>
+          <div className="fv-hedit-abs">
             {ABILITY_KEYS.map((k) => {
               const base = char.baseAbilities[k];
               const racial = racialBonusFor(k, char.raceId, char.subraceId, char.raceAbilityChoice, char.customOrigin?.asi, raceOf(char));
               const total = base + racial;
               return (
-                <div key={k} style={{ textAlign: 'center', background: 'linear-gradient(170deg, var(--panel), var(--panel2))', border: '1px solid var(--line)', borderRadius: 13, padding: '12px 8px' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '.12em', color: 'var(--muted)' }} title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
-                  <div style={{ fontFamily: 'var(--font-num)', fontWeight: 700, fontSize: 26, color: 'var(--ink)', margin: '4px 0 1px' }}>{modStr(abilityModifier(total))}</div>
-                  <div style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--acc)' }}>{total}{racial ? ` (${base}+${racial})` : ''}</div>
-                  <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', gap: 6 }}>
-                    <button onClick={() => setAbility(k, base - 1)} style={stepBtn(false)}>−</button>
-                    <button onClick={() => setAbility(k, base + 1)} style={stepBtn(true)}>+</button>
+                <div key={k} className="fv-hedit-ab">
+                  <div className="fv-hedit-ab-key" title={ABILITY_LABELS[k]}>{ABILITY_SHORT[k]}</div>
+                  <div className="fv-hedit-ab-mod">{modStr(abilityModifier(total))}</div>
+                  <div className="fv-hedit-ab-total">{total}{racial ? ` (${base}+${racial})` : ''}</div>
+                  <div className="fv-hedit-ab-ctl">
+                    <button type="button" className="fv-hedit-step" onClick={() => setAbility(k, base - 1)} aria-label={`Diminuir ${ABILITY_LABELS[k]}`}>−</button>
+                    <button type="button" className="fv-hedit-step is-up" onClick={() => setAbility(k, base + 1)} aria-label={`Aumentar ${ABILITY_LABELS[k]}`}>+</button>
                   </div>
                 </div>
               );
@@ -147,16 +142,18 @@ export function CharacterEditModal({ char, onClose }: Props) {
         </div>
 
         {/* perícias */}
-        <div style={{ marginTop: 16 }}>
-          <div className="fv-label" style={{ marginBottom: 10 }}>Perícias proficientes</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        <div className="fv-hedit-section">
+          <div className="fv-label fv-hedit-section-label">Perícias proficientes</div>
+          <div className="fv-hedit-skills">
             {SKILLS.map((sk) => {
               const on = char.skillProfs.includes(sk.key);
               return (
                 <button
                   key={sk.key}
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => toggleSkill(sk.key)}
-                  style={{ cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '7px 12px', borderRadius: 999, border: '1px solid ' + (on ? t.gold : t.line), color: on ? t.gold : t.muted, background: on ? hexA(t.gold, 0.1) : 'transparent' }}
+                  className="fv-hedit-skill"
                 >
                   {sk.label}
                 </button>
@@ -167,8 +164,4 @@ export function CharacterEditModal({ char, onClose }: Props) {
 
     </Modal>
   );
-}
-
-function stepBtn(accent: boolean): React.CSSProperties {
-  return { cursor: 'pointer', width: 32, height: 32, borderRadius: 9, border: '1px solid var(--line)', background: 'var(--sunk)', color: accent ? 'var(--acc)' : 'var(--muted)', fontWeight: 700, fontSize: 16 };
 }
