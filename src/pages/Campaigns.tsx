@@ -6,10 +6,9 @@ import { useAuthStore } from '@/store/authStore';
 import { campaignService } from '@/services/campaignService';
 import { cloudEnabled } from '@/services/supabaseClient';
 import type { Campaign } from '@/types/models';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
 import { JoinByCode } from '@/components/campaign/JoinByCode';
 import '@/styles/session.css';
+import '@/styles/campaigns.css';
 import { isCloudAccount } from '@/lib/identity';
 import { rememberNext } from '@/lib/nextPath';
 import { sessionService } from '@/services/sessionService';
@@ -18,7 +17,6 @@ import { sessionService } from '@/services/sessionService';
 export function Campaigns() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const t = useTheme();
   const canCloud = cloudEnabled() && isCloudAccount(user);
 
   const [asMaster, setAsMaster] = useState<Campaign[]>([]);
@@ -59,11 +57,11 @@ export function Campaigns() {
 
   return (
     <Screen scroll>
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(80px,11vh,110px) var(--page-x) 40px' }}>
-        <h1 style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(22px,4vw,30px)', color: 'var(--ink)' }}>
+      <div className="fv-camps">
+        <h1 className="fv-camps-title">
           Mesas de Campanha
         </h1>
-        <p style={{ margin: '0 0 20px', fontSize: 13.5, color: 'var(--muted)' }}>
+        <p className="fv-camps-lead">
           O mestre cria a sala e passa o código (ou o link); jogadores vinculam suas fichas e o mestre acompanha tudo.
         </p>
 
@@ -81,8 +79,8 @@ export function Campaigns() {
             }
             action={
               <button
-                className="fv-btn-gold"
-                style={{ minHeight: 42, padding: '0 22px', fontSize: 13.5 }}
+                type="button"
+                className="fv-btn-gold fv-camps-enter"
                 onClick={() => {
                   rememberNext('/mesas');
                   navigate('/entrar');
@@ -96,46 +94,45 @@ export function Campaigns() {
 
         {canCloud && (
           <>
-            <div className="fv-panel" style={{ padding: 16, marginBottom: 18 }}>
-              <div className="fv-label" style={{ marginBottom: 10 }}>Criar nova mesa (você será o mestre)</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="fv-panel fv-camps-new">
+              <div className="fv-label fv-camps-label">Criar nova mesa (você será o mestre)</div>
+              <div className="fv-camps-row">
                 <input
                   className="fv-input"
                   placeholder="Nome da campanha — ex.: A Maldição de Vharlok"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') void create(); }}
-                  style={{ flex: '1 1 220px' }}
                 />
-                <button onClick={() => void create()} disabled={busy || !name.trim()} className="fv-btn-gold" style={{ minHeight: 46, padding: '0 24px', fontSize: 14, opacity: busy || !name.trim() ? 0.6 : 1 }}>
+                <button type="button" onClick={() => void create()} disabled={busy || !name.trim()} className="fv-btn-gold fv-camps-found">
                   {busy ? 'Criando…' : 'Fundar Mesa'}
                 </button>
               </div>
-              {error && <div style={{ marginTop: 9, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+              {error && <div className="fv-camps-error">{error}</div>}
             </div>
 
             {[{ label: 'Mesas que você comanda', list: asMaster, role: 'Mestre' }, { label: 'Mesas onde você joga', list: asPlayer, role: 'Jogador' }].map((g) => (
-              <div key={g.label} style={{ marginBottom: 18 }}>
-                <div className="fv-label" style={{ marginBottom: 10 }}>{g.label}</div>
+              <div key={g.label} className="fv-camps-group">
+                <div className="fv-label fv-camps-label">{g.label}</div>
                 {g.list.length === 0 && (
-                  <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>
+                  <div className="fv-camps-none">
                     {g.role === 'Mestre' ? 'Nenhuma ainda — funde a primeira acima.' : 'Nenhuma — peça o link de convite ao seu mestre.'}
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
+                <div className="fv-camps-grid">
                   {g.list.map((c) => {
                     const isLive = live.has(c.id);
                     return (
                       <button
                         key={c.id}
+                        type="button"
                         onClick={() => navigate(isLive ? `/mesa/${c.id}/jogar` : `/mesa/${c.id}`)}
                         className={'fv-surface fv-camp-card' + (isLive ? ' is-live' : '')}
                         aria-label={isLive ? `${c.name} — sessão ao vivo agora, entrar` : undefined}
-                        style={{ cursor: 'pointer', textAlign: 'left', padding: '14px 15px', border: '1px solid ' + hexA(t.gold, isLive ? 0.75 : 0.3) }}
                       >
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15.5, color: 'var(--ink)' }}>{c.name}</div>
-                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 11, color: g.role === 'Mestre' ? t.gold : 'var(--acc)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{g.role}</span>
+                        <div className="fv-camp-card-name">{c.name}</div>
+                        <div className="fv-camp-card-meta">
+                          <span className={'fv-camp-card-role' + (g.role === 'Mestre' ? ' is-master' : '')}>{g.role}</span>
                           {isLive && (
                             <span className="fv-camp-live">
                               <i className="fv-live-dot is-connected" aria-hidden /> Ao vivo · entrar

@@ -1,0 +1,98 @@
+/* Tela Mesas de Campanha (etapa 3.8). Valores que estavam inline em
+   Campaigns.tsx. */
+
+.fv-camps {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(80px, 11vh, 110px) var(--page-x) 40px;
+}
+/* "body .fv-camps" ganha da regra de títulos do Ouro Velho, como o inline ganhava */
+body .fv-camps .fv-camps-title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 4vw, 30px);
+  color: var(--color-text);
+}
+.fv-camps-lead {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+.fv-btn-gold.fv-camps-enter {
+  min-height: 42px;
+  padding: 0 22px;
+  font-size: 13.5px;
+}
+.fv-panel.fv-camps-new {
+  padding: var(--space-4);
+  margin-bottom: 18px;
+}
+.fv-camps-label {
+  margin-bottom: 10px;
+}
+.fv-camps-row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.fv-camps-row .fv-input {
+  flex: 1 1 220px;
+}
+.fv-btn-gold.fv-camps-found {
+  min-height: 46px;
+  padding: 0 var(--space-5);
+  font-size: var(--text-md);
+}
+.fv-btn-gold.fv-camps-found:disabled {
+  opacity: 0.6;
+}
+.fv-camps-error {
+  margin-top: 9px;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.fv-camps-group {
+  margin-bottom: 18px;
+}
+.fv-camps-none {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.fv-camps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+#fv-conteudo .fv-camps .fv-camp-card {
+  cursor: pointer;
+  text-align: left;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--color-metal) 30%, transparent);
+}
+#fv-conteudo .fv-camps .fv-camp-card.is-live {
+  border-color: color-mix(in srgb, var(--color-metal) 75%, transparent);
+}
+.fv-camp-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--color-text);
+}
+.fv-camp-card-meta {
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.fv-camp-card-role {
+  font-size: var(--text-2xs);
+  color: var(--color-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fv-camp-card-role.is-master {
+  color: var(--color-metal);
+}

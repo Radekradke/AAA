@@ -33,7 +33,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.5 Sala da campanha
 - [x] 3.6 Jogar, Magias, Descanso, Diário, Retrato
 - [x] 3.7 Criação, Home, Heróis, Configurações
-- [~] 3.8 Mesa ao vivo, palco, console do mestre (B-008 feito)
+- [x] 3.8 Mesa ao vivo, palco, console do mestre
 - [ ] 3.9 Quebrar o `globals.css` e apagar CSS sem uso
 
 ## Etapa 4 — Desempenho
@@ -77,3 +77,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.7a Heróis · PR #143 mergeado · CharacterSelect: 28 style={{…}} → 5 (arte, rosto e cor de cada herói) e CharacterEditModal: 27 → 1 (rosto); estilos em `src/styles/heroes.css` e `src/styles/hero-edit.css`; botões de nível e atributo ganharam nome para o leitor de tela e as perícias `aria-pressed`; prints de Seus Heróis em 7 temas e celular, e da janela Editar herói em 5 temas: idênticos. Achados: tokens não seguiam a paleta local do Eclipse (corrigido em `tokens.css`, conferido na criação e na ficha) e B-011 (formato do card do herói definido por 4 temas nunca valeu; aberto para o André decidir)
 - 23/11 · 3.7b Entrar e Criação; B-008 em 3 janelas · PR #144 mergeado · Login: 22 style={{…}} → 0 e Criação: 8 → 0 (só ficam cores e artes de cada opção); estilos em `src/styles/login.css` e `src/styles/creator.css`; abas Entrar/Cadastrar com `aria-pressed`; prints de Entrar nos 8 temas (as duas abas) e da criação em 3 temas e celular: idênticos. Onboarding, Tutorial guiado e Dons no celular prendem o foco, fecham com Esc e devolvem o foco (B-008, 3 de 5 janelas), com teste novo. Home e Configurações já só tinham valores dinâmicos
 - 23/11 · 3.8a Mesa: janelas com foco e Esc · PR em revisão · Cena e Bastidores do mestre prendem o foco e devolvem ao fechar; conjurar, "acertou?" e golpe final fecham com Esc (`useEscClose`, sem mudar o clique fora). B-008 fechado; teste `e2e/foco-janelas.e2e.ts` com 6 casos, todos reprovam sem a correção
+- 23/11 · 3.8b Mesas e dados · PR em revisão · Campaigns: 18 style={{…}} → 0; DiceRoller, RollTimeline e RollAdvisor: 44 → 0; estilos em `src/styles/campaigns.css` e `src/styles/dice.css`; botões de dado com `aria-pressed` e − / + com nome; prints de Mesas nos 8 temas e celular, e das abas Dados e Jogar (histórico com crítico e falha, "O que eu rolo?" preenchido) em 4 temas e celular: idênticos. Mesa ao vivo, palco, console e bestiário já só tinham valores dinâmicos (posição, tamanho, cor de cada peça)

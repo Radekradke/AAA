@@ -1,0 +1,342 @@
+/* Dados (etapa 3.8): rolador, linha do tempo e "O que eu rolo?".
+   Valores que estavam inline em DiceRoller, RollTimeline e RollAdvisor. */
+
+.fv-dice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-dice-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 13px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fv-dice-types {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+.fv-dice-type {
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 15px;
+  padding: var(--space-3) 0;
+  border-radius: 11px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--sunk);
+  transition: 0.2s;
+}
+.fv-dice-type[aria-pressed='true'] {
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 12%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-metal) 30%, transparent);
+}
+.fv-dice-steppers {
+  margin-top: var(--space-4);
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.fv-dice-step-label {
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 7px;
+}
+.fv-dice-step-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.fv-dice-step-btn {
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  font-size: 15px;
+}
+.fv-dice-step-btn.is-up {
+  color: var(--color-accent);
+}
+.fv-dice-step-val {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--color-text);
+  min-width: 28px;
+  text-align: center;
+}
+.fv-dice-step-val.is-wide {
+  min-width: 40px;
+}
+.fv-btn-gold.fv-dice-roll {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px;
+  font-size: var(--text-lg);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4), 0 0 24px var(--bloom);
+}
+
+/* linha do tempo: cor do total (crítico, falha, dano) */
+.fv-roll-total {
+  color: var(--color-text);
+}
+.fv-roll-total.is-crit {
+  color: var(--color-metal);
+}
+.fv-roll-total.is-bad {
+  color: var(--color-danger);
+}
+
+/* versão curta (aba Jogar) */
+.fv-rolls-mini-label {
+  margin: 13px 0 var(--space-2);
+}
+.fv-rolls-mini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.fv-rolls-mini-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 11.5px;
+  font-family: var(--font-num);
+}
+.fv-rolls-mini-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+.fv-rolls-mini-dice {
+  color: var(--color-text-muted);
+}
+.fv-rolls-mini-row .fv-roll-total {
+  font-size: var(--text-sm);
+}
+
+/* versão completa (aba Dados) */
+.fv-rolls-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.fv-rolls-stats {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-rolls-stats .is-crit {
+  color: var(--color-metal);
+}
+.fv-rolls-stats .is-bad {
+  color: var(--color-danger);
+}
+.fv-rolls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.fv-rolls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-2) var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-rolls-time {
+  flex: none;
+  width: 40px;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-rolls-text {
+  flex: 1;
+  min-width: 0;
+}
+.fv-rolls-name {
+  font-size: 12.5px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-rolls-tag {
+  margin-left: 7px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-metal);
+  border: 1px solid var(--color-metal);
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+.fv-rolls-tag.is-bad {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.fv-rolls-expr {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-rolls-row .fv-roll-total {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 18px;
+}
+.fv-rolls-actions {
+  margin-top: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.fv-btn-gold.fv-rolls-save {
+  flex: 1 1 160px;
+  padding: 9px var(--space-3);
+  font-size: 12.5px;
+}
+.fv-rolls-clear {
+  flex: 0 1 auto;
+  cursor: pointer;
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+/* O que eu rolo? (a cor da sugestão chega como --c) */
+.fv-adv-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.fv-adv-hint {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 9px;
+}
+.fv-input.fv-adv-input {
+  width: 100%;
+  min-height: 42px;
+  font-size: var(--text-md);
+  padding: 9px 13px;
+}
+.fv-adv-examples {
+  margin-top: 9px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fv-adv-example {
+  cursor: pointer;
+  font-size: 12.5px;
+  min-height: 36px;
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+}
+.fv-adv-none {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.fv-adv-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.fv-adv-row {
+  --c: var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+  background: color-mix(in srgb, var(--c) 4%, transparent);
+}
+.fv-adv-row.is-main {
+  --c: var(--color-metal);
+  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+}
+.fv-adv-text {
+  flex: 1;
+  min-width: 0;
+}
+.fv-adv-best {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--color-metal);
+  margin-bottom: 2px;
+}
+.fv-adv-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--color-text);
+}
+.fv-adv-why {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.fv-adv-math {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--c) 95%, transparent);
+  margin-top: 3px;
+  font-family: var(--font-num);
+}
+.fv-adv-roll {
+  cursor: pointer;
+  flex: none;
+  min-width: 58px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--c) 60%, transparent);
+  background: var(--sunk);
+  color: var(--c);
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1;
+}
+.fv-adv-roll-sub {
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+}
