@@ -36,6 +36,7 @@ import { RollAdvisor } from '@/components/dice/RollAdvisor';
 import { useInk } from '@/lib/contrast';
 import { deathSaveOutcome } from '@/engine/deathSave';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
+import { pressable } from '@/lib/pressable';
 
 /**
  * Aba Mesa — HUD de sessão real: tudo que o jogador precisa bater o olho,
@@ -397,7 +398,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                       return (
                         <span
                           key={i}
-                          onClick={() => store.toggleSpellSlot(char.id, lv, i + 1)}
+                          {...pressable(() => store.toggleSpellSlot(char.id, lv, i + 1), `Espaço de ${lv}º círculo ${i + 1}: ${filled ? 'livre' : 'gasto'}`)}
                           style={{ cursor: 'pointer', width: 15, height: 15, transform: 'rotate(45deg)', borderRadius: 3, border: '1px solid ' + (filled ? t.acc : t.line), background: filled ? hexA(t.acc, 0.85) : 'transparent', boxShadow: filled ? '0 0 8px ' + hexA(t.acc, 0.6) : 'none' }}
                         />
                       );
@@ -507,7 +508,7 @@ function DeathPips({ label, color, value, onSet }: { label: string; color: strin
       {[1, 2, 3].map((n) => (
         <span
           key={n}
-          onClick={() => onSet(n)}
+          {...pressable(() => onSet(n), `${label}: ${n}`)}
           style={{
             cursor: 'pointer',
             width: 15,

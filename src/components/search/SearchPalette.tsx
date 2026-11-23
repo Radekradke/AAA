@@ -177,8 +177,8 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
 
   let n = -1;
   return createPortal(
-    <div className="fv-search-backdrop" onClick={onClose}>
-      <div ref={boxRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Buscar" className="fv-search fv-panel" onClick={(e) => e.stopPropagation()}>
+    <div className="fv-search-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div ref={boxRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Buscar" className="fv-search fv-panel">
         {detail ? (
           <Detail e={detail} onBack={() => setDetail(null)} master={master} hunted={hunted} />
         ) : (
@@ -221,6 +221,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                     n++;
                     const i = n;
                     return (
+                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus -- opção de listbox: o teclado age pelo campo de busca (aria-activedescendant)
                       <div
                         key={e.id}
                         id={`fv-sr-${e.id}`}

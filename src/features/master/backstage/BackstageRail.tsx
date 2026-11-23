@@ -33,7 +33,7 @@ export function BackstageRail() {
 
   return (
     <div className="fv-backstage">
-      <nav className="fv-backstage-tabs" role="tablist" aria-label="Bastidores">
+      <div className="fv-backstage-tabs" role="tablist" aria-label="Bastidores">
         {PANELS.map((p) => (
           <button key={p.id} type="button" role="tab" aria-selected={panel === p.id} className={panel === p.id ? 'is-on' : ''} onClick={() => setPanel(p.id)}>
             <Icon name={p.icon} size={18} />
@@ -42,7 +42,7 @@ export function BackstageRail() {
             {p.id === 'encontro' && combat && <i className="fv-backstage-dot is-combat" aria-label="combate rolando" />}
           </button>
         ))}
-      </nav>
+      </div>
       <div className="fv-backstage-panel" role="tabpanel" aria-label={PANELS.find((p) => p.id === panel)?.label}>
         {panel === 'sessao' && <SessionPanel />}
         {panel === 'npcs' && <NpcsPanel />}

@@ -120,6 +120,7 @@ export function SpellPicker({ value, onChange, label = 'Magia', labelStyle }: { 
       {open && (
         <ul id={listId} role="listbox" aria-label="Magias" className="fv-spellpick-list">
           {shown.map((s, i) => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- opção de listbox: o teclado age pelo campo (aria-activedescendant)
             <li
               key={s.id}
               id={`${id}-${s.id}`}

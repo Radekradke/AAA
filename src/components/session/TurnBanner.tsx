@@ -33,6 +33,7 @@ export function TurnBanner() {
 
   if (!shown || !mine) return null;
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- aviso que some sozinho; clique só adianta
     <div className="fv-turn-banner" role="alert" onClick={() => setShown(null)}>
       <div className="fv-turn-banner-band">
         <small>Rodada {round}</small>

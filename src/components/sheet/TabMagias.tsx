@@ -27,6 +27,7 @@ import { SchoolIcon } from '@/components/ui/RuleIcon';
 import { spellArt } from '@/lib/spellArt';
 import { useHomebrewStore } from '@/store/homebrewStore';
 import { HomebrewSpellEditor } from '@/components/homebrew/HomebrewSpellEditor';
+import { pressable } from '@/lib/pressable';
 
 /** Mago: copiar para o grimório custa 50 po por círculo (PHB 2014); truques não se copiam. */
 function scrollCost(sp: Spell): number {
@@ -383,7 +384,7 @@ export function TabMagias({ char, derived }: TabProps) {
                   {Array.from({ length: slot.max }, (_, i) => {
                     const filled = i >= slot.used;
                     return (
-                      <span key={i} onClick={() => store.toggleSpellSlot(char.id, lv, i + 1, pool)}
+                      <span key={i} {...pressable(() => store.toggleSpellSlot(char.id, lv, i + 1, pool), `Espaço de ${lv}º círculo ${i + 1}: ${filled ? 'livre' : 'gasto'}`)}
                         style={{ cursor: 'pointer', width: 19, height: 19, borderRadius: 6, transform: 'rotate(45deg)', border: '1px solid ' + (filled ? t.acc : t.line), background: filled ? hexA(t.acc, 0.85) : 'transparent', boxShadow: filled ? '0 0 10px ' + hexA(t.acc, 0.6) : 'none', transition: '.2s' }} />
                     );
                   })}

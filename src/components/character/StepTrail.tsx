@@ -27,7 +27,7 @@ import '@/styles/session.css';
  */
 export function StepTrail({ char, update }: StepProps) {
   const target = char.startLevel ?? 1;
-  const plans = char.levelPlans ?? [];
+  const plans = useMemo(() => char.levelPlans ?? [], [char.levelPlans]);
   const base = useMemo(() => {
     const c = finalizeCharacter({ ...char, level: 1, classLevels: [{ classId: char.classId, level: 1 }] });
     delete c.startLevel;

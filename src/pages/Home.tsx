@@ -160,6 +160,7 @@ export function Home() {
           <p className="fv-menu-tag">Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue</p>
         </header>
 
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- setas navegam entre os botões do menu */}
         <nav className="fv-menu-nav" aria-label="Menu principal" ref={navRef} onKeyDown={onKeyDown}>
           <ul>
             {lastHero && (

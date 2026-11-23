@@ -67,6 +67,7 @@ export function ChronicleModal({ session, isMaster, onClose }: { session: GameSe
         </div>
         {error && <p className="fv-chron-err" role="alert">{error}</p>}
         {!events && !error && <p className="fv-chron-lead" role="status">Carregando a sessão…</p>}
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- área rolável precisa de foco para rolar pelo teclado */}
         {events && <pre className="fv-chron-pre" tabIndex={0} aria-label="Prévia da crônica">{text}</pre>}
       </div>
     </Modal>

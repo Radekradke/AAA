@@ -35,6 +35,7 @@ import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { calcLore, passiveLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
+import { pressable } from '@/lib/pressable';
 
 /** Efeito acumulado de cada nível de exaustão (PHB 2014). */
 const EXHAUSTION_EFFECT: Record<number, string> = {
@@ -485,7 +486,7 @@ export function TabCombate({ char, derived }: TabProps) {
               return (
                 <LoreTooltip key={n} info={passiveLore(`Exaustão · nível ${n}`, EXHAUSTION_EFFECT[n], 'A exaustão acumula em níveis (1–6). Cada nível soma-se aos anteriores. Um descanso longo remove 1 nível. Clique num nível para defini-lo; clique nele de novo para recuar.', ['Condição'])}>
                   <span
-                    onClick={() => store.setExhaustion(char.id, n)}
+                    {...pressable(() => store.setExhaustion(char.id, n), `Exaustão nível ${n}`)}
                     style={{
                       cursor: 'pointer',
                       width: 26,
@@ -580,7 +581,7 @@ function DeathRow({ label, color, value, onClick }: { label: string; color: stri
       {[1, 2, 3].map((n) => (
         <span
           key={n}
-          onClick={() => onClick(n)}
+          {...pressable(() => onClick(n), `${label}: ${n}`)}
           style={{
             cursor: 'pointer',
             width: 17,

@@ -164,6 +164,7 @@ export function PortraitWorkshop() {
               const [cls, gen] = (it.key ?? '-').split('-');
               return (
                 <Panel key={it.id} className="fv-workshop-item">
+                  {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- ferramenta de desenvolvimento: marcar o rosto com o mouse */}
                   <div
                     className="fv-workshop-preview"
                     onClick={(e) => {

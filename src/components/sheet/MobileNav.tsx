@@ -45,8 +45,8 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
   return createPortal(
     <>
       {moreOpen && (
-        <div className="fv-mobile-only fv-nav-more-backdrop" onClick={() => setMoreOpen(false)}>
-          <div className="fv-panel fv-nav-more" role="menu" aria-label="Mais abas" onClick={(e) => e.stopPropagation()}>
+        <div className="fv-mobile-only fv-nav-more-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setMoreOpen(false); }}>
+          <div className="fv-panel fv-nav-more" role="menu" aria-label="Mais abas">
             {secondary.map((tab) => (
               <MoreItem key={tab.id} tab={tab} active={active === tab.id} onClick={() => select(tab.id)} />
             ))}

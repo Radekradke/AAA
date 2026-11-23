@@ -138,7 +138,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     if (!disabled) return;
     cancelLongPress();
     hide();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [disabled]);
 
   const onPointerDownCapture = (e: PointerEvent<HTMLSpanElement>) => {
@@ -187,6 +187,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
     <span
       ref={anchorRef}
       className="fv-lore-anchor"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- âncora da dica precisa de foco para abrir pelo teclado
       tabIndex={0}
       aria-label={`${info.title}: ${info.body}`}
       onPointerOver={(e) => {

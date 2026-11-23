@@ -45,7 +45,7 @@ describe('SQL do multiplayer (sessão, encontro, iniciativa)', () => {
     };
     const expectOk = async (label, fn) => { try { const r = await fn(); ok++; return r; } catch (e) { fail++; failures.push(`${label} → ${e.message}`); } };
     const expectErr = async (label, re, fn) => { try { await fn(); fail++; failures.push(`${label} → não falhou`); } catch (e) { if (re.test(e.message)) { ok++; } else { fail++; failures.push(`${label} → ${e.message}`); } } };
-    const eq = (label, a, b) => { const s = JSON.stringify(a) === JSON.stringify(b); s ? ok++ : fail++; if (!s) failures.push(`${label} → ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`); };
+    const eq = (label, a, b) => { const s = JSON.stringify(a) === JSON.stringify(b); if (s) ok++; else fail++; if (!s) failures.push(`${label} → ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`); };
 
     // campanha, membros, fichas vinculadas
     const [camp] = await as('gm', `insert into campaigns (master_id, name, created_at, updated_at) values ($1, 'Mesa', 1, 1) returning id`, [U.gm]);
