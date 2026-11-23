@@ -47,8 +47,8 @@ export function Modal({ title, icon, onClose, children, footer, maxWidth = 620, 
   };
 
   return createPortal(
-    <div className="fv-modal-overlay" onClick={onBackdrop}>
-      <div ref={ref} className="fv-modal fv-panel" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} onClick={(e) => e.stopPropagation()} style={{ maxWidth }}>
+    <div className="fv-modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) onBackdrop(); }}>
+      <div ref={ref} className="fv-modal fv-panel" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} style={{ maxWidth }}>
         <div className="fv-modal-head">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             {icon && <Icon name={icon} size={19} color="var(--gold)" />}

@@ -23,20 +23,20 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
   const weapons = derived.attacks.filter((a) => a.weapon);
   const selectedWeapon = weapons.find((a) => a.uid === weaponUid)?.uid ?? weapons[0]?.uid;
 
-  const useAction = (kind: 'action' | 'bonus') => store.useTurn(char.id, kind);
+  const spendTurn = (kind: 'action' | 'bonus') => store.useTurn(char.id, kind);
   const layOnHands = (who: 'self' | 'ally') => {
     if (!pal.layLeft || turn.action) return;
     const heal = who === 'self' ? Math.min(n, Math.max(0, lost)) : n;
     if (heal <= 0) return void toast('Você já está com os PV cheios.', { tone: 'info' });
     store.setResource(char.id, 'layhands', pal.layLeft - heal);
-    useAction('action');
+    spendTurn('action');
     if (who === 'self') store.heal(char.id, heal);
     toast(`Cura pelas Mãos: ${who === 'self' ? `+${heal} PV em você` : `${heal} PV para o aliado`} (sobram ${pal.layLeft - heal}).`, { tone: 'ok' });
   };
   const cure = () => {
     if (pal.layLeft < 5 || turn.action) return;
     store.setResource(char.id, 'layhands', pal.layLeft - 5);
-    useAction('action');
+    spendTurn('action');
     if (poisoned) store.toggleCondition(char.id, 'Envenenado');
     toast(`Cura pelas Mãos: 5 pontos curam uma doença ou um veneno${poisoned ? ' (Envenenado removido)' : ''}.`, { tone: 'ok' });
   };
@@ -72,7 +72,7 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
         </label>}
         <button type="button" className="fv-rage-go is-steel" disabled={!pal.senseLeft || turn.action} onClick={() => {
           store.setResource(char.id, 'divineSense', pal.senseLeft - 1);
-          useAction('action');
+          spendTurn('action');
           toast('Sentido Divino: até o fim do seu próximo turno, você sente celestiais, corruptores e mortos-vivos a 18 m (sem cobertura total).', { tone: 'ok' });
         }} title="Ação: sente celestiais, corruptores, mortos-vivos e lugares consagrados/profanados a 18 m.">
           Sentido Divino <small>ação · {pal.senseLeft}/{pal.senseMax}</small>
@@ -83,7 +83,7 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
           return (
             <button key={o.id} type="button" className="fv-rage-go is-steel" disabled={!pal.channelLeft || turn[kind] || on || (o.mark === 'sacredWeapon' && !selectedWeapon)} onClick={() => {
               store.setResource(char.id, 'channel', pal.channelLeft - 1);
-              useAction(kind);
+              spendTurn(kind);
               if (o.mark) store.setMark(char.id, o.mark, true, o.mark === 'sacredWeapon' ? selectedWeapon : undefined);
               toast(`Canalizar Divindade · ${o.label}: ${o.desc}${o.save ? ` CD ${pal.dc}.` : ''}`, { tone: 'ok' });
             }} title={o.desc}>
@@ -94,7 +94,7 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
         {pal.cleansingMax > 0 && (
           <button type="button" className="fv-rage-go is-steel" disabled={!pal.cleansingLeft || turn.action} onClick={() => {
             store.setResource(char.id, 'cleansing', pal.cleansingLeft - 1);
-            useAction('action');
+            spendTurn('action');
             toast('Toque Purificador: uma magia em você ou numa criatura voluntária termina.', { tone: 'ok' });
           }} title="Ação: encerra uma magia em você ou numa criatura voluntária que você toca.">
             Toque Purificador <small>ação · {pal.cleansingLeft}/{pal.cleansingMax}</small>
@@ -103,7 +103,7 @@ export function PaladinPanel({ char, derived }: { char: Character; derived: Deri
         {pal.avatar && (
           <button type="button" className="fv-rage-go is-steel" disabled={!pal.avatar.left || turn.action} onClick={() => {
             store.setResource(char.id, 'oathAvatar', 0);
-            useAction('action');
+            spendTurn('action');
             toast(`${pal.avatar!.label}: ${pal.avatar!.desc}.`, { tone: 'ok' });
           }} title={pal.avatar.desc}>
             {pal.avatar.label} <small>ação · {pal.avatar.left}/1 por descanso longo</small>

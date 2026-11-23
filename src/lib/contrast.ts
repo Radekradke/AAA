@@ -91,7 +91,8 @@ export function readableOn(fg: string, bg: string, min = 4.6): string {
     return fg;
   }
   const darken = luminance(b) > 0.18;
-  let [L, C, H] = toOklch(f);
+  const [L0, C, H] = toOklch(f);
+  let L = L0;
   let out: RGB = f;
   for (let i = 0; i < 200 && ratioRGB(out, b) < min; i++) {
     L = Math.max(0, Math.min(1, L + (darken ? -0.01 : 0.01)));

@@ -17,6 +17,7 @@ export function TableRollToast() {
   const p = e.payload as { who?: string; label?: string; total?: number; expr?: string; crit?: boolean; fail?: boolean; damage?: boolean; dice?: string };
   const trophy = diceTrophy(p.dice);
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- aviso que some sozinho; clique só adianta
     <div className={'fv-tableroll' + (p.crit ? ' is-crit' : p.fail ? ' is-fail' : '') + (p.damage ? ' is-dmg' : '')} role="status" aria-live="polite" onClick={() => setShown(null)}>
       {trophy && (
         <span className="fv-tableroll-die" title={`Dado conquistado: ${trophy.skin.label}`}>

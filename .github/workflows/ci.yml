@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       - name: Tipos (TypeScript)
         run: npm run typecheck
+      - name: Lint (ESLint)
+        run: npm run lint
       - name: Testes de unidade e SQL (Vitest + PGlite)
         run: npm test
       - name: Build de produção

@@ -57,7 +57,7 @@ export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloa
     const sel = useMasterStore.getState().selection;
     // sem abrir gaveta no celular: só troca o que o inspetor mostra
     if (c && c.type !== 'player' && (!sel || sel.kind === 'combatant')) useMasterStore.setState({ selection: { kind: 'combatant', id: c.id } });
-  }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeId]);  
 
   // criatura do bestiário solta no mapa: entra no encontro (abre um, se preciso) e vira peão ali
   const dropMonster = async (ref: string, qty: number) => {

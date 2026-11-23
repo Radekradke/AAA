@@ -313,6 +313,7 @@ function ArtLightbox({ art, name, line, position, onClose }: { art: string; name
     };
   }, []);
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- arte ampliada: clique fecha, Esc também
     <div ref={ref} className="fv-vitrine-zoom" role="dialog" aria-modal="true" aria-label={`Arte de ${name}`} tabIndex={-1} onClick={onClose}>
       <img src={art} alt={`Arte de ${name}`} style={{ objectPosition: position }} />
       <div className="fv-vitrine-zoom-cap">

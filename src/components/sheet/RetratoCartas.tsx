@@ -190,6 +190,7 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
   }, []);
 
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- clique no fundo fecha; setas e Esc no teclado
     <div
       ref={ref}
       className={'fv-cc-viewer' + (prey ? ' has-lore' : '')}
@@ -197,14 +198,14 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
       aria-modal="true"
       aria-label={`Carta: ${c.title}`}
       tabIndex={-1}
-      onClick={onClose}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => {
         if (!many) return;
         if (e.key === 'ArrowRight') go(1);
         else if (e.key === 'ArrowLeft') go(-1);
       }}
     >
-      <div className="fv-cc-stage" onClick={(e) => e.stopPropagation()}>
+      <div className="fv-cc-stage">
         {many && (
           <button type="button" className="fv-cc-nav is-prev" onClick={() => go(-1)} aria-label="Carta anterior">
             ‹
@@ -218,7 +219,7 @@ function CardViewer({ cards, index, onIndex, onClose }: { cards: CollectCard[]; 
         )}
       </div>
       {prey && c.hunt && (
-        <div className="fv-cc-lore" onClick={(e) => e.stopPropagation()}>
+        <div className="fv-cc-lore">
           <HuntLore key={c.id} m={prey} n={c.hunt.n} />
         </div>
       )}

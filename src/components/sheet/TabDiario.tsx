@@ -126,7 +126,7 @@ export function TabDiario({ char }: TabProps) {
         <input className="fv-input fv-diary-search" placeholder="Buscar no diário…" aria-label="Buscar no diário" value={query} onChange={(e) => setQuery(e.target.value)} />
       </header>
 
-      <nav className="fv-diary-tabs" role="tablist" aria-label="Seções do diário">
+      <div className="fv-diary-tabs" role="tablist" aria-label="Seções do diário">
         {tabs.map((x) => (
           <button
             key={x.id}
@@ -141,7 +141,7 @@ export function TabDiario({ char }: TabProps) {
             {x.count > 0 && <small>{x.count}</small>}
           </button>
         ))}
-      </nav>
+      </div>
 
       {elsewhere.length > 0 && (
         <p className="fv-diary-elsewhere" role="status">

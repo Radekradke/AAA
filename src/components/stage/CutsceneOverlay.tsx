@@ -79,6 +79,7 @@ function Typewriter({ text }: { text: string }) {
     return () => clearTimeout(t);
   }, [n, text]);
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- clique só completa o texto que já está sendo escrito
     <p onClick={() => setN(text.length)} aria-live="polite">
       {text.slice(0, n)}
       {n < text.length && <span className="fv-cut-caret" aria-hidden />}

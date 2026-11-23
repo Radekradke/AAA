@@ -1,0 +1,56 @@
+# Progresso do plano profissional
+
+Lista de trabalho de `docs/PLANO-PROFISSIONAL.md`. Cada retomada automática pega o **primeiro item não marcado**, faz, testa, abre o PR e marca aqui quando for mergeado.
+
+Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergeado
+
+## Etapa 0 — Rede de segurança
+- [~] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
+- [ ] 0.2 `npm audit fix` (react-router)
+- [ ] 0.3 Orçamento de tamanho do pacote no CI
+- [ ] 0.4 Teste de fumaça: 16 páginas sem erro no console
+- [ ] 0.5 Registro de bugs (`docs/BUGS.md`)
+
+## Etapa 1 — Caça a bugs
+- [ ] 1.1 Criação
+- [ ] 1.2 Ficha: Jogar, Combate, Magias, Inventário
+- [ ] 1.3 Ficha: Evoluir, Descanso, Diário, Retrato, Dados
+- [ ] 1.4 Mesa ao vivo, palco, mapa, NPCs, bestiário
+- [ ] 1.5 Conta, sincronização, offline, importação/exportação, impressão
+
+## Etapa 2 — Design system
+- [ ] 2.1 Tokens
+- [ ] 2.2 Primitivos
+- [ ] 2.3 Camadas (Modal, Sheet, Popover, Tooltip, Toast)
+- [ ] 2.4 Catálogo `/dev/ui`
+- [ ] 2.5 Guarda contra cor fixa e estilo solto
+
+## Etapa 3 — Migração tela por tela
+- [ ] 3.1 Combate
+- [ ] 3.2 Evoluir
+- [ ] 3.3 Ficha
+- [ ] 3.4 Inventário + editor de item
+- [ ] 3.5 Sala da campanha
+- [ ] 3.6 Jogar, Magias, Descanso, Diário, Retrato
+- [ ] 3.7 Criação, Home, Heróis, Configurações
+- [ ] 3.8 Mesa ao vivo, palco, console do mestre
+- [ ] 3.9 Quebrar o `globals.css` e apagar CSS sem uso
+
+## Etapa 4 — Desempenho
+- [ ] 4.1 Dividir o pacote de entrada (< 300 KB)
+- [ ] 4.2 Imagens
+- [ ] 4.3 Core Web Vitals
+
+## Etapa 5 — Acessibilidade e responsividade
+- [ ] 5.1 Teclado
+- [ ] 5.2 Leitor de tela
+- [ ] 5.3 12 tamanhos × 8 temas
+
+## Etapa 6 — Entrega
+- [ ] 6.1 Versão e changelog
+- [ ] 6.2 Roteiro manual completo
+- [ ] 6.3 Checklist de produção
+
+## Diário das retomadas
+<!-- Cada retomada acrescenta uma linha: data · item · PR · resultado -->
+- 23/11 · 0.1 lint · PR aberto · 0 erros de lint, 1012 unidade, 187 ponta a ponta

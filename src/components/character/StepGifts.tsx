@@ -273,6 +273,7 @@ export function StepGifts({ char, update }: StepProps) {
       {narrow &&
         sheet &&
         createPortal(
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- clique no fundo da folha fecha; Esc e o botão fechar cobrem o teclado
           <div className="fv-gift-sheet fv-gifts" role="dialog" aria-modal="true" aria-label={shown.label} onClick={(e) => e.target === e.currentTarget && setSheet(false)}>
             <div className="fv-gift-sheet-panel">
               <button type="button" className="fv-gift-sheet-close" aria-label="Fechar" onClick={() => setSheet(false)}>

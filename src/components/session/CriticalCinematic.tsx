@@ -83,6 +83,7 @@ export function CriticalCinematic() {
     const txt = DEATH_TEXT[d.outcome];
     const beat = beatOf(d.fail, d.outcome);
     return createPortal(
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- tela cheia que some sozinha; clique só adianta (Esc também fecha)
       <div key={c.at} className={`fv-cine is-death is-${d.outcome}`} style={{ '--beat': `${beat ?? 1}s` } as CSSProperties} onClick={clear} role="status" aria-live="assertive">
         <span className="fv-cine-vignette" aria-hidden />
         <svg className="fv-cine-ecg" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden>
@@ -123,6 +124,7 @@ export function CriticalCinematic() {
   }
   const crit = c.kind === 'crit';
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- tela cheia que some sozinha; clique só adianta (Esc também fecha)
     <div key={c.at} className={'fv-cine ' + (crit ? 'is-crit' : 'is-fumble')} onClick={clear} role="status" aria-live="assertive">
       <span className="fv-cine-rays" aria-hidden />
       <div className="fv-cine-art" aria-hidden>

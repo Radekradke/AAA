@@ -22,6 +22,7 @@ import { ClassFeaturesPanel } from './ClassFeaturesPanel';
 import { getSubrace, raceOf } from '@/data/races';
 import { SkillsModal } from './SkillsModal';
 import { useInk } from '@/lib/contrast';
+import { pressable } from '@/lib/pressable';
 
 /**
  * Aba Ficha — identidade de HUD: os 6 atributos na mesma linha (desktop)
@@ -53,7 +54,7 @@ export function TabFicha({ char, derived }: TabProps) {
             return (
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <div
-                  onClick={() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
+                  {...pressable(() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod))}
                   onMouseMove={tilt.onMouseMove}
                   onMouseLeave={tilt.onMouseLeave}
                   style={{
@@ -87,7 +88,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   </div>
                   <LoreTooltip info={savingThrowLore(a.key, a.save, a.saveProf)} anchorStyle={{ display: 'block' }}>
                     <div
-                      onClick={(e) => { e.stopPropagation(); checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }}
+                      {...pressable((e) => { e.stopPropagation(); checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save); }, `Salvaguarda de ${ABILITY_LABELS[a.key]}`)}
                       style={{
                         marginTop: 7,
                         fontSize: 10,
