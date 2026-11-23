@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useEscClose } from '@/lib/useEscClose';
 import { useSessionStore } from '@/store/sessionStore';
 
 /**
@@ -11,6 +12,9 @@ export function KillCreditPrompt() {
   const isMaster = useSessionStore((s) => !!s.me?.isMaster);
   const heroes = useSessionStore((s) => s.combatants.filter((c) => c.type === 'player' && c.sheetId));
   const credit = useSessionStore((s) => s.creditKill);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  // Esc com o foco na pergunta = "Ninguém" (B-008)
+  useEscClose(!!pending, () => void credit(null), boxRef);
 
   useEffect(() => {
     if (!pending) return;
@@ -20,7 +24,7 @@ export function KillCreditPrompt() {
 
   if (!pending || !isMaster || !heroes.length) return null;
   return (
-    <div className="fv-panel fv-kill" role="dialog" aria-label={`Golpe final em ${pending.name}`}>
+    <div ref={boxRef} className="fv-panel fv-kill" role="dialog" aria-label={`Golpe final em ${pending.name}`}>
       <p>
         <b>{pending.name}</b> caiu! Golpe final de:
       </p>

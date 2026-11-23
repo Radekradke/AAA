@@ -1,4 +1,5 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
+import { useEscClose } from '@/lib/useEscClose';
 import type { Character } from '@/types/character';
 import type { Spell } from '@/types/dnd';
 import type { DerivedCharacter } from '@/engine/dndRules';
@@ -82,6 +83,9 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const [open, setOpen] = useState(false);
   const wildSurge = useWildSurge(char);
   const [pending, setPending] = useState<PendingAttack | null>(null);
+  const boxRef = useRef<HTMLSpanElement | null>(null);
+  // Esc fecha o menu de conjurar e o "acertou?", e o foco volta ao botão (B-008)
+  useEscClose(open || !!pending, () => { setOpen(false); setPending(null); }, boxRef);
   const menuPop = usePopFlip<HTMLSpanElement>(open && !pending);
   const hitPop = usePopFlip<HTMLSpanElement>(pending);
   const [targetAc, setTargetAc] = useState('');
@@ -374,7 +378,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
   const hits = outcomes.filter((o) => o === 'hit' || o === 'crit').length;
 
   return (
-    <span className="fv-cast">
+    <span ref={boxRef} className="fv-cast">
       <button
         type="button"
         key={flash}

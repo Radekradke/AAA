@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/test';
 import type { Locator, Page } from '@playwright/test';
-import { signIn, WIZARD } from './fixtures/supabase';
+import { C, installSupabase, signIn, WIZARD } from './fixtures/supabase';
 import { chooseFullRules } from './fixtures/creator';
 
 /**
@@ -57,5 +57,41 @@ test.describe('foco preso nas janelas (B-008)', () => {
     await page.keyboard.press('Escape');
     await expect(gaveta).toHaveCount(0);
     await expect(alaude).toBeFocused();
+  });
+  test('Bastidores do mestre: biblioteca de cenas prende o foco e Esc volta ao botão', async ({ page }) => {
+    await signIn(page, 'master');
+    await installSupabase(page, 'master');
+    await page.goto(`/mesa/${C}/jogar`);
+    await page.getByRole('tab', { name: /Cenas/ }).click();
+    const abrir = page.getByRole('button', { name: 'Biblioteca de cenas' });
+    await abrir.click();
+    const janela = page.getByRole('dialog', { name: 'Biblioteca de cenas' });
+    await expect(janela).toBeVisible();
+    await tabStaysInside(page, janela, 8);
+    await page.keyboard.press('Escape');
+    await expect(janela).toHaveCount(0);
+    await expect(abrir).toBeFocused();
+  });
+
+  test('conjurar e "acertou?": Esc fecha a janela do botão e devolve o foco', async ({ page }) => {
+    await signIn(page, 'guest', { characters: [WIZARD] });
+    await page.goto(`/ficha/${WIZARD.id}`);
+    await page.locator('.fv-sheet-tab', { hasText: 'Magias' }).click();
+    const conjurar = page.getByRole('button', { name: /Conjurar/ }).first();
+    await conjurar.click();
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(conjurar).toBeFocused();
+
+    await page.locator('.fv-sheet-tab', { hasText: 'Jogar' }).click();
+    const acerto = page.locator('[data-attack-hit]').first();
+    await acerto.click();
+    const pergunta = page.getByRole('dialog', { name: /acertou\?/ });
+    await expect(pergunta).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(pergunta).toHaveCount(0);
+    await expect(acerto).toBeFocused();
   });
 });
