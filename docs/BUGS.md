@@ -26,14 +26,6 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Abertos
 
-### B-001 · Patrulheiro 14: idioma extra do Explorador Natural não é pedido no Evoluir
-- **Prioridade:** P1
-- **Área:** Ficha › Evoluir
-- **Passos:** 1. Patrulheiro nível 13. 2. Evoluir para o 14. 3. Ver as escolhas do nível.
-- **Esperado:** pedir o idioma que acompanha o novo inimigo favorito (`favoredLanguage`), como no 1º e no 6º.
-- **Acontece:** a escolha acumulada não aparece. A Trilha de níveis e o Herói rápido preenchem, mas a aba Evoluir não pede.
-- **Status:** Aberto
-
 ### B-002 · Alertas de segurança só nas ferramentas de desenvolvimento
 - **Prioridade:** P3
 - **Área:** Dependências
@@ -56,4 +48,10 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
-_Nenhum ainda._
+### B-001 · Patrulheiro: ficha cobrava idioma de inimigo favorito que não fala
+- **Prioridade:** P1
+- **Área:** Ficha › Evoluir
+- **Passos:** 1. Patrulheiro nível 13. 2. Evoluir para o 14. 3. Ver as escolhas do nível.
+- **Esperado:** pedir o idioma que acompanha o novo inimigo favorito (`favoredLanguage`), como no 1º e no 6º.
+- **Acontece:** o Evoluir só pede o idioma quando o inimigo novo fala, o que está certo. Mas a conta das escolhas devidas exigia um idioma por nível (1º, 6º e 14º) sempre que algum inimigo falasse. Com dragões, gigantes e feras, a ficha ficava devendo um terceiro idioma depois de subir.
+- **Status:** Corrigido: a conta passa a exigir um idioma por inimigo favorito que fala (`capByRequirement` em `src/engine/classChoices.ts`). Teste: `classChoices.test.ts` › "escolhas condicionais que se repetem".
