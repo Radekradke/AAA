@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 import { createPortal } from 'react-dom';
 import type { StepProps } from './stepTypes';
 import type { ChoiceOption, ChoiceSpec } from '@/data/classChoices';
@@ -85,6 +86,9 @@ export function StepGifts({ char, update }: StepProps) {
   const [groupPick, setGroupPick] = useState<Record<string, string>>({});
   const narrow = useNarrow();
   const [sheet, setSheet] = useState(false);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  // gaveta do celular: foco preso, Esc fecha e o foco volta para a opção tocada (B-008)
+  useDialogFocus(sheetRef, narrow && sheet, () => setSheet(false));
   const active = decisions.find((d) => d.id === activeId) ?? decisions.find((d) => d.id === firstOpen) ?? decisions[0];
 
   // terminou uma decisão: segue para a próxima que falta (as novas do domínio aparecem na hora)
@@ -274,7 +278,7 @@ export function StepGifts({ char, update }: StepProps) {
         sheet &&
         createPortal(
           // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- clique no fundo da folha fecha; Esc e o botão fechar cobrem o teclado
-          <div className="fv-gift-sheet fv-gifts" role="dialog" aria-modal="true" aria-label={shown.label} onClick={(e) => e.target === e.currentTarget && setSheet(false)}>
+          <div ref={sheetRef} tabIndex={-1} className="fv-gift-sheet fv-gifts" role="dialog" aria-modal="true" aria-label={shown.label} onClick={(e) => e.target === e.currentTarget && setSheet(false)}>
             <div className="fv-gift-sheet-panel">
               <button type="button" className="fv-gift-sheet-close" aria-label="Fechar" onClick={() => setSheet(false)}>
                 ✕

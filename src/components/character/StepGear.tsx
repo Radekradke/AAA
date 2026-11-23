@@ -177,7 +177,7 @@ export function StepGear({ char, update }: StepProps) {
             </button>
           )}
         </div>
-        <p className="fv-step-note" style={{ margin: '10px 0 0' }}>
+        <p className="fv-step-note is-tight">
           {gold !== null ? 'O equipamento do antecedente vem do mesmo jeito. ' : 'Os pacotes chegam abertos na mochila. '}Tudo muda depois no inventário.
         </p>
       </section>

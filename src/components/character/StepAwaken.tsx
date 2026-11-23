@@ -95,7 +95,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
           </label>
           <label className="fv-field">
             <LoreTooltip info={ALIGN_LORE}>
-              <span style={{ cursor: 'help' }}>Alinhamento ⓘ</span>
+              <span className="fv-help-cursor">Alinhamento ⓘ</span>
             </LoreTooltip>
             <select className="fv-input" value={char.alignment} onChange={(e) => update((c) => { c.alignment = e.target.value; })}>
               {ALIGNMENTS.map((a) => (
@@ -110,9 +110,8 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
             <label className="fv-field">
               <span>Conceito <small>(opcional)</small></span>
               <textarea
-                className="fv-input"
+                className="fv-input fv-awaken-concept"
                 rows={2}
-                style={{ resize: 'none', lineHeight: 1.5 }}
                 value={char.concept}
                 placeholder="Em uma frase: quem é seu herói e o que o move?"
                 onChange={(e) => update((c) => { c.concept = e.target.value; })}

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useUiStore } from '@/store/uiStore';
 import { TOURS } from './tours';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 
 interface Box {
   top: number;
@@ -38,10 +39,15 @@ export function GuidedTour() {
   const [vw, setVw] = useState(() => window.innerWidth);
   const [vh, setVh] = useState(() => window.innerHeight);
   const nextRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // só os passos com alvo na tela agora (PC e celular têm elementos diferentes)
   const steps = useMemo(() => (tourId ? TOURS[tourId].filter((s) => findTarget(s.target)) : []), [tourId]);
   const step = steps[i];
+  const shown = !!(tourId && step && box);
+
+  // foco preso no balão, Esc encerra e o foco volta para a página (B-008)
+  useDialogFocus(dialogRef, shown, endTour);
 
   useEffect(() => setI(0), [tourId]);
 
@@ -50,7 +56,7 @@ export function GuidedTour() {
     if (!step) return;
     findTarget(step.target)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     nextRef.current?.focus({ preventScroll: true });
-  }, [step]);
+  }, [step, shown]);
 
   // acompanha a posição do alvo (rolagem suave, resize, conteúdo que muda)
   useLayoutEffect(() => {
@@ -77,8 +83,7 @@ export function GuidedTour() {
   useEffect(() => {
     if (!tourId) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') endTour();
-      else if (e.key === 'ArrowRight') setI((n) => (n + 1 < steps.length ? n + 1 : n));
+      if (e.key === 'ArrowRight') setI((n) => (n + 1 < steps.length ? n + 1 : n));
       else if (e.key === 'ArrowLeft') setI((n) => Math.max(0, n - 1));
     };
     window.addEventListener('keydown', onKey);
@@ -115,7 +120,7 @@ export function GuidedTour() {
   const arrowX = Math.max(18, Math.min(tipW - 18, center - left));
 
   return createPortal(
-    <div className="fv-tour" role="dialog" aria-modal="true" aria-labelledby="fv-tour-title">
+    <div ref={dialogRef} tabIndex={-1} className="fv-tour" role="dialog" aria-modal="true" aria-labelledby="fv-tour-title">
       {/* bloqueia cliques na tela durante o tour; clicar fora não fecha (evita sair sem querer) */}
       <div className="fv-tour-block" />
       <div className="fv-tour-hole" style={{ top: hole.top, left: hole.left, width: hole.width, height: hole.height }} aria-hidden />

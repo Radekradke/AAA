@@ -6,6 +6,7 @@ import { RuneRing } from '@/components/animations/RuneRing';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { authService } from '@/services/authService';
+import '@/styles/login.css';
 
 type Mode = 'login' | 'register';
 
@@ -94,83 +95,37 @@ export function Login() {
     navigate(consumeNext());
   };
 
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    flex: 1,
-    cursor: 'pointer',
-    fontFamily: 'var(--font-display)',
-    fontWeight: 600,
-    fontSize: 14,
-    letterSpacing: '.04em',
-    padding: '11px 0',
-    borderRadius: 999,
-    border: '1px solid ' + (active ? 'var(--gold)' : 'transparent'),
-    color: active ? 'var(--gold)' : 'var(--muted)',
-    background: active ? 'rgba(255,224,138,.12)' : 'transparent',
-    boxShadow: active ? '0 0 18px var(--bloom)' : 'none',
-    transition: '.25s',
-  });
-
   return (
     <Screen video="/assets/bg.mp4" videoOpacity={0.22}>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-        }}
-      >
-        <div
-          className="fv-panel animate-riseIn"
-          style={{ width: '100%', maxWidth: 380, maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', padding: 'clamp(18px,3.4vw,28px)' }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
+      <div className="fv-login">
+        <div className="fv-panel animate-riseIn fv-login-card">
+          <div className="fv-login-head">
             <RuneRing size={60}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--gold)' }}>
+              <span className="fv-login-mark">
                 F
               </span>
             </RuneRing>
-            <h1
-              style={{
-                margin: '12px 0 4px',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                fontSize: 21,
-                color: 'var(--ink)',
-              }}
-            >
+            <h1 className="fv-login-title">
               Entre na lenda
             </h1>
-            <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12.5, textAlign: 'center' }}>
+            <p className="fv-login-lead">
               Salve seus heróis e continue a aventura de qualquer dispositivo.
             </p>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              padding: 4,
-              borderRadius: 999,
-              background: 'var(--sunk)',
-              border: '1px solid var(--line)',
-              marginBottom: 16,
-            }}
-          >
-            <button onClick={() => setMode('login')} style={tabStyle(mode === 'login')}>
+          <div className="fv-login-tabs">
+            <button type="button" className="fv-login-tab" aria-pressed={mode === 'login'} onClick={() => setMode('login')}>
               Entrar
             </button>
-            <button onClick={() => setMode('register')} style={tabStyle(mode === 'register')}>
+            <button type="button" className="fv-login-tab" aria-pressed={mode === 'register'} onClick={() => setMode('register')}>
               Cadastrar
             </button>
           </div>
 
-          <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+          <form onSubmit={submit} className="fv-login-form">
             {mode === 'register' && (
               <label>
-                <span className="fv-label" style={{ display: 'block', fontSize: 11.5, marginBottom: 7 }}>
+                <span className="fv-label fv-login-label">
                   Nome
                 </span>
                 <input
@@ -183,7 +138,7 @@ export function Login() {
               </label>
             )}
             <label>
-              <span className="fv-label" style={{ display: 'block', fontSize: 11.5, marginBottom: 7 }}>
+              <span className="fv-label fv-login-label">
                 E-mail
               </span>
               <input
@@ -196,7 +151,7 @@ export function Login() {
               />
             </label>
             <label>
-              <span className="fv-label" style={{ display: 'block', fontSize: 11.5, marginBottom: 7 }}>
+              <span className="fv-label fv-login-label">
                 Senha
               </span>
               {/* sem "••••••" de exemplo: parecia que o campo já estava preenchido */}
@@ -217,18 +172,18 @@ export function Login() {
             </label>
 
             {error && (
-              <div style={{ color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>
+              <div className="fv-login-error">{error}</div>
             )}
 
-            <button type="submit" disabled={busy} className="fv-btn-gold" style={{ marginTop: 3, padding: '12px', fontSize: 14.5, opacity: busy ? 0.7 : 1 }}>
+            <button type="submit" disabled={busy} className="fv-btn-gold fv-login-submit">
               {busy ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           </form>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '14px 0' }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
-            <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.1em' }}>OU</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+          <div className="fv-login-or">
+            <i aria-hidden />
+            <span>OU</span>
+            <i aria-hidden />
           </div>
 
           {cloud && (
@@ -236,26 +191,7 @@ export function Login() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={busy}
-              style={{
-                opacity: busy ? 0.7 : 1,
-                width: '100%',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-                fontFamily: 'var(--font-body)',
-                fontWeight: 600,
-                fontSize: 14,
-                color: 'var(--ink)',
-                padding: '11px',
-                marginBottom: 9,
-                borderRadius: 12,
-                border: '1px solid var(--line)',
-                background: 'var(--panel)',
-                backdropFilter: 'blur(8px)',
-                transition: '.25s',
-              }}
+              className="fv-login-alt is-google"
             >
               <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden>
                 <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.09 3.57-5.16 3.57-8.81z" />
@@ -268,32 +204,20 @@ export function Login() {
           )}
 
           <button
+            type="button"
             onClick={guest}
-            style={{
-              width: '100%',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              fontWeight: 600,
-              fontSize: 14,
-              color: 'var(--ink)',
-              padding: '11px',
-              borderRadius: 12,
-              border: '1px solid var(--line)',
-              background: 'var(--panel)',
-              backdropFilter: 'blur(8px)',
-              transition: '.25s',
-            }}
+            className="fv-login-alt"
           >
             Continuar offline
           </button>
-          <p style={{ margin: '10px 0 0', fontSize: 11.5, color: 'var(--muted)', textAlign: 'center' }}>
+          <p className="fv-login-note">
             {cloud
               ? 'No modo offline as fichas ficam salvas neste aparelho e você pode entrar depois para sincronizar na nuvem.'
               : 'As fichas ficam salvas neste aparelho (funciona sem internet). Configure o Supabase para sincronizar na nuvem — veja docs/SUPABASE.md.'}
           </p>
           {cloud && (
-            <p style={{ margin: '8px 0 0', textAlign: 'center' }}>
-              <button type="button" className="fv-textlink" onClick={() => navigate('/diagnostico')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--acc)', fontSize: 11.5, fontWeight: 600 }}>
+            <p className="fv-login-help">
+              <button type="button" className="fv-textlink" onClick={() => navigate('/diagnostico')}>
                 Problemas com o login? Abrir diagnóstico →
               </button>
             </p>
