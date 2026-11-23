@@ -94,6 +94,11 @@
   position: relative;
   z-index: 1;
 }
+/* o botão do card zera o estilo (all: unset) e o card corta o que vaza: o anel do teclado vai no card */
+#fv-conteudo .fv-heroes .fv-hero-card:has(.fv-hero-card-main:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
 .fv-hero-card-top {
   display: flex;
   gap: 14px;
