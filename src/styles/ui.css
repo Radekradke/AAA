@@ -134,6 +134,7 @@
 /* ---------- Field ---------- */
 .fv-ui-field {
   display: grid;
+  align-content: start; /* numa linha com um campo mais alto, não estica */
   gap: var(--space-1);
   min-width: 0;
 }

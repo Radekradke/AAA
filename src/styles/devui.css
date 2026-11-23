@@ -1,0 +1,56 @@
+/* Catálogo /dev/ui (só em desenvolvimento) */
+.fv-devui {
+  padding: calc(var(--topbar-h) + var(--space-3)) var(--page-x) var(--space-8);
+  color: var(--color-text);
+}
+.fv-devui-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.fv-devui-head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+.fv-devui-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.fv-devui-section {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--color-border);
+}
+.fv-devui-section h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--color-metal);
+}
+.fv-devui-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.fv-devui-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+.fv-devui-pop {
+  display: grid;
+  gap: var(--space-2);
+}
+.fv-devui-pop p {
+  margin: 0;
+}
+.fv-devui-section > .fv-ui-seg {
+  justify-self: start;
+}
