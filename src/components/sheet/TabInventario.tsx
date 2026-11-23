@@ -47,6 +47,7 @@ function itemInfo(it: InventoryItem): LoreInfo {
 }
 import { useInk } from '@/lib/contrast';
 import { itemArt } from '@/lib/itemArt';
+import '@/styles/inventario.css';
 import { chargesLeft, chargesOf } from '@/engine/itemCharges';
 import { ammoCount, ammoKindOfItem, perBundle } from '@/engine/ammo';
 
@@ -189,8 +190,7 @@ export function TabInventario({ char, derived }: TabProps) {
 
   return (
     <div
-      className="animate-riseIn"
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}
+      className="animate-riseIn fv-inv"
     >
       {/* Carga — peso carregado vs. capacidade (FOR × 7,5 kg) */}
       <Panel>
@@ -204,20 +204,20 @@ export function TabInventario({ char, derived }: TabProps) {
           anchorStyle={{ display: 'block' }}
         >
           {/* o ✦ do rótulo é um item do flex: o status vai para a direita com margem automática */}
-          <div className="fv-label" style={{ marginBottom: 10, cursor: 'help', display: 'flex', alignItems: 'baseline' }}>
+          <div className="fv-label fv-inv-loadlabel">
             <span>Carga</span>
-            <span className="fv-tone" style={{ '--c': loadColor, marginLeft: 'auto', fontWeight: 700, letterSpacing: 0, textTransform: 'none' } as React.CSSProperties}>{loadStatus}</span>
+            <span className="fv-tone fv-inv-loadstatus" style={{ '--c': loadColor } as React.CSSProperties}>{loadStatus}</span>
           </div>
         </LoreTooltip>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontFamily: 'var(--font-num)' }}>
-          <span style={{ fontWeight: 700, fontSize: 22, color: ink(loadColor, 3.2) }}>{carried.toFixed(1).replace('.', ',')}</span>
-          <span style={{ fontSize: 13, color: 'var(--muted)' }}>/ {capacity.toFixed(1).replace('.', ',')} kg</span>
+        <div className="fv-inv-loadrow">
+          <span className="fv-inv-loadnum" style={{ color: ink(loadColor, 3.2) }}>{carried.toFixed(1).replace('.', ',')}</span>
+          <span className="fv-inv-loadcap">/ {capacity.toFixed(1).replace('.', ',')} kg</span>
         </div>
-        <div style={{ marginTop: 9, height: 10, borderRadius: 5, background: 'var(--sunk-deep)', border: '1px solid var(--line)', overflow: 'hidden' }}>
-          <div style={{ width: `${loadPct}%`, height: '100%', background: `linear-gradient(90deg, ${hexA(loadColor, 0.55)}, ${loadColor})`, boxShadow: `0 0 12px ${hexA(loadColor, 0.6)}`, transition: 'width .4s, background .3s' }} />
+        <div className="fv-inv-bar">
+          <div className="fv-inv-bar-fill" style={{ width: `${loadPct}%`, background: `linear-gradient(90deg, ${hexA(loadColor, 0.55)}, ${loadColor})`, boxShadow: `0 0 12px ${hexA(loadColor, 0.6)}` }} />
         </div>
         {over && (
-          <div style={{ marginTop: 9, fontSize: 12, color: t.danger, fontWeight: 600 }}>
+          <div className="fv-inv-over">
             Acima da capacidade — o mestre pode reduzir seu deslocamento.
           </div>
         )}
@@ -227,39 +227,38 @@ export function TabInventario({ char, derived }: TabProps) {
       <Panel>
         <SectionLabel
           right={
-            <button
-              onClick={() => setCoins(true)}
-              style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 600, padding: '5px 13px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}
-            >
+            <button type="button" className="fv-inv-manage" onClick={() => setCoins(true)}>
               Gerenciar
             </button>
           }
         >
           Moedas
         </SectionLabel>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="fv-inv-coins">
           {COIN_DEFS.map((c) => (
-            <span key={c.k} className="fv-chip" style={{ gap: 6, color: 'var(--ink)' }}>
-              <span aria-hidden style={{ width: 9, height: 9, borderRadius: 999, background: c.color, boxShadow: `0 0 7px ${hexA(c.color, 0.5)}` }} />
-              <b style={{ fontFamily: 'var(--font-num)' }}>{char.coins[c.k]}</b>&nbsp;{c.code}
+            <span key={c.k} className="fv-chip fv-inv-coin">
+              <span aria-hidden className="fv-inv-coin-dot" style={{ background: c.color, boxShadow: `0 0 7px ${hexA(c.color, 0.5)}` }} />
+              <b>{char.coins[c.k]}</b>&nbsp;{c.code}
             </span>
           ))}
         </div>
-        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)' }}>
-          Total aproximado <b style={{ color: 'var(--gold)', fontFamily: 'var(--font-num)' }}>{coinTotalGp(char).toString().replace('.', ',')} po</b>
+        <div className="fv-inv-total">
+          Total aproximado <b>{coinTotalGp(char).toString().replace('.', ',')} po</b>
         </div>
       </Panel>
 
       {/* Sintonia */}
       <Panel>
-        <div className="fv-label" style={{ marginBottom: 13 }}>
+        <div className="fv-label fv-inv-mb13">
           Sintonia <span className="fv-label-count">· {attunedCount(char)} de {MAX_ATTUNEMENT}</span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-          {attuneItems.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum item que exija sintonia na mochila.</div>}
+        <div className="fv-inv-attune-list">
+          {attuneItems.length === 0 && <div className="fv-inv-attune-empty">Nenhum item que exija sintonia na mochila.</div>}
           {attuneItems.map((it) => (
             <LoreTooltip key={it.uid} info={itemInfo(it)} anchorStyle={{ display: 'block' }}>
               <button
+                type="button"
+                className={'fv-inv-attune' + (it.attuned ? ' is-on' : '')}
                 onClick={() => {
                   if (!it.attuned && attunedCount(char) >= MAX_ATTUNEMENT) {
                     setFlash({ ok: false, text: `Já tem ${MAX_ATTUNEMENT} itens sintonizados (o máximo) — desfaça uma sintonia antes.` });
@@ -272,11 +271,10 @@ export function TabInventario({ char, derived }: TabProps) {
                   }
                   setEquipRequest({ uid: it.uid, target: 'attune' });
                 }}
-                style={{ cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: '1px solid ' + (it.attuned ? hexA(t.gold, 0.4) : t.line), background: it.attuned ? hexA(t.gold, 0.07) : 'var(--sunk)', color: 'var(--ink)' }}
               >
-                <span style={{ width: 12, height: 12, borderRadius: 999, flex: 'none', border: '1px solid ' + (it.attuned ? t.gold : t.line), background: it.attuned ? t.gold : 'transparent', boxShadow: it.attuned ? '0 0 10px ' + hexA(t.gold, 0.6) : 'none' }} />
-                <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontSize: 14 }}>{it.name}</span>
-                <span style={{ fontSize: 11, color: it.attuned && isWearable(it) && !isWorn(it) ? '#E0A93E' : 'var(--muted)' }}>
+                <span className="fv-inv-attune-dot" />
+                <span className="fv-inv-attune-name">{it.name}</span>
+                <span className="fv-inv-attune-state" style={it.attuned && isWearable(it) && !isWorn(it) ? { color: '#E0A93E' } : undefined}>
                   {it.attuned ? (isWearable(it) && !isWorn(it) ? 'sintonizado · vista para valer' : 'sintonizado') : attunementBlock(char, it) ? 'não é para a sua classe' : 'sem sintonia'}
                 </span>
               </button>
@@ -289,22 +287,15 @@ export function TabInventario({ char, derived }: TabProps) {
       <Panel full>
         <SectionLabel
           right={
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button onClick={() => setPicker(true)} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.12) }}>
+            <div className="fv-inv-tools">
+              <button type="button" className="fv-inv-tool is-add" onClick={() => setPicker(true)}>
                 + Adicionar
               </button>
-              <button
-                onClick={() => setForge('weapon')}
-                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11.5, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}
-              >
+              <button type="button" className="fv-inv-tool is-forge" onClick={() => setForge('weapon')}>
                 <Icon name="anvil" size={14} />
                 Forjar
               </button>
-              <button
-                onClick={() => setForge('other')}
-                title="Criar item livre na categoria Outros"
-                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, minHeight: 30, padding: '5px 14px', borderRadius: 999, border: '1px solid var(--line)', color: 'var(--muted)', background: 'var(--sunk)' }}
-              >
+              <button type="button" className="fv-inv-tool" onClick={() => setForge('other')} title="Criar item livre na categoria Outros">
                 <Icon name="quill" size={13} />
                 + Outros
               </button>
@@ -332,7 +323,7 @@ export function TabInventario({ char, derived }: TabProps) {
           }}
         >
         {/* recipientes: toque para abrir, arraste itens para cá */}
-        <div role="group" aria-label="Recipientes" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'clamp(8px,1.4vw,14px)', marginBottom: 8 }}>
+        <div role="group" aria-label="Recipientes" className="fv-inv-boxes">
           {CONTAINERS.map((c) => {
             const items = char.inventory.filter((it) => containerOf(char, it) === c.id);
             return (
@@ -350,7 +341,7 @@ export function TabInventario({ char, derived }: TabProps) {
             );
           })}
         </div>
-        <div aria-live="polite" style={{ minHeight: 20, marginBottom: 8, fontSize: 12, textAlign: 'center', color: flash ? (flash.ok ? '#3FC56B' : t.danger) : 'var(--muted)' }}>
+        <div aria-live="polite" className={'fv-inv-flash' + (flash && !flash.ok ? ' is-bad' : '')} style={flash?.ok ? { color: '#3FC56B' } : undefined}>
           {flash ? flash.text : dragging ? `Solte ${dragging.name} num recipiente` : 'Segure e arraste um item para outro recipiente'}
         </div>
 
@@ -368,16 +359,14 @@ export function TabInventario({ char, derived }: TabProps) {
         )}
 
         {visibleGroups.map((g) => (
-          <div key={g.id} style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2px 0 10px' }}>
-              <Icon name={g.icon} size={15} color={t.gold} />
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-                {g.label}
-              </span>
-              <span style={{ fontFamily: 'var(--font-num)', fontSize: 11, color: 'var(--muted)' }}>· {g.items.length}</span>
-              <span aria-hidden style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--line), transparent)' }} />
+          <div key={g.id} className="fv-inv-group">
+            <div className="fv-inv-group-head">
+              <Icon name={g.icon} size={15} color="var(--color-metal)" />
+              <span className="fv-inv-group-name">{g.label}</span>
+              <span className="fv-inv-group-count">· {g.items.length}</span>
+              <span aria-hidden className="fv-inv-group-rule" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: 10 }}>
+            <div className="fv-inv-grid">
               {g.items.map((it) => {
                 const where = containerOf(char, it);
                 return (
@@ -533,10 +522,10 @@ function ContainerDrop({ def, count, kg, isOpen, dragging, accepts, isSource, on
         onClick={onOpen}
         style={{ width: '100%' }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: 'clamp(12px,2vw,16px) 6px', textAlign: 'center', boxShadow: isOpen ? `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` : undefined, borderRadius: 'var(--radius-lg)' }}>
-          <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} style={{ filter: lit ? `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` : undefined, transition: 'color .25s' }} />
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(13px,1.6vw,15px)', color: lit ? 'var(--ink)' : 'var(--muted)' }}>{def.label}</div>
-          <div style={{ fontFamily: 'var(--font-num)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+        <div className={'fv-inv-box' + (lit ? ' is-lit' : '')} style={isOpen ? { boxShadow: `inset 0 0 0 1px ${def.color}, inset 0 -3px 0 ${def.color}` } : undefined}>
+          <Icon name={lit ? def.openIcon : def.icon} size={34} color={lit ? def.color : t.muted} className="fv-inv-box-icon" style={lit ? { filter: `drop-shadow(0 0 8px ${hexA(def.color, 0.6)})` } : undefined} />
+          <div className="fv-inv-box-name">{def.label}</div>
+          <div className="fv-inv-box-meta">
             <div>{count} {count === 1 ? 'item' : 'itens'}</div>
             <div>{kg.toFixed(1).replace('.', ',')} kg</div>
           </div>
@@ -561,7 +550,7 @@ function DraggableItem({ item, children }: { item: InventoryItem; children: (han
   const { setNodeRef, setActivatorNodeRef, listeners, attributes, isDragging } = useDraggable({ id: item.uid, data: { name: item.name } });
   const { onKeyDown, ...pointerListeners } = (listeners ?? {}) as Record<string, (e: unknown) => void>;
   return (
-    <div ref={setNodeRef} {...pointerListeners} className="fv-draggable" style={{ opacity: isDragging ? 0.3 : 1 }}>
+    <div ref={setNodeRef} {...pointerListeners} className={'fv-draggable' + (isDragging ? ' is-dragging' : '')}>
       {children({ ref: setActivatorNodeRef, props: { ...attributes, onKeyDown } })}
     </div>
   );
@@ -629,19 +618,14 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
         className="fv-inv-card"
         data-item={it.name}
         style={{
-          position: 'relative',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 12px 11px',
-          background: 'linear-gradient(160deg, var(--panel), var(--panel2))',
           border: '1px solid ' + borderColor,
           boxShadow:
             (equipped ? `0 0 18px ${hexA(t.gold, 0.22)},` : big ? `0 0 24px ${hexA(rc.color, 0.22)},` : '') +
             `inset 0 0 28px ${hexA(rc.color, big ? 0.12 : 0.04)}, inset 0 1px 0 rgba(255,255,255,0.04)`,
-          transition: 'transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .3s',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, flex: '1 1 auto', overflow: 'hidden', fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+        <div className="fv-inv-card-top">
+          <span className="fv-inv-card-kind">
             {it.wear === 'body' ? (
               <span className="fv-item-equipped">
                 <Icon name="equipped" size={11} /> Corpo
@@ -654,13 +638,13 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               <Icon name={icon} size={12} />
             )}
             {/* vestível / parte do corpo: o selo já diz o que é */}
-            {!it.wear && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bodySlotOf(it) ? BODY_SLOTS[bodySlotOf(it)!].label : CATEGORY_LABEL[it.category] ?? it.category}</span>}
+            {!it.wear && <span className="fv-inv-card-cat">{bodySlotOf(it) ? BODY_SLOTS[bodySlotOf(it)!].label : CATEGORY_LABEL[it.category] ?? it.category}</span>}
             {it.homebrew && (
-              <span style={{ flex: 'none', padding: '1px 5px', borderRadius: 4, border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.5), color: t.acc2 ?? t.acc, fontSize: 8.5, letterSpacing: '.07em' }}>HOMEBREW</span>
+              <span className="fv-inv-homebrew">HOMEBREW</span>
             )}
           </span>
-          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: ink(rc.color) }}>
-            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
+          <span className="fv-inv-rarity" style={{ color: ink(rc.color) }}>
+            <span className="fv-inv-rarity-dot" style={{ background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
             {rc.label}
             <button ref={handle.ref} {...handle.props} type="button" aria-label={`Arrastar ${it.name}`} title="Arrastar para outro recipiente" className="fv-drag-handle">
               ⠿
@@ -668,25 +652,25 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="fv-inv-card-row">
           {/* miniatura da carta (só com foto); sem foto, só o botão discreto de enviar */}
           <span className={'fv-item-thumb' + (art ? ' has-art' : ' is-empty')} style={art ? { borderColor: hexA(rc.color, big ? 0.7 : 0.35) } : undefined}>
             {art && <img src={art} alt="" />}
             <PortraitPicker variant="badge" portrait={it.image} onChange={onArt} max={ITEM_ART_MAX} labels={{ add: `Enviar arte de ${it.name}`, change: `Trocar arte de ${it.name}` }} />
           </span>
-          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: big ? ink(rc.color) : 'var(--ink)', textShadow: big ? '0 0 14px ' + hexA(rc.color, 0.45) : 'none' }}>
+          <div className="fv-inv-card-name" style={big ? { color: ink(rc.color), textShadow: '0 0 14px ' + hexA(rc.color, 0.45) } : undefined}>
             {it.name}
           </div>
           <button
-            className="fv-item-fav"
+            type="button"
+            className={'fv-item-fav' + (it.favorite ? ' is-on' : '')}
             onClick={(e) => { e.stopPropagation(); onFavorite(); }}
             aria-label="Favoritar"
-            style={{ cursor: 'pointer', flex: 'none', background: 'none', border: 'none', color: it.favorite ? t.gold : 'var(--muted)', filter: it.favorite ? `drop-shadow(0 0 6px ${hexA(t.gold, 0.7)})` : 'none' }}
           >
             <Icon name={it.favorite ? 'starFill' : 'star'} size={15} />
           </button>
         </div>
-        <div style={{ marginTop: 3, fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div className="fv-inv-card-meta">
           {[it.note, it.weight && it.wear !== 'body' ? `${String(it.weight).replace(".", ",")} kg` : null, qtyLabel(it), it.value ? `${it.value} po` : null]
             .filter(Boolean)
             .join(' · ')}
@@ -709,7 +693,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             <div className="fv-compare-head">
               {isWearable(it) ? 'Ao vestir' : 'Ao equipar'}{preview.replaces ? <span> · sai {preview.replaces.name}</span> : null}
             </div>
-            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            <div className="fv-inv-compare-chips">
               {preview.deltas.map((d) => {
                 const c = d.better === true ? '#3FC56B' : d.better === false ? t.danger : t.acc;
                 return (
@@ -720,14 +704,14 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
               })}
             </div>
             {preview.warnings.map((w) => (
-              <div key={w} style={{ marginTop: 5, fontSize: 11, color: '#E0A93E' }}>⚠ {w}</div>
+              <div key={w} className="fv-inv-compare-warn" style={{ color: '#E0A93E' }}>⚠ {w}</div>
             ))}
           </div>
         )}
 
-        <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <div className="fv-inv-actions">
           {onActivate && <button type="button" className="fv-btn-ghost" aria-pressed={!!it.activated} disabled={!canActivate} onClick={(e) => { e.stopPropagation(); onActivate(); }}>{it.activated ? 'Apagar lâmina' : 'Acender lâmina'} · ação bônus</button>}
-          {onResistance && <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Resistência
+          {onResistance && <label className="fv-inv-resist">Resistência
             <select className="fv-input" aria-label={`Resistência de ${it.name}`} value={it.resistanceType ?? ''} onClick={(e) => e.stopPropagation()} onChange={(e) => onResistance(e.target.value ? e.target.value as DamageType : undefined)}>
               <option value="">Escolha a gema</option>
               {(['ácido', 'frio', 'fogo', 'força', 'elétrico', 'necrótico', 'veneno', 'psíquico', 'radiante', 'trovejante'] as DamageType[]).map((type) => <option key={type} value={type}>{type}</option>)}
@@ -757,20 +741,9 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
 function ItemBtn({ children, onClick, active, danger }: { children: React.ReactNode; onClick: () => void; active?: boolean; danger?: boolean }) {
   return (
     <button
+      type="button"
+      className={'fv-inv-btn' + (active ? ' is-active' : '') + (danger ? ' is-danger' : '')}
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      style={{
-        cursor: 'pointer',
-        fontFamily: 'var(--font-body)',
-        fontWeight: 600,
-        fontSize: 11.5,
-        minHeight: 32,
-        padding: '6px 12px',
-        borderRadius: 999,
-        border: '1px solid ' + (danger ? 'rgba(255,80,40,.4)' : active ? 'var(--gold)' : 'var(--line)'),
-        color: danger ? 'var(--danger)' : active ? 'var(--gold)' : 'var(--muted)',
-        background: active ? 'rgba(255,224,138,.12)' : 'var(--sunk)',
-        transition: '.2s',
-      }}
     >
       {children}
     </button>

@@ -1,0 +1,398 @@
+/* Aba Inventário (etapa 3.4). Valores que estavam inline em TabInventario.tsx.
+   Ficam inline só o que muda por item ou por estado: a cor da carga, a cor
+   da raridade, a cor das moedas e os brilhos que dependem delas. */
+
+.fv-inv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+
+/* ---------- carga ---------- */
+.fv-inv-loadlabel {
+  margin-bottom: 10px;
+  cursor: help;
+  display: flex;
+  align-items: baseline;
+}
+.fv-inv-loadstatus {
+  margin-left: auto;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.fv-inv-loadrow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-num);
+}
+.fv-inv-loadnum {
+  font-weight: 700;
+  font-size: 22px;
+}
+.fv-inv-loadcap {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.fv-inv-bar {
+  margin-top: 9px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--sunk-deep);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.fv-inv-bar-fill {
+  height: 100%;
+  transition: width 0.4s, background 0.3s;
+}
+.fv-inv-over {
+  margin-top: 9px;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* ---------- moedas ---------- */
+.fv-inv-manage {
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 10%, transparent);
+}
+.fv-inv-coins {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.fv-chip.fv-inv-coin {
+  gap: 6px;
+  color: var(--color-text);
+}
+.fv-inv-coin b {
+  font-family: var(--font-num);
+}
+.fv-inv-coin-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+}
+.fv-inv-total {
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-inv-total b {
+  color: var(--color-metal);
+  font-family: var(--font-num);
+}
+
+/* ---------- sintonia ---------- */
+.fv-inv-mb13 {
+  margin-bottom: 13px;
+}
+.fv-inv-attune-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.fv-inv-attune-empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.fv-inv-attune {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text);
+}
+.fv-inv-attune.is-on {
+  border-color: color-mix(in srgb, var(--color-metal) 40%, transparent);
+  background: color-mix(in srgb, var(--color-metal) 7%, transparent);
+}
+.fv-inv-attune-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  flex: none;
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+.fv-inv-attune.is-on .fv-inv-attune-dot {
+  border-color: var(--color-metal);
+  background: var(--color-metal);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-metal) 60%, transparent);
+}
+.fv-inv-attune-name {
+  flex: 1;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+}
+.fv-inv-attune-state {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+/* ---------- itens: botões do topo ---------- */
+.fv-inv-tools {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.fv-inv-tool {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  min-height: 30px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--sunk);
+}
+.fv-inv-tool.is-add {
+  font-family: var(--font-display);
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 12%, transparent);
+}
+.fv-inv-tool.is-forge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--lift);
+}
+
+/* ---------- recipientes ---------- */
+.fv-inv-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.4vw, 14px);
+  margin-bottom: var(--space-2);
+}
+.fv-inv-flash {
+  min-height: 20px;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.fv-inv-flash.is-bad {
+  color: var(--color-danger);
+}
+.fv-inv-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: clamp(12px, 2vw, 16px) 6px;
+  text-align: center;
+  border-radius: var(--radius-lg);
+}
+.fv-inv-box-icon {
+  transition: color 0.25s;
+}
+.fv-inv-box-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(13px, 1.6vw, 15px);
+  color: var(--color-text-muted);
+}
+.fv-inv-box.is-lit .fv-inv-box-name {
+  color: var(--color-text);
+}
+.fv-inv-box-meta {
+  font-family: var(--font-num);
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+/* ---------- grupos ---------- */
+.fv-inv-group {
+  margin-bottom: var(--space-4);
+}
+.fv-inv-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 2px 0 10px;
+}
+.fv-inv-group-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.fv-inv-group-count {
+  font-family: var(--font-num);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+.fv-inv-group-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-border), transparent);
+}
+.fv-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+.fv-draggable.is-dragging {
+  opacity: 0.3;
+}
+
+/* ---------- carta do item ---------- */
+.fv-inv-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  padding: 12px 12px 11px;
+  background: linear-gradient(160deg, var(--panel), var(--panel2));
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
+}
+.fv-inv-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+.fv-inv-card-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.fv-inv-card-cat {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-inv-homebrew {
+  flex: none;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-accent-2) 50%, transparent);
+  color: var(--color-accent-2);
+  font-size: 8.5px;
+  letter-spacing: 0.07em;
+}
+.fv-inv-rarity {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.fv-inv-rarity-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+}
+.fv-inv-card-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.fv-inv-card-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--color-text);
+}
+.fv-item-fav {
+  cursor: pointer;
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+}
+.fv-item-fav.is-on {
+  color: var(--color-metal);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-metal) 70%, transparent));
+}
+.fv-inv-card-meta {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-inv-compare-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.fv-inv-compare-warn {
+  margin-top: 5px;
+  font-size: var(--text-2xs);
+}
+.fv-inv-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fv-inv-resist {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* botão de ação da carta */
+.fv-inv-btn {
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11.5px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--sunk);
+  transition: 0.2s;
+}
+.fv-inv-btn.is-active {
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+  background: rgba(255, 224, 138, 0.12);
+}
+.fv-inv-btn.is-danger {
+  border-color: rgba(255, 80, 40, 0.4);
+  color: var(--color-danger);
+}
