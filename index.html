@@ -34,6 +34,16 @@
       r.setProperty('--boot-gold', c[2]);
       r.setProperty('--boot-ink', c[3]);
       document.querySelector('meta[name="theme-color"]').setAttribute('content', c[0]);
+      // CSS do tema e fonte do título já saem baixando junto com o JS (o build preenche o mapa; ver themePreload no vite.config)
+      var PRE = /*FV_PRELOAD*/{};
+      function fvPreload(as, href) {
+        if (!href) return;
+        var l = document.createElement('link');
+        l.rel = 'preload'; l.as = as; l.href = href;
+        if (as === 'font') { l.type = 'font/woff2'; l.crossOrigin = 'anonymous'; }
+        document.head.appendChild(l);
+      }
+      if (PRE[t]) { fvPreload('style', PRE[t][0]); fvPreload('style', PRE.fixes && PRE.fixes[0]); fvPreload('font', PRE[t][1]); }
     </script>
     <style>
       /* tela de abertura: aparece em ~300 ms, antes do JS; o React a substitui ao montar */
