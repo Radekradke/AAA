@@ -86,13 +86,33 @@ export function groupSpecs(char: Character, specs: ResolvedSpec[]): ChoiceGroup[
   });
 }
 
+/**
+ * Escolha condicional que se repete (o idioma do inimigo favorito no 1º, 6º e
+ * 14º do Patrulheiro) vale uma vez por opção que a libera: com dragões e
+ * feras, só um idioma é devido, mesmo no 14º.
+ */
+function capByRequirement(char: Character, specs: ResolvedSpec[]): ResolvedSpec[] {
+  const used = new Map<string, number>();
+  return specs.filter((spec) => {
+    const req = spec.requires;
+    if (!req?.anyOf) return true;
+    const have = char.choices?.[storeKeyFor(spec.classId, req.key)] ?? [];
+    const allowed = have.filter((id) => req.anyOf!.includes(id)).length;
+    const n = (used.get(spec.storeKey) ?? 0) + 1;
+    used.set(spec.storeKey, n);
+    return n <= allowed;
+  });
+}
+
 /** Todas as escolhas que o personagem já deveria ter feito até o nível atual. */
 export function specsUpTo(char: Character): ResolvedSpec[] {
   const levels = char.classLevels?.length ? char.classLevels : [{ classId: char.classId, level: char.level }];
   const out: ResolvedSpec[] = [];
   for (const cl of levels) {
     const sub = subclassOf(char, cl.classId);
-    for (let lv = 1; lv <= cl.level; lv++) out.push(...specsAt(cl.classId, lv, sub, char.choices ?? {}).filter((s) => s.count > 0));
+    const mine: ResolvedSpec[] = [];
+    for (let lv = 1; lv <= cl.level; lv++) mine.push(...specsAt(cl.classId, lv, sub, char.choices ?? {}).filter((s) => s.count > 0));
+    out.push(...capByRequirement(char, mine));
   }
   out.push(...raceSpecs(char));
   // escolhas dos talentos que o personagem tem

@@ -86,3 +86,19 @@ describe('Cavaleiro Arcano conjura como um terço de conjurador', () => {
     expect(casterOf(at('rogue', 10, { subclassId: 'trickster' }))!.cantrips).toBe(4);
   });
 });
+
+describe('escolhas condicionais que se repetem', () => {
+  it('Patrulheiro: um idioma por inimigo favorito que fala (B-001)', () => {
+    const lang = (c: Character) => pendingChoices(c).find((p) => p.spec.key === 'favoredLanguage')?.missing ?? 0;
+    // 14º com dragões, gigantes e feras: dois idiomas, não três
+    const base = { 'ranger.favoredTerrain': ['forest', 'desert', 'arctic'], 'ranger.fightingStyle': ['archery'] };
+    const r14 = at('ranger', 14, { choices: { ...base, 'ranger.favoredEnemy': ['dragons', 'giants', 'beasts'], 'ranger.favoredLanguage': ['Dracônico', 'Gigante'] } });
+    expect(lang(r14)).toBe(0);
+    // terceiro inimigo também fala: falta o terceiro idioma
+    const r14b = at('ranger', 14, { choices: { ...base, 'ranger.favoredEnemy': ['dragons', 'giants', 'fiends'], 'ranger.favoredLanguage': ['Dracônico', 'Gigante'] } });
+    expect(lang(r14b)).toBe(1);
+    // só feras: nenhum idioma devido
+    const r6 = at('ranger', 6, { choices: { ...base, 'ranger.favoredEnemy': ['beasts', 'plants'] } });
+    expect(lang(r6)).toBe(0);
+  });
+});
