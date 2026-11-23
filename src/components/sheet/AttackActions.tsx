@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useEscClose } from '@/lib/useEscClose';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Character } from '@/types/character';
 import type { DerivedAttack } from '@/engine/dndRules';
@@ -45,6 +46,9 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   const pushRoll = useUiStore((s) => s.pushRoll);
   const store = useCharacterStore();
   const [stage, setStage] = useState<Stage>(null);
+  const boxRef = useRef<HTMLSpanElement | null>(null);
+  // Esc fecha o "acertou?" e o dano, e o foco volta ao botão (B-008)
+  useEscClose(!!stage, () => setStage(null), boxRef);
   const [choice, setChoice] = useState<ExtrasChoice>({});
   const pop = usePopFlip<HTMLSpanElement>(stage?.kind);
   const avail = weaponExtras(char, atk);
@@ -151,7 +155,7 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
   );
 
   return (
-    <span className="fv-cast fv-atk">
+    <span ref={boxRef} className="fv-cast fv-atk">
       {atk.powerAttack && (
         <button
           type="button"

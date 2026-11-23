@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useDialogFocus } from '@/lib/useDialogFocus';
 import { createPortal } from 'react-dom';
 import { useMediaUrl } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
@@ -14,12 +15,16 @@ export function CutsceneOverlay({ isMaster }: { isMaster: boolean }) {
   const scene = liveScene(st);
   const beatIndex = st.stage?.beat ?? 0;
   const key = scene ? `${scene.id}:${beatIndex}` : null;
+  const shown = !!(scene && scene.kind === 'cutscene' && scene.beats.length && st.hiddenCutscene !== key);
+  const ref = useRef<HTMLDivElement | null>(null);
 
-  // fecha com Esc (só na tela de quem apertou)
+  // foco preso na cena; Esc minimiza (só na tela de quem apertou) e o foco volta (B-008)
+  useDialogFocus(ref, shown, () => { if (key) st.dismissCutscene(key); });
+
+  // o mestre passa os quadros com as setas
   useEffect(() => {
     if (!key) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') st.dismissCutscene(key);
       if (isMaster && e.key === 'ArrowRight') void st.setBeat(beatIndex + 1);
       if (isMaster && e.key === 'ArrowLeft') void st.setBeat(beatIndex - 1);
     };
@@ -27,13 +32,13 @@ export function CutsceneOverlay({ isMaster }: { isMaster: boolean }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [key, isMaster, beatIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!scene || scene.kind !== 'cutscene' || !scene.beats.length || st.hiddenCutscene === key) return null;
+  if (!shown || !scene) return null;
   const i = Math.min(beatIndex, scene.beats.length - 1);
   const beat = scene.beats[i];
   const last = i >= scene.beats.length - 1;
 
   return createPortal(
-    <div className="fv-cut" role="dialog" aria-modal="true" aria-label={`Cutscene: ${scene.name}`}>
+    <div ref={ref} tabIndex={-1} className="fv-cut" role="dialog" aria-modal="true" aria-label={`Cutscene: ${scene.name}`}>
       <BeatImage key={`${scene.id}-${i}`} path={beat.path} />
       <div className="fv-cut-bars" aria-hidden />
       <div className="fv-cut-top">

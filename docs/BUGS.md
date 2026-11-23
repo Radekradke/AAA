@@ -34,18 +34,6 @@ Copie o modelo para a seção certa, com o próximo número livre:
 - **Acontece:** o card sempre sai com cantos de 16 px. O estilo inline (`borderRadius: 16`) ganhava das regras `[data-theme] .fv-hero-card`, que nunca valeram.
 - **Status:** Aberto, para o André decidir. A migração da 3.7 manteve o visual de hoje (16 px), usando `#fv-conteudo` no seletor. Para ligar o formato dos temas, basta tirar `border-radius` de `#fv-conteudo .fv-heroes .fv-hero-card` em `src/styles/heroes.css`.
 
-### B-008 · Janelas feitas à mão sem foco preso ou sem Esc
-- **Prioridade:** P2
-- **Área:** Acessibilidade (teclado e leitor de tela)
-- **Passos:** abrir com o teclado o Onboarding, o Tutorial guiado, uma Cena do mestre, os Bastidores ou os Dons da criação no celular, e apertar Tab várias vezes.
-- **Esperado:** o foco fica dentro da janela e volta para quem abriu ao fechar, como no `Modal`.
-- **Acontece:**
-  - **Foco:** essas 5 janelas declaram `aria-modal`, mas o Tab escapa para a página de trás.
-  - **Esc:** das 7 janelas presas a botões, 3 não fecham com Esc (ações de ataque, conjurar, crédito de abate). As outras 4 fecham, cada uma do seu jeito.
-- **Status:** Aberto, em partes:
-  - **Corrigido na 3.7:** Onboarding, Tutorial guiado e Dons da criação no celular usam `useDialogFocus`: foco preso, Esc fecha e o foco volta para quem abriu. O visual não mudou. Teste: `e2e/foco-janelas.e2e.ts` (reprova sem a correção).
-  - **Falta:** Cena e Bastidores do mestre (3.8); as 3 janelas presas a botões sem Esc (ações de ataque, conjurar, crédito de abate).
-
 ### B-002 · Alertas de segurança só nas ferramentas de desenvolvimento
 - **Prioridade:** P3
 - **Área:** Dependências
@@ -57,6 +45,20 @@ Copie o modelo para a seção certa, com o próximo número livre:
 - **Status:** Aberto. Subir junto com a etapa 4, testando build e testes.
 
 ## Corrigidos
+
+### B-008 · Janelas feitas à mão sem foco preso ou sem Esc
+- **Prioridade:** P2
+- **Área:** Acessibilidade (teclado e leitor de tela)
+- **Passos:** abrir com o teclado o Onboarding, o Tutorial guiado, uma Cena do mestre, os Bastidores ou os Dons da criação no celular, e apertar Tab várias vezes.
+- **Esperado:** o foco fica dentro da janela e volta para quem abriu ao fechar, como no `Modal`.
+- **Acontece:**
+  - **Foco:** essas 5 janelas declaram `aria-modal`, mas o Tab escapa para a página de trás.
+  - **Esc:** das 7 janelas presas a botões, 3 não fecham com Esc (ações de ataque, conjurar, crédito de abate). As outras 4 fecham, cada uma do seu jeito.
+- **Status:** Corrigido na 3.7 e na 3.8, sem mudar o visual:
+  - **3.7:** Onboarding, Tutorial guiado e Dons da criação no celular usam `useDialogFocus`: foco preso, Esc fecha e o foco volta para quem abriu.
+  - **3.8:** Cena e Bastidores do mestre também usam `useDialogFocus`. As 3 janelas presas a botões (ações de ataque, conjurar, golpe final) fecham com Esc pelo `useEscClose` (`src/lib/useEscClose.ts`), que devolve o foco ao botão e não muda o clique fora.
+  - Teste: `e2e/foco-janelas.e2e.ts` (tutorial, tour, Dons, Bastidores, conjurar e "acertou?"; todos reprovam sem a correção). A Cena e o golpe final usam os mesmos ganchos, sem teste próprio (a mesa de teste não tem cutscene no ar nem criatura caída).
+
 
 ### B-003 · Memorizações das abas Magias e Retrato ignoram parte da ficha
 - **Prioridade:** P3
