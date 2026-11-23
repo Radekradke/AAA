@@ -9,6 +9,7 @@ import { installCardTilt } from './lib/cardTilt';
 import './store/homebrewStore';
 import { useUiStore } from './store/uiStore';
 import './styles/fonts';
+import './styles/tokens.css';
 import './styles/globals.css';
 import './styles/experience.css';
 import './styles/mobile.css';

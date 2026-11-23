@@ -19,7 +19,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 1.5 Conta, sincronização, offline, importação/exportação, impressão
 
 ## Etapa 2 — Design system
-- [ ] 2.1 Tokens
+- [~] 2.1 Tokens
 - [ ] 2.2 Primitivos
 - [ ] 2.3 Camadas (Modal, Sheet, Popover, Tooltip, Toast)
 - [ ] 2.4 Catálogo `/dev/ui`
@@ -62,3 +62,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 1.3 Evoluir, Descanso, Diário, Retrato, Dados · PR #128 mergeado · teste macaco por rótulo (só o conteúdo da aba) em 6 classes, PC e celular: ~600 cliques, sem tela de erro e sem erro no console. Nenhum bug novo. Pendência de cobertura: o Retrato troca de vista no 1º clique, então foi pouco exercitado — vira item da 1.5/5.x
 - 23/11 · 1.4 mesa ao vivo, palco, mapa, NPCs, bestiário · PR #129 mergeado · teste macaco como mestre e jogador (sala da campanha, mesa ao vivo, lista de mesas), PC e celular: ~170 cliques, sem tela de erro e sem erro no console. Nenhum bug novo. Pouca cobertura na sala vista pelo jogador (o 1º clique troca de vista) — fica para 5.x
 - 23/11 · 1.5 conta, sincronização, offline, importação/exportação, impressão · PR #130 mergeado · backup baixado e restaurado em outro aparelho: ok; edição sem rede fica "1 pendente" e sincroniza ao voltar: ok; teste macaco em Configurações, Entrar, Diagnóstico e Impressão (PC e celular): limpo; 1 bug achado e corrigido (B-005: sem internet, pedaço que não baixou fazia a página sumir)
+- 23/11 · 2.1 tokens · PR aberto · `src/styles/tokens.css` (cor por papel, espaço 4 px, 7 tamanhos de texto, cantos, movimento, camadas) + `docs/DESIGN-TOKENS.md`; teste de contraste AA em 8 temas × 2 modos achou 1 falha (B-006, corrigida)
