@@ -95,14 +95,18 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
         {/* grade: PC = título | inspiração / PV | barra; celular = PV + inspiração lado a lado, barra embaixo */}
         <div className="fv-hp" data-tour="hp">
           {/* identidade já está no cabeçalho: aqui só o que importa no turno */}
-          <div className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span className="fv-mesa-sub"> · {derived.subclassLabel}</span> : null}</div>
+          <h2 className="fv-label fv-hp-label">Pontos de Vida{derived.subclassLabel ? <span className="fv-mesa-sub"> · {derived.subclassLabel}</span> : null}</h2>
           {/* Inspiração: pontos que o mestre dá e você gasta durante a sessão */}
           <div className="fv-hp-insp">
             <InspirationControl charId={char.id} points={inspirationCount(char)} max={inspirationMax(char)} onGain={() => bump(1.6)} />
           </div>
 
+          <p className="fv-sr-only" aria-live="polite">
+            Pontos de vida: {char.hpCurrent} de {hpMax}
+            {char.combat.hpTemp > 0 ? `, mais ${char.combat.hpTemp} temporários` : ''}
+          </p>
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div key={hpFx.pulse?.id} className={'fv-hp-num fv-mesa-hpnum' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
+            <div aria-hidden key={hpFx.pulse?.id} className={'fv-hp-num fv-mesa-hpnum' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
               <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
               <span className="fv-mesa-hpmax"> / {hpMax}</span>
@@ -116,15 +120,15 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
               <div aria-hidden className="fv-hp-notches" />
             </div>
             <div className="fv-hp-btns">
-              <QuickBtn color={t.danger} strong onClick={() => store.applyDamage(char.id, 5)}>−5</QuickBtn>
-              <QuickBtn color={t.danger} onClick={() => store.applyDamage(char.id, 1)}>−1</QuickBtn>
-              <QuickBtn color="#3FC56B" onClick={() => store.heal(char.id, 1)}>+1</QuickBtn>
-              <QuickBtn color="#3FC56B" strong onClick={() => store.heal(char.id, 5)}>+5</QuickBtn>
-              <QuickBtn color={t.acc} onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>
+              <QuickBtn color={t.danger} strong label="Sofrer 5 de dano" onClick={() => store.applyDamage(char.id, 5)}>−5</QuickBtn>
+              <QuickBtn color={t.danger} label="Sofrer 1 de dano" onClick={() => store.applyDamage(char.id, 1)}>−1</QuickBtn>
+              <QuickBtn color="#3FC56B" label="Curar 1 PV" onClick={() => store.heal(char.id, 1)}>+1</QuickBtn>
+              <QuickBtn color="#3FC56B" strong label="Curar 5 PV" onClick={() => store.heal(char.id, 5)}>+5</QuickBtn>
+              <QuickBtn color={t.acc} label="Ganhar 5 PV temporários" onClick={() => store.setTempHp(char.id, char.combat.hpTemp + 5)}>
                 +5 <small className="fv-mesa-small">Temp</small>
               </QuickBtn>
               {char.combat.hpTemp > 0 && (
-                <QuickBtn color={t.muted} onClick={() => store.setTempHp(char.id, 0)}>Zerar Temp</QuickBtn>
+                <QuickBtn color={t.muted} label="Zerar PV temporários" onClick={() => store.setTempHp(char.id, 0)}>Zerar Temp</QuickBtn>
               )}
             </div>
           </div>
@@ -167,6 +171,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
               <LoreTooltip key={a.key} info={abilityLore(a.key, a.total, a.mod)} anchorStyle={{ display: 'block', minWidth: 0 }}>
                 <button
                   className="fv-mabil"
+                  aria-label={`Teste de ${ABILITY_LABELS[a.key]} ${modStr(a.mod)}`}
                   onClick={() => checkFor(char, 'check', a.key, `Teste de ${ABILITY_LABELS[a.key]}`, a.mod)}
                   style={{ '--c': color } as React.CSSProperties}
                 >
@@ -207,7 +212,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             className="fv-mesa-newturn"
             onClick={() => store.resetTurn(char.id)}
           >
-            ↺ Novo turno
+            <span aria-hidden>↺ </span>Novo turno
           </button>
         </div>
       </Panel>
@@ -224,7 +229,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
         <Panel>
           <ActiveEffects char={char} />
           <div className="fv-mesa-head">
-            <div className="fv-label">Ataques</div>
+            <h2 className="fv-label">Ataques</h2>
             <GoTab to="combate" label="Combate" goTab={goTab} />
           </div>
           <ExtraAttackNote char={char} />
@@ -241,7 +246,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
 
         {/* Condições: seleção compacta + só as ativas à vista */}
         <Panel>
-          <div className="fv-label fv-mesa-label">Condições</div>
+          <h2 className="fv-label fv-mesa-label">Condições</h2>
           <select
             value={condPick}
             aria-label="Adicionar condição"
@@ -291,7 +296,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
         {/* Salvaguardas + perícias-chave */}
         <Panel>
           <div className="fv-mesa-head">
-            <div className="fv-label">Salvaguardas</div>
+            <h2 className="fv-label">Salvaguardas</h2>
             <GoTab to="ficha" label="Ficha" goTab={goTab} />
           </div>
           <div className="fv-mesa-saves">
@@ -300,6 +305,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                 key={a.key}
                 onClick={() => checkFor(char, 'save', a.key, `Resist. de ${ABILITY_LABELS[a.key]}`, a.save)}
                 className={'fv-mesa-save' + (a.saveProf ? ' is-prof' : '')}
+                aria-label={`Salvaguarda de ${ABILITY_LABELS[a.key]} ${modStr(a.save)}${a.saveProf ? ', proficiente' : ''}`}
               >
                 <div className="fv-mesa-save-key">{ABILITY_SHORT[a.key]}</div>
                 <div className="fv-mesa-save-val">{modStr(a.save)}</div>
@@ -307,7 +313,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             ))}
           </div>
           <div className="fv-mesa-row">
-            <div className="fv-label">Perícias Treinadas</div>
+            <h2 className="fv-label">Perícias Treinadas</h2>
             <button type="button" className="fv-textlink fv-mesa-more" onClick={() => setSkillsOpen(true)}>
               Ver todas →
             </button>
@@ -327,7 +333,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
           </div>
           {(char.toolProfs ?? []).length > 0 && (
             <>
-              <div className="fv-label fv-mesa-label-gap">Ferramentas</div>
+              <h3 className="fv-label fv-mesa-label-gap">Ferramentas</h3>
               <div className="fv-mesa-chips">
                 {(char.toolProfs ?? []).map((tool) => {
                   const chk = calculateToolCheck(char, tool);
@@ -353,7 +359,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
         {derived.isCaster && (
           <Panel>
             <div className="fv-mesa-row fv-mesa-row-top">
-              <div className="fv-label">Magia</div>
+              <h2 className="fv-label">Magia</h2>
               <span className="fv-mesa-castinfo">
                 CD{' '}
                 <LoreTooltip info={calcLore('CD de Magia', bd.spellDC!)}>
@@ -409,7 +415,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
         {/* Recursos + descansos */}
         <Panel>
           <div className="fv-mesa-head">
-            <div className="fv-label">Recursos &amp; Descanso</div>
+            <h2 className="fv-label">Recursos &amp; Descanso</h2>
             <GoTab to="descanso" label="Descanso" goTab={goTab} />
           </div>
           {resources.length === 0 && <div className="fv-mesa-empty fv-mesa-empty-pad">Nenhum recurso de classe neste nível.</div>}
@@ -428,8 +434,8 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                 </span>
                 {!res.unlimited && (
                   <>
-                    <QuickBtn color={t.danger} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
-                    <QuickBtn color={t.acc} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
+                    <QuickBtn color={t.danger} label={`Usar ${res.label}`} onClick={() => store.setResource(char.id, res.id, Math.max(0, left - 1))}>Usar</QuickBtn>
+                    <QuickBtn color={t.acc} label={`Recuperar 1 uso de ${res.label}`} onClick={() => store.setResource(char.id, res.id, Math.min(res.max, left + 1))}>+</QuickBtn>
                   </>
                 )}
               </div>
@@ -460,7 +466,7 @@ function StatChip({ label, value, info, onRoll }: { label: string; value: string
       <button
         onClick={onRoll}
         className={'fv-stat-chip' + (onRoll ? ' is-rollable' : '')}
-        aria-label={onRoll ? `Rolar ${label} (${value})` : undefined}
+        aria-label={onRoll ? `Rolar ${label} (${value})` : `${info.title} ${value}`}
       >
         {onRoll && <Icon name="d20" size={11} className="fv-stat-chip-die" />}
         <div className="fv-stat-chip-val">{value}</div>
@@ -470,9 +476,10 @@ function StatChip({ label, value, info, onRoll }: { label: string; value: string
   );
 }
 
-function QuickBtn({ children, color, strong, onClick }: { children: React.ReactNode; color: string; strong?: boolean; onClick: () => void }) {
+/** `label`: o nome lido pelo leitor de tela quando o texto do botão sozinho não diz o que faz ("−5"). */
+function QuickBtn({ children, color, strong, label, onClick }: { children: React.ReactNode; color: string; strong?: boolean; label?: string; onClick: () => void }) {
   return (
-    <button className={'fv-hpq' + (strong ? ' is-strong' : '')} onClick={onClick} style={{ '--c': color } as React.CSSProperties}>
+    <button type="button" className={'fv-hpq' + (strong ? ' is-strong' : '')} onClick={onClick} aria-label={label} style={{ '--c': color } as React.CSSProperties}>
       {children}
     </button>
   );

@@ -173,12 +173,14 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
         <button type="button" onClick={onAttack} style={hitStyle} data-attack-hit={atk.uid}>
           {modStr(atk.attackBonus - (power && atk.powerAttack ? 5 : 0))}
           <div style={subStyle}>ACERTO</div>
+          <span className="fv-sr-only"> com {atk.name}</span>
         </button>
       </LoreTooltip>
       <LoreTooltip info={calcLore(`Dano · ${atk.name}`, atk.damageBreakdown, { intro: `${atk.damageDice}d${atk.damageDie} ${atk.damageType} + os bônus abaixo (crítico: dobre os dados).` })}>
         <button type="button" onClick={onDamage} style={dmgStyle} aria-expanded={!!stage}>
           {damageExpr(atk)}
           <div style={subStyle}>{dmgSub}</div>
+          <span className="fv-sr-only"> de {atk.name}</span>
         </button>
       </LoreTooltip>
 

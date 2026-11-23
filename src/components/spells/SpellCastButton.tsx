@@ -389,7 +389,9 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         aria-describedby={blockReason ? blockId : undefined}
         aria-expanded={open || !!pending}
       >
-        ✦ {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
+        <span aria-hidden>✦ </span>
+        {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
+        <span className="fv-sr-only">{pending ? ` (${spell.name})` : ` ${spell.name}`}</span>
       </button>
 
       {blockReason && <small id={blockId} className="fv-cast-block" role="note">{blockReason}</small>}

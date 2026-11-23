@@ -659,7 +659,7 @@ button:active:not(:disabled) {
     color: var(--ink);
   }
   .fv-lore-props li::before {
-    content: '◆';
+    content: '◆' / '';
     position: absolute;
     left: 0;
     top: 1px;

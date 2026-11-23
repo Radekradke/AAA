@@ -337,7 +337,7 @@ export function TabCombate({ char, derived }: TabProps) {
         <div className="fv-combat-turn-head">
           <div className="fv-label">Economia de Turno</div>
           <button onClick={() => store.resetTurn(char.id)} className="fv-combat-link">
-            ↺ Novo turno
+            <span aria-hidden>↺ </span>Novo turno
           </button>
         </div>
         <div className="fv-combat-stack">

@@ -76,6 +76,11 @@
   text-transform: uppercase;
   font-weight: 600;
 }
+/* o nome do herói virou h1 (leitor de tela) mas continua como era: sem caixa-alta */
+[data-theme='ouro'] h1.fv-sh-name {
+  letter-spacing: normal;
+  text-transform: none;
+}
 [data-theme='ouro'] .fv-btn-gold {
   color: var(--goldB);
   background: var(--panel);

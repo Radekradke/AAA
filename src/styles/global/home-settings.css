@@ -701,7 +701,7 @@
   color: var(--muted);
 }
 .fv-onb-tips li::before {
-  content: '✦';
+  content: '✦' / '';
   position: absolute;
   left: 12px;
   top: 9px;

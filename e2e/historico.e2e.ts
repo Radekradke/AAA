@@ -17,7 +17,7 @@ test.describe('histórico da ficha', () => {
     const pv = String(WIZARD.hpCurrent);
 
     // primeira edição da sessão: a versão anterior vai para o histórico sozinha
-    await page.getByRole('button', { name: '−5' }).first().click();
+    await page.getByRole('button', { name: 'Sofrer 5 de dano' }).first().click();
 
     let dialog = await openHistory(page);
     const entry = dialog.locator('.fv-hist-list > li').first();
