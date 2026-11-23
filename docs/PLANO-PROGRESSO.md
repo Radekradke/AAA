@@ -5,8 +5,8 @@ Lista de trabalho de `docs/PLANO-PROFISSIONAL.md`. Cada retomada automática peg
 Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergeado
 
 ## Etapa 0 — Rede de segurança
-- [~] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
-- [ ] 0.2 `npm audit fix` (react-router)
+- [x] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
+- [~] 0.2 `npm audit fix` (react-router)
 - [ ] 0.3 Orçamento de tamanho do pacote no CI
 - [ ] 0.4 Teste de fumaça: 16 páginas sem erro no console
 - [ ] 0.5 Registro de bugs (`docs/BUGS.md`)
@@ -53,4 +53,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 
 ## Diário das retomadas
 <!-- Cada retomada acrescenta uma linha: data · item · PR · resultado -->
-- 23/11 · 0.1 lint · PR aberto · 0 erros de lint, 1012 unidade, 187 ponta a ponta
+- 23/11 · 0.1 lint · PR #122 mergeado · 0 erros de lint, 1012 unidade, 187 ponta a ponta
+- 23/11 · 0.2 dependências · PR aberto · react-router 6.30 → 7.18 (a 6 não tem correção); 0 alertas de produção. Restam 2 alertas só de desenvolvimento (vitest, esbuild do vite), que pedem versões maiores: ficam no registro de bugs
