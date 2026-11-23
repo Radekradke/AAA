@@ -58,6 +58,37 @@ test.describe('foco preso nas janelas (B-008)', () => {
     await expect(gaveta).toHaveCount(0);
     await expect(alaude).toBeFocused();
   });
+  test('ficha no celular: a gaveta "Mais" anda nas setas, Esc devolve o foco e a aba escolhida não perde o foco @celular', async ({ page }) => {
+    test.skip(test.info().project.name !== 'celular');
+    await signIn(page, 'guest', { characters: [WIZARD] });
+    await page.goto(`/ficha/${WIZARD.id}`);
+    const nav = page.getByRole('navigation', { name: 'Abas da ficha' }).last();
+    const more = nav.getByRole('button', { name: 'Mais' });
+    await more.focus();
+    await page.keyboard.press('Enter');
+    const menu = page.getByRole('menu', { name: 'Mais abas' });
+    await expect(menu).toBeVisible();
+    const items = menu.getByRole('menuitem');
+    await expect(items.first()).toBeFocused(); // o foco entra na gaveta
+    await page.keyboard.press('ArrowDown');
+    await expect(items.nth(1)).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp'); // dá a volta
+    await expect(items.last()).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(more).toBeFocused();
+    // escolher uma aba pelo teclado: a gaveta some e o foco fica no botão, que passa a ter o nome da aba
+    await page.keyboard.press('Enter');
+    await expect(items.first()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    const name = (await items.nth(1).locator('span').first().textContent())!;
+    await page.keyboard.press('Enter');
+    await expect(menu).toHaveCount(0);
+    await expect(nav.getByRole('button', { name })).toBeFocused();
+    await expect(nav.getByRole('button', { name })).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('Bastidores do mestre: biblioteca de cenas prende o foco e Esc volta ao botão', async ({ page }) => {
     await signIn(page, 'master');
     await installSupabase(page, 'master');

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { Ref } from 'react';
 import { createPortal } from 'react-dom';
 import { SHEET_TABS } from './sheetTabDefs';
 import type { SheetTabDef } from './sheetTabDefs';
@@ -30,14 +31,40 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
   const secondary = tabs.filter((tab) => !PRIMARY.includes(tab.id));
   const activeSecondary = secondary.find((tab) => tab.id === active);
 
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLButtonElement | null>(null);
+
+  // teclado (como o menu "⋯" da barra do topo): o foco entra na aba atual (ou na 1ª);
+  // setas/Home/End andam; Esc fecha e devolve o foco ao "Mais"; Tab fecha
   useEffect(() => {
     if (!moreOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMoreOpen(false);
+    const items = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    (menuRef.current?.querySelector<HTMLElement>('[role="menuitem"][aria-current]') ?? items()[0])?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMoreOpen(false);
+        moreRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab') return setMoreOpen(false);
+      const list = items();
+      const i = list.indexOf(document.activeElement as HTMLElement);
+      const go = (n: number) => {
+        e.preventDefault();
+        list[(n + list.length) % list.length]?.focus();
+      };
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') go(i + 1);
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') go(i - 1);
+      else if (e.key === 'Home') go(0);
+      else if (e.key === 'End') go(list.length - 1);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [moreOpen]);
 
   const select = (id: string) => {
+    // a aba escolhida na gaveta some com ela: o foco volta ao "Mais" (que passa a mostrar a aba)
+    if (moreOpen) moreRef.current?.focus();
     setMoreOpen(false);
     onSelect(id);
   };
@@ -46,7 +73,7 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
     <>
       {moreOpen && (
         <div className="fv-mobile-only fv-nav-more-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setMoreOpen(false); }}>
-          <div className="fv-panel fv-nav-more" role="menu" aria-label="Mais abas">
+          <div ref={menuRef} className="fv-panel fv-nav-more" role="menu" aria-label="Mais abas">
             {secondary.map((tab) => (
               <MoreItem key={tab.id} tab={tab} active={active === tab.id} onClick={() => select(tab.id)} />
             ))}
@@ -65,6 +92,7 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
           gold={t.gold}
           muted={t.muted}
           expanded={moreOpen}
+          btnRef={moreRef}
         />
       </nav>
     </>,
@@ -72,10 +100,13 @@ export function MobileNav({ active, onSelect, isCaster }: MobileNavProps) {
   );
 }
 
-function NavButton({ icon, label, active, onClick, gold, muted, expanded }: { icon: IconName; label: string; active: boolean; onClick: () => void; gold: string; muted: string; expanded?: boolean }) {
+function NavButton({ icon, label, active, onClick, gold, muted, expanded, btnRef }: { icon: IconName; label: string; active: boolean; onClick: () => void; gold: string; muted: string; expanded?: boolean; btnRef?: Ref<HTMLButtonElement> }) {
   return (
     <button
+      ref={btnRef}
+      type="button"
       onClick={onClick}
+      aria-haspopup={expanded === undefined ? undefined : 'menu'}
       aria-current={active && expanded === undefined ? 'page' : undefined}
       aria-expanded={expanded}
       className="fv-mobile-nav-btn"
@@ -89,7 +120,7 @@ function NavButton({ icon, label, active, onClick, gold, muted, expanded }: { ic
 
 function MoreItem({ tab, active, onClick }: { tab: SheetTabDef; active: boolean; onClick: () => void }) {
   return (
-    <button role="menuitem" onClick={onClick} className="fv-nav-more-item" style={{ color: active ? 'var(--gold)' : 'var(--ink)', borderColor: active ? 'var(--gold)' : 'var(--line)' }}>
+    <button type="button" role="menuitem" aria-current={active ? 'page' : undefined} onClick={onClick} className="fv-nav-more-item" style={{ color: active ? 'var(--gold)' : 'var(--ink)', borderColor: active ? 'var(--gold)' : 'var(--line)' }}>
       <Icon name={tab.icon} size={26} color="var(--gold)" />
       <span>{tab.label}</span>
       <small className="fv-nav-more-hint">{tab.hint}</small>
