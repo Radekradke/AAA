@@ -1,0 +1,457 @@
+/* Aba Combate (etapa 3.1). Os valores são os que estavam inline em
+   TabCombate.tsx; o que muda na hora (largura e cor do PV, cor ajustada para
+   leitura, cor da exaustão por nível) continua no componente. */
+
+.fv-combat {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+
+/* ---------- Pontos de vida ---------- */
+.fv-combat-hp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fv-combat-help {
+  cursor: help;
+}
+.fv-combat-hp-num {
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: clamp(26px, 4vw, 38px);
+  line-height: 1;
+}
+.fv-combat-hp-max {
+  font-size: 0.5em;
+  color: var(--color-text-muted);
+}
+.fv-combat-hpbar {
+  margin-top: 12px;
+  height: clamp(20px, 2.6vw, 26px);
+}
+.fv-combat-hpfill {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  transition: width 0.45s var(--ease-out), background 0.4s;
+}
+.fv-combat-hpbar-over {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+}
+.fv-combat-hp-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.fv-combat-hp-btn {
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-md);
+  min-height: 40px;
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  transition: 0.2s;
+}
+.fv-combat-hp-btn.is-strong {
+  padding: 9px 16px;
+}
+.fv-combat-temp {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-combat-temp-btn {
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 15px;
+  background: var(--sunk);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 3px 10px;
+}
+.fv-combat-amt {
+  margin-top: 10px;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.fv-input.fv-combat-amt-input {
+  width: 92px;
+  min-height: 40px;
+  text-align: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+}
+.fv-combat-chips {
+  margin-top: var(--space-2);
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fv-combat-mt8 {
+  margin-top: var(--space-2);
+}
+.fv-combat-mt12 {
+  margin-top: var(--space-3);
+}
+
+/* avisos de salvaguarda (Fúria Implacável, Concentração) */
+.fv-combat-callout {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  background: var(--lift);
+}
+.fv-combat-callout.is-rage {
+  border: 1px solid var(--fx-dmg, var(--color-danger));
+}
+.fv-combat-callout.is-conc {
+  border: 1px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+.fv-combat-callout-text {
+  flex: 1;
+  min-width: 160px;
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+.fv-num {
+  font-family: var(--font-num);
+}
+.fv-combat-acc {
+  color: var(--color-accent);
+}
+.fv-combat-dismiss {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+.fv-combat-conc-roll {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent);
+  background: var(--lift);
+  color: var(--color-accent);
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+/* botão de Concentração */
+.fv-combat-conc {
+  margin-top: var(--space-3);
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  transition: 0.2s;
+}
+.fv-combat-conc.is-on {
+  border-color: var(--color-accent);
+  background: var(--lift);
+  color: var(--color-accent);
+}
+.fv-combat-conc-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.fv-combat-conc-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 1px solid var(--color-text-muted);
+  transition: 0.2s;
+}
+.fv-combat-conc.is-on .fv-combat-conc-dot {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
+}
+.fv-combat-conc-state {
+  font-family: var(--font-num);
+  font-size: 11.5px;
+}
+
+/* ---------- Ataques ---------- */
+.fv-combat-mb6 {
+  margin-bottom: 6px;
+}
+.fv-combat-mb9 {
+  margin-bottom: 9px;
+}
+.fv-combat-mb13 {
+  margin-bottom: 13px;
+}
+.fv-combat-atk {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-combat-grow {
+  flex: 1;
+  min-width: 0;
+}
+.fv-combat-min0 {
+  min-width: 0;
+}
+.fv-combat-atk-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+}
+.fv-combat-atk-note {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+
+/* ---------- Economia de turno ---------- */
+.fv-combat-turn-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 13px;
+  margin-top: 14px;
+}
+.fv-combat-link {
+  cursor: pointer;
+  font-size: var(--text-2xs);
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+.fv-combat-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.fv-combat .fv-turn-btn {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: var(--lift);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  transition: 0.2s;
+}
+.fv-combat .fv-turn-btn.is-used {
+  border-color: var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+}
+.fv-combat .fv-turn-btn.is-used .fv-turn-label {
+  text-decoration: line-through;
+}
+.fv-turn-state {
+  font-family: var(--font-num);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+}
+.fv-combat .fv-turn-btn.is-used .fv-turn-state {
+  color: var(--color-text-muted);
+}
+.fv-combat-move {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fv-combat-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--color-text);
+}
+.fv-combat-sub {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+.fv-combat-row6 {
+  display: flex;
+  gap: 6px;
+}
+.fv-combat-move-btn {
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  width: 46px;
+  padding: var(--space-2) 0;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+}
+.fv-combat-move-btn.is-acc {
+  color: var(--color-accent);
+}
+
+/* ---------- Recursos, dados de vida, morte, exaustão ---------- */
+.fv-combat-res {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-combat-res-die {
+  margin-left: 6px;
+  font-family: var(--font-num);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-combat-res-btn {
+  cursor: pointer;
+  flex: none;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--lift);
+}
+.fv-combat-res-btn.is-on {
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+}
+.fv-combat-res-btn.is-unlimited {
+  cursor: default;
+}
+.fv-combat-hd-btn,
+.fv-combat-hd-count {
+  font-family: var(--font-num);
+  font-weight: 700;
+  padding: var(--space-2) 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+}
+.fv-combat-hd-btn {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+.fv-combat-hd-count {
+  font-size: 15px;
+  color: var(--color-text);
+}
+.fv-combat-block {
+  padding: 13px 0 2px;
+}
+.fv-combat-block.is-sep {
+  border-top: 1px solid var(--color-border);
+  margin-top: 6px;
+}
+.fv-combat-death {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.fv-combat-death-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.fv-combat-death-label {
+  font-size: var(--text-2xs);
+}
+.fv-combat-death-pip {
+  cursor: pointer;
+  width: 17px;
+  height: 17px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  transition: 0.2s;
+}
+.fv-combat-exh-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 9px;
+}
+.fv-combat-exh-effect {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.fv-combat-exh-effect.is-danger {
+  color: var(--color-danger);
+}
+.fv-combat-exh {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.fv-combat-exh-pip {
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  border-radius: 7px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  color: var(--color-text-muted);
+  transition: 0.2s;
+}

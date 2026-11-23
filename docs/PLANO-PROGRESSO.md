@@ -23,10 +23,10 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 2.2 Primitivos
 - [x] 2.3 Camadas (Modal, Sheet, Popover, Tooltip, Toast)
 - [x] 2.4 Catálogo `/dev/ui`
-- [~] 2.5 Guarda contra cor fixa e estilo solto
+- [x] 2.5 Guarda contra cor fixa e estilo solto
 
 ## Etapa 3 — Migração tela por tela
-- [ ] 3.1 Combate
+- [~] 3.1 Combate
 - [ ] 3.2 Evoluir
 - [ ] 3.3 Ficha
 - [ ] 3.4 Inventário + editor de item
@@ -65,4 +65,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 2.1 tokens · PR #131 mergeado · `src/styles/tokens.css` (cor por papel, espaço 4 px, 7 tamanhos de texto, cantos, movimento, camadas) + `docs/DESIGN-TOKENS.md`; teste de contraste AA em 8 temas × 2 modos achou 1 falha (B-006, corrigida); rodada completa de ponta a ponta achou o B-007 (corrida da tela cheia do mapa, já existia), corrigido
 - 23/11 · 2.2 primitivos · PR #132 mergeado · Button (tamanhos, carregando, ícone), IconButton, Field/Input/Select/Textarea, Segmented, Chip, Badge, Tabs em `src/components/ui/` + `src/styles/ui.css` (só tokens); 16 testes de marcação/ARIA e de teclado; os 12 `<Button>` antigos iguais, exceto o canto, que passa a seguir o tema como os outros 238 botões
 - 23/11 · 2.3 camadas + 2.4 catálogo · PR #133 mergeado · Sheet, Popover e Tooltip (com Modal e Toast, mesmas regras de Esc e foco); catálogo `/dev/ui` só em desenvolvimento, com os 8 temas × claro/escuro; 9 testes de ponta a ponta de teclado; auditoria das 15 janelas feitas à mão com o substituto de cada uma (pendências no B-008)
-- 23/11 · 2.5 guarda · PR aberto · `npm run debt` no CI: por arquivo, style={{…}} e cor fixa só podem diminuir (registro: 857 e 569); conferido que reprova ao acrescentar um
+- 23/11 · 2.5 guarda · PR #134 mergeado · `npm run debt` no CI: por arquivo, style={{…}} e cor fixa só podem diminuir (registro: 857 e 569); conferido que reprova ao acrescentar um
+- 23/11 · 3.1 Combate · PR aberto · TabCombate: 70 style={{…}} → 4 (só os que mudam na hora); as 9 cores fixas (verde de cura, âmbar da exaustão) ficam para quando houver tokens de cura/aviso; estilos em `src/styles/combat.css` com tokens; prints antes/depois: Eclipse idêntico, Véu Astral 0,01% (fundo animado), PC e celular
