@@ -33,7 +33,7 @@
   --gold: #e9b48f;
   --goldB: #ffe0c9;
   --on-gold: #3a0d18;
-  --on-acc: #ffffff;
+  --on-acc: #12060b; /* texto escuro: branco no coral dava 2,96:1 (B-006) */
   --ink: #fbefea;
   --muted: #c29aa3;
   --danger: #ff8a3d;

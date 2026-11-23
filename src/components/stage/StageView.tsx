@@ -630,11 +630,24 @@ function useMapFullscreen(): [boolean, () => void] {
   const [full, setFull] = useState(false);
   const fullRef = useRef(full);
   fullRef.current = full;
+  // o que o app pediu por último ao navegador: a troca de tela cheia é
+  // assíncrona, e o aviso de uma saída antiga pode chegar depois de um novo
+  // pedido (Esc e logo F) — sem isso o palco voltava ao normal sozinho
+  const asked = useRef<'enter' | 'exit' | null>(null);
 
   // saiu pelo navegador (Esc, gesto, F11): o palco volta junto
   useEffect(() => {
     const onChange = () => {
-      if (!document.fullscreenElement) setFull(false);
+      const inFull = !!document.fullscreenElement;
+      if (asked.current === 'exit') {
+        if (!inFull) asked.current = null;
+        return;
+      }
+      if (asked.current === 'enter') {
+        if (inFull) asked.current = null;
+        return;
+      }
+      if (!inFull) setFull(false);
     };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
@@ -660,9 +673,19 @@ function useMapFullscreen(): [boolean, () => void] {
     setFull(next);
     if (next) {
       // iPhone e alguns navegadores não têm a API: fica só a tela cheia do app
-      void document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => undefined);
+      const ask = (document.documentElement as { requestFullscreen?: (o?: FullscreenOptions) => Promise<void> }).requestFullscreen;
+      const req: Promise<void> | undefined = ask?.call(document.documentElement, { navigationUI: 'hide' });
+      asked.current = req ? 'enter' : null;
+      void req?.catch(() => {
+        if (asked.current === 'enter') asked.current = null;
+      });
     } else if (document.fullscreenElement) {
-      void document.exitFullscreen().catch(() => undefined);
+      asked.current = 'exit';
+      void document.exitFullscreen().catch(() => {
+        if (asked.current === 'exit') asked.current = null;
+      });
+    } else {
+      asked.current = null;
     }
   }, []);
 

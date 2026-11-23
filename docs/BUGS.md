@@ -48,6 +48,22 @@ Copie o modelo para a seção certa, com o próximo número livre:
 
 ## Corrigidos
 
+### B-007 · Mapa: Esc e logo F não voltava para tela cheia
+- **Prioridade:** P3
+- **Área:** Mesa ao vivo › Mapa
+- **Passos:** 1. Mestre abre o mapa em tela cheia. 2. Esc sai. 3. Logo em seguida, F.
+- **Esperado:** o mapa volta para a tela cheia.
+- **Acontece:** a saída da tela cheia do navegador é assíncrona. O aviso dela chegava depois do novo pedido, e o palco voltava ao normal sozinho. O teste `mesa.e2e.ts` › "mapa em tela cheia e volta" falhava 3 em 4 vezes. No CI passava só por causa da nova tentativa automática.
+- **Status:** Corrigido: `useMapFullscreen` (`StageView.tsx`) guarda o que pediu por último ao navegador e ignora o aviso atrasado. O teste existente passa 5 em 5.
+
+### B-006 · Corte Carmesim escuro: texto branco sobre o coral com contraste 2,96:1
+- **Prioridade:** P3
+- **Área:** Temas › Corte Carmesim (escuro)
+- **Passos:** tema Corte Carmesim no modo escuro. Ver o número de pendências no botão "Herói" da criação (celular) ou os selos hexagonais do Retrato.
+- **Esperado:** texto sobre a cor de ação com pelo menos 4,5:1 (WCAG AA).
+- **Acontece:** branco sobre `#FE5F71` dava 2,96:1.
+- **Status:** Corrigido: `--on-acc` do tema escuro passou a `#12060b` (6,71:1). Teste: `src/styles/__tests__/tokens.test.ts` confere todos os temas e modos.
+
 ### B-005 · Sem internet, pedaço do app que não baixou fazia a página sumir
 - **Prioridade:** P2
 - **Área:** Offline

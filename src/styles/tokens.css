@@ -1,0 +1,88 @@
+/* ============================================================
+   FICHA VIVA — tokens do design system (etapa 2.1)
+   Um lugar só para as decisões visuais. Componentes novos e as telas
+   migradas (etapa 3) usam ESTES nomes; os valores crus (--bg, --panel,
+   --ink…) continuam sendo a paleta de cada tema em src/styles/themes/.
+   Guia: docs/DESIGN-TOKENS.md.
+   ============================================================ */
+
+/* Escalas que valem para todos os temas */
+:root {
+  /* espaço — passos de 4 px */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* texto — 7 tamanhos (hoje são 32) */
+  --text-2xs: 11px; /* rótulo em caixa alta, selo */
+  --text-xs: 12px; /* legenda, dica */
+  --text-sm: 13px; /* texto de apoio, chip */
+  --text-md: 14px; /* corpo da interface */
+  --text-lg: 16px; /* destaque, título de cartão */
+  --text-xl: 20px; /* título de seção */
+  --text-2xl: 28px; /* título de página */
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+
+  /* cantos — os três tamanhos de cada tema + cápsula */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  /* movimento (resposta a toque 90 ms, mudança de estado 160–240 ms) */
+  --dur-press: 90ms;
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 450ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* camadas (z-index) */
+  --z-sticky: 20;
+  --z-popover: 60;
+  --z-modal: 100;
+  --z-toast: 200;
+}
+
+/* Cores por PAPEL: apontam para a paleta do tema e do modo ativos */
+[data-theme] {
+  --color-bg: var(--bg);
+  --color-surface: var(--panel);
+  --color-surface-2: var(--panel2);
+  --color-sunken: var(--well);
+  --color-text: var(--ink);
+  --color-text-muted: var(--muted);
+  --color-border: var(--line);
+  --color-border-strong: var(--line-strong, var(--line));
+  /* ação: o que é vivo e clicável */
+  --color-accent: var(--acc);
+  --color-accent-2: var(--acc2);
+  --color-on-accent: var(--on-acc, var(--bg));
+  /* metal: seleção, ornamento e o botão principal */
+  --color-metal: var(--gold);
+  --color-metal-strong: var(--goldB);
+  --color-on-metal: var(--on-gold, var(--bg));
+  --color-danger: var(--danger);
+
+  --shadow-1: var(--shadow-soft, 0 8px 20px -12px rgba(0, 0, 0, 0.6));
+  --shadow-2: var(--shadow-panel, 0 24px 48px -24px rgba(0, 0, 0, 0.8));
+
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--acc);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-press: 0s;
+    --dur-fast: 0s;
+    --dur: 0s;
+    --dur-slow: 0s;
+  }
+}
