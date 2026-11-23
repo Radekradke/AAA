@@ -54,7 +54,9 @@ Copie o modelo para a seção certa, com o próximo número livre:
   - `TabRetrato.tsx` linha 94.
 - **Esperado:** dependências completas ou o motivo escrito na linha.
 - **Acontece:** os `useMemo` dependem só de campos escolhidos da ficha, de propósito, para não recalcular a cada mudança. Se outro campo usado lá dentro mudar, a tela pode mostrar um valor antigo.
-- **Status:** Aberto. Revisar na migração dessas telas (3.6).
+- **Status:** Aberto, metade corrigida:
+  - **Magias (3.6a):** corrigido. As três contas passam a depender da ficha inteira; são baratas, então não vale arriscar valor antigo. `packs` e `hbSpells` ficam na lista com o motivo escrito na linha (mudam a lista global de magias que a função lê).
+  - **Retrato:** falta, na 3.6b.
 
 ## Corrigidos
 

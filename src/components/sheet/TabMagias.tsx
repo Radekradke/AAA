@@ -4,8 +4,7 @@ import type { TabProps } from './tabProps';
 import type { Spell } from '@/types/dnd';
 import { AUTOMATION_CHIP, spellAutomation } from '@/engine/spellAutomation';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
+import '@/styles/magias.css';
 import { useCharacterStore } from '@/store/characterStore';
 import { SpellLibrary } from '@/components/spells/SpellLibrary';
 import { SPELL_BY_ID, SPELLS, spellsForClass, spellVisible } from '@/data/spells';
@@ -35,7 +34,6 @@ function scrollCost(sp: Spell): number {
 }
 
 export function TabMagias({ char, derived }: TabProps) {
-  const t = useTheme();
   const store = useCharacterStore();
   const [learn, setLearn] = useState<false | 'class' | 'all'>(false);
   // editor de magia homebrew: undefined = fechado, null = nova
@@ -72,7 +70,8 @@ export function TabMagias({ char, derived }: TabProps) {
   const slotPools = syncSlotPools(char);
   const slotEntries = (['spellcasting', 'pact'] as const).flatMap((pool) => Object.entries(slotPools[pool]).map(([lv, slot]) => ({ lv: Number(lv), slot, pool })));
 
-  const allItemSpells = useMemo(() => itemGrantedSpells(char), [char.inventory, char.equipped, char.combat.itemSpellUses, char.combat.itemCharges, char.feats, char.level, char.raceId, char.subraceId, char.choices]);
+  // dependem da ficha inteira: as contas são baratas e assim nunca mostram valor antigo (B-003)
+  const allItemSpells = useMemo(() => itemGrantedSpells(char), [char]);
   // cajados e varinhas (cargas) ficam num bloco próprio; o resto segue como antes
   const chargeSpells = allItemSpells.filter((s) => s.charges);
   const itemSpells = allItemSpells.filter((s) => !s.charges);
@@ -82,7 +81,7 @@ export function TabMagias({ char, derived }: TabProps) {
   const spellbook = selection.knownSpells;
 
   // magias de Domínio/Juramento/Círculo: sempre preparadas, fora do limite
-  const granted = useMemo(() => grantedSpellsForClass(char, classId), [char.subclassId, char.classLevels, char.level, char.choices, classId]);
+  const granted = useMemo(() => grantedSpellsForClass(char, classId), [char, classId]);
   const grantedFrom = useMemo(() => new Map(granted.map((g) => [g.id, g.source])), [granted]);
   const activeIds = useMemo(
     () => Array.from(new Set([...(isWizard ? [...prepared, ...spellbook] : prepared), ...granted.map((g) => g.id)])),
@@ -101,7 +100,8 @@ export function TabMagias({ char, derived }: TabProps) {
     const base = spellsForClass(listClass, 9);
     const extra = expandedSpellIds(char, classId).map((id) => SPELL_BY_ID[id]).filter((sp) => sp && !base.includes(sp));
     return [...base, ...extra].sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-  }, [listClass, char.subclassId, char.classLevels, classId, packs, hbSpells]);
+    // packs e hbSpells não aparecem na função, mas mudam a lista global que spellsForClass lê
+  }, [listClass, char, classId, packs, hbSpells]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (fn: (c: typeof char) => void) => store.updateCharacter(char.id, fn as never);
 
@@ -296,11 +296,11 @@ export function TabMagias({ char, derived }: TabProps) {
   };
 
   return (
-    <div className="animate-riseIn" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(13px,1.5vw,18px)', alignItems: 'start' }}>
+    <div className="animate-riseIn fv-mag">
       {/* Espaços de magia + guia */}
       {kind !== 'none' && (
         <Panel full>
-          {profiles.length > 1 && <label className="fv-label" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          {profiles.length > 1 && <label className="fv-label fv-mag-origin">
             Origem das magias
             <select className="fv-input" aria-label="Classe das magias" value={classId} onChange={(e) => { setSelectedClass(e.target.value); setLearn(false); setCircle('all'); setQ(''); }}>
               {profiles.map((p) => <option key={p.classId} value={p.classId}>{getClass(p.classId).label} · nível {p.level}</option>)}
@@ -321,9 +321,9 @@ export function TabMagias({ char, derived }: TabProps) {
             Espaços de Magia
           </SectionLabel>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
-            {st && st.cantrips.max > 0 && <GuideChip label="Truques" have={st.cantrips.have} target={st.cantrips.max} color={t.acc} />}
-            {st?.known && <GuideChip label={isWizard ? 'grimório (grátis)' : 'conhecidas'} have={st.known.have} target={st.known.max} color={t.gold} />}
+          <div className="fv-mag-guide">
+            {st && st.cantrips.max > 0 && <GuideChip label="Truques" have={st.cantrips.have} target={st.cantrips.max} color="var(--color-accent)" />}
+            {st?.known && <GuideChip label={isWizard ? 'grimório (grátis)' : 'conhecidas'} have={st.known.have} target={st.known.max} color="var(--color-metal)" />}
             {st?.prepared && <GuideChip label="preparadas" have={st.prepared.have} target={st.prepared.max} color="#C24DFF" />}
             {st && st.maxCircle > 0 && (
               <span className="fv-spell-rule-chip">até o {st.maxCircle}º círculo</span>
@@ -349,8 +349,8 @@ export function TabMagias({ char, derived }: TabProps) {
             </p>
           </details>
           {!freeMode && st && st.swaps > 0 && kind === 'known' && (
-            <div role="note" className="fv-spell-warn" style={{ borderColor: 'var(--acc)' }}>
-              <b style={{ color: 'var(--acc)' }}>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
+            <div role="note" className="fv-spell-warn is-acc">
+              <b>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
             </div>
           )}
 
@@ -367,29 +367,29 @@ export function TabMagias({ char, derived }: TabProps) {
           )}
 
           {caster?.schools && (
-            <div role="note" className="fv-spell-warn" style={offSchool > caster.schools.free ? undefined : { borderColor: 'var(--line)' }}>
-              <b style={offSchool > caster.schools.free ? undefined : { color: 'var(--acc)' }}>{caster.via}:</b> magias de {caster.schools.allowed.join(' ou ')}.
+            <div role="note" className={'fv-spell-warn' + (offSchool > caster.schools.free ? '' : ' is-calm')}>
+              <b>{caster.via}:</b> magias de {caster.schools.allowed.join(' ou ')}.
               {' '}Fora dessas escolas: {offSchool} de {caster.schools.free} permitida{caster.schools.free === 1 ? '' : 's'} (uma a mais nos níveis 3, 8, 14 e 20).
             </div>
           )}
 
-          {slotEntries.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13, padding: '8px 0' }}>Sem espaços de magia neste nível (truques ainda funcionam).</div>}
+          {slotEntries.length === 0 && <div className="fv-mag-none">Sem espaços de magia neste nível (truques ainda funcionam).</div>}
           {slotEntries.map(({ lv, slot, pool }) => {
             return (
-              <div key={`${pool}-${lv}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
+              <div key={`${pool}-${lv}`} className="fv-mag-slots">
                 <LoreTooltip info={passiveLore(`${lv}º círculo${pool === 'pact' ? ' · Pacto' : ''}`, `${slot.max - slot.used}/${slot.max} disponíveis`, `Cada losango é um espaço. Gastos voltam após descanso ${pool === 'pact' ? 'curto ou longo' : 'longo'}.`, ['Magia', 'Recurso'])}>
-                  <span style={{ cursor: 'help', fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--ink)', minWidth: 90 }}>{lv}º círculo{pool === 'pact' ? ' · Pacto' : ''}</span>
+                  <span className="fv-mag-slots-name">{lv}º círculo{pool === 'pact' ? ' · Pacto' : ''}</span>
                 </LoreTooltip>
-                <div style={{ flex: 1, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                <div className="fv-mag-slots-list">
                   {Array.from({ length: slot.max }, (_, i) => {
                     const filled = i >= slot.used;
                     return (
                       <span key={i} {...pressable(() => store.toggleSpellSlot(char.id, lv, i + 1, pool), `Espaço de ${lv}º círculo ${i + 1}: ${filled ? 'livre' : 'gasto'}`)}
-                        style={{ cursor: 'pointer', width: 19, height: 19, borderRadius: 6, transform: 'rotate(45deg)', border: '1px solid ' + (filled ? t.acc : t.line), background: filled ? hexA(t.acc, 0.85) : 'transparent', boxShadow: filled ? '0 0 10px ' + hexA(t.acc, 0.6) : 'none', transition: '.2s' }} />
+                        className={'fv-mag-slot' + (filled ? ' is-on' : '')} />
                     );
                   })}
                 </div>
-                <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: 'var(--muted)' }}>{slot.max - slot.used} / {slot.max}</span>
+                <span className="fv-mag-slots-n">{slot.max - slot.used} / {slot.max}</span>
               </div>
             );
           })}
@@ -408,17 +408,17 @@ export function TabMagias({ char, derived }: TabProps) {
       {itemSpells.length > 0 && (
         <Panel full>
           <SectionLabel>Magias de raça, itens, talentos e invocações</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div className="fv-mag-items">
             {itemSpells.map((is) => (
-              <div key={is.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 'var(--radius-md)', border: '1px solid ' + hexA(t.acc2 ?? t.acc, 0.4), background: 'var(--lift)' }}>
+              <div key={is.key} className="fv-mag-item">
                 <LoreTooltip info={spellLore(is.spell)} anchorStyle={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ cursor: 'help', display: 'block' }}>
-                    <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{is.spell.name}</span>
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
+                  <span className="fv-mag-item-text">
+                    <span className="fv-mag-item-name">{is.spell.name}</span>
+                    <span className="fv-mag-item-src">de {is.itemName} · {is.recharge === 'atwill' ? 'à vontade' : `${is.usesMax}×/descanso ${is.recharge === 'short' ? 'curto' : 'longo'}`}</span>
                   </span>
                 </LoreTooltip>
                 {is.recharge !== 'atwill' && (
-                  <span style={{ fontFamily: 'var(--font-num)', fontSize: 12, color: is.usesLeft > 0 ? t.gold : 'var(--muted)' }}>{is.usesLeft}/{is.usesMax}</span>
+                  <span className={'fv-mag-uses' + (is.usesLeft > 0 ? ' is-on' : '')}>{is.usesLeft}/{is.usesMax}</span>
                 )}
                 {/* conjura de verdade (efeitos, PV temporários, CA, ataque/dano), sem gastar espaço */}
                 {is.recharge === 'atwill' || is.usesLeft > 0 ? (
@@ -438,7 +438,7 @@ export function TabMagias({ char, derived }: TabProps) {
               </div>
             ))}
           </div>
-          <p style={{ margin: '9px 0 0', fontSize: 11, color: 'var(--muted)' }}>Magias da raça, de talentos e de invocações conjuram sem gastar espaço (e aplicam o efeito na ficha); as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
+          <p className="fv-mag-help">Magias da raça, de talentos e de invocações conjuram sem gastar espaço (e aplicam o efeito na ficha); as de itens só valem com o item equipado ou sintonizado. Recarregam no descanso (curto/longo).</p>
         </Panel>
       )}
 
@@ -447,12 +447,12 @@ export function TabMagias({ char, derived }: TabProps) {
         <Panel full>
           <SectionLabel
             right={
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button onClick={() => setLearn('class')} style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--gold)', color: 'var(--gold)', background: hexA(t.gold, 0.1) }}>
+              <div className="fv-mag-actions">
+                <button type="button" className="fv-mag-learn" onClick={() => setLearn('class')}>
                   + {learnLabel}
                 </button>
                 {isWizard && (
-                  <button onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo" style={{ cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--acc)', color: 'var(--acc)', background: 'var(--lift)' }}>
+                  <button type="button" className="fv-mag-learn is-copy" onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo">
                     📜 Copiar para o grimório
                   </button>
                 )}
@@ -463,7 +463,7 @@ export function TabMagias({ char, derived }: TabProps) {
           </SectionLabel>
 
           {active.length === 0 && (
-            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b style={{ color: t.gold }}>+ {learnLabel}</b> para escolher da lista da sua classe — só aparecem liberadas as magias que você pode pegar agora.</>} />
+            <EmptyState icon="spark" title="Nenhuma magia ainda" hint={<>Use <b className="fv-mag-gold">+ {learnLabel}</b> para escolher da lista da sua classe — só aparecem liberadas as magias que você pode pegar agora.</>} />
           )}
 
           {active.length > 0 && (
@@ -534,10 +534,10 @@ export function TabMagias({ char, derived }: TabProps) {
 function GuideChip({ label, have, target, color }: { label: string; have: number; target: number; color: string }) {
   const over = have > target;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, fontSize: 11.5, padding: '4px 10px', borderRadius: 999, border: '1px solid ' + hexA(color, 0.5), background: hexA(color, 0.08) }}>
-      <span style={{ color: 'var(--muted)', textTransform: 'capitalize' }}>{label}</span>
-      <b style={{ fontFamily: 'var(--font-num)', color: over ? 'var(--danger)' : color }}>{have}</b>
-      <span style={{ color: 'var(--muted)' }}>/ {target}</span>
+    <span className={'fv-mag-count' + (over ? ' is-over' : '')} style={{ '--c': color } as React.CSSProperties}>
+      <span>{label}</span>
+      <b>{have}</b>
+      <span>/ {target}</span>
     </span>
   );
 }
@@ -545,7 +545,7 @@ function GuideChip({ label, have, target, color }: { label: string; have: number
 function Mini({ children, c }: { children: React.ReactNode; c?: string }) {
   const ink = useInk();
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 5, color: c ? ink(c) : 'var(--muted)', border: '1px solid ' + hexA(c ?? '#8B99B0', 0.4), background: hexA(c ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span className="fv-mag-mini" style={{ '--c': c ?? '#8B99B0', ...(c ? { color: ink(c) } : {}) } as React.CSSProperties}>
       {children}
     </span>
   );

@@ -31,7 +31,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - [x] 3.3 Ficha
 - [x] 3.4 Inventário + editor de item
 - [x] 3.5 Sala da campanha
-- [ ] 3.6 Jogar, Magias, Descanso, Diário, Retrato
+- [~] 3.6 Jogar, Magias, Descanso, Diário, Retrato (Magias feita)
 - [ ] 3.7 Criação, Home, Heróis, Configurações
 - [ ] 3.8 Mesa ao vivo, palco, console do mestre
 - [ ] 3.9 Quebrar o `globals.css` e apagar CSS sem uso
@@ -72,3 +72,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 - 23/11 · 3.4a aba Inventário · PR #138 mergeado · TabInventario: 61 style={{…}} → 13 (cor da carga, da raridade e das moedas, e os brilhos que dependem delas); estilos em `src/styles/inventario.css`; o ponto da sintonia entrou na regra do Ouro Velho que apaga brilhos; prints em 4 temas (Mochila e Equipado, com itens raros, lendário, homebrew, cargas e sintonia) e celular: idênticos
 - 23/11 · 3.4b editor de item (Forja) · PR #139 mergeado · ItemEditorModal: 39 style={{…}} → 0 (e os 30 rótulos com `style={label}` viraram classe); estilos em `src/styles/item-editor.css`; as caixas de marcar ganharam `aria-pressed`; prints da Forja com arma, armadura e item mágico em 4 temas e celular: idênticos
 - 23/11 · 3.5 Sala da campanha · PR em revisão · CampaignRoom: 57 style={{…}} → 4 (barra de PV e cor de cada atributo); estilos em `src/styles/campaign-room.css`; os botões de escolha (Nota/NPC/Missão) ganharam `aria-pressed`; prints de mestre e jogador em 4 temas e celular: idênticos, fora o botão corrigido. Achado B-010: "Salvar" do Discord da mesa espremido (24 px) — corrigido, com teste
+- 23/11 · 3.6a Magias · PR em revisão · TabMagias: 29 style={{…}} → 4 e SpellLibrary: 17 → 5 (cor de cada etiqueta, a arte de fundo da magia); estilos em `src/styles/magias.css` e `src/styles/spell-library.css`; os losangos dos espaços entraram na regra do Ouro Velho que apaga brilhos; prints em 4 temas, celular e na biblioteca (fechada e com uma magia aberta): idênticos. B-003 corrigido na aba Magias (lint: 4 avisos → 1, o do Retrato)
