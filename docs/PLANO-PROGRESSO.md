@@ -6,7 +6,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 
 ## Etapa 0 — Rede de segurança
 - [x] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
-- [~] 0.2 `npm audit fix` (react-router)
+- [x] 0.2 `npm audit fix` (react-router)
 - [~] 0.3 Orçamento de tamanho do pacote no CI
 - [~] 0.4 Teste de fumaça: 16 páginas sem erro no console
 - [~] 0.5 Registro de bugs (`docs/BUGS.md`)
@@ -54,5 +54,5 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 ## Diário das retomadas
 <!-- Cada retomada acrescenta uma linha: data · item · PR · resultado -->
 - 23/11 · 0.1 lint · PR #122 mergeado · 0 erros de lint, 1012 unidade, 187 ponta a ponta
-- 23/11 · 0.2 dependências · PR aberto · react-router 6.30 → 7.18 (a 6 não tem correção); 0 alertas de produção. Restam 2 alertas só de desenvolvimento (vitest, esbuild do vite), que pedem versões maiores: ficam no registro de bugs
+- 23/11 · 0.2 dependências · PR #123 mergeado · react-router 6.30 → 7.18 (a 6 não tem correção); 0 alertas de produção. Restam 2 alertas só de desenvolvimento (vitest, esbuild do vite), que pedem versões maiores: ficam no registro de bugs
 - 23/11 · 0.3–0.5 · PR aberto · orçamento do pacote (JS 1150 / CSS 245 / gzip 415 KB) no CI; fumaça das 16 páginas, 32/32 (PC e celular); `docs/BUGS.md` com 3 bugs abertos
