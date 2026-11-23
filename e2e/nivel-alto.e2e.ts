@@ -9,7 +9,9 @@ import { signIn } from './fixtures/supabase';
 test('Ladino nível 5 pela Trilha de níveis', async ({ page }) => {
   await signIn(page, 'guest', { ui: { onboarded: true, toursSeen: { creator: true, sheet: true }, dice3d: false } });
   await page.goto('/criar');
-  await page.locator('.fv-concept-card').filter({ hasText: /silêncio|furtiv/i }).first().click();
+  // entrada da Forja: escolhe o caminho e começa por ele
+  await page.getByRole('button', { name: /Quero explorar/ }).click();
+  await page.getByRole('button', { name: /Começar como Ladino/ }).click();
   const cta = page.locator('.fv-foot-cta');
   await cta.click();
   await expect(page.getByRole('heading', { name: 'Caminho' })).toBeVisible();

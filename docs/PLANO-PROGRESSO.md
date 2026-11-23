@@ -5,7 +5,7 @@ Lista de trabalho de `docs/PLANO-PROFISSIONAL.md`. Cada retomada automática peg
 Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergeado
 
 ## Etapa 0 — Rede de segurança
-- [ ] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
+- [~] 0.1 ESLint (TypeScript, hooks, acessibilidade) no CI
 - [ ] 0.2 `npm audit fix` (react-router)
 - [ ] 0.3 Orçamento de tamanho do pacote no CI
 - [ ] 0.4 Teste de fumaça: 16 páginas sem erro no console
@@ -53,3 +53,4 @@ Legenda: `[ ]` a fazer · `[~]` em andamento (PR aberto) · `[x]` feito e mergea
 
 ## Diário das retomadas
 <!-- Cada retomada acrescenta uma linha: data · item · PR · resultado -->
+- 23/11 · 0.1 lint · PR aberto · 0 erros de lint, 1012 unidade, 187 ponta a ponta
