@@ -195,7 +195,7 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       className="fv-lore-anchor"
       // âncora sem controle dentro precisa de foco para a dica abrir pelo teclado
       tabIndex={wrapsControl ? undefined : 0}
-      aria-label={wrapsControl ? undefined : `${info.title}: ${info.body}`}
+      aria-label={`${info.title}: ${info.body}`}
       onPointerOver={(e) => {
         if (e.pointerType !== 'touch' && !isCoarsePointer()) show(false, { x: e.clientX, y: e.clientY });
       }}
