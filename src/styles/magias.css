@@ -1,0 +1,185 @@
+/* Aba Magias (etapa 3.6). Valores que estavam inline em TabMagias.tsx.
+   A cor de cada contador e de cada etiqueta chega como --c. */
+
+.fv-mag {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(13px, 1.5vw, 18px);
+  align-items: start;
+}
+.fv-label.fv-mag-origin {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: 14px;
+}
+.fv-mag-guide {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+/* contador do guia (truques, conhecidas, preparadas) */
+.fv-mag-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 11.5px;
+  padding: var(--space-1) 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+}
+.fv-mag-count > span {
+  color: var(--color-text-muted);
+}
+.fv-mag-count > span:first-child {
+  text-transform: capitalize;
+}
+.fv-mag-count b {
+  font-family: var(--font-num);
+  color: var(--c);
+}
+.fv-mag-count.is-over b {
+  color: var(--color-danger);
+}
+
+/* avisos de regra */
+.fv-spell-warn.is-acc {
+  border-color: var(--color-accent);
+}
+.fv-spell-warn.is-calm {
+  border-color: var(--color-border);
+}
+.fv-spell-warn:is(.is-acc, .is-calm) b {
+  color: var(--color-accent);
+}
+
+/* espaços de magia */
+.fv-mag-none {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-2) 0;
+}
+.fv-mag-slots {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.fv-mag-slots-name {
+  cursor: help;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--color-text);
+  min-width: 90px;
+}
+.fv-mag-slots-list {
+  flex: 1;
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.fv-mag-slot {
+  cursor: pointer;
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  transform: rotate(45deg);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  transition: 0.2s;
+}
+.fv-mag-slot.is-on {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 85%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+.fv-mag-slots-n,
+.fv-mag-uses {
+  font-family: var(--font-num);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.fv-mag-uses.is-on {
+  color: var(--color-metal);
+}
+
+/* magias de raça, itens, talentos e invocações */
+.fv-mag-items {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.fv-mag-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-accent-2) 40%, transparent);
+  background: var(--lift);
+}
+.fv-mag-item-text {
+  cursor: help;
+  display: block;
+}
+.fv-mag-item-name {
+  display: block;
+  font-size: var(--text-md);
+  color: var(--color-text);
+}
+.fv-mag-item-src {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+}
+.fv-mag-help {
+  margin: 9px 0 0;
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+/* aprender / copiar */
+.fv-mag-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fv-mag-learn {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 10%, transparent);
+}
+.fv-mag-learn.is-copy {
+  font-family: var(--font-body);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--lift);
+}
+.fv-mag-gold {
+  color: var(--color-metal);
+}
+
+/* etiqueta pequena da linha (dano, cura, save, automação) */
+.fv-mag-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--color-text-muted);
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+  white-space: nowrap;
+}

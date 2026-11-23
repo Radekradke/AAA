@@ -1,0 +1,122 @@
+/* Biblioteca de magias (etapa 3.6). Valores que estavam inline em
+   SpellLibrary.tsx. A cor de cada etiqueta e de cada filtro chega como --c. */
+
+.fv-lib-row {
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--sunk);
+  overflow: hidden;
+}
+.fv-lib-row.is-on {
+  border-color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 6%, transparent);
+}
+.fv-lib-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.fv-lib-row-open {
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  min-width: 0;
+}
+.fv-lib-row-text {
+  min-width: 0;
+}
+.fv-lib-row-name {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-lib-row-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+/* botão + / ✓ da linha */
+.fv-lib-pick {
+  cursor: pointer;
+  flex: none;
+  min-height: 34px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  background: var(--lift);
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.fv-lib-pick.is-on {
+  border-color: var(--color-metal);
+  color: var(--color-metal);
+  background: color-mix(in srgb, var(--color-metal) 14%, transparent);
+}
+.fv-lib-pick:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.fv-lib-pick:disabled:not(.is-on) {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+/* detalhes abertos */
+.fv-lib-detail {
+  padding: 0 12px 12px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.fv-lib-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+.fv-lib-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 3px 12px;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-num);
+}
+.fv-lib-higher {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--color-accent);
+}
+.fv-btn-ghost.fv-lib-hb {
+  align-self: flex-start;
+}
+
+/* etiqueta pequena (escola, dano, cura, custo) */
+.fv-lib-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--color-text-muted);
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+  white-space: nowrap;
+}

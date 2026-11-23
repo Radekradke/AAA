@@ -1,8 +1,7 @@
 import { SOURCE_SHORT } from '@/data/contentPacks';
 import { useMemo, useState } from 'react';
 import type { Spell, SpellTag } from '@/types/dnd';
-import { useTheme } from '@/lib/useTheme';
-import { hexA } from '@/lib/color';
+import '@/styles/spell-library.css';
 import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
 import { Icon } from '@/components/ui/Icon';
@@ -50,7 +49,6 @@ const circleLabel = (lv: number) => (lv === 0 ? 'Truques' : `${lv}º círculo`);
  * etiquetas removíveis, e a lista vem separada por círculo.
  */
 export function SpellLibrary({ title, spells, selected, onToggle, onClose, actionLabel = 'Adicionar', costOf, blockedAdd, blockReason, onHomebrew }: SpellLibraryProps) {
-  const t = useTheme();
   const [query, setQuery] = useState('');
   const [level, setLevel] = useState<number | null>(null);
   const [school, setSchool] = useState<string | null>(null);
@@ -170,7 +168,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
             </FilterGroup>
             <FilterGroup label="Escola">
               {SCHOOLS.map((sc) => (
-                <button key={sc} type="button" aria-pressed={school === sc} className={school === sc ? 'is-on' : ''} style={{ '--c': t.gold } as React.CSSProperties} onClick={() => setSchool(school === sc ? null : sc)}>
+                <button key={sc} type="button" aria-pressed={school === sc} className={school === sc ? 'is-on' : ''} style={{ '--c': 'var(--color-metal)' } as React.CSSProperties} onClick={() => setSchool(school === sc ? null : sc)}>
                   <SchoolIcon school={sc} size={13} />
                   {sc}
                 </button>
@@ -213,14 +211,14 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
           const on = sel.has(sp.id);
           const expanded = open === sp.id;
           return (
-            <div key={sp.id} className={'fv-lib-row' + (reasonOf(sp) ? ' is-locked' : '')} style={{ borderRadius: 12, border: '1px solid ' + (on ? t.gold : t.line), background: on ? hexA(t.gold, 0.06) : 'var(--sunk)', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
-                <button onClick={() => setOpen(expanded ? null : sp.id)} aria-expanded={expanded} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'none', border: 'none', minWidth: 0 }}>
+            <div key={sp.id} className={'fv-lib-row' + (on ? ' is-on' : '') + (reasonOf(sp) ? ' is-locked' : '')}>
+              <div className="fv-lib-row-main">
+                <button type="button" className="fv-lib-row-open" onClick={() => setOpen(expanded ? null : sp.id)} aria-expanded={expanded}>
                   <SpellThumb spell={sp} size={34} showLevel />
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.name}</span>
+                  <span className="fv-lib-row-text">
+                    <span className="fv-lib-row-name">{sp.name}</span>
                     {reasonOf(sp) && <span className="fv-spell-block-reason">🔒 {reasonOf(sp)}</span>}
-                    <span style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
+                    <span className="fv-lib-row-chips">
                       <MiniChip>
                         <SchoolIcon school={sp.school} size={10} />
                         {sp.school}
@@ -246,7 +244,8 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                       disabled={blocked}
                       title={on ? 'Remover' : reason ?? (blocked ? 'Ouro insuficiente' : actionLabel)}
                       aria-label={`${on ? 'Remover' : actionLabel} ${sp.name}`}
-                      style={{ cursor: blocked ? 'not-allowed' : 'pointer', flex: 'none', minHeight: 34, padding: '5px 12px', borderRadius: 999, border: '1px solid ' + (on ? t.gold : blocked ? t.line : t.acc), color: on ? t.gold : blocked ? 'var(--muted)' : t.acc, background: on ? hexA(t.gold, 0.14) : blocked ? 'transparent' : 'var(--lift)', opacity: blocked ? 0.5 : 1, fontWeight: 700, fontSize: 12.5 }}
+                      type="button"
+                      className={'fv-lib-pick' + (on ? ' is-on' : '')}
                     >
                       {on ? '✓' : '+'}
                     </button>
@@ -254,18 +253,18 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                 })()}
               </div>
               {expanded && (
-                <div style={{ padding: '0 12px 12px 52px', display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {sp.desc && <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink)' }}>{sp.desc}</p>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '3px 12px', fontSize: 11.5, color: 'var(--muted)', fontFamily: 'var(--font-num)' }}>
+                <div className="fv-lib-detail">
+                  {sp.desc && <p className="fv-lib-desc">{sp.desc}</p>}
+                  <div className="fv-lib-facts">
                     {sp.castingTime && <span>⏱ {sp.castingTime}</span>}
                     {sp.range && <span>◎ {sp.range}</span>}
                     {sp.duration && <span>⧗ {sp.duration}</span>}
                     {sp.components && <span>✶ {sp.components}</span>}
                     {sp.conditions?.length ? <span>☠ {sp.conditions.join(', ')}</span> : null}
                   </div>
-                  {sp.higher && <p style={{ margin: 0, fontSize: 11.5, color: 'var(--acc)' }}>Círculos superiores: {sp.higher}</p>}
+                  {sp.higher && <p className="fv-lib-higher">Círculos superiores: {sp.higher}</p>}
                   {sp.homebrew && onHomebrew && (
-                    <button type="button" className="fv-btn-ghost" style={{ alignSelf: 'flex-start' }} onClick={() => onHomebrew(sp)}>
+                    <button type="button" className="fv-btn-ghost fv-lib-hb" onClick={() => onHomebrew(sp)}>
                       Editar magia homebrew
                     </button>
                   )}
@@ -314,7 +313,7 @@ function FilterGroup({ label, children }: { label: string; children: React.React
 function MiniChip({ children, color }: { children: React.ReactNode; color?: string }) {
   const ink = useInk();
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 700, letterSpacing: '.02em', padding: '2px 6px', borderRadius: 5, color: color ? ink(color) : 'var(--muted)', border: '1px solid ' + hexA(color ?? '#8B99B0', 0.4), background: hexA(color ?? '#8B99B0', 0.08), whiteSpace: 'nowrap' }}>
+    <span className="fv-lib-mini" style={{ '--c': color ?? '#8B99B0', ...(color ? { color: ink(color) } : {}) } as React.CSSProperties}>
       {children}
     </span>
   );
