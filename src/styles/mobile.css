@@ -176,3 +176,33 @@ html[data-theme] .fv-topbar.is-scrolled {
     overscroll-behavior-y: none;
   }
 }
+
+/*
+ * Alvos de toque pequenos (5.3): no toque, uma área invisível em volta
+ * aumenta o que o dedo acerta, sem mudar o desenho. Nas fileiras densas
+ * (espaços de magia, testes contra a morte, preparar magia) fica em 24 px
+ * (WCAG 2.5.8 AA) para não invadir o vizinho; nas peças soltas, 36 px.
+ */
+@media (pointer: coarse) {
+  :is(.fv-mesa-slot, .fv-spell-prep, .fv-combat-death-pip, .fv-combat-link) {
+    position: relative;
+  }
+  :is(.fv-mesa-slot, .fv-spell-prep, .fv-combat-death-pip)::after,
+  :is(.fv-chip-remove, .fv-item-fav, .fv-portrait-badge, .fv-drag-handle, .fv-combat-link)::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 24px);
+    height: max(100%, 24px);
+    transform: translate(-50%, -50%);
+  }
+  :is(.fv-chip-remove, .fv-item-fav, .fv-portrait-badge, .fv-drag-handle, .fv-combat-link)::after {
+    width: max(100%, 36px);
+    height: max(100%, 36px);
+  }
+  /* barras deslizantes nativas (volume, grade do mapa): 16 px de altura era pouco para o dedo */
+  input[type='range'] {
+    min-height: 24px;
+  }
+}

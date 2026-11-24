@@ -97,7 +97,7 @@ Copie o modelo para a seção certa, com o próximo número livre:
 - **Esperado:** "Salvar" do mesmo tamanho que "Testar", ao lado dele.
 - **Acontece:** o botão dourado (`fv-btn-gold`) não tem tamanho próprio; ali ninguém definia, e ele ficava com 24 px de altura e sem margem interna.
 - **Status:** Corrigido na 3.5: `.fv-discord-field .fv-btn-gold` ganha altura, margem e fonte. Teste: `e2e/mesa.e2e.ts` › "Discord da mesa: o botão Salvar tem tamanho de botão (B-010)" (reprova sem a correção: 24 px).
-- **Para as próximas telas:** outros `fv-btn-gold` sem tamanho definido podem ter o mesmo problema; conferir em cada migração da etapa 3 e na rodada de tamanhos da 5.3.
+- **Para as próximas telas:** outros `fv-btn-gold` sem tamanho definido podem ter o mesmo problema; conferir em cada migração da etapa 3 e na rodada de tamanhos da 5.3. **Conferido na 5.3:** nenhum alvo abaixo de 24 px nas 960 combinações (12 tamanhos × 8 temas × telas e abas); `e2e/tamanhos.e2e.ts` reprova se voltar.
 
 ### B-009 · Temas que reconheciam peças pelo estilo inline deixavam de achá-las após a migração
 - **Prioridade:** P3

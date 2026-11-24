@@ -284,11 +284,11 @@ function GridCalibrator({ path, grid, onChange }: { path: string; grid: GridConf
         </label>
         <label>
           Ajuste ↔
-          <input type="range" min={0} max={grid.size} step={0.5} value={grid.ox} onChange={(e) => onChange({ ...grid, ox: Number(e.target.value) })} />
+          <input type="range" aria-label="Ajuste horizontal da grade" min={0} max={grid.size} step={0.5} value={grid.ox} onChange={(e) => onChange({ ...grid, ox: Number(e.target.value) })} />
         </label>
         <label>
           Ajuste ↕
-          <input type="range" min={0} max={grid.size} step={0.5} value={grid.oy} onChange={(e) => onChange({ ...grid, oy: Number(e.target.value) })} />
+          <input type="range" aria-label="Ajuste vertical da grade" min={0} max={grid.size} step={0.5} value={grid.oy} onChange={(e) => onChange({ ...grid, oy: Number(e.target.value) })} />
         </label>
         <label className="fv-bestiary-check">
           <input type="checkbox" checked={grid.show} onChange={(e) => onChange({ ...grid, show: e.target.checked })} /> Desenhar a grade (desligue se o mapa já tem quadriculado)
