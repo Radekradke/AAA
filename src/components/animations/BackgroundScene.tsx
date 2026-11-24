@@ -24,7 +24,7 @@ export function BackgroundScene() {
         }}
       />
       {/* luz própria do clima: céu, calor da forja, luar, salão carmesim, nebulosa */}
-      <div style={{ position: 'absolute', inset: 0, background: 'var(--scene)' }} />
+      <div className="fv-bg-scene" style={{ position: 'absolute', inset: 0, background: 'var(--scene)' }} />
       {/* temas chapados (Ouro Velho) não têm partículas nem runas */}
       {motif !== 'none' && (
         <>
