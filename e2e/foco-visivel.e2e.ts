@@ -44,7 +44,7 @@ test('Seus heróis: o card ganha anel quando o botão dele recebe o foco', async
  * Cada parada precisa mudar algo visível (anel, sombra, borda, fundo…) no
  * próprio elemento ou num dos 3 de cima (o anel do card de herói fica no card).
  */
-for (const theme of ['astral', 'carmesim', 'eclipse', 'rubra']) {
+for (const theme of ['astral', 'orfeu', 'carmesim', 'eclipse', 'rubra']) {
   test(`todas as paradas do Tab na aba Jogar mostram o foco (${theme})`, async ({ page }) => {
     await signIn(page, 'guest', { characters: [WIZARD], ui: { theme, onboarded: true, toursSeen: { sheet: true }, dice3d: false } });
     await page.goto(`/ficha/${WIZARD.id}`);

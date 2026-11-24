@@ -9,7 +9,7 @@ import type { ThemeMode, ThemeName } from '@/types/dnd';
  * tela) e o JS (estilos inline, prévias do seletor). Este teste garante que
  * os dois contam a mesma história em cada tema e em cada modo.
  */
-const css = ['globals.css', 'global/sheet.css', 'global/creation.css', 'global/features.css', 'global/themes-finish.css', 'global/home-settings.css', 'global/feedback.css', 'global/spells.css', 'themes/astral.css', 'themes/noite.css', 'themes/forja.css', 'themes/bosque.css', 'themes/corte.css', 'themes/ouro.css', 'themes/eclipse.css', 'themes/rubra.css', 'themes/modes.css']
+const css = ['globals.css', 'global/sheet.css', 'global/creation.css', 'global/features.css', 'global/themes-finish.css', 'global/home-settings.css', 'global/feedback.css', 'global/spells.css', 'themes/astral.css', 'themes/noite.css', 'themes/forja.css', 'themes/bosque.css', 'themes/corte.css', 'themes/ouro.css', 'themes/eclipse.css', 'themes/rubra.css', 'themes/orfeu.css', 'themes/modes.css']
   .map((f) => readFileSync(resolve(__dirname, '../../styles', f), 'utf8'))
   .join('\n');
 
@@ -46,12 +46,15 @@ describe('paletas: JS e CSS iguais', () => {
   it('cada tema tem as duas paletas e o modo de nascença certo', () => {
     for (const name of THEME_ALL) {
       expect(THEMES[name]).toBeTruthy();
-      expect(THEME_ALT[name]).toBeTruthy();
+      // tema só escuro (Orfeu) não tem a outra paleta
+      if (THEMES[name].darkOnly) expect(THEME_ALT[name]).toBeUndefined();
+      else expect(THEME_ALT[name]).toBeTruthy();
     }
     expect(nativeMode('eclipse')).toBe('light');
     expect(nativeMode('astral')).toBe('dark');
     expect(resolveTheme('astral', 'light').light).toBe(true);
     expect(resolveTheme('eclipse', 'dark').light).toBe(false);
     expect(resolveTheme('brasa', 'light').label).toBe('Forja Dourada'); // a identidade não muda com o modo
+    expect(resolveTheme('orfeu', 'light')).toBe(THEMES.orfeu); // só escuro: pedir claro devolve o escuro
   });
 });

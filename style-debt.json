@@ -1,6 +1,6 @@
 {
   "src/App.tsx": {"style":1,"hex":0},
-  "src/components/animations/BackgroundScene.tsx": {"style":6,"hex":0},
+  "src/components/animations/BackgroundScene.tsx": {"style":4,"hex":0},
   "src/components/animations/ParticleField.tsx": {"style":1,"hex":0},
   "src/components/animations/RaceAura.tsx": {"style":1,"hex":0},
   "src/components/animations/RuneDrift.tsx": {"style":6,"hex":0},

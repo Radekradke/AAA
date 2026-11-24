@@ -3,12 +3,13 @@ import { persist } from 'zustand/middleware';
 import type { ThemeMode, ThemeName } from '@/types/dnd';
 import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
-import { THEME_ORDER, nativeMode, visibleTheme } from '@/data/themes';
+import { THEMES, THEME_ORDER, nativeMode, visibleTheme } from '@/data/themes';
 import type { PackId } from '@/data/contentPacks';
 import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
 
 /** Modo efetivo de um tema: o escolhido ou o de nascença. */
 export function themeModeOf(theme: ThemeName, modes: Partial<Record<ThemeName, ThemeMode>>): ThemeMode {
+  if (THEMES[theme]?.darkOnly) return 'dark';
   return modes[theme] ?? nativeMode(theme);
 }
 
@@ -181,7 +182,12 @@ export const useUiStore = create<UiState>()(
       },
       modes: {},
       setThemeMode(m, t) {
-        set((s) => ({ modes: { ...s.modes, [t ?? s.theme]: m } }));
+        set((s) => {
+          const id = t ?? s.theme;
+          // tema só escuro (Orfeu): não guarda "claro"
+          if (THEMES[id]?.darkOnly) return {};
+          return { modes: { ...s.modes, [id]: m } };
+        });
       },
       toggleThemeMode() {
         const s = get();

@@ -111,7 +111,8 @@ export function TopBar({ actions, menu = [], scrolled }: TopBarProps) {
       title: 'Aparência',
       items: [
         { key: 'theme', label: `Tema: ${THEMES[theme].label}`, icon: 'palette', onClick: () => setThemesOpen(true) },
-        { key: 'mode', label: 'Paleta clara', icon: 'contrast', check: mode === 'light', onClick: toggleThemeMode },
+        // tema só escuro (Orfeu): sem a opção de paleta clara
+        ...(THEMES[theme].darkOnly ? [] : [{ key: 'mode', label: 'Paleta clara', icon: 'contrast', check: mode === 'light', onClick: toggleThemeMode }]),
       ] as Item[],
     },
     // app instalável: só aparece quando dá para instalar (e ainda não está instalado)

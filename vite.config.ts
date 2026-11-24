@@ -158,7 +158,7 @@ export default defineConfig({
           },
           {
             // artes de classe (build) e retratos padrão (public): guardados na primeira vez que aparecem
-            urlPattern: ({ url, sameOrigin }) => sameOrigin && /^\/(static|assets)\/.*\.(png|jpe?g|webp)$/.test(url.pathname),
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /^\/(static|assets|themes)\/.*\.(png|jpe?g|webp)$/.test(url.pathname),
             handler: 'CacheFirst',
             options: { cacheName: 'fv-imagens', expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 60 } },
           },

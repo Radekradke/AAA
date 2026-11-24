@@ -480,17 +480,19 @@ export interface ThemeDef {
   bloom: string;
   particle: string;
   label: string;
-  /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas ou estrelas. */
-  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars' | 'none';
+  /** Motivo animado do fundo: runas, fagulhas, folhas, pétalas, estrelas ou almas. */
+  motif: 'runes' | 'embers' | 'leaves' | 'petals' | 'stars' | 'souls' | 'none';
   /** Frase curta que descreve o clima no seletor. */
   tagline: string;
   /** Fonte de título do clima (a mesma de --font-display). */
   font: string;
   /** Tema claro (fundo branco quebrado): muda o texto padrão e a barra do navegador. */
   light?: boolean;
+  /** Só existe a paleta escura (o seletor esconde a opção clara). */
+  darkOnly?: boolean;
 }
 
-export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro' | 'eclipse' | 'rubra';
+export type ThemeName = 'frio' | 'brasa' | 'verdejante' | 'carmesim' | 'astral' | 'ouro' | 'eclipse' | 'rubra' | 'orfeu';
 
 /** Paleta clara ou escura dentro do mesmo tema (o layout não muda). */
 export type ThemeMode = 'dark' | 'light';

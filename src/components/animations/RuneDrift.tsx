@@ -25,6 +25,7 @@ interface DriftItem {
  * · leaves — folhas caindo do dossel, balançando
  * · petals — pétalas de rosa caindo devagar (Corte Carmesim)
  * · stars  — estrelas cintilando no lugar (Véu Astral)
+ * · souls  — almas do Estige: luzes verde-água subindo devagar (Lira de Orfeu)
  * Tudo em DOM (poucos elementos) e pausado em prefers-reduced-motion.
  */
 export function RuneDrift({ count = 10 }: { count?: number }) {
@@ -32,8 +33,19 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
   const motif = t.motif;
 
   const items = useMemo<DriftItem[]>(() => {
-    const n = motif === 'embers' ? Math.round(count * 1.8) : motif === 'stars' ? count * 4 : count;
+    const n = motif === 'embers' ? Math.round(count * 1.8) : motif === 'stars' ? count * 4 : motif === 'souls' ? Math.round(count * 1.4) : count;
     return Array.from({ length: n }, (_, i) => {
+      if (motif === 'souls') {
+        return {
+          glyph: '',
+          left: 4 + Math.random() * 92,
+          size: 2 + Math.random() * 2.5,
+          duration: 26 + Math.random() * 20,
+          delay: -Math.random() * 40,
+          opacity: 0.3 + Math.random() * 0.4,
+          sway: (Math.random() - 0.5) * 90,
+        };
+      }
       if (motif === 'embers') {
         return {
           glyph: '',
@@ -93,7 +105,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
 
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      {motif !== 'leaves' && motif !== 'petals' &&
+      {motif !== 'leaves' && motif !== 'petals' && motif !== 'souls' &&
         smoke.map((s, i) => (
           <div
             key={`s${i}`}
@@ -119,7 +131,10 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
           '--rune-opacity': r.opacity,
           '--sway': `${r.sway}px`,
         } as React.CSSProperties;
-        if (motif === 'embers') {
+        // fagulhas e almas: pontos de luz subindo (as almas, devagar e verde-água)
+        if (motif === 'embers' || motif === 'souls') {
+          const soul = motif === 'souls';
+          const gold = i % (soul ? 5 : 4) === 0;
           return (
             <span
               key={`e${i}`}
@@ -129,9 +144,9 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
                 width: r.size,
                 height: r.size,
                 borderRadius: '50%',
-                background: i % 4 === 0 ? t.gold : t.particle,
-                boxShadow: `0 0 ${r.size * 3}px ${t.acc}`,
-                animation: `emberRise ${r.duration}s ease-out infinite`,
+                background: gold ? (soul ? t.goldB : t.gold) : t.particle,
+                boxShadow: `0 0 ${r.size * (soul ? 4 : 3)}px ${soul ? (gold ? t.gold : t.acc2) : t.acc}`,
+                animation: `emberRise ${r.duration}s ${soul ? 'ease-in-out' : 'ease-out'} infinite`,
                 animationDelay: `${r.delay}s`,
               }}
             />
