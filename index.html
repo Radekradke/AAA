@@ -22,7 +22,7 @@
       try {
         var st = JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {};
         // temas oferecidos (THEME_ORDER em src/data/themes.ts); os escondidos abrem no Véu Astral
-        var VISIVEIS = ["astral","orfeu","artemis","carmesim","eclipse","rubra"];
+        var VISIVEIS = ["astral","carmesim","eclipse","rubra"];
         var t = BOOT[st.theme] && VISIVEIS.indexOf(st.theme) >= 0 ? st.theme : 'astral';
         var m = (st.modes || {})[t] || (t === 'eclipse' ? 'light' : 'dark');
         if (t === 'orfeu' || t === 'artemis') m = 'dark'; // temas só escuros

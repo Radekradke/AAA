@@ -87,7 +87,7 @@ test.describe('design system (/dev/ui)', () => {
   test('os temas oferecidos, claro e escuro, sem erro', async ({ page }) => {
     const tema = page.getByLabel('Tema');
     const values = await tema.locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
-    expect(values).toEqual(['astral', 'orfeu', 'artemis', 'carmesim', 'eclipse', 'rubra']);
+    expect(values).toEqual(['astral', 'carmesim', 'eclipse', 'rubra']);
     for (const v of values) {
       await tema.selectOption(v);
       for (const m of ['Claro', 'Escuro']) {
