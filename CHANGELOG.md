@@ -2,6 +2,21 @@
 
 Mudanças do Ficha Viva por versão. Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versões em [SemVer](https://semver.org/lang/pt-BR/). As notas para jogadores, em linguagem simples, ficam em `docs/NOTAS-DA-VERSAO.md`.
 
+## [Não lançado]
+
+### Removido
+- **Vídeos de fundo:** o menu, a tela Entrar, o retorno do login, a Forja e as raças/classes não tocam mais vídeo. Saíram 8 vídeos, cerca de 12,5 MB que iam junto em todo deploy.
+  - `public/assets/bg.mp4`
+  - `public/assets/bruxo-bg.mp4`
+  - `public/assets/irmas/`, os vídeos e as capas
+  - `src/assets/racas/`, os vídeos e as capas do antigo Palco das origens
+- **Código e configuração ligados aos vídeos:**
+  - o player de vídeo do fundo;
+  - a opção "Vídeos de fundo" em Configurações e a preferência `bgVideo`;
+  - o campo `video` de raças e classes;
+  - o CSS do menu "ao lado do vídeo".
+- **O que continua:** o fundo de cada tema, com gradiente, runas, partículas e estrelas.
+
 ## [1.1.0] — 2026-11-24
 
 Rodada profissional: segurança, caça a bugs, design system, desempenho e acessibilidade (`docs/PLANO-PROFISSIONAL.md`). Nenhuma mudança quebra fichas salvas: as antigas são migradas sozinhas na leitura.

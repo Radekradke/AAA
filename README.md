@@ -115,7 +115,7 @@ src/
   types/         character.ts, dnd.ts
   lib/           color, useTheme, useTilt, summary
   styles/        globals.css (base, keyframes, utilitários) · themes/ (uma identidade por arquivo + modos claro/escuro)
-public/assets/   heroi.png, heroi-fem.png, bg.mp4
+public/assets/   heroi.png, heroi-fem.png, retratos padrão
 ```
 
 ---

@@ -96,7 +96,7 @@ export function Login() {
   };
 
   return (
-    <Screen video="/assets/bg.mp4" videoOpacity={0.22}>
+    <Screen>
       <div className="fv-login">
         <div className="fv-panel animate-riseIn fv-login-card">
           <div className="fv-login-head">

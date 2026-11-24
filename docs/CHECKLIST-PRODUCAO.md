@@ -82,7 +82,7 @@ As fichas vivem no aparelho (IndexedDB) e, com conta, também no Supabase.
 
 - [ ] **Merge e tag:** fazer o merge do PR de lançamento e criar a tag (`git tag v1.1.0 && git push origin v1.1.0`).
 - [ ] **Versão nova no aparelho:** abrir o app num celular em que ele já estava instalado. Aparece "Nova versão disponível · atualizar", e depois de tocar o menu mostra a versão nova.
-- [ ] **Conferência de uma pessoa:** os 5 itens do fim de `docs/RODADA-MANUAL.md` (sons e visual, cerca de 10 minutos).
+- [ ] **Conferência de uma pessoa:** os itens do fim de `docs/RODADA-MANUAL.md` (sons e visual, cerca de 5 minutos).
 - [ ] **Avisar os jogadores:** usar o texto de `docs/NOTAS-DA-VERSAO.md`.
 
 ## Estado na versão 1.1.0
