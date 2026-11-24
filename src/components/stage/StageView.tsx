@@ -177,7 +177,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
                 {!scene && <option value="">Escolha uma cena…</option>}
                 {st.scenes.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.id === live?.id ? <><InlineIcon name="dot" size={10} /> </> : ''}{s.name} · {KIND_LABEL[s.kind]}
+                    {s.name}{s.id === live?.id ? ' (ao vivo)' : ''} · {KIND_LABEL[s.kind]}
                   </option>
                 ))}
               </select>
