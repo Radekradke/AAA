@@ -29,7 +29,7 @@ async function sideScroll(page: Page) {
 async function tinyTargets(page: Page) {
   return page.evaluate(() => {
     const out: string[] = [];
-    for (const el of document.querySelectorAll<HTMLElement>('button, a[href], input:not([type=hidden]), select, [role=button], [role=switch]')) {
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('button, a[href], input:not([type=hidden]), select, [role=button], [role=switch]'))) {
       const r = el.getBoundingClientRect();
       if (!r.width || getComputedStyle(el).visibility === 'hidden') continue;
       let w = r.width;
