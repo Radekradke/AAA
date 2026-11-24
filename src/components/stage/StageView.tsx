@@ -11,6 +11,7 @@ import { MONSTER_BY_ID } from '@/data/bestiary';
 import { monsterLook } from '@/lib/monsterArt';
 import { useBestiaryStore } from '@/services/bestiaryService';
 import { coverArea, revealArea } from '@/engine/grid';
+import { LIGHT_PRESETS } from '@/engine/vision';
 import { useSessionStore } from '@/store/sessionStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc } from '@/types/npc';
@@ -254,6 +255,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             canMove={canMove}
             faceFor={ctx.faceFor}
             speedFor={ctx.speedFor}
+            darkFor={ctx.darkFor}
             hpFor={isMaster ? ctx.hpFor : undefined}
             conditionsFor={ctx.conditionsFor}
             activeIds={activeIds}
@@ -340,6 +342,16 @@ function TokenBar({ token, combatant, onClose }: { token: Token | null; combatan
     setAmount('');
   };
   const sizes = [0.5, 1, 2, 3, 4];
+  // luz carregada: fica na névoa da cena (quem segura a tocha ilumina para todos)
+  const scene = st.scenes.find((x) => x.id === token.sceneId) ?? null;
+  const lightNow = scene?.grid.fog?.lights?.[token.id];
+  const setLight = (m: number) => {
+    if (!scene?.grid.fog) return;
+    const lights = { ...scene.grid.fog.lights };
+    if (m > 0) lights[token.id] = m;
+    else delete lights[token.id];
+    void st.saveFog(scene, { ...scene.grid.fog, lights });
+  };
   // mesmo monstro (ou mesmo nome sem o "#2"): o retrato vale para todos
   const key = artKey(token.monsterRef, token.label);
   const same = st.tokens.filter((t) => t.kind === token.kind && artKey(t.monsterRef, t.label) === key);
@@ -374,6 +386,15 @@ function TokenBar({ token, combatant, onClose }: { token: Token | null; combatan
           </button>
         ))}
       </span>
+      {scene?.grid.fog?.dark && (
+        <span className="fv-live-seg" role="group" aria-label="Luz que o peão carrega">
+          {[{ id: 'none', label: 'Sem luz', m: 0 }, ...LIGHT_PRESETS].map((l) => (
+            <button key={l.id} type="button" className={(lightNow ?? 0) === l.m ? 'is-on' : ''} onClick={() => setLight(l.m)} title={l.m ? `${l.label}: ilumina ${l.m} m` : 'Sem luz'}>
+              {l.label}
+            </button>
+          ))}
+        </span>
+      )}
       <label className="fv-btn-ghost fv-tokenbar-art" title={same.length > 1 ? `Vale para os ${same.length} peões iguais` : 'Retrato do peão'}>
         <input type="file" accept="image/png,image/jpeg,image/webp" hidden disabled={busy} onChange={(e) => { void setArt(e.target.files?.[0]); e.target.value = ''; }} />
         {busy ? 'Enviando…' : token.imagePath ? 'Trocar retrato' : same.length > 1 ? `Retrato (${same.length})` : 'Retrato'}
@@ -568,17 +589,20 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
   const customs = useBestiaryStore((b) => b.customs);
   const art = useMediaUrls(tokens.map((t) => t.imagePath));
   const bySheet = useMemo(() => {
-    const m = new Map<string, { face: TokenFace; speed: number | null }>();
+    const m = new Map<string, { face: TokenFace; speed: number | null; dark: number }>();
     for (const h of heroes) {
       const snap = local.find((c) => c.id === h.share.sheetId) ?? h.snapshot;
       if (!snap) continue;
       let speed: number | null = null;
+      let dark = 0;
       try {
-        speed = deriveCharacter(snap).speed;
+        const d = deriveCharacter(snap);
+        speed = d.speed;
+        dark = d.darkvision?.range ?? 0;
       } catch {
         speed = null;
       }
-      m.set(h.share.sheetId, { face: { url: heroAvatar(snap), style: heroFace(snap) }, speed });
+      m.set(h.share.sheetId, { face: { url: heroAvatar(snap), style: heroFace(snap) }, speed, dark });
     }
     return m;
   }, [heroes, local]);
@@ -609,6 +633,7 @@ function useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens
       const n = m ? parseFloat(m.speed.replace(',', '.')) : NaN;
       return Number.isFinite(n) ? n : null;
     },
+    darkFor: (t: Token): number => (t.sheetId ? bySheet.get(t.sheetId)?.dark ?? 0 : 0),
     hpFor: (t: Token) => {
       if (!isMaster) return null;
       const c = combFor(t);

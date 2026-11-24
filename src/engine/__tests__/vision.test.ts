@@ -51,3 +51,40 @@ describe('visão dinâmica', () => {
     expect(coverArea(r, { x: 0, y: 0, w: 1, h: 1 }).walls).toHaveLength(1);
   });
 });
+
+describe('movimento, luz e explorado', () => {
+  it('a parede barra o caminho; porta aberta deixa passar', async () => {
+    const { pathBlocked } = await import('../vision');
+    const walls: Wall[] = [{ x1: 5, y1: 0, x2: 5, y2: 3 }, { x1: 5, y1: 3, x2: 5, y2: 4, door: true, open: false }];
+    expect(pathBlocked({ x: 3.5, y: 1.5 }, { x: 6.5, y: 1.5 }, walls)).toBe(true);
+    expect(pathBlocked({ x: 3.5, y: 3.5 }, { x: 6.5, y: 3.5 }, walls)).toBe(true);
+    walls[1].open = true;
+    expect(pathBlocked({ x: 3.5, y: 3.5 }, { x: 6.5, y: 3.5 }, walls)).toBe(false);
+    expect(pathBlocked({ x: 3.5, y: 6.5 }, { x: 6.5, y: 6.5 }, walls)).toBe(false);
+  });
+
+  it('no escuro só vê o que a luz ou a visão no escuro alcançam', async () => {
+    const { seen } = await import('../vision');
+    const poly = visibilityPolygon({ x: 1.5, y: 5 }, [], B);
+    const blind = [{ at: { x: 1.5, y: 5 }, poly, dark: 0 }];
+    expect(seen({ x: 8, y: 5 }, blind, [], false)).toBe(true);
+    expect(seen({ x: 8, y: 5 }, blind, [], true)).toBe(false);
+    const elf = [{ at: { x: 1.5, y: 5 }, poly, dark: 12 }];
+    expect(seen({ x: 8, y: 5 }, elf, [], true)).toBe(true);
+    const torch = [{ at: { x: 8, y: 5 }, poly: visibilityPolygon({ x: 8, y: 5 }, [], B), r: 2 }];
+    expect(seen({ x: 8.5, y: 5 }, blind, torch, true)).toBe(true);
+    expect(seen({ x: 4, y: 5 }, blind, torch, true)).toBe(false);
+  });
+
+  it('casas vistas viram faixas', async () => {
+    const { cellsSeen, cellRuns } = await import('../vision');
+    const keys = cellsSeen({ x0: 0, y0: 0, x1: 4, y1: 2 }, (p) => p.x < 2 || p.x > 3);
+    expect(keys).toEqual(['0,0', '1,0', '3,0', '0,1', '1,1', '3,1']);
+    expect(cellRuns(keys)).toEqual([
+      { x: 0, y: 0, w: 2 },
+      { x: 3, y: 0, w: 1 },
+      { x: 0, y: 1, w: 2 },
+      { x: 3, y: 1, w: 1 },
+    ]);
+  });
+});

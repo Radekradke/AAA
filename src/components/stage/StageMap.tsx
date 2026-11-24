@@ -6,8 +6,8 @@ import { CELL_METERS } from '@/types/stage';
 import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token, Wall } from '@/types/stage';
-import { blockingWalls, nearestWall, pointInPolygon, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
-import type { Pt } from '@/engine/vision';
+import { blockingWalls, cellRuns, cellsSeen, nearestWall, pathBlocked, seen, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
+import type { LightSource, Viewer } from '@/engine/vision';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import { InlineIcon } from '@/components/ui/Icon';
 
@@ -27,6 +27,8 @@ interface StageMapProps {
   faceFor: (t: Token) => TokenFace | null;
   /** Deslocamento do peão em metros (herói/monstro), para a régua. */
   speedFor: (t: Token) => number | null;
+  /** Visão no escuro do herói, em metros (0 = nenhuma). */
+  darkFor?: (t: Token) => number;
   /** Vida (só o mestre vê a barra). */
   hpFor?: (t: Token) => { cur: number; max: number } | null;
   /** Condições do combatente ligado ao peão (todos veem). */
@@ -100,6 +102,12 @@ export function StageMap(p: StageMapProps) {
   const [drag, setDrag] = useState<DragState | null>(null);
   const [act, setAct] = useState<Act | null>(null);
   const [dropCell, setDropCell] = useState<{ x: number; y: number } | null>(null);
+  const [blocked, setBlocked] = useState(0);
+  const flashBlocked = () => {
+    const n = Date.now();
+    setBlocked(n);
+    setTimeout(() => setBlocked((b) => (b === n ? 0 : b)), 1800);
+  };
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const pinch = useRef<{ d: number; view: View; cx: number; cy: number } | null>(null);
@@ -107,6 +115,7 @@ export function StageMap(p: StageMapProps) {
 
   const ready = !scene.imagePath || !!natural;
   const cellPx = (c: number, axis: 'x' | 'y') => (axis === 'x' ? g.ox : g.oy) + c * g.size;
+  const polyPts = (poly: { x: number; y: number }[]) => poly.map((q) => `${cellPx(q.x, 'x')},${cellPx(q.y, 'y')}`).join(' ');
 
   // enquadra ao abrir a cena (e quando a imagem termina de carregar)
   const fit = useCallback(() => {
@@ -332,7 +341,11 @@ export function StageMap(p: StageMapProps) {
     cancelPress();
     if (drag && e.pointerId === drag.pointer) {
       const s = snapCell(drag.at.x, drag.at.y);
-      if (s.x !== drag.from.x || s.y !== drag.from.y) p.onMove(drag.id, s.x, s.y);
+      const tk = p.tokens.find((t) => t.id === drag.id);
+      const half = (tk?.size ?? 1) / 2;
+      const through = !p.isMaster && pathBlocked({ x: drag.from.x + half, y: drag.from.y + half }, { x: s.x + half, y: s.y + half }, walls);
+      if (through) flashBlocked();
+      else if (s.x !== drag.from.x || s.y !== drag.from.y) p.onMove(drag.id, s.x, s.y);
       setDrag(null);
     }
     if (act && e.pointerId === act.pointer) {
@@ -372,7 +385,7 @@ export function StageMap(p: StageMapProps) {
   };
 
   // paredes: arrastar desenha; um toque sem arrastar apaga a parede mais perto
-  const walls: Wall[] = fog?.walls ?? [];
+  const walls: Wall[] = useMemo(() => fog?.walls ?? [], [fog?.walls]);
   const saveWalls = (next: Wall[], extra: Partial<FogConfig> = {}) =>
     p.onFogSet?.({ on: true, reveal: fog?.reveal ?? [], ...fog, ...extra, walls: next });
   const finishWall = (a: { door: boolean; from: { x: number; y: number }; to: { x: number; y: number } }) => {
@@ -388,19 +401,64 @@ export function StageMap(p: StageMapProps) {
   // visão dinâmica: de onde cada herói está (posição ao vivo, inclusive no arrasto)
   const vision = visionOn(fog);
   const livePos = (t: Token) => (drag?.id === t.id ? drag.at : p.drags[t.id] ?? { x: t.x, y: t.y });
-  const sight = useMemo<Pt[][]>(() => {
-    if (!vision || !ready) return [];
+  const dark = vision && !!fog?.dark;
+  const bounds = useMemo(
+    () => ({ x0: -g.ox / g.size, y0: -g.oy / g.size, x1: (board.w - g.ox) / g.size, y1: (board.h - g.oy) / g.size }),
+    [g.ox, g.oy, g.size, board.w, board.h],
+  );
+  const { viewers, lights } = useMemo<{ viewers: Viewer[]; lights: LightSource[] }>(() => {
+    if (!vision || !ready) return { viewers: [], lights: [] };
     const heroes = p.tokens.filter((t) => t.kind === 'hero' && !t.hidden);
     const mine = p.isMaster ? heroes : heroes.filter((t) => t.ownerId === p.me.id);
     const from = mine.length ? mine : heroes;
-    const bounds = { x0: -g.ox / g.size, y0: -g.oy / g.size, x1: (board.w - g.ox) / g.size, y1: (board.h - g.oy) / g.size };
     const block = blockingWalls(walls);
-    return from.map((t) => {
+    const mid = (t: Token) => {
       const at = livePos(t);
-      return visibilityPolygon({ x: at.x + t.size / 2, y: at.y + t.size / 2 }, block, bounds);
+      return { x: at.x + t.size / 2, y: at.y + t.size / 2 };
+    };
+    return {
+      viewers: from.map((t) => {
+        const at = mid(t);
+        return { at, poly: visibilityPolygon(at, block, bounds), dark: (p.darkFor?.(t) ?? 0) / CELL_METERS };
+      }),
+      lights: !dark
+        ? []
+        : p.tokens
+            .filter((t) => (fog?.lights?.[t.id] ?? 0) > 0)
+            .map((t) => {
+              const at = mid(t);
+              return { at, poly: visibilityPolygon(at, block, bounds), r: fog!.lights![t.id] / CELL_METERS };
+            }),
+    };
+  }, [vision, dark, ready, p.tokens, p.isMaster, p.me.id, walls, fog?.lights, drag, p.drags, bounds, p.darkFor]); // eslint-disable-line react-hooks/exhaustive-deps
+  const inSight = (x: number, y: number) => seen({ x, y }, viewers, lights, dark);
+
+  // lembrança do explorado (jogador): o que o herói já viu fica na penumbra, guardado neste aparelho
+  const exploredKey = `fv-explored-${scene.id}`;
+  const [explored, setExplored] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    try {
+      setExplored(new Set(JSON.parse(localStorage.getItem(exploredKey) ?? '[]') as string[]));
+    } catch {
+      setExplored(new Set());
+    }
+  }, [exploredKey]);
+  useEffect(() => {
+    if (p.isMaster || !viewers.length) return;
+    const now = cellsSeen(bounds, (q) => seen(q, viewers, lights, dark));
+    setExplored((prev) => {
+      if (now.every((k) => prev.has(k))) return prev;
+      const next = new Set(prev);
+      for (const k of now) next.add(k);
+      try {
+        localStorage.setItem(exploredKey, JSON.stringify([...next].slice(-6000)));
+      } catch {
+        /* armazenamento cheio: a lembrança vale só nesta sessão */
+      }
+      return next;
     });
-  }, [vision, ready, p.tokens, p.isMaster, p.me.id, walls, drag, p.drags, board.w, board.h, g.ox, g.oy, g.size]); // eslint-disable-line react-hooks/exhaustive-deps
-  const inSight = (x: number, y: number) => sight.some((poly) => pointInPolygon({ x, y }, poly));
+  }, [viewers, lights, dark, bounds, p.isMaster, exploredKey]);
+  const exploredRuns = useMemo(() => (p.isMaster || !vision ? [] : cellRuns(explored)), [explored, p.isMaster, vision]);
 
   const dragged = drag ? p.tokens.find((t) => t.id === drag.id) ?? null : null;
   const ruler = useMemo(() => {
@@ -409,8 +467,11 @@ export function StageMap(p: StageMapProps) {
     const m = metersBetween(drag.from.x, drag.from.y, s.x, s.y);
     const speed = p.speedFor(dragged);
     const half = dragged.size / 2;
-    return { from: { x: drag.from.x + half, y: drag.from.y + half }, to: { x: s.x + half, y: s.y + half }, snap: s, m, speed, over: speed !== null && m > speed };
-  }, [drag, dragged, p]);
+    const from = { x: drag.from.x + half, y: drag.from.y + half };
+    const to = { x: s.x + half, y: s.y + half };
+    const wall = !p.isMaster && pathBlocked(from, to, walls);
+    return { from, to, snap: s, m, speed, wall, over: wall || (speed !== null && m > speed) };
+  }, [drag, dragged, p, walls]);
 
   // jogadores não veem peões debaixo da névoa
   const center = (t: Token) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
@@ -562,14 +623,37 @@ export function StageMap(p: StageMapProps) {
           {fog?.on && ready && (
             <svg className={'fv-map-fog' + (p.isMaster ? ' is-master' : '')} width={board.w} height={board.h} aria-hidden>
               <defs>
+                {dark &&
+                  viewers.map((v, i) => (
+                    <clipPath key={`c${i}`} id={`los-${scene.id}-${i}`}>
+                      <polygon points={polyPts(v.poly)} />
+                    </clipPath>
+                  ))}
+                {dark &&
+                  lights.map((l, k) => (
+                    <clipPath key={`l${k}`} id={`lit-${scene.id}-${k}`}>
+                      <polygon points={polyPts(l.poly)} />
+                    </clipPath>
+                  ))}
                 <mask id={`fog-${scene.id}`}>
                   <rect width="100%" height="100%" fill="white" />
                   {fog.reveal.map((r, i) => (
                     <rect key={i} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={r.h * g.size} fill="black" />
                   ))}
-                  {sight.map((poly, i) => (
-                    <polygon key={`v${i}`} points={poly.map((q) => `${cellPx(q.x, 'x')},${cellPx(q.y, 'y')}`).join(' ')} fill="black" />
+                  {exploredRuns.map((r) => (
+                    <rect key={`e${r.x},${r.y}`} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={g.size} fill="dimgray" />
                   ))}
+                  {!dark &&
+                    viewers.map((v, i) => <polygon key={`v${i}`} points={polyPts(v.poly)} fill="black" />)}
+                  {dark &&
+                    viewers.map((v, i) => (
+                      <g key={`v${i}`} clipPath={`url(#los-${scene.id}-${i})`}>
+                        {v.dark > 0 && <circle cx={cellPx(v.at.x, 'x')} cy={cellPx(v.at.y, 'y')} r={v.dark * g.size} fill="black" />}
+                        {lights.map((l, k) => (
+                          <circle key={k} cx={cellPx(l.at.x, 'x')} cy={cellPx(l.at.y, 'y')} r={l.r * g.size} fill="black" clipPath={`url(#lit-${scene.id}-${k})`} />
+                        ))}
+                      </g>
+                    ))}
                 </mask>
               </defs>
               <rect width="100%" height="100%" mask={`url(#fog-${scene.id})`} className="fv-map-fog-fill" />
@@ -644,7 +728,12 @@ export function StageMap(p: StageMapProps) {
           <div className={'fv-map-meter' + (ruler.over ? ' is-over' : '')} role="status">
             {fmtMeters(ruler.m)}
             {ruler.speed !== null && <small> de {fmtMeters(ruler.speed)}</small>}
-            {ruler.over && <small> · passou do deslocamento</small>}
+            {ruler.wall ? <small> · uma parede no caminho</small> : ruler.over && <small> · passou do deslocamento</small>}
+          </div>
+        )}
+        {blocked > 0 && !ruler && (
+          <div className="fv-map-meter is-over" role="status">
+            Uma parede bloqueia o caminho
           </div>
         )}
         {myMark && (
@@ -688,6 +777,11 @@ export function StageMap(p: StageMapProps) {
           <button type="button" className={vision ? 'is-on' : ''} aria-pressed={vision} onClick={() => saveWalls(walls, { on: true, vision: !vision })}>
             Visão dinâmica: {vision ? 'ligada' : 'desligada'}
           </button>
+          {vision && (
+            <button type="button" className={fog?.dark ? 'is-on' : ''} aria-pressed={!!fog?.dark} onClick={() => saveWalls(walls, { dark: !fog?.dark })}>
+              Cena {fog?.dark ? 'no escuro' : 'iluminada'}
+            </button>
+          )}
           {walls.length > 0 && <button type="button" onClick={() => saveWalls(walls.slice(0, -1))}>Desfazer última</button>}
           {walls.length > 0 && <button type="button" onClick={() => saveWalls([])}>Apagar todas</button>}
         </div>

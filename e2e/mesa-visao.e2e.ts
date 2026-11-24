@@ -65,4 +65,44 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByRole('button', { name: 'Abrir a porta' })).toBeVisible();
   });
+
+  test('jogador: a parede barra o peão', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    setFog(db, { on: true, reveal: [], walls: [{ x1: 5, y1: 0, x2: 5, y2: 30 }], vision: true });
+    await page.goto(`/mesa/${C}/jogar`);
+    const kael = page.locator('.fv-token', { hasText: 'Kael Venturo' });
+    await expect(kael).toBeVisible();
+    // o aviso "seu turno" cobre a tela por um instante
+    await expect(page.locator('.fv-turn-banner')).toHaveCount(0, { timeout: 10_000 });
+    const b = (await kael.boundingBox())!;
+    const before = db.writes.filter((w) => w.includes('scene_tokens')).length;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width * 3.5, b.y + b.width / 2, { steps: 8 });
+    await expect(page.getByText('uma parede no caminho')).toBeVisible();
+    await page.mouse.up();
+    await expect(page.getByText('Uma parede bloqueia o caminho')).toBeVisible();
+    expect(db.writes.filter((w) => w.includes('scene_tokens')).length).toBe(before);
+  });
+
+  test('cena no escuro: a tocha revela o goblin, e o que já foi visto fica lembrado', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    const scene = db.tables.campaign_scenes[0];
+    scene.image_path = null;
+    scene.grid = { size: 70, ox: 0, oy: 0, show: true, cols: 44, rows: 8 };
+    // 37 casas (55 m) do Kael: além até da Visão do Diabo (36 m) que ele tem
+    db.tables.scene_tokens.find((t) => t.id === 't2')!.x = 40;
+    setFog(db, { on: true, reveal: [], vision: true, dark: true });
+    await page.goto(`/mesa/${C}/jogar`);
+    await expect(page.locator('.fv-token', { hasText: 'Kael Venturo' })).toBeVisible();
+    await expect(page.locator('.fv-token', { hasText: 'Goblin #1' })).toHaveCount(0);
+
+    setFog(db, { on: true, reveal: [], vision: true, dark: true, lights: { t2: 12 } });
+    await page.reload();
+    await expect(page.locator('.fv-token', { hasText: 'Goblin #1' })).toBeVisible();
+    const remembered = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '[]').length, `fv-explored-${scene.id}`);
+    expect(remembered).toBeGreaterThan(0);
+  });
 });

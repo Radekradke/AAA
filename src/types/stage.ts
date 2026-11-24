@@ -36,6 +36,10 @@ export interface FogConfig {
   walls?: Wall[];
   /** Visão dinâmica: cada herói enxerga até onde as paredes deixam. */
   vision?: boolean;
+  /** Cena no escuro: só se vê o que a luz ou a visão no escuro alcançam. */
+  dark?: boolean;
+  /** Luz carregada por peão (id → alcance em metros). */
+  lights?: Record<string, number>;
 }
 
 /** Parede ou porta, de quina a quina (em casas; meias casas valem). */
