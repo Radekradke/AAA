@@ -1,4 +1,5 @@
 import type { ThemeName } from '@/types/dnd';
+import { visibleTheme } from '@/data/themes';
 import fixesUrl from '@/styles/fixes.css?url';
 import astral from '@/styles/themes/astral.css?url';
 import frio from '@/styles/themes/noite.css?url';
@@ -61,8 +62,8 @@ export function loadAllThemesCss(): Promise<void> {
 /** Tema salvo (antes da store hidratar): para carregar o CSS antes da 1ª pintura. */
 export function savedTheme(): ThemeName {
   try {
-    const t = JSON.parse(localStorage.getItem('fv-ui') ?? 'null')?.state?.theme;
-    if (t && t in URLS) return t as ThemeName;
+    const t: unknown = JSON.parse(localStorage.getItem('fv-ui') ?? 'null')?.state?.theme;
+    if (typeof t === 'string' && t in URLS) return visibleTheme(t);
   } catch {
     /* sem localStorage */
   }

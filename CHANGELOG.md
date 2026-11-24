@@ -4,6 +4,12 @@ Mudanças do Ficha Viva por versão. Formato baseado em [Keep a Changelog](https
 
 ## [Não lançado]
 
+### Mudado
+- **Temas em teste:** o app oferece 4 temas, Véu Astral, Corte Carmesim, Eclipse e Guilda Rubra.
+  - **Escondidos:** Noite Arcana, Forja Dourada, Bosque Élfico e Ouro Velho continuam no código, mas não aparecem no seletor, no alternador nem na impressão. O CSS deles não é baixado.
+  - **Quem estava num deles:** abre no Véu Astral, sem perder nada.
+  - **Para trazer um de volta:** ponha o id em `THEME_ORDER` (`src/data/themes.ts`) e em `VISIVEIS` (`index.html`). Um teste confere que as duas listas batem.
+
 ### Removido
 - **Vídeos de fundo:** o menu, a tela Entrar, o retorno do login, a Forja e as raças/classes não tocam mais vídeo. Saíram 8 vídeos, cerca de 12,5 MB que iam junto em todo deploy.
   - `public/assets/bg.mp4`

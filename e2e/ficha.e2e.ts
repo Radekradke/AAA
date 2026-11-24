@@ -61,8 +61,8 @@ test.describe('ficha', () => {
     await expect(ills.getByRole('heading', { level: 1 })).toHaveText(NAME);
     await expect(ills.getByRole('img', { name: `Retrato de ${NAME}` })).toBeVisible();
     await expect(ills).toHaveAttribute('data-theme', 'astral');
-    await page.getByLabel('Tema').selectOption('ouro');
-    await expect(ills).toHaveAttribute('data-theme', 'ouro');
+    await page.getByLabel('Tema').selectOption('carmesim');
+    await expect(ills).toHaveAttribute('data-theme', 'carmesim');
     await expect(ills).toHaveAttribute('data-mode', 'light');
     // em branco para lápis (padrão) x valores atuais
     await expect(ills.locator('.fv-ills-hp .fv-ills-write')).toHaveText('');
