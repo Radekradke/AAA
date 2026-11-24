@@ -173,13 +173,25 @@
   display: none;
 }
 [data-theme='orfeu'] .fv-menu-brand::before {
+  /* emblema: lira de casco de tartaruga, coroa de louros e o sol de Apolo (lira.svg) */
   content: '';
   display: block;
-  width: clamp(72px, 11vh, 110px);
-  aspect-ratio: 64 / 80;
-  margin: 0 auto 14px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 80' fill='none' stroke-linecap='round'%3E%3Cg stroke='%23E2C27A' stroke-width='3.2'%3E%3Cpath d='M22 70C10 60 8 36 16 20c3-6-1-12-6-11'/%3E%3Cpath d='M42 70c12-10 14-34 6-50-3-6 1-12 6-11'/%3E%3Cpath d='M13 22h38'/%3E%3Cpath d='M19 68q13 10 26 0'/%3E%3C/g%3E%3Cpath d='M26 22v47M29 22v48M32 22v49M35 22v48M38 22v47' stroke='%23FFF1C8' stroke-width='1.1'/%3E%3C/svg%3E") center / contain no-repeat;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 18px rgba(246, 227, 166, 0.45));
+  width: clamp(112px, 18vh, 176px);
+  aspect-ratio: 240 / 280;
+  margin: 0 auto 10px;
+  background: url('/themes/orfeu/lira.svg') center / contain no-repeat;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 22px rgba(246, 227, 166, 0.3));
+}
+[data-theme='orfeu'] .fv-topbar-brand > .fv-brand-mark {
+  display: none;
+}
+[data-theme='orfeu'] .fv-topbar-brand::before {
+  content: '';
+  flex-shrink: 0;
+  width: 32px;
+  height: 37px;
+  background: url('/themes/orfeu/lira.svg') center / contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(246, 227, 166, 0.3));
 }
 [data-theme='orfeu'] .fv-menu-tag {
   font-family: var(--font-body);

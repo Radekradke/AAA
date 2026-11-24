@@ -9,3 +9,4 @@
 | canto.webp | Prancha IX de ornamento grego, via rawpixel | CC0 / domínio público |
 | moeda.webp | Moeda grega antiga de prata (acervo de museu), via rawpixel | CC0 / domínio público |
 | orfeu.webp | Josias Murer, *Orfeu encantando os animais* (desenho), via rawpixel | CC0 / domínio público |
+| lira.svg | Emblema desenhado para o Ficha Viva (lira de casco de tartaruga, louros e sol de Apolo) | próprio do projeto |
