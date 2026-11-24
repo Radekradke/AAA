@@ -18,14 +18,14 @@
     <script>
       // aplica o tema e o modo (claro/escuro) salvos (ou o padrão, Véu Astral escuro) antes do app carregar: sem piscar a cor errada.
       // BOOT = [fundo, fundo 2, metal, tinta] de cada tema/modo, para a tela de abertura (teste: src/data/__tests__/bootSplash.test.ts)
-      var BOOT = {"astral":{"dark":["#0E0A24","#2A1A55","#F4D58D","#F5F1FF"],"light":["#EEE9FB","#FDF0EA","#6A3DCF","#1E1537"]},"frio":{"dark":["#070B16","#0F1A33","#C9D6EA","#E8EEF8"],"light":["#E9EEF4","#F6F8FB","#1D3557","#0F1B2D"]},"brasa":{"dark":["#110D0B","#2B170C","#E0B356","#F7EDE0"],"light":["#EDE4D6","#F7EFE2","#7C4F08","#2A1D12"]},"verdejante":{"dark":["#07130F","#12302A","#E8D9A8","#EAF6EF"],"light":["#EEF3EA","#FBF8EE","#4B682B","#15291F"]},"carmesim":{"dark":["#12060B","#3A0B1C","#E9B48F","#FBEFEA"],"light":["#F3E9E2","#FBF4EE","#8C3B2E","#2B0F18"]},"ouro":{"dark":["#0B0A09","#14120F","#D4BF8A","#E9E3D5"],"light":["#ECE6D8","#F2EDE1","#6E5520","#221C12"]},"eclipse":{"dark":["#141414","#1A1A1A","#F3F2EE","#EEEDE9"],"light":["#E7E5E0","#F1EFEA","#111111","#121212"]},"rubra":{"dark":["#1E0D10","#3A161B","#FE8578","#FBEFEC"],"light":["#F6E9E6","#FBF1EE","#B3241C","#2A1215"]},"orfeu":{"dark":["#0E0B16","#1F1733","#D9B76A","#F2EBDA"],"light":["#0E0B16","#1F1733","#D9B76A","#F2EBDA"]}};
+      var BOOT = {"astral":{"dark":["#0E0A24","#2A1A55","#F4D58D","#F5F1FF"],"light":["#EEE9FB","#FDF0EA","#6A3DCF","#1E1537"]},"frio":{"dark":["#070B16","#0F1A33","#C9D6EA","#E8EEF8"],"light":["#E9EEF4","#F6F8FB","#1D3557","#0F1B2D"]},"brasa":{"dark":["#110D0B","#2B170C","#E0B356","#F7EDE0"],"light":["#EDE4D6","#F7EFE2","#7C4F08","#2A1D12"]},"verdejante":{"dark":["#07130F","#12302A","#E8D9A8","#EAF6EF"],"light":["#EEF3EA","#FBF8EE","#4B682B","#15291F"]},"carmesim":{"dark":["#12060B","#3A0B1C","#E9B48F","#FBEFEA"],"light":["#F3E9E2","#FBF4EE","#8C3B2E","#2B0F18"]},"ouro":{"dark":["#0B0A09","#14120F","#D4BF8A","#E9E3D5"],"light":["#ECE6D8","#F2EDE1","#6E5520","#221C12"]},"eclipse":{"dark":["#141414","#1A1A1A","#F3F2EE","#EEEDE9"],"light":["#E7E5E0","#F1EFEA","#111111","#121212"]},"rubra":{"dark":["#1E0D10","#3A161B","#FE8578","#FBEFEC"],"light":["#F6E9E6","#FBF1EE","#B3241C","#2A1215"]},"orfeu":{"dark":["#0E0B16","#1F1733","#D9B76A","#F2EBDA"],"light":["#0E0B16","#1F1733","#D9B76A","#F2EBDA"]},"artemis":{"dark":["#081214","#132A2C","#C9D6DE","#EAF1F0"],"light":["#081214","#132A2C","#C9D6DE","#EAF1F0"]}};
       try {
         var st = JSON.parse(localStorage.getItem('fv-ui') || '{}').state || {};
         // temas oferecidos (THEME_ORDER em src/data/themes.ts); os escondidos abrem no Véu Astral
-        var VISIVEIS = ["astral","orfeu","carmesim","eclipse","rubra"];
+        var VISIVEIS = ["astral","orfeu","artemis","carmesim","eclipse","rubra"];
         var t = BOOT[st.theme] && VISIVEIS.indexOf(st.theme) >= 0 ? st.theme : 'astral';
         var m = (st.modes || {})[t] || (t === 'eclipse' ? 'light' : 'dark');
-        if (t === 'orfeu') m = 'dark'; // tema só escuro
+        if (t === 'orfeu' || t === 'artemis') m = 'dark'; // temas só escuros
       } catch (e) {
         var t = 'astral', m = 'dark';
       }

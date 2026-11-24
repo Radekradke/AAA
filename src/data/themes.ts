@@ -1,7 +1,7 @@
 import type { RarityDef, ThemeDef, ThemeMode, ThemeName } from '@/types/dnd';
 
 /** Todos os temas que existem no código (os testes de cor e contraste conferem todos). */
-export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra', 'orfeu'];
+export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra', 'orfeu', 'artemis'];
 
 /**
  * Temas oferecidos ao jogador, na ordem do seletor e do alternador da barra
@@ -9,7 +9,7 @@ export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 
  * volta, ponha o id aqui (e em VISIVEIS no index.html — há um teste que confere).
  * Quem estava num tema escondido abre no Véu Astral (sem perder nada da ficha).
  */
-export const THEME_ORDER: ThemeName[] = ['astral', 'orfeu', 'carmesim', 'eclipse', 'rubra'];
+export const THEME_ORDER: ThemeName[] = ['astral', 'orfeu', 'artemis', 'carmesim', 'eclipse', 'rubra'];
 
 /** O tema salvo, se ainda é oferecido; senão o padrão (Véu Astral). */
 export function visibleTheme(t: unknown): ThemeName {
@@ -242,6 +242,35 @@ export const THEMES: Record<ThemeName, ThemeDef> = {
     tagline: 'O submundo: lira, cordas de ouro e o rio Estige',
     font: "'Cormorant SC', serif",
     motif: 'souls',
+    darkOnly: true,
+  },
+  /**
+   * Mito de Ártemis: a caçada sob a lua. Floresta de pinheiros à noite, lua
+   * cheia, prata lunar e bronze das penas de flecha. Flechas como divisores,
+   * botões em ponta de flecha, crescentes nos cantos, vida como corda de arco.
+   * Só escuro. Imagens (uso livre) em public/themes/artemis/.
+   */
+  artemis: {
+    bg: '#081214',
+    bg2: '#132A2C',
+    panel: '#10201F',
+    panel2: '#0B1716',
+    steel: '#1C3433',
+    line: 'rgba(201,214,222,0.16)',
+    acc: '#A8D0DC',
+    acc2: '#D19A66',
+    accSoft: 'rgba(201,214,222,0.06)',
+    gold: '#C9D6DE',
+    goldB: '#F1F6F8',
+    ink: '#EAF1F0',
+    muted: '#93AAA8',
+    danger: '#F0806F',
+    bloom: 'rgba(200,225,235,0.14)',
+    particle: '#E6F2F5',
+    label: 'Lua de Ártemis',
+    tagline: 'A caçada sob a lua: arco de prata, cervos e a floresta',
+    font: "'Cinzel', serif",
+    motif: 'leaves',
     darkOnly: true,
   },
 };
