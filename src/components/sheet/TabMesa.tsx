@@ -2,7 +2,7 @@ import { WhoAmI } from '@/components/diary/WhoAmI';
 import { RestPreview, useRestPreview } from './RestPreview';
 import { useSpendHitDie } from './useSpendHitDie';
 import { HpPops, HpTrail, useValueDelta } from '@/components/ui/HpFeedback';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { TabProps } from './tabProps';
 import { AmmoBadge, AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
@@ -101,12 +101,9 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             <InspirationControl charId={char.id} points={inspirationCount(char)} max={inspirationMax(char)} onGain={() => bump(1.6)} />
           </div>
 
-          <p className="fv-sr-only" aria-live="polite">
-            Pontos de vida: {char.hpCurrent} de {hpMax}
-            {char.combat.hpTemp > 0 ? `, mais ${char.combat.hpTemp} temporários` : ''}
-          </p>
+          <HpAnnouncer text={`Pontos de vida: ${char.hpCurrent} de ${hpMax}${char.combat.hpTemp > 0 ? `, mais ${char.combat.hpTemp} temporários` : ''}`} />
           <LoreTooltip info={calcLore('PV máximo', bd.maxHp, { intro: 'Construção do PV máximo, nível a nível.' })} anchorStyle={{ gridArea: 'num', alignSelf: 'center' }}>
-            <div aria-hidden key={hpFx.pulse?.id} className={'fv-hp-num fv-mesa-hpnum' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
+            <div key={hpFx.pulse?.id} className={'fv-hp-num fv-mesa-hpnum' + (hpFx.pulse ? ` is-${hpFx.pulse.kind}` : '')} style={{ color: ink(hpColor, 3.2) }}>
               <HpPops pops={hpFx.pops} />
               {char.hpCurrent}
               <span className="fv-mesa-hpmax"> / {hpMax}</span>
@@ -531,5 +528,22 @@ function GoTab({ to, label, goTab }: { to: string; label: string; goTab?: (id: s
     <button type="button" className="fv-goto" onClick={() => goTab(to)} aria-label={`Abrir a aba ${label}`}>
       {label} <span aria-hidden>›</span>
     </button>
+  );
+}
+
+/**
+ * Leitor de tela: anuncia o PV quando ele muda (dano, cura). Fica vazio até a
+ * primeira mudança — o número visível já é lido normalmente, sem repetir.
+ */
+function HpAnnouncer({ text }: { text: string }) {
+  const initial = useRef(text);
+  const [said, setSaid] = useState('');
+  useEffect(() => {
+    if (text !== initial.current || said) setSaid(text);
+  }, [text, said]);
+  return (
+    <p className="fv-sr-only" aria-live="polite">
+      {said}
+    </p>
   );
 }

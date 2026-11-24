@@ -20,8 +20,10 @@ test.describe('leitor de tela na ficha', () => {
   });
 
   test('botões curtos têm nome completo; o PV atual é lido e anunciado ao mudar', async ({ page }) => {
-    const pv = page.locator('p[aria-live="polite"]', { hasText: 'Pontos de vida' });
-    await expect(pv).toHaveText(`Pontos de vida: ${WIZARD.hpCurrent} de 16`);
+    // o número visível é lido normalmente; a região só fala quando o PV muda (sem repetir ao abrir)
+    await expect(page.locator('.fv-mesa-hpnum')).toHaveText(`${WIZARD.hpCurrent} / 16`);
+    const pv = page.locator('.fv-hp p[aria-live="polite"]');
+    await expect(pv).toHaveText('');
     await page.getByRole('button', { name: 'Sofrer 1 de dano' }).click();
     await expect(pv).toHaveText(`Pontos de vida: ${Number(WIZARD.hpCurrent) - 1} de 16`);
     await expect(page.getByRole('button', { name: 'Curar 5 PV' })).toBeVisible();

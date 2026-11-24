@@ -56,7 +56,7 @@ test.describe('talentos de arma e mãos', () => {
     await expect(page.getByRole('button', { name: 'Mestre em Armas Grandes +10' })).toHaveAttribute('aria-pressed', 'true');
 
     // cabo da haste: 1d4 concussão como ataque bônus
-    await expect(page.getByText('Glaive (cabo)')).toBeVisible();
+    await expect(page.getByText('Glaive (cabo)', { exact: true })).toBeVisible();
     await expect(page.getByText(/ação bônus após Atacar com a haste/)).toBeVisible();
   });
 
