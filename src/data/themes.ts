@@ -9,7 +9,7 @@ export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 
  * volta, ponha o id aqui (e em VISIVEIS no index.html — há um teste que confere).
  * Quem estava num tema escondido abre no Véu Astral (sem perder nada da ficha).
  */
-export const THEME_ORDER: ThemeName[] = ['astral', 'orfeu', 'artemis', 'carmesim', 'eclipse', 'rubra'];
+export const THEME_ORDER: ThemeName[] = ['astral', 'carmesim', 'eclipse', 'rubra'];
 
 /** O tema salvo, se ainda é oferecido; senão o padrão (Véu Astral). */
 export function visibleTheme(t: unknown): ThemeName {
