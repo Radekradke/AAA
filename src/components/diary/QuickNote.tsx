@@ -5,6 +5,7 @@ import { MentionInput } from './MentionInput';
 import { NOTE_COLORS, useAddNote } from './DiaryNotes';
 import { toast } from '@/store/feedbackStore';
 import '@/styles/diary.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Botão "✎ Anotar" em todas as abas da ficha: abre um bilhete, escreve,
@@ -77,7 +78,7 @@ export function QuickNote({ char }: { char: Character }) {
         </div>
       )}
       <button type="button" className={'fv-quicknote-fab' + (open ? ' is-open' : '')} aria-expanded={open} onClick={() => setOpen(!open)} title="Anotação rápida (vai para o Diário)">
-        <span aria-hidden>✎</span>
+        <span aria-hidden><InlineIcon name="pencil" /></span>
         <b>Anotar</b>
       </button>
     </div>

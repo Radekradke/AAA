@@ -5,6 +5,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import { historyFor, useUiStore } from '@/store/uiStore';
 import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { toast } from '@/store/feedbackStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Ladino na mesa: Ação Ardilosa (Disparada dobra o deslocamento, Esconder rola
@@ -58,7 +59,7 @@ export function RoguePanel({ char, derived }: { char: Character; derived: Derive
           )}
           {rogue.assassinate && (
             <button type="button" className={'fv-rage-reckless' + (assassinating ? ' is-on' : '')} aria-pressed={assassinating} onClick={() => store.setMark(char.id, 'assassinate', !assassinating)} title="Assassinar: vantagem nos ataques contra criaturas que ainda não agiram no combate. Vale até o próximo “Novo turno”.">
-              {assassinating ? '✓ ' : ''}Assassinar <small>alvo ainda não agiu: vantagem neste turno</small>
+              {assassinating ? <><InlineIcon name="check" /> </> : ''}Assassinar <small>alvo ainda não agiu: vantagem neste turno</small>
             </button>
           )}
           {rogue.level >= 20 && (

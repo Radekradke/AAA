@@ -22,13 +22,13 @@ export function rollLogText(rolls: RollResult[], now = Date.now()): string {
   if (rolls.length === 0) return '';
   const s = rollStats(rolls);
   const date = new Date(now).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-  const head = `🎲 Rolagens da sessão (${date}) — ${s.count} rolagem(ns)` +
+  const head = `Rolagens da sessão (${date}) — ${s.count} rolagem(ns)` +
     (s.crits ? `, ${s.crits} crítico(s)` : '') +
     (s.fails ? `, ${s.fails} falha(s) crítica(s)` : '');
   const lines = [...rolls]
     .sort((a, b) => a.timestamp - b.timestamp)
     .map((r) => {
-      const tag = r.crit ? ' ★ CRÍTICO' : r.fail ? ' ✖ FALHA' : '';
+      const tag = r.crit ? ' · CRÍTICO' : r.fail ? ' · FALHA' : '';
       return `• ${rollTime(r.timestamp)} ${r.label}: ${r.total} (${r.expr} [${r.rolls.join(', ')}])${tag}`;
     });
   return [head, ...lines].join('\n');

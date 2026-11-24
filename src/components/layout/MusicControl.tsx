@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { music, useMusic } from '@/lib/music';
 import { MOODS, TRACKS } from '@/data/soundtrack';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Controle da trilha sonora na barra do topo: tocar/pausar, ambiente, próxima e volume. */
 export function MusicControl() {
@@ -32,7 +33,7 @@ export function MusicControl() {
         aria-expanded={open}
         title="Trilha sonora"
       >
-        <span aria-hidden className="fv-music-glyph">♫</span>
+        <span aria-hidden className="fv-music-glyph"><InlineIcon name="music" size={16} /></span>
         {m.playing && (
           <span aria-hidden className="fv-music-eq">
             <i />
@@ -45,14 +46,14 @@ export function MusicControl() {
         <div className="fv-music-pop fv-panel" role="dialog" aria-label="Trilha sonora">
           <div className="fv-music-now">
             <button type="button" className="fv-music-play" onClick={() => music.toggle()} aria-label={m.playing ? 'Pausar' : 'Tocar'}>
-              {m.playing ? '❚❚' : '▶'}
+              {m.playing ? <InlineIcon name="pause" /> : <InlineIcon name="play" />}
             </button>
             <div className="fv-music-title">
               <b>{m.track?.title ?? 'Trilha sonora'}</b>
               <small>{m.track ? `${m.track.author} · CC0` : `${TRACKS.length} músicas livres (CC0)`}</small>
             </div>
             <button type="button" className="fv-music-next" onClick={() => music.next()} aria-label="Próxima faixa" title="Próxima faixa">
-              ⏭
+              <InlineIcon name="next" />
             </button>
           </div>
           <div className="fv-music-moods" role="group" aria-label="Ambiente">
@@ -68,7 +69,7 @@ export function MusicControl() {
                 }}
                 title={md.hint}
               >
-                <span aria-hidden>{md.icon}</span> {md.label}
+                <span aria-hidden><InlineIcon name={md.icon} /></span> {md.label}
               </button>
             ))}
           </div>
@@ -78,7 +79,7 @@ export function MusicControl() {
               return (
                 <li key={t.id}>
                   <button type="button" className={'fv-music-track' + (on ? ' is-on' : '')} aria-current={on ? 'true' : undefined} onClick={() => music.playTrack(t.id)}>
-                    <span aria-hidden>{on && m.playing ? '♪' : '▸'}</span>
+                    <span aria-hidden>{on && m.playing ? <InlineIcon name="music" size={12} /> : <InlineIcon name="play" size={10} />}</span>
                     <b>{t.title}</b>
                     <small>{t.author}</small>
                   </button>

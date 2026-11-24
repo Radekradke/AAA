@@ -102,7 +102,7 @@ export function buildChronicle(events: SessionEvent[], opts: ChronicleOptions): 
       flushTotals();
       inCombat = true;
       totals = { dealt: new Map(), taken: new Map(), hits: new Map(), crits: new Map() };
-      out.push('', `## ⚔ ${s(p.name, 'Combate')}`, '');
+      out.push('', `## ${s(p.name, 'Combate')}`, '');
       continue;
     }
     if (e.type === 'round_started' && inCombat) {

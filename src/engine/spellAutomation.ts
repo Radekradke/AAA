@@ -117,7 +117,7 @@ export function spellAutomation(sp: Spell): SpellAutomation {
 
 /** Selo curto para a linha da magia (com o mesmo sentido da dica). */
 export const AUTOMATION_CHIP: Record<AutomationLevel, { text: string; color: string; title: string }> = {
-  full: { text: '✓ automática', color: '#3FC56B', title: 'A ficha resolve o que cabe a ela ao conjurar' },
-  partial: { text: '◐ parcial', color: '#FFC857', title: 'A ficha rola ou aplica uma parte; o resto fica com a mesa' },
-  manual: { text: '✋ na mesa', color: '#8B99B0', title: 'A ficha só registra o uso: o efeito é resolvido com o mestre' },
+  full: { text: 'automática', color: '#3FC56B', title: 'A ficha resolve o que cabe a ela ao conjurar' },
+  partial: { text: 'parcial', color: '#FFC857', title: 'A ficha rola ou aplica uma parte; o resto fica com a mesa' },
+  manual: { text: 'na mesa', color: '#8B99B0', title: 'A ficha só registra o uso: o efeito é resolvido com o mestre' },
 };

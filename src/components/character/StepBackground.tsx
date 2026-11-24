@@ -9,6 +9,7 @@ import { BG_TOOL_KEY, backgroundTools, languagePicks } from '@/engine/originChoi
 import { TOOLS } from '@/data/tools';
 import { TOOL_INFO } from '@/data/toolInfo';
 import { useState } from 'react';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const TOOL_CHOICE_TITLE = {
   artesao: 'Ferramenta de artesão à escolha',
@@ -91,7 +92,7 @@ export function StepBackground({ char, update }: StepProps) {
             {langs.total > 0 && (
               <div className="fv-detail-sub fv-langs">
                 <div className="fv-facts-title">
-                  Idiomas à escolha <span className={'fv-counter' + (langs.left <= 0 ? ' is-done' : '')}>{langs.left <= 0 ? 'completo ✓' : `faltam ${langs.left} de ${langs.total}`}</span>
+                  Idiomas à escolha <span className={'fv-counter' + (langs.left <= 0 ? ' is-done' : '')}>{langs.left <= 0 ? <>completo <InlineIcon name="check" size={12} /></> : `faltam ${langs.left} de ${langs.total}`}</span>
                 </div>
                 <small className="fv-langs-why">
                   {langs.sources.map((src) => `${src.count} de ${src.label}`).join(' · ')} — você já fala {langs.fixed.join(', ')}.

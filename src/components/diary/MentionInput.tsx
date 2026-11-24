@@ -6,6 +6,7 @@ import { NpcAvatar } from '@/components/campaign/NpcGallery';
 import { useDiaryNav } from './DiaryNav';
 import '@/styles/session.css';
 import '@/styles/diary.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** "@" ou "#" no começo da palavra onde está o cursor. */
 function triggerAt(value: string, caret: number): { start: number; q: string; mark: '@' | '#' } | null {
@@ -97,7 +98,7 @@ export function MentionInput({ value, onChange, people, places, rows, placeholde
         <span className="fv-mention-list" role="listbox" aria-label={trig?.mark === '@' ? 'Citar alguém' : 'Marcar lugar'}>
           {options.map((m, i) => (
             <button key={m.key} type="button" role="option" aria-selected={i === idx} className={i === idx ? 'is-on' : ''} onMouseDown={(e) => { e.preventDefault(); pick(m); }}>
-              {m.kind === 'place' ? <span className="fv-place-dot" aria-hidden>⌖</span> : <NpcAvatar npc={{ name: m.name, portrait: m.portrait ?? null }} size={26} />}
+              {m.kind === 'place' ? <span className="fv-place-dot" aria-hidden><InlineIcon name="pin" /></span> : <NpcAvatar npc={{ name: m.name, portrait: m.portrait ?? null }} size={26} />}
               <span>
                 <b>{m.name}</b>
                 <small>{KIND_LABEL[m.kind]}{m.role ? ` · ${m.role}` : ''}</small>
@@ -145,7 +146,7 @@ export function MentionChip({ who, label }: { who: Mentionable; label?: string }
 export function PlaceChip({ name }: { name: string }) {
   return (
     <span className="fv-place-chip">
-      <span aria-hidden>⌖</span>
+      <span aria-hidden><InlineIcon name="pin" /></span>
       {name}
     </span>
   );

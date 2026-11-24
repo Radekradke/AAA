@@ -12,6 +12,7 @@ import { subclassesFor } from '@/data/subclasses';
 import { clearSubclassChoices, creationChoices } from '@/engine/classChoices';
 import { STEP_GIFTS, SUBCLASS_TITLE, subclassAtCreation } from '@/engine/creationSummary';
 import { revalidateKit } from '@/engine/loadout';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Uma decisão do capítulo: a subclasse do 1º nível ou uma escolha de classe/raça. */
 interface Decision {
@@ -181,7 +182,7 @@ export function StepGifts({ char, update }: StepProps) {
             setSheet(false);
           }}
         >
-          {isOn ? (active.id === 'subclass' || active.total === 1 ? '✓ Escolhido' : 'Tirar da escolha') : done && active.total > 1 ? `Trocar por ${shown.label}` : `Escolher ${shown.label}`}
+          {isOn ? (active.id === 'subclass' || active.total === 1 ? <><InlineIcon name="check" /> Escolhido</> : 'Tirar da escolha') : done && active.total > 1 ? `Trocar por ${shown.label}` : `Escolher ${shown.label}`}
         </button>
       </div>
       }
@@ -209,7 +210,7 @@ export function StepGifts({ char, update }: StepProps) {
                 setPreview(null);
               }}
             >
-              <span className="fv-gift-mark" aria-hidden>{ok ? '✓' : i + 1}</span>
+              <span className="fv-gift-mark" aria-hidden>{ok ? <InlineIcon name="check" size={12} /> : i + 1}</span>
               <span className="fv-gift-stop-text">
                 <b>{d.label}</b>
                 <small>{ok ? names.join(', ') : d.total > 1 ? `${d.chosen.length} de ${d.total}` : d.source}</small>
@@ -242,7 +243,7 @@ export function StepGifts({ char, update }: StepProps) {
                   setFocus(null);
                 }}
               >
-                {g} <small>{picked ? `✓ ${picked}` : n}</small>
+                {g} <small>{picked ? <><InlineIcon name="check" size={11} /> {picked}</> : n}</small>
               </button>
             );
           })}
@@ -281,7 +282,7 @@ export function StepGifts({ char, update }: StepProps) {
           <div ref={sheetRef} tabIndex={-1} className="fv-gift-sheet fv-gifts" role="dialog" aria-modal="true" aria-label={shown.label} onClick={(e) => e.target === e.currentTarget && setSheet(false)}>
             <div className="fv-gift-sheet-panel">
               <button type="button" className="fv-gift-sheet-close" aria-label="Fechar" onClick={() => setSheet(false)}>
-                ✕
+                <InlineIcon name="close" />
               </button>
               {detail}
             </div>

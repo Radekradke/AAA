@@ -9,6 +9,7 @@ import { modStr } from '@/engine/dice';
 import { music } from '@/lib/music';
 import { useSessionStore } from '@/store/sessionStore';
 import { toast } from '@/store/feedbackStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Rola a iniciativa já com o que a classe muda nela: vantagem do Instinto
@@ -52,7 +53,7 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
 
   return (
     <button type="button" className={'fv-init-btn' + (compact ? ' is-compact' : '')} onClick={roll} title={tip} aria-label={`Rolar iniciativa (${tip})`} aria-keyshortcuts="I">
-      <span className="fv-init-btn-icon" aria-hidden>⚔</span>
+      <span className="fv-init-btn-icon" aria-hidden><InlineIcon name="swords" size={16} /></span>
       <span className="fv-init-btn-text">
         <b>Rolar Iniciativa</b>
         <small>{modStr(derived.initiative)}{rules.advantage ? ' · vantagem' : ''}</small>

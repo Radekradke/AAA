@@ -11,6 +11,7 @@ import type { SkillKey } from '@/types/dnd';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { skillLore } from '@/lib/lore';
 import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Escolha de perícias: as do antecedente e as automáticas da raça já vêm
@@ -93,7 +94,7 @@ export function StepSkills({ char, update }: StepProps) {
           </LoreTooltip>
         ))}
         {[...new Set([...(cls.tools ?? []), ...backgroundTools(char)])].map((id) => (
-          <span key={id} className="fv-pill is-static">⚒ {toolLabel(id)}</span>
+          <span key={id} className="fv-pill is-static"><InlineIcon name="anvil" size={12} /> {toolLabel(id)}</span>
         ))}
       </div>
 
@@ -124,13 +125,13 @@ export function StepSkills({ char, update }: StepProps) {
               const blocked = !on && used >= slots;
               return (
                 <button key={key} type="button" aria-pressed={on} disabled={blocked} className={'fv-pill' + (on ? ' is-on' : '')} onClick={() => toggleSkillExpertise(key)}>
-                  {on ? '★ ' : ''}{SKILL_BY_KEY[key].label}
+                  {on ? <><InlineIcon name="starFill" size={12} /> </> : ''}{SKILL_BY_KEY[key].label}
                 </button>
               );
             })}
             {classHasThieves && (
               <button type="button" aria-pressed={thievesExpert} disabled={!thievesExpert && used >= slots} className={'fv-pill' + (thievesExpert ? ' is-on' : '')} onClick={toggleThievesExpertise}>
-                {thievesExpert ? '★ ' : '⚒ '}Ferramentas de Ladrão
+                {thievesExpert ? <InlineIcon name="starFill" size={12} /> : <InlineIcon name="anvil" size={12} />} Ferramentas de Ladrão
               </button>
             )}
           </div>
@@ -165,7 +166,7 @@ export function StepSkills({ char, update }: StepProps) {
 }
 
 function Counter({ left, total }: { left: number; total: number }) {
-  return <span className={'fv-counter' + (left <= 0 ? ' is-done' : '')}>{left <= 0 ? 'completo ✓' : `faltam ${left} de ${total}`}</span>;
+  return <span className={'fv-counter' + (left <= 0 ? ' is-done' : '')}>{left <= 0 ? <>completo <InlineIcon name="check" size={12} /></> : `faltam ${left} de ${total}`}</span>;
 }
 
 /** Perícia liga/desliga: nome, atributo e estado (treinada de outra fonte = travada). */
@@ -181,7 +182,7 @@ function SkillToggle({ skill, state, onClick }: { skill: SkillKey; state: 'on' |
         onClick={onClick}
         className={'fv-skill' + (on ? ' is-on' : '') + (state === 'blocked' ? ' is-blocked' : '') + (state === 'granted' ? ' is-granted' : '')}
       >
-        <span className="fv-skill-check" aria-hidden>{on ? '✓' : ''}</span>
+        <span className="fv-skill-check" aria-hidden>{on ? <InlineIcon name="check" size={12} /> : ''}</span>
         <span className="fv-skill-text">
           <span className="fv-skill-name">{def.label}</span>
           <span className="fv-skill-sub">{state === 'granted' ? 'já treinada' : ABILITY_SHORT[def.ability]}</span>

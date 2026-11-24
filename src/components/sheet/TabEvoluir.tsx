@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import type { TabProps } from './tabProps';
 import '@/styles/evoluir.css';
 import { Panel, SectionLabel } from '@/components/ui/Panel';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { passiveLore } from '@/lib/lore';
 import { useTheme } from '@/lib/useTheme';
@@ -390,7 +390,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                           {source === 'Homebrew' && (
                             <span className="fv-hb-lib">
                               {list.map((f) => (
-                                <button key={f.id} type="button" className="fv-hb-chip" onClick={() => setHbFeat(f)} aria-label={`Editar ${f.label}`}>✎ {f.label}</button>
+                                <button key={f.id} type="button" className="fv-hb-chip" onClick={() => setHbFeat(f)} aria-label={`Editar ${f.label}`}><InlineIcon name="pencil" /> {f.label}</button>
                               ))}
                             </span>
                           )}
@@ -405,7 +405,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                                 info={passiveLore(
                                   f.label,
                                   `Talento · ${f.source}${f.prereq ? ` · requer ${f.prereq}` : ''}`,
-                                  `${f.desc}${f.notes ? `\n\n${f.notes}` : ''}${issue ? `\n\n✕ ${issue}` : ''}`,
+                                  `${f.desc}${f.notes ? `\n\n${f.notes}` : ''}${issue ? `\n\nProblema: ${issue}` : ''}`,
                                   [f.source, ...(f.prereq ? ['Pré-requisito'] : [])],
                                 )}
                                 anchorStyle={{ display: 'block' }}
@@ -433,7 +433,7 @@ export function TabEvoluir({ char, derived }: TabProps) {
                     );
                   })}
                   <button type="button" className="fv-btn-ghost" onClick={() => setHbFeat(null)} title="Talento seu: a ficha soma os bônus e cria o contador de usos">
-                    ✦ Criar talento homebrew
+                    <InlineIcon name="sparkle" /> Criar talento homebrew
                   </button>
                   {featId && getFeat(featId)?.abilityChoice && (
                     <div className="fv-evo-wrap fv-evo-featabil">

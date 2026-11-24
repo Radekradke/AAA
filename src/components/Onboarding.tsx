@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useUiStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
@@ -92,7 +92,7 @@ const STEPS: Step[] = [
     title: 'Do seu jeito',
     lead: 'Troque o tema (cada um tem cores, fontes e dados próprios), ligue a trilha sonora e escolha os livros da sua mesa em Configurações. O tutorial fica no menu principal.',
     tips: [
-      <>Atalho: o menu <b>⋯</b> no topo de qualquer tela também troca o tema.</>,
+      <>Atalho: o menu <b><InlineIcon name="more" /></b> no topo de qualquer tela também troca o tema.</>,
       <>Envie a arte do seu personagem pelo botão <b>Sua arte</b> no retrato.</>,
     ],
   },

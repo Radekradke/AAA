@@ -17,7 +17,7 @@ import { SpellCastButton } from '@/components/spells/SpellCastButton';
 import { ItemChargeSpells } from '@/components/spells/ItemChargeSpells';
 import { ABILITY_SHORT } from '@/data/skills';
 import { modStr } from '@/engine/dice';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { passiveLore, spellLore } from '@/lib/lore';
@@ -165,7 +165,7 @@ export function TabMagias({ char, derived }: TabProps) {
   const inFilter = (sp: Spell) => (circle === 'all' || sp.level === circle) && matches(sp);
   const favSpells = active.filter((sp) => favorites.includes(sp.id) && inFilter(sp));
   const groups: { key: string; label: string; spells: Spell[]; slot?: { max: number; used: number }; note?: string }[] = [
-    ...(favSpells.length ? [{ key: 'fav', label: '★ Favoritas', spells: favSpells }] : []),
+    ...(favSpells.length ? [{ key: 'fav', label: 'Favoritas', spells: favSpells }] : []),
     ...byCircle
       .map(([lv, spells]) => ({
         key: String(lv),
@@ -214,7 +214,7 @@ export function TabMagias({ char, derived }: TabProps) {
             title={isPrepared ? 'Preparada hoje (toque para despreparar)' : 'Preparar para hoje'}
             onClick={() => togglePrepared(sp.id)}
           >
-            {isPrepared ? '✓' : '+'}
+            {isPrepared ? <InlineIcon name="check" /> : '+'}
           </button>
         )}
         <LoreTooltip info={spellLore(sp)} anchorStyle={{ flex: 1, minWidth: 0 }}>
@@ -234,12 +234,12 @@ export function TabMagias({ char, derived }: TabProps) {
               {sp.save && <Mini c="#9BB0CC">save {ABILITY_SHORT[sp.save]}</Mini>}
               {sp.concentration && (
                 <span className="fv-spell-ico is-conc" title="Concentração">
-                  ◎<span className="fv-sr-only">concentração</span>
+                  <InlineIcon name="target" size={13} /><span className="fv-sr-only">concentração</span>
                 </span>
               )}
               {sp.ritual && (
                 <span className="fv-spell-ico is-ritual" title="Pode ser conjurada como ritual">
-                  ❖<span className="fv-sr-only">ritual</span>
+                  <InlineIcon name="ritual" size={13} /><span className="fv-sr-only">ritual</span>
                 </span>
               )}
               <AutoMini sp={sp} />
@@ -335,7 +335,7 @@ export function TabMagias({ char, derived }: TabProps) {
               onClick={() => setFreeMode((f) => !f)}
               title="Libera adicionar/remover sem as regras (correções combinadas com o mestre)"
             >
-              {freeMode ? '🔓 Modo mestre ligado' : '🔒 Regras do PHB'}
+              {freeMode ? <><InlineIcon name="unlock" /> Modo mestre ligado</> : <><InlineIcon name="lock" /> Regras do PHB</>}
             </button>
           </div>
           <details className="fv-spell-rules">
@@ -350,7 +350,7 @@ export function TabMagias({ char, derived }: TabProps) {
           </details>
           {!freeMode && st && st.swaps > 0 && kind === 'known' && (
             <div role="note" className="fv-spell-warn is-acc">
-              <b>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (✕ na lista) e aprenda outra da lista da classe.
+              <b>Troca disponível ({st.swaps}):</b> esqueça uma magia conhecida (o <InlineIcon name="close" size={12} /> na lista) e aprenda outra da lista da classe.
             </div>
           )}
 
@@ -453,7 +453,7 @@ export function TabMagias({ char, derived }: TabProps) {
                 </button>
                 {isWizard && (
                   <button type="button" className="fv-mag-learn is-copy" onClick={() => setLearn('all')} title="Copiar uma magia de mago de um pergaminho ou outro grimório: 50 po por círculo">
-                    📜 Copiar para o grimório
+                    <InlineIcon name="scroll" /> Copiar para o grimório
                   </button>
                 )}
               </div>
@@ -560,7 +560,7 @@ function AutoMini({ sp }: { sp: Spell }) {
   const chip = AUTOMATION_CHIP[level];
   return (
     <span title={chip.title}>
-      <Mini c={chip.color}>{chip.text}</Mini>
+      <Mini c={chip.color}><InlineIcon name={level === 'partial' ? 'half' : 'hand'} size={11} /> {chip.text}</Mini>
     </span>
   );
 }

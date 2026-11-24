@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { confirmAction, toast } from '@/store/feedbackStore';
 import { formatCode } from '@/lib/inviteCode';
 import type { InviteLink } from '@/types/models';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface Props {
   invite: InviteLink;
@@ -82,11 +83,11 @@ export function InviteCard({ invite, campaignName, onNewCode }: Props) {
         <div className="fv-invite-actions">
           {code && (
             <button type="button" className="fv-btn-gold" onClick={() => void copy('code')}>
-              {copied === 'code' ? '✓ Copiado' : 'Copiar código'}
+              {copied === 'code' ? <><InlineIcon name="check" /> Copiado</> : 'Copiar código'}
             </button>
           )}
           <button type="button" className={code ? 'fv-btn-ghost' : 'fv-btn-gold'} onClick={() => void copy('link')}>
-            {copied === 'link' ? '✓ Copiado' : 'Copiar link'}
+            {copied === 'link' ? <><InlineIcon name="check" /> Copiado</> : 'Copiar link'}
           </button>
           {typeof navigator !== 'undefined' && 'share' in navigator && (
             <button type="button" className="fv-btn-ghost" onClick={() => void share()}>

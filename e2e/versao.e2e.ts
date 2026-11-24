@@ -16,7 +16,7 @@ test.describe('versão do app no menu', () => {
     // a versão no ar é a mesma deste app: atualizada
     live = ((await box.locator('[title^="Commit "]').getAttribute('title')) ?? '').replace('Commit ', '');
     await page.reload();
-    await expect(box).toContainText('✓ atualizada');
+    await expect(box).toContainText('atualizada');
     await expect(box.getByRole('button')).toHaveCount(0);
   });
 });

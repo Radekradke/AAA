@@ -23,6 +23,7 @@ import { empoweredEvocation, overchannelBacklash } from '@/engine/wizard';
 import { useWildSurge } from './useWildSurge';
 import { usePopFlip } from '@/components/ui/usePopFlip';
 import { subclassOf } from '@/engine/characterClasses';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface Props {
   castingClassId?: string;
@@ -389,7 +390,7 @@ export function SpellCastButton({ char, derived, spell, castMod, free, compact, 
         aria-describedby={blockReason ? blockId : undefined}
         aria-expanded={open || !!pending}
       >
-        <span aria-hidden>✦ </span>
+        <span aria-hidden><InlineIcon name="sparkle" /> </span>
         {pending ? 'Acertou?' : isCantrip || free || itemCast ? 'Usar' : 'Conjurar'}
         <span className="fv-sr-only">{pending ? ` (${spell.name})` : ` ${spell.name}`}</span>
       </button>

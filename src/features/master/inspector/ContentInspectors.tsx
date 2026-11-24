@@ -20,6 +20,7 @@ import { TrayStar } from '../backstage/SessionPanel';
 import { keepNpc } from '../backstage/NpcsPanel';
 import { keepHandout, recipientsLabel } from '../backstage/HandoutsPanel';
 import { canDeliver, recipientsText, toggleRecipient } from '@/lib/handoutRecipients';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Centro (em casas) da cena vista agora — onde um peão novo aparece. */
 function sceneCenter(): { sceneId: string; x: number; y: number } | null {
@@ -69,7 +70,7 @@ export function NpcInspector({ id }: { id: string }) {
       {n.summary && <p className="fv-ins-text">{n.summary}</p>}
       {(sec?.notes || Object.keys(sec?.stats ?? {}).length > 0) && (
         <div className="fv-ins-secret">
-          <small>🔒 Só o mestre</small>
+          <small><InlineIcon name="lock" size={12} /> Só o mestre</small>
           {sec?.notes && <p>{sec.notes}</p>}
           {sec?.stats && (
             <p>

@@ -12,6 +12,7 @@ import { getClass } from '@/data/classes';
 import { modStr } from '@/engine/dice';
 import type { AbilityMethod } from '@/engine/abilityMethods';
 import { POINT_BUDGET, POINT_COST, abilityMethodOf, assignByPriority, pointBuySpent, rollAbilityDice, rollTotal, rollsMatch } from '@/engine/abilityMethods';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const METHODS: { id: AbilityMethod; label: string }[] = [
   { id: 'array', label: 'Valores padrão' },
@@ -100,7 +101,7 @@ export function StepAbilities({ char, update }: StepProps) {
         )}
         {method === 'roll' && (
           <button type="button" className={rolled ? 'fv-btn-ghost' : 'fv-btn-gold'} onClick={rollAll}>
-            {rolled ? '🎲 Rolar de novo' : '🎲 Rolar os atributos'}
+            {rolled ? <><InlineIcon name="die" /> Rolar de novo</> : <><InlineIcon name="die" /> Rolar os atributos</>}
           </button>
         )}
         <small className="fv-abil-hint">{METHOD_HINT[method]}</small>

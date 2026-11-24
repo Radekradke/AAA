@@ -15,6 +15,7 @@ import { Modal } from '@/components/ui/Modal';
 import { HandoutModal, HandoutThumb } from '@/components/stage/Handouts';
 import { MentionInput } from './MentionInput';
 import { useDiaryFocus, useDiaryNav } from './DiaryNav';
+import { InlineIcon } from '@/components/ui/Icon';
 
 type Filter = 'all' | DiaryClue['status'];
 
@@ -106,14 +107,14 @@ export function Clues({ char, people, places, query, handouts }: { char: Charact
               return (
                 <div key={h.id} className="fv-clues-handout">
                   <button type="button" className="fv-handout-open" onClick={() => setHandout(h)}>
-                    {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden>✉</span>}
+                    {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden><InlineIcon name="mail" size={22} /></span>}
                     <span>
                       <b>{h.title}</b>
                       <small>{h.shownAt ? new Date(h.shownAt).toLocaleDateString('pt-BR') : ''}{h.recipients ? ' · só para você' : ''}</small>
                     </span>
                   </button>
                   <button type="button" className="fv-link-btn" onClick={() => investigate(h)} aria-label={kept ? `Abrir pista: ${h.title}` : `Investigar: ${h.title}`}>
-                    {kept ? '✓ nas pistas' : 'Investigar'}
+                    {kept ? <><InlineIcon name="check" /> nas pistas</> : 'Investigar'}
                   </button>
                 </div>
               );
@@ -141,7 +142,7 @@ export function Clues({ char, people, places, query, handouts }: { char: Charact
                   {(c.source || quest) && (
                     <span className="fv-clue-meta">
                       {c.source && <small>fonte: {c.source.replace(/@/g, '')}</small>}
-                      {quest && <span className="fv-mini-tag is-quest">⚑ {quest.title || 'Missão sem nome'}</span>}
+                      {quest && <span className="fv-mini-tag is-quest"><InlineIcon name="flag" size={11} /> {quest.title || 'Missão sem nome'}</span>}
                     </span>
                   )}
                 </button>
@@ -238,7 +239,7 @@ function ClueDetail({ char, clue, people, places, onClose }: { char: Character; 
             </button>
           ) : (
             <button type="button" className="fv-clue-drop" onClick={() => fileRef.current?.click()} disabled={busy}>
-              <span aria-hidden>📎</span>
+              <span aria-hidden><InlineIcon name="clip" /></span>
               <b>{busy ? 'Comprimindo…' : 'Anexar imagem'}</b>
               <small>bilhete, mapa, símbolo… (ou cole com Ctrl+V)</small>
             </button>

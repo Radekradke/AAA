@@ -21,6 +21,7 @@ import type { StageDrop } from '@/lib/stageDrop';
 import type { Scene, Token } from '@/types/stage';
 import '@/styles/stage.css';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface StageViewProps {
   isMaster: boolean;
@@ -176,7 +177,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
                 {!scene && <option value="">Escolha uma cena…</option>}
                 {st.scenes.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.id === live?.id ? '● ' : ''}{s.name} · {KIND_LABEL[s.kind]}
+                    {s.name}{s.id === live?.id ? ' (ao vivo)' : ''} · {KIND_LABEL[s.kind]}
                   </option>
                 ))}
               </select>
@@ -225,7 +226,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
               {/* em tela cheia a iniciativa fica escondida: o mestre passa a vez daqui */}
               {full && isMaster && encounter?.status === 'active' && (
                 <button type="button" className="fv-stage-next" disabled={session.busy} onClick={() => void session.nextTurn()}>
-                  Próximo ▶
+                  Próximo <InlineIcon name="play" size={11} />
                 </button>
               )}
               <label>

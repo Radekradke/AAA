@@ -1,10 +1,55 @@
 import { useMemo } from 'react';
 import { useTheme } from '@/lib/useTheme';
 
-/** Glifos por clima: runas (Arcano), folhas e flores (Mata). A Brasa usa fagulhas (pontos de luz). */
-const RUNES = ['ᚠ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᛁ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛏ', 'ᛒ', 'ᛞ', 'ᛟ', '✦', '❂', '⟡'];
-const LEAVES = ['❦', '❧', '☘', '⚘', '❦', '❧'];
-const PETALS = ['❀', '✿', '❁', '❀', '✾'];
+/**
+ * Desenhos por clima, em SVG (antes eram caracteres como ❦ ☘ ✿ ✦, que em
+ * alguns aparelhos viravam emoji colorido): runas (Arcano), folhas (Mata,
+ * Ártemis), pétalas (Corte) e estrelas (Véu Astral). A Brasa e o Orfeu usam
+ * pontos de luz. Cada desenho ocupa 1em: o tamanho vem do font-size.
+ */
+const RUNE_PATHS: Record<string, string> = {
+  fehu: 'M8 3v18M8 9l7-4M8 14l7-4',
+  raidho: 'M8 3v18M8 3l6 4-6 4 6 10',
+  kaun: 'M15 4 8 12l7 8',
+  gebo: 'M6 4l12 16M18 4 6 20',
+  isa: 'M12 3v18',
+  eihwaz: 'M12 3v18M12 3l5 4M12 21l-5-4',
+  perthro: 'M8 3v18M8 3l6 4M8 21l6-4',
+  algiz: 'M12 3v18M12 11 6 4M12 11l6-7',
+  tiwaz: 'M12 3v18M12 3 6 9M12 3l6 6',
+  berkano: 'M8 3v18M8 3l7 4.5L8 12l7 4.5L8 21',
+  dagaz: 'M5 4v16l14-16v16L5 4',
+  othala: 'M12 3 18 9l-12 12M12 3 6 9l12 12',
+};
+const RUNES = Object.keys(RUNE_PATHS);
+const LEAF_PATHS: string[] = [
+  'M20 4C10 4 4 9 4 16c0 1.4.3 2.7.8 4 1.1-4.6 4.6-8.4 9.2-10.2-3.8 2.5-6.6 6.2-7.6 10.5C8 20.7 9.4 21 11 21c6 0 9-6 9-17Z',
+  'M12 2c3 3 4.5 6.3 4.5 9.2S14.4 17 12 19.5c-2.4-2.5-4.5-5.4-4.5-8.3S9 5 12 2Zm-.7 17.5h1.4V22h-1.4Z',
+  'M12 21V11M12 11c-1.6-3.5-4.6-5-8-4.5.6 3.6 3.4 5.6 8 4.5Zm0 0c1.6-3.5 4.6-5 8-4.5-.6 3.6-3.4 5.6-8 4.5Zm0-1C10.4 6.6 11 4 12 2c1 2 1.6 4.6 0 8Z',
+];
+const PETAL_PATHS: string[] = [
+  'M12 11.2c-1.2-3.9-.7-7 0-8.7.7 1.7 1.2 4.8 0 8.7Zm.8.6c3.4-2.2 6.5-2.3 8.2-1.7-1.3 1.3-4.2 2.6-8.2 1.7Zm-.3 1c2.4 3.2 2.9 6.3 2.6 8.1-1.5-1.1-3.1-3.8-2.6-8.1Zm-1 0c.5 4.3-1.1 7-2.6 8.1-.3-1.8.2-4.9 2.6-8.1Zm-.3-1c-4 .9-6.9-.4-8.2-1.7 1.7-.6 4.8-.5 8.2 1.7Z',
+  'M12 3c4 3.5 5.5 8 3.6 12.3C14.6 17.6 13.4 19.6 12 21c-1.4-1.4-2.6-3.4-3.6-5.7C6.5 11 8 6.5 12 3Z',
+];
+const SPARKLE_PATH = 'M12 2c.8 5.4 2.6 7.2 8 8-5.4.8-7.2 2.6-8 8-.8-5.4-2.6-7.2-8-8 5.4-.8 7.2-2.6 8-8Z';
+
+/** Um desenho do fundo: runa (traço) ou folha/pétala/estrela (preenchida). */
+function DriftGlyph({ glyph }: { glyph: string }) {
+  const [kind, idx] = glyph.split(':');
+  if (kind === 'rune') {
+    return (
+      <svg className="fv-drift-glyph" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d={RUNE_PATHS[idx]} />
+      </svg>
+    );
+  }
+  const d = kind === 'leaf' ? LEAF_PATHS[Number(idx)] : kind === 'petal' ? PETAL_PATHS[Number(idx)] : SPARKLE_PATH;
+  return (
+    <svg className="fv-drift-glyph" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d={d} />
+    </svg>
+  );
+}
 
 interface DriftItem {
   glyph: string;
@@ -59,7 +104,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
       }
       if (motif === 'stars') {
         return {
-          glyph: i % 5 === 0 ? '✦' : '',
+          glyph: i % 5 === 0 ? 'star' : '',
           left: Math.random() * 100,
           size: i % 5 === 0 ? 10 + Math.random() * 8 : 1.5 + Math.random() * 2.2,
           duration: 3 + Math.random() * 5,
@@ -71,7 +116,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
       }
       if (motif === 'leaves' || motif === 'petals') {
         return {
-          glyph: motif === 'petals' ? PETALS[i % PETALS.length] : LEAVES[i % LEAVES.length],
+          glyph: motif === 'petals' ? `petal:${i % PETAL_PATHS.length}` : `leaf:${i % LEAF_PATHS.length}`,
           left: Math.random() * 100,
           size: 13 + Math.random() * 14,
           duration: 24 + Math.random() * 18,
@@ -81,7 +126,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
         };
       }
       return {
-        glyph: RUNES[i % RUNES.length],
+        glyph: i % 6 === 5 ? 'star' : `rune:${RUNES[i % RUNES.length]}`,
         left: Math.random() * 100,
         size: 14 + Math.random() * 26,
         duration: 26 + Math.random() * 26,
@@ -172,7 +217,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
                 animationDelay: `${r.delay}s`,
               }}
             >
-              {r.glyph}
+              {r.glyph && <DriftGlyph glyph={r.glyph} />}
             </span>
           );
         }
@@ -190,7 +235,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
                 animationDelay: `${r.delay}s`,
               }}
             >
-              {r.glyph}
+              <DriftGlyph glyph={r.glyph} />
             </span>
           );
         }
@@ -208,7 +253,7 @@ export function RuneDrift({ count = 10 }: { count?: number }) {
               animationDelay: `${r.delay}s`,
             }}
           >
-            {r.glyph}
+            <DriftGlyph glyph={r.glyph} />
           </span>
         );
       })}

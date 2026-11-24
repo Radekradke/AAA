@@ -4,6 +4,7 @@ import { loadAllThemesCss } from '@/lib/themeCss';
 import { THEMES, THEME_ORDER, resolveTheme } from '@/data/themes';
 import { DICE_SKINS } from '@/data/diceSkins';
 import { themeModeOf, useUiStore } from '@/store/uiStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Escolher tema em janela (menu ⋯). A grade também aparece em Configurações. */
 export function ThemePickerModal({ onClose }: { onClose: () => void }) {
@@ -40,7 +41,7 @@ export function ThemeGrid() {
       <div className="fv-seg" role="radiogroup" aria-label="Paleta clara ou escura">
         {(['dark', 'light'] as const).map((m) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => setThemeMode(m)}>
-            {m === 'dark' ? '☾ Escura' : '☀ Clara'}
+            {m === 'dark' ? <><InlineIcon name="crescent" /> Escura</> : <><InlineIcon name="sun" /> Clara</>}
           </button>
         ))}
       </div>
@@ -103,7 +104,7 @@ export function ThemeGrid() {
                 Dados: {die.label}
               </small>
             </span>
-            {on && <span className="fv-theme-check" aria-hidden>✓</span>}
+            {on && <span className="fv-theme-check" aria-hidden><InlineIcon name="check" size={12} /></span>}
           </button>
         );
       })}

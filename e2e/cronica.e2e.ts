@@ -21,7 +21,7 @@ test('mestre exporta a crônica da sessão', async ({ page, context }) => {
   const dialog = page.getByRole('dialog', { name: 'Exportar crônica da sessão' });
   const pre = dialog.getByLabel('Prévia da crônica');
   await expect(pre).toContainText('# Sessão 4 — A Estrada Real');
-  await expect(pre).toContainText('## ⚔ Emboscada na Estrada Real');
+  await expect(pre).toContainText('## Emboscada na Estrada Real');
   await expect(pre).toContainText('Goblin #1 → Kael Venturo (CA 17) · Cimitarra 19: acertou — 6 cortante (PV 31→25)');
   await expect(pre).not.toContainText('Espião');
   await dialog.getByLabel('O que só o mestre vê').check();

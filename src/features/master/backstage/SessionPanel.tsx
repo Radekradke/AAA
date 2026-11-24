@@ -13,6 +13,7 @@ import { useMaster } from '../context';
 import { hpWithUndo } from '../actions';
 import { isStaleSession, openForLabel, sessionOpenFor } from '@/lib/sessionAge';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * SESSÃO: abrir agora (improvisar), preparar para depois (sessão planejada
@@ -107,7 +108,7 @@ export function SessionPanel() {
                 setName('');
                 await m.loadPlanned();
                 await m.loadTray(p.id);
-                toast(`${p.name} em preparação. Marque ☆ no que quiser deixar à mão.`);
+                toast(`${p.name} em preparação. Marque a estrela no que quiser deixar à mão.`);
               })
             }
           >
@@ -200,7 +201,7 @@ export function SessionTrayView() {
       {!m.traySessionId ? (
         <p className="fv-bs-hint">Prepare ou abra uma sessão para separar atalhos.</p>
       ) : total === 0 ? (
-        <p className="fv-bs-hint">Marque ☆ em NPCs, cenas, pistas e criaturas para deixá-los à mão aqui. Use tudo, nada ou em qualquer ordem.</p>
+        <p className="fv-bs-hint">Marque a estrela em NPCs, cenas, pistas e criaturas para deixá-los à mão aqui. Use tudo, nada ou em qualquer ordem.</p>
       ) : (
         (Object.keys(TRAY_LABEL) as (keyof SessionTray)[]).map((kind) =>
           m.tray[kind].length ? (
@@ -247,7 +248,7 @@ export function TrayStar({ kind, id, label }: { kind: keyof SessionTray; id: str
         void toggle(kind, id);
       }}
     >
-      {on ? '★' : '☆'}
+      {on ? <InlineIcon name="starFill" /> : <InlineIcon name="star" />}
     </button>
   );
 }

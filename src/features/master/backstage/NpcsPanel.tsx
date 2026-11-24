@@ -1,5 +1,5 @@
 import { stageDragProps } from '@/lib/stageDrop';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NpcAvatar } from '@/components/campaign/NpcGallery';
@@ -73,7 +73,7 @@ export function NpcsPanel() {
                 aria-label={`Pôr ${n.name} no encontro`}
                 onClick={() => void addToEncounter([npcToCombatant(n, secrets, characters)])}
               >
-                {inFight.has(n.name) ? '✓' : <Icon name="swords" size={14} />}
+                {inFight.has(n.name) ? <InlineIcon name="check" size={14} /> : <Icon name="swords" size={14} />}
               </button>
             </div>
           </li>

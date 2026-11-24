@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Panel } from '@/components/ui/Panel';
 import { Screen } from '@/components/layout/Screen';
 import '@/styles/devui.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Catálogo do design system (/dev/ui, só em desenvolvimento): todos os
@@ -65,8 +66,8 @@ export function DevUi() {
           <Button size="lg" variant="gold">
             Grande
           </Button>
-          <IconButton label="Fixar" icon="★" pressed={pressed} onClick={() => setPressed((p) => !p)} />
-          <IconButton label="Apagar item" icon="✕" variant="danger" size="sm" />
+          <IconButton label="Fixar" icon={<InlineIcon name="starFill" />} pressed={pressed} onClick={() => setPressed((p) => !p)} />
+          <IconButton label="Apagar item" icon={<InlineIcon name="close" />} variant="danger" size="sm" />
         </div>
       </Section>
 

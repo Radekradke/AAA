@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { artInventory, artTotals, pct } from '@/lib/artInventory';
 import type { ArtCategory } from '@/lib/artInventory';
 import { toast } from '@/store/feedbackStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Contador de artes (Configurações → Avançado): quanto já tem arte em cada
@@ -50,7 +51,7 @@ function CategoryRow({ c }: { c: ArtCategory }) {
         <Bar have={c.have} total={c.total} />
         <span className="fv-artcount-num">
           {c.have}/{c.total}
-          {c.have === c.total ? ' ✓' : ''}
+          {c.have === c.total ? <> <InlineIcon name="check" /></> : ''}
         </span>
       </button>
       {open && (

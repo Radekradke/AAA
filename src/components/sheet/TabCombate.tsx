@@ -37,6 +37,7 @@ import { calcLore, passiveLore } from '@/lib/lore';
 import { useInk } from '@/lib/contrast';
 import { pressable } from '@/lib/pressable';
 import '@/styles/combat.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Efeito acumulado de cada nível de exaustão (PHB 2014). */
 const EXHAUSTION_EFFECT: Record<number, string> = {
@@ -212,7 +213,7 @@ export function TabCombate({ char, derived }: TabProps) {
         {barb?.raging && (
           <div className="fv-combat-mt8">
             <button type="button" className={'fv-resist-chip' + (rageHalf ? ' is-on' : '')} aria-pressed={rageHalf} onClick={() => setRageHalf((v) => !v)} title="Desligue se o dano não for coberto pela resistência da Fúria">
-              {rageHalf ? '✓ ' : ''}Resistência da Fúria: metade do dano ({barb.resistance})
+              {rageHalf ? <><InlineIcon name="check" /> </> : ''}Resistência da Fúria: metade do dano ({barb.resistance})
             </button>
           </div>
         )}
@@ -222,26 +223,26 @@ export function TabCombate({ char, derived }: TabProps) {
           <div className="fv-defense-chips fv-combat-chips">
             {monk?.deflectBonus != null && (
               <button type="button" className={'fv-resist-chip' + (monkReduce === 'deflect' ? ' is-on' : '')} aria-pressed={monkReduce === 'deflect'} disabled={char.combat.turn.reaction} onClick={() => setMonkReduce((v) => (v === 'deflect' ? null : 'deflect'))} title="Reação: um ataque à distância com arma o acertou — reduz o dano em 1d10 + DES + nível de monge.">
-                {monkReduce === 'deflect' ? '✓ ' : ''}Defletir Projéteis: −1d10+{monk.deflectBonus}
+                {monkReduce === 'deflect' ? <><InlineIcon name="check" /> </> : ''}Defletir Projéteis: −1d10+{monk.deflectBonus}
               </button>
             )}
             {monk?.slowFall != null && (
               <button type="button" className={'fv-resist-chip' + (monkReduce === 'fall' ? ' is-on' : '')} aria-pressed={monkReduce === 'fall'} disabled={char.combat.turn.reaction} onClick={() => setMonkReduce((v) => (v === 'fall' ? null : 'fall'))} title="Reação ao cair: reduz o dano da queda em 5 × nível de monge.">
-                {monkReduce === 'fall' ? '✓ ' : ''}Queda Lenta: −{monk.slowFall}
+                {monkReduce === 'fall' ? <><InlineIcon name="check" /> </> : ''}Queda Lenta: −{monk.slowFall}
               </button>
             )}
             {uncannyOk && (
               <button type="button" className={'fv-resist-chip' + (uncanny ? ' is-on' : '')} aria-pressed={uncanny} disabled={char.combat.turn.reaction} onClick={() => setUncanny((v) => !v)} title="Reação: um atacante que você vê o acertou — o dano cai pela metade. Gasta a reação.">
-                {uncanny ? '✓ ' : ''}Esquiva Sobrenatural: metade{char.combat.turn.reaction ? ' (reação já usada)' : ' (reação)'}
+                {uncanny ? <><InlineIcon name="check" /> </> : ''}Esquiva Sobrenatural: metade{char.combat.turn.reaction ? ' (reação já usada)' : ' (reação)'}
               </button>
             )}
             {evasionOk && (
               <>
                 <button type="button" className={'fv-resist-chip' + (evasion === 'pass' ? ' is-on' : '')} aria-pressed={evasion === 'pass'} onClick={() => setEvasion((v) => (v === 'pass' ? null : 'pass'))} title="Evasão: efeito com salvaguarda de DES para meio dano e você passou — nenhum dano.">
-                  {evasion === 'pass' ? '✓ ' : ''}Evasão: passei na DES (0)
+                  {evasion === 'pass' ? <><InlineIcon name="check" /> </> : ''}Evasão: passei na DES (0)
                 </button>
                 <button type="button" className={'fv-resist-chip' + (evasion === 'fail' ? ' is-on' : '')} aria-pressed={evasion === 'fail'} onClick={() => setEvasion((v) => (v === 'fail' ? null : 'fail'))} title="Evasão: efeito com salvaguarda de DES para meio dano e você falhou — só metade.">
-                  {evasion === 'fail' ? '✓ ' : ''}Evasão: falhei na DES (½)
+                  {evasion === 'fail' ? <><InlineIcon name="check" /> </> : ''}Evasão: falhei na DES (½)
                 </button>
               </>
             )}
@@ -255,7 +256,7 @@ export function TabCombate({ char, derived }: TabProps) {
               Fúria Implacável: salvaguarda de <b>Constituição</b> CD <b className="fv-num">{relentlessDC}</b> para ficar com 1 PV
             </span>
             <button type="button" onClick={rollRelentless} className="fv-rage-end">Rolar {modStr(derived.abilities.con.save)}</button>
-            <button onClick={() => setRelentlessDC(null)} aria-label="Dispensar" className="fv-combat-dismiss">✕</button>
+            <button onClick={() => setRelentlessDC(null)} aria-label="Dispensar" className="fv-combat-dismiss"><InlineIcon name="close" /></button>
           </div>
         )}
 
@@ -271,7 +272,7 @@ export function TabCombate({ char, derived }: TabProps) {
             >
               Rolar {modStr(derived.abilities.con.save)}
             </button>
-            <button onClick={() => setConcDC(null)} aria-label="Dispensar" className="fv-combat-dismiss">✕</button>
+            <button onClick={() => setConcDC(null)} aria-label="Dispensar" className="fv-combat-dismiss"><InlineIcon name="close" /></button>
           </div>
         )}
 
@@ -342,7 +343,7 @@ export function TabCombate({ char, derived }: TabProps) {
         <div className="fv-combat-turn-head">
           <h2 className="fv-label">Economia de Turno</h2>
           <button onClick={() => store.resetTurn(char.id)} className="fv-combat-link">
-            <span aria-hidden>↺ </span>Novo turno
+            <span aria-hidden><InlineIcon name="refresh" /> </span>Novo turno
           </button>
         </div>
         <div className="fv-combat-stack">
@@ -355,7 +356,7 @@ export function TabCombate({ char, derived }: TabProps) {
                   aria-pressed={used}
                   onClick={() => store.toggleTurn(char.id, d.k)}
                 >
-                  <span className="fv-turn-label">{used && <i className="fv-tick" aria-hidden>✓ </i>}{d.label}</span>
+                  <span className="fv-turn-label">{used && <i className="fv-tick" aria-hidden><InlineIcon name="check" /> </i>}{d.label}</span>
                   <span className="fv-turn-state">{used ? 'Usada' : 'Disponível'}</span>
                 </button>
               </LoreTooltip>

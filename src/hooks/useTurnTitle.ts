@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { myActiveCombatant, myOnDeckCombatant, useSessionStore } from '@/store/sessionStore';
 
-const TAG = /^(⚔ SEU TURNO|⏳ Você é o próximo) · /;
+const TAG = /^(» SEU TURNO|Você é o próximo) · /;
 const base = () => document.title.replace(TAG, '');
 
 /**
@@ -16,7 +16,7 @@ export function useTurnTitle(): void {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const apply = () => {
-      const tag = mine ? '⚔ SEU TURNO' : onDeck ? '⏳ Você é o próximo' : null;
+      const tag = mine ? '» SEU TURNO' : onDeck ? 'Você é o próximo' : null;
       document.title = tag && document.visibilityState === 'hidden' ? `${tag} · ${base()}` : base();
     };
     apply();

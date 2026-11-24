@@ -8,6 +8,7 @@ import { modStr } from '@/engine/dice';
 import { rollLogText, rollStats, rollTime } from '@/lib/rollLog';
 import type { Character } from '@/types/character';
 import '@/styles/dice.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface RollTimelineProps {
   /** Ficha dona do histórico (sem ficha = tudo). */
@@ -99,7 +100,7 @@ export function RollTimeline({ char, compact, limit }: RollTimelineProps) {
           <div className="fv-rolls-actions">
             {char && (
               <button type="button" onClick={saveToDiary} className="fv-btn-gold fv-rolls-save">
-                {saved ? '✓ Anotado no Diário' : 'Anotar no Diário'}
+                {saved ? <><InlineIcon name="check" /> Anotado no Diário</> : 'Anotar no Diário'}
               </button>
             )}
             <button type="button" onClick={clear} className="fv-rolls-clear">

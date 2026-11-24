@@ -4,7 +4,7 @@ import type { Spell, SpellTag } from '@/types/dnd';
 import '@/styles/spell-library.css';
 import { ABILITY_SHORT } from '@/data/skills';
 import { Modal } from '@/components/ui/Modal';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { useInk } from '@/lib/contrast';
 import { SchoolIcon } from '@/components/ui/RuleIcon';
 import { SpellThumb } from './SpellThumb';
@@ -123,16 +123,16 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
             <input type="search" placeholder="Buscar por nome, efeito ou dano…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar magia" />
             {query && (
               <button type="button" onClick={() => setQuery('')} aria-label="Limpar busca">
-                ✕
+                <InlineIcon name="close" />
               </button>
             )}
           </label>
           <button type="button" className={'fv-lib-filterbtn' + (panel || active.length ? ' is-on' : '')} onClick={() => setPanel((v) => !v)} aria-expanded={panel} aria-controls="fv-lib-panel">
-            <span aria-hidden>☰</span> Filtros{active.length > 0 && <b>{active.length}</b>}
+            <span aria-hidden><InlineIcon name="sliders" /></span> Filtros{active.length > 0 && <b>{active.length}</b>}
           </button>
           {onHomebrew && (
             <button type="button" className="fv-lib-filterbtn" onClick={() => onHomebrew(null)} title="Criar uma magia sua: a ficha conjura, rola e desconta como as do livro">
-              <span aria-hidden>✦</span> Criar magia
+              <span aria-hidden><InlineIcon name="sparkle" /></span> Criar magia
             </button>
           )}
         </div>
@@ -176,10 +176,10 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
             </FilterGroup>
             <FilterGroup label="Propriedades">
               <button type="button" aria-pressed={flags.conc} className={flags.conc ? 'is-on' : ''} style={{ '--c': '#C24DFF' } as React.CSSProperties} onClick={() => setFlags((f) => ({ ...f, conc: !f.conc }))}>
-                ◎ Concentração
+                <InlineIcon name="target" /> Concentração
               </button>
               <button type="button" aria-pressed={flags.ritual} className={flags.ritual ? 'is-on' : ''} style={{ '--c': '#4FA37A' } as React.CSSProperties} onClick={() => setFlags((f) => ({ ...f, ritual: !f.ritual }))}>
-                ❖ Ritual
+                <InlineIcon name="ritual" /> Ritual
               </button>
             </FilterGroup>
           </div>
@@ -189,7 +189,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
           <div className="fv-lib-active">
             {active.map((a) => (
               <button key={a.key} type="button" onClick={a.clear} aria-label={`Tirar filtro ${typeof a.label === 'string' ? a.label : ''}`}>
-                {a.label} <span aria-hidden>✕</span>
+                {a.label} <span aria-hidden><InlineIcon name="close" size={11} /></span>
               </button>
             ))}
             <button type="button" className="fv-lib-clear" onClick={clearAll}>
@@ -217,7 +217,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                   <SpellThumb spell={sp} size={34} showLevel />
                   <span className="fv-lib-row-text">
                     <span className="fv-lib-row-name">{sp.name}</span>
-                    {reasonOf(sp) && <span className="fv-spell-block-reason">🔒 {reasonOf(sp)}</span>}
+                    {reasonOf(sp) && <span className="fv-spell-block-reason"><InlineIcon name="lock" size={12} /> {reasonOf(sp)}</span>}
                     <span className="fv-lib-row-chips">
                       <MiniChip>
                         <SchoolIcon school={sp.school} size={10} />
@@ -247,7 +247,7 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                       type="button"
                       className={'fv-lib-pick' + (on ? ' is-on' : '')}
                     >
-                      {on ? '✓' : '+'}
+                      {on ? <InlineIcon name="check" /> : '+'}
                     </button>
                   );
                 })()}
@@ -256,11 +256,11 @@ export function SpellLibrary({ title, spells, selected, onToggle, onClose, actio
                 <div className="fv-lib-detail">
                   {sp.desc && <p className="fv-lib-desc">{sp.desc}</p>}
                   <div className="fv-lib-facts">
-                    {sp.castingTime && <span>⏱ {sp.castingTime}</span>}
-                    {sp.range && <span>◎ {sp.range}</span>}
-                    {sp.duration && <span>⧗ {sp.duration}</span>}
-                    {sp.components && <span>✶ {sp.components}</span>}
-                    {sp.conditions?.length ? <span>☠ {sp.conditions.join(', ')}</span> : null}
+                    {sp.castingTime && <span><InlineIcon name="clock" size={12} /> {sp.castingTime}</span>}
+                    {sp.range && <span><InlineIcon name="target" size={12} /> {sp.range}</span>}
+                    {sp.duration && <span><InlineIcon name="hourglass" size={12} /> {sp.duration}</span>}
+                    {sp.components && <span><InlineIcon name="sparkle" size={12} /> {sp.components}</span>}
+                    {sp.conditions?.length ? <span><InlineIcon name="skull" size={12} /> {sp.conditions.join(', ')}</span> : null}
                   </div>
                   {sp.higher && <p className="fv-lib-higher">Círculos superiores: {sp.higher}</p>}
                   {sp.homebrew && onHomebrew && (
@@ -327,7 +327,7 @@ function AutoChip({ sp }: { sp: Spell }) {
   const chip = AUTOMATION_CHIP[level];
   return (
     <span title={chip.title}>
-      <MiniChip color={chip.color}>{chip.text}</MiniChip>
+      <MiniChip color={chip.color}><InlineIcon name={level === 'partial' ? 'half' : 'hand'} size={11} /> {chip.text}</MiniChip>
     </span>
   );
 }

@@ -17,7 +17,7 @@ import { getSubclass } from '@/data/subclasses';
 import { getSpell } from '@/data/spells';
 import { creationChoices } from '@/engine/classChoices';
 import { useMemo } from 'react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 
 const ALIGNMENTS = [
   'Leal e Bom', 'Neutro e Bom', 'Caótico e Bom',
@@ -42,7 +42,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
   const cls = getClass(char.classId);
   const bg = getBackground(char.backgroundId);
   const sub = getSubclass(char.subclassId);
-  const skills = d.skills.filter((s) => s.proficient).map((s) => SKILL_BY_KEY[s.key].label + (s.expertise ? ' ★' : ''));
+  const skills = d.skills.filter((s) => s.proficient).map((s) => SKILL_BY_KEY[s.key].label + (s.expertise ? ' (expertise)' : ''));
   const gifts = creationChoices(char).flatMap((c) => c.options.filter((o) => c.chosen.includes(o.id)).map((o) => o.label));
   const spellNames = [...new Set([...born.preparedSpells, ...(born.knownSpells ?? [])])].map((id) => getSpell(id)?.name).filter(Boolean);
 
@@ -95,7 +95,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
           </label>
           <label className="fv-field">
             <LoreTooltip info={ALIGN_LORE}>
-              <span className="fv-help-cursor">Alinhamento ⓘ</span>
+              <span className="fv-help-cursor">Alinhamento <InlineIcon name="info" size={13} /></span>
             </LoreTooltip>
             <select className="fv-input" value={char.alignment} onChange={(e) => update((c) => { c.alignment = e.target.value; })}>
               {ALIGNMENTS.map((a) => (
@@ -137,7 +137,7 @@ export function StepAwaken({ char, update, onGoStep }: StepProps & { onGoStep?: 
                 { label: 'Passado', value: bg.label },
                 { label: 'Atributos', value: ABILITY_KEYS.map((k) => `${ABILITY_SHORT[k]} ${d.abilities[k].total}`).join(' · ') },
                 { label: 'Perícias', value: skills.join(', ') || '—' },
-                ...((born.toolProfs ?? []).length ? [{ label: 'Ferramentas', value: born.toolProfs.map((t) => t.label + (t.expertise ? ' ★' : '')).join(', ') }] : []),
+                ...((born.toolProfs ?? []).length ? [{ label: 'Ferramentas', value: born.toolProfs.map((t) => t.label + (t.expertise ? ' (expertise)' : '')).join(', ') }] : []),
                 { label: 'Idiomas', value: d.languages.join(', ') || '—' },
                 ...(spellNames.length ? [{ label: 'Magias', value: spellNames.join(', ') }] : []),
               ]}

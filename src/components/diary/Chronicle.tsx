@@ -8,6 +8,7 @@ import { entryBody, entrySession, norm, sessionDigest } from '@/engine/diary';
 import { useCharacterStore } from '@/store/characterStore';
 import { MentionChip, MentionInput, PlaceChip, RichText } from './MentionInput';
 import { useDiaryFocus } from './DiaryNav';
+import { InlineIcon } from '@/components/ui/Icon';
 
 function excerpt(text: string, max = 150): string {
   const t = text.replace(/\s+/g, ' ').trim();
@@ -167,7 +168,7 @@ export function Chronicle({ char, people, places, query }: { char: Character; pe
               {(d.people.length > 0 || d.places.length > 0) && (
                 <span className="fv-chron-card-tags">
                   {d.people.slice(0, 5).map((p) => <span key={p.key} className={'fv-mini-tag' + (p.kind === 'hero' ? ' is-hero' : '')}>@{p.name}</span>)}
-                  {d.places.slice(0, 3).map((p) => <span key={p} className="fv-mini-tag is-place">⌖ {p}</span>)}
+                  {d.places.slice(0, 3).map((p) => <span key={p} className="fv-mini-tag is-place"><InlineIcon name="pin" size={11} /> {p}</span>)}
                 </span>
               )}
             </span>

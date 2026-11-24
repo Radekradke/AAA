@@ -6,6 +6,7 @@ import { abilityMod } from '@/engine/monsters';
 import { ABILITY_SHORT } from '@/data/skills';
 import type { AbilityKey } from '@/types/dnd';
 import '@/styles/bestiary.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const sign = (n: number) => (n >= 0 ? `+${n}` : `−${Math.abs(n)}`);
@@ -131,7 +132,7 @@ export function HuntLore({ m, n, name, compact }: { m: Monster; n: number; name?
           </div>
         ) : (
           <p key={g.id} className="fv-hunt-lock">
-            <span aria-hidden>🔒</span> {g.title} — com {minOf(g.id)} abates
+            <span aria-hidden><InlineIcon name="lock" /></span> {g.title} — com {minOf(g.id)} abates
           </p>
         ),
       )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSessionStore } from '@/store/sessionStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { useMasterStore } from '../masterStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Escrever uma nota: Enter salva, Shift+Enter quebra a linha. */
 export function NoteInput({ autoFocus, onDone }: { autoFocus?: boolean; onDone?: () => void }) {
@@ -48,7 +49,7 @@ export function MasterNotesPanel() {
 
   return (
     <div className="fv-bs-stack">
-      <p className="fv-bs-hint">🔒 Só você vê. Ideal para o que aconteceu fora da tela, segredos e lembretes.</p>
+      <p className="fv-bs-hint"><InlineIcon name="lock" size={12} /> Só você vê. Ideal para o que aconteceu fora da tela, segredos e lembretes.</p>
       <NoteInput />
       {m.notesError && <p className="fv-bs-error">{m.notesError}</p>}
       <ul className="fv-notes">

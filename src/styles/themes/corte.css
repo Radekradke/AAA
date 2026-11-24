@@ -92,19 +92,16 @@
 }
 [data-theme='carmesim'] .fv-panel::after {
   /* fecho no topo da moldura */
-  content: '❖';
+  content: '';
   left: 50%;
   right: auto;
-  top: -9px;
-  width: 22px;
-  height: 16px;
-  margin-left: -11px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  line-height: 1;
-  color: var(--gold);
-  background: var(--panel);
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  rotate: 45deg;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--panel), 0 0 0 4px var(--frame);
 }
 
 /* rótulos: centrados entre filetes */
@@ -437,7 +434,8 @@
   box-shadow: inset 0 0 0 3px var(--panel2), inset 0 0 0 4px var(--gold), 0 14px 30px -16px var(--bloom);
 }
 [data-theme='carmesim'] .fv-option.is-selected::after {
-  content: '❦';
+  -webkit-mask: var(--svg-leaf) center / contain no-repeat;
+  mask: var(--svg-leaf) center / contain no-repeat;
 }
 [data-theme='carmesim'] .fv-option-name {
   font-size: 15px;

@@ -11,7 +11,7 @@ import { hexA } from '@/lib/color';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { itemLore } from '@/lib/lore';
 import { Modal } from '@/components/ui/Modal';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { itemArt } from '@/lib/itemArt';
 
 interface AddItemPickerProps {
@@ -127,7 +127,7 @@ export function AddItemPicker({ onAdd, onClose, onForge }: AddItemPickerProps) {
         </div>
       )}
 
-      {added && <div className="fv-picker-added" role="status">✓ {added}</div>}
+      {added && <div className="fv-picker-added" role="status"><InlineIcon name="check" /> {added}</div>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.map((raw) => {

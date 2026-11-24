@@ -4,6 +4,7 @@ import { cloneElement, useCallback, useEffect, useId, useRef, useState } from 'r
 import { createPortal } from 'react-dom';
 import { useDialogFocus } from '@/lib/useDialogFocus';
 import { usePopFlip } from './usePopFlip';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /* ============================================================
    Camadas do design system (etapa 2.3). Todas seguem as mesmas regras:
@@ -36,7 +37,7 @@ export function Sheet({ title, onClose, children, footer, side = 'auto' }: Sheet
         <div className="fv-ui-sheet-head">
           <h2 id={titleId}>{title}</h2>
           <button type="button" className="fv-ui-sheet-close" onClick={onClose} aria-label="Fechar" title="Fechar">
-            ✕
+            <InlineIcon name="close" />
           </button>
         </div>
         <div className="fv-ui-sheet-body">{children}</div>

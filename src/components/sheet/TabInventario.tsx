@@ -14,7 +14,7 @@ import { parseDice } from '@/engine/spellCast';
 import { getItem } from '@/data/items';
 import { ItemEditorModal } from '@/components/inventory/ItemEditorModal';
 import { CoinsModal, COIN_DEFS, coinTotalGp } from '@/components/inventory/CoinsModal';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { RARITY } from '@/data/themes';
 import { isEquipped, canEquip, attunedCount, MAX_ATTUNEMENT, containerOf, isWearable, isWorn, attunementBlock, offHandCandidate } from '@/engine/inventory';
@@ -647,7 +647,7 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
             <span className="fv-inv-rarity-dot" style={{ background: rc.color, boxShadow: '0 0 9px ' + rc.color }} />
             {rc.label}
             <button ref={handle.ref} {...handle.props} type="button" aria-label={`Arrastar ${it.name}`} title="Arrastar para outro recipiente" className="fv-drag-handle">
-              ⠿
+              <InlineIcon name="grip" />
             </button>
           </span>
         </div>
@@ -698,13 +698,13 @@ function ItemCard({ item: it, equipped, equippable, preview, handle, stashLabel,
                 const c = d.better === true ? '#3FC56B' : d.better === false ? t.danger : t.acc;
                 return (
                   <span key={d.label} className="fv-compare-chip" style={{ borderColor: hexA(c, 0.45), color: ink(c) }}>
-                    <b>{d.label}</b> {d.from} → {d.to}{d.better === true ? ' ▲' : d.better === false ? ' ▼' : ''}
+                    <b>{d.label}</b> {d.from} → {d.to}{d.better === true ? <> <InlineIcon name="triUp" size={10} /></> : d.better === false ? <> <InlineIcon name="triDown" size={10} /></> : ''}
                   </span>
                 );
               })}
             </div>
             {preview.warnings.map((w) => (
-              <div key={w} className="fv-inv-compare-warn" style={{ color: '#E0A93E' }}>⚠ {w}</div>
+              <div key={w} className="fv-inv-compare-warn" style={{ color: '#E0A93E' }}><InlineIcon name="warning" /> {w}</div>
             ))}
           </div>
         )}

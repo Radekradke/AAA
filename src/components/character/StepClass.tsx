@@ -11,6 +11,7 @@ import { classFacts, classFeatureFacts } from '@/engine/creationSummary';
 import { clearClassChoices } from '@/engine/classChoices';
 import { resetCreationSpells } from '@/engine/creationSpells';
 import { voiceFor, voices, useVoices } from '@/lib/voices';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** O papel de cada classe em poucas palavras (o card não é lugar de sigla). */
 const ROLE: Record<string, string> = {
@@ -127,7 +128,7 @@ export function StepClass({ char, update }: StepProps) {
                   {speaking ? (
                     <span aria-hidden className="fv-voice-eq"><i /><i /><i /></span>
                   ) : (
-                    <span aria-hidden>▶</span>
+                    <span aria-hidden><InlineIcon name="play" size={11} /></span>
                   )}
                   {speaking ? 'Falando…' : 'Ouvir'}
                 </button>

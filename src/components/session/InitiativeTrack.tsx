@@ -16,6 +16,7 @@ import { HuntLore } from '@/components/bestiary/HuntLore';
 import type { Character } from '@/types/character';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const HEALTH_LABEL: Record<ReturnType<typeof healthState>, string> = {
   ileso: 'Ileso',
@@ -93,7 +94,7 @@ function TrackRow({ row, isMaster, mine, hunted }: { row: InitiativeRow; isMaste
         )}
         {prey && (
           <button type="button" className="fv-live-row-lore" aria-expanded={open} onClick={() => setOpen((v) => !v)} title="O que você sabe desta criatura (bestiário de caçadas)">
-            <span aria-hidden>📖</span> ×{hunted}
+            <span aria-hidden><InlineIcon name="book" /></span> ×{hunted}
           </button>
         )}
         {isMaster && (
@@ -104,7 +105,7 @@ function TrackRow({ row, isMaster, mine, hunted }: { row: InitiativeRow; isMaste
         )}
         {isMaster && (
           <button type="button" className="fv-live-row-more" aria-expanded={open} onClick={() => setOpen((v) => !v)} title="Editar">
-            {open ? '×' : '⋯'}
+            {open ? <InlineIcon name="close" size={12} /> : <InlineIcon name="more" size={12} />}
           </button>
         )}
       </div>

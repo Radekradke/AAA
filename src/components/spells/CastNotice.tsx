@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { poolAffected } from '@/engine/poolAffected';
 import { useUiStore } from '@/store/uiStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Aviso de conjuração: toda magia deixa rastro — até truque de utilidade,
@@ -26,7 +27,7 @@ export function CastNotice() {
         >
           <span className="fv-castnote-sigil" aria-hidden>
             <i />
-            ✦
+            <InlineIcon name="sparkle" size={18} />
           </span>
           <span className="fv-castnote-body">
             <b>{n.title}</b>
@@ -35,7 +36,7 @@ export function CastNotice() {
               <span key={l} className="fv-castnote-line">{l}</span>
             ))}
             {n.pool && <PoolCalc pool={n.pool} />}
-            {n.warn && <span className="fv-castnote-warn">⚠ {n.warn}</span>}
+            {n.warn && <span className="fv-castnote-warn"><InlineIcon name="warning" /> {n.warn}</span>}
             {!!n.actions?.length && (
               <span className="fv-castnote-actions">
                 {n.actions.map((a) => (

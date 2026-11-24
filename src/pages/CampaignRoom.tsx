@@ -21,7 +21,7 @@ import { modStr } from '@/engine/dice';
 import type { Campaign, InviteLink, SharedCharacterSheet } from '@/types/models';
 import type { Character } from '@/types/character';
 import { useInk } from '@/lib/contrast';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { SessionEntryCard } from '@/components/session/SessionEntryCard';
 import { NpcGallery } from '@/components/campaign/NpcGallery';
 import '@/styles/session.css';
@@ -197,7 +197,7 @@ export function CampaignRoom() {
                     onClick={() => (linked ? void unshare(c.id) : void share(c.id))}
                     className="fv-room-pill"
                   >
-                    {busyHere ? (linked ? 'Desvinculando… ' : 'Vinculando… ') : linked ? '✓ ' : '+ '}{c.name}
+                    {busyHere ? (linked ? 'Desvinculando… ' : 'Vinculando… ') : linked ? <><InlineIcon name="check" /> </> : '+ '}{c.name}
                   </button>
                 );
               })}
@@ -227,7 +227,7 @@ export function CampaignRoom() {
                         onClick={() => setPerm(d.key)}
                         className="fv-room-pill is-small"
                       >
-                        {perms[d.key] ? '✓ ' : ''}{d.label}
+                        {perms[d.key] ? <><InlineIcon name="check" /> </> : ''}{d.label}
                       </button>
                     ))}
                   </div>
@@ -243,7 +243,7 @@ export function CampaignRoom() {
         {/* fichas da mesa */}
         <div className="fv-room-head">
           <div className="fv-label">Heróis da mesa · {shares.length}</div>
-          <button type="button" className="fv-textlink fv-room-refresh" onClick={load}>↺ Atualizar</button>
+          <button type="button" className="fv-textlink fv-room-refresh" onClick={load}><InlineIcon name="refresh" /> Atualizar</button>
         </div>
         {shares.length === 0 && (
           <EmptyState icon="crest" title="Nenhuma ficha vinculada ainda" hint={isMaster ? 'Envie o link de convite — quando os jogadores vincularem as fichas, elas aparecem aqui ao vivo.' : 'Vincule sua ficha acima para o mestre acompanhar.'} />
@@ -307,7 +307,7 @@ export function CampaignRoom() {
                       {n.kind === 'nota' ? 'NOTA' : n.kind === 'npc' ? 'NPC' : 'MISSÃO'}
                     </span>
                     {isMaster && (
-                      <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" className="fv-room-note-del">✕</button>
+                      <button onClick={() => void campaignNotes.remove(n.id).then(load)} aria-label="Remover" className="fv-room-note-del"><InlineIcon name="close" size={12} /></button>
                     )}
                   </div>
                   <div className="fv-room-note-title">{n.title}</div>

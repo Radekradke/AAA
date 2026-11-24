@@ -7,6 +7,7 @@ import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token } from '@/types/stage';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
+import { InlineIcon } from '@/components/ui/Icon';
 
 export interface TokenFace {
   /** Imagem do peão (retrato, arte do herói). */
@@ -483,7 +484,7 @@ export function StageMap(p: StageMapProps) {
                 aria-label={`${t.label || 'Peão'}${t.hidden ? ' (escondido)' : ''}${conds.length ? ` — ${conds.join(', ')}` : ''}`}
               >
                 <span className="fv-token-disc" style={face?.url ? { backgroundImage: `url("${face.url}")`, ...face.style } : undefined}>
-                  {!face?.url && (t.kind === 'marker' ? '✦' : initials(t.label))}
+                  {!face?.url && (t.kind === 'marker' ? <InlineIcon name="sparkle" /> : initials(t.label))}
                 </span>
                 {hp && hp.max > 0 && (
                   <span className="fv-token-hp" aria-hidden>
@@ -596,7 +597,7 @@ export function StageMap(p: StageMapProps) {
         )}
         <button type="button" onClick={() => zoomBtn(1.25)} aria-label="Aproximar">+</button>
         <button type="button" onClick={() => zoomBtn(0.8)} aria-label="Afastar">−</button>
-        <button type="button" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa">⤢</button>
+        <button type="button" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa"><InlineIcon name="expand" /></button>
         {p.onToggleFull && (
           <button
             type="button"

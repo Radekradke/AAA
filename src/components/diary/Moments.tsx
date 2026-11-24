@@ -4,19 +4,20 @@ import { diaryOf, norm } from '@/engine/diary';
 import { useCharacterStore } from '@/store/characterStore';
 import { confirmAction } from '@/store/feedbackStore';
 import { Modal } from '@/components/ui/Modal';
+import { InlineIcon } from '@/components/ui/Icon';
 
 type Moment = NonNullable<Diary['moments']>[number];
 export function RememberMoment({ char, rollId, title }: { char: Character; rollId: string; title: string }) {
   const [editing, setEditing] = useState<Moment | null>(null);
   const saved = diaryOf(char).moments?.find((m) => m.rollId === rollId);
-  return <><button type="button" className="fv-link-btn" aria-label={saved ? `Editar momento: ${title}` : `Marcar como memorável: ${title}`} onClick={() => setEditing(saved ? structuredClone(saved) : { id: crypto.randomUUID(), at: Date.now(), title, text: '', rollId, sessionId: char.journal[0]?.id })}>{saved ? '★' : '☆'}</button>{editing && <MomentEditor char={char} initial={editing} onClose={() => setEditing(null)} />}</>;
+  return <><button type="button" className="fv-link-btn" aria-label={saved ? `Editar momento: ${title}` : `Marcar como memorável: ${title}`} onClick={() => setEditing(saved ? structuredClone(saved) : { id: crypto.randomUUID(), at: Date.now(), title, text: '', rollId, sessionId: char.journal[0]?.id })}>{saved ? <InlineIcon name="starFill" /> : <InlineIcon name="star" />}</button>{editing && <MomentEditor char={char} initial={editing} onClose={() => setEditing(null)} />}</>;
 }
 export function Moments({ char, sessionId, query = '' }: { char: Character; sessionId?: string; query?: string }) {
   const [editing, setEditing] = useState<Moment | null>(null);
   const moments = (diaryOf(char).moments ?? []).filter((m) => (!sessionId || m.sessionId === sessionId) && (!query.trim() || norm(`${m.title} ${m.text}`).includes(norm(query))));
   return <section className="fv-experience" aria-label="Momentos memoráveis"><div className="fv-experience-actions"><h3>Momentos memoráveis</h3><button type="button" className="fv-link-btn" onClick={() => setEditing({ id: crypto.randomUUID(), title: '', text: '', at: Date.now(), sessionId })}>+ Guardar momento</button></div>
-    {!moments.length && <p>Guarde uma cena aqui ou marque uma rolagem com ☆ no histórico.</p>}
-    {moments.map((m) => <article className="fv-effect-card" key={m.id}><b>★ {m.title}</b><p style={{ whiteSpace: 'pre-wrap' }}>{m.text || 'Sem frase do jogador.'}</p><small>{new Date(m.at).toLocaleDateString('pt-BR')} · {char.journal.find((s) => s.id === m.sessionId)?.title || 'Sem sessão vinculada'}</small><div className="fv-experience-actions"><button type="button" className="fv-link-btn" onClick={() => setEditing(structuredClone(m))}>Editar</button><button type="button" className="fv-link-btn" onClick={async () => { if (await confirmAction({ title: 'Apagar este momento?', message: m.title, confirmLabel: 'Apagar' })) useCharacterStore.getState().updateDiary(char.id, (d) => { d.moments = d.moments?.filter((x) => x.id !== m.id); }); }}>Apagar</button></div></article>)}
+    {!moments.length && <p>Guarde uma cena aqui ou marque uma rolagem com a estrela no histórico.</p>}
+    {moments.map((m) => <article className="fv-effect-card" key={m.id}><b><InlineIcon name="starFill" size={13} /> {m.title}</b><p style={{ whiteSpace: 'pre-wrap' }}>{m.text || 'Sem frase do jogador.'}</p><small>{new Date(m.at).toLocaleDateString('pt-BR')} · {char.journal.find((s) => s.id === m.sessionId)?.title || 'Sem sessão vinculada'}</small><div className="fv-experience-actions"><button type="button" className="fv-link-btn" onClick={() => setEditing(structuredClone(m))}>Editar</button><button type="button" className="fv-link-btn" onClick={async () => { if (await confirmAction({ title: 'Apagar este momento?', message: m.title, confirmLabel: 'Apagar' })) useCharacterStore.getState().updateDiary(char.id, (d) => { d.moments = d.moments?.filter((x) => x.id !== m.id); }); }}>Apagar</button></div></article>)}
     {editing && <MomentEditor char={char} initial={editing} onClose={() => setEditing(null)} />}
   </section>;
 }

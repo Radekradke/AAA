@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { Modal } from '@/components/ui/Modal';
 import { confirmAction, toast } from '@/store/feedbackStore';
 import { useAuthStore } from '@/store/authStore';
@@ -140,7 +140,7 @@ export function ShareSheetModal({ char, onClose }: { char: Character; onClose: (
                     <span className="fv-share-url">{shareUrl(l.token)}</span>
                     <small>criado em {new Date(l.createdAt).toLocaleDateString('pt-BR')}</small>
                     <div className="fv-share-acts">
-                      <button type="button" className="fv-btn-ghost" onClick={() => void copy(l.token)}>{copied === l.token ? '✓ Copiado' : 'Copiar'}</button>
+                      <button type="button" className="fv-btn-ghost" onClick={() => void copy(l.token)}>{copied === l.token ? <><InlineIcon name="check" /> Copiado</> : 'Copiar'}</button>
                       <a className="fv-btn-ghost" href={shareUrl(l.token)} target="_blank" rel="noreferrer">Abrir</a>
                       <button type="button" className="fv-btn-ghost is-danger" onClick={() => void revoke(l.token)}>Revogar</button>
                     </div>

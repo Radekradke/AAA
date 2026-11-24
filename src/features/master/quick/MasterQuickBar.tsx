@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMasterStore } from '../masterStore';
 import type { QuickKind } from '../masterStore';
 import { QuickCreature, QuickEncounter, QuickHandout, QuickItem, QuickNote, QuickNpc } from './QuickForms';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const QUICK: { kind: QuickKind; label: string; key: string }[] = [
   { kind: 'npc', label: 'NPC', key: 'n' },
@@ -66,7 +67,7 @@ export function MasterQuickBar() {
       )}
       {/* celular/tablet: bastidores e inspetor viram gavetas */}
       <button type="button" className={'fv-quickbar-drawer' + (drawer === 'backstage' ? ' is-on' : '')} onClick={() => setDrawer(drawer === 'backstage' ? null : 'backstage')} aria-expanded={drawer === 'backstage'}>
-        ☰ Bastidores
+        <InlineIcon name="menu" /> Bastidores
       </button>
       <div className="fv-quickbar-btns">
         {QUICK.map((q) => (
@@ -83,7 +84,7 @@ export function MasterQuickBar() {
         ))}
       </div>
       <button type="button" className={'fv-quickbar-drawer' + (drawer === 'inspector' ? ' is-on' : '')} onClick={() => setDrawer(drawer === 'inspector' ? null : 'inspector')} aria-expanded={drawer === 'inspector'}>
-        ◧ Inspetor
+        <InlineIcon name="panelRight" /> Inspetor
       </button>
     </div>
   );

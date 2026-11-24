@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { getSupabase, cloudEnabled } from '@/services/supabaseClient';
 import { clearErrors, errorReport, onErrorsChange, recentErrors } from '@/lib/errorReporter';
 import type { ErrorEntry } from '@/lib/errorReporter';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Diagnóstico da nuvem: mostra, em tempo real, se o Supabase está
@@ -99,7 +100,7 @@ export function Diagnostics() {
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <button onClick={() => void run()} disabled={busy} className="fv-btn-gold" style={{ minHeight: 42, padding: '0 20px', fontSize: 14, opacity: busy ? 0.6 : 1 }}>
-            {busy ? 'Verificando…' : '↺ Rodar novamente'}
+            {busy ? 'Verificando…' : <><InlineIcon name="refresh" /> Rodar novamente</>}
           </button>
         </div>
 
@@ -148,7 +149,7 @@ function RecentErrors() {
         <h2 id="fv-diag-err-title" className="fv-label">Erros recentes neste aparelho</h2>
         {list.length > 0 && (
           <div className="fv-diag-errors-acts">
-            <button type="button" className="fv-btn-ghost" onClick={() => void copy()}>{copied ? 'Copiado ✓' : 'Copiar relatório'}</button>
+            <button type="button" className="fv-btn-ghost" onClick={() => void copy()}>{copied ? <>Copiado <InlineIcon name="check" /></> : 'Copiar relatório'}</button>
             <button type="button" className="fv-btn-ghost" onClick={clearErrors}>Limpar</button>
           </div>
         )}

@@ -330,8 +330,15 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold), transparent 80%);
 }
 .fv-vitrine-chips li.is-star::before {
-  content: '★ ';
-  color: var(--gold);
+  content: '';
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.35em;
+  vertical-align: -0.08em;
+  background: var(--gold);
+  -webkit-mask: var(--svg-star) center / contain no-repeat;
+  mask: var(--svg-star) center / contain no-repeat;
 }
 .fv-vitrine-chips.is-plain li {
   color: var(--muted);

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m } from 'framer-motion';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 
 /** Verifica versão nova a cada 30 min enquanto o app está aberto. */
 const CHECK_EVERY_MS = 30 * 60 * 1000;
@@ -65,7 +65,7 @@ export function PwaStatus() {
             }}
             style={{ cursor: 'pointer', flex: 'none', width: 30, height: 30, borderRadius: 8, border: '1px solid var(--line)', background: 'transparent', color: 'var(--muted)' }}
           >
-            ✕
+            <InlineIcon name="close" />
           </button>
         </m.div>
       )}

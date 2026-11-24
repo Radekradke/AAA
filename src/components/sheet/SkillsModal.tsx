@@ -12,6 +12,7 @@ import { expertiseSlots, expertiseUsed } from '@/engine/levelUp';
 import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import { useInk } from '@/lib/contrast';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface SkillsModalProps {
   char: Character;
@@ -124,7 +125,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
                     opacity: !sk.expertise && used >= slots ? 0.35 : 1,
                   }}
                 >
-                  ★
+                  <InlineIcon name="starFill" />
                 </button>
               )}
             </div>
@@ -137,7 +138,7 @@ export function SkillsModal({ char, derived, onClose }: SkillsModalProps) {
         <span>Toque numa perícia para rolar 1d20 + bônus.</span>
         {canMark && (
           <span style={{ fontFamily: 'var(--font-num)', color: used >= slots ? t.gold : 'var(--acc)' }}>
-            Expertise: {used}/{slots} vagas (★ nas proficientes)
+            Expertise: {used}/{slots} vagas (<InlineIcon name="starFill" size={12} /> nas proficientes)
           </span>
         )}
       </div>
