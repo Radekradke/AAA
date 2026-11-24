@@ -21,8 +21,6 @@ import { cloudEnabled } from '@/services/supabaseClient';
 import { isHappening, relativeLabel, timeLabel } from '@/lib/agenda';
 import { isCloudAccount } from '@/lib/identity';
 
-/** As irmãs magas do menu: cada clipe toca até o fim e funde no da outra. */
-
 interface MenuItem {
   key: string;
   label: string;
@@ -152,7 +150,6 @@ export function Home() {
 
   return (
     <Screen>
-      {/* a maga fica à esquerda do vídeo; no PC o menu vai para o lado livre (direita) */}
       <div className="fv-menu">
         <header className="fv-menu-brand">
           <FichaVivaMark />

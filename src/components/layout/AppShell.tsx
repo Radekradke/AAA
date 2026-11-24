@@ -11,18 +11,13 @@ import '@/styles/brand.css';
 
 interface AppShellProps {
   children: ReactNode;
-  /** Vídeo de fundo opcional. */
-  video?: string | readonly string[] | null;
-  posters?: readonly string[];
-  videoOpacity?: number;
-  darken?: number;
 }
 
 /**
  * Casca raiz: aplica as variáveis do tema, monta a cena de fundo
  * cinematográfica e o overlay global de rolagem.
  */
-export function AppShell({ children, video = null, posters, videoOpacity, darken }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const theme = useUiStore((s) => s.theme);
   const t = useTheme();
   const mode = useThemeMode();
@@ -56,7 +51,7 @@ export function AppShell({ children, video = null, posters, videoOpacity, darken
 
   return (
     <div data-theme={theme} data-mode={mode} style={rootStyle}>
-      <BackgroundScene video={video} posters={posters} videoOpacity={videoOpacity} darken={darken} />
+      <BackgroundScene />
       {children}
       <RollOverlay />
       <CastNotice />

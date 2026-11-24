@@ -7,7 +7,8 @@ Cada seção diz como foi conferida:
 - **Robô** — a seção foi feita no navegador do jeito que está escrita (clicar, preencher, conferir o número). Fica em `e2e/roteiro-manual.e2e.ts` e roda no CI a cada mudança.
 - **e2e** — já existe um teste de ponta a ponta que faz o que a seção pede (arquivo indicado). Todos passaram na rodada completa (262 testes).
 - **Regra** — a seção confere uma conta do motor (PV, CA, bônus, dados). As contas são testadas nos testes de unidade (1078) e na varredura da 1.1 (1.440 heróis: 12 classes × 20 níveis × 6 sementes). Na tela, aparecem nas dicas já cobertas pelo robô.
-- **Pessoa** — depende de ouvir ou de julgar o visual (som, brilho, vídeo). Fica para uma pessoa, na lista do fim.
+- **Pessoa** — depende de ouvir ou de julgar o visual (som, brilho). Fica para uma pessoa, na lista do fim.
+- **—** — a seção descreve algo que saiu do app (os vídeos de fundo).
 
 Resultado: **nenhuma falha**. O robô fez 40 conferências nas seções 1–5, 11–14, 17–20 e 24, sem nenhum erro no console. Repetido 4 vezes: 12/12.
 
@@ -88,9 +89,9 @@ Resultado: **nenhuma falha**. O robô fez 40 conferências nas seções 1–5, 1
 | 71 | Bruxo: invocações e Arcano Místico | e2e | `invocacoes`, `bruxo` ✓ |
 | 72 | Bárbaro 1–20 | e2e | `barbaro` ✓ |
 | 73 | Guerreiro 1–20 | e2e + Robô | `guerreiro`; §1–5 pelo robô ✓ |
-| 74 | Menu: irmãs magas no fundo | Pessoa | visual |
+| 74 | Menu: irmãs magas no fundo | — | removido (o app não tem mais vídeos de fundo) |
 | 75 | Ladino 1–20 | e2e | `ladino` ✓ |
-| 76 | Vídeos de fundo e Palco | Pessoa | experimental, visual |
+| 76 | Vídeos de fundo e Palco | — | removido |
 | 77 | Monge 1–20 | e2e | `monge-paladino` ✓ |
 | 78 | Paladino 1–20 | e2e | `monge-paladino` ✓ |
 | 79 | Bruxo 1–20 | e2e | `bruxo` ✓ |
@@ -107,15 +108,13 @@ Resultado: **nenhuma falha**. O robô fez 40 conferências nas seções 1–5, 1
 | 90 | Criar já em nível alto | e2e | `nivel-alto` ✓ |
 | 91 | Herói rápido | e2e + Robô | `heroi-rapido`; o robô cria heróis por ele ✓ |
 
-## Para uma pessoa conferir (5 itens, ~10 minutos)
+## Para uma pessoa conferir (3 itens, ~5 minutos)
 
 Com os efeitos sonoros ligados, num celular ou PC:
 
 1. **§39/§40 Sons:** o coração do teste contra a morte acelera a cada falha. Os sons das rolagens tocam.
 2. **§46 Brilho:** o brilho das cartas aparece só com o mouse por cima.
 3. **§68 Acabamento:** selo da raça no card e arte da magia no modal.
-4. **§74 Fundo:** as irmãs magas no fundo do menu principal.
-5. **§76 Vídeos:** os vídeos de fundo e o Palco das origens (experimental).
 
 ## O que depende do Supabase de produção
 

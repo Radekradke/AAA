@@ -31,7 +31,7 @@ export function AuthCallback() {
   }, [navigate, setUser]);
 
   return (
-    <Screen video="/assets/bg.mp4" videoOpacity={0.22}>
+    <Screen>
       <div
         style={{
           position: 'absolute',

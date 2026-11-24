@@ -56,8 +56,6 @@ export interface Race {
   extraSkillPicks?: number;
   /** Bônus de atributo à escolha (Meio-Elfo: +1 em dois atributos que não CAR). */
   abilityChoice?: { count: number; amount: number; exclude?: AbilityKey[]; default: AbilityKey[] };
-  /** Vídeo de fundo próprio da raça na criação (opcional; cai no padrão). */
-  video?: string;
   /** Criada pelo jogador (homebrew) — o mestre vê o selo na ficha. */
   homebrew?: boolean;
   /** Tamanho (homebrew; as oficiais seguem o livro). */
@@ -227,8 +225,6 @@ export interface DndClass {
    * Ausente = usa `prim`.
    */
   spellAbility?: AbilityKey;
-  /** Vídeo de fundo próprio da classe na criação (prioridade sobre a raça). */
-  video?: string;
 }
 
 export interface ClassResourceDef {

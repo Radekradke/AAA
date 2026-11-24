@@ -700,10 +700,7 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 
 ## 74. Menu principal: irmãs magas no fundo
 
-1. No PC (janela com 900 px ou mais), o fundo do menu mostra a maga da água ou a do ar (sorteada a cada visita). O menu fica no lado direito, com uma névoa escura atrás para ler bem.
-2. Cada clipe toca até o fim (5 s) e funde no da outra irmã, sem corte seco. Depois volta para a primeira, e assim por diante.
-3. Trocar de aba do navegador pausa o vídeo; voltar retoma.
-4. Celular, "economia de dados" ou "reduzir movimento" no sistema: sem vídeo, e o menu volta ao centro como antes.
+Removido. O app não tem mais vídeos de fundo, e o menu mostra só a cena do tema (gradiente, runas, partículas). Nada a conferir.
 
 ## 75. Ladino: auditoria do 1 ao 20
 
@@ -722,17 +719,7 @@ Antes: rode `supabase/mesa_vida.sql` no Supabase (docs/SUPABASE.md §13).
 
 ## 76. Vídeos de fundo e Palco das origens (experimental)
 
-1. Configurações → Aparência → **Vídeos de fundo**:
-   - **Automático**: comportamento de antes (sem vídeo no celular, com economia de dados, rede lenta ou "menos movimento" no sistema).
-   - **Sempre**: mostra o vídeo do menu mesmo assim. Use se o seu Windows estiver com as animações desligadas.
-   - **Desligado**: nunca mostra.
-2. Configurações → Avançado → **Palco das origens** (ligado):
-   - Na Forja, a etapa Origem mostra a cena da raça em tela cheia, a ficha da raça à direita e os brasões na borda.
-   - Sem a trilha de capítulos e sem o card do herói nessa etapa.
-3. Humano, Elfo, Tiefling e Anão usam as irmãs como cena provisória. As outras raças mostram o brasão com "cena da raça em produção".
-4. Trocar de raça troca a cena com fusão. A sublinhagem e os atributos à escolha (Meio-Elfo) continuam funcionando, e "+" cria raça homebrew.
-5. **Avançar** vai para o Caminho, e o card do herói volta a aparecer.
-6. Para colocar o vídeo de uma raça: `src/assets/racas/<id>.mp4` (e `.webp`), ver o LEIA-ME de lá.
+Removido. Os vídeos de fundo (menu, Entrar, Forja, raças) e a opção "Vídeos de fundo" em Configurações saíram do app. Nada a conferir.
 
 ## 77. Monge: auditoria do 1 ao 20
 

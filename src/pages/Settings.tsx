@@ -88,8 +88,6 @@ export function Settings() {
   const toggleCinematics = useUiStore((s) => s.toggleCinematics);
   const keepAwake = useUiStore((s) => s.keepAwake);
   const toggleKeepAwake = useUiStore((s) => s.toggleKeepAwake);
-  const bgVideo = useUiStore((s) => s.bgVideo);
-  const setBgVideo = useUiStore((s) => s.setBgVideo);
   const toggleDice3d = useUiStore((s) => s.toggleDice3d);
   const openTutorial = useUiStore((s) => s.openTutorial);
   const resetTours = useUiStore((s) => s.resetTours);
@@ -170,15 +168,6 @@ export function Settings() {
             própria (layout, formas, fontes e o dado), com paleta clara e escura.
           </p>
           <ThemeGrid />
-          <Row title="Vídeos de fundo" hint="Os vídeos do menu e da Forja. No automático, ficam de fora em telas pequenas, com economia de dados, rede lenta ou quando o sistema pede menos movimento (no Windows: animações desligadas). “Sempre” mostra mesmo assim.">
-            <div className="fv-seg" role="radiogroup" aria-label="Vídeos de fundo">
-              {([['auto', 'Automático'], ['on', 'Sempre'], ['off', 'Desligado']] as const).map(([id, label]) => (
-                <button key={id} type="button" role="radio" aria-checked={bgVideo === id} className={bgVideo === id ? 'is-on' : ''} onClick={() => setBgVideo(id)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </Row>
         </section>
 
         <section id="cfg-som" className="fv-panel fv-set-card" aria-labelledby="cfg-som-t">
