@@ -63,6 +63,15 @@ export function mapScene(r: Record<string, unknown>): Scene {
               reveal: (Array.isArray(g.fog.reveal) ? g.fog.reveal : [])
                 .map((r) => ({ x: num(r?.x), y: num(r?.y), w: Math.max(1, num(r?.w, 1)), h: Math.max(1, num(r?.h, 1)) }))
                 .slice(0, 400),
+              ...(Array.isArray(g.fog.walls) && g.fog.walls.length
+                ? {
+                    walls: g.fog.walls
+                      .map((w) => ({ x1: num(w?.x1), y1: num(w?.y1), x2: num(w?.x2), y2: num(w?.y2), ...(w?.door ? { door: true, open: !!w.open } : {}) }))
+                      .filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2)
+                      .slice(0, 1000),
+                  }
+                : {}),
+              ...(g.fog.vision ? { vision: true } : {}),
             },
           }
         : {}),
