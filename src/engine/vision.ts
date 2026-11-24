@@ -125,3 +125,103 @@ export function nearestWall(p: Pt, walls: Wall[], max = 0.35): number {
 export function snapHalf(v: number): number {
   return Math.round(v * 2) / 2;
 }
+
+/* ---------- movimento ---------- */
+
+function cross(ax: number, ay: number, bx: number, by: number): number {
+  return ax * by - ay * bx;
+}
+
+/** O caminho reto de a até b atravessa alguma parede (porta fechada conta)? */
+export function pathBlocked(a: Pt, b: Pt, walls: Wall[]): boolean {
+  const rx = b.x - a.x;
+  const ry = b.y - a.y;
+  for (const w of blockingWalls(walls)) {
+    const sx = w.x2 - w.x1;
+    const sy = w.y2 - w.y1;
+    const den = cross(rx, ry, sx, sy);
+    if (Math.abs(den) < 1e-12) continue; // paralelos: andar rente à parede não é atravessar
+    const t = cross(w.x1 - a.x, w.y1 - a.y, sx, sy) / den;
+    const u = cross(w.x1 - a.x, w.y1 - a.y, rx, ry) / den;
+    if (t > 1e-6 && t < 1 - 1e-6 && u >= -1e-6 && u <= 1 + 1e-6) return true;
+  }
+  return false;
+}
+
+/* ---------- luz e visão no escuro ---------- */
+
+/** Quem enxerga: polígono do que está à vista + alcance da visão no escuro (casas; 0 = nenhuma). */
+export interface Viewer {
+  at: Pt;
+  poly: Pt[];
+  dark: number;
+}
+/** Fonte de luz: até onde ilumina (casas) e o que ela alcança sem parede no meio. */
+export interface LightSource {
+  at: Pt;
+  poly: Pt[];
+  r: number;
+}
+
+/**
+ * Este ponto está à vista de alguém? Com o ambiente claro, basta a linha de
+ * visão; no escuro, o ponto também precisa estar iluminado por alguma luz ou
+ * dentro da visão no escuro de quem olha (PHB 2014: vê na escuridão como se
+ * fosse penumbra).
+ */
+export function seen(p: Pt, viewers: Viewer[], lights: LightSource[], dark: boolean): boolean {
+  const lit = () => lights.some((l) => Math.hypot(p.x - l.at.x, p.y - l.at.y) <= l.r && pointInPolygon(p, l.poly));
+  return viewers.some((v) => {
+    if (!pointInPolygon(p, v.poly)) return false;
+    if (!dark) return true;
+    return Math.hypot(p.x - v.at.x, p.y - v.at.y) <= v.dark || lit();
+  });
+}
+
+/* ---------- lembrança do explorado ---------- */
+
+/** Casas (chave "x,y") cujo centro está à vista agora. */
+export function cellsSeen(b: Bounds, isSeen: (p: Pt) => boolean): string[] {
+  const out: string[] = [];
+  for (let y = Math.floor(b.y0); y < Math.ceil(b.y1); y++) {
+    for (let x = Math.floor(b.x0); x < Math.ceil(b.x1); x++) {
+      if (isSeen({ x: x + 0.5, y: y + 0.5 })) out.push(`${x},${y}`);
+    }
+  }
+  return out;
+}
+
+/** Junta casas vizinhas da mesma linha em faixas (menos retângulos para desenhar). */
+export function cellRuns(keys: Iterable<string>): { x: number; y: number; w: number }[] {
+  const rows = new Map<number, number[]>();
+  for (const k of keys) {
+    const [x, y] = k.split(',').map(Number);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    const r = rows.get(y) ?? [];
+    r.push(x);
+    rows.set(y, r);
+  }
+  const out: { x: number; y: number; w: number }[] = [];
+  for (const [y, xs] of rows) {
+    xs.sort((a, b) => a - b);
+    let start = xs[0];
+    let prev = xs[0];
+    for (let i = 1; i <= xs.length; i++) {
+      const x = xs[i];
+      if (x === prev + 1) {
+        prev = x;
+        continue;
+      }
+      out.push({ x: start, y, w: prev - start + 1 });
+      start = prev = x;
+    }
+  }
+  return out;
+}
+
+/** Luz carregada (PHB 2014, luz plena + penumbra), em metros. */
+export const LIGHT_PRESETS: { id: string; label: string; m: number }[] = [
+  { id: 'vela', label: 'Vela', m: 3 },
+  { id: 'tocha', label: 'Tocha', m: 12 },
+  { id: 'lanterna', label: 'Lanterna', m: 18 },
+];

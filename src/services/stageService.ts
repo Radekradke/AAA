@@ -72,6 +72,10 @@ export function mapScene(r: Record<string, unknown>): Scene {
                   }
                 : {}),
               ...(g.fog.vision ? { vision: true } : {}),
+              ...(g.fog.dark ? { dark: true } : {}),
+              ...(g.fog.lights && typeof g.fog.lights === 'object'
+                ? { lights: Object.fromEntries(Object.entries(g.fog.lights).map(([k, v]) => [k, num(v)] as const).filter(([, v]) => v > 0).slice(0, 200)) }
+                : {}),
             },
           }
         : {}),
