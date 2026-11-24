@@ -538,6 +538,11 @@ O script cria:
 - `campaign_handouts` — cartas e pistas, para todos ou para jogadores escolhidos.
 - Bucket privado `campaign-media` no Storage (máx. 10 MB por arquivo, só imagens). O mestre envia para a pasta da campanha; cada jogador só baixa imagens de cenas reveladas ou de handouts entregues a ele (`fv_media_readable`).
 
+Se o editor do Supabase parar o `palco.sql` no meio, há consertos menores, cada um com comandos simples:
+- `supabase/palco_regras.sql`, para as regras de permissão. O app avisa com "O banco recusou… só o mestre" mesmo para o mestre.
+- `supabase/palco_mover.sql`, para a função que move os peões. Use se eles "voltam pro lugar".
+- `supabase/palco_storage.sql`, para o espaço de imagens. O app avisa com "Falta o espaço de imagens".
+
 As imagens são comprimidas no aparelho do mestre antes de subir (WebP; mapas até 3072 px) e ficam guardadas no aparelho de cada jogador depois do primeiro download, para poupar a franquia de tráfego do plano grátis.
 
 ## 8. Console do mestre — preparação, notas privadas e improviso

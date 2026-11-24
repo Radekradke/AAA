@@ -85,6 +85,7 @@ Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 Desempenho (como medir e os números atuais): `docs/DESEMPENHO.md`.
 Acessibilidade e tamanhos de tela (teclado, leitor de tela, toque): `docs/ACESSIBILIDADE.md`.
 O que mudou em cada versão: `CHANGELOG.md` (técnico) e `docs/NOTAS-DA-VERSAO.md` (para jogadores).
+Antes de publicar: `docs/CHECKLIST-PRODUCAO.md` (Supabase, Vercel, backup, tag).
 
 ---
 
