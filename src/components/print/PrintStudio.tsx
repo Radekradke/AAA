@@ -16,7 +16,7 @@ const KEY = 'fv-print-prefs';
 function loadPrefs(): Prefs {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Prefs> | null;
-    if (raw) return { style: raw.style === 'classica' ? 'classica' : 'ilustrada', theme: raw.theme && raw.theme in THEMES ? raw.theme : null, mode: raw.mode === 'dark' ? 'dark' : 'light', blank: raw.blank ?? true };
+    if (raw) return { style: raw.style === 'classica' ? 'classica' : 'ilustrada', theme: raw.theme && THEME_ORDER.includes(raw.theme) ? raw.theme : null, mode: raw.mode === 'dark' ? 'dark' : 'light', blank: raw.blank ?? true };
   } catch {
     /* sem localStorage: padrões */
   }

@@ -1,7 +1,20 @@
 import type { RarityDef, ThemeDef, ThemeMode, ThemeName } from '@/types/dnd';
 
-/** Ordem de rotação dos climas no alternador da barra superior. */
-export const THEME_ORDER: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra'];
+/** Todos os temas que existem no código (os testes de cor e contraste conferem todos). */
+export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra'];
+
+/**
+ * Temas oferecidos ao jogador, na ordem do seletor e do alternador da barra
+ * superior. Os outros continuam no código, só escondidos: para trazer um de
+ * volta, ponha o id aqui (e em VISIVEIS no index.html — há um teste que confere).
+ * Quem estava num tema escondido abre no Véu Astral (sem perder nada da ficha).
+ */
+export const THEME_ORDER: ThemeName[] = ['astral', 'carmesim', 'eclipse', 'rubra'];
+
+/** O tema salvo, se ainda é oferecido; senão o padrão (Véu Astral). */
+export function visibleTheme(t: unknown): ThemeName {
+  return THEME_ORDER.includes(t as ThemeName) ? (t as ThemeName) : 'astral';
+}
 
 /** Só as cores de uma paleta (o resto do tema é identidade: nome, fonte, motivo). */
 export type ThemePalette = Pick<ThemeDef, 'bg' | 'bg2' | 'panel' | 'panel2' | 'steel' | 'line' | 'acc' | 'acc2' | 'accSoft' | 'gold' | 'goldB' | 'ink' | 'muted' | 'danger' | 'bloom' | 'particle'>;

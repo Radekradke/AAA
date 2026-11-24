@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio, readableOn } from '../contrast';
 import { ABILITY_COLORS } from '@/data/skills';
-import { THEME_ORDER, resolveTheme } from '@/data/themes';
+import { THEME_ALL, resolveTheme } from '@/data/themes';
 
 /** As cores fixas do app (atributos, PV, cura) ficam legíveis (AA) no painel de todo tema/modo. */
 describe('readableOn', () => {
   const fixed = [...Object.values(ABILITY_COLORS), '#3FC56B', '#E0A93E', '#FF4D3A'];
-  for (const name of THEME_ORDER) {
+  for (const name of THEME_ALL) {
     for (const mode of ['dark', 'light'] as const) {
       it(`${name} · ${mode}`, () => {
         const t = resolveTheme(name, mode);

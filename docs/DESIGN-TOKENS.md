@@ -5,7 +5,7 @@ Arquivo: `src/styles/tokens.css`. Teste: `src/styles/__tests__/tokens.test.ts`.
 Os tokens são os nomes que componentes novos e telas migradas (etapa 3) usam. A paleta de cada tema continua em `src/styles/themes/*.css`, com as variáveis cruas `--bg`, `--panel`, `--ink`, `--acc`, `--gold`. Os tokens de cor apontam para elas, então trocar de tema ou de modo claro/escuro muda tudo junto.
 
 ## Regras
-- **Cor:** sempre pelo papel (`--color-*`), nunca `#hex` nem a variável crua. A cor fixa no meio de um componente quebra os 8 temas e o modo claro.
+- **Cor:** sempre pelo papel (`--color-*`), nunca `#hex` nem a variável crua. A cor fixa no meio de um componente quebra os temas e o modo claro. (São 8 temas no código; o app oferece 4 — `THEME_ORDER` em `src/data/themes.ts`. Os testes de cor e contraste conferem os 8.)
 - **Espaço, texto, canto e movimento:** sempre pela escala. Um valor fora da escala precisa de motivo escrito no código.
 - **`style={{…}}`:** só para valor que muda em tempo de execução (largura de uma barra de PV, posição no mapa). Visual fixo vai para CSS com tokens.
 

@@ -7,7 +7,7 @@ import type { Page } from '@playwright/test';
  * lateral; no toque, nenhum alvo fica abaixo de 24 px (WCAG 2.5.8 AA),
  * contando a área invisível que o mobile.css acrescenta.
  */
-const THEMES = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra'];
+const THEMES = ['astral', 'carmesim', 'eclipse', 'rubra'];
 const TABS = ['Jogar', 'Ficha', 'Combate', 'Itens', 'Magias'];
 
 async function openTab(page: Page, tab: string) {

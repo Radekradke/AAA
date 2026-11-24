@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { ThemeMode, ThemeName } from '@/types/dnd';
 import type { RollResult } from '@/engine/dice';
 import { setSfxEnabled, playDice } from '@/lib/sfx';
-import { THEME_ORDER, nativeMode } from '@/data/themes';
+import { THEME_ORDER, nativeMode, visibleTheme } from '@/data/themes';
 import type { PackId } from '@/data/contentPacks';
 import { SOURCE_PACK, setEnabledPacks } from '@/data/contentPacks';
 
@@ -177,7 +177,7 @@ export const useUiStore = create<UiState>()(
         get().bump(0.7);
       },
       setTheme(t) {
-        set({ theme: t });
+        set({ theme: visibleTheme(t) });
       },
       modes: {},
       setThemeMode(m, t) {
@@ -335,6 +335,11 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'fv-ui',
+      // tema escondido (THEME_ORDER) salvo antes: abre no padrão
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<UiState>;
+        return { ...current, ...p, theme: visibleTheme(p.theme ?? current.theme) };
+      },
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
       partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, discordWebhook: s.discordWebhook, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake }),

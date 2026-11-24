@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { THEMES, THEME_ALT, THEME_ORDER, nativeMode, resolveTheme } from '../themes';
+import { THEMES, THEME_ALT, THEME_ALL, nativeMode, resolveTheme } from '../themes';
 import type { ThemeMode, ThemeName } from '@/types/dnd';
 
 /**
@@ -32,7 +32,7 @@ const norm = (v: string) => v.toLowerCase().replace(/\s+/g, '');
 const KEYS = ['bg', 'bg2', 'panel', 'panel2', 'steel', 'line', 'acc', 'acc2', 'gold', 'goldB', 'ink', 'muted', 'danger'] as const;
 
 describe('paletas: JS e CSS iguais', () => {
-  for (const name of THEME_ORDER) {
+  for (const name of THEME_ALL) {
     for (const mode of ['dark', 'light'] as const) {
       it(`${name} · ${mode}`, () => {
         const native = mode === nativeMode(name);
@@ -44,7 +44,7 @@ describe('paletas: JS e CSS iguais', () => {
   }
 
   it('cada tema tem as duas paletas e o modo de nascença certo', () => {
-    for (const name of THEME_ORDER) {
+    for (const name of THEME_ALL) {
       expect(THEMES[name]).toBeTruthy();
       expect(THEME_ALT[name]).toBeTruthy();
     }

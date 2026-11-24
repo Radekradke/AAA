@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { THEME_ORDER, nativeMode, resolveTheme } from '@/data/themes';
+import { THEME_ALL, nativeMode, resolveTheme } from '@/data/themes';
 import { contrastRatio } from '@/lib/contrast';
 import type { ThemeMode, ThemeName } from '@/types/dnd';
 
@@ -32,7 +32,7 @@ function block(css: string, theme: ThemeName, mode?: ThemeMode): Record<string, 
 const hex = (v: string | undefined) => (v && /^#[0-9a-f]{6}$/i.test(v.trim()) ? v.trim() : undefined);
 
 describe('contraste AA em todos os temas e modos', () => {
-  for (const t of THEME_ORDER) {
+  for (const t of THEME_ALL) {
     for (const mode of ['dark', 'light'] as const) {
       it(`${t} · ${mode}`, () => {
         const p = resolveTheme(t, mode);
