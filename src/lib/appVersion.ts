@@ -4,6 +4,8 @@
  */
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? 'dev';
 export const APP_BUILT_AT = import.meta.env.VITE_APP_BUILT_AT ?? '';
+/** Versão de lançamento ("1.1.0"), a do CHANGELOG.md — a que o jogador cita. */
+export const APP_RELEASE = import.meta.env.VITE_APP_RELEASE ?? '';
 
 /** "10/10/2026 12:25" — vazio sem data de build (modo de desenvolvimento). */
 export function builtAtLabel(iso: string = APP_BUILT_AT): string {
