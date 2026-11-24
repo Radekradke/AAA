@@ -83,6 +83,7 @@ de tela e o rastro de cada passo.
 
 Para entender o código por dentro, comece por `docs/COMO-FUNCIONA.md`.
 Desempenho (como medir e os números atuais): `docs/DESEMPENHO.md`.
+Acessibilidade e tamanhos de tela (teclado, leitor de tela, toque): `docs/ACESSIBILIDADE.md`.
 
 ---
 
