@@ -382,19 +382,16 @@
   color: color-mix(in srgb, var(--gold), var(--ink) 30%);
 }
 .fv-option.is-selected::after {
-  content: '✓';
+  /* selo: círculo na cor do tema com o visto vazado (SVG, não o caractere ✓) */
+  content: '';
   position: absolute;
   top: 8px;
   right: 8px;
   width: 18px;
   height: 18px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
   background: var(--gold);
-  color: var(--on-gold, #140d04);
-  font-size: 11px;
-  font-weight: 800;
+  -webkit-mask: var(--svg-badge-check) center / contain no-repeat;
+  mask: var(--svg-badge-check) center / contain no-repeat;
 }
 
 .fv-detail {
@@ -1524,7 +1521,6 @@
     right: 6px;
     width: 14px;
     height: 14px;
-    font-size: 9px;
   }
   .fv-detail {
     padding: 14px 16px;

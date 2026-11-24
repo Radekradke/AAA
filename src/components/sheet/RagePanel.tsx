@@ -2,6 +2,7 @@ import type { Character } from '@/types/character';
 import { barbarianState } from '@/engine/barbarian';
 import { useCharacterStore } from '@/store/characterStore';
 import { toast } from '@/store/feedbackStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Fúria do Bárbaro na mesa: entrar (gasta 1 uso e a ação bônus), ver o que
@@ -29,7 +30,7 @@ export function RagePanel({ char }: { char: Character }) {
       {st.raging ? (
         <>
           <header className="fv-rage-head">
-            <b>🔥 Em Fúria</b>
+            <b><InlineIcon name="flame" /> Em Fúria</b>
             <span>{st.frenzy ? 'com Frenesi · ' : ''}+{st.bonus} dano · usos {uses}</span>
           </header>
           <ul className="fv-rage-effects">
@@ -44,7 +45,7 @@ export function RagePanel({ char }: { char: Character }) {
       ) : (
         <div className="fv-rage-start">
           <button type="button" className="fv-rage-go" disabled={noUses} onClick={() => start(false)}>
-            🔥 Entrar em Fúria <small>ação bônus · {noUses ? 'sem usos (descanso longo)' : `usos ${uses}`}</small>
+            <InlineIcon name="flame" /> Entrar em Fúria <small>ação bônus · {noUses ? 'sem usos (descanso longo)' : `usos ${uses}`}</small>
           </button>
           {st.berserker && (
             <button type="button" className="fv-rage-go is-frenzy" disabled={noUses} onClick={() => start(true)} title="Frenesi: ataque corpo a corpo extra como ação bônus em cada turno; ao fim da Fúria, 1 nível de exaustão">
@@ -61,7 +62,7 @@ export function RagePanel({ char }: { char: Character }) {
           onClick={() => store.setMark(char.id, 'reckless', !st.reckless)}
           title="No primeiro ataque do turno: vantagem nos seus ataques corpo a corpo com FOR neste turno, mas ataques contra você têm vantagem até o seu próximo turno."
         >
-          {st.reckless ? '✓ ' : ''}Ataque Imprudente
+          {st.reckless ? <><InlineIcon name="check" /> </> : ''}Ataque Imprudente
           <small>{st.reckless ? 'vantagem nos seus ataques de FOR · inimigos com vantagem em você' : 'vantagem em ataques corpo a corpo com FOR neste turno'}</small>
         </button>
       )}

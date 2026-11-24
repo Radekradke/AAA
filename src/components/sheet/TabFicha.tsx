@@ -13,7 +13,7 @@ import { TOOLS, TOOL_GROUP_LABELS, toolLabel } from '@/data/tools';
 import { modStr } from '@/engine/dice';
 import { expertiseSlots } from '@/engine/levelUp';
 import { calculateToolCheck } from '@/engine/toolCheck';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { raceTraitInfo } from '@/data/raceTraits';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { abilityLore, savingThrowLore, skillLore, calcLore, passiveLore } from '@/lib/lore';
@@ -123,7 +123,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   <span className="fv-ficha-skill-ab" style={{ color: ink(ABILITY_COLORS[sk.ability]) }}>{ABILITY_SHORT[sk.ability]}</span>
                   {sk.label}
                   <b className="fv-ficha-skill-bonus">{modStr(sk.bonus)}</b>
-                  {sk.expertise && <span className="fv-ficha-skill-x2">★×2</span>}
+                  {sk.expertise && <span className="fv-ficha-skill-x2"><InlineIcon name="starFill" size={11} />×2</span>}
                   {sk.disadvantage && <span className="fv-disadv" title={`Desvantagem: ${sk.disadvantage}`}>desv.</span>}
                 </button>
               </LoreTooltip>
@@ -188,7 +188,7 @@ export function TabFicha({ char, derived }: TabProps) {
                       className={'fv-ficha-tool-x' + (tool.expertise ? ' is-on' : '')}
                       aria-pressed={!!tool.expertise}
                     >
-                      {tool.expertise ? '★ Expertise' : 'Expertise'}
+                      {tool.expertise ? <><InlineIcon name="starFill" size={12} /> Expertise</> : 'Expertise'}
                     </button>
                   )}
                   <button
@@ -198,7 +198,7 @@ export function TabFicha({ char, derived }: TabProps) {
                   >
                     <Icon name="d20" size={13} /> {modStr(chk.total)}
                   </button>
-                  <button className="fv-chip-remove fv-ficha-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`}>✕</button>
+                  <button className="fv-chip-remove fv-ficha-remove" onClick={() => store.removeToolProf(char.id, tool.id)} aria-label={`Remover ${tool.label}`}><InlineIcon name="close" /></button>
                 </div>
               );
             })}
@@ -243,7 +243,7 @@ export function TabFicha({ char, derived }: TabProps) {
                 <span key={lang} className="fv-chip fv-ficha-chip">
                   {lang}
                   {extra && (
-                    <button className="fv-chip-remove fv-ficha-remove is-sm" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`}>✕</button>
+                    <button className="fv-chip-remove fv-ficha-remove is-sm" onClick={() => store.removeLanguage(char.id, lang)} aria-label={`Remover ${lang}`}><InlineIcon name="close" /></button>
                   )}
                 </span>
               );

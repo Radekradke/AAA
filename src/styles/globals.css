@@ -659,12 +659,15 @@ button:active:not(:disabled) {
     color: var(--ink);
   }
   .fv-lore-props li::before {
-    content: '◆' / '';
+    content: '' / '';
     position: absolute;
     left: 0;
-    top: 1px;
-    font-size: 8px;
-    color: var(--gold);
+    top: 6px;
+    width: 7px;
+    height: 7px;
+    background: var(--gold);
+    -webkit-mask: var(--svg-diamond) center / contain no-repeat;
+    mask: var(--svg-diamond) center / contain no-repeat;
   }
   .fv-lore-props + .fv-lore-body {
     color: var(--muted);
@@ -1177,4 +1180,16 @@ button:active:not(:disabled) {
   .fv-topnav button {
     transition: none;
   }
+}
+
+/* ícone SVG no meio do texto (InlineIcon), no lugar dos caracteres ✓ ✕ ★… */
+.fv-ico {
+  display: inline-block;
+  vertical-align: -0.15em;
+}
+
+/* desenhos do fundo animado (RuneDrift): um brilho na cor do próprio desenho */
+.fv-drift-glyph {
+  display: block;
+  filter: drop-shadow(0 0 6px currentColor);
 }

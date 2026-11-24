@@ -2,6 +2,7 @@ import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { errorReport, isChunkLoadError, isOffline, reloadOnceForStaleChunk, reportError } from '@/lib/errorReporter';
 import type { ErrorEntry } from '@/lib/errorReporter';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface Props {
   children: ReactNode;
@@ -72,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <div className="fv-crash" role="alert">
         <div className="fv-crash-card">
           <span className="fv-crash-sigil" aria-hidden>
-            ✦
+            <InlineIcon name="sparkle" size={28} />
           </span>
           <h1>{offline ? 'Sem internet' : stale ? 'O app foi atualizado' : 'Algo deu errado nesta tela'}</h1>
           <p>
@@ -100,7 +101,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <summary>Detalhes técnicos</summary>
               <pre>{error.message}</pre>
               <button type="button" className="fv-textlink" onClick={() => void this.copy()}>
-                {copied ? 'Copiado ✓' : 'Copiar relatório'}
+                {copied ? <>Copiado <InlineIcon name="check" /></> : 'Copiar relatório'}
               </button>
             </details>
           )}

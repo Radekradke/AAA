@@ -1,3 +1,4 @@
+import type { IconName } from '@/components/ui/Icon';
 /**
  * Trilha sonora: músicas medievais e de fantasia publicadas no OpenGameArt
  * sob CC0 (domínio público — uso livre, inclusive comercial, sem exigir
@@ -54,10 +55,10 @@ export const TRACKS: Track[] = [
   { id: 'silencio', title: 'Silêncio Frio', mood: 'drama', file: '/music/silencio-frio.mp3', author: 'Eponasoft', source: OGA + 'cold-silence' },
 ];
 
-export const MOODS: { id: MusicMood; label: string; icon: string; hint: string }[] = [
-  { id: 'taverna', label: 'Taverna', icon: '🍺', hint: 'Cidade, descanso, conversa' },
-  { id: 'aventura', label: 'Aventura', icon: '🧭', hint: 'Viagem e exploração' },
-  { id: 'combate', label: 'Combate', icon: '⚔️', hint: 'Toca sozinho ao rolar iniciativa' },
-  { id: 'masmorra', label: 'Masmorra', icon: '🗝️', hint: 'Cavernas, ruínas e suspense' },
-  { id: 'drama', label: 'Drama', icon: '🕯️', hint: 'Perdas e momentos solenes' },
+export const MOODS: { id: MusicMood; label: string; icon: IconName; hint: string }[] = [
+  { id: 'taverna', label: 'Taverna', icon: 'mug', hint: 'Cidade, descanso, conversa' },
+  { id: 'aventura', label: 'Aventura', icon: 'compass', hint: 'Viagem e exploração' },
+  { id: 'combate', label: 'Combate', icon: 'swords', hint: 'Toca sozinho ao rolar iniciativa' },
+  { id: 'masmorra', label: 'Masmorra', icon: 'key', hint: 'Cavernas, ruínas e suspense' },
+  { id: 'drama', label: 'Drama', icon: 'candle', hint: 'Perdas e momentos solenes' },
 ];

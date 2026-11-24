@@ -8,6 +8,7 @@ import type { SharedHero } from '@/components/session/MasterDeck';
 import type { Handout } from '@/types/stage';
 import { canDeliver, recipientsText, toggleRecipient } from '@/lib/handoutRecipients';
 import '@/styles/stage.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Jogadores da mesa (dono → nomes dos heróis) para escolher quem recebe. */
 function usePlayers(heroes: SharedHero[]) {
@@ -117,7 +118,7 @@ export function HandoutDesk({ campaignId, heroes }: { campaignId: string; heroes
         {st.handouts.map((h) => (
           <li key={h.id} className={h.shownAt ? 'is-shown' : ''}>
             <button type="button" className="fv-handout-open" onClick={() => setOpen(h)}>
-              {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden>✉</span>}
+              {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden><InlineIcon name="mail" size={22} /></span>}
               <span>
                 <b>{h.title}</b>
                 <small>{h.shownAt ? `Entregue a ${nameOf(h.recipients)}` : 'Na gaveta'}</small>
@@ -162,7 +163,7 @@ export function HandoutInbox() {
         {got.map((h) => (
           <li key={h.id}>
             <button type="button" className="fv-handout-open" onClick={() => setOpen(h)}>
-              {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden>✉</span>}
+              {h.imagePath ? <HandoutThumb path={h.imagePath} /> : <span className="fv-handout-seal" aria-hidden><InlineIcon name="mail" size={22} /></span>}
               <span>
                 <b>{h.title}</b>
                 <small>{h.recipients ? 'Só para você' : 'Para a mesa'}</small>

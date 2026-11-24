@@ -2,14 +2,15 @@ import { Modal } from '@/components/ui/Modal';
 import { useTheme } from '@/lib/useTheme';
 import { hexA } from '@/lib/color';
 import { SUPPORT, isConfigured } from '@/lib/support';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Convite discreto para apoiar o projeto (Apoia.se e GitHub Sponsors). */
 export function SupportModal({ onClose }: { onClose: () => void }) {
   const t = useTheme();
 
   const links = [
-    { key: 'apoiase', url: SUPPORT.apoiase, label: 'Apoiar no Apoia.se', desc: 'Apoio mensal recorrente', color: t.gold, icon: '❤' },
-    { key: 'gh', url: SUPPORT.githubSponsors, label: 'GitHub Sponsors', desc: 'Patrocinar pelo GitHub', color: t.acc, icon: '✦' },
+    { key: 'apoiase', url: SUPPORT.apoiase, label: 'Apoiar no Apoia.se', desc: 'Apoio mensal recorrente', color: t.gold, icon: 'heart' as const },
+    { key: 'gh', url: SUPPORT.githubSponsors, label: 'GitHub Sponsors', desc: 'Patrocinar pelo GitHub', color: t.acc, icon: 'sparkle' as const },
   ].filter((l) => isConfigured(l.url));
 
   return (
@@ -17,7 +18,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
       <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.6, color: 'var(--muted)' }}>
         A Ficha Viva é gratuita e feita com carinho. Se ela deixou suas mesas mais bonitas,
         um apoio ajuda a manter o projeto vivo, pagar a hospedagem e trazer novidades. Qualquer
-        valor faz diferença — obrigado! ♥
+        valor faz diferença — obrigado! <InlineIcon name="heart" size={12} />
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -34,7 +35,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
               transition: '.2s',
             }}
           >
-            <span style={{ fontSize: 20, color: l.color }}>{l.icon}</span>
+            <span style={{ fontSize: 20, color: l.color }}><InlineIcon name={l.icon} size={20} /></span>
             <span style={{ flex: 1 }}>
               <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{l.label}</span>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>{l.desc}</span>

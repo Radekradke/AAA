@@ -156,7 +156,7 @@ test('Diário: Pistas — anexar imagem, verificar, ligar à missão e investiga
   await expect(dialog.getByRole('textbox', { name: 'Nome da pista' })).toHaveValue('Carta lacrada');
   await expect(dialog.getByRole('textbox', { name: 'Fonte da pista' })).toHaveValue('Entregue pelo mestre');
   await dialog.getByRole('button', { name: 'Pronto' }).click();
-  await expect(page.getByRole('button', { name: 'Abrir pista: Carta lacrada' })).toContainText('✓ nas pistas');
+  await expect(page.getByRole('button', { name: 'Abrir pista: Carta lacrada' })).toContainText('nas pistas');
   await expect(page.getByRole('tab', { name: /Pistas/ })).toContainText('1'); // uma a verificar
 
   // filtro por situação

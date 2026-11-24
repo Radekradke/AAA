@@ -7,6 +7,7 @@ import { gridFromColumns } from '@/engine/grid';
 import { DEFAULT_GRID } from '@/types/stage';
 import type { CutsceneBeat, GridConfig, Scene, SceneKind } from '@/types/stage';
 import '@/styles/stage.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const KINDS: { kind: SceneKind; title: string; hint: string }[] = [
   { kind: 'map', title: 'Mapa tático', hint: 'Grade de 1,5 m, peões e régua de movimento' },
@@ -83,7 +84,7 @@ function SceneThumb({ scene }: { scene: Scene }) {
   const { url } = useMediaUrl(path);
   return (
     <div className={`fv-scene-thumb is-${scene.kind}`} style={url ? { backgroundImage: `url("${url}")` } : undefined} aria-hidden>
-      {!url && (scene.kind === 'map' ? '#' : scene.kind === 'cutscene' ? '▶' : '◐')}
+      {!url && (scene.kind === 'map' ? '#' : scene.kind === 'cutscene' ? <InlineIcon name="play" size={18} /> : <InlineIcon name="half" size={18} />)}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import type { TabProps } from './tabProps';
 import { AmmoBadge, AttackActions, CritBadge, ExtraAttackNote } from './AttackActions';
 import { ActiveEffects } from './ActiveEffects';
 import { Panel } from '@/components/ui/Panel';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { characterResources } from '@/engine/classResources';
 import { casterOf, grantedSpells, syncSpellSlots } from '@/engine/spellcasting';
@@ -196,7 +196,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                 aria-pressed={used}
                 onClick={() => store.toggleTurn(char.id, d.k)}
               >
-                {used && <i className="fv-tick" aria-hidden>✓ </i>}
+                {used && <i className="fv-tick" aria-hidden><InlineIcon name="check" /> </i>}
                 {d.label}
               </button>
             );
@@ -209,7 +209,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
             className="fv-mesa-newturn"
             onClick={() => store.resetTurn(char.id)}
           >
-            <span aria-hidden>↺ </span>Novo turno
+            <span aria-hidden><InlineIcon name="refresh" /> </span>Novo turno
           </button>
         </div>
       </Panel>
@@ -278,7 +278,7 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
                       onClick={() => store.toggleCondition(char.id, c)}
                       aria-label={`Remover ${c}`}
                     >
-                      ✕
+                      <InlineIcon name="close" size={12} />
                     </button>
                   </div>
                 </LoreTooltip>

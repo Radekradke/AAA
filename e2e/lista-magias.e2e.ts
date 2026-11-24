@@ -54,6 +54,6 @@ test.describe('lista de magias', () => {
     await expect(row(page, 'Luz')).toHaveCount(0);
     await page.getByRole('textbox', { name: 'Buscar magia' }).fill('');
     await expect(row(page, 'Armadura Arcana').locator('.fv-spell-name')).toHaveText('Armadura Arcana');
-    await expect(page.locator('.fv-spell-list', { hasText: '✓ automática' })).toHaveCount(0);
+    await expect(page.locator('.fv-spell-list', { hasText: 'automática' })).toHaveCount(0);
   });
 });

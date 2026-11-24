@@ -14,7 +14,7 @@ import { deriveCharacter } from '@/engine/dndRules';
 import { damageExpr } from '@/engine/combat';
 import { modStr, roll } from '@/engine/dice';
 import { isWeaponProficient, proficienciesOf } from '@/engine/proficiencies';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import { ItemTip, itemInfo, joinNodes } from '@/components/inventory/ItemTip';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
 import { BG_ITEMS } from '@/engine/characterBuilder';
@@ -137,7 +137,7 @@ export function StepGear({ char, update }: StepProps) {
                 ))}
               </div>
             )}
-            {strShort && <p className="fv-kit-warn">⚠ {armor!.name} pede FOR {strReq}: com FOR {derived.abilities.str.total} o deslocamento cai 3 m.</p>}
+            {strShort && <p className="fv-kit-warn"><InlineIcon name="warning" /> {armor!.name} pede FOR {strReq}: com FOR {derived.abilities.str.total} o deslocamento cai 3 m.</p>}
           </>
         )}
 

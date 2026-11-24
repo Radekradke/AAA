@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useMediaUrl } from '@/services/mediaService';
 import { liveScene, useStageStore } from '@/store/stageStore';
 import '@/styles/stage.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Cutscene no ar: tela cheia, imagem com zoom lento de cinema e a narração
@@ -43,7 +44,7 @@ export function CutsceneOverlay({ isMaster }: { isMaster: boolean }) {
       <div className="fv-cut-bars" aria-hidden />
       <div className="fv-cut-top">
         <span>{scene.name}</span>
-        <button type="button" onClick={() => st.dismissCutscene(key)}>{isMaster ? 'Minimizar' : 'Minimizar ✕'}</button>
+        <button type="button" onClick={() => st.dismissCutscene(key)}>{isMaster ? 'Minimizar' : <>Minimizar <InlineIcon name="close" size={12} /></>}</button>
       </div>
       <div className="fv-cut-text">
         <Typewriter key={`${scene.id}-${i}`} text={beat.text} />
@@ -54,11 +55,11 @@ export function CutsceneOverlay({ isMaster }: { isMaster: boolean }) {
         </div>
         {isMaster ? (
           <div className="fv-cut-ctl">
-            <button type="button" className="fv-btn-ghost" disabled={i === 0 || st.busy} onClick={() => void st.setBeat(i - 1)}>◀</button>
+            <button type="button" className="fv-btn-ghost" disabled={i === 0 || st.busy} onClick={() => void st.setBeat(i - 1)} aria-label="Quadro anterior"><InlineIcon name="prev" /></button>
             {last ? (
               <button type="button" className="fv-btn-gold" disabled={st.busy} onClick={() => void st.goLive(null)}>Encerrar cutscene</button>
             ) : (
-              <button type="button" className="fv-btn-gold" disabled={st.busy} onClick={() => void st.setBeat(i + 1)}>Próximo quadro ▶</button>
+              <button type="button" className="fv-btn-gold" disabled={st.busy} onClick={() => void st.setBeat(i + 1)}>Próximo quadro <InlineIcon name="play" size={11} /></button>
             )}
           </div>
         ) : (

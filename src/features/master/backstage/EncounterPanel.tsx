@@ -5,6 +5,7 @@ import { EncounterDifficulty, XpAward, heroCombatant } from '@/components/sessio
 import { useMasterStore } from '../masterStore';
 import { useMaster, heroName } from '../context';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * ENCONTRO: os dois caminhos valem igual — preparar com nome e heróis, ou
@@ -73,7 +74,7 @@ export function EncounterPanel() {
             const added = inFight.has(h.share.sheetId);
             return (
               <button key={h.share.id} type="button" className={'fv-live-chip' + (added ? ' is-on' : '')} disabled={added || s.busy} onClick={() => void s.addCombatant(heroCombatant(h))}>
-                {added ? '✓ ' : '+ '}
+                {added ? <><InlineIcon name="check" /> </> : '+ '}
                 {heroName(h)}
               </button>
             );

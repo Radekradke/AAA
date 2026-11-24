@@ -13,6 +13,7 @@ import { useMasterStore } from '../masterStore';
 import { addToEncounter } from '../actions';
 import { NoteInput } from '../backstage/MasterNotesPanel';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * CRIAÇÃO RÁPIDA — reagir ao que a mesa inventou em poucos segundos.
@@ -172,7 +173,7 @@ export function QuickHandout({ onDone }: FormProps) {
       <input className="fv-input" autoFocus placeholder="Título (ex.: Pedaço de carta)" value={title} maxLength={80} onChange={(e) => setTitle(e.target.value)} required />
       <textarea className="fv-input" rows={3} placeholder={'"...o carregamento chegará durante a lua nova."'} value={body} maxLength={4000} onChange={(e) => setBody(e.target.value)} />
       <label className="fv-quick-file">
-        {file ? `🖼 ${file.name}` : '＋ Imagem (opcional)'}
+        {file ? <><InlineIcon name="image" /> {file.name}</> : '＋ Imagem (opcional)'}
         <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       </label>
       <div className="fv-ins-recips" role="group" aria-label="Mostrar para">
@@ -280,7 +281,7 @@ export function QuickNote({ onDone }: FormProps) {
   return (
     <div className="fv-quick-form">
       <NoteInput autoFocus onDone={onDone} />
-      <small className="fv-bs-hint">🔒 Privada. Enter salva · Shift+Enter quebra a linha.</small>
+      <small className="fv-bs-hint"><InlineIcon name="lock" size={12} /> Privada. Enter salva · Shift+Enter quebra a linha.</small>
     </div>
   );
 }

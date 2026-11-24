@@ -10,6 +10,7 @@ import { heroAvatar } from '@/lib/summary';
 import { COINS, fmtM, usePrintData } from './printData';
 import '@/styles/sheet-illustrated.css';
 import { syncHitDicePools } from '@/engine/hitDice';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -117,8 +118,8 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
           <div className="fv-ills-cell">
             <span className="fv-ills-k">Contra a morte</span>
             <span className="fv-ills-death">
-              <span>✓</span><Pips n={3} used={blank ? 0 : (char.combat?.deathSaves.success ?? 0)} label="Sucessos" />
-              <span>✗</span><Pips n={3} used={blank ? 0 : (char.combat?.deathSaves.fail ?? 0)} label="Falhas" />
+              <span><InlineIcon name="check" size={11} /></span><Pips n={3} used={blank ? 0 : (char.combat?.deathSaves.success ?? 0)} label="Sucessos" />
+              <span><InlineIcon name="close" size={11} /></span><Pips n={3} used={blank ? 0 : (char.combat?.deathSaves.fail ?? 0)} label="Falhas" />
             </span>
           </div>
           <div className="fv-ills-cell">

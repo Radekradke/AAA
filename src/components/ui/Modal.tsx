@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from './Icon';
 import type { IconName } from './Icon';
 import { useDialogFocus } from '@/lib/useDialogFocus';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface ModalProps {
   title: ReactNode;
@@ -56,7 +57,7 @@ export function Modal({ title, icon, onClose, children, footer, maxWidth = 620, 
               {title}
             </h2>
           </div>
-          <button key={nudge} className={'fv-modal-close' + (nudge ? ' is-nudge' : '')} onClick={onClose} aria-label="Fechar" title="Fechar">✕</button>
+          <button key={nudge} className={'fv-modal-close' + (nudge ? ' is-nudge' : '')} onClick={onClose} aria-label="Fechar" title="Fechar"><InlineIcon name="close" /></button>
         </div>
         <div className="fv-modal-body fv-no-scrollbar" style={bodyStyle}>{children}</div>
         {footer && <div className="fv-modal-foot">{footer}</div>}

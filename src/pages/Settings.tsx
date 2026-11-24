@@ -2,7 +2,7 @@ import { WebhookField, WebhookHowTo } from '@/components/campaign/DiscordCard';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/components/layout/Screen';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { ThemeGrid } from '@/components/layout/ThemePickerModal';
 import { PackList } from '@/components/layout/ContentPacksModal';
@@ -177,7 +177,7 @@ export function Settings() {
           </Row>
           <Row title="Trilha sonora" hint={m.track ? `Tocando: ${m.track.title}` : 'Música medieval livre (CC0). Só toca quando você manda.'}>
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => music.toggle()}>
-              {m.playing ? '❚❚ Pausar' : '▶ Tocar'}
+              {m.playing ? <><InlineIcon name="pause" /> Pausar</> : <><InlineIcon name="play" /> Tocar</>}
             </button>
           </Row>
           <Row title="Ambiente" hint="Combate toca sozinho ao rolar iniciativa.">

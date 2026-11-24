@@ -2,6 +2,7 @@ import type { ChoiceOption } from '@/data/classChoices';
 import type { ReplacePick } from '@/engine/classChoices';
 import { choiceOptionLore } from '@/lib/lore';
 import { LoreTooltip } from '@/components/ui/LoreTooltip';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface ChoicePickerProps {
   label: string;
@@ -43,7 +44,7 @@ export function ChoicePicker({ label, hint, source, options, taken, need, value,
         </div>
         {need > 0 ? (
           <span className={'fv-choice-picker-count' + (done ? ' is-done' : '')}>
-            {done ? '✓ ' : ''}
+            {done ? <><InlineIcon name="check" /> </> : ''}
             {value.length} de {need}
           </span>
         ) : (

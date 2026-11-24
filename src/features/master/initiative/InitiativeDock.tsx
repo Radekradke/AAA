@@ -9,6 +9,7 @@ import { heroTitle } from '@/engine/titles';
 import { tableHero } from '@/lib/tableHeroes';
 import type { Combatant } from '@/types/session';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /** Título do herói (ficha compartilhada da mesa). */
 const titleOf = (c: Combatant) => (c.type === 'player' ? heroTitle(tableHero(c.sheetId)) : null);
@@ -103,13 +104,13 @@ export function InitiativeDock() {
         {enc.status === 'active' && (
           <>
             <button type="button" className="fv-btn-ghost fv-initdock-btn" disabled={s.busy} onClick={() => void s.prevTurn()} aria-label="Turno anterior" title="Turno anterior (Alt+,)" aria-keyshortcuts="Alt+Comma">
-              ◀
+              <InlineIcon name="prev" />
             </button>
             <button type="button" className="fv-btn-gold fv-initdock-main" disabled={s.busy} onClick={() => void s.nextTurn()} title="Próximo turno (Alt+.)" aria-keyshortcuts="Alt+Period">
-              Próximo ▶
+              Próximo <InlineIcon name="play" size={11} />
             </button>
             <button type="button" className="fv-btn-ghost fv-initdock-btn" disabled={s.busy} onClick={() => void s.setEncounterStatus('paused')} aria-label="Pausar combate" title="Pausar">
-              ❚❚
+              <InlineIcon name="pause" />
             </button>
           </>
         )}
@@ -126,7 +127,7 @@ export function InitiativeDock() {
           title="Encerrar encontro"
           onClick={async () => (await confirmAction({ title: 'Encerrar este encontro?', message: 'A sessão continua aberta.', confirmLabel: 'Encerrar', danger: true })) && void s.setEncounterStatus('finished')}
         >
-          ✕
+          <InlineIcon name="close" />
         </button>
       </div>
     </div>

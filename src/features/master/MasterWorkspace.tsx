@@ -19,6 +19,7 @@ import { InitiativeDock } from './initiative/InitiativeDock';
 import { MasterQuickBar } from './quick/MasterQuickBar';
 import '@/styles/master.css';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 interface Props {
   campaign: Campaign;
@@ -147,7 +148,7 @@ function DrawerClose() {
   const setDrawer = useMasterStore((m) => m.setDrawer);
   return (
     <button type="button" className="fv-mw-close" onClick={() => setDrawer(null)}>
-      Fechar ✕
+      Fechar <InlineIcon name="close" size={12} />
     </button>
   );
 }

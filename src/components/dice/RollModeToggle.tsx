@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import type { RollMode } from '@/store/uiStore';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon, type IconName } from '@/components/ui/Icon';
 
 interface ModeDef {
   id: RollMode;
   label: string;
-  symbol: string;
+  symbol: IconName;
   /** Cor (variável de tema) quando o modo está ligado. */
   color: string;
   rule: string;
@@ -17,7 +17,7 @@ const MODES: ModeDef[] = [
   {
     id: 'advantage',
     label: 'Vantagem',
-    symbol: '▲',
+    symbol: 'triUp',
     color: 'var(--acc)',
     rule: 'Rola 2d20 e fica com o MAIOR.',
     when: 'Quando algo te favorece: atacar um alvo que não te vê, ajuda de um aliado, usar Inspiração.',
@@ -25,7 +25,7 @@ const MODES: ModeDef[] = [
   {
     id: 'normal',
     label: 'Normal',
-    symbol: '●',
+    symbol: 'dot',
     color: 'var(--ink)',
     rule: 'Rola 1d20. O padrão de toda rolagem.',
     when: 'Sempre que o mestre não disser nada em contrário.',
@@ -33,7 +33,7 @@ const MODES: ModeDef[] = [
   {
     id: 'disadvantage',
     label: 'Desvantagem',
-    symbol: '▼',
+    symbol: 'triDown',
     color: 'var(--danger)',
     rule: 'Rola 2d20 e fica com o MENOR.',
     when: 'Quando algo te atrapalha: envenenado, atacar no escuro, alvo longe demais para a arma.',
@@ -82,7 +82,7 @@ export function RollModeToggle() {
       >
         <Icon name="d20" size={15} />
         <span className="fv-rollmode-label">{current.label}</span>
-        <span className="fv-rollmode-caret" aria-hidden>▾</span>
+        <span className="fv-rollmode-caret" aria-hidden><InlineIcon name="caretDown" size={12} /></span>
       </button>
 
       {open && (
@@ -104,7 +104,7 @@ export function RollModeToggle() {
                     setOpen(false);
                   }}
                 >
-                  <span className="fv-rollmode-sym" aria-hidden>{m.symbol}</span>
+                  <span className="fv-rollmode-sym" aria-hidden><InlineIcon name={m.symbol} size={11} /></span>
                   <span className="fv-rollmode-text">
                     <b>{m.label}</b>
                     <span>{m.rule}</span>

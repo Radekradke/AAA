@@ -6,6 +6,7 @@ import { diaryOf, norm } from '@/engine/diary';
 import { useCharacterStore } from '@/store/characterStore';
 import { newId } from '@/store/character/ids';
 import { MentionInput, RichText } from './MentionInput';
+import { InlineIcon } from '@/components/ui/Icon';
 
 export const NOTE_COLORS: { id: DiaryNoteColor; label: string }[] = [
   { id: 'gold', label: 'Ouro' },
@@ -138,10 +139,10 @@ export function DiaryNotes({ char, people, places, query }: { char: Character; p
                 <small>{when(n.at)}</small>
                 <span className="fv-note-actions">
                   <button type="button" aria-pressed={!!n.pinned} title={n.pinned ? 'Desafixar' : 'Fixar no topo'} onClick={() => patch(n.id, { pinned: !n.pinned })}>
-                    {n.pinned ? '★' : '☆'}
+                    {n.pinned ? <InlineIcon name="starFill" /> : <InlineIcon name="star" />}
                   </button>
                   <button type="button" aria-pressed={!!n.done} title={n.done ? 'Reabrir' : 'Resolvida'} onClick={() => patch(n.id, { done: !n.done })}>
-                    ✓
+                    <InlineIcon name="check" />
                   </button>
                   <button
                     type="button"
@@ -151,12 +152,12 @@ export function DiaryNotes({ char, people, places, query }: { char: Character; p
                       patch(n.id, { color: i === NOTE_COLORS.length - 1 ? undefined : NOTE_COLORS[i + 1].id });
                     }}
                   >
-                    ◐
+                    <InlineIcon name="half" />
                   </button>
                   {editing === n.id ? (
                     <button type="button" title="Pronto" onClick={() => setEditing(null)}>OK</button>
                   ) : (
-                    <button type="button" title="Apagar" aria-label="Apagar rabisco" onClick={() => remove(n.id)}>✕</button>
+                    <button type="button" title="Apagar" aria-label="Apagar rabisco" onClick={() => remove(n.id)}><InlineIcon name="close" /></button>
                   )}
                 </span>
               </div>
@@ -164,7 +165,7 @@ export function DiaryNotes({ char, people, places, query }: { char: Character; p
           ))}
         </ul>
       ) : (
-        <p className="fv-diary-empty">{q ? 'Nenhum rabisco com essa busca.' : 'Nada anotado ainda. Use o campo acima — ou o botão ✎ Anotar, de qualquer aba da ficha.'}</p>
+        <p className="fv-diary-empty">{q ? 'Nenhum rabisco com essa busca.' : 'Nada anotado ainda. Use o campo acima — ou o botão Anotar, de qualquer aba da ficha.'}</p>
       )}
 
       {doneCount > 0 && !q && (

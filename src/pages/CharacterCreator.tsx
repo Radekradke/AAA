@@ -32,6 +32,7 @@ import { getClass } from '@/data/classes';
 import { GlyphIcon } from '@/components/character/RaceIcon';
 import '@/styles/concept-entry.css';
 import '@/styles/creator.css';
+import { InlineIcon } from '@/components/ui/Icon';
 
 
 export function CharacterCreator() {
@@ -199,7 +200,7 @@ export function CharacterCreator() {
               <button key={c.id} type="button" aria-pressed={c.id === conceptId} onClick={() => setConceptId(c.id)}>
                 <GlyphIcon name={`class-${c.classId}`} size={24} />
                 <span><b>{c.title}</b><small>{getClass(c.classId).label}</small></span>
-                <span aria-hidden>{c.id === conceptId ? '✓' : '›'}</span>
+                <span aria-hidden>{c.id === conceptId ? <InlineIcon name="check" /> : '›'}</span>
               </button>
             ))}
           </div>
@@ -232,7 +233,7 @@ export function CharacterCreator() {
                   className={step === i ? 'is-current' : i < step ? 'is-done' : ''}
                   onClick={() => goStep(i)}
                 >
-                  <span className="fv-rail-mark" aria-hidden>{i < step ? '✓' : n + 1}</span>
+                  <span className="fv-rail-mark" aria-hidden>{i < step ? <InlineIcon name="check" size={13} /> : n + 1}</span>
                   {CREATION_STEPS[i].label}
                 </button>
               </li>

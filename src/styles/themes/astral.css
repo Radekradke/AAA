@@ -109,10 +109,15 @@
   color: var(--acc2);
 }
 [data-theme='astral'] .fv-panel .fv-label::before {
-  content: '✦' / ''; /* enfeite: o leitor de tela não lê */
+  content: '' / ''; /* enfeite: o leitor de tela não lê */
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
   margin-right: 0.6em;
-  color: var(--acc);
-  letter-spacing: 0;
+  vertical-align: -0.1em;
+  background: var(--acc);
+  -webkit-mask: var(--svg-sparkle) center / contain no-repeat;
+  mask: var(--svg-sparkle) center / contain no-repeat;
 }
 
 /* ---------- botões: cápsulas, o principal tem o pôr do sol ---------- */
@@ -355,7 +360,7 @@
   box-shadow: 0 0 0 1px var(--acc2), 0 14px 30px -16px color-mix(in srgb, var(--acc2), transparent 30%);
 }
 [data-theme='astral'] .fv-option.is-selected::after {
-  color: var(--acc2);
+  background: var(--acc2);
 }
 [data-theme='astral'] .fv-step-head h2 {
   font-weight: 400;

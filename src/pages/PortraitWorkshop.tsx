@@ -131,7 +131,7 @@ export function PortraitWorkshop() {
                   return (
                     <span key={g.id} className={'fv-workshop-slot' + (existing[k] ? ' is-ok' : pending ? ' is-new' : '')}>
                       {existing[k] ? <img src={existing[k]} alt="" /> : null}
-                      {g.id === 'masc' ? 'M' : 'F'} {existing[k] ? '✔' : pending ? 'novo' : 'falta'}
+                      {g.id === 'masc' ? 'M' : 'F'} {existing[k] ? 'ok' : pending ? 'novo' : 'falta'}
                     </span>
                   );
                 })}

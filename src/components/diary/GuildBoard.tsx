@@ -7,6 +7,7 @@ import { newId } from '@/store/character/ids';
 import { Modal } from '@/components/ui/Modal';
 import { MentionInput, RichText } from './MentionInput';
 import { useDiaryFocus, useDiaryNav } from './DiaryNav';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const PRIORITY_LABEL: Record<NonNullable<DiaryQuest['priority']>, string> = { high: 'Urgente', normal: 'Normal', low: 'Quando der' };
 
@@ -131,8 +132,8 @@ export function GuildBoard({ char, people, places, query }: { char: Character; p
                         {x.giver && <small>pedida por {x.giver.replace(/@/g, '')}</small>}
                         {(x.reward || x.deadline) && (
                           <span className="fv-quest-meta">
-                            {x.reward && <span>💰 {x.reward}</span>}
-                            {x.deadline && <span>⏳ {x.deadline}</span>}
+                            {x.reward && <span><InlineIcon name="coins" size={12} /> {x.reward}</span>}
+                            {x.deadline && <span><InlineIcon name="hourglass" size={12} /> {x.deadline}</span>}
                           </span>
                         )}
                         {pr.total > 0 && (
@@ -143,9 +144,9 @@ export function GuildBoard({ char, people, places, query }: { char: Character; p
                         )}
                       </button>
                       <span className="fv-quest-move">
-                        <button type="button" disabled={i === 0} aria-label={`Mover para ${QUEST_COLUMNS[i - 1]?.label}`} title={QUEST_COLUMNS[i - 1] ? `← ${QUEST_COLUMNS[i - 1].label}` : undefined} onClick={() => move(x.id, QUEST_COLUMNS[i - 1].id)}>◀</button>
+                        <button type="button" disabled={i === 0} aria-label={`Mover para ${QUEST_COLUMNS[i - 1]?.label}`} title={QUEST_COLUMNS[i - 1] ? `← ${QUEST_COLUMNS[i - 1].label}` : undefined} onClick={() => move(x.id, QUEST_COLUMNS[i - 1].id)}><InlineIcon name="prev" size={12} /></button>
                         {x.priority === 'high' && <span className="fv-quest-flag">Urgente</span>}
-                        <button type="button" disabled={i === QUEST_COLUMNS.length - 1} aria-label={`Mover para ${QUEST_COLUMNS[i + 1]?.label}`} title={QUEST_COLUMNS[i + 1] ? `${QUEST_COLUMNS[i + 1].label} →` : undefined} onClick={() => move(x.id, QUEST_COLUMNS[i + 1].id)}>▶</button>
+                        <button type="button" disabled={i === QUEST_COLUMNS.length - 1} aria-label={`Mover para ${QUEST_COLUMNS[i + 1]?.label}`} title={QUEST_COLUMNS[i + 1] ? `${QUEST_COLUMNS[i + 1].label} →` : undefined} onClick={() => move(x.id, QUEST_COLUMNS[i + 1].id)}><InlineIcon name="next" size={12} /></button>
                       </span>
                     </article>
                   );
@@ -252,7 +253,7 @@ function QuestDetail({ char, quest, people, places, onClose }: { char: Character
                     <input type="checkbox" checked={o.done} onChange={() => set({ objectives: quest.objectives.map((x) => (x.id === o.id ? { ...x, done: !x.done } : x)) })} />
                     <RichText text={o.text} people={people} />
                   </label>
-                  <button type="button" aria-label={`Tirar objetivo: ${o.text}`} onClick={() => set({ objectives: quest.objectives.filter((x) => x.id !== o.id) })}>✕</button>
+                  <button type="button" aria-label={`Tirar objetivo: ${o.text}`} onClick={() => set({ objectives: quest.objectives.filter((x) => x.id !== o.id) })}><InlineIcon name="close" size={12} /></button>
                 </li>
               ))}
             </ul>

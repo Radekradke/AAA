@@ -10,7 +10,7 @@ test('golpe final: dano de truque aplicado a partir da rolagem do jogador vira f
     type: 'roll', payload: { who: 'Kael Venturo', label: 'Dano · Raio de Fogo', total: 9, expr: '2d10', rolls: [4, 5], crit: false, fail: false, damage: true, sheetId: 'k', cantrip: true },
   });
   await page.goto(`/mesa/${C}/jogar`);
-  const aplicar = page.getByRole('button', { name: 'aplicar ▸' });
+  const aplicar = page.getByRole('button', { name: 'aplicar', exact: true });
   if (!(await aplicar.isVisible())) await page.getByRole('tab', { name: /Sessão/ }).click();
   await aplicar.click();
   await page.getByRole('group', { name: 'Aplicar dano em' }).getByRole('button', { name: 'Goblin #1' }).click();

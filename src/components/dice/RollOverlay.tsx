@@ -9,6 +9,7 @@ import { canRoll3d, clear3d, roll3d } from '@/lib/dice3d';
 import { DICE_SKINS } from '@/data/diceSkins';
 import type { DiceSkin } from '@/data/diceSkins';
 import { useCharacterStore } from '@/store/characterStore';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const TUMBLE_MS = 620;
 
@@ -159,7 +160,7 @@ export function RollOverlay() {
               aria-label="Fechar resultado"
               style={{ position: 'absolute', top: 8, right: 8, cursor: 'pointer', width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--sunk)', color: 'var(--muted)', fontSize: 13 }}
             >
-              ✕
+              <InlineIcon name="close" />
             </button>
             <div style={{ fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)' }}>{roll.label}</div>
 

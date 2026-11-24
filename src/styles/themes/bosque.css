@@ -110,8 +110,15 @@
   color: var(--acc);
 }
 [data-theme='verdejante'] .fv-panel .fv-label::before {
-  content: '❧ ';
-  color: var(--acc2);
+  content: '';
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  margin-right: 0.45em;
+  vertical-align: -0.12em;
+  background: var(--acc2);
+  -webkit-mask: var(--svg-leaf) center / contain no-repeat;
+  mask: var(--svg-leaf) center / contain no-repeat;
 }
 
 /* ---------- botões: folhas ---------- */
@@ -337,8 +344,9 @@
   box-shadow: 0 0 0 1px var(--acc), 0 12px 26px -16px var(--acc);
 }
 [data-theme='verdejante'] .fv-option.is-selected::after {
-  content: '❦';
-  color: var(--acc);
+  background: var(--acc);
+  -webkit-mask: var(--svg-leaf) center / contain no-repeat;
+  mask: var(--svg-leaf) center / contain no-repeat;
 }
 [data-theme='verdejante'] .fv-hero-card {
   border-radius: var(--leaf-lg);

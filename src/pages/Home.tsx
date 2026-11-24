@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { prefetchOnIdle } from '@/lib/prefetch';
 import { Screen } from '@/components/layout/Screen';
 import { FichaVivaMark } from '@/components/ui/FichaVivaMark';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/Icon';
 import { useAuthStore } from '@/store/authStore';
 import { lastHeroOf } from '@/lib/lastHero';
@@ -210,7 +210,7 @@ export function Home() {
             ))}
             {hasSupport() && (
               <button type="button" onClick={() => setSupport(true)}>
-                <span aria-hidden>❤</span> Apoiar
+                <span aria-hidden><InlineIcon name="heart" size={13} /></span> Apoiar
               </button>
             )}
           </div>

@@ -3,6 +3,7 @@ import type { KillBy } from '@/store/sessionStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { eventText as text } from '@/lib/combatLog';
 import type { Combatant, SessionEvent } from '@/types/session';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const ChronicleModal = lazy(() => import('./ChronicleModal').then((m) => ({ default: m.ChronicleModal })));
 
@@ -46,7 +47,7 @@ export function EventFeed({ events, targets, onApply }: { events: SessionEvent[]
               {e.visibility === 'private' && <i title="Só você vê">privado</i>}
               {canApply && !done[e.id] && (
                 <button type="button" className="fv-feed-apply" onClick={() => setOpen(open === e.id ? null : e.id)} aria-expanded={open === e.id}>
-                  aplicar ▸
+                  aplicar <InlineIcon name="play" size={9} />
                 </button>
               )}
               {done[e.id] && <em className="fv-feed-done">−{p.total} em {done[e.id]}</em>}

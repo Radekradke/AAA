@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { APP_RELEASE, APP_VERSION, builtAtLabel, checkLatest, updateNow } from '@/lib/appVersion';
 import type { VersionState } from '@/lib/appVersion';
+import { InlineIcon } from '@/components/ui/Icon';
 
 /**
  * Embaixo do menu principal: qual versão está aberta e se já saiu outra.
@@ -36,7 +37,7 @@ export function AppVersion() {
         Versão {APP_RELEASE ? `${APP_RELEASE}${when ? ` · ${when}` : ''}` : when || APP_VERSION}
         {when && sha && <span className="fv-app-version-sha"> · {sha}</span>}
       </span>
-      {state === 'current' && <span className="fv-app-version-state">✓ atualizada</span>}
+      {state === 'current' && <span className="fv-app-version-state"><InlineIcon name="check" /> atualizada</span>}
       {state === 'outdated' && (
         <button type="button" className="fv-app-version-update" onClick={update} disabled={updating}>
           {updating ? 'Atualizando…' : 'Nova versão disponível · atualizar'}

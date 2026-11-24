@@ -41,7 +41,7 @@ describe('crônica em Markdown', () => {
   it('agrupa por encontro e rodada', () => {
     const md = buildChronicle(events, { title: 'Sessão 4' });
     expect(md).toMatch(/^# Sessão 4\n/);
-    expect(md).toContain('## ⚔ Emboscada');
+    expect(md).toContain('## Emboscada');
     expect(md.indexOf('### Rodada 1')).toBeLessThan(md.indexOf('### Rodada 2'));
     expect(md).toContain('Goblin #1 → Kael (CA 17) · Cimitarra 19: acertou — 6');
     expect(md).toContain('Fim do encontro — 2 rodadas');

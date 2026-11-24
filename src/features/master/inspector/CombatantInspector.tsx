@@ -13,6 +13,7 @@ import { useMasterStore } from '../masterStore';
 import { HeroSummary } from './HeroInspector';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
 import { useShallow } from 'zustand/react/shallow';
+import { InlineIcon } from '@/components/ui/Icon';
 
 const QUICK = [-10, -5, -1, 1, 5, 10];
 
@@ -137,7 +138,7 @@ export function CombatantInspector({ c }: { c: Combatant }) {
       <div className="fv-ins-acts">
         {c.type !== 'player' && (
           <button type="button" className={'fv-btn-ghost fv-bs-mini' + (isTarget ? ' is-on' : '')} onClick={() => s.setTarget(isTarget ? null : c.id)}>
-            {isTarget ? '◎ Alvo' : 'Marcar alvo'}
+            {isTarget ? <><InlineIcon name="target" /> Alvo</> : 'Marcar alvo'}
           </button>
         )}
         <button type="button" className="fv-btn-ghost fv-bs-mini" onClick={() => void toggleHiddenWithUndo(c)}>

@@ -4,6 +4,7 @@ import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react';
 import type { LoreInfo } from '@/lib/lore';
 import type { AutomationKind, SpellAutomation } from '@/engine/spellAutomation';
 import { AUTOMATION_KIND_LABEL, AUTOMATION_LEVEL_LABEL } from '@/engine/spellAutomation';
+import { InlineIcon, type IconName } from '@/components/ui/Icon';
 
 interface LoreTooltipProps {
   info: LoreInfo;
@@ -314,7 +315,7 @@ export function AutomationBlock({ a }: { a: SpellAutomation }) {
       <ul>
         {a.lines.map((l) => (
           <li key={l.text} className={`is-${l.kind}`}>
-            <i aria-hidden>{KIND_MARK[l.kind]}</i>
+            <i aria-hidden><InlineIcon name={KIND_MARK[l.kind]} size={12} /></i>
             <span className="fv-sr-only">{AUTOMATION_KIND_LABEL[l.kind]}: </span>
             {l.text}
           </li>
@@ -324,4 +325,4 @@ export function AutomationBlock({ a }: { a: SpellAutomation }) {
   );
 }
 
-const KIND_MARK: Record<AutomationKind, string> = { auto: '✓', roll: '⚄', table: '✋' };
+const KIND_MARK: Record<AutomationKind, IconName> = { auto: 'check', roll: 'die', table: 'hand' };

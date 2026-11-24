@@ -104,7 +104,7 @@ export function SheetPrint({ char }: { char: Character }) {
             </div>
             <div className="fv-print-box">
               <span className="fv-print-k">Testes contra a morte</span>
-              <b className="fv-print-v">✓ {char.combat?.deathSaves.success ?? 0}/3 · ✗ {char.combat?.deathSaves.fail ?? 0}/3</b>
+              <b className="fv-print-v">sucessos {char.combat?.deathSaves.success ?? 0}/3 · falhas {char.combat?.deathSaves.fail ?? 0}/3</b>
             </div>
           </div>
           <div className="fv-print-box">

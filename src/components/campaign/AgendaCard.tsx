@@ -7,7 +7,7 @@ import {
 } from '@/lib/agenda';
 import type { CampaignEvent, Rsvp, RsvpStatus } from '@/lib/agenda';
 import { confirmAction, toast } from '@/store/feedbackStore';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, InlineIcon } from '@/components/ui/Icon';
 import '@/styles/agenda.css';
 
 interface Props {
@@ -227,7 +227,7 @@ function EventHero({
           <span className={'fv-agenda-tag' + (live ? ' is-live' : '')}>{live ? 'Acontecendo agora' : relativeLabel(e.startsAt, now)}</span>
         </div>
         {e.title && <div className="fv-agenda-title">{e.title}</div>}
-        {e.place && <div className="fv-agenda-place">📍 {e.place}</div>}
+        {e.place && <div className="fv-agenda-place"><InlineIcon name="pin" /> {e.place}</div>}
         {e.note && <p className="fv-agenda-note">{e.note}</p>}
 
         <div className="fv-agenda-rsvp" role="group" aria-label="Sua presença">
