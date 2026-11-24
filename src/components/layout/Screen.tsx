@@ -64,6 +64,7 @@ export function Screen({ children, actions, menu, video, posters, videoOpacity, 
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
         className="fv-screen-scroll"
         id="fv-conteudo"
+        role="main"
         tabIndex={-1}
         onScroll={scroll ? onScroll : undefined}
         style={{

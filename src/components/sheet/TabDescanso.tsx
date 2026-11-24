@@ -28,7 +28,7 @@ export function TabDescanso({ char, derived }: TabProps) {
     <div className="animate-riseIn fv-rest">
       {restPreview && <RestPreview char={char} kind={restPreview} onClose={() => setRestPreview(null)} />}
       <Panel full>
-        <div className="fv-label fv-rest-title">Descanso</div>
+        <h2 className="fv-label fv-rest-title">Descanso</h2>
         <div className="fv-rest-kinds">
           <LoreTooltip info={passiveLore('Descanso Curto', '1 hora', 'Permite gastar Dados de Vida para curar e restaura recursos marcados como recarga curta.', ['Descanso', 'Cura'])} anchorStyle={{ display: 'block' }}>
             <button type="button" className="fv-rest-kind" onClick={() => setRestPreview('short')}>
@@ -50,7 +50,7 @@ export function TabDescanso({ char, derived }: TabProps) {
         {/* descanso curto: gastar Dados de Vida aqui mesmo (rola dado + CON e cura) */}
         <div className="fv-rest-dice">
           <div>
-            <b>Dados de Vida</b>
+            <h3 className="fv-rest-dice-title">Dados de Vida</h3>
             <span>
               {Object.values(pools).reduce((n, p) => n + p.remaining, 0)}/{derived.hitDiceMax} · {derived.abilities.con.mod >= 0 ? '+' : '−'} {Math.abs(derived.abilities.con.mod)} CON por dado
             </span>

@@ -109,7 +109,7 @@
   color: var(--acc2);
 }
 [data-theme='astral'] .fv-panel .fv-label::before {
-  content: '✦';
+  content: '✦' / ''; /* enfeite: o leitor de tela não lê */
   margin-right: 0.6em;
   color: var(--acc);
   letter-spacing: 0;

@@ -278,7 +278,7 @@ export function Settings() {
           </Row>
           <Row title="Tutorial" hint="Rever o passo a passo do básico.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={openTutorial}>
-              Abrir
+              Abrir<span className="fv-sr-only"> o tutorial</span>
             </button>
           </Row>
           <Row title="Tours guiados" hint="Mostrar de novo, na próxima vez que abrir, o tour da ficha e o da criação (com holofote sobre a tela).">
@@ -305,7 +305,7 @@ export function Settings() {
           <p className="fv-set-lead">Ferramentas para quando algo não funciona — ou para quem cuida do app.</p>
           <Row title="Diagnóstico da nuvem" hint="Testa a conexão e o login. Use se a nuvem não sincronizar ou o login falhar.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/diagnostico')}>
-              Abrir
+              Abrir<span className="fv-sr-only"> o diagnóstico da nuvem</span>
             </button>
           </Row>
           <Row title="Contador de artes" hint="Para quem faz as artes: quantas imagens já existem de magias, itens, criaturas, retratos e vozes, e o que ainda falta. Conta sozinho a cada versão.">
@@ -320,7 +320,7 @@ export function Settings() {
           )}
           <Row title="Oficina de retratos" hint="Para quem mantém o app: prepara a arte padrão das classes (as imagens que aparecem quando o herói não tem retrato próprio). Para trocar o retrato do SEU herói, use a aba Retrato da ficha.">
             <button type="button" className="fv-btn-ghost fv-set-btn" onClick={() => navigate('/retratos')}>
-              Abrir
+              Abrir<span className="fv-sr-only"> a oficina de retratos</span>
             </button>
           </Row>
         </section>

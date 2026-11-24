@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react';
 import type { LoreInfo } from '@/lib/lore';
@@ -46,9 +46,20 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
   // a dica embrulha um botão (CA, iniciativa, atributo…)? Então o botão abre a dica ao receber o foco
   // (o focus do React sobe) e a âncora não vira uma parada a mais no Tab
   const [wrapsControl, setWrapsControl] = useState(false);
+  // leitor de tela: o botão embrulhado ganha a explicação da dica como descrição (aria-describedby)
+  const descId = useId();
   useLayoutEffect(() => {
-    setWrapsControl(!!anchorRef.current?.querySelector('button, a[href], input, select, textarea, [tabindex]'));
-  }, [children]);
+    const control = anchorRef.current?.querySelector<HTMLElement>('button, a[href], input, select, textarea, [tabindex]');
+    setWrapsControl(!!control);
+    if (!control) return;
+    const own = (control.getAttribute('aria-describedby') ?? '').split(' ').filter((x) => x && x !== descId);
+    control.setAttribute('aria-describedby', [...own, descId].join(' '));
+    return () => {
+      const rest = (control.getAttribute('aria-describedby') ?? '').split(' ').filter((x) => x && x !== descId);
+      if (rest.length) control.setAttribute('aria-describedby', rest.join(' '));
+      else control.removeAttribute('aria-describedby');
+    };
+  }, [children, descId]);
   const tipRef = useRef<HTMLDivElement | null>(null);
   const pointerRef = useRef<Point | null>(null);
   const [open, setOpen] = useState(false);
@@ -229,6 +240,11 @@ export function LoreTooltip({ info, children, anchorStyle, disabled }: LoreToolt
       style={anchorStyle ? { display: 'block', ...anchorStyle } : undefined}
     >
       {children}
+      {wrapsControl && (
+        <span id={descId} hidden>
+          {info.title}: {info.body}
+        </span>
+      )}
     </span>
   );
 

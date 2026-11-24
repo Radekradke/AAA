@@ -474,7 +474,8 @@ export function TabMagias({ char, derived }: TabProps) {
                 </button>
                 {byCircle.map(([lv, spells]) => (
                   <button key={lv} type="button" className={circle === lv ? 'is-on' : ''} aria-pressed={circle === lv} onClick={() => setCircle(circle === lv ? 'all' : lv)}>
-                    {lv === 0 ? 'Truques' : `${lv}º`} <small>{spells.length}</small>
+                    {lv === 0 ? 'Truques' : `${lv}º`}
+                    {lv > 0 && <span className="fv-sr-only"> círculo</span>} <small>{spells.length}</small>
                   </button>
                 ))}
               </div>

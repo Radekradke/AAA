@@ -31,7 +31,7 @@ interface SectionLabelProps {
   style?: CSSProperties;
 }
 
-/** Cabeçalho de seção em Cinzel maiúsculo espaçado. */
+/** Cabeçalho de seção em Cinzel maiúsculo espaçado (um h2: o leitor de tela navega por eles). */
 export function SectionLabel({ children, right, style }: SectionLabelProps) {
   return (
     <div
@@ -44,7 +44,7 @@ export function SectionLabel({ children, right, style }: SectionLabelProps) {
         ...style,
       }}
     >
-      <div className="fv-label">{children}</div>
+      <h2 className="fv-label">{children}</h2>
       {right}
     </div>
   );

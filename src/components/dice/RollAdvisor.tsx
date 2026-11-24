@@ -22,7 +22,7 @@ export function RollAdvisor({ char, derived }: { char: Character; derived: Deriv
     <div>
       <div className="fv-adv-head">
         <Icon name="d20" size={16} color="var(--color-metal)" />
-        <div className="fv-label">O que eu rolo?</div>
+        <h2 className="fv-label">O que eu rolo?</h2>
       </div>
       <div className="fv-adv-hint">Descreva a ação — a ficha indica o teste e o bônus.</div>
 

@@ -98,7 +98,7 @@ test.describe('teclado', () => {
     // a versão guardada é igual à atual: muda a ficha para poder restaurar
     await page.keyboard.press('Escape');
     await page.locator('.fv-sheet-tab', { hasText: 'Jogar' }).click();
-    await page.getByRole('button', { name: '−1' }).first().click();
+    await page.getByRole('button', { name: 'Sofrer 1 de dano' }).first().click();
     await page.getByRole('button', { name: 'Mais opções' }).click();
     await page.getByRole('menuitem', { name: 'Histórico e versões' }).click();
     const restore = dialog.getByRole('button', { name: 'Restaurar esta versão' }).first();

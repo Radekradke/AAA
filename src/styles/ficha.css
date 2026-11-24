@@ -54,6 +54,16 @@
 .fv-ficha-ab.is-prof {
   border-top-color: var(--color-metal);
 }
+/* botão do teste: transparente, cobre a placa (o clip-path corta anel de fora: o anel vai por dentro) */
+.fv-ficha-ab-roll {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.fv-ficha-ab-roll:focus-visible {
+  outline-offset: -4px;
+}
 .fv-ficha-ab-key {
   font-family: var(--font-display);
   font-size: var(--text-2xs);
@@ -91,6 +101,10 @@
   color: var(--color-text);
 }
 .fv-ficha-save {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
   margin-top: 7px;
   font-size: 10px;
   font-family: var(--font-num);

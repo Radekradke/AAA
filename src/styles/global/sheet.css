@@ -461,7 +461,7 @@
   color: var(--muted);
 }
 .fv-sh-align::before {
-  content: '◆';
+  content: '◆' / '';
   margin-right: 8px;
   font-size: 7px;
   vertical-align: 2px;

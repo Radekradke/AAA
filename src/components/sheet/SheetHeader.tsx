@@ -94,14 +94,14 @@ export function SheetHeader({ char, derived, compact, onShare, onRules, onLevelU
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="fv-sh-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
+        <h1 className="fv-sh-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: compact ? 'clamp(20px,2.6vw,26px)' : 'clamp(22px,3vw,32px)', color: 'var(--ink)', lineHeight: 1.05, overflowWrap: 'anywhere' }}>
           {char.name}
           {heroTitle(char) && (
             <span className="fv-sh-title" title={heroTitleTip(char)}>
               {heroTitle(char)}
             </span>
           )}
-        </div>
+        </h1>
         <div className="fv-sh-sub">
           <span>{heroSubtitle(char)}</span>
           {char.alignment && <span className="fv-sh-align">{char.alignment}</span>}
