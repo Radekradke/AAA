@@ -949,3 +949,30 @@ body.fv-map-full .fv-screen-scroll { overflow: hidden !important; transform: non
 }
 /* seletor de cena: o nome não passa por baixo da setinha */
 .fv-stage-actions select.fv-input { padding-right: 30px; text-overflow: ellipsis; max-width: 100%; }
+
+/* paredes e portas (só o mestre vê o traçado) */
+.fv-map-walls { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.fv-map-walls line { stroke: var(--color-danger); stroke-linecap: round; opacity: 0.55; }
+.fv-map-walls.is-editing line { opacity: 0.95; filter: drop-shadow(0 0 3px var(--color-bg)); }
+.fv-map-walls line.is-door { stroke: var(--color-accent-2); }
+.fv-map-walls line.is-door.is-open { stroke: var(--color-accent); opacity: 0.4; stroke-dasharray: 6 6; }
+.fv-map-walls line.is-draft { stroke: var(--color-text); opacity: 1; stroke-dasharray: 8 6; }
+.fv-map-door {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  padding: 0;
+  /* centrado por margem: o :active global dos botões troca o transform */
+  margin: -0.95em 0 0 -0.95em;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent-2);
+  background: var(--color-sunken);
+  color: var(--color-accent-2);
+  cursor: pointer;
+}
+.fv-map-door.is-open { border-color: var(--color-accent); color: var(--color-accent); }
+.fv-map-door:hover, .fv-map-door:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-map-fogbar button.is-on { border-color: var(--gold); color: var(--gold); }

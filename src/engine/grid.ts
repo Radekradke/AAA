@@ -141,11 +141,11 @@ export function subtractRect(a: CellRect, b: CellRect): CellRect[] {
 
 export function revealArea(fog: FogConfig, r: CellRect): FogConfig {
   // tira o que já estava revelado dentro de r para não acumular retângulos repetidos
-  return { on: true, reveal: [...fog.reveal.flatMap((x) => subtractRect(x, r)), r].slice(-400) };
+  return { ...fog, on: true, reveal: [...fog.reveal.flatMap((x) => subtractRect(x, r)), r].slice(-400) };
 }
 
 export function coverArea(fog: FogConfig, r: CellRect): FogConfig {
-  return { on: true, reveal: fog.reveal.flatMap((x) => subtractRect(x, r)) };
+  return { ...fog, on: true, reveal: fog.reveal.flatMap((x) => subtractRect(x, r)) };
 }
 
 /** A casa que contém o ponto (em casas) está revelada? */

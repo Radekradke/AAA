@@ -32,10 +32,25 @@ export interface CellRect {
 export interface FogConfig {
   on: boolean;
   reveal: CellRect[];
+  /** Paredes e portas (bloqueiam a visão dinâmica). */
+  walls?: Wall[];
+  /** Visão dinâmica: cada herói enxerga até onde as paredes deixam. */
+  vision?: boolean;
+}
+
+/** Parede ou porta, de quina a quina (em casas; meias casas valem). */
+export interface Wall {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  /** Porta: aberta, não bloqueia a visão. */
+  door?: boolean;
+  open?: boolean;
 }
 
 /** Ferramentas do mapa (inspiradas em Foundry VTT / Owlbear Rodeo / Dungeon Revealer). */
-export type MapTool = 'move' | 'measure' | 'circle' | 'cone' | 'line' | 'square' | 'laser' | 'reveal' | 'cover';
+export type MapTool = 'move' | 'measure' | 'circle' | 'cone' | 'line' | 'square' | 'laser' | 'reveal' | 'cover' | 'wall' | 'door';
 export type MarkKind = 'measure' | 'circle' | 'cone' | 'line' | 'square';
 
 /** Régua ou molde de área desenhado por alguém da mesa (efêmero, por broadcast). */

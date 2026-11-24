@@ -273,7 +273,8 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onClearMarks={st.clearMarks}
             onLaser={st.laser}
             onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
-            onFogAll={isMaster ? (mode) => void st.saveFog(scene, mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) : undefined}
+            onFogAll={isMaster ? (mode) => void st.saveFog(scene, { ...scene.grid.fog, ...(mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) }) : undefined}
+            onFogSet={isMaster ? (fog) => void st.saveFog(scene, fog) : undefined}
             onPullView={isMaster && isLive ? st.pullView : undefined}
             onDropItem={isMaster ? (item, cell) => void dropOnMap(item, cell) : undefined}
             full={full}

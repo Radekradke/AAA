@@ -5,7 +5,9 @@ import { boardSize, cellDistance, conePoints, fitView, fmtMeters, isRevealed, ma
 import { CELL_METERS } from '@/types/stage';
 import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
-import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token } from '@/types/stage';
+import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token, Wall } from '@/types/stage';
+import { blockingWalls, nearestWall, pointInPolygon, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
+import type { Pt } from '@/engine/vision';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import { InlineIcon } from '@/components/ui/Icon';
 
@@ -48,6 +50,8 @@ interface StageMapProps {
   onLaser: (points: { x: number; y: number }[]) => void;
   onFog?: (rect: CellRect, mode: 'reveal' | 'cover') => void;
   onFogAll?: (mode: 'reveal' | 'cover' | 'off') => void;
+  /** Mestre: troca a névoa inteira (paredes, portas, visão dinâmica). */
+  onFogSet?: (fog: FogConfig) => void;
   /** Mestre: todos passam a olhar para este ponto. */
   onPullView?: (x: number, y: number, z: number) => void;
   /** Mestre: algo arrastado dos bastidores/iniciativa foi solto nesta casa. */
@@ -62,7 +66,8 @@ type DragState = { id: string; pointer: number; from: { x: number; y: number }; 
 type Act =
   | { kind: 'mark'; pointer: number; mark: MapMark }
   | { kind: 'laser'; pointer: number; pts: { x: number; y: number }[]; last: number }
-  | { kind: 'fog'; pointer: number; mode: 'reveal' | 'cover'; from: { x: number; y: number }; to: { x: number; y: number } };
+  | { kind: 'fog'; pointer: number; mode: 'reveal' | 'cover'; from: { x: number; y: number }; to: { x: number; y: number } }
+  | { kind: 'wall'; pointer: number; door: boolean; from: { x: number; y: number }; to: { x: number; y: number } };
 
 const MARK_TOOLS: MarkKind[] = ['measure', 'circle', 'cone', 'line', 'square'];
 const MARK_NAME: Record<MarkKind, string> = { measure: 'Régua', circle: 'Esfera / raio', cone: 'Cone', line: 'Linha', square: 'Cubo' };
@@ -76,6 +81,8 @@ const MARK_NAME: Record<MarkKind, string> = { measure: 'Régua', circle: 'Esfera
  *   molde lista quem está dentro;
  * · Caneta-laser: risco que some, para apontar caminhos;
  * · Névoa (mestre): revela/cobre áreas; jogadores só veem o revelado;
+ * · Paredes e portas (mestre) + visão dinâmica: cada herói vê até onde as
+ *   paredes deixam, e o mestre abre/fecha portas com um toque;
  * · Duplo clique = ping; Shift + duplo clique (mestre) = puxa a visão de todos.
  */
 export function StageMap(p: StageMapProps) {
@@ -171,6 +178,8 @@ export function StageMap(p: StageMapProps) {
       const cur = keys.current;
       if (map[k]) setTool(map[k]);
       else if (p.isMaster && k === 'n') setTool('reveal');
+      else if (p.isMaster && k === 'w') setTool('wall');
+      else if (p.isMaster && k === 'd') setTool('door');
       else if (k === 'f' && cur.toggleFull) cur.toggleFull();
       // Esc: primeiro solta a ferramenta; com "mover" já ativo, sai da tela cheia
       else if (k === 'escape') {
@@ -198,6 +207,12 @@ export function StageMap(p: StageMapProps) {
   const startTool = (pointer: number, c: { x: number; y: number }) => {
     if (tool === 'laser') {
       setAct({ kind: 'laser', pointer, pts: [c], last: 0 });
+      return true;
+    }
+    if (tool === 'wall' || tool === 'door') {
+      if (!p.isMaster) return false;
+      const at = { x: snapHalf(c.x), y: snapHalf(c.y) };
+      setAct({ kind: 'wall', pointer, door: tool === 'door', from: at, to: at });
       return true;
     }
     if (tool === 'reveal' || tool === 'cover') {
@@ -283,6 +298,9 @@ export function StageMap(p: StageMapProps) {
         const mark = { ...act.mark, to };
         setAct({ ...act, mark });
         p.onMark(mark);
+      } else if (act.kind === 'wall') {
+        const to = { x: snapHalf(c.x), y: snapHalf(c.y) };
+        if (to.x !== act.to.x || to.y !== act.to.y) setAct({ ...act, to });
       } else if (act.kind === 'laser') {
         const pts = [...act.pts, c];
         const now = Date.now();
@@ -324,6 +342,8 @@ export function StageMap(p: StageMapProps) {
         if (act.mark.kind === 'measure' || tiny) p.onDropMark(act.mark.id);
       } else if (act.kind === 'laser') {
         p.onLaser(act.pts);
+      } else if (act.kind === 'wall') {
+        finishWall(act);
       } else if (p.onFog) {
         p.onFog(rectBetween(act.from.x, act.from.y, act.to.x, act.to.y), act.mode);
       }
@@ -351,6 +371,37 @@ export function StageMap(p: StageMapProps) {
     p.onPullView(c.x, c.y, view.z);
   };
 
+  // paredes: arrastar desenha; um toque sem arrastar apaga a parede mais perto
+  const walls: Wall[] = fog?.walls ?? [];
+  const saveWalls = (next: Wall[], extra: Partial<FogConfig> = {}) =>
+    p.onFogSet?.({ on: true, reveal: fog?.reveal ?? [], ...fog, ...extra, walls: next });
+  const finishWall = (a: { door: boolean; from: { x: number; y: number }; to: { x: number; y: number } }) => {
+    if (a.from.x === a.to.x && a.from.y === a.to.y) {
+      const i = nearestWall(a.from, walls, 0.6);
+      if (i >= 0) saveWalls(walls.filter((_, k) => k !== i));
+      return;
+    }
+    saveWalls([...walls, { x1: a.from.x, y1: a.from.y, x2: a.to.x, y2: a.to.y, ...(a.door ? { door: true, open: false } : {}) }].slice(-1000));
+  };
+  const toggleDoor = (i: number) => saveWalls(walls.map((w, k) => (k === i ? { ...w, open: !w.open } : w)));
+
+  // visão dinâmica: de onde cada herói está (posição ao vivo, inclusive no arrasto)
+  const vision = visionOn(fog);
+  const livePos = (t: Token) => (drag?.id === t.id ? drag.at : p.drags[t.id] ?? { x: t.x, y: t.y });
+  const sight = useMemo<Pt[][]>(() => {
+    if (!vision || !ready) return [];
+    const heroes = p.tokens.filter((t) => t.kind === 'hero' && !t.hidden);
+    const mine = p.isMaster ? heroes : heroes.filter((t) => t.ownerId === p.me.id);
+    const from = mine.length ? mine : heroes;
+    const bounds = { x0: -g.ox / g.size, y0: -g.oy / g.size, x1: (board.w - g.ox) / g.size, y1: (board.h - g.oy) / g.size };
+    const block = blockingWalls(walls);
+    return from.map((t) => {
+      const at = livePos(t);
+      return visibilityPolygon({ x: at.x + t.size / 2, y: at.y + t.size / 2 }, block, bounds);
+    });
+  }, [vision, ready, p.tokens, p.isMaster, p.me.id, walls, drag, p.drags, board.w, board.h, g.ox, g.oy, g.size]); // eslint-disable-line react-hooks/exhaustive-deps
+  const inSight = (x: number, y: number) => sight.some((poly) => pointInPolygon({ x, y }, poly));
+
   const dragged = drag ? p.tokens.find((t) => t.id === drag.id) ?? null : null;
   const ruler = useMemo(() => {
     if (!drag || !dragged) return null;
@@ -363,7 +414,10 @@ export function StageMap(p: StageMapProps) {
 
   // jogadores não veem peões debaixo da névoa
   const center = (t: Token) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
-  const visibleTokens = p.isMaster || !fog?.on ? p.tokens : p.tokens.filter((t) => isRevealed(fog, center(t).x, center(t).y));
+  const visibleTokens =
+    p.isMaster || !fog?.on
+      ? p.tokens
+      : p.tokens.filter((t) => (t.kind === 'hero' && t.ownerId === p.me.id) || isRevealed(fog, center(t).x, center(t).y) || (vision && inSight(livePos(t).x + t.size / 2, livePos(t).y + t.size / 2)));
 
   // quem está dentro do molde que estou desenhando
   const myMark = act?.kind === 'mark' ? act.mark : null;
@@ -384,6 +438,8 @@ export function StageMap(p: StageMapProps) {
     { t: 'laser', label: 'Caneta-laser (P)', key: 'P', icon: <IcoLaser /> },
     { t: 'reveal', label: 'Revelar área (N)', key: 'N', icon: <IcoEye />, master: true },
     { t: 'cover', label: 'Cobrir área', key: '', icon: <IcoEyeOff />, master: true },
+    { t: 'wall', label: 'Paredes (W)', key: 'W', icon: <IcoWall />, master: true },
+    { t: 'door', label: 'Portas (D)', key: 'D', icon: <IcoDoor />, master: true },
   ];
 
   return (
@@ -511,11 +567,47 @@ export function StageMap(p: StageMapProps) {
                   {fog.reveal.map((r, i) => (
                     <rect key={i} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={r.h * g.size} fill="black" />
                   ))}
+                  {sight.map((poly, i) => (
+                    <polygon key={`v${i}`} points={poly.map((q) => `${cellPx(q.x, 'x')},${cellPx(q.y, 'y')}`).join(' ')} fill="black" />
+                  ))}
                 </mask>
               </defs>
               <rect width="100%" height="100%" mask={`url(#fog-${scene.id})`} className="fv-map-fog-fill" />
             </svg>
           )}
+          {/* paredes e portas: só o mestre vê o traçado; portas abrem com um toque */}
+          {p.isMaster && ready && (walls.length > 0 || act?.kind === 'wall') && (
+            <svg className={'fv-map-walls' + (tool === 'wall' || tool === 'door' ? ' is-editing' : '')} width={board.w} height={board.h} aria-hidden>
+              {walls.map((w, i) => (
+                <line key={i} x1={cellPx(w.x1, 'x')} y1={cellPx(w.y1, 'y')} x2={cellPx(w.x2, 'x')} y2={cellPx(w.y2, 'y')} className={w.door ? (w.open ? 'is-door is-open' : 'is-door') : ''} strokeWidth={Math.max(3, g.size / 10)} />
+              ))}
+              {act?.kind === 'wall' && (
+                <line x1={cellPx(act.from.x, 'x')} y1={cellPx(act.from.y, 'y')} x2={cellPx(act.to.x, 'x')} y2={cellPx(act.to.y, 'y')} className={'is-draft' + (act.door ? ' is-door' : '')} strokeWidth={Math.max(3, g.size / 10)} />
+              )}
+            </svg>
+          )}
+          {p.isMaster && p.onFogSet && tool === 'move' &&
+            walls.map((w, i) =>
+              w.door ? (
+                <button
+                  key={`d${i}`}
+                  type="button"
+                  className={'fv-map-door' + (w.open ? ' is-open' : '')}
+                  style={at(cellPx((w.x1 + w.x2) / 2, 'x'), cellPx((w.y1 + w.y2) / 2, 'y'), Math.max(12, g.size * 0.35))}
+                  // abre já no toque: soltar o painel lateral pode mexer o mapa antes do clique
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleDoor(i);
+                  }}
+                  onClick={(e) => e.detail === 0 && toggleDoor(i)}
+                  aria-label={w.open ? 'Fechar a porta' : 'Abrir a porta'}
+                  title={w.open ? 'Fechar a porta' : 'Abrir a porta'}
+                >
+                  <InlineIcon name={w.open ? 'unlock' : 'lock'} />
+                </button>
+              ) : null,
+            )}
           {act?.kind === 'fog' && (() => {
             const r = rectBetween(act.from.x, act.from.y, act.to.x, act.to.y);
             return <span className={`fv-map-fogsel is-${act.mode}`} style={{ left: cellPx(r.x, 'x'), top: cellPx(r.y, 'y'), width: r.w * g.size, height: r.h * g.size }} />;
@@ -589,6 +681,18 @@ export function StageMap(p: StageMapProps) {
         </div>
       )}
 
+      {/* paredes, portas e visão dinâmica: atalhos do mestre */}
+      {p.isMaster && (tool === 'wall' || tool === 'door') && p.onFogSet && (
+        <div className="fv-map-fogbar" role="toolbar" aria-label="Paredes e visão">
+          <span>{tool === 'wall' ? 'Arraste de quina a quina · toque numa parede apaga' : 'Arraste sobre o vão da porta · toque apaga'}</span>
+          <button type="button" className={vision ? 'is-on' : ''} aria-pressed={vision} onClick={() => saveWalls(walls, { on: true, vision: !vision })}>
+            Visão dinâmica: {vision ? 'ligada' : 'desligada'}
+          </button>
+          {walls.length > 0 && <button type="button" onClick={() => saveWalls(walls.slice(0, -1))}>Desfazer última</button>}
+          {walls.length > 0 && <button type="button" onClick={() => saveWalls([])}>Apagar todas</button>}
+        </div>
+      )}
+
       <div className="fv-map-tools" role="toolbar" aria-label="Zoom do mapa">
         {p.isMaster && p.onPullView && (
           <button type="button" onClick={pullHere} aria-label="Trazer todos para a minha visão" title="Trazer todos para a minha visão (ou Shift + duplo clique)">
@@ -626,7 +730,9 @@ export function StageMap(p: StageMapProps) {
               ? 'Risque o caminho — some sozinho'
               : tool === 'reveal' || tool === 'cover'
                 ? 'Arraste um retângulo sobre o mapa'
-                : 'Arraste a partir da origem — todos veem o molde'}
+                : tool === 'wall' || tool === 'door'
+                  ? 'Só você vê as paredes; os jogadores veem o que os heróis enxergam'
+                  : 'Arraste a partir da origem — todos veem o molde'}
         </div>
       )}
     </div>
@@ -696,6 +802,11 @@ function MarkShape({ m, px, size, stroke, font }: { m: MapMark; px: (c: number, 
   );
 }
 
+/** Posição absoluta de um botão sobre o mapa (portas). */
+function at(left: number, top: number, fontSize: number): CSSProperties {
+  return { left, top, fontSize };
+}
+
 function initials(label: string): string {
   const parts = label.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return '?';
@@ -714,6 +825,8 @@ const IcoSquare = () => <svg {...S}><rect x="4" y="4" width="16" height="16" rx=
 const IcoLaser = () => <svg {...S}><path d="M4 20c4-1 4-6 8-7s5-5 8-9" /><circle cx="20" cy="4" r="1.5" fill="currentColor" /></svg>;
 const IcoEye = () => <svg {...S}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>;
 const IcoEyeOff = () => <svg {...S}><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.3 6.3C3.6 8.1 2 12 2 12s4 7 10 7c1.8 0 3.4-.6 4.7-1.4" /></svg>;
+const IcoWall = () => <svg {...S}><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" /></svg>;
+const IcoDoor = () => <svg {...S}><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18" /><circle cx="15" cy="12" r="1" fill="currentColor" /></svg>;
 const IcoTrash = () => <svg {...S}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>;
 /** Caixa de ferramentas: quantas casas de 36 px cabem na altura do mapa (com folga para as bordas). */
 function toolboxGrid(n: number, viewH: number): CSSProperties | undefined {
