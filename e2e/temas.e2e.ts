@@ -2,7 +2,7 @@ import { test, expect } from './fixtures/test';
 import { signIn } from './fixtures/supabase';
 
 /**
- * Temas oferecidos: Véu Astral, Corte Carmesim, Eclipse e Guilda Rubra.
+ * Temas oferecidos: Véu Astral, Lira de Orfeu, Corte Carmesim, Eclipse e Guilda Rubra.
  * Os outros quatro continuam no código, só escondidos (THEME_ORDER em
  * src/data/themes.ts). Quem tinha um deles salvo abre no Véu Astral.
  */
@@ -17,13 +17,24 @@ test.describe('temas oferecidos', () => {
     expect(bootBg.toLowerCase()).toBe('#0e0a24');
   });
 
-  test('Configurações mostra só os 4 temas, e escolher um troca na hora', async ({ page }) => {
+  test('Configurações mostra só os 5 temas, e escolher um troca na hora', async ({ page }) => {
     await signIn(page, 'guest', { characters: [] });
     await page.goto('/config');
     const temas = page.getByRole('radiogroup', { name: 'Tema visual' }).getByRole('radio');
-    await expect(temas).toHaveCount(4);
-    await expect(temas).toContainText(['Véu Astral', 'Corte Carmesim', 'Eclipse', 'Guilda Rubra']);
+    await expect(temas).toHaveCount(5);
+    await expect(temas).toContainText(['Véu Astral', 'Lira de Orfeu', 'Corte Carmesim', 'Eclipse', 'Guilda Rubra']);
     await temas.filter({ hasText: 'Corte Carmesim' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'carmesim');
+  });
+
+  test('Lira de Orfeu é só escura: some a opção de paleta clara', async ({ page }) => {
+    await signIn(page, 'guest', { characters: [], ui: { theme: 'orfeu', modes: { orfeu: 'light' }, onboarded: true } });
+    await page.goto('/config');
+    // mesmo com "claro" salvo por engano, abre no escuro
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'orfeu');
+    await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
+    await expect(page.getByRole('radiogroup', { name: 'Paleta clara ou escura' })).toHaveCount(0);
+    await page.getByRole('radiogroup', { name: 'Tema visual' }).getByRole('radio').filter({ hasText: 'Véu Astral' }).click();
+    await expect(page.getByRole('radiogroup', { name: 'Paleta clara ou escura' })).toBeVisible();
   });
 });

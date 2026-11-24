@@ -2,7 +2,7 @@ import { chooseFullRules } from './fixtures/creator';
 import { test, expect } from './fixtures/test';
 import { signIn, WIZARD } from './fixtures/supabase';
 
-const THEMES = ['astral', 'carmesim', 'eclipse', 'rubra'];
+const THEMES = ['astral', 'orfeu', 'carmesim', 'eclipse', 'rubra'];
 
 test.describe('modais', () => {
   test.beforeEach(async ({ page }) => {

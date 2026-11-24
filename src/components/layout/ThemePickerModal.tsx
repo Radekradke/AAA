@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { loadAllThemesCss } from '@/lib/themeCss';
-import { THEME_ORDER, resolveTheme } from '@/data/themes';
+import { THEMES, THEME_ORDER, resolveTheme } from '@/data/themes';
 import { DICE_SKINS } from '@/data/diceSkins';
 import { themeModeOf, useUiStore } from '@/store/uiStore';
 
@@ -30,7 +30,8 @@ export function ThemeGrid() {
   }, []);
   return (
     <>
-    {/* claro/escuro: troca só a paleta do tema atual — o layout continua o mesmo */}
+    {/* claro/escuro: troca só a paleta do tema atual — o layout continua o mesmo (tema só escuro não mostra) */}
+    {!THEMES[theme].darkOnly && (
     <div className="fv-theme-mode">
       <span>
         <b>Paleta</b>
@@ -44,6 +45,7 @@ export function ThemeGrid() {
         ))}
       </div>
     </div>
+    )}
     <div className="fv-themes" role="radiogroup" aria-label="Tema visual">
       {THEME_ORDER.map((id) => {
         const th = resolveTheme(id, themeModeOf(id, modes));

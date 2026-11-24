@@ -1,7 +1,7 @@
 import type { RarityDef, ThemeDef, ThemeMode, ThemeName } from '@/types/dnd';
 
 /** Todos os temas que existem no código (os testes de cor e contraste conferem todos). */
-export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra'];
+export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 'carmesim', 'ouro', 'eclipse', 'rubra', 'orfeu'];
 
 /**
  * Temas oferecidos ao jogador, na ordem do seletor e do alternador da barra
@@ -9,7 +9,7 @@ export const THEME_ALL: ThemeName[] = ['astral', 'frio', 'brasa', 'verdejante', 
  * volta, ponha o id aqui (e em VISIVEIS no index.html — há um teste que confere).
  * Quem estava num tema escondido abre no Véu Astral (sem perder nada da ficha).
  */
-export const THEME_ORDER: ThemeName[] = ['astral', 'carmesim', 'eclipse', 'rubra'];
+export const THEME_ORDER: ThemeName[] = ['astral', 'orfeu', 'carmesim', 'eclipse', 'rubra'];
 
 /** O tema salvo, se ainda é oferecido; senão o padrão (Véu Astral). */
 export function visibleTheme(t: unknown): ThemeName {
@@ -216,10 +216,41 @@ export const THEMES: Record<ThemeName, ThemeDef> = {
     font: "'Outfit', sans-serif",
     motif: 'none',
   },
+  /**
+   * Mito de Orfeu: a lira e o submundo. Tábuas de pedra com cantos de volutas,
+   * cordas de ouro, moedas cunhadas, mármore negro e o rio Estige. Só escuro.
+   * As texturas e gravuras (uso livre) ficam em public/themes/orfeu/.
+   */
+  orfeu: {
+    bg: '#0E0B16',
+    bg2: '#1F1733',
+    panel: '#1A1529',
+    panel2: '#120E1E',
+    steel: '#2A2140',
+    line: 'rgba(217,183,106,0.18)',
+    acc: '#B9A7E6',
+    acc2: '#6FB7B0',
+    accSoft: 'rgba(217,183,106,0.06)',
+    gold: '#D9B76A',
+    goldB: '#F0D79A',
+    ink: '#F2EBDA',
+    muted: '#A89FBC',
+    danger: '#E06A7E',
+    bloom: 'rgba(246,227,166,0.16)',
+    particle: '#BDEFE8',
+    label: 'Lira de Orfeu',
+    tagline: 'O submundo: lira, cordas de ouro e o rio Estige',
+    font: "'Cormorant SC', serif",
+    motif: 'souls',
+    darkOnly: true,
+  },
 };
 
-/** A outra paleta de cada tema (clara para os escuros; escura para o Eclipse). */
-export const THEME_ALT: Record<ThemeName, ThemePalette> = {
+/**
+ * A outra paleta de cada tema (clara para os escuros; escura para o Eclipse).
+ * Temas só escuros (Orfeu) não têm.
+ */
+export const THEME_ALT: Partial<Record<ThemeName, ThemePalette>> = {
   astral: {
     bg: '#EEE9FB',
     bg2: '#FDF0EA',
@@ -374,7 +405,7 @@ export function nativeMode(name: ThemeName): ThemeMode {
 /** Tema pronto para usar: identidade + paleta do modo escolhido. */
 export function resolveTheme(name: ThemeName, mode: ThemeMode = nativeMode(name)): ThemeDef {
   const base = THEMES[name];
-  if (mode === nativeMode(name)) return base;
+  if (mode === nativeMode(name) || base.darkOnly) return base;
   return { ...base, ...THEME_ALT[name], light: mode === 'light' };
 }
 

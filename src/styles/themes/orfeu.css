@@ -1,0 +1,402 @@
+/* ============================================================
+   LIRA DE ORFEU — "a lira e o submundo" (só escuro)
+   Ideia: Orfeu desce ao submundo tocando. Tábuas de pedra lavrada
+   com cantos de volutas e faixa de meandro grego, cordas de ouro
+   (abas numa pauta, barra de vida, linhas do menu), moedas cunhadas
+   nos números, botões em forma de cravelha (a peça que afina a
+   corda) e, no fundo, mármore negro, a luz de cima que ele não pode
+   olhar, o brilho do Estige embaixo e almas subindo.
+   Texturas e gravuras de uso livre em public/themes/orfeu/ (CREDITOS.md).
+   Tipografia: Cormorant SC (títulos e números) + Crimson Pro (texto).
+   ============================================================ */
+
+[data-theme='orfeu'] {
+  --font-display: 'Cormorant SC', 'Cinzel', serif;
+  --font-body: 'Crimson Pro', Georgia, serif;
+  --font-num: 'Cormorant SC', 'Crimson Pro', serif;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --peg-l: 999px 6px 6px 999px;
+  --peg-r: 6px 999px 999px 6px;
+  --frame: color-mix(in srgb, var(--gold), transparent 40%);
+  --stone: linear-gradient(165deg, rgba(52, 40, 82, 0.62) 0%, rgba(26, 20, 41, 0.74) 55%, rgba(14, 10, 24, 0.9) 100%), url('/themes/orfeu/pedra.webp') center / 256px;
+  --gold-leaf: linear-gradient(180deg, rgba(255, 241, 200, 0.55), rgba(156, 122, 53, 0.25) 60%, rgba(255, 241, 200, 0.2)), url('/themes/orfeu/ouro.webp') center / 140px;
+  --gold-rim: conic-gradient(from 200deg, rgba(110, 82, 32, 0.8), rgba(255, 241, 200, 0.6), rgba(184, 145, 63, 0.5), rgba(110, 82, 32, 0.8), rgba(226, 194, 122, 0.6), rgba(110, 82, 32, 0.8)), url('/themes/orfeu/ouro.webp') center / 120px;
+
+  --bg: #0e0b16;
+  --bg2: #1f1733;
+  --panel: #1a1529;
+  --panel2: #120e1e;
+  --well: #0b0912;
+  --steel: #2a2140;
+  --line: rgba(217, 183, 106, 0.18);
+  --line-strong: rgba(217, 183, 106, 0.4);
+  --acc: #B9A7E6;
+  --acc2: #6fb7b0;
+  --lift: rgba(246, 227, 166, 0.05);
+  --accSoft: rgba(217, 183, 106, 0.06);
+  --gold: #d9b76a;
+  --goldB: #f0d79a;
+  --on-gold: #1e1508;
+  --on-acc: #160f26;
+  --ink: #f2ebda;
+  --muted: #a89fbc;
+  --danger: #e06a7e;
+  --bloom: rgba(246, 227, 166, 0.16);
+  --particle: #bdefe8;
+  --shadow-panel: 0 22px 44px -22px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 241, 200, 0.1), inset 0 0 40px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 14px 28px -16px rgba(0, 0, 0, 0.85);
+  --panel-texture: url('/themes/orfeu/pedra.webp') center / 256px;
+  /* de cima para baixo: luz dourada de trás, o Estige, a gravura de Orfeu e o mármore */
+  --scene:
+    radial-gradient(60% 50% at 84% -12%, rgba(246, 227, 166, 0.24), transparent 62%),
+    radial-gradient(80% 30% at 50% 112%, rgba(111, 183, 176, 0.2), transparent 70%),
+    radial-gradient(130% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55)),
+    url('/themes/orfeu/gravura.webp') right 4% top 24px / min(380px, 60vw) auto no-repeat,
+    url('/themes/orfeu/marmore.webp') center / 768px;
+}
+
+/* ---------- tábuas de pedra: moldura de ouro, cantos de volutas, meandro ---------- */
+[data-theme='orfeu'] .fv-panel {
+  background: var(--stone), var(--panel);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+[data-theme='orfeu'] .fv-panel::before {
+  content: '';
+  position: absolute;
+  /* os cantos abraçam a moldura por fora: quase nada entra na área do texto */
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  height: 30px;
+  pointer-events: none;
+  background:
+    url('/themes/orfeu/canto-esq.webp') left top / 30px auto no-repeat,
+    url('/themes/orfeu/canto.webp') right top / 30px auto no-repeat;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+}
+[data-theme='orfeu'] .fv-panel::after,
+[data-theme='orfeu'] .fv-surface::after {
+  left: 26px;
+  right: 26px;
+  top: 3px;
+  height: 10px;
+  opacity: 0.55;
+  background: url('/themes/orfeu/meandro.webp') left center / auto 10px repeat-x;
+}
+
+/* rótulo de seção: centrado entre duas cordas */
+[data-theme='orfeu'] .fv-label {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--goldB);
+}
+[data-theme='orfeu'] .fv-panel > .fv-label:first-child,
+[data-theme='orfeu'] .fv-panel > div:first-child > .fv-label:only-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+[data-theme='orfeu'] .fv-panel > .fv-label:first-child::before,
+[data-theme='orfeu'] .fv-panel > .fv-label:first-child::after,
+[data-theme='orfeu'] .fv-panel > div:first-child > .fv-label:only-child::before,
+[data-theme='orfeu'] .fv-panel > div:first-child > .fv-label:only-child::after {
+  content: '';
+  flex: 1;
+  height: 4px;
+  background:
+    linear-gradient(90deg, transparent, var(--frame)) center top / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--frame), transparent 40%)) center bottom / 100% 1px no-repeat;
+}
+[data-theme='orfeu'] .fv-panel > .fv-label:first-child::after,
+[data-theme='orfeu'] .fv-panel > div:first-child > .fv-label:only-child::after {
+  background:
+    linear-gradient(90deg, var(--frame), transparent) center top / 100% 1px no-repeat,
+    linear-gradient(90deg, color-mix(in srgb, var(--frame), transparent 40%), transparent) center bottom / 100% 1px no-repeat;
+}
+[data-theme='orfeu'] .fv-panel > div:first-child:has(> .fv-label:only-child) {
+  flex: 1;
+}
+
+/* títulos em folha de ouro gasto */
+[data-theme='orfeu'] :is(.fv-step-head h2, .fv-sh-name, .fv-page-title, .fv-menu-title) {
+  background: linear-gradient(180deg, rgba(255, 248, 226, 0.92) 0%, rgba(240, 215, 154, 0.4) 45%, rgba(110, 80, 25, 0.55) 82%, rgba(226, 194, 122, 0.45) 100%), url('/themes/orfeu/ouro.webp') center / 220px, var(--goldB);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 14px rgba(246, 227, 166, 0.22));
+}
+[data-theme='orfeu'] .fv-sh-sub {
+  font-style: italic;
+  font-size: 16px;
+  color: #c9b9f0;
+}
+
+/* ---------- botões: cravelhas de ouro e de pedra ---------- */
+[data-theme='orfeu'] .fv-btn-gold {
+  border-radius: var(--peg-l);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--on-gold);
+  background: var(--gold-leaf), var(--gold);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 226, 0.6), inset 0 -2px 0 rgba(80, 55, 10, 0.4), 0 8px 20px -10px rgba(0, 0, 0, 0.8), 0 0 18px -6px var(--bloom);
+}
+[data-theme='orfeu'] :is(.fv-btn-ghost, .fv-foot-back) {
+  border-radius: var(--peg-l);
+  border-color: var(--frame);
+  background: var(--stone), var(--panel2);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 200, 0.12), 0 6px 14px -8px rgba(0, 0, 0, 0.8);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+[data-theme='orfeu'] .fv-input {
+  font-family: var(--font-body);
+  font-size: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--well);
+  border-color: color-mix(in srgb, var(--gold), transparent 62%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(255, 241, 200, 0.06);
+}
+[data-theme='orfeu'] .fv-input:focus {
+  border-color: var(--gold);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--gold), 0 0 14px -2px var(--bloom);
+}
+
+/* ---------- menu principal: a lira e as cordas ---------- */
+[data-theme='orfeu'] .fv-menu-brand > .fv-brand-mark {
+  display: none;
+}
+[data-theme='orfeu'] .fv-menu-brand::before {
+  content: '';
+  display: block;
+  width: clamp(72px, 11vh, 110px);
+  aspect-ratio: 64 / 80;
+  margin: 0 auto 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 80' fill='none' stroke-linecap='round'%3E%3Cg stroke='%23E2C27A' stroke-width='3.2'%3E%3Cpath d='M22 70C10 60 8 36 16 20c3-6-1-12-6-11'/%3E%3Cpath d='M42 70c12-10 14-34 6-50-3-6 1-12 6-11'/%3E%3Cpath d='M13 22h38'/%3E%3Cpath d='M19 68q13 10 26 0'/%3E%3C/g%3E%3Cpath d='M26 22v47M29 22v48M32 22v49M35 22v48M38 22v47' stroke='%23FFF1C8' stroke-width='1.1'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 18px rgba(246, 227, 166, 0.45));
+}
+[data-theme='orfeu'] .fv-menu-tag {
+  font-family: var(--font-body);
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: #c9b9f0;
+}
+[data-theme='orfeu'] .fv-menu-item {
+  border-radius: 0;
+  border: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold), transparent 45%), color-mix(in srgb, var(--gold), transparent 85%)) left bottom / 100% 1px no-repeat;
+  box-shadow: none;
+}
+[data-theme='orfeu'] .fv-menu-item:hover,
+[data-theme='orfeu'] .fv-menu-item:focus-visible {
+  background:
+    radial-gradient(60% 100% at 30% 50%, rgba(246, 227, 166, 0.08), transparent 70%),
+    linear-gradient(90deg, var(--goldB), color-mix(in srgb, var(--gold), transparent 70%)) left bottom / 100% 2px no-repeat;
+}
+/* Continuar: a corda que está soando, mais grossa e acesa */
+[data-theme='orfeu'] .fv-menu-item.is-primary {
+  color: var(--ink);
+  background:
+    radial-gradient(70% 120% at 20% 50%, rgba(246, 227, 166, 0.1), transparent 70%),
+    linear-gradient(90deg, var(--goldB), color-mix(in srgb, var(--gold), transparent 75%)) left bottom / 100% 2px no-repeat;
+  box-shadow: 0 6px 12px -10px rgba(246, 227, 166, 0.8);
+}
+[data-theme='orfeu'] .fv-menu-item.is-primary .fv-menu-text small {
+  color: var(--muted);
+}
+[data-theme='orfeu'] .fv-menu-item.is-primary .fv-menu-text b {
+  color: var(--goldB);
+  text-shadow: 0 0 12px rgba(246, 227, 166, 0.5);
+}
+[data-theme='orfeu'] :is(.fv-menu-icon, .fv-menu-face, .fv-menu-avatar) {
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-origin: border-box;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+[data-theme='orfeu'] .fv-menu-icon {
+  background: radial-gradient(circle at 40% 32%, #3a2e57, #17122a 75%) padding-box, var(--gold-rim) border-box;
+  color: var(--goldB);
+}
+[data-theme='orfeu'] .fv-menu-text small {
+  font-family: var(--font-body);
+  font-style: italic;
+}
+
+/* ---------- ficha ---------- */
+[data-theme='orfeu'] .fv-sh-portrait-ring {
+  border-radius: 999px !important;
+  border: 3px solid transparent !important;
+  background: var(--gold-rim) border-box !important;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 0 28px rgba(246, 227, 166, 0.3) !important;
+}
+[data-theme='orfeu'] .fv-sh-name {
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+}
+
+/* abas: notas numa pauta de cinco linhas; a aba aberta é a nota que soa */
+[data-theme='orfeu'] .fv-sheet-tabs {
+  --staff: repeating-linear-gradient(180deg, rgba(217, 183, 106, 0.2) 0 1px, transparent 1px 8px) center / 100% 33px no-repeat;
+  column-gap: 0;
+  padding: 8px 4px 4px;
+}
+[data-theme='orfeu'] .fv-sheet-tab {
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: var(--staff);
+  backdrop-filter: none;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #d6cde6;
+}
+[data-theme='orfeu'] .fv-sheet-tab:hover {
+  color: var(--ink);
+  background: radial-gradient(60% 80% at 50% 50%, rgba(246, 227, 166, 0.08), transparent 70%), var(--staff);
+}
+[data-theme='orfeu'] .fv-sheet-tab.is-on {
+  color: #fff1c8;
+  border: 0;
+  background: radial-gradient(60% 80% at 50% 50%, rgba(246, 227, 166, 0.16), transparent 72%), var(--staff);
+  box-shadow: none;
+  text-shadow: 0 0 10px rgba(246, 227, 166, 0.7);
+}
+[data-theme='orfeu'] .fv-sheet-tab.is-on::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: 11px;
+  height: 8px;
+  margin-left: -5px;
+  border-radius: 50%;
+  rotate: -20deg;
+  background: #fff1c8;
+  box-shadow: 0 0 10px rgba(246, 227, 166, 0.9);
+}
+[data-theme='orfeu'] .fv-sheet-tab.is-on svg {
+  color: var(--goldB);
+}
+[data-theme='orfeu'] .fv-sheet-tab:focus-visible {
+  outline: 2px solid var(--goldB);
+  outline-offset: -3px;
+}
+
+/* números do cabeçalho e da aba Jogar: moedas de ouro cunhadas */
+[data-theme='orfeu'] :is(.fv-stat-chip, .fv-header-stat) {
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background: radial-gradient(circle at 40% 28%, #3a2e57, #17122a 80%) padding-box, var(--gold-rim) border-box;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.7), 0 6px 12px -4px rgba(0, 0, 0, 0.7);
+}
+[data-theme='orfeu'] .fv-stat-chip.is-rollable:hover {
+  background: radial-gradient(circle at 40% 28%, #4a3c6e, #1d1733 80%) padding-box, var(--gold-rim) border-box;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6), 0 0 18px -4px rgba(246, 227, 166, 0.5);
+}
+[data-theme='orfeu'] :is(.fv-stat-chip-val, .fv-header-stat-val) {
+  font-weight: 700;
+  color: var(--ink);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 241, 200, 0.2);
+}
+[data-theme='orfeu'] :is(.fv-stat-chip-label, .fv-header-stat-label) {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+/* atributos: medalhões com aro de ouro */
+[data-theme='orfeu'] .fv-mabil {
+  border-radius: 999px 999px 10px 10px;
+  border: 2px solid transparent;
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--c), #17122a 82%), #120e1e 85%) padding-box, var(--gold-rim) border-box;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+[data-theme='orfeu'] .fv-mabil-key {
+  font-family: var(--font-display);
+  font-size: 11px;
+}
+[data-theme='orfeu'] .fv-mabil-mod {
+  font-size: 20px;
+}
+
+/* vida: uma corda de ouro esticada sobre trastes */
+[data-theme='orfeu'] .fv-hp-bar {
+  clip-path: none;
+  border-radius: 999px;
+  background: var(--well);
+  border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 241, 200, 0.06);
+}
+[data-theme='orfeu'] .fv-hp-notches {
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(217, 183, 106, 0.4) calc(10% - 1px) 10%);
+}
+[data-theme='orfeu'] .fv-hpq {
+  font-family: var(--font-display);
+  font-size: 15px;
+  border-radius: var(--peg-l);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c), #1a1529 80%), #120e1e);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 200, 0.1), 0 4px 10px -4px rgba(0, 0, 0, 0.7);
+}
+[data-theme='orfeu'] .fv-turn-btn {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+/* ---------- criação ---------- */
+[data-theme='orfeu'] .fv-rail-title {
+  color: var(--goldB);
+  letter-spacing: 0.24em;
+}
+[data-theme='orfeu'] .fv-forge-rail ol::before {
+  background: linear-gradient(180deg, transparent, var(--frame), transparent);
+}
+[data-theme='orfeu'] .fv-forge-rail button {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: var(--peg-l);
+}
+[data-theme='orfeu'] .fv-rail-mark {
+  border-radius: 999px;
+  font-family: var(--font-display);
+}
+[data-theme='orfeu'] .fv-forge-rail button.is-current {
+  color: #fff1c8;
+  background: linear-gradient(90deg, rgba(246, 227, 166, 0.14), transparent);
+}
+[data-theme='orfeu'] .fv-forge-rail button.is-current .fv-rail-mark {
+  color: var(--on-gold);
+  border-color: var(--goldB);
+  background: var(--gold-leaf), var(--gold);
+  box-shadow: 0 0 12px -2px rgba(246, 227, 166, 0.7);
+}
+[data-theme='orfeu'] .fv-option {
+  border-radius: var(--radius-md);
+  border-color: var(--frame);
+  background: var(--stone), var(--panel2);
+}
+[data-theme='orfeu'] .fv-option.is-selected {
+  border-color: var(--goldB);
+  background: radial-gradient(80% 100% at 50% 0%, rgba(246, 227, 166, 0.14), transparent 70%), var(--stone), var(--panel2);
+  box-shadow: inset 0 0 0 1px var(--gold), 0 0 22px -8px rgba(246, 227, 166, 0.6);
+}
+[data-theme='orfeu'] .fv-option-line {
+  font-style: italic;
+}
+
+/* ---------- janelas: portal de pedra ---------- */
+[data-theme='orfeu'] .fv-modal {
+  background: var(--stone), var(--panel);
+  border-color: var(--frame);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 200, 0.12), 0 40px 80px -30px rgba(0, 0, 0, 0.9);
+}
