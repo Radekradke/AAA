@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { APP_VERSION, builtAtLabel, checkLatest, updateNow } from '@/lib/appVersion';
+import { APP_RELEASE, APP_VERSION, builtAtLabel, checkLatest, updateNow } from '@/lib/appVersion';
 import type { VersionState } from '@/lib/appVersion';
 
 /**
@@ -33,7 +33,7 @@ export function AppVersion() {
   return (
     <p className={'fv-app-version is-' + state} aria-live="polite">
       <span title={`Commit ${APP_VERSION}`}>
-        Versão {when || APP_VERSION}
+        Versão {APP_RELEASE ? `${APP_RELEASE}${when ? ` · ${when}` : ''}` : when || APP_VERSION}
         {when && sha && <span className="fv-app-version-sha"> · {sha}</span>}
       </span>
       {state === 'current' && <span className="fv-app-version-state">✓ atualizada</span>}

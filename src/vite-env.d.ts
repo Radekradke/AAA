@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_VERSION?: string;
   /** Data e hora (ISO) do build. */
   readonly VITE_APP_BUILT_AT?: string;
+  /** Versão de lançamento (package.json): a que o CHANGELOG.md descreve. */
+  readonly VITE_APP_RELEASE?: string;
 }
 
 interface ImportMeta {

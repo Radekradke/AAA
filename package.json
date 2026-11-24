@@ -1,7 +1,7 @@
 {
   "name": "ficha-viva-aaa",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Ficha Viva AAA — criador e ficha viva de personagem de D&D 5e com estética cinematográfica AAA, em português.",
   "scripts": {

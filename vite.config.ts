@@ -3,6 +3,7 @@ import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { THEME_PRELOAD } from './src/lib/themePreload';
 
 /**
@@ -30,6 +31,8 @@ function preconnectSupabase(): Plugin {
 }
 
 /** Versão do build para os relatórios de erro: commit na Vercel/CI, senão a data. */
+/** Versão de lançamento (package.json), a que o CHANGELOG.md descreve. */
+const APP_RELEASE = (JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as { version: string }).version;
 const APP_VERSION = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || '').slice(0, 7) || new Date().toISOString().slice(0, 10);
 /** Quando este build foi feito (mostrado no menu como a "versão" legível). */
 const APP_BUILT_AT = new Date().toISOString();
@@ -43,7 +46,7 @@ function versionFile(): Plugin {
     name: 'fv-version-file',
     apply: 'build',
     generateBundle() {
-      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: APP_VERSION, builtAt: APP_BUILT_AT }) });
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: APP_VERSION, release: APP_RELEASE, builtAt: APP_BUILT_AT }) });
     },
   };
 }
@@ -87,6 +90,7 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(APP_VERSION),
     'import.meta.env.VITE_APP_BUILT_AT': JSON.stringify(APP_BUILT_AT),
+    'import.meta.env.VITE_APP_RELEASE': JSON.stringify(APP_RELEASE),
   },
   plugins: [
     react(),
