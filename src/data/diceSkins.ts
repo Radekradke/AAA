@@ -29,5 +29,6 @@ export const DICE_SKINS: Record<ThemeName, DiceSkin> = {
   ouro: { label: 'Ferro e ouro velho', body: ['#4A4133'], ink: ['#F4E2A8'], outline: ['#0B0906'], texture: 'metal', material: 'glass' },
   eclipse: { label: 'Porcelana e ônix', body: ['#F4F2EC', '#141414'], ink: ['#111111', '#F4F2EC'], outline: ['none', 'none'], texture: 'none', material: 'glass' },
   orfeu: { label: 'Mármore e ouro do submundo', body: ['#241B3A'], ink: ['#F0D79A'], outline: ['#0B0912'], texture: 'marble', material: 'glass' },
+  artemis: { label: 'Prata lunar', body: ['#2B4446'], ink: ['#F1F6F8'], outline: ['#081214'], texture: 'stars', material: 'glass' },
   rubra: { label: 'Coral da guilda', body: ['#E2584B'], ink: ['#FFF5F1'], outline: ['#4A1218'], texture: 'none', material: 'glass' },
 };

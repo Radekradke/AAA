@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures/test';
 import { signIn, WIZARD } from './fixtures/supabase';
-const THEMES = ['astral', 'orfeu', 'carmesim', 'eclipse', 'rubra'];
+const THEMES = ['astral', 'orfeu', 'artemis', 'carmesim', 'eclipse', 'rubra'];
 test('aba Retrato e Suas cartas: contraste AA em todos os temas oferecidos, claro e escuro (Orfeu só tem o escuro)', async ({ page }) => {
   test.setTimeout(300_000);
   await signIn(page, 'guest', { characters: [{ ...WIZARD, concept: 'Arquivista', notes: 'História: algo.' }] });

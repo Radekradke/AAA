@@ -10,6 +10,7 @@ import ouro from '@/styles/themes/ouro.css?url';
 import eclipse from '@/styles/themes/eclipse.css?url';
 import rubra from '@/styles/themes/rubra.css?url';
 import orfeu from '@/styles/themes/orfeu.css?url';
+import artemis from '@/styles/themes/artemis.css?url';
 
 /**
  * CSS do tema sob demanda: cada pessoa baixa só o tema que usa (~40% do CSS
@@ -18,7 +19,7 @@ import orfeu from '@/styles/themes/orfeu.css?url';
  * O <link> do tema entra logo ANTES do link dos ajustes, então trocar de tema
  * (ou a ficha ilustrada usar outro) nunca passa por cima das correções.
  */
-const URLS: Record<ThemeName, string> = { astral, frio, brasa, verdejante, carmesim, ouro, eclipse, rubra, orfeu };
+const URLS: Record<ThemeName, string> = { astral, frio, brasa, verdejante, carmesim, ouro, eclipse, rubra, orfeu, artemis };
 
 const loaded = new Map<string, Promise<void>>();
 

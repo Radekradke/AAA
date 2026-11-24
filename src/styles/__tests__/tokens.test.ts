@@ -11,7 +11,7 @@ import type { ThemeMode, ThemeName } from '@/types/dnd';
  */
 const dir = resolve(__dirname, '..');
 const tokens = readFileSync(resolve(dir, 'tokens.css'), 'utf8');
-const FILES: Record<ThemeName, string> = { astral: 'astral', frio: 'noite', brasa: 'forja', verdejante: 'bosque', carmesim: 'corte', ouro: 'ouro', eclipse: 'eclipse', rubra: 'rubra', orfeu: 'orfeu' };
+const FILES: Record<ThemeName, string> = { astral: 'astral', frio: 'noite', brasa: 'forja', verdejante: 'bosque', carmesim: 'corte', ouro: 'ouro', eclipse: 'eclipse', rubra: 'rubra', orfeu: 'orfeu', artemis: 'artemis' };
 const themeCss = (t: ThemeName) => readFileSync(resolve(dir, 'themes', `${FILES[t]}.css`), 'utf8') + readFileSync(resolve(dir, 'themes', 'modes.css'), 'utf8');
 
 /** Variáveis do bloco exato `[data-theme='x']` (ou `…[data-mode='m']`). */

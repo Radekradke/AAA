@@ -2,7 +2,7 @@ import { test, expect } from './fixtures/test';
 import { signIn } from './fixtures/supabase';
 
 /**
- * Temas oferecidos: Véu Astral, Lira de Orfeu, Corte Carmesim, Eclipse e Guilda Rubra.
+ * Temas oferecidos: Véu Astral, Lira de Orfeu, Lua de Ártemis, Corte Carmesim, Eclipse e Guilda Rubra.
  * Os outros quatro continuam no código, só escondidos (THEME_ORDER em
  * src/data/themes.ts). Quem tinha um deles salvo abre no Véu Astral.
  */
@@ -17,12 +17,12 @@ test.describe('temas oferecidos', () => {
     expect(bootBg.toLowerCase()).toBe('#0e0a24');
   });
 
-  test('Configurações mostra só os 5 temas, e escolher um troca na hora', async ({ page }) => {
+  test('Configurações mostra só os 6 temas, e escolher um troca na hora', async ({ page }) => {
     await signIn(page, 'guest', { characters: [] });
     await page.goto('/config');
     const temas = page.getByRole('radiogroup', { name: 'Tema visual' }).getByRole('radio');
-    await expect(temas).toHaveCount(5);
-    await expect(temas).toContainText(['Véu Astral', 'Lira de Orfeu', 'Corte Carmesim', 'Eclipse', 'Guilda Rubra']);
+    await expect(temas).toHaveCount(6);
+    await expect(temas).toContainText(['Véu Astral', 'Lira de Orfeu', 'Lua de Ártemis', 'Corte Carmesim', 'Eclipse', 'Guilda Rubra']);
     await temas.filter({ hasText: 'Corte Carmesim' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'carmesim');
   });

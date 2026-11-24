@@ -15,4 +15,5 @@ export const THEME_PRELOAD: Record<string, [css: string, titleFont: string]> = {
   eclipse: ['eclipse', 'antonio-latin-500-normal'],
   rubra: ['rubra', 'outfit-latin-700-normal'],
   orfeu: ['orfeu', 'cormorant-sc-latin-700-normal'],
+  artemis: ['artemis', 'cinzel-latin-600-normal'],
 };
