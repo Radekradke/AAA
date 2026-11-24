@@ -463,3 +463,169 @@
   outline: 2px solid var(--goldB);
   outline-offset: -5px;
 }
+
+/* ============================================================
+   CORTE CARMESIM — o palco (refresh)
+   Cortinas de veludo presas por cordões com borla, bandô franzido no
+   alto, um foco de luz no centro, piso de tábuas com a luz da ribalta,
+   a rosa gravada ao fundo; painéis em damasco com cantos rococó dourados;
+   emblema das máscaras da comédia e da tragédia; moldura rococó sob o
+   título. Movimento: as cortinas balançam de leve, o foco tremula e a
+   poeira dourada flutua no feixe. Imagens em public/themes/corte/.
+   ============================================================ */
+[data-theme='carmesim'] {
+  --scene:
+    url('/themes/corte/bando.svg') 0 0 / 240px 64px repeat-x,
+    conic-gradient(from 168deg at 50% -6%, transparent 0deg, rgba(255, 214, 190, 0.11) 10deg, rgba(255, 214, 190, 0.05) 18deg, transparent 24deg),
+    radial-gradient(34% 22% at 50% 100%, rgba(255, 196, 150, 0.16), transparent 70%),
+    linear-gradient(180deg, transparent 84%, rgba(40, 12, 8, 0.65) 84.2%, rgba(26, 8, 6, 0.9)),
+    url('/themes/corte/rosa.webp') right calc(var(--curtain-w) + 3%) bottom 4% / min(260px, 34vw) auto no-repeat,
+    radial-gradient(50% 60% at 50% -10%, rgba(255, 61, 94, 0.24), transparent 70%),
+    radial-gradient(30% 50% at 0% 50%, rgba(120, 10, 40, 0.4), transparent 70%),
+    radial-gradient(30% 50% at 100% 50%, rgba(120, 10, 40, 0.4), transparent 70%),
+    url('/themes/corte/damasco.webp') 0 0 / 400px;
+  --panel-texture: url('/themes/corte/damasco.webp') 0 0 / 400px;
+  --curtain-w: clamp(56px, 13vw, 240px);
+}
+[data-theme='carmesim'][data-mode='light'] {
+  --scene:
+    url('/themes/corte/bando.svg') 0 0 / 240px 64px repeat-x,
+    conic-gradient(from 168deg at 50% -6%, transparent 0deg, rgba(255, 240, 225, 0.5) 10deg, rgba(255, 240, 225, 0.2) 18deg, transparent 24deg),
+    url('/themes/corte/rosa.webp') right calc(var(--curtain-w) + 3%) bottom 4% / min(260px, 34vw) auto no-repeat,
+    radial-gradient(50% 60% at 50% -10%, rgba(176, 18, 58, 0.1), transparent 70%),
+    url('/themes/corte/damasco-claro.webp') 0 0 / 400px;
+  --panel-texture: url('/themes/corte/damasco-claro.webp') 0 0 / 400px;
+}
+/* as cortinas: uma de cada lado, presas no alto, balançando de leve */
+[data-theme='carmesim'] .fv-bg-scene::before,
+[data-theme='carmesim'] .fv-bg-scene::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--curtain-w);
+  background: url('/themes/corte/cortina.svg') left top / 100% 100% no-repeat;
+  transform-origin: 50% 0;
+  filter: drop-shadow(8px 0 18px rgba(0, 0, 0, 0.6));
+  animation: corteSway 9s ease-in-out infinite alternate;
+  will-change: transform;
+}
+[data-theme='carmesim'] .fv-bg-scene::before {
+  left: 0;
+}
+[data-theme='carmesim'] .fv-bg-scene::after {
+  right: 0;
+  background-image: url('/themes/corte/cortina-dir.svg');
+  filter: drop-shadow(-8px 0 18px rgba(0, 0, 0, 0.6));
+  animation-delay: -4.5s;
+}
+/* o foco de luz tremula */
+[data-theme='carmesim'] .fv-bg::after {
+  content: '';
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: 0;
+  height: 90%;
+  pointer-events: none;
+  background: radial-gradient(40% 100% at 50% 0%, rgba(255, 220, 200, 0.1), transparent 75%);
+  animation: corteSpot 5s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+/* poeira dourada no feixe, por cima das telas */
+#root > [data-theme='carmesim']::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 0;
+  height: calc(100% + 420px);
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 228, 200, 0.95) 0 0.8px, rgba(233, 180, 143, 0.3) 1.6px, transparent 3.5px),
+    radial-gradient(circle at 70% 40%, rgba(255, 228, 200, 0.9) 0 0.7px, rgba(233, 180, 143, 0.25) 1.4px, transparent 3px),
+    radial-gradient(circle at 45% 70%, rgba(255, 228, 200, 0.9) 0 0.9px, rgba(233, 180, 143, 0.3) 1.8px, transparent 4px),
+    radial-gradient(circle at 85% 90%, rgba(255, 228, 200, 0.8) 0 0.7px, rgba(233, 180, 143, 0.25) 1.4px, transparent 3px);
+  background-size: 300px 420px;
+  -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 85%);
+  mask-image: linear-gradient(180deg, #000 30%, transparent 85%);
+  animation: corteDust 70s linear infinite;
+  will-change: transform;
+}
+
+/* painéis: damasco com cantos rococó dourados (o fecho em losango continua no topo) */
+[data-theme='carmesim'] .fv-panel::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  height: 32px;
+  pointer-events: none;
+  background:
+    url('/themes/corte/canto-esq.webp') left top / auto 32px no-repeat,
+    url('/themes/corte/canto.webp') right top / auto 32px no-repeat;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+/* menu: as máscaras no lugar da marca e a moldura rococó sob o título */
+[data-theme='carmesim'] .fv-menu-brand > .fv-brand-mark {
+  display: none;
+}
+[data-theme='carmesim'] .fv-menu-brand::before {
+  content: '';
+  display: block;
+  width: clamp(110px, 17vh, 170px);
+  aspect-ratio: 1;
+  margin: 0 auto 6px;
+  background: url('/themes/corte/emblema.svg') center / contain no-repeat;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55));
+}
+/* a moldura rococó fica atrás do título */
+[data-theme='carmesim'] .fv-menu-brand {
+  background: url('/themes/corte/moldura.webp') center 72% / min(440px, 86vw) auto no-repeat;
+}
+[data-theme='carmesim'] .fv-topbar-brand > .fv-brand-mark {
+  display: none;
+}
+[data-theme='carmesim'] .fv-topbar-brand::before {
+  content: '';
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  background: url('/themes/corte/emblema.svg') center / contain no-repeat;
+}
+/* janelas: o cartucho rococó como marca-d'água no alto */
+[data-theme='carmesim'] .fv-modal {
+  background: url('/themes/corte/moldura.webp') center -30px / 380px auto no-repeat, var(--panel-texture), linear-gradient(180deg, var(--panel), var(--panel2));
+}
+
+@keyframes corteSway {
+  from { transform: skewX(-0.8deg) scaleX(1); }
+  to { transform: skewX(0.8deg) scaleX(1.02); }
+}
+@keyframes corteSpot {
+  0% { opacity: 0.75; }
+  40% { opacity: 1; }
+  55% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+@keyframes corteDust {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(30px, -420px, 0); }
+}
+@media (max-width: 600px) {
+  [data-theme='carmesim'] {
+    --curtain-w: 46px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='carmesim'] :is(.fv-bg-scene::before, .fv-bg-scene::after, .fv-bg::after) {
+    animation: none;
+  }
+  #root > [data-theme='carmesim']::after {
+    display: none;
+  }
+}
