@@ -545,6 +545,15 @@ Se o editor do Supabase parar o `palco.sql` no meio, há consertos menores, cada
 
 As imagens são comprimidas no aparelho do mestre antes de subir (WebP; mapas até 3072 px) e ficam guardadas no aparelho de cada jogador depois do primeiro download, para poupar a franquia de tráfego do plano grátis.
 
+### Segredos do mapa
+
+Rode `supabase/segredos.sql` (depois do `palco.sql`). Pode rodar de novo sem problema.
+
+- `scene_secrets` — baús, armadilhas, passagens secretas, pistas e objetos escondidos, com o loot e as condições para aparecer (proximidade com linha de visão, Percepção/Investigação passiva, teste rolado, item carregado, gatilho do mestre). **Só o mestre lê** esta tabela; o jogador recebe apenas o marcador revelado e a pista.
+- `campaign_handouts.loot` e `claimed_by` — a pista do achado leva o loot; quem recebeu pega uma vez só pela RPC `claim_handout_loot`, direto para a mochila da ficha.
+
+Sem este script, o resto do palco funciona normal; a ferramenta Segredos avisa que falta rodá-lo.
+
 ## 8. Console do mestre — preparação, notas privadas e improviso
 
 Rode `supabase/mestre_console.sql` (depois do `multiplayer_session.sql`; se o palco já existir, ele também marca as pistas). Numa aba nova do SQL Editor, cole **tudo** e clique em Run sem nada selecionado. Pode rodar de novo sem problema e não apaga dados.

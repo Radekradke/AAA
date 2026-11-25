@@ -12,6 +12,7 @@ import { monsterLook } from '@/lib/monsterArt';
 import { useBestiaryStore } from '@/services/bestiaryService';
 import { coverArea, revealArea } from '@/engine/grid';
 import { LIGHT_PRESETS } from '@/engine/vision';
+import { SecretAlerts, SecretEditor, useSecretWatch } from './SecretPanel';
 import { useSessionStore } from '@/store/sessionStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc } from '@/types/npc';
@@ -121,6 +122,11 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
 
   // atalhos no peão selecionado: setas andam 1 casa; mestre: H esconde, Delete tira
   const sel = selected ? st.tokens.find((t) => t.id === selected) ?? null : null;
+  // segredos do mapa (só o mestre): selo, editor e o vigia que avisa quando alguém acha
+  const secretByToken = useMemo(() => new Map(isMaster ? st.secrets.filter((x) => x.tokenId).map((x) => [x.tokenId!, x] as const) : []), [isMaster, st.secrets]);
+  const sceneSecrets = useMemo(() => (isMaster && scene ? st.secrets.filter((x) => x.sceneId === scene.id) : []), [isMaster, scene, st.secrets]);
+  const selSecret = sel ? secretByToken.get(sel.id) ?? null : null;
+  const watch = useSecretWatch({ scene: scene?.kind === 'map' ? scene : null, tokens: st.tokens, heroes, active: isMaster && isLive });
   useEffect(() => {
     if (!sel) return;
     const onKey = (e: KeyboardEvent) => {
@@ -250,7 +256,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
 
       {scene?.kind === 'map' && (
         <>
-          {isMaster && sel && <TokenBar token={sel} combatant={ctx.combFor(sel) ?? null} onClose={() => setSelected(null)} />}
+          {isMaster && sel && !selSecret && <TokenBar token={sel} combatant={ctx.combFor(sel) ?? null} onClose={() => setSelected(null)} />}
           <StageMap
             scene={scene}
             tokens={st.tokens}
@@ -281,6 +287,30 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
             onFogAll={isMaster ? (mode) => void st.saveFog(scene, { ...scene.grid.fog, ...(mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) }) : undefined}
             onFogSet={isMaster ? (fog) => void st.saveFog(scene, fog) : undefined}
+            secretFor={isMaster ? (t) => secretByToken.get(t.id) : undefined}
+            secrets={isMaster ? sceneSecrets : undefined}
+            secretsMissing={isMaster && st.secretsMissing}
+            onSecretAt={
+              isMaster && !st.secretsMissing
+                ? (cell) =>
+                    void st.createSecret(scene.id, cell.x, cell.y).then((id) => {
+                      if (id) select(id);
+                    })
+                : undefined
+            }
+            overlay={
+              isMaster ? (
+                <>
+                  <SecretAlerts
+                    alerts={watch.alerts}
+                    onReveal={watch.reveal}
+                    onSnooze={watch.snooze}
+                    onOpen={(a) => a.secret.tokenId && select(a.secret.tokenId)}
+                  />
+                  {selSecret && <SecretEditor secret={selSecret} onClose={() => select(null)} />}
+                </>
+              ) : undefined
+            }
             onPullView={isMaster && isLive ? st.pullView : undefined}
             onDropItem={isMaster ? (item, cell) => void dropOnMap(item, cell) : undefined}
             full={full}

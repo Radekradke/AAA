@@ -4,7 +4,8 @@ import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
 import type { NewToken, TokenPatch } from '@/services/stageService';
 import { PalcoSetupError } from '@/services/stageService';
-import type { FogConfig, Handout, LaserTrail, MapMark, Scene, StagePing, StageState, Token } from '@/types/stage';
+import type { FogConfig, Handout, LaserTrail, MapMark, Scene, SceneSecret, SecretKind, StagePing, StageState, Token } from '@/types/stage';
+import { KIND_NAME } from '@/engine/secrets';
 import { onWake } from '@/lib/onWake';
 
 /**
@@ -42,6 +43,10 @@ interface StageStore {
   missingDetail: string | null;
   error: string | null;
   busy: boolean;
+  /** Segredos do mapa (só o mestre carrega). */
+  secrets: SceneSecret[];
+  /** A tabela de segredos ainda não existe no banco (falta rodar segredos.sql). */
+  secretsMissing: boolean;
 
   open: (campaignId: string, opts: { isMaster: boolean; userId: string; who: string }) => void;
   close: () => void;
@@ -75,6 +80,17 @@ interface StageStore {
   saveFog: (scene: Scene, fog: FogConfig) => Promise<void>;
 
   showHandout: (id: string, recipients: string[] | null) => Promise<void>;
+  /** Jogador: pega o loot da pista; devolve false se já foi pego. */
+  claimLoot: (id: string) => Promise<boolean>;
+
+  /** Mestre: novo segredo nesta casa (marcador escondido + segredo); devolve o id do peão. */
+  createSecret: (sceneId: string, x: number, y: number, kind?: SecretKind) => Promise<string | null>;
+  saveSecret: (secret: SceneSecret) => Promise<void>;
+  removeSecret: (secret: SceneSecret) => Promise<void>;
+  /** Revela: peão aparece, segredo marcado como achado e a pista com o loot vai para quem achou. */
+  revealSecret: (secret: SceneSecret, finder: { name: string; ownerId: string | null } | null) => Promise<void>;
+  /** Volta a esconder (achado por engano). */
+  hideSecret: (secret: SceneSecret) => Promise<void>;
   dismissIncoming: () => void;
   dismissCutscene: (key: string | null) => void;
 }
@@ -84,6 +100,8 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 let stopWake: (() => void) | null = null;
 let seq = 0;
 let lastDrag = 0;
+/** Cor do marcador de cada tipo de segredo (é o que a mesa vê quando acha). */
+export const SECRET_COLOR: Record<SecretKind, string> = { chest: '#d9a441', trap: '#e0524f', door: '#8fa6b8', clue: '#6fc2b0', item: '#b48ef0' };
 const PING_COLORS = ['#f5c542', '#5cc8ff', '#ff7a90', '#7dff9b', '#c49bff', '#ffa45c'];
 
 const seenKey = (cid: string) => `fv-handouts-seen-${cid}`;
@@ -142,6 +160,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       // DELETE não respeita filtro no Realtime: chega sem campaign_id
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_tokens' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_handouts', filter }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_secrets', filter }, schedule)
       .on('broadcast', { event: 'drag' }, ({ payload }) => {
         const p = payload as { id: string; x: number; y: number; end?: boolean };
         set((s) => {
@@ -195,6 +214,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
     missingDetail: null,
     error: null,
     busy: false,
+    secrets: [],
+    secretsMissing: false,
 
     open(campaignId, { isMaster, userId, who }) {
       const cur = get();
@@ -217,7 +238,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       stopWake?.();
       stopWake = null;
       if (timer) clearTimeout(timer);
-      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null });
+      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false });
     },
 
     async refresh() {
@@ -233,6 +254,17 @@ export const useStageStore = create<StageStore>()((set, get) => {
         const view = isMaster ? get().viewSceneId ?? stage?.sceneId ?? null : stage?.sceneId ?? null;
         const viewScene = scenes.find((s) => s.id === view) ?? null;
         const tokens = viewScene?.kind === 'map' ? await stageService.tokens(viewScene.id) : [];
+        // segredos: só o mestre; sem a tabela, o resto do palco segue normal
+        let secrets = get().secrets;
+        let secretsMissing = false;
+        if (isMaster) {
+          try {
+            secrets = await stageService.secrets(campaignId);
+          } catch {
+            secrets = [];
+            secretsMissing = true;
+          }
+        }
         if (mine !== seq || get().campaignId !== campaignId) return;
 
         // handout novo para mim: aviso na tela (uma vez)
@@ -246,7 +278,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
           if (firstLoad) markSeen(campaignId, fresh.filter((h) => !recent.includes(h)).map((h) => h.id));
           if (recent.length && !incoming) incoming = recent[0];
         }
-        set({ scenes, stage, handouts, tokens, incoming, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
+        set({ scenes, stage, handouts, tokens, incoming, secrets, secretsMissing, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
       } catch (e) {
         if (mine !== seq) return;
         set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail, error: null } : { error: (e as Error).message });
@@ -388,6 +420,98 @@ export const useStageStore = create<StageStore>()((set, get) => {
     },
 
     showHandout: (id, recipients) => get().run(() => stageService.showHandout(id, recipients)).then(() => undefined),
+
+    async claimLoot(id) {
+      try {
+        const ok = await stageService.claimLoot(id);
+        set((s) => ({ handouts: s.handouts.map((h) => (h.id === id ? { ...h, claimedBy: get().userId } : h)) }));
+        return ok;
+      } catch (e) {
+        set({ error: (e as Error).message });
+        return false;
+      }
+    },
+
+    async createSecret(sceneId, x, y, kind = 'chest') {
+      const campaignId = get().campaignId;
+      if (!campaignId) return null;
+      const tokenId = crypto.randomUUID();
+      const title = KIND_NAME[kind];
+      const ok = await get().run(async () => {
+        await stageService.addTokens(campaignId, [
+          { id: tokenId, sceneId, kind: 'marker', label: title, sheetId: null, ownerId: null, npcId: null, combatantId: null, monsterRef: null, color: SECRET_COLOR[kind], imagePath: null, x, y, size: 1, hidden: true },
+        ]);
+        await stageService.saveSecret({ campaignId, sceneId, tokenId, kind, title, rules: { mode: 'any', near: 3, to: 'finder' } });
+      });
+      return ok ? tokenId : null;
+    },
+
+    async saveSecret(secret) {
+      // otimista: o editor salva enquanto o mestre digita
+      set((s) => ({ secrets: s.secrets.map((x) => (x.id === secret.id ? secret : x)) }));
+      const tok = secret.tokenId ? get().tokens.find((t) => t.id === secret.tokenId) : null;
+      try {
+        await stageService.saveSecret(secret);
+        // o marcador acompanha o nome e o tipo (é o que a mesa vê quando acha)
+        if (tok && (tok.label !== secret.title || tok.color !== SECRET_COLOR[secret.kind])) {
+          set((s) => ({ tokens: s.tokens.map((t) => (t.id === tok.id ? { ...t, label: secret.title, color: SECRET_COLOR[secret.kind] } : t)) }));
+          await stageService.updateToken(tok.id, { label: secret.title.slice(0, 60), color: SECRET_COLOR[secret.kind] });
+        }
+      } catch (e) {
+        set({ error: (e as Error).message });
+      }
+    },
+
+    removeSecret: (secret) => {
+      set((s) => ({ secrets: s.secrets.filter((x) => x.id !== secret.id), tokens: s.tokens.filter((t) => t.id !== secret.tokenId) }));
+      return get()
+        .run(async () => {
+          if (secret.tokenId) await stageService.removeToken(secret.tokenId);
+          await stageService.removeSecret(secret.id);
+        })
+        .then(() => undefined);
+    },
+
+    revealSecret: (secret, finder) => {
+      const campaignId = get().campaignId!;
+      const now = new Date().toISOString();
+      const found = { ...secret, foundBy: finder?.name ?? 'Mestre', foundAt: now };
+      set((s) => ({
+        secrets: s.secrets.map((x) => (x.id === secret.id ? found : x)),
+        tokens: s.tokens.map((t) => (t.id === secret.tokenId ? { ...t, hidden: false } : t)),
+      }));
+      const hasLoot = secret.loot.length > 0 || Object.values(secret.coins).some((n) => (n ?? 0) > 0);
+      const recipients = secret.rules.to === 'all' || !finder?.ownerId ? null : [finder.ownerId];
+      return get()
+        .run(async () => {
+          if (secret.tokenId) await stageService.updateToken(secret.tokenId, { hidden: false });
+          await stageService.saveSecret({ ...found });
+          if (secret.revealText.trim() || hasLoot) {
+            await stageService.saveHandout(campaignId, {
+              title: `${KIND_NAME[secret.kind]}: ${secret.title}`.slice(0, 80),
+              body: secret.revealText,
+              recipients,
+              shownAt: now,
+              ...(hasLoot ? { loot: { items: secret.loot, coins: secret.coins } } : {}),
+            });
+          }
+        })
+        .then(() => undefined);
+    },
+
+    hideSecret: (secret) => {
+      const back = { ...secret, foundBy: null, foundAt: null };
+      set((s) => ({
+        secrets: s.secrets.map((x) => (x.id === secret.id ? back : x)),
+        tokens: s.tokens.map((t) => (t.id === secret.tokenId ? { ...t, hidden: true } : t)),
+      }));
+      return get()
+        .run(async () => {
+          if (secret.tokenId) await stageService.updateToken(secret.tokenId, { hidden: true });
+          await stageService.saveSecret(back);
+        })
+        .then(() => undefined);
+    },
 
     dismissIncoming() {
       const { incoming, campaignId, handouts } = get();
