@@ -14,17 +14,20 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await page.goto(`/mesa/${C}/jogar`);
     const view = page.locator('.fv-map-view');
     await expect(view).toBeVisible();
-    await page.getByRole('button', { name: 'Paredes (W)' }).click();
+    await page.getByRole('button', { name: 'Paredes e portas (W)' }).click();
     const box = (await view.boundingBox())!;
-    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.25);
+    // abaixo da folha da ferramenta (que fica no alto, junto da doca)
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.45);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.6, { steps: 6 });
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.75, { steps: 6 });
     await page.mouse.up();
     await expect(page.locator('.fv-map-walls line')).toHaveCount(1);
     await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog?: { walls?: unknown[] } }).fog?.walls?.length ?? 0).toBe(1);
 
-    await page.getByRole('button', { name: /Visão dinâmica: desligada/ }).click();
-    await expect(page.getByRole('button', { name: /Visão dinâmica: ligada/ })).toBeVisible();
+    const visao = page.getByRole('switch', { name: 'Visão dinâmica' });
+    await expect(visao).toHaveAttribute('aria-checked', 'false');
+    await visao.click();
+    await expect(visao).toHaveAttribute('aria-checked', 'true');
     await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog?: { vision?: boolean; on?: boolean } }).fog).toMatchObject({ on: true, vision: true });
   });
 

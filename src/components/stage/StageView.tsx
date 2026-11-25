@@ -171,6 +171,40 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             <b>{isMaster ? 'Nada no ar' : 'Palco'}</b>
           )}
         </div>
+        {scene?.kind === 'map' && activeToken && (
+          <div className="fv-stage-turn">
+            <span className="fv-stage-turn-who">
+              <i aria-hidden />
+              Vez de <b>{activeToken.label}</b>
+              {isMaster && session.targetId && (() => {
+                const tg = combatants.find((c) => c.id === session.targetId);
+                return tg ? <> <InlineIcon name="target" size={12} /> <b className="is-target">{tg.name}</b></> : null;
+              })()}
+            </span>
+            <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
+            {/* em tela cheia a iniciativa fica escondida: o mestre passa a vez daqui */}
+            {full && isMaster && encounter?.status === 'active' && (
+              <button type="button" className="fv-stage-next" disabled={session.busy} onClick={() => void session.nextTurn()}>
+                Próximo <InlineIcon name="play" size={11} />
+              </button>
+            )}
+            <label className="fv-stage-follow">
+              <input
+                type="checkbox"
+                checked={follow}
+                onChange={(e) => {
+                  setFollow(e.target.checked);
+                  try {
+                    localStorage.setItem('fv-follow-turn', e.target.checked ? '1' : '0');
+                  } catch {
+                    /* ignora */
+                  }
+                }}
+              />
+              <i aria-hidden /> Seguir o turno
+            </label>
+          </div>
+        )}
         {isMaster && (
           <div className="fv-stage-actions">
             {st.scenes.length > 0 && (
@@ -217,36 +251,6 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
       {scene?.kind === 'map' && (
         <>
           {isMaster && sel && <TokenBar token={sel} combatant={ctx.combFor(sel) ?? null} onClose={() => setSelected(null)} />}
-          {activeToken && (
-            <div className="fv-stage-turn">
-              <span>Vez de <b>{activeToken.label}</b>{isMaster && session.targetId && (() => {
-                const tg = combatants.find((c) => c.id === session.targetId);
-                return tg ? <> → alvo <b className="is-target">{tg.name}</b></> : null;
-              })()}</span>
-              <button type="button" onClick={() => st.focusOn(activeToken.x + activeToken.size / 2, activeToken.y + activeToken.size / 2)}>Ver no mapa</button>
-              {/* em tela cheia a iniciativa fica escondida: o mestre passa a vez daqui */}
-              {full && isMaster && encounter?.status === 'active' && (
-                <button type="button" className="fv-stage-next" disabled={session.busy} onClick={() => void session.nextTurn()}>
-                  Próximo <InlineIcon name="play" size={11} />
-                </button>
-              )}
-              <label>
-                <input
-                  type="checkbox"
-                  checked={follow}
-                  onChange={(e) => {
-                    setFollow(e.target.checked);
-                    try {
-                      localStorage.setItem('fv-follow-turn', e.target.checked ? '1' : '0');
-                    } catch {
-                      /* ignora */
-                    }
-                  }}
-                />{' '}
-                Seguir o turno
-              </label>
-            </div>
-          )}
           <StageMap
             scene={scene}
             tokens={st.tokens}

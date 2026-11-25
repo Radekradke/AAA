@@ -130,15 +130,6 @@ export function StageMap(p: StageMapProps) {
     setFitted(key);
   }, [ready, scene.id, board.w, board.h, fitted, fit]);
 
-  // altura útil do mapa: decide quantas ferramentas cabem por coluna na caixa
-  const [viewH, setViewH] = useState(0);
-  useEffect(() => {
-    const el = box.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([e]) => setViewH(Math.round(e.contentRect.height)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   // entrou/saiu da tela cheia: o quadro mudou de tamanho, reenquadra
   const firstFull = useRef(true);
@@ -173,6 +164,12 @@ export function StageMap(p: StageMapProps) {
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, []);
+
+  // cada grupo lembra a última ferramenta usada (o botão do grupo volta nela)
+  const lastIn = useRef<Record<string, MapTool>>({});
+  useEffect(() => {
+    lastIn.current[groupOf(tool).id] = tool;
+  }, [tool]);
 
   // atalhos das ferramentas (fora de campos de texto)
   const keys = useRef({ tool, full: p.full, toggleFull: p.onToggleFull });
@@ -489,19 +486,14 @@ export function StageMap(p: StageMapProps) {
   const stroke = Math.max(2, g.size / 18);
   const fontPx = Math.max(12, g.size * 0.3);
 
-  const tools: { t: MapTool; label: string; key: string; icon: ReactNode; master?: boolean }[] = [
-    { t: 'move', label: 'Mover (V)', key: 'V', icon: <IcoMove /> },
-    { t: 'measure', label: 'Régua (R)', key: 'R', icon: <IcoRuler /> },
-    { t: 'circle', label: 'Esfera / raio (C)', key: 'C', icon: <IcoCircle /> },
-    { t: 'cone', label: 'Cone (O)', key: 'O', icon: <IcoCone /> },
-    { t: 'line', label: 'Linha (L)', key: 'L', icon: <IcoLine /> },
-    { t: 'square', label: 'Cubo (Q)', key: 'Q', icon: <IcoSquare /> },
-    { t: 'laser', label: 'Caneta-laser (P)', key: 'P', icon: <IcoLaser /> },
-    { t: 'reveal', label: 'Revelar área (N)', key: 'N', icon: <IcoEye />, master: true },
-    { t: 'cover', label: 'Cobrir área', key: '', icon: <IcoEyeOff />, master: true },
-    { t: 'wall', label: 'Paredes (W)', key: 'W', icon: <IcoWall />, master: true },
-    { t: 'door', label: 'Portas (D)', key: 'D', icon: <IcoDoor />, master: true },
-  ];
+  const groups = TOOL_GROUPS.filter((x) => !x.master || p.isMaster);
+  const active = groupOf(tool);
+  const dockIcon = (gr: ToolGroup) => {
+    const t = gr.id === active.id ? tool : lastIn.current[gr.id] ?? gr.tools[0].t;
+    return gr.tools.find((x) => x.t === t)?.icon ?? gr.tools[0].icon;
+  };
+  const pickGroup = (gr: ToolGroup) => setTool(gr.id === active.id ? tool : lastIn.current[gr.id] ?? gr.tools[0].t);
+  const hint = HINTS[tool] ?? (p.isMaster ? 'Arraste NPCs e criaturas da lateral para cá · duplo clique aponta' : 'Arraste o seu peão · duplo clique (ou segure o dedo) aponta um lugar');
 
   return (
     <div className="fv-map">
@@ -537,10 +529,13 @@ export function StageMap(p: StageMapProps) {
           p.onDropItem(item, { x: Math.floor(c.x), y: Math.floor(c.y) });
         }}
         role="application"
-        aria-label={`Mapa tático: ${scene.name}. Ferramenta: ${tools.find((x) => x.t === tool)?.label}.`}
+        aria-label={`Mapa tático: ${scene.name}. Ferramenta: ${active.tools.find((x) => x.t === tool)?.label ?? active.label}.`}
       >
         {scene.imagePath && !imageUrl && <div className="fv-map-loading">{imageError ?? 'Carregando o mapa…'}</div>}
-        <div className="fv-map-world" style={{ width: board.w, height: board.h, transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})` }}>
+        <div
+          className={'fv-map-world' + (g.size * view.z < 34 ? ' is-far' : '')}
+          style={{ width: board.w, height: board.h, transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`, '--iz': 1 / view.z } as CSSProperties}
+        >
           {imageUrl ? (
             <img src={imageUrl} alt="" draggable={false} onLoad={(e) => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
           ) : (
@@ -635,14 +630,21 @@ export function StageMap(p: StageMapProps) {
                       <polygon points={polyPts(l.poly)} />
                     </clipPath>
                   ))}
+                <filter id={`soft-${scene.id}`} x="-5%" y="-5%" width="110%" height="110%">
+                  <feGaussianBlur stdDeviation={g.size * 0.28} />
+                </filter>
                 <mask id={`fog-${scene.id}`}>
                   <rect width="100%" height="100%" fill="white" />
                   {fog.reveal.map((r, i) => (
                     <rect key={i} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={r.h * g.size} fill="black" />
                   ))}
-                  {exploredRuns.map((r) => (
-                    <rect key={`e${r.x},${r.y}`} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={g.size} fill="dimgray" />
-                  ))}
+                  {exploredRuns.length > 0 && (
+                    <g filter={`url(#soft-${scene.id})`}>
+                      {exploredRuns.map((r) => (
+                        <rect key={`e${r.x},${r.y}`} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={g.size} fill="dimgray" />
+                      ))}
+                    </g>
+                  )}
                   {!dark &&
                     viewers.map((v, i) => <polygon key={`v${i}`} points={polyPts(v.poly)} fill="black" />)}
                   {dark &&
@@ -746,56 +748,108 @@ export function StageMap(p: StageMapProps) {
         )}
       </div>
 
-      {/* ferramentas (esquerda): colunas explícitas — quebra em mais colunas quando o mapa é baixo */}
-      <div className="fv-map-toolbox" role="toolbar" aria-label="Ferramentas do mapa" style={toolboxGrid(tools.filter((x) => !x.master || p.isMaster).length + (p.marks.length > 0 ? 1 : 0), viewH)}>
-        {tools.filter((x) => !x.master || p.isMaster).map((x) => (
-          <button key={x.t} type="button" className={tool === x.t ? 'is-on' : ''} onClick={() => setTool(x.t)} aria-pressed={tool === x.t} title={x.label} aria-label={x.label}>
-            {x.icon}
-          </button>
+      {/* doca de ferramentas (esquerda): um botão por grupo; as variações ficam na folha da ferramenta */}
+      <div className="fv-map-dock" role="toolbar" aria-label="Ferramentas do mapa" aria-orientation="vertical">
+        {groups.map((gr, i) => (
+          <span key={gr.id} className="fv-map-dock-slot">
+            {gr.master && !groups[i - 1]?.master && <i className="fv-map-dock-sep" aria-hidden />}
+            <button
+              type="button"
+              className={active.id === gr.id ? 'is-on' : ''}
+              onClick={() => pickGroup(gr)}
+              aria-pressed={active.id === gr.id}
+              aria-label={`${gr.label} (${gr.key})`}
+            >
+              {dockIcon(gr)}
+              {gr.tools.length > 1 && <i className="fv-map-dock-more" aria-hidden />}
+              <span className="fv-map-tip" aria-hidden>
+                {gr.label} <kbd>{gr.key}</kbd>
+              </span>
+            </button>
+          </span>
         ))}
         {p.marks.length > 0 && (
-          <button type="button" className="is-clear" onClick={() => p.onClearMarks(p.isMaster)} title={p.isMaster ? 'Apagar todos os moldes' : 'Apagar meus moldes'} aria-label="Apagar moldes">
-            <IcoTrash />
-          </button>
+          <span className="fv-map-dock-slot">
+            <i className="fv-map-dock-sep" aria-hidden />
+            <button type="button" className="is-clear" onClick={() => p.onClearMarks(p.isMaster)} aria-label={p.isMaster ? 'Apagar todos os moldes' : 'Apagar meus moldes'}>
+              <IcoTrash />
+              <span className="fv-map-tip" aria-hidden>{p.isMaster ? 'Apagar todos os moldes' : 'Apagar meus moldes'}</span>
+            </button>
+          </span>
         )}
       </div>
 
-      {/* névoa: atalhos do mestre */}
-      {p.isMaster && (tool === 'reveal' || tool === 'cover') && p.onFogAll && (
-        <div className="fv-map-fogbar" role="toolbar" aria-label="Névoa de guerra">
-          <span>{tool === 'reveal' ? 'Arraste para revelar' : 'Arraste para cobrir'}</span>
-          <button type="button" onClick={() => p.onFogAll!('cover')}>Cobrir tudo</button>
-          <button type="button" onClick={() => p.onFogAll!('reveal')}>Revelar tudo</button>
-          {fog?.on && <button type="button" onClick={() => p.onFogAll!('off')}>Desligar névoa</button>}
-        </div>
-      )}
-
-      {/* paredes, portas e visão dinâmica: atalhos do mestre */}
-      {p.isMaster && (tool === 'wall' || tool === 'door') && p.onFogSet && (
-        <div className="fv-map-fogbar" role="toolbar" aria-label="Paredes e visão">
-          <span>{tool === 'wall' ? 'Arraste de quina a quina · toque numa parede apaga' : 'Arraste sobre o vão da porta · toque apaga'}</span>
-          <button type="button" className={vision ? 'is-on' : ''} aria-pressed={vision} onClick={() => saveWalls(walls, { on: true, vision: !vision })}>
-            Visão dinâmica: {vision ? 'ligada' : 'desligada'}
-          </button>
-          {vision && (
-            <button type="button" className={fog?.dark ? 'is-on' : ''} aria-pressed={!!fog?.dark} onClick={() => saveWalls(walls, { dark: !fog?.dark })}>
-              Cena {fog?.dark ? 'no escuro' : 'iluminada'}
-            </button>
+      {/* folha da ferramenta: variações, ajustes e a dica, presas à doca */}
+      {active.id !== 'move' && (
+        <div className="fv-map-sheet" role="toolbar" aria-label={active.label}>
+          <div className="fv-map-sheet-row">
+            <b>{active.label}</b>
+            {active.tools.length > 1 && (
+              <span className="fv-map-seg" role="group" aria-label={`Tipo de ${active.label.toLowerCase()}`}>
+                {active.tools.map((x) => (
+                  <button key={x.t} type="button" className={tool === x.t ? 'is-on' : ''} aria-pressed={tool === x.t} onClick={() => setTool(x.t)} title={x.key ? `${x.label} (${x.key})` : x.label}>
+                    {x.icon}
+                    <span>{x.label}</span>
+                  </button>
+                ))}
+              </span>
+            )}
+          </div>
+          {active.id === 'fog' && p.onFogAll && (
+            <div className="fv-map-sheet-row">
+              <button type="button" className="fv-map-act" onClick={() => p.onFogAll!('cover')}>Cobrir tudo</button>
+              <button type="button" className="fv-map-act" onClick={() => p.onFogAll!('reveal')}>Revelar tudo</button>
+              {fog?.on && <button type="button" className="fv-map-act is-quiet" onClick={() => p.onFogAll!('off')}>Desligar névoa</button>}
+            </div>
           )}
-          {walls.length > 0 && <button type="button" onClick={() => saveWalls(walls.slice(0, -1))}>Desfazer última</button>}
-          {walls.length > 0 && <button type="button" onClick={() => saveWalls([])}>Apagar todas</button>}
+          {active.id === 'walls' && p.onFogSet && (
+            <>
+              <div className="fv-map-sheet-row">
+                <button type="button" className="fv-map-switch" role="switch" aria-checked={vision} onClick={() => saveWalls(walls, { on: true, vision: !vision })}>
+                  <i aria-hidden /> Visão dinâmica
+                </button>
+                <button type="button" className="fv-map-switch" role="switch" aria-checked={!!fog?.dark} disabled={!vision} onClick={() => saveWalls(walls, { dark: !fog?.dark })}>
+                  <i aria-hidden /> Cena no escuro
+                </button>
+              </div>
+              {walls.length > 0 && (
+                <div className="fv-map-sheet-row">
+                  <span className="fv-map-count">{walls.length} {walls.length === 1 ? 'traço' : 'traços'}</span>
+                  <button type="button" className="fv-map-act" onClick={() => saveWalls(walls.slice(0, -1))}>Desfazer</button>
+                  <button type="button" className="fv-map-act is-danger" onClick={() => saveWalls([])}>Apagar todas</button>
+                </div>
+              )}
+            </>
+          )}
+          {!selected && !myMark && !ruler && <small className="fv-map-sheet-hint">{hint}</small>}
         </div>
       )}
 
+      {/* visão: trazer todos · zoom · grade · tela cheia */}
       <div className="fv-map-tools" role="toolbar" aria-label="Zoom do mapa">
         {p.isMaster && p.onPullView && (
-          <button type="button" onClick={pullHere} aria-label="Trazer todos para a minha visão" title="Trazer todos para a minha visão (ou Shift + duplo clique)">
-            <IcoPull />
+          <>
+            <button type="button" onClick={pullHere} aria-label="Trazer todos para a minha visão" title="Trazer todos para a minha visão (ou Shift + duplo clique)">
+              <IcoPull />
+            </button>
+            <i className="fv-map-tools-sep" aria-hidden />
+          </>
+        )}
+        <button type="button" onClick={() => zoomBtn(0.8)} aria-label="Afastar" title="Afastar">
+          <IcoMinus />
+        </button>
+        <button type="button" className="fv-map-zoom" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa">
+          {Math.round(view.z * 100)}%
+        </button>
+        <button type="button" onClick={() => zoomBtn(1.25)} aria-label="Aproximar" title="Aproximar">
+          <IcoPlus />
+        </button>
+        <i className="fv-map-tools-sep" aria-hidden />
+        {g.show && (
+          <button type="button" className={showGrid ? 'is-on' : ''} onClick={() => setShowGrid((v) => !v)} aria-pressed={showGrid} aria-label="Mostrar grade" title="Grade">
+            <IcoGrid />
           </button>
         )}
-        <button type="button" onClick={() => zoomBtn(1.25)} aria-label="Aproximar">+</button>
-        <button type="button" onClick={() => zoomBtn(0.8)} aria-label="Afastar">−</button>
-        <button type="button" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa"><InlineIcon name="expand" /></button>
         {p.onToggleFull && (
           <button
             type="button"
@@ -808,27 +862,8 @@ export function StageMap(p: StageMapProps) {
             {p.full ? <IcoShrink /> : <IcoExpand />}
           </button>
         )}
-        {g.show && (
-          <button type="button" className={showGrid ? 'is-on' : ''} onClick={() => setShowGrid((v) => !v)} aria-pressed={showGrid} aria-label="Mostrar grade">
-            #
-          </button>
-        )}
       </div>
-      {!selected && !myMark && !ruler && (
-        <div className="fv-map-hint">
-          {tool === 'move'
-            ? p.isMaster
-              ? 'Arraste NPCs e criaturas da lateral para cá · duplo clique aponta'
-              : 'Arraste o seu peão · duplo clique (ou segure o dedo) aponta um lugar'
-            : tool === 'laser'
-              ? 'Risque o caminho — some sozinho'
-              : tool === 'reveal' || tool === 'cover'
-                ? 'Arraste um retângulo sobre o mapa'
-                : tool === 'wall' || tool === 'door'
-                  ? 'Só você vê as paredes; os jogadores veem o que os heróis enxergam'
-                  : 'Arraste a partir da origem — todos veem o molde'}
-        </div>
-      )}
+      {active.id === 'move' && !selected && !myMark && !ruler && <div className="fv-map-hint">{hint}</div>}
     </div>
   );
 }
@@ -922,14 +957,71 @@ const IcoEyeOff = () => <svg {...S}><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 
 const IcoWall = () => <svg {...S}><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" /></svg>;
 const IcoDoor = () => <svg {...S}><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18" /><circle cx="15" cy="12" r="1" fill="currentColor" /></svg>;
 const IcoTrash = () => <svg {...S}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>;
-/** Caixa de ferramentas: quantas casas de 36 px cabem na altura do mapa (com folga para as bordas). */
-function toolboxGrid(n: number, viewH: number): CSSProperties | undefined {
-  if (!viewH) return undefined;
-  const rows = Math.max(1, Math.min(n, Math.floor((viewH - 28) / 40)));
-  const cols = Math.ceil(n / rows);
-  return { gridTemplateRows: `repeat(${rows}, 36px)`, gridTemplateColumns: `repeat(${cols}, 36px)` };
-}
 
 const IcoExpand = () => <svg {...S}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>;
 const IcoShrink = () => <svg {...S}><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>;
 const IcoPull = () => <svg {...S}><circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>;
+
+const IcoPlus = () => <svg {...S}><path d="M12 5v14M5 12h14" /></svg>;
+const IcoMinus = () => <svg {...S}><path d="M5 12h14" /></svg>;
+const IcoGrid = () => <svg {...S}><path d="M4 4h16v16H4zM4 9.33h16M4 14.67h16M9.33 4v16M14.67 4v16" /></svg>;
+
+interface ToolGroup {
+  id: string;
+  label: string;
+  key: string;
+  master?: boolean;
+  tools: { t: MapTool; label: string; key?: string; icon: ReactNode }[];
+}
+/** Doca: um botão por grupo (como no Foundry); as variações ficam na folha. */
+const TOOL_GROUPS: ToolGroup[] = [
+  { id: 'move', label: 'Mover', key: 'V', tools: [{ t: 'move', label: 'Mover', icon: <IcoMove /> }] },
+  { id: 'measure', label: 'Régua', key: 'R', tools: [{ t: 'measure', label: 'Régua', icon: <IcoRuler /> }] },
+  {
+    id: 'area',
+    label: 'Moldes de área',
+    key: 'C',
+    tools: [
+      { t: 'circle', label: 'Esfera', key: 'C', icon: <IcoCircle /> },
+      { t: 'cone', label: 'Cone', key: 'O', icon: <IcoCone /> },
+      { t: 'line', label: 'Linha', key: 'L', icon: <IcoLine /> },
+      { t: 'square', label: 'Cubo', key: 'Q', icon: <IcoSquare /> },
+    ],
+  },
+  { id: 'laser', label: 'Caneta-laser', key: 'P', tools: [{ t: 'laser', label: 'Caneta-laser', icon: <IcoLaser /> }] },
+  {
+    id: 'fog',
+    label: 'Névoa',
+    key: 'N',
+    master: true,
+    tools: [
+      { t: 'reveal', label: 'Revelar', icon: <IcoEye /> },
+      { t: 'cover', label: 'Cobrir', icon: <IcoEyeOff /> },
+    ],
+  },
+  {
+    id: 'walls',
+    label: 'Paredes e portas',
+    key: 'W',
+    master: true,
+    tools: [
+      { t: 'wall', label: 'Parede', key: 'W', icon: <IcoWall /> },
+      { t: 'door', label: 'Porta', key: 'D', icon: <IcoDoor /> },
+    ],
+  },
+];
+function groupOf(t: MapTool): ToolGroup {
+  return TOOL_GROUPS.find((gr) => gr.tools.some((x) => x.t === t)) ?? TOOL_GROUPS[0];
+}
+const HINTS: Partial<Record<MapTool, string>> = {
+  measure: 'Arraste de uma casa a outra · a régua some ao soltar',
+  circle: 'Arraste do centro para fora · todos veem quem fica dentro',
+  cone: 'Arraste da ponta na direção do sopro',
+  line: 'Arraste da origem até o alcance',
+  square: 'Arraste de uma quina na diagonal',
+  laser: 'Risque o caminho · some sozinho',
+  reveal: 'Arraste um retângulo para revelar',
+  cover: 'Arraste um retângulo para cobrir',
+  wall: 'Arraste de quina a quina · um toque numa parede apaga',
+  door: 'Arraste sobre o vão da porta · um toque apaga',
+};
