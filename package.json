@@ -16,6 +16,7 @@
     "lint": "eslint . --max-warnings 0",
     "budget": "node scripts/bundle-budget.mjs",
     "debt": "node scripts/style-debt.mjs",
+    "sql:tudo": "node scripts/supabase-tudo.mjs",
     "art": "node scripts/art-sizes.mjs",
     "vitals": "node scripts/web-vitals.mjs"
   },
