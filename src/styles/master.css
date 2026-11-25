@@ -899,7 +899,7 @@ body:has(.fv-mw.has-dock) .fv-toasts { bottom: calc(190px + env(safe-area-inset-
   .fv-quickbar-btns button, .fv-quickbar-drawer { min-height: 30px; font-size: 12.5px; }
   .fv-mw-stage > .fv-stage { padding: 8px; }
   .fv-mw-stage .fv-stage-head { margin-bottom: 6px; }
-  .fv-mw-stage .fv-stage-turn { padding: 4px 10px; margin-bottom: 6px; font-size: 12.5px; }
+  .fv-mw-stage .fv-stage-turn { font-size: 12.5px; }
   .fv-mw-stage .fv-stage-turn button { min-height: 28px; }
   .fv-mw-stage .fv-map,
   .fv-mw-stage .fv-map-view { min-height: 230px; }
