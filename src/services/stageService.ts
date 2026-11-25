@@ -2,7 +2,7 @@ import { getSupabase } from './supabaseClient';
 import { sessionUserId } from './campaignService';
 import { PALCO_SETUP_MISSING } from './mediaService';
 import { DEFAULT_GRID } from '@/types/stage';
-import type { CutsceneBeat, GridConfig, Handout, Scene, SceneKind, StageState, Token } from '@/types/stage';
+import type { CutsceneBeat, GridConfig, Handout, HandoutLoot, Scene, SceneKind, SceneSecret, SecretKind, SecretLoot, SecretRules, SecretSkill, StageState, Token } from '@/types/stage';
 
 /**
  * Palco da mesa: cenas, o que está no ar, peões e handouts. O mestre
@@ -119,6 +119,59 @@ export function mapHandout(r: Record<string, unknown>): Handout {
     shownAt: (r.shown_at as string) ?? null,
     createdAt: String(r.created_at ?? ''),
     improvisedIn: (r.improvised_in as string) ?? null,
+    loot: mapLoot(r.loot),
+    claimedBy: (r.claimed_by as string) ?? null,
+  };
+}
+
+const SECRET_KINDS: SecretKind[] = ['chest', 'trap', 'door', 'clue', 'item'];
+const COIN_KEYS = ['pp', 'gp', 'ep', 'sp', 'cp'] as const;
+
+function mapItems(v: unknown): SecretLoot[] {
+  return (Array.isArray(v) ? v : [])
+    .map((x) => ({ name: String(x?.name ?? '').slice(0, 80), qty: Math.max(1, Math.min(999, Math.round(num(x?.qty, 1)))), ...(x?.itemId ? { itemId: String(x.itemId) } : {}) }))
+    .filter((x) => x.name.trim())
+    .slice(0, 40);
+}
+function mapCoins(v: unknown): Record<string, number> {
+  const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
+  return Object.fromEntries(COIN_KEYS.map((k) => [k, Math.max(0, Math.round(num(o[k])))] as const).filter(([, n]) => n > 0));
+}
+function mapLoot(v: unknown): HandoutLoot | null {
+  if (!v || typeof v !== 'object') return null;
+  const o = v as Record<string, unknown>;
+  return { items: mapItems(o.items), coins: mapCoins(o.coins) };
+}
+function mapRules(v: unknown): SecretRules {
+  const o = (v && typeof v === 'object' ? v : {}) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const skill = (x: unknown): SecretSkill => (x === 'investigation' ? 'investigation' : 'perception');
+  return {
+    mode: o.mode === 'all' ? 'all' : 'any',
+    ...(num(o.near) > 0 ? { near: num(o.near) } : {}),
+    ...(o.passive ? { passive: { skill: skill(o.passive.skill), dc: num(o.passive.dc, 13) } } : {}),
+    ...(o.check ? { check: { skill: skill(o.check.skill), dc: num(o.check.dc, 13) } } : {}),
+    ...(o.item && String(o.item).trim() ? { item: String(o.item).slice(0, 80) } : {}),
+    ...(o.flag ? { flag: { label: String(o.flag.label ?? 'Gatilho').slice(0, 60), on: !!o.flag.on } } : {}),
+    ...(o.auto ? { auto: true } : {}),
+    to: o.to === 'all' ? 'all' : 'finder',
+  };
+}
+
+export function mapSecret(r: Record<string, unknown>): SceneSecret {
+  return {
+    id: String(r.id),
+    campaignId: String(r.campaign_id),
+    sceneId: String(r.scene_id),
+    tokenId: (r.token_id as string) ?? null,
+    kind: SECRET_KINDS.includes(r.kind as SecretKind) ? (r.kind as SecretKind) : 'chest',
+    title: String(r.title ?? ''),
+    revealText: String(r.reveal_text ?? ''),
+    notes: String(r.notes ?? ''),
+    loot: mapItems(r.loot),
+    coins: mapCoins(r.coins),
+    rules: mapRules(r.rules),
+    foundBy: (r.found_by as string) ?? null,
+    foundAt: (r.found_at as string) ?? null,
   };
 }
 
@@ -135,7 +188,7 @@ function sceneRow(campaignId: string, s: Partial<Scene>) {
   };
 }
 
-export type NewToken = Omit<Token, 'id' | 'campaignId'>;
+export type NewToken = Omit<Token, 'id' | 'campaignId'> & { id?: string };
 export type TokenPatch = Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y' | 'imagePath'>>;
 
 export const stageService = {
@@ -197,6 +250,7 @@ export const stageService = {
     if (!list.length) return;
     await sessionUserId();
     const rows = list.map((t) => ({
+      ...(t.id ? { id: t.id } : {}),
       scene_id: t.sceneId, campaign_id: campaignId, kind: t.kind, label: t.label.slice(0, 60), sheet_id: t.sheetId, owner_id: t.ownerId,
       npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, image_path: t.imagePath, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
     }));
@@ -255,6 +309,7 @@ export const stageService = {
       ...(h.improvisedIn !== undefined ? { improvised_in: h.improvisedIn } : {}),
       // entrega já na criação (pista improvisada "mostrar agora")
       ...(h.shownAt !== undefined ? { shown_at: h.shownAt } : {}),
+      ...(h.loot !== undefined ? { loot: h.loot } : {}),
     };
     const q = h.id
       ? sb().from('campaign_handouts').update(row).eq('id', h.id).select().single()
@@ -275,6 +330,51 @@ export const stageService = {
   async keepHandout(id: string): Promise<void> {
     await sessionUserId();
     const { error } = await sb().from('campaign_handouts').update({ improvised_in: null }).eq('id', id);
+    if (error) throw stageError(error);
+  },
+
+  /** Jogador pega o loot da pista (uma vez só). false = já pego ou não é dele. */
+  async claimLoot(id: string): Promise<boolean> {
+    await sessionUserId();
+    const { data, error } = await sb().rpc('claim_handout_loot', { p_handout: id });
+    if (error) throw stageError(error);
+    return Array.isArray(data) ? data.length > 0 : !!data;
+  },
+
+  /* ---------- segredos (só o mestre) ---------- */
+  async secrets(campaignId: string): Promise<SceneSecret[]> {
+    const { data, error } = await sb().from('scene_secrets').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: true });
+    if (error) throw stageError(error);
+    return (data ?? []).map(mapSecret);
+  },
+
+  async saveSecret(s: Partial<SceneSecret> & { campaignId: string; sceneId: string }): Promise<SceneSecret> {
+    await sessionUserId();
+    const row = {
+      campaign_id: s.campaignId,
+      scene_id: s.sceneId,
+      ...(s.tokenId !== undefined ? { token_id: s.tokenId } : {}),
+      ...(s.kind ? { kind: s.kind } : {}),
+      ...(s.title !== undefined ? { title: s.title.trim().slice(0, 80) || 'Segredo' } : {}),
+      ...(s.revealText !== undefined ? { reveal_text: s.revealText.trim() || null } : {}),
+      ...(s.notes !== undefined ? { notes: s.notes.trim() || null } : {}),
+      ...(s.loot ? { loot: s.loot } : {}),
+      ...(s.coins ? { coins: s.coins } : {}),
+      ...(s.rules ? { rules: s.rules } : {}),
+      ...(s.foundBy !== undefined ? { found_by: s.foundBy } : {}),
+      ...(s.foundAt !== undefined ? { found_at: s.foundAt } : {}),
+      updated_at: new Date().toISOString(),
+    };
+    const q = s.id
+      ? sb().from('scene_secrets').update(row).eq('id', s.id).select().single()
+      : sb().from('scene_secrets').insert({ title: 'Segredo', ...row }).select().single();
+    const { data, error } = await q;
+    if (error) throw stageError(error);
+    return mapSecret(data);
+  },
+
+  async removeSecret(id: string): Promise<void> {
+    const { error } = await sb().from('scene_secrets').delete().eq('id', id);
     if (error) throw stageError(error);
   },
 

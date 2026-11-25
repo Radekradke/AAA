@@ -5,9 +5,16 @@ import { mediaService, useMediaUrl } from '@/services/mediaService';
 import { stageService } from '@/services/stageService';
 import { useStageStore } from '@/store/stageStore';
 import type { SharedHero } from '@/components/session/MasterDeck';
-import type { Handout } from '@/types/stage';
+import type { Handout, HandoutLoot } from '@/types/stage';
+import { useSessionStore } from '@/store/sessionStore';
+import { useCharacterStore } from '@/store/characterStore';
+import { toast } from '@/store/feedbackStore';
+import { ITEM_BY_ID } from '@/data/items';
+import { itemToInventory } from '@/engine/inventory';
+import type { Item } from '@/types/dnd';
 import { canDeliver, recipientsText, toggleRecipient } from '@/lib/handoutRecipients';
 import '@/styles/stage.css';
+import '@/styles/secrets.css';
 import { InlineIcon } from '@/components/ui/Icon';
 
 /** Jogadores da mesa (dono → nomes dos heróis) para escolher quem recebe. */
@@ -197,6 +204,7 @@ export function HandoutModal({ handout, onClose, fresh }: { handout: Handout; on
       <article className="fv-handout-paper">
         {handout.imagePath && (url ? <img src={url} alt={handout.title} /> : <div className="fv-map-loading">{error ?? 'Carregando…'}</div>)}
         {handout.body && <p>{handout.body}</p>}
+        {handout.loot && <LootBox handout={handout} loot={handout.loot} />}
       </article>
     </Modal>
   );
@@ -205,4 +213,74 @@ export function HandoutModal({ handout, onClose, fresh }: { handout: Handout; on
 export function HandoutThumb({ path }: { path: string }) {
   const { url } = useMediaUrl(path);
   return <span className="fv-handout-thumb" style={url ? { backgroundImage: `url("${url}")` } : undefined} aria-hidden />;
+}
+
+const COIN_NAME: Record<string, string> = { pp: 'PL', gp: 'PO', ep: 'PE', sp: 'PP', cp: 'PC' };
+
+/** Loot de um achado: lista e "Pegar" (uma vez só, direto para a mochila). */
+function LootBox({ handout, loot }: { handout: Handout; loot: HandoutLoot }) {
+  const st = useStageStore();
+  const me = useSessionStore((s) => s.me);
+  const chars = useCharacterStore();
+  const [busy, setBusy] = useState(false);
+  const [taken, setTaken] = useState(false);
+  const hero = me?.characterId ? chars.getCharacter(me.characterId) : undefined;
+  const coins = Object.entries(loot.coins).filter(([, n]) => (n ?? 0) > 0);
+  // o aviso abre com uma cópia da pista: quem pegou vem da lista viva
+  const claimedBy = taken ? me?.userId : st.handouts.find((h) => h.id === handout.id)?.claimedBy ?? handout.claimedBy;
+  const mine = !!claimedBy && claimedBy === me?.userId;
+
+  const take = async () => {
+    if (!hero) return;
+    setBusy(true);
+    try {
+      const ok = await st.claimLoot(handout.id);
+      if (!ok) {
+        toast('Alguém da mesa já pegou isso.', { tone: 'info' });
+        return;
+      }
+      for (const l of loot.items) {
+        const base: Item = (l.itemId && ITEM_BY_ID[l.itemId]) || { id: `achado-${l.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, name: l.name, category: 'treasure', note: `Achado: ${handout.title}`, rarity: 'comum', weight: 0 };
+        chars.addInventoryItem(hero.id, itemToInventory(base, l.qty));
+      }
+      for (const [k, n] of coins) chars.adjustCoin(hero.id, k as 'pp' | 'gp' | 'ep' | 'sp' | 'cp', n ?? 0);
+      setTaken(true);
+      toast(`Guardado na mochila de ${hero.name}.`, { tone: 'ok' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="fv-loot" aria-label="Loot">
+      <header>
+        <span className="fv-loot-mark" aria-hidden />
+        <b>Loot</b>
+      </header>
+      <ul>
+        {loot.items.map((l, i) => (
+          <li key={`${l.name}-${i}`}>
+            <span>{l.name}</span>
+            {l.qty > 1 && <small>× {l.qty}</small>}
+          </li>
+        ))}
+        {coins.map(([k, n]) => (
+          <li key={k} className="is-coin">
+            <span>{n} {COIN_NAME[k]}</span>
+          </li>
+        ))}
+      </ul>
+      {me && !me.isMaster && (
+        claimedBy ? (
+          <p className="fv-loot-done">{mine ? 'Já está na sua mochila.' : 'Alguém da mesa já pegou.'}</p>
+        ) : hero ? (
+          <button type="button" className="fv-btn-gold" disabled={busy} onClick={() => void take()}>
+            Pegar para {hero.name}
+          </button>
+        ) : (
+          <p className="fv-loot-done">Escolha seu herói na mesa para pegar.</p>
+        )
+      )}
+    </section>
+  );
 }

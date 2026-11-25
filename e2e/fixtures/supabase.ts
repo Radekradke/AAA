@@ -93,6 +93,13 @@ function rpc(name: string, body: Row, db: MockDb): unknown {
       return String(body.p_code ?? '').replace(/[^A-Z0-9]/gi, '').toUpperCase() === INVITE_CODE ? C : null;
     case 'shared_sheet':
       return body.p_token === SHARE_TOKEN ? [{ snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: Date.now() }] : [];
+    case 'claim_handout_loot': {
+      const h = (db.tables.campaign_handouts ?? []).find((r) => r.id === body.p_handout);
+      if (!h || h.claimed_by) return [];
+      h.claimed_by = db.me;
+      db.writes.push('RPC claim_handout_loot');
+      return [h];
+    }
     case 'start_session':
     case 'start_planned_session':
     case 'plan_session':

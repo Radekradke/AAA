@@ -54,7 +54,7 @@ export interface Wall {
 }
 
 /** Ferramentas do mapa (inspiradas em Foundry VTT / Owlbear Rodeo / Dungeon Revealer). */
-export type MapTool = 'move' | 'measure' | 'circle' | 'cone' | 'line' | 'square' | 'laser' | 'reveal' | 'cover' | 'wall' | 'door';
+export type MapTool = 'move' | 'measure' | 'circle' | 'cone' | 'line' | 'square' | 'laser' | 'reveal' | 'cover' | 'wall' | 'door' | 'secret';
 export type MarkKind = 'measure' | 'circle' | 'cone' | 'line' | 'square';
 
 /** Régua ou molde de área desenhado por alguém da mesa (efêmero, por broadcast). */
@@ -138,6 +138,10 @@ export interface Handout {
   createdAt: string;
   /** Criada de improviso nesta sessão; null = guardada na campanha. */
   improvisedIn?: string | null;
+  /** Loot de um segredo achado (quem recebeu pega uma vez, para a mochila). */
+  loot?: HandoutLoot | null;
+  /** Quem já pegou o loot. */
+  claimedBy?: string | null;
 }
 
 export interface StagePing {
@@ -151,3 +155,59 @@ export interface StagePing {
 export const DEFAULT_GRID: GridConfig = { size: 70, ox: 0, oy: 0, show: true };
 /** Cada casa vale 1,5 m (5 pés) — Livro do Jogador. */
 export const CELL_METERS = 1.5;
+
+/* ---------------------------------------------------------------------
+   SEGREDOS DO MAPA (supabase/segredos.sql) — só o mestre lê
+   --------------------------------------------------------------------- */
+export type SecretKind = 'chest' | 'trap' | 'door' | 'clue' | 'item';
+export type SecretSkill = 'perception' | 'investigation';
+export type SecretCoins = Partial<Record<'pp' | 'gp' | 'ep' | 'sp' | 'cp', number>>;
+
+export interface SecretLoot {
+  name: string;
+  qty: number;
+  /** Item do catálogo (entra na mochila com os dados de verdade). */
+  itemId?: string;
+}
+
+export interface HandoutLoot {
+  items: SecretLoot[];
+  coins: SecretCoins;
+}
+
+/** Condições para o segredo aparecer (combináveis: todas ou qualquer uma). */
+export interface SecretRules {
+  mode: 'all' | 'any';
+  /** Um herói chega a até N metros, com linha de visão. */
+  near?: number;
+  /** Percepção/Investigação passiva da ficha ≥ CD (ao alcance). */
+  passive?: { skill: SecretSkill; dc: number };
+  /** Teste rolado na mesa ≥ CD (ao alcance, nos últimos minutos). */
+  check?: { skill: SecretSkill; dc: number };
+  /** O herói carrega um item com este nome (ex.: "Chave do Barão"). */
+  item?: string;
+  /** Gatilho que o mestre aciona (ex.: "a alavanca foi puxada"). */
+  flag?: { label: string; on: boolean };
+  /** Revela sozinho; sem isso, pergunta ao mestre antes. */
+  auto?: boolean;
+  /** Quem recebe a pista: quem achou ou a mesa toda. */
+  to?: 'finder' | 'all';
+}
+
+export interface SceneSecret {
+  id: string;
+  campaignId: string;
+  sceneId: string;
+  tokenId: string | null;
+  kind: SecretKind;
+  title: string;
+  /** O que os jogadores leem ao achar. */
+  revealText: string;
+  /** Só do mestre. */
+  notes: string;
+  loot: SecretLoot[];
+  coins: SecretCoins;
+  rules: SecretRules;
+  foundBy: string | null;
+  foundAt: string | null;
+}

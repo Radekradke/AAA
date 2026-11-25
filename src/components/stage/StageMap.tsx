@@ -10,6 +10,10 @@ import { blockingWalls, cellRuns, cellsSeen, nearestWall, pathBlocked, seen, sna
 import type { LightSource, Viewer } from '@/engine/vision';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import { InlineIcon } from '@/components/ui/Icon';
+import { SecretDefs, SecretGlyph, SecretSeal } from './secretArt';
+import { SECRET_COLOR } from '@/store/stageStore';
+import { DEFAULT_REACH_M, KIND_NAME, rulesSummary } from '@/engine/secrets';
+import type { SceneSecret, SecretKind } from '@/types/stage';
 
 export interface TokenFace {
   /** Imagem do peão (retrato, arte do herói). */
@@ -58,6 +62,16 @@ interface StageMapProps {
   onPullView?: (x: number, y: number, z: number) => void;
   /** Mestre: algo arrastado dos bastidores/iniciativa foi solto nesta casa. */
   onDropItem?: (item: StageDrop, cell: { x: number; y: number }) => void;
+  /** Mestre: segredo ligado a este peão (marcador escondido). */
+  secretFor?: (t: Token) => SceneSecret | undefined;
+  /** A tabela de segredos ainda não existe no banco. */
+  secretsMissing?: boolean;
+  /** Mestre: segredos desta cena (lista da ferramenta). */
+  secrets?: SceneSecret[];
+  /** Mestre: esconder um segredo nesta casa. */
+  onSecretAt?: (cell: { x: number; y: number }) => void;
+  /** Painéis sobre o mapa (editor do segredo, aviso de achado). */
+  overlay?: ReactNode;
   /** Mapa em tela cheia (o palco cobre a tela; F alterna, Esc sai). */
   full?: boolean;
   onToggleFull?: () => void;
@@ -186,6 +200,7 @@ export function StageMap(p: StageMapProps) {
       else if (p.isMaster && k === 'n') setTool('reveal');
       else if (p.isMaster && k === 'w') setTool('wall');
       else if (p.isMaster && k === 'd') setTool('door');
+      else if (p.isMaster && k === 's') setTool('secret');
       else if (k === 'f' && cur.toggleFull) cur.toggleFull();
       // Esc: primeiro solta a ferramenta; com "mover" já ativo, sai da tela cheia
       else if (k === 'escape') {
@@ -213,6 +228,11 @@ export function StageMap(p: StageMapProps) {
   const startTool = (pointer: number, c: { x: number; y: number }) => {
     if (tool === 'laser') {
       setAct({ kind: 'laser', pointer, pts: [c], last: 0 });
+      return true;
+    }
+    if (tool === 'secret') {
+      if (!p.isMaster || !p.onSecretAt) return false;
+      p.onSecretAt({ x: Math.floor(c.x), y: Math.floor(c.y) });
       return true;
     }
     if (tool === 'wall' || tool === 'door') {
@@ -272,6 +292,12 @@ export function StageMap(p: StageMapProps) {
   };
 
   const onTokenDown = (t: Token, e: RPointerEvent<HTMLButtonElement>) => {
+    // ferramenta de segredos: tocar num selo abre o segredo (não esconde outro em cima)
+    if (tool === 'secret' && p.secretFor?.(t)) {
+      e.stopPropagation();
+      p.onSelect?.(t.id);
+      return;
+    }
     // com outra ferramenta, o clique passa direto para o mapa (régua/molde a partir do peão)
     if (tool !== 'move') return;
     e.stopPropagation();
@@ -477,9 +503,50 @@ export function StageMap(p: StageMapProps) {
       ? p.tokens
       : p.tokens.filter((t) => (t.kind === 'hero' && t.ownerId === p.me.id) || isRevealed(fog, center(t).x, center(t).y) || (vision && inSight(livePos(t).x + t.size / 2, livePos(t).y + t.size / 2)));
 
+  // achado novo na tela (marcador que acabou de aparecer): brilho de descoberta
+  const [arrived, setArrived] = useState<Set<string>>(() => new Set());
+  const seenIds = useRef<Set<string> | null>(null);
+  const visibleKey = visibleTokens.map((t) => t.id).sort().join(',');
+  useEffect(() => {
+    const now = new Set(visibleKey ? visibleKey.split(',') : []);
+    const prev = seenIds.current;
+    seenIds.current = now;
+    if (!prev) return;
+    const fresh = [...now].filter((id) => !prev.has(id) && p.tokens.find((t) => t.id === id)?.kind === 'marker');
+    if (!fresh.length) return;
+    setArrived((a) => new Set([...a, ...fresh]));
+    const timer = setTimeout(() => setArrived((a) => new Set([...a].filter((id) => !fresh.includes(id)))), 2600);
+    return () => clearTimeout(timer);
+  }, [visibleKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // quem está dentro do molde que estou desenhando
   const myMark = act?.kind === 'mark' ? act.mark : null;
   const caught = myMark && myMark.kind !== 'measure' ? visibleTokens.filter((t) => pointInMark(myMark, center(t).x, center(t).y)).map((t) => t.label || 'peão') : [];
+
+  // selo: segredo (mestre) ou marcador de achado revelado (todos: a cor diz o tipo)
+  const sealOf = (t: Token): SecretKind | null => {
+    const sc = p.secretFor?.(t);
+    if (sc) return sc.kind;
+    if (t.kind !== 'marker' || !t.color) return null;
+    return (Object.keys(SECRET_COLOR) as SecretKind[]).find((k) => SECRET_COLOR[k] === t.color) ?? null;
+  };
+  const reach = p.isMaster
+    ? (p.secrets ?? []).flatMap((sc) => {
+        const tk = p.tokens.find((t) => t.id === sc.tokenId);
+        if (!tk || sc.foundAt) return [];
+        if (!(tool === 'secret' || p.selectedId === tk.id)) return [];
+        const r = sc.rules;
+        const m = r.near ?? (r.passive || r.check ? DEFAULT_REACH_M : 0);
+        if (!m) return [];
+        const at = livePos(tk);
+        return [{ id: sc.id, kind: sc.kind, x: at.x + tk.size / 2, y: at.y + tk.size / 2, cells: m / CELL_METERS + 0.5, label: `${KIND_NAME[sc.kind]} · ${m.toLocaleString('pt-BR')} m` }];
+      })
+    : [];
+  const centerOn = (x: number, y: number) => {
+    const el = box.current;
+    if (!el) return;
+    setView((v) => ({ ...v, x: el.clientWidth / 2 - cellPx(x, 'x') * v.z, y: el.clientHeight / 2 - cellPx(y, 'y') * v.z }));
+  };
 
   const gridOn = showGrid && g.show;
   const selected = p.selectedId ? p.tokens.find((t) => t.id === p.selectedId) ?? null : null;
@@ -497,6 +564,7 @@ export function StageMap(p: StageMapProps) {
 
   return (
     <div className="fv-map">
+      <SecretDefs />
       <div
         ref={box}
         className={'fv-map-view' + (drag ? ' is-dragging' : '') + (tool !== 'move' ? ` is-tool is-tool-${tool}` : '')}
@@ -566,6 +634,19 @@ export function StageMap(p: StageMapProps) {
             </svg>
           )}
 
+          {/* alcance dos segredos (só o mestre): anel gravado no chão */}
+          {p.isMaster && reach.length > 0 && (
+            <svg className="fv-map-reach" width={board.w} height={board.h} aria-hidden>
+              {reach.map((r) => (
+                <g key={r.id} className={`is-${r.kind}`}>
+                  <circle cx={cellPx(r.x, 'x')} cy={cellPx(r.y, 'y')} r={r.cells * g.size} className="fv-reach-fill" />
+                  <circle cx={cellPx(r.x, 'x')} cy={cellPx(r.y, 'y')} r={r.cells * g.size} className="fv-reach-ring" strokeWidth={Math.max(1.5, g.size / 28)} strokeDasharray={`${g.size / 5} ${g.size / 9}`} />
+                  <text x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y') - r.cells * g.size - g.size * 0.12} fontSize={Math.max(11, g.size * 0.22)} textAnchor="middle">{r.label}</text>
+                </g>
+              ))}
+            </svg>
+          )}
+
           {visibleTokens.map((t) => {
             const live = drag?.id === t.id ? drag.at : p.drags[t.id] ?? { x: t.x, y: t.y };
             const face = p.faceFor(t);
@@ -584,6 +665,9 @@ export function StageMap(p: StageMapProps) {
               p.canMove(t) && tool === 'move' ? 'is-movable' : '',
               hp && hp.cur <= 0 ? 'is-down' : '',
               inMark ? 'is-caught' : '',
+              sealOf(t) ? `fv-secret-pin is-${sealOf(t)}` : '',
+              p.secretFor?.(t)?.foundAt ? 'is-found' : '',
+              arrived.has(t.id) ? 'is-arrived' : '',
             ].join(' ');
             return (
               <button
@@ -595,9 +679,13 @@ export function StageMap(p: StageMapProps) {
                 onDoubleClick={(e) => tool === 'move' && e.stopPropagation()}
                 aria-label={`${t.label || 'Peão'}${t.hidden ? ' (escondido)' : ''}${conds.length ? ` — ${conds.join(', ')}` : ''}`}
               >
-                <span className="fv-token-disc" style={face?.url ? { backgroundImage: `url("${face.url}")`, ...face.style } : undefined}>
-                  {!face?.url && (t.kind === 'marker' ? <InlineIcon name="sparkle" /> : initials(t.label))}
-                </span>
+                {sealOf(t) ? (
+                  <SecretSeal kind={sealOf(t)!} found={p.isMaster && !!p.secretFor?.(t)?.foundAt} />
+                ) : (
+                  <span className="fv-token-disc" style={face?.url ? { backgroundImage: `url("${face.url}")`, ...face.style } : undefined}>
+                    {!face?.url && (t.kind === 'marker' ? <InlineIcon name="sparkle" /> : initials(t.label))}
+                  </span>
+                )}
                 {hp && hp.max > 0 && (
                   <span className="fv-token-hp" aria-hidden>
                     <i style={{ width: `${Math.max(0, Math.min(100, (hp.cur / hp.max) * 100))}%` }} />
@@ -821,6 +909,34 @@ export function StageMap(p: StageMapProps) {
               )}
             </>
           )}
+          {active.id === 'secrets' && (
+            <div className="fv-secret-list" aria-label="Segredos desta cena">
+              {p.secretsMissing && <p className="fv-secret-empty">Rode <code>supabase/segredos.sql</code> no Supabase para guardar segredos.</p>}
+              {!p.secretsMissing && !(p.secrets ?? []).length && <p className="fv-secret-empty">Nada escondido nesta cena ainda.</p>}
+              {(p.secrets ?? []).map((sc) => {
+                const tk = p.tokens.find((t) => t.id === sc.tokenId);
+                return (
+                  <button
+                    key={sc.id}
+                    type="button"
+                    className={'fv-secret-row' + (sc.foundAt ? ' is-found' : '') + (tk && p.selectedId === tk.id ? ' is-on' : '')}
+                    onClick={() => {
+                      if (!tk) return;
+                      p.onSelect?.(tk.id);
+                      centerOn(tk.x + tk.size / 2, tk.y + tk.size / 2);
+                    }}
+                  >
+                    <span className={`fv-secret-row-ico is-${sc.kind}`} aria-hidden><SecretGlyph kind={sc.kind} size={16} /></span>
+                    <span className="fv-secret-row-txt">
+                      <b>{sc.title}</b>
+                      <small>{sc.foundAt ? `Achado por ${sc.foundBy ?? '—'}` : rulesSummary(sc.rules)}</small>
+                    </span>
+                    <span className={'fv-secret-row-state' + (sc.foundAt ? ' is-found' : '')}>{sc.foundAt ? 'Achado' : 'Escondido'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {!selected && !myMark && !ruler && <small className="fv-map-sheet-hint">{hint}</small>}
         </div>
       )}
@@ -864,6 +980,7 @@ export function StageMap(p: StageMapProps) {
         )}
       </div>
       {active.id === 'move' && !selected && !myMark && !ruler && <div className="fv-map-hint">{hint}</div>}
+      {p.overlay}
     </div>
   );
 }
@@ -1009,6 +1126,13 @@ const TOOL_GROUPS: ToolGroup[] = [
       { t: 'door', label: 'Porta', key: 'D', icon: <IcoDoor /> },
     ],
   },
+  {
+    id: 'secrets',
+    label: 'Segredos',
+    key: 'S',
+    master: true,
+    tools: [{ t: 'secret', label: 'Segredo', icon: <SecretGlyph kind="chest" size={19} /> }],
+  },
 ];
 function groupOf(t: MapTool): ToolGroup {
   return TOOL_GROUPS.find((gr) => gr.tools.some((x) => x.t === t)) ?? TOOL_GROUPS[0];
@@ -1024,4 +1148,5 @@ const HINTS: Partial<Record<MapTool, string>> = {
   cover: 'Arraste um retângulo para cobrir',
   wall: 'Arraste de quina a quina · um toque numa parede apaga',
   door: 'Arraste sobre o vão da porta · um toque apaga',
+  secret: 'Toque numa casa para esconder algo · toque num selo para editar',
 };
