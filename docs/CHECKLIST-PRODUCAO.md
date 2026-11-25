@@ -16,6 +16,8 @@ Itens com **[você]** só quem tem acesso ao painel do Supabase ou da Vercel con
 
 **Onde:** SQL Editor → aba nova → cole o arquivo inteiro → Run, sem nada selecionado. Todos podem rodar de novo sem apagar dados.
 
+**Atalho:** `supabase/TUDO.sql` junta tudo abaixo, na ordem, num arquivo só (gerado por `npm run sql:tudo` e testado num Postgres limpo). Cole e rode uma vez.
+
 Na primeira vez rode todos, nesta ordem. Nas versões seguintes, rode só os que mudaram desde a última publicação (`git diff --stat <última tag>..HEAD -- supabase/`).
 
 | Ordem | Arquivo | Para quê |
@@ -46,7 +48,7 @@ Depois:
   - Configurações → Avançado → **Diagnóstico da nuvem**: tudo verde.
   - Crie uma mesa, entre com outra conta pelo código e veja a iniciativa mudar nas duas telas.
 
-Os SQLs também são testados sem Supabase, num Postgres em memória (`supabase/__tests__`, 10 arquivos, no `npm test`).
+Os SQLs também são testados sem Supabase, num Postgres em memória (`supabase/__tests__`, no `npm test`).
 
 ## 3. Vercel [você]
 
