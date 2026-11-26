@@ -35,6 +35,7 @@ Na primeira vez rode todos, nesta ordem. Nas versões seguintes, rode só os que
 | 11 | `supabase/discord.sql` | rolagens no Discord da mesa |
 | 12 | `supabase/mesa_membros.sql` | sair, remover e lista de jogadores |
 | 13 | `supabase/segredos.sql` | segredos do mapa (baús, armadilhas, passagens) e loot nas pistas |
+| 14 | `supabase/mesa_dezembro.sql` | Confirmação de PV, pistas dirigidas e permissão de recompensas |
 
 Só se o app pedir (consertos para quando o `palco.sql` parou no meio):
 - `supabase/palco_regras.sql`, quando aparecer "O banco recusou…" para o mestre;

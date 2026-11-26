@@ -15,6 +15,8 @@ import { HandoutInbox, IncomingHandout } from '@/components/stage/Handouts';
 import { CutsceneOverlay } from '@/components/stage/CutsceneOverlay';
 import { liveScene, useStageStore } from '@/store/stageStore';
 import type { CampaignNpc } from '@/types/npc';
+import type { Character } from '@/types/character';
+import type { Combatant } from '@/types/session';
 import type { Campaign } from '@/types/models';
 import { LiveHeader } from './LiveHeader';
 import { useShallow } from 'zustand/react/shallow';
@@ -32,6 +34,13 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
   const active = enc?.activeCombatantId ? s.combatants.find((c) => c.id === enc.activeCombatantId) : null;
   const mineNow = myActiveCombatant(s);
   const mineNext = myOnDeckCombatant(s);
+  const mine = useMemo(() => heroes.filter((h) => h.share.ownerId === user.id), [heroes, user.id]);
+  const inEncounter = mineNow ?? s.combatants.find((c) => c.ownerId === user.id) ?? null;
+  const selectedId = inEncounter?.sheetId ?? s.me?.characterId ?? mine[0]?.share.sheetId ?? null;
+  const local = useCharacterStore((st) => st.characters.find((c) => c.id === selectedId && c.ownerId === user.id) ?? null);
+  const turnLabel = enc?.status === 'active'
+    ? mineNow ? 'Seu turno!' : active ? `Vez de ${active.name}` : 'Aguardando o próximo turno'
+    : enc?.status === 'paused' ? 'Combate pausado' : 'Rolando iniciativa';
 
   return (
     <div className="fv-live">
@@ -57,6 +66,16 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
               <p className="fv-live-hint">Quando o mestre abrir a sessão ou mostrar uma cena, esta tela muda sozinha.</p>
             </section>
           )}
+          {s.session && enc && (
+            <section className={'fv-panel fv-live-turn-summary' + (mineNow ? ' is-mine' : '')} aria-label="Turno do combate">
+              <div role="status">
+                <div className="fv-label">{enc.round ? `Rodada ${enc.round}` : enc.name}</div>
+                <strong>{turnLabel}</strong>
+                {mineNext && <small className="fv-live-next">Você é o próximo</small>}
+              </div>
+              {local && <Link className="fv-btn-gold" to={`/ficha/${local.id}`}>Abrir ficha ›</Link>}
+            </section>
+          )}
           {(stageLive || s.session || stageMissing) && (
             <StageView isMaster={false} userId={user.id} heroes={heroes} npcs={npcs} combatants={s.combatants} encounter={enc} />
           )}
@@ -73,16 +92,6 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
                         </div>
                         <div className="fv-live-round-info">
                           <div className="fv-label">{enc.name}</div>
-                          <strong>
-                            {enc.status === 'preparing' && 'Rolando iniciativa'}
-                            {enc.status === 'active' && (mineNow ? 'Seu turno!' : active ? `Vez de ${active.name}` : '—')}
-                            {enc.status === 'paused' && 'Combate pausado'}
-                          </strong>
-                          {mineNext && (
-                            <small className="fv-live-next" role="status">
-                              Você é o próximo — já vá pensando na sua ação
-                            </small>
-                          )}
                         </div>
                         {/* celular: o mapa fica depois do turno e do herói — um toque leva até ele */}
                         {stageLive && (
@@ -103,7 +112,7 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
                 </section>
               </div>
               <aside className="fv-live-side">
-                <PlayerCard heroes={heroes} />
+                <PlayerCard mine={mine} selectedId={selectedId} local={local} inEncounter={inEncounter} />
                 <HandoutInbox />
                 <EventFeed events={s.events} />
               </aside>
@@ -119,15 +128,9 @@ export function PlayerWorkspace({ campaign, heroes, npcs, loadError }: { campaig
 }
 
 /** Jogador: escolhe com qual herói está na mesa e rola a própria iniciativa. */
-function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
+function PlayerCard({ mine, selectedId, local, inEncounter }: { mine: SharedHero[]; selectedId: string | null; local: Character | null; inEncounter: Combatant | null }) {
   const s = useSessionStore(useShallow((st) => ({ campaignId: st.campaignId, me: st.me, session: st.session, encounter: st.encounter, combatants: st.combatants, events: st.events, loading: st.loading, error: st.error, setCharacter: st.setCharacter, clearError: st.clearError, setInitiative: st.setInitiative })));
-  const user = useAuthStore((u) => u.user)!;
-  const characters = useCharacterStore((c) => c.characters);
   const { check } = useDiceRoller();
-  const mine = useMemo(() => heroes.filter((h) => h.share.ownerId === user.id), [heroes, user.id]);
-  const inEncounter = s.combatants.find((c) => c.ownerId === user.id) ?? null;
-  const selectedId = inEncounter?.sheetId ?? s.me?.characterId ?? mine[0]?.share.sheetId ?? null;
-  const local = characters.find((c) => c.id === selectedId) ?? null;
   const derived = useMemo(() => (local ? deriveCharacter(local) : null), [local]);
 
   // presença mostra com qual herói estou
@@ -190,7 +193,7 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
             Rolar iniciativa ({modStr(inEncounter!.initiativeBonus)})
           </button>
         ))}
-      {local && (
+      {local && !s.encounter && (
         <Link className="fv-live-openhero" to={`/ficha/${local.id}`}>
           Abrir ficha ›
         </Link>

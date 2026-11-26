@@ -18,6 +18,25 @@
 }
 
 /* ---------- cabeçalho ---------- */
+.fv-live-turn-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+}
+.fv-live-turn-summary.is-mine { border-color: var(--gold); }
+.fv-live-turn-summary strong { display: block; margin-top: 3px; overflow-wrap: anywhere; }
+.fv-live-turn-summary > a {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding-inline: 12px;
+  text-decoration: none;
+}
+
 .fv-live-head {
   display: flex;
   flex-wrap: wrap;

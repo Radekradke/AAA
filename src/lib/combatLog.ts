@@ -39,7 +39,10 @@ export function eventText(e: SessionEvent): string {
     case 'encounter_active': return 'Combate retomado';
     case 'encounter_finished': return `Fim do encontro — ${s(p.round, '0')} ${plural(p.round, 'rodada', 'rodadas')}`;
     case 'roll': return `${s(p.who, '—')} · ${s(p.label, 'rolagem').replace(/^Rolagem /, '')}: ${s(p.total)}${p.crit ? ' (crítico!)' : p.fail ? ' (falha)' : ''}${p.late ? ' · chegou atrasada' : ''}`;
+    case 'hero_hp_correction': return `Mestre ajustou os PV de ${s(p.name)} para ${s(p.amount)}.`;
     case 'hero_hp': return p.kind === 'heal' ? `${s(p.name)} recuperou ${s(p.amount)} PV` : `${s(p.name)} sofreu ${s(p.amount)} de dano${p.crit ? ' (crítico)' : ''}`;
+    case 'combatant_hp_undo': return `Dano ou cura desfeitos em ${s(p.name)} · PV ${s(p.before)} → ${s(p.after)}`;
+    case 'hero_vitals': return `${s(p.name)} ajustou a ficha · PV ${s(p.before)} → ${s(p.after)}`;
     case 'hero_condition': return `${s(p.name)} ${p.on ? 'ficou' : 'não está mais'} ${s(p.condition).toLowerCase()}`;
     case 'attack': return strikeText(p as unknown as StrikeLog);
     case 'hero_item': return `${s(p.name)} recebeu ${Number(p.quantity) > 1 ? `${p.quantity}× ` : ''}${s(p.item, 'um item')}`;

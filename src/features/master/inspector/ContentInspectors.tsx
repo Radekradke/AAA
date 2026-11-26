@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NpcVitalsForm } from './NpcVitalsForm';
 import { NpcAvatar } from '@/components/campaign/NpcGallery';
 import { MonsterStatBlock } from '@/components/session/MonsterStatBlock';
 import { monsterCombatants } from '@/components/session/BestiaryPicker';
@@ -38,6 +39,7 @@ export function NpcInspector({ id }: { id: string }) {
   const n = npcs.find((x) => x.id === id);
   if (!n) return <p className="fv-bs-hint">Este NPC não existe mais.</p>;
   const sec = secrets[n.id];
+  const combatant = npcToCombatant(n, secrets, characters);
   const toggleReveal = async () => {
     try {
       await npcService.save(campaign.id, { ...n, revealed: !n.revealed });
@@ -85,9 +87,6 @@ export function NpcInspector({ id }: { id: string }) {
         <button type="button" className="fv-btn-gold fv-bs-mini" onClick={toStage}>
           Pôr no palco
         </button>
-        <button type="button" className="fv-btn-ghost fv-bs-mini" onClick={() => void addToEncounter([npcToCombatant(n, secrets, characters)])}>
-          Adicionar ao encontro
-        </button>
         <button type="button" className="fv-btn-ghost fv-bs-mini" onClick={() => void toggleReveal()}>
           {n.revealed ? 'Ocultar dos jogadores' : 'Mostrar aos jogadores'}
         </button>
@@ -97,6 +96,11 @@ export function NpcInspector({ id }: { id: string }) {
           </button>
         )}
       </div>
+      <NpcVitalsForm key={n.id} ac={combatant.armorClass} hp={combatant.hpMax} label="Adicionar ao encontro"
+        onSave={async (ac, hp) => {
+          await addToEncounter([{ ...combatant, armorClass: ac, hpMax: hp,
+            hpCurrent: hp === combatant.hpMax ? combatant.hpCurrent : hp }]);
+        }} />
     </div>
   );
 }

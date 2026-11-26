@@ -1,7 +1,7 @@
 import { StepTrail } from '@/components/character/StepTrail';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction } from '@/store/feedbackStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, m } from 'framer-motion';
 import { Screen } from '@/components/layout/Screen';
 import { Button } from '@/components/ui/Button';
@@ -37,6 +37,9 @@ import { InlineIcon } from '@/components/ui/Icon';
 
 export function CharacterCreator() {
   const navigate = useNavigate();
+  const [roomParams] = useSearchParams();
+  const campaignId = roomParams.get('mesa');
+  const campaignRoom = campaignId ? `/mesa/${encodeURIComponent(campaignId)}` : null;
   const user = useAuthStore((s) => s.user)!;
   const bump = useUiStore((s) => s.bump);
 
@@ -146,19 +149,19 @@ export function CharacterCreator() {
     finalizeDraft(char.id);
     bump(1.8);
     if (useUiStore.getState().sound) playLevel();
-    navigate(`/ficha/${char.id}`);
+    navigate(campaignRoom ?? `/ficha/${char.id}`);
   };
 
   const saveAndExit = () => {
     bump(0.6);
-    navigate('/personagens');
+    navigate(campaignRoom ?? '/personagens');
   };
 
   const discard = async () => {
     const ok = await confirmAction({ title: `Descartar ${char.name.trim() || 'este herói'}?`, message: 'Tudo o que foi escolhido até aqui será perdido.', confirmLabel: 'Descartar', danger: true });
     if (!ok) return;
     deleteCharacter(char.id);
-    navigate('/personagens');
+    navigate(campaignRoom ?? '/personagens');
   };
 
   const renderStep = () => {

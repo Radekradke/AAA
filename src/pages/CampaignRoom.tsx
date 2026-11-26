@@ -33,6 +33,8 @@ import { AgendaCard } from '@/components/campaign/AgendaCard';
 import { DiscordCard } from '@/components/campaign/DiscordCard';
 import { LeaveCampaignButton, MembersCard } from '@/components/campaign/MembersCard';
 
+const PasteImportModal = lazy(() => import('@/components/character/PasteImportModal').then((m) => ({ default: m.PasteImportModal })));
+
 // bestiário (65 criaturas com ficha e arte): só o mestre vê, baixa sob demanda
 const BestiaryGallery = lazy(() => import('@/components/bestiary/BestiaryGallery').then((m) => ({ default: m.BestiaryGallery })));
 
@@ -55,6 +57,7 @@ export function CampaignRoom() {
   const [noteKind, setNoteKind] = useState<CampaignNote['kind']>('nota');
   const [noteTitle, setNoteTitle] = useState('');
   const [noteBody, setNoteBody] = useState('');
+  const [pasting, setPasting] = useState(false);
 
   const isMaster = !!campaign && !!user && campaign.masterId === user.id;
   const mySheets = useMemo(
@@ -138,6 +141,7 @@ export function CampaignRoom() {
     }
   };
 
+  const myLinkedCount = shares.filter(({ share }) => share.ownerId === user?.id).length;
   const sharedIds = new Set(shares.map((s) => s.share.sheetId));
 
   return (
@@ -150,7 +154,7 @@ export function CampaignRoom() {
         {error && <div className="fv-room-error">{error}</div>}
 
         {/* sessão ao vivo (a mesa em si mora em /mesa/:id/jogar) */}
-        {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} />}
+        {campaign && user && !user.guest && <SessionEntryCard campaignId={campaign.id} isMaster={isMaster} linkedCount={isMaster ? undefined : myLinkedCount} />}
 
         {/* agenda: a próxima sessão marcada e quem vai */}
         {campaign && user && !user.guest && (
@@ -201,7 +205,12 @@ export function CampaignRoom() {
                   </button>
                 );
               })}
-              {mySheets.length === 0 && <span className="fv-room-muted">Crie um herói primeiro na tela de personagens.</span>}
+              {user && !user.guest && (
+                <>
+                  <Button onClick={() => navigate(`/criar?mesa=${encodeURIComponent(campaign.id)}`)}>Criar ficha</Button>
+                  <Button onClick={() => setPasting(true)}>Importar ficha</Button>
+                </>
+              )}
             </div>
             {/* permissões granulares por ficha vinculada — você decide o que o mestre pode */}
             {shares.filter((s) => s.share.ownerId === user?.id).map(({ share }) => {
@@ -238,6 +247,12 @@ export function CampaignRoom() {
               Ao vincular, o mestre passa a ver uma cópia da sua ficha (atributos, PV, CA, recursos), atualizada quando você sincroniza. O seu Diário continua só seu. Desvincule quando quiser.
             </p>
           </div>
+        )}
+
+        {pasting && user && (
+          <Suspense fallback={null}>
+            <PasteImportModal ownerId={user.id} onClose={() => setPasting(false)} onOpen={() => setPasting(false)} doneLabel="Voltar para vincular" />
+          </Suspense>
         )}
 
         {/* fichas da mesa */}

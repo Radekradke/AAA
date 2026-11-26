@@ -17,7 +17,7 @@ describe('diferença entre versões da ficha', () => {
     expect(d.some((x) => x.startsWith('nível 5 → 6'))).toBe(true);
     expect(d.some((x) => /^PV \d+\/\d+ → 1\//.test(x))).toBe(true);
     expect(d.some((x) => x.startsWith('dinheiro'))).toBe(true);
-    expect(d).toContain('+ Poção de Cura');
+    expect(d).toContain('+ 2× Poção de Cura');
   });
 
   it('versões iguais não têm diferença', () => {

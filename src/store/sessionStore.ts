@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { sessionService } from '@/services/sessionService';
+import { campaignService } from '@/services/campaignService';
 import { encounterService, StaleRevisionError } from '@/services/encounterService';
 import type { CombatantPatch, NewCombatant } from '@/services/encounterService';
 import { joinLiveChannel } from '@/services/realtimeService';
@@ -96,11 +97,11 @@ interface SessionState {
 
   // mestre → ficha do jogador (o jogador aplica na própria ficha)
   /** delta < 0: dano; > 0: cura. */
-  sendHeroHp: (c: Combatant, delta: number, opts?: { crit?: boolean }) => Promise<void>;
+  sendHeroHp: (c: Combatant, delta: number, opts?: { crit?: boolean; absolute?: boolean }) => Promise<void>;
   sendHeroCondition: (c: Combatant, condition: string, on: boolean) => Promise<void>;
   awardXp: (amount: number, note?: string) => Promise<void>;
   /** Mestre entrega um item (catálogo ou inventado na hora) na mochila do herói. */
-  giveItem: (sheetId: string, heroName: string, item: { name: string; itemId?: string; quantity?: number; note?: string }) => Promise<void>;
+  giveItem: (sheetId: string, heroName: string, item: { name: string; itemId?: string; quantity?: number; note?: string; deliveryId?: string }) => Promise<void>;
 
   /** Alvo escolhido pelo mestre (local): quem recebe o próximo ataque. */
   targetId: string | null;
@@ -121,7 +122,7 @@ interface SessionState {
 }
 
 /** Eventos do mestre que mexem na ficha do jogador. */
-export const HERO_EVENTS = ['hero_hp', 'hero_condition', 'xp_award', 'hero_item', 'hero_deed', 'hero_scar'] as const;
+export const HERO_EVENTS = ['hero_hp', 'hero_hp_correction', 'hero_condition', 'xp_award', 'hero_item', 'hero_deed', 'hero_scar'] as const;
 const VIS_KEY = 'fv-roll-visibility';
 let seenEvents = new Set<string>();
 let seeded = false;
@@ -187,7 +188,19 @@ function applyHeroEvents(events: SessionEvent[], masterId: string | null) {
       chars.markEventApplied(sheetId, e.id);
       continue;
     }
-    if (e.type === 'hero_hp') {
+    if (e.type === 'hero_hp' || e.type === 'hero_hp_correction') {
+      if (e.type === 'hero_hp_correction') {
+        chars.updateCharacter(sheetId, (c) => {
+          const previous = c.hpCurrent;
+          c.hpCurrent = Math.max(0, Math.min(deriveCharacter(c).maxHp, Math.round(Number(p.amount) || 0)));
+          if (previous === 0 && c.hpCurrent > 0) {
+            c.combat.deathSaves = { success: 0, fail: 0 };
+            c.combat.conditions = (c.combat.conditions ?? []).filter((x) => x !== 'Inconsciente');
+          }
+        });
+        chars.markEventApplied(sheetId, e.id);
+        continue;
+      }
       const n = Math.abs(Number(p.amount) || 0);
       if (p.kind === 'heal') chars.heal(sheetId, n);
       else chars.applyDamage(sheetId, n, { crit: p.crit === true });
@@ -215,7 +228,22 @@ export function scheduleVitalsSync(delay = 700) {
   vitalsTimer = setTimeout(() => void syncMyVitals(), delay);
 }
 
+let vitalsRunning = false;
+
 export async function syncMyVitals(): Promise<void> {
+  if (vitalsRunning) {
+    scheduleVitalsSync();
+    return;
+  }
+  vitalsRunning = true;
+  try {
+    await publishMyVitals();
+  } finally {
+    vitalsRunning = false;
+  }
+}
+
+async function publishMyVitals(): Promise<void> {
   const s = useSessionStore.getState();
   if (vitalsUnsupported || !s.me || s.me.isMaster || !s.encounter || s.encounter.status === 'finished') return;
   const chars = useCharacterStore.getState().characters;
@@ -226,9 +254,13 @@ export async function syncMyVitals(): Promise<void> {
     const hpMax = deriveCharacter(ch).maxHp;
     const hp = Math.max(0, Math.min(hpMax, ch.hpCurrent));
     const conditions = ch.combat.conditions ?? [];
-    if (c.hpCurrent === hp && c.hpMax === hpMax && sameSet(c.conditions, conditions)) continue;
+    const hpEvent = c.hpEventId === undefined ? undefined : [...s.events].reverse().find(
+      (e) => (e.type === 'hero_hp' || e.type === 'hero_hp_correction') && e.targetId === c.id && ch.appliedEvents?.includes(e.id),
+    );
+    const ack = hpEvent && hpEvent.id !== c.hpEventId ? { hp_event_id: hpEvent.id } : {};
+    if (!ack.hp_event_id && c.hpCurrent === hp && c.hpMax === hpMax && sameSet(c.conditions, conditions)) continue;
     try {
-      await encounterService.updateOwn(c.id, { hp_current: hp, hp_max: hpMax, conditions });
+      await encounterService.updateOwn(c.id, { hp_current: hp, hp_max: hpMax, conditions, ...ack });
     } catch (e) {
       // função ainda não criada no banco: o aviso de SQL faltando já orienta o mestre
       if (/update_own_combatant|could not find the function|does not exist/i.test((e as Error).message)) vitalsUnsupported = true;
@@ -295,6 +327,7 @@ export interface PendingRoll {
   payload: Record<string, unknown>;
   visibility: EventVisibility;
   at: number;
+  eventId?: string;
 }
 export const OUTBOX_MAX = 20;
 export const OUTBOX_TTL_MS = 10 * 60_000;
@@ -304,11 +337,12 @@ let flushing = false;
 
 /** Envia uma rolagem; se falhar, guarda para reenviar (e avisa uma vez). */
 export async function sendTableRoll(roll: PendingRoll): Promise<boolean> {
+  const eventId = roll.eventId ?? crypto.randomUUID();
   try {
-    await sessionService.log(roll.sessionId, roll.campaignId, roll.actorId, 'roll', roll.payload, roll.visibility);
+    await sessionService.log(roll.sessionId, roll.campaignId, roll.actorId, 'roll', roll.payload, roll.visibility, { id: eventId });
     return true;
   } catch {
-    rollOutbox = [...rollOutbox, roll].slice(-OUTBOX_MAX);
+    rollOutbox = [...rollOutbox, { ...roll, eventId }].slice(-OUTBOX_MAX);
     if (!outboxWarned) {
       outboxWarned = true;
       toast('Sem conexão com a mesa: sua rolagem vai assim que a internet voltar.', { tone: 'info' });
@@ -329,7 +363,7 @@ export async function flushRollOutbox(now = Date.now()): Promise<number> {
     for (let i = 0; i < queue.length; i++) {
       const r = queue[i];
       try {
-        await sessionService.log(r.sessionId, r.campaignId, r.actorId, 'roll', { ...r.payload, late: true }, r.visibility);
+        await sessionService.log(r.sessionId, r.campaignId, r.actorId, 'roll', { ...r.payload, late: true }, r.visibility, { id: r.eventId });
         sent++;
       } catch {
         rollOutbox = [...queue.slice(i), ...rollOutbox].slice(-OUTBOX_MAX);
@@ -539,13 +573,19 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     sendHeroHp: (c, delta, opts) =>
       act(async () => {
         const { session, campaignId, me } = get();
-        if (!session || !campaignId || !me || !c.sheetId || !delta) return;
-        // a linha do encontro mostra o novo PV para o mestre; a ficha do jogador aplica o evento
-        if (c.hpCurrent !== null) {
-          const next = Math.max(0, c.hpMax !== null ? Math.min(c.hpMax, c.hpCurrent + delta) : c.hpCurrent + delta);
+        if (!session || !campaignId || !me?.isMaster || !c.sheetId || (!delta && !opts?.absolute)) return;
+        const amount = Math.round(Math.abs(delta));
+        if (opts?.absolute && delta < 0) throw new Error('Os PV não podem ser negativos.');
+        const kind = opts?.absolute ? 'correction' : delta < 0 ? 'damage' : 'heal';
+        await sessionService.log(session.id, campaignId, me.userId, opts?.absolute ? 'hero_hp_correction' : 'hero_hp', {
+          sheetId: c.sheetId, name: c.name, amount, kind, crit: !!opts?.crit,
+        }, 'public', { targetId: c.id });
+        // A ficha aplica a regra (forma selvagem, barreira, PV temporários) e confirma o valor no encontro.
+        // Consumidores antigos ainda trabalham com o número estimado quando o banco não tem a confirmação.
+        if (c.hpEventId === undefined && c.hpCurrent !== null && !opts?.absolute) {
+          const next = Math.max(0, Math.min(c.hpMax ?? Infinity, opts?.absolute ? amount : c.hpCurrent + delta));
           await encounterService.update(c.id, { hp_current: next });
         }
-        await sessionService.log(session.id, campaignId, me.userId, 'hero_hp', { sheetId: c.sheetId, name: c.name, amount: Math.abs(delta), kind: delta < 0 ? 'damage' : 'heal', crit: !!opts?.crit }, 'public');
       }),
 
     sendHeroCondition: (c, condition, on) =>
@@ -571,14 +611,18 @@ export const useSessionStore = create<SessionState>()((set, get) => {
     giveItem: (sheetId, heroName, item) =>
       act(async () => {
         const { session, campaignId, me } = get();
-        if (!session || !campaignId || !me) throw new Error('Abra a sessão para entregar itens.');
+        if (!session || !campaignId || !me?.isMaster) throw new Error('Abra a sessão para entregar itens.');
+        const linked = await campaignService.sharedSheets(campaignId);
+        if (!linked.some(({ share }) => share.sheetId === sheetId && share.permissions?.editInventory === true)) {
+          throw new Error('Peça ao jogador para ativar Conceder itens na sala da mesa.');
+        }
         const name = item.name.trim();
         if (!name) return;
         // a ficha do dono aplica o evento (uma vez, mesmo com reload) — como dano e XP
         await sessionService.log(session.id, campaignId, me.userId, 'hero_item', {
           sheetId, name: heroName, item: name.slice(0, 80), itemId: item.itemId ?? null,
           quantity: Math.max(1, Math.round(item.quantity ?? 1)), note: (item.note ?? '').slice(0, 500),
-        }, 'public');
+        }, 'public', { id: item.deliveryId });
       }),
 
     async join(campaignId, me) {
@@ -616,6 +660,7 @@ export const useSessionStore = create<SessionState>()((set, get) => {
       stopWake?.();
       stopWake = null;
       if (refreshTimer) clearTimeout(refreshTimer);
+      if (vitalsTimer) clearTimeout(vitalsTimer);
       rollOutbox = [];
       outboxWarned = false;
       try {

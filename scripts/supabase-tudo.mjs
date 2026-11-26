@@ -1,5 +1,5 @@
 // Junta todo o SQL do Supabase num arquivo só (supabase/TUDO.sql), na ordem
-// certa: o script base da seção 5 de docs/SUPABASE.md + os 13 arquivos.
+// certa: o script base da seção 5 de docs/SUPABASE.md + os arquivos abaixo.
 // Tudo pode rodar de novo sem apagar dados. Rode: npm run sql:tudo
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -20,6 +20,7 @@ export const ORDEM = [
   ['discord.sql', 'rolagens no Discord da mesa'],
   ['mesa_membros.sql', 'sair, remover e lista de jogadores'],
   ['segredos.sql', 'segredos do mapa e loot nas pistas'],
+  ['mesa_dezembro.sql', 'PV confirmados e permissões de recompensa'],
 ];
 
 export function baseSql() {
@@ -30,6 +31,7 @@ export function baseSql() {
 }
 
 export function buildTudo() {
+  const count = ORDEM.length + 1;
   const bar = '-- ' + '='.repeat(69);
   const parts = [
     bar,
@@ -43,15 +45,15 @@ export function buildTudo() {
     bar,
     '',
     bar,
-    '-- 1/13 · base: fichas, campanhas, crônica, políticas, realtime',
+    `-- 1/${count} · base: fichas, campanhas, crônica, políticas, realtime`,
     bar,
     baseSql(),
     '',
   ];
   ORDEM.forEach(([file, what], i) => {
-    parts.push(bar, `-- ${i + 2}/13 · supabase/${file} · ${what}`, bar, readFileSync(resolve(root, 'supabase', file), 'utf8').trim(), '');
+    parts.push(bar, `-- ${i + 2}/${count} · supabase/${file} · ${what}`, bar, readFileSync(resolve(root, 'supabase', file), 'utf8').trim(), '');
   });
-  return parts.join('\n') + '\n';
+  return parts.join('\n').replace(/\r\n/g, '\n') + '\n';
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -23,6 +23,7 @@ export const SCHEMA_STEPS: SchemaStep[] = [
   { step: 'recursos_extras', file: 'supabase/recursos_extras.sql', what: 'convite por código/QR, ficha compartilhada e registro de erros' },
   { step: 'diario_privado', file: 'supabase/diario_privado.sql', what: 'diário privado: só o jogador lê (nem o mestre nem o link), imagens das pistas na nuvem' },
   { step: 'mesa_vida', file: 'supabase/mesa_vida.sql', what: 'mesa ao vivo: PV e condições do herói iguais para mestre e jogador' },
+  { step: 'mesa_dezembro', file: 'supabase/mesa_dezembro.sql', what: 'confirmação de PV e permissão de recompensas na mesa' },
   { step: 'discord', file: 'supabase/discord.sql', what: 'Discord da mesa: rolagens públicas aparecem num canal' },
   { step: 'mesa_membros', file: 'supabase/mesa_membros.sql', what: 'jogadores da mesa: o jogador pode sair e o mestre pode remover quem deixou o grupo' },
 ];
