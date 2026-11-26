@@ -2,7 +2,7 @@ import { getSupabase } from './supabaseClient';
 import { sessionUserId } from './campaignService';
 import { PALCO_SETUP_MISSING } from './mediaService';
 import { DEFAULT_GRID } from '@/types/stage';
-import type { CutsceneBeat, GridConfig, Handout, HandoutLoot, Scene, SceneKind, SceneSecret, SecretKind, SecretLoot, SecretRules, SecretSkill, StageState, Token } from '@/types/stage';
+import type { CutsceneBeat, GridConfig, Handout, HandoutLoot, Scene, SceneKind, SceneSecret, SecretKind, SecretLoot, SecretRules, SecretSkill, StageState, Token, Wall } from '@/types/stage';
 
 /**
  * Palco da mesa: cenas, o que está no ar, peões e handouts. O mestre
@@ -105,7 +105,27 @@ export function mapToken(r: Record<string, unknown>): Token {
     y: num(r.y),
     size: num(r.size, 1),
     hidden: !!r.hidden,
+    light: Math.max(0, num(r.light)),
+    updatedAt: (r.updated_at as string) ?? undefined,
   };
+}
+
+export function mapWall(r: Record<string, unknown>): Wall {
+  return {
+    id: String(r.id),
+    sceneId: String(r.scene_id),
+    x1: num(r.x1),
+    y1: num(r.y1),
+    x2: num(r.x2),
+    y2: num(r.y2),
+    ...(r.door ? { door: true, open: !!r.open, ...(r.locked ? { locked: true } : {}) } : {}),
+    updatedAt: (r.updated_at as string) ?? undefined,
+  };
+}
+
+/** A tabela ainda não existe (falta rodar o SQL): Postgres 42P01 / PostgREST PGRST205. */
+export function isMissingTable(e: { code?: string; message?: string }): boolean {
+  return e.code === '42P01' || e.code === 'PGRST205' || /does not exist|could not find the table/i.test(e.message ?? '');
 }
 
 export function mapHandout(r: Record<string, unknown>): Handout {
@@ -188,8 +208,10 @@ function sceneRow(campaignId: string, s: Partial<Scene>) {
   };
 }
 
-export type NewToken = Omit<Token, 'id' | 'campaignId'> & { id?: string };
-export type TokenPatch = Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y' | 'imagePath'>>;
+export type NewToken = Omit<Token, 'id' | 'campaignId' | 'light' | 'updatedAt'> & { id?: string; light?: number };
+export type TokenPatch = Partial<Pick<Token, 'label' | 'size' | 'hidden' | 'color' | 'x' | 'y' | 'imagePath' | 'light'>>;
+export type NewWall = Pick<Wall, 'x1' | 'y1' | 'x2' | 'y2' | 'door' | 'open' | 'locked'>;
+export type WallPatch = Partial<Pick<Wall, 'open' | 'locked'>>;
 
 export const stageService = {
   async scenes(campaignId: string): Promise<Scene[]> {
@@ -253,6 +275,7 @@ export const stageService = {
       ...(t.id ? { id: t.id } : {}),
       scene_id: t.sceneId, campaign_id: campaignId, kind: t.kind, label: t.label.slice(0, 60), sheet_id: t.sheetId, owner_id: t.ownerId,
       npc_id: t.npcId, combatant_id: t.combatantId, monster_ref: t.monsterRef, color: t.color, image_path: t.imagePath, x: t.x, y: t.y, size: t.size, hidden: t.hidden,
+      ...(t.light ? { light: t.light } : {}),
     }));
     const { error } = await sb().from('scene_tokens').insert(rows);
     if (error) throw stageError(error);
@@ -341,14 +364,43 @@ export const stageService = {
     return Array.isArray(data) ? data.length > 0 : !!data;
   },
 
-  /** Abre/fecha a porta n (jogador: ao lado do próprio herói, destrancada). false = recusado. */
-  async toggleDoor(sceneId: string, index: number): Promise<boolean> {
-    const { data, error } = await sb().rpc('toggle_door', { p_scene: sceneId, p_index: index });
+  /* ---------- paredes e portas (scene_walls) ---------- */
+  /** Paredes da cena; null = a tabela ainda não existe (falta portas_luz.sql). */
+  async walls(sceneId: string): Promise<Wall[] | null> {
+    const { data, error } = await sb().from('scene_walls').select('*').eq('scene_id', sceneId).order('created_at', { ascending: true });
+    if (error) {
+      if (isMissingTable(error)) return null;
+      throw stageError(error);
+    }
+    return (data ?? []).map(mapWall);
+  },
+
+  async addWalls(campaignId: string, sceneId: string, list: (NewWall & { id: string })[]): Promise<void> {
+    if (!list.length) return;
+    const rows = list.map((w) => ({ id: w.id, scene_id: sceneId, campaign_id: campaignId, x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, door: !!w.door, open: !!w.open, locked: !!w.locked }));
+    const { error } = await sb().from('scene_walls').insert(rows);
+    if (error) throw stageError(error);
+  },
+
+  async updateWall(id: string, patch: WallPatch): Promise<void> {
+    const { error } = await sb().from('scene_walls').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) throw stageError(error);
+  },
+
+  async removeWalls(ids: string[]): Promise<void> {
+    if (!ids.length) return;
+    const { error } = await sb().from('scene_walls').delete().in('id', ids);
+    if (error) throw stageError(error);
+  },
+
+  /** Jogador abre/fecha a porta ao lado do próprio herói (destrancada). false = recusado. */
+  async toggleDoor(wallId: string): Promise<boolean> {
+    const { data, error } = await sb().rpc('toggle_door', { p_wall: wallId });
     if (error) throw stageError(error);
     return Array.isArray(data) ? data.length > 0 : !!data;
   },
 
-  /** Luz que o peão carrega, em metros (0 apaga). Jogador: só o próprio herói. */
+  /** Jogador: luz que o próprio herói carrega, em metros (0 apaga). false = recusado. */
   async setTokenLight(tokenId: string, meters: number): Promise<boolean> {
     const { data, error } = await sb().rpc('set_token_light', { p_token: tokenId, p_meters: meters });
     if (error) throw stageError(error);

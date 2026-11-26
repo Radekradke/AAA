@@ -8,7 +8,7 @@ import { KIND_NAME, SKILL_NAME, evaluateSecret, hasRules, skillOfRoll } from '@/
 import type { CheckRoll, SecretHit, Seeker } from '@/engine/secrets';
 import { ALL_ITEMS } from '@/data/items';
 import type { SharedHero } from '@/components/session/MasterDeck';
-import type { Scene, SceneSecret, SecretKind, SecretRules, SecretSkill, Token } from '@/types/stage';
+import type { Scene, SceneSecret, SecretKind, SecretRules, SecretSkill, Token, Wall } from '@/types/stage';
 import { SecretGlyph, SecretSeal } from './secretArt';
 
 const KINDS: SecretKind[] = ['chest', 'trap', 'door', 'clue', 'item'];
@@ -295,7 +295,7 @@ export interface SecretAlert {
 const BOUNDS = { x0: -50, y0: -50, x1: 600, y1: 600 };
 const SNOOZE_MS = 2 * 60_000;
 
-export function useSecretWatch({ scene, tokens, heroes, active }: { scene: Scene | null; tokens: Token[]; heroes: SharedHero[]; active: boolean }) {
+export function useSecretWatch({ scene, tokens, walls: sceneWalls, heroes, active }: { scene: Scene | null; tokens: Token[]; walls: Wall[]; heroes: SharedHero[]; active: boolean }) {
   const st = useStageStore();
   const events = useSessionStore((s) => s.events);
   const [alerts, setAlerts] = useState<SecretAlert[]>([]);
@@ -335,7 +335,7 @@ export function useSecretWatch({ scene, tokens, heroes, active }: { scene: Scene
       setAlerts((a) => (a.length ? [] : a));
       return;
     }
-    const walls = blockingWalls(scene.grid.fog?.walls);
+    const walls = blockingWalls(sceneWalls);
     const seekers: Seeker[] = tokens
       .filter((t) => t.kind === 'hero' && !t.hidden && t.sheetId)
       .map((t) => {
@@ -368,7 +368,7 @@ export function useSecretWatch({ scene, tokens, heroes, active }: { scene: Scene
       } else next.push({ secret: sc, hit });
     }
     setAlerts(next);
-  }, [active, scene, secrets, tokens, sheets, rolls]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [active, scene, secrets, tokens, sceneWalls, sheets, rolls]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     alerts,

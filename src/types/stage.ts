@@ -32,18 +32,22 @@ export interface CellRect {
 export interface FogConfig {
   on: boolean;
   reveal: CellRect[];
-  /** Paredes e portas (bloqueiam a visão dinâmica). */
+  /** Formato antigo: hoje as paredes moram em scene_walls (portas_luz.sql migra). */
   walls?: Wall[];
   /** Visão dinâmica: cada herói enxerga até onde as paredes deixam. */
   vision?: boolean;
   /** Cena no escuro: só se vê o que a luz ou a visão no escuro alcançam. */
   dark?: boolean;
-  /** Luz carregada por peão (id → alcance em metros). */
+  /** Formato antigo: hoje a luz é a coluna scene_tokens.light. */
   lights?: Record<string, number>;
 }
 
 /** Parede ou porta, de quina a quina (em casas; meias casas valem). */
 export interface Wall {
+  /** Linha em scene_walls (ausente só no formato antigo, dentro da névoa). */
+  id?: string;
+  sceneId?: string;
+  updatedAt?: string;
   x1: number;
   y1: number;
   x2: number;
@@ -126,6 +130,10 @@ export interface Token {
   /** Tamanho em casas (1 = Médio, 2 = Grande…). */
   size: number;
   hidden: boolean;
+  /** Luz que o peão carrega, em metros (0 = nenhuma). */
+  light: number;
+  /** updated_at do banco (ordem dos eventos do tempo real). */
+  updatedAt?: string;
 }
 
 export interface Handout {

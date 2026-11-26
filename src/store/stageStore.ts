@@ -2,17 +2,24 @@ import { create } from 'zustand';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
-import type { NewToken, TokenPatch } from '@/services/stageService';
-import { PalcoSetupError } from '@/services/stageService';
-import type { FogConfig, Handout, LaserTrail, MapMark, Scene, SceneSecret, SecretKind, StagePing, StageState, Token } from '@/types/stage';
+import type { NewToken, NewWall, TokenPatch, WallPatch } from '@/services/stageService';
+import { PalcoSetupError, mapScene, mapSecret, mapToken, mapWall } from '@/services/stageService';
+import { applyRowChange } from '@/lib/realtimeRows';
+import type { RowChange } from '@/lib/realtimeRows';
+import type { FogConfig, Handout, LaserTrail, MapMark, Scene, SceneSecret, SecretKind, StagePing, StageState, Token, Wall } from '@/types/stage';
 import { KIND_NAME } from '@/engine/secrets';
 import { onWake } from '@/lib/onWake';
 
 /**
- * Espelho do PALCO da mesa (cena no ar, peões, handouts). Como a sessão: a
- * verdade está no banco; cada mudança chega pelo Realtime e dispara um
- * refetch curto. Arrasto de peão e "ping" viajam por broadcast (efêmero) —
- * todos veem o peão deslizando antes de o dono soltar.
+ * Espelho do PALCO da mesa (cena no ar, peões, paredes, handouts). A verdade
+ * está no banco e chega pelo Realtime de dois jeitos:
+ * · incremental — peões, paredes, cenas e segredos: cada evento é aplicado
+ *   direto na memória (applyRowChange), sem buscar tudo de novo. É o que
+ *   acontece a cada passo do combate, então é o caminho barato;
+ * · recarga curta — o que muda a estrutura (palco no ar, pistas, cena nova
+ *   ou que acabou de aparecer): um refetch com debounce.
+ * Ao (re)conectar ou o aparelho acordar, recarrega tudo uma vez.
+ * Arrasto de peão, ping, réguas e laser viajam por broadcast (efêmero).
  */
 interface StageStore {
   campaignId: string | null;
@@ -78,10 +85,17 @@ interface StageStore {
   pullView: (x: number, y: number, z?: number) => void;
   focusOn: (x: number, y: number) => void;
   saveFog: (scene: Scene, fog: FogConfig) => Promise<void>;
-  /** Abre/fecha a porta n da cena (jogador também, ao lado do herói). */
-  toggleDoor: (scene: Scene, index: number) => Promise<void>;
-  /** Luz que o peão carrega, em metros (0 apaga). */
-  setLight: (scene: Scene, tokenId: string, meters: number) => Promise<void>;
+  /** Paredes e portas da cena aberta (scene_walls). */
+  walls: Wall[];
+  /** Falta rodar portas_luz.sql: paredes vêm só do formato antigo (somente leitura). */
+  wallsMissing: boolean;
+  addWalls: (sceneId: string, list: NewWall[]) => Promise<void>;
+  patchWall: (id: string, patch: WallPatch) => Promise<void>;
+  removeWalls: (ids: string[]) => Promise<void>;
+  /** Abre/fecha a porta (mestre direto; jogador pelo banco, ao lado do herói). */
+  toggleDoor: (wall: Wall) => Promise<void>;
+  /** Luz que o peão carrega, em metros (0 apaga). Jogador: só o próprio herói. */
+  setLight: (tokenId: string, meters: number) => Promise<void>;
   /** "Esqueçam o explorado": cada cena guarda quantas vezes o mestre pediu. */
   exploredReset: Record<string, number>;
   forgetExplored: (sceneId: string) => void;
@@ -150,6 +164,55 @@ export const useStageStore = create<StageStore>()((set, get) => {
   };
   const send = (event: string, payload: Record<string, unknown>) => void channel?.send({ type: 'broadcast', event, payload });
 
+  /**
+   * Gravação do dia a dia (peão, parede, névoa): a tela já mudou (otimista) e
+   * o evento do banco confirma — só recarrega tudo se der erro, para voltar
+   * ao que o banco tem.
+   */
+  const write = async (fn: () => Promise<unknown>): Promise<void> => {
+    try {
+      await fn();
+    } catch (e) {
+      set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail } : { error: (e as Error).message });
+      await get().refresh();
+    }
+  };
+
+  /** Cena aberta no mapa agora (é dela que guardamos peões e paredes). */
+  const openSceneId = () => {
+    const s = get();
+    return s.isMaster ? s.viewSceneId ?? s.stage?.sceneId ?? null : s.stage?.sceneId ?? null;
+  };
+  const onToken = (c: RowChange) => {
+    const sceneId = openSceneId();
+    const { isMaster } = get();
+    set((s) => {
+      const tokens = applyRowChange(s.tokens, c, mapToken, (t) => t.sceneId === sceneId && (isMaster || !t.hidden));
+      return tokens === s.tokens ? {} : { tokens };
+    });
+  };
+  const onWall = (c: RowChange) => {
+    if (get().wallsMissing) return;
+    const sceneId = openSceneId();
+    set((s) => {
+      const walls = applyRowChange(s.walls as (Wall & { id: string })[], c, (r) => mapWall(r) as Wall & { id: string }, (w) => w.sceneId === sceneId);
+      return walls === s.walls ? {} : { walls };
+    });
+  };
+  const onScene = (c: RowChange) => {
+    // cena nova, apagada ou que acabou de aparecer para o jogador: estrutura muda — recarrega
+    const id = String((c.eventType === 'DELETE' ? c.old : c.new)?.id ?? '');
+    if (c.eventType !== 'UPDATE' || !get().scenes.some((x) => x.id === id)) return schedule();
+    set((s) => ({ scenes: s.scenes.map((x) => (x.id === id ? { ...mapScene(c.new), updatedAt: String(c.new.updated_at ?? x.updatedAt) } : x)) }));
+  };
+  const onSecret = (c: RowChange) => {
+    if (!get().isMaster) return;
+    set((s) => {
+      const secrets = applyRowChange(s.secrets, c, mapSecret);
+      return secrets === s.secrets ? {} : { secrets };
+    });
+  };
+
   const subscribe = (campaignId: string) => {
     const client = getSupabase();
     if (!client) return;
@@ -161,13 +224,17 @@ export const useStageStore = create<StageStore>()((set, get) => {
     const busyTopic = client.getChannels().some((c) => c.topic === `realtime:${topic}`);
     channel = client
       .channel(busyTopic ? `${topic}-${Date.now()}` : topic, { config: { broadcast: { self: false } } })
+      // estrutura: recarga curta
       .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_stage', filter }, schedule)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_scenes', filter }, schedule)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_tokens', filter }, schedule)
-      // DELETE não respeita filtro no Realtime: chega sem campaign_id
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_tokens' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_handouts', filter }, schedule)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_secrets', filter }, schedule)
+      // o dia a dia do jogo: aplica o evento direto
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_scenes', filter }, (c) => onScene(c as unknown as RowChange))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_tokens', filter }, (c) => onToken(c as unknown as RowChange))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_walls', filter }, (c) => onWall(c as unknown as RowChange))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_secrets', filter }, (c) => onSecret(c as unknown as RowChange))
+      // DELETE não respeita filtro no Realtime: chega só com o id (sumir um id que não temos não faz nada)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_tokens' }, (c) => onToken(c as unknown as RowChange))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_walls' }, (c) => onWall(c as unknown as RowChange))
       .on('broadcast', { event: 'drag' }, ({ payload }) => {
         const p = payload as { id: string; x: number; y: number; end?: boolean };
         set((s) => {
@@ -176,7 +243,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
           else drags[p.id] = { x: p.x, y: p.y };
           return { drags };
         });
-        if (p.end) schedule();
+        // a posição final chega pelo evento do banco (scene_tokens)
       })
       .on('broadcast', { event: 'ping' }, ({ payload }) => addPing(payload as StagePing))
       .on('broadcast', { event: 'mark' }, ({ payload }) => {
@@ -228,6 +295,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
     secrets: [],
     secretsMissing: false,
     exploredReset: {},
+    walls: [],
+    wallsMissing: false,
 
     open(campaignId, { isMaster, userId, who }) {
       const cur = get();
@@ -250,7 +319,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       stopWake?.();
       stopWake = null;
       if (timer) clearTimeout(timer);
-      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false });
+      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false, walls: [], wallsMissing: false });
     },
 
     async refresh() {
@@ -265,7 +334,11 @@ export const useStageStore = create<StageStore>()((set, get) => {
         ]);
         const view = isMaster ? get().viewSceneId ?? stage?.sceneId ?? null : stage?.sceneId ?? null;
         const viewScene = scenes.find((s) => s.id === view) ?? null;
-        const tokens = viewScene?.kind === 'map' ? await stageService.tokens(viewScene.id) : [];
+        const isMap = viewScene?.kind === 'map';
+        const [tokens, wallRows] = isMap ? await Promise.all([stageService.tokens(viewScene.id), stageService.walls(viewScene.id)]) : [[], []];
+        // sem a tabela (falta portas_luz.sql): mostra as paredes do formato antigo, só leitura
+        const wallsMissing = isMap && wallRows === null;
+        const walls = wallsMissing ? viewScene?.grid.fog?.walls ?? [] : wallRows ?? [];
         // segredos: só o mestre; sem a tabela, o resto do palco segue normal
         let secrets = get().secrets;
         let secretsMissing = false;
@@ -290,7 +363,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
           if (firstLoad) markSeen(campaignId, fresh.filter((h) => !recent.includes(h)).map((h) => h.id));
           if (recent.length && !incoming) incoming = recent[0];
         }
-        set({ scenes, stage, handouts, tokens, incoming, secrets, secretsMissing, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
+        set({ scenes, stage, handouts, tokens, walls, wallsMissing, incoming, secrets, secretsMissing, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
       } catch (e) {
         if (mine !== seq) return;
         set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail, error: null } : { error: (e as Error).message });
@@ -342,22 +415,26 @@ export const useStageStore = create<StageStore>()((set, get) => {
         })
         .then(() => undefined),
 
-    addTokens: (list) => get().run(() => stageService.addTokens(get().campaignId!, list)).then(() => undefined),
+    addTokens: (list) => {
+      const campaignId = get().campaignId;
+      if (!campaignId || !list.length) return Promise.resolve();
+      // id gerado aqui: o peão aparece na hora e o evento do banco só confirma (mesmo id)
+      const rows = list.map((t) => ({ ...t, id: t.id ?? crypto.randomUUID() }));
+      const sceneId = openSceneId();
+      set((s) => ({ tokens: [...s.tokens, ...rows.filter((t) => t.sceneId === sceneId).map((t) => ({ ...t, campaignId, light: t.light ?? 0 }))] }));
+      return write(() => stageService.addTokens(campaignId, rows));
+    },
     updateToken: (id, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
-      return get().run(() => stageService.updateToken(id, patch)).then(() => undefined);
+      return write(() => stageService.updateToken(id, patch));
     },
     updateTokens: (ids, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (ids.includes(t.id) ? { ...t, ...patch } : t)) }));
-      return get()
-        .run(async () => {
-          for (const id of ids) await stageService.updateToken(id, patch);
-        })
-        .then(() => undefined);
+      return write(() => Promise.all(ids.map((id) => stageService.updateToken(id, patch))));
     },
     removeToken: (id) => {
       set((s) => ({ tokens: s.tokens.filter((t) => t.id !== id) }));
-      return get().run(() => stageService.removeToken(id)).then(() => undefined);
+      return write(() => stageService.removeToken(id));
     },
 
     async moveToken(id, x, y) {
@@ -425,37 +502,49 @@ export const useStageStore = create<StageStore>()((set, get) => {
     focusOn(x, y) {
       set((s) => ({ focus: { x, y, n: (s.focus?.n ?? 0) + 1 } }));
     },
-    async toggleDoor(scene, index) {
-      const fog = scene.grid.fog;
-      const w = fog?.walls?.[index];
-      if (!fog || !w?.door) return;
-      const walls = fog.walls!.map((x, k) => (k === index ? { ...x, open: !x.open } : x));
-      // otimista: a porta mexe na hora; se o banco recusar, o refetch devolve
-      set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog: { ...fog, walls } } } : x)) }));
+    addWalls(sceneId, list) {
+      const campaignId = get().campaignId;
+      if (!campaignId || !list.length) return Promise.resolve();
+      const rows = list.map((w) => ({ ...w, id: crypto.randomUUID() }));
+      // otimista: a parede aparece na hora; o evento do banco confirma (mesmo id)
+      set((s) => ({ walls: [...s.walls, ...rows.map((w) => ({ ...w, sceneId }))] }));
+      return write(() => stageService.addWalls(campaignId, sceneId, rows));
+    },
+
+    patchWall(id, patch) {
+      set((s) => ({ walls: s.walls.map((w) => (w.id === id ? { ...w, ...patch } : w)) }));
+      return write(() => stageService.updateWall(id, patch));
+    },
+
+    removeWalls(ids) {
+      if (!ids.length) return Promise.resolve();
+      set((s) => ({ walls: s.walls.filter((w) => !w.id || !ids.includes(w.id)) }));
+      return write(() => stageService.removeWalls(ids));
+    },
+
+    async toggleDoor(wall) {
+      if (!wall.id || !wall.door) return;
+      if (get().isMaster) return get().patchWall(wall.id, { open: !wall.open });
+      // jogador: otimista; se o banco recusar (longe, trancada), volta como estava
+      set((s) => ({ walls: s.walls.map((w) => (w.id === wall.id ? { ...w, open: !wall.open } : w)) }));
       try {
-        const ok = await stageService.toggleDoor(scene.id, index);
-        if (!ok) {
-          set({ error: w.locked ? 'A porta está trancada.' : 'Chegue mais perto da porta para abrir.' });
-          await get().refresh();
+        if (!(await stageService.toggleDoor(wall.id))) {
+          set((s) => ({ walls: s.walls.map((w) => (w.id === wall.id ? { ...w, open: wall.open } : w)), error: wall.locked ? 'A porta está trancada.' : 'Chegue mais perto da porta para abrir.' }));
         }
       } catch (e) {
-        set({ error: (e as Error).message });
-        await get().refresh();
+        set((s) => ({ walls: s.walls.map((w) => (w.id === wall.id ? { ...w, open: wall.open } : w)), error: (e as Error).message }));
       }
     },
 
-    async setLight(scene, tokenId, meters) {
-      const fog = scene.grid.fog;
-      if (!fog) return;
-      const lights = { ...fog.lights };
-      if (meters > 0) lights[tokenId] = meters;
-      else delete lights[tokenId];
-      set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog: { ...fog, lights } } } : x)) }));
+    async setLight(tokenId, meters) {
+      const m = Math.max(0, Math.min(36, meters));
+      if (get().isMaster) return get().updateToken(tokenId, { light: m });
+      const before = get().tokens.find((t) => t.id === tokenId)?.light ?? 0;
+      set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: m } : t)) }));
       try {
-        if (!(await stageService.setTokenLight(tokenId, meters))) await get().refresh();
+        if (!(await stageService.setTokenLight(tokenId, m))) set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: before } : t)) }));
       } catch (e) {
-        set({ error: (e as Error).message });
-        await get().refresh();
+        set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: before } : t)), error: (e as Error).message }));
       }
     },
 
@@ -467,7 +556,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     async saveFog(scene, fog) {
       // otimista: a névoa muda na hora para o mestre
       set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog } } : x)) }));
-      await get().run(() => stageService.saveScene(scene.campaignId, { id: scene.id, grid: { ...scene.grid, fog } }));
+      await write(() => stageService.saveScene(scene.campaignId, { id: scene.id, grid: { ...scene.grid, fog } }));
     },
 
     showHandout: (id, recipients) => get().run(() => stageService.showHandout(id, recipients)).then(() => undefined),

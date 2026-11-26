@@ -38,6 +38,58 @@ export interface MockDb {
   me: string;
   /** user_metadata da conta (o app guarda ali, p.ex., o tutorial já visto). */
   meta: Record<string, unknown>;
+  /** Conexões de tempo real de todas as janelas que dividem este banco. */
+  hub: RealtimeHub;
+  /** Manda um evento postgres_changes para quem assina a tabela (como o Realtime). */
+  emit?: (table: string, type: 'INSERT' | 'UPDATE' | 'DELETE', row: Row) => void;
+}
+
+/** Tabelas do palco que o Realtime transmite (as outras seguem só com refetch). */
+const REALTIME_TABLES = new Set(['scene_tokens', 'scene_walls', 'campaign_scenes', 'campaign_stage', 'campaign_handouts', 'scene_secrets']);
+/** Só o mestre lê: o Realtime respeita o RLS e não manda para o jogador. */
+const MASTER_ONLY = new Set(['scene_secrets']);
+
+interface RtChannel {
+  joinRef: string | null;
+  /** Formato do protocolo (v2 = arrays). */
+  arr: boolean;
+  /** Assinaturas postgres_changes do canal, com o id que o servidor devolveu. */
+  changes: (Row & { id: number })[];
+}
+interface RtSocket {
+  me: string;
+  send: (data: string) => void;
+  topics: Map<string, RtChannel>;
+}
+export interface RealtimeHub {
+  sockets: RtSocket[];
+}
+
+/** "campaign_id=eq.<id>" casa com a linha? (sem filtro = tudo) */
+function filterMatches(filter: unknown, row: Row): boolean {
+  if (typeof filter !== 'string' || !filter) return true;
+  const m = filter.match(/^([a-z_]+)=eq\.(.+)$/);
+  return !m || String(row[m[1]]) === m[2];
+}
+
+/**
+ * Broadcast do usuário em binário (realtime-js, "userBroadcastPush" = 3):
+ * [tipo, len(joinRef), len(ref), len(tópico), len(evento), len(meta), codificação, …textos, payload].
+ */
+function decodeBroadcastPush(raw: Buffer): { topic: string; event: string; payload: unknown } | null {
+  if (raw.length < 7 || raw[0] !== 3) return null;
+  const [jr, rf, tp, ev, md, enc] = [raw[1], raw[2], raw[3], raw[4], raw[5], raw[6]];
+  let o = 7 + jr + rf;
+  const topic = raw.subarray(o, o + tp).toString('utf8');
+  o += tp;
+  const event = raw.subarray(o, o + ev).toString('utf8');
+  o += ev + md;
+  const body = raw.subarray(o);
+  return { topic, event, payload: enc === 1 ? JSON.parse(body.toString('utf8') || 'null') : body };
+}
+
+function frame(ch: RtChannel, topic: string, event: string, payload: unknown): string {
+  return JSON.stringify(ch.arr ? [ch.joinRef, null, topic, event, payload] : { topic, event, payload, ref: null });
 }
 
 function seed(who: Who): Record<string, Row[]> {
@@ -93,32 +145,37 @@ function rpc(name: string, body: Row, db: MockDb): unknown {
       return String(body.p_code ?? '').replace(/[^A-Z0-9]/gi, '').toUpperCase() === INVITE_CODE ? C : null;
     case 'shared_sheet':
       return body.p_token === SHARE_TOKEN ? [{ snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: Date.now() }] : [];
+    case 'move_token': {
+      // jogador move só o próprio peão (visível); o mestre, qualquer um
+      const tok = (db.tables.scene_tokens ?? []).find((t) => t.id === body.p_token);
+      if (!tok || (db.me !== M && (tok.owner_id !== db.me || tok.hidden))) return [];
+      Object.assign(tok, { x: Number(body.p_x), y: Number(body.p_y), updated_at: new Date().toISOString() });
+      db.writes.push('RPC move_token');
+      db.emit?.('scene_tokens', 'UPDATE', tok);
+      return [tok];
+    }
     case 'toggle_door': {
       // mesma regra do banco: mestre qualquer porta; jogador destrancada e com o herói a até 2 casas
-      const sc = (db.tables.campaign_scenes ?? []).find((r) => r.id === body.p_scene);
-      const g = sc?.grid as { fog?: { walls?: Row[] } } | undefined;
-      const w = g?.fog?.walls?.[Number(body.p_index)];
-      if (!sc || !w?.door) return [];
-      const master = db.me === M;
+      const w = (db.tables.scene_walls ?? []).find((r) => r.id === body.p_wall);
+      if (!w?.door) return [];
       const mx = (Number(w.x1) + Number(w.x2)) / 2;
       const my = (Number(w.y1) + Number(w.y2)) / 2;
       const near = (db.tables.scene_tokens ?? []).some((t) => t.owner_id === db.me && !t.hidden && Math.abs(Number(t.x) + Number(t.size ?? 1) / 2 - mx) <= 2 && Math.abs(Number(t.y) + Number(t.size ?? 1) / 2 - my) <= 2);
-      if (!master && (w.locked || !near)) return [];
+      if (db.me !== M && (w.locked || !near)) return [];
       w.open = !w.open;
+      w.updated_at = new Date().toISOString();
       db.writes.push('RPC toggle_door');
-      return [sc];
+      db.emit?.('scene_walls', 'UPDATE', w);
+      return [w];
     }
     case 'set_token_light': {
       const tok = (db.tables.scene_tokens ?? []).find((t) => t.id === body.p_token);
-      const sc = tok && (db.tables.campaign_scenes ?? []).find((r) => r.id === tok.scene_id);
-      const fog = (sc?.grid as { fog?: { lights?: Record<string, number> } } | undefined)?.fog;
-      if (!tok || !fog || (db.me !== M && tok.owner_id !== db.me)) return [];
-      const lights = { ...(fog.lights ?? {}) };
-      if (Number(body.p_meters) > 0) lights[String(tok.id)] = Number(body.p_meters);
-      else delete lights[String(tok.id)];
-      fog.lights = lights;
+      if (!tok || (db.me !== M && tok.owner_id !== db.me)) return [];
+      tok.light = Math.max(0, Math.min(36, Number(body.p_meters) || 0));
+      tok.updated_at = new Date().toISOString();
       db.writes.push('RPC set_token_light');
-      return [sc];
+      db.emit?.('scene_tokens', 'UPDATE', tok);
+      return [tok];
     }
     case 'claim_handout_loot': {
       const h = (db.tables.campaign_handouts ?? []).find((r) => r.id === body.p_handout);
@@ -152,6 +209,19 @@ async function handle(route: Route, db: MockDb) {
   }
   if (url.pathname.startsWith('/auth/v1/')) return json({});
   if (url.pathname.includes('/storage/v1/object')) return route.fulfill({ status: 200, contentType: 'image/png', body: IMAGE });
+  // broadcast por HTTP (o cliente usa quando o canal ainda não entrou): repassa às janelas no tópico
+  if (url.pathname.endsWith('/realtime/v1/api/broadcast')) {
+    const body = req.postData() ? JSON.parse(req.postData()!) : { messages: [] };
+    for (const m of (body.messages ?? []) as { topic: string; event: string; payload: unknown }[]) {
+      const topic = m.topic.startsWith('realtime:') ? m.topic : `realtime:${m.topic}`;
+      for (const sock of db.hub.sockets) {
+        if (sock.me === db.me) continue;
+        const ch = sock.topics.get(topic);
+        if (ch) sock.send(frame(ch, topic, 'broadcast', { type: 'broadcast', event: m.event, payload: m.payload }));
+      }
+    }
+    return route.fulfill({ status: 202, body: '' });
+  }
 
   const m = url.pathname.match(/\/rest\/v1\/(rpc\/)?([a-z_]+)/);
   if (!m) return json({}, 404);
@@ -162,6 +232,11 @@ async function handle(route: Route, db: MockDb) {
   if (isRpc) return json(rpc(name, payload, db));
 
   let rows = db.tables[name] ?? [];
+  // RLS do jogador (importa quando mestre e jogador dividem o banco)
+  if (db.me !== M && method === 'GET') {
+    if (MASTER_ONLY.has(name)) rows = [];
+    else if (name === 'scene_tokens' || name === 'combatants') rows = rows.filter((r) => !r.hidden);
+  }
   for (const [k, v] of url.searchParams) {
     if (['select', 'order', 'limit', 'offset', 'on_conflict', 'columns'].includes(k)) continue;
     if (v.startsWith('eq.')) rows = rows.filter((r) => String(r[k]) === v.slice(3));
@@ -186,39 +261,94 @@ async function handle(route: Route, db: MockDb) {
     });
     db.writes.push(`POST ${name}`);
     rows = list;
+    rows.forEach((r) => db.emit?.(name, 'INSERT', r));
   } else if (method === 'PATCH') {
+    // gatilho _fv_token_visibility_touch: esconder/revelar peão cutuca o palco (o jogador recarrega)
+    const visibility = name === 'scene_tokens' && 'hidden' in payload && rows.some((r) => r.hidden !== payload.hidden);
     rows.forEach((r) => Object.assign(r, payload));
     db.writes.push(`PATCH ${name}`);
+    rows.forEach((r) => db.emit?.(name, 'UPDATE', r));
+    if (visibility) for (const st of db.tables.campaign_stage ?? []) db.emit?.('campaign_stage', 'UPDATE', Object.assign(st, { updated_at: new Date().toISOString() }));
   } else if (method === 'DELETE') {
     db.tables[name] = (db.tables[name] ?? []).filter((r) => !rows.includes(r));
     db.writes.push(`DELETE ${name}`);
+    rows.forEach((r) => db.emit?.(name, 'DELETE', r));
+    if (name === 'scene_tokens' && rows.length) for (const st of db.tables.campaign_stage ?? []) db.emit?.('campaign_stage', 'UPDATE', Object.assign(st, { updated_at: new Date().toISOString() }));
   }
 
   const single = (req.headers()['accept'] ?? '').includes('vnd.pgrst.object');
   return json(single ? (rows[0] ?? null) : rows);
 }
 
-/** Liga o mock na página. Chame antes do primeiro goto. */
-export async function installSupabase(page: Page, who: Who): Promise<MockDb> {
-  const db: MockDb = { tables: seed(who), writes: [], me: who === 'master' ? M : P, meta: {} };
+/**
+ * Liga o mock na página. Chame antes do primeiro goto.
+ * Multiplayer: passe `shared` (o banco de outra janela) e as duas janelas
+ * dividem as mesmas tabelas e o mesmo Realtime — o que um grava, o outro
+ * recebe como evento postgres_changes, e o broadcast (arrasto, ping, laser)
+ * vai de uma para a outra, como no Supabase de verdade.
+ */
+export async function installSupabase(page: Page, who: Who, opts: { shared?: MockDb } = {}): Promise<MockDb> {
+  const me = who === 'master' ? M : P;
+  const hub: RealtimeHub = opts.shared?.hub ?? { sockets: [] };
+  const db: MockDb = { tables: opts.shared?.tables ?? seed(who), writes: opts.shared?.writes ?? [], me, meta: {}, hub };
+  db.emit = (table, type, row) => {
+    if (!REALTIME_TABLES.has(table)) return;
+    for (const sock of hub.sockets) {
+      if (MASTER_ONLY.has(table) && sock.me !== M) continue;
+      // peão escondido não chega ao jogador (RLS)
+      if (table === 'scene_tokens' && row.hidden && sock.me !== M && type !== 'DELETE') continue;
+      for (const [topic, ch] of sock.topics) {
+        const ids = ch.changes.filter((c) => (c.table === table || c.table === '*') && (c.event === '*' || c.event === type) && (type === 'DELETE' || filterMatches(c.filter, row))).map((c) => c.id);
+        if (!ids.length) continue;
+        const data = { schema: 'public', table, commit_timestamp: new Date().toISOString(), type, columns: [], errors: null, record: type === 'DELETE' ? {} : { ...row }, old_record: type === 'INSERT' ? {} : type === 'DELETE' ? { id: row.id } : { id: row.id } };
+        sock.send(frame(ch, topic, 'postgres_changes', { ids, data }));
+      }
+    }
+  };
   await page.route(`${MOCK_URL}/**`, (route) => handle(route, db));
   await page.routeWebSocket(/mock\.supa\.test/, (ws) => {
+    const sock: RtSocket = { me, send: (d) => ws.send(d), topics: new Map() };
+    hub.sockets.push(sock);
+    ws.onClose(() => {
+      hub.sockets = hub.sockets.filter((x) => x !== sock);
+    });
+    /** Repassa um broadcast às outras janelas no mesmo tópico (self: false). */
+    const relay = (topic: string, payload: unknown) => {
+      for (const other of hub.sockets) {
+        if (other === sock) continue;
+        const ch = other.topics.get(topic);
+        if (ch) other.send(frame(ch, topic, 'broadcast', payload));
+      }
+    };
     ws.onMessage((raw) => {
+      // o cliente manda o broadcast do usuário em binário (protocolo 2.0)
+      if (typeof raw !== 'string') {
+        const b = decodeBroadcastPush(raw);
+        if (b) relay(b.topic, { type: 'broadcast', event: b.event, payload: b.payload });
+        return;
+      }
       let msg: unknown;
       try {
-        msg = JSON.parse(String(raw));
+        msg = JSON.parse(raw);
       } catch {
         return;
       }
       // Realtime v2 manda arrays [join_ref, ref, topic, event, payload]; v1 manda objetos
       const arr = Array.isArray(msg);
-      const o = msg as { join_ref?: string; ref?: string; topic: string; event: string; payload: { config?: { postgres_changes?: Row[] } } };
+      const o = msg as { join_ref?: string; ref?: string; topic: string; event: string; payload: { config?: { postgres_changes?: Row[] } } & Row };
       const [jr, ref, topic, event, pl] = arr ? (msg as [string, string, string, string, typeof o.payload]) : [o.join_ref, o.ref, o.topic, o.event, o.payload];
       const send = (ev: string, payload: unknown, r: string | null = ref ?? null, j: string | null = jr ?? null) =>
         ws.send(JSON.stringify(arr ? [j, r, topic, ev, payload] : { topic, event: ev, payload, ref: r }));
       if (event === 'phx_join') {
         const pc = (pl?.config?.postgres_changes ?? []).map((x, i) => ({ ...x, id: i + 1 }));
+        sock.topics.set(topic, { joinRef: jr ?? null, arr, changes: pc });
         send('phx_reply', { status: 'ok', response: { postgres_changes: pc } });
+      } else if (event === 'phx_leave') {
+        sock.topics.delete(topic);
+        send('phx_reply', { status: 'ok', response: {} });
+      } else if (event === 'broadcast') {
+        relay(topic, pl);
+        send('phx_reply', { status: 'ok', response: {} });
       } else if (event === 'heartbeat' || event === 'presence' || event === 'access_token') {
         send('phx_reply', { status: 'ok', response: {} });
       }

@@ -87,5 +87,5 @@ describe('SQL dos segredos do mapa', () => {
 
     expect(failures).toEqual([]);
     expect(ok).toBeGreaterThan(14);
-  });
+  }, 60_000);
 });

@@ -128,7 +128,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   const selSecret = sel ? secretByToken.get(sel.id) ?? null : null;
   // jogador: o próprio herói nesta cena (luz que ele carrega)
   const myHero = !isMaster ? st.tokens.find((t) => t.kind === 'hero' && t.ownerId === userId && !t.hidden) ?? null : null;
-  const watch = useSecretWatch({ scene: scene?.kind === 'map' ? scene : null, tokens: st.tokens, heroes, active: isMaster && isLive });
+  const watch = useSecretWatch({ scene: scene?.kind === 'map' ? scene : null, tokens: st.tokens, walls: st.walls, heroes, active: isMaster && isLive });
   useEffect(() => {
     if (!sel) return;
     const onKey = (e: KeyboardEvent) => {
@@ -289,16 +289,16 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
             onFogAll={isMaster ? (mode) => void st.saveFog(scene, { ...scene.grid.fog, ...(mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) }) : undefined}
             onFogSet={isMaster ? (fog) => void st.saveFog(scene, fog) : undefined}
-            onDoor={(i) => {
-              // mestre grava direto; jogador passa pelo banco (só a porta ao lado do herói)
-              const fog = scene.grid.fog;
-              if (isMaster && fog?.walls) void st.saveFog(scene, { ...fog, walls: fog.walls.map((w, k) => (k === i ? { ...w, open: !w.open } : w)) });
-              else void st.toggleDoor(scene, i);
-            }}
+            walls={st.walls}
+            wallsReadOnly={st.wallsMissing}
+            onWallsAdd={isMaster ? (list) => void st.addWalls(scene.id, list) : undefined}
+            onWallsRemove={isMaster ? (ids) => void st.removeWalls(ids) : undefined}
+            onWallPatch={isMaster ? (id, patch) => void st.patchWall(id, patch) : undefined}
+            onDoor={st.wallsMissing ? undefined : (w) => void st.toggleDoor(w)}
             exploredResetN={st.exploredReset[scene.id] ?? 0}
             onForgetExplored={isMaster ? () => st.forgetExplored(scene.id) : undefined}
-            myLight={myHero ? { tokenId: myHero.id, meters: scene.grid.fog?.lights?.[myHero.id] ?? 0 } : null}
-            onMyLight={myHero ? (m) => void st.setLight(scene, myHero.id, m) : undefined}
+            myLight={myHero ? { tokenId: myHero.id, meters: myHero.light } : null}
+            onMyLight={myHero ? (m) => void st.setLight(myHero.id, m) : undefined}
             secretFor={isMaster ? (t) => secretByToken.get(t.id) : undefined}
             secrets={isMaster ? sceneSecrets : undefined}
             secretsMissing={isMaster && st.secretsMissing}
@@ -388,16 +388,10 @@ function TokenBar({ token, combatant, onClose }: { token: Token | null; combatan
     setAmount('');
   };
   const sizes = [0.5, 1, 2, 3, 4];
-  // luz carregada: fica na névoa da cena (quem segura a tocha ilumina para todos)
+  // luz que o peão carrega (quem segura a tocha ilumina para todos)
   const scene = st.scenes.find((x) => x.id === token.sceneId) ?? null;
-  const lightNow = scene?.grid.fog?.lights?.[token.id];
-  const setLight = (m: number) => {
-    if (!scene?.grid.fog) return;
-    const lights = { ...scene.grid.fog.lights };
-    if (m > 0) lights[token.id] = m;
-    else delete lights[token.id];
-    void st.saveFog(scene, { ...scene.grid.fog, lights });
-  };
+  const lightNow = token.light;
+  const setLight = (m: number) => void st.setLight(token.id, m);
   // mesmo monstro (ou mesmo nome sem o "#2"): o retrato vale para todos
   const key = artKey(token.monsterRef, token.label);
   const same = st.tokens.filter((t) => t.kind === token.kind && artKey(t.monsterRef, t.label) === key);
