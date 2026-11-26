@@ -1366,6 +1366,28 @@ create policy "client_errors_insert_own" on public.client_errors for insert to a
   with check (user_id = auth.uid());
 grant insert on public.client_errors to authenticated;
 create index if not exists client_errors_created_idx on public.client_errors (created_at desc);
+create index if not exists client_errors_user_idx on public.client_errors (user_id, created_at desc);
+
+-- Freio no servidor (o app já manda no máximo 10 por sessão, mas um app
+-- antigo ou com defeito não pode encher o banco do plano grátis): até 60
+-- por pessoa por hora — o excesso é descartado calado — e, de vez em
+-- quando, apaga o que tem mais de 90 dias.
+create or replace function public._fv_client_errors_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.client_errors
+      where user_id = new.user_id and created_at > now() - interval '1 hour') >= 60 then
+    return null;
+  end if;
+  if random() < 0.02 then
+    delete from public.client_errors where created_at < now() - interval '90 days';
+  end if;
+  return new;
+end $$;
+revoke all on function public._fv_client_errors_guard() from public, anon, authenticated;
+drop trigger if exists client_errors_guard on public.client_errors;
+create trigger client_errors_guard before insert on public.client_errors
+  for each row execute function public._fv_client_errors_guard();
 
 -- ---------------------------------------------------------------------
 -- 3) CONVITE POR CÓDIGO: 8 caracteres sem ambíguos (sem 0/O, 1/I/L),

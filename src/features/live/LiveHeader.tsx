@@ -2,6 +2,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import type { ConnectionState } from '@/types/session';
 import { useShallow } from 'zustand/react/shallow';
 import { useTableLink } from '@/hooks/useTableLink';
+import { queuedLabel } from '@/lib/tableLink';
 
 export const CONN: Record<ConnectionState, string> = {
   idle: 'Fora da sessão',
@@ -57,6 +58,7 @@ export function LiveHeader({ campaignName }: { campaignName: string | null }) {
           <span className={`fv-live-conn is-${link.connection}`} role="status">
             <i className={`fv-live-dot is-${link.connection}`} aria-hidden />
             {CONN[link.connection]}
+            {queuedLabel(link.pending)}
           </span>
           {s.session && (
             <span>

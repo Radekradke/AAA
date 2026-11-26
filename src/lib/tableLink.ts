@@ -24,3 +24,8 @@ export function mergeOnline(session: PresencePlayer[], stage: PresencePlayer[]):
   for (const p of [...session, ...stage]) if (p.userId && !byUser.has(p.userId)) byUser.set(p.userId, p);
   return [...byUser.values()].sort((a, b) => (a.role === b.role ? a.name.localeCompare(b.name) : a.role === 'master' ? -1 : 1));
 }
+
+/** Jogadas feitas sem rede esperando para sair (" · 2 jogadas na fila"). */
+export function queuedLabel(n: number): string {
+  return n > 0 ? ` · ${n} ${n === 1 ? 'jogada' : 'jogadas'} na fila` : '';
+}

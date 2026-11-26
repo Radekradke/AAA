@@ -140,7 +140,11 @@ export function joinStageChannel(campaignId: string, me: Omit<PresencePlayer, 'o
     },
     wake() {
       if (closed) return;
-      if (channel && joined && channel.state === 'joined') return h.onResync();
+      // a rede piscou mas o canal aguentou: volta a dizer "ao vivo" e põe em dia
+      if (channel && joined && channel.state === 'joined') {
+        status('connected');
+        return h.onResync();
+      }
       attempt = 0;
       scheduleRebuild(0);
     },

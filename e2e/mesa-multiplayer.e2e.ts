@@ -26,14 +26,19 @@ async function table(page: Page, browser: Browser, prep?: (db: MockDb) => void) 
   const errors: string[] = [];
   player.on('pageerror', (e) => errors.push(e.message));
   await signIn(player, 'player');
-  await installSupabase(player, 'player', { shared: db });
+  const playerDb = await installSupabase(player, 'player', { shared: db });
   await page.goto(`/mesa/${C}/jogar`);
   await player.goto(`/mesa/${C}/jogar`);
   await expect(page.locator('.fv-map-view')).toBeVisible();
   await expect(player.locator('.fv-map-view')).toBeVisible();
   // o aviso "seu turno" pode cobrir o mapa do jogador a qualquer momento
   await player.addStyleTag({ content: '.fv-turn-banner { display: none !important; }' });
-  return { db, player, errors, close: () => ctx.close() };
+  /** Internet do jogador cai/volta (navegador e chamadas ao banco). */
+  const playerOffline = async (off: boolean) => {
+    playerDb.offline = off;
+    await ctx.setOffline(off);
+  };
+  return { db, player, errors, playerOffline, close: () => ctx.close() };
 }
 
 /** Caixa depois que o mapa terminou de se enquadrar (duas leituras iguais). */
@@ -153,6 +158,31 @@ test.describe('multiplayer: mestre e jogador na mesma mesa', () => {
     // o realtime-js reconecta sozinho; ao voltar, a mesa relê o palco
     await expect(status).toHaveText('Ao vivo', { timeout: 15_000 });
     await expect.poll(async () => Math.round((before.x - (await goblin.boundingBox())!.x) / before.width)).toBe(3);
+    expect(t.errors).toEqual([]);
+    await t.close();
+  });
+
+  test('sem internet o jogador move o herói: a jogada espera na fila e sai quando a rede volta', async ({ page, browser }) => {
+    const t = await table(page, browser);
+    const status = t.player.locator('.fv-live-head [role="status"]');
+    await expect(status).toHaveText('Ao vivo');
+    const kaelP = t.player.locator('.fv-token', { hasText: 'Kael Venturo' });
+    const b = await stableBox(kaelP);
+    await t.playerOffline(true);
+    await expect(status).toContainText('Sem conexão');
+    await t.player.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
+    await t.player.mouse.down();
+    await t.player.mouse.move(b.x + b.width * 2.5, b.y + b.width / 2, { steps: 6 });
+    await t.player.mouse.up();
+    // a tela do jogador já mostra o herói no lugar novo; o banco ainda não
+    await expect(status).toContainText('1 jogada na fila');
+    expect(t.db.tables.scene_tokens.find((x) => x.id === 't1')?.x).toBe(3);
+    await expect(t.player.locator('.fv-live-error')).toHaveCount(0);
+    await t.playerOffline(false);
+    await expect.poll(() => t.db.tables.scene_tokens.find((x) => x.id === 't1')?.x, { timeout: 20_000 }).toBe(5);
+    await expect(status).toHaveText('Ao vivo', { timeout: 15_000 });
+    const kaelM = page.locator('.fv-token', { hasText: 'Kael Venturo' });
+    await expect.poll(async () => Math.round(((await kaelM.boundingBox())!.x - b.x) / b.width), { timeout: 10_000 }).not.toBe(0);
     expect(t.errors).toEqual([]);
     await t.close();
   });

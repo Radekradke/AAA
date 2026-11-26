@@ -40,6 +40,8 @@ export interface MockDb {
   meta: Record<string, unknown>;
   /** Conexões de tempo real de todas as janelas que dividem este banco. */
   hub: RealtimeHub;
+  /** Esta janela sem internet: as chamadas HTTP dela falham como na vida real. */
+  offline?: boolean;
   /** Manda um evento postgres_changes para quem assina a tabela (como o Realtime). */
   emit?: (table: string, type: 'INSERT' | 'UPDATE' | 'DELETE', row: Row) => void;
 }
@@ -199,6 +201,7 @@ function rpc(name: string, body: Row, db: MockDb): unknown {
 }
 
 async function handle(route: Route, db: MockDb) {
+  if (db.offline) return route.abort('internetdisconnected');
   const req = route.request();
   const url = new URL(req.url());
   const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });

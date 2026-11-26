@@ -89,6 +89,14 @@ describe('SQL dos recursos extras', () => {
     eq('ninguém lê os erros pelo app', (await as('p1', `select * from client_errors`)).length, 0);
     await err('anônimo não grava erro', /permission|row-level/, () => as('anon', `insert into client_errors (message) values ('x')`));
     await err('mensagem gigante recusada', /check/, () => as('p1', `insert into client_errors (message) values (repeat('a', 700))`));
+    // freio: um app com defeito não enche o banco (60 por pessoa por hora)
+    for (let i = 0; i < 70; i++) await as('p1', `insert into client_errors (message) values ('loop')`);
+    eq('no máximo 60 por hora por pessoa', (await db.query(`select count(*)::int as n from client_errors where user_id = $1`, [U.p1])).rows, [{ n: 60 }]);
+    await as('gm', `insert into client_errors (message) values ('outro')`);
+    eq('o freio é por pessoa', (await db.query(`select count(*)::int as n from client_errors where user_id = $1`, [U.gm])).rows, [{ n: 1 }]);
+    await db.exec(`update client_errors set created_at = now() - interval '2 hours' where user_id = '${U.p1}'`);
+    await as('p1', `insert into client_errors (message) values ('depois de uma hora')`);
+    eq('passada a hora, volta a gravar', (await db.query(`select count(*)::int as n from client_errors where user_id = $1 and message = 'depois de uma hora'`, [U.p1])).rows, [{ n: 1 }]);
 
     // --- 3) convite por código ---
     const [camp] = await as('gm', `insert into campaigns (master_id, name, created_at, updated_at) values ($1, 'Mesa', 1, 1) returning id`, [U.gm]);
