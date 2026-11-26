@@ -1,12 +1,13 @@
+import { useId } from 'react';
 import type { SVGProps } from 'react';
 
-/** Monograma F + dado de RPG. A marca herda a cor do tema via currentColor. */
+/** Emblema aprovado, recolorido pela transparência da arte original. */
 export function FichaVivaMark({ className = '', ...props }: SVGProps<SVGSVGElement>) {
+  const maskId = useId().replace(/:/g, '');
   return (
-    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" className={`fv-brand-mark ${className}`} {...props}>
-      <path d="M16 2.5 28 9.25v13.5L16 29.5 4 22.75V9.25Z" />
-      <path d="m16 2.5-7 7h14Zm0 27v-5" strokeWidth="1.2" />
-      <path d="M11 23V12h10M11 17h7" strokeWidth="2.4" />
+    <svg viewBox="0 0 1280 1280" aria-hidden="true" focusable="false" className={`fv-brand-mark ${className}`} {...props}>
+      <defs><mask id={maskId} style={{ maskType: 'alpha' }}><image href="/brand/dragao-v2/emblema-preto.png" width="1280" height="1280" /></mask></defs>
+      <rect width="1280" height="1280" fill="currentColor" mask={`url(#${maskId})`} />
     </svg>
   );
 }
