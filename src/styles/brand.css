@@ -1,4 +1,6 @@
 .fv-brand-mark { display: block; width: 100%; height: 100%; flex: none; }
+/* o emblema é um PNG preto com transparência: a máscara usa o alfa, não o brilho */
+.fv-brand-mark mask { mask-type: alpha; }
 .fv-topbar-brand .fv-brand-mark { width: 32px; height: 32px; color: var(--gold); }
 .fv-guild-nav > .fv-brand-mark { width: 40px; height: 40px; margin: 10px auto 20px; color: var(--gold); }
 .fv-home-brand-composition {
