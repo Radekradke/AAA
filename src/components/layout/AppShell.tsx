@@ -36,7 +36,7 @@ export function AppShell({ children, video = null, posters, videoOpacity, darken
 
   useEffect(() => {
     const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"][type="image/svg+xml"]');
-    if (favicon) favicon.href = `data:image/svg+xml,${encodeURIComponent(brandSvg(t.gold))}`;
+    if (favicon) favicon.href = `data:image/svg+xml,${encodeURIComponent(brandSvg())}`;
   }, [t.gold]);
 
   // as variáveis de cor vêm do CSS do tema ([data-theme][data-mode]); o JS
