@@ -1,7 +1,34 @@
 .fv-brand-mark { display: block; width: 100%; height: 100%; flex: none; }
+/* o emblema é um PNG preto com transparência: a máscara usa o alfa, não o brilho */
+.fv-brand-mark mask { mask-type: alpha; }
 .fv-topbar-brand .fv-brand-mark { width: 32px; height: 32px; color: var(--gold); }
 .fv-guild-nav > .fv-brand-mark { width: 40px; height: 40px; margin: 10px auto 20px; color: var(--gold); }
-.fv-menu-brand > .fv-brand-mark { width: clamp(64px, 10vh, 104px); height: auto; margin: 0 auto 18px; color: var(--gold); }
+.fv-home-brand-composition {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: clamp(148px, 24vh, 230px);
+}
+.fv-home-brand-composition > .fv-home-brand-watermark {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(82%, 300px);
+  height: 100%;
+  color: var(--gold);
+  opacity: .11;
+  pointer-events: none;
+}
+.fv-home-brand-composition > .fv-menu-title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  text-shadow: none;
+}
 @media (max-width: 600px) {
   .fv-topbar-brand .fv-brand-mark { width: 28px; height: 28px; }
+  .fv-home-brand-composition { min-height: 156px; }
+  .fv-home-brand-composition > .fv-home-brand-watermark { width: min(76%, 210px); opacity: .09; }
 }

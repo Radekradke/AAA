@@ -9,7 +9,7 @@
 -- =====================================================================
 
 -- =====================================================================
--- 1/13 · base: fichas, campanhas, crônica, políticas, realtime
+-- 1/14 · base: fichas, campanhas, crônica, políticas, realtime
 -- =====================================================================
 -- ===== FICHAS =====
 create table if not exists public.sheets (
@@ -195,7 +195,7 @@ grant select on public.app_schema_steps to authenticated;
 insert into public.app_schema_steps (step) values ('base') on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 2/13 · supabase/multiplayer_session.sql · mesa ao vivo: sessão, encontro, iniciativa
+-- 2/14 · supabase/multiplayer_session.sql · mesa ao vivo: sessão, encontro, iniciativa
 -- =====================================================================
 -- =====================================================================
 -- FICHA VIVA — MULTIPLAYER: SESSÃO / ENCONTRO / COMBATENTES (Fases 0–2)
@@ -771,7 +771,7 @@ grant select on public.app_schema_steps to authenticated;
 insert into public.app_schema_steps (step) values ('multiplayer') on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 3/13 · supabase/atualizacao_npcs_bestiario.sql · NPCs e bestiário da campanha
+-- 3/14 · supabase/atualizacao_npcs_bestiario.sql · NPCs e bestiário da campanha
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — ATUALIZAÇÃO: bestiário + NPCs da campanha
@@ -911,7 +911,7 @@ grant select on public.app_schema_steps to authenticated;
 insert into public.app_schema_steps (step) values ('npcs_bestiario') on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 4/13 · supabase/palco.sql · palco: mapas, cenas, cutscenes, pistas e imagens
+-- 4/14 · supabase/palco.sql · palco: mapas, cenas, cutscenes, pistas e imagens
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — PALCO DA MESA
@@ -1155,7 +1155,7 @@ grant select on public.app_schema_steps to authenticated;
 insert into public.app_schema_steps (step) values ('palco') on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 5/13 · supabase/mestre_console.sql · console do mestre
+-- 5/14 · supabase/mestre_console.sql · console do mestre
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — CONSOLE DO MESTRE
@@ -1302,7 +1302,7 @@ grant select on public.app_schema_steps to authenticated;
 insert into public.app_schema_steps (step) values ('mestre_console') on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 6/13 · supabase/recursos_extras.sql · convite por código, ficha compartilhada, registro de erros
+-- 6/14 · supabase/recursos_extras.sql · convite por código, ficha compartilhada, registro de erros
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — RECURSOS EXTRAS
@@ -1436,7 +1436,7 @@ insert into public.app_schema_steps (step) values ('recursos_extras')
 on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 7/13 · supabase/agenda.sql · agenda da campanha
+-- 7/14 · supabase/agenda.sql · agenda da campanha
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — AGENDA DA CAMPANHA
@@ -1546,7 +1546,7 @@ insert into public.app_schema_steps (step) values ('agenda')
 on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 8/13 · supabase/bestiario.sql · bestiário da mesa
+-- 8/14 · supabase/bestiario.sql · bestiário da mesa
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — BESTIÁRIO DA MESA
@@ -1628,7 +1628,7 @@ insert into public.app_schema_steps (step) values ('bestiario')
 on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 9/13 · supabase/diario_privado.sql · diário que só o jogador lê
+-- 9/14 · supabase/diario_privado.sql · diário que só o jogador lê
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — DIÁRIO PRIVADO
@@ -1742,7 +1742,7 @@ select id, public, file_size_limit from storage.buckets where id = 'diario';
 select policyname from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname like 'fv_diario_%';
 
 -- =====================================================================
--- 10/13 · supabase/mesa_vida.sql · PV do herói igual para mestre e jogador
+-- 10/14 · supabase/mesa_vida.sql · PV do herói igual para mestre e jogador
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva · Mesa ao vivo: PV e condições do herói sempre iguais
@@ -1808,7 +1808,7 @@ insert into public.app_schema_steps (step) values ('mesa_vida') on conflict (ste
 select proname from pg_proc where proname = 'update_own_combatant';
 
 -- =====================================================================
--- 11/13 · supabase/discord.sql · rolagens no Discord da mesa
+-- 11/14 · supabase/discord.sql · rolagens no Discord da mesa
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — DISCORD DA MESA
@@ -1863,7 +1863,7 @@ insert into public.app_schema_steps (step) values ('discord')
 on conflict (step) do update set applied_at = now();
 
 -- =====================================================================
--- 12/13 · supabase/mesa_membros.sql · sair, remover e lista de jogadores
+-- 12/14 · supabase/mesa_membros.sql · sair, remover e lista de jogadores
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva · Membros da mesa: sair, remover jogador e lista do mestre
@@ -1961,7 +1961,7 @@ insert into public.app_schema_steps (step) values ('mesa_membros') on conflict (
 select proname from pg_proc where proname in ('leave_campaign', 'remove_campaign_member', 'campaign_roster');
 
 -- =====================================================================
--- 13/13 · supabase/segredos.sql · segredos do mapa e loot nas pistas
+-- 13/14 · supabase/segredos.sql · segredos do mapa e loot nas pistas
 -- =====================================================================
 -- =====================================================================
 -- Ficha Viva — SEGREDOS DO MAPA
@@ -2034,4 +2034,69 @@ returns setof public.campaign_handouts language sql security definer set search_
   returning *;
 ';
 grant execute on function public.claim_handout_loot(uuid) to authenticated;
+
+-- =====================================================================
+-- 14/14 · supabase/portas_luz.sql · jogador abre portas e acende a própria luz
+-- =====================================================================
+-- =====================================================================
+-- Ficha Viva — PORTAS E LUZ PELO JOGADOR
+-- O jogador abre e fecha uma porta ao lado do próprio herói (porta
+-- trancada só o mestre abre) e acende a luz que o próprio herói carrega.
+-- O resto da cena continua só do mestre.
+--
+-- Rode DEPOIS do palco.sql. Pode rodar mais de uma vez. Cole TUDO numa
+-- aba nova do SQL Editor e clique em Run sem nada selecionado.
+-- =====================================================================
+
+-- abre/fecha a porta n (índice em grid.fog.walls). Mestre: qualquer uma.
+-- Jogador: cena no ar, porta destrancada e um herói dele a até 2 casas.
+drop function if exists public.toggle_door(uuid, int);
+create function public.toggle_door(p_scene uuid, p_index int)
+returns setof public.campaign_scenes language sql security definer set search_path = public as '
+  update public.campaign_scenes s
+     set grid = jsonb_set(s.grid, array[''fog'', ''walls'', p_index::text, ''open''],
+                          to_jsonb(not coalesce((s.grid->''fog''->''walls''->p_index->>''open'')::boolean, false))),
+         updated_at = now()
+   where s.id = p_scene
+     and coalesce((s.grid->''fog''->''walls''->p_index->>''door'')::boolean, false)
+     and (
+       public.is_campaign_master(s.campaign_id)
+       or (
+         s.revealed
+         and public.is_campaign_member(s.campaign_id)
+         and not coalesce((s.grid->''fog''->''walls''->p_index->>''locked'')::boolean, false)
+         and exists (
+           select 1 from public.scene_tokens t
+            where t.scene_id = s.id and t.owner_id = auth.uid() and not t.hidden
+              and abs(t.x + t.size / 2 - ((s.grid->''fog''->''walls''->p_index->>''x1'')::real + (s.grid->''fog''->''walls''->p_index->>''x2'')::real) / 2) <= 2
+              and abs(t.y + t.size / 2 - ((s.grid->''fog''->''walls''->p_index->>''y1'')::real + (s.grid->''fog''->''walls''->p_index->>''y2'')::real) / 2) <= 2
+         )
+       )
+     )
+  returning s.*;
+';
+grant execute on function public.toggle_door(uuid, int) to authenticated;
+
+-- luz que o peão carrega (metros; 0 apaga). Mestre: qualquer peão.
+-- Jogador: só o próprio herói, numa cena no ar.
+drop function if exists public.set_token_light(uuid, real);
+create function public.set_token_light(p_token uuid, p_meters real)
+returns setof public.campaign_scenes language sql security definer set search_path = public as '
+  update public.campaign_scenes s
+     set grid = jsonb_set(s.grid, ''{fog,lights}'',
+                  case when coalesce(p_meters, 0) > 0
+                       then coalesce(s.grid->''fog''->''lights'', ''{}''::jsonb) || jsonb_build_object(p_token::text, least(p_meters, 36))
+                       else coalesce(s.grid->''fog''->''lights'', ''{}''::jsonb) - p_token::text end),
+         updated_at = now()
+    from public.scene_tokens t
+   where t.id = p_token
+     and s.id = t.scene_id
+     and s.grid ? ''fog''
+     and (
+       public.is_campaign_master(s.campaign_id)
+       or (s.revealed and t.owner_id = auth.uid() and not t.hidden and public.is_campaign_member(s.campaign_id))
+     )
+  returning s.*;
+';
+grant execute on function public.set_token_light(uuid, real) to authenticated;
 

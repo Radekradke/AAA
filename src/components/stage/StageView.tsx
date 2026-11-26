@@ -126,6 +126,8 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
   const secretByToken = useMemo(() => new Map(isMaster ? st.secrets.filter((x) => x.tokenId).map((x) => [x.tokenId!, x] as const) : []), [isMaster, st.secrets]);
   const sceneSecrets = useMemo(() => (isMaster && scene ? st.secrets.filter((x) => x.sceneId === scene.id) : []), [isMaster, scene, st.secrets]);
   const selSecret = sel ? secretByToken.get(sel.id) ?? null : null;
+  // jogador: o próprio herói nesta cena (luz que ele carrega)
+  const myHero = !isMaster ? st.tokens.find((t) => t.kind === 'hero' && t.ownerId === userId && !t.hidden) ?? null : null;
   const watch = useSecretWatch({ scene: scene?.kind === 'map' ? scene : null, tokens: st.tokens, heroes, active: isMaster && isLive });
   useEffect(() => {
     if (!sel) return;
@@ -287,6 +289,16 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             onFog={isMaster ? (r, mode) => void st.saveFog(scene, mode === 'reveal' ? revealArea(scene.grid.fog ?? { on: true, reveal: [] }, r) : coverArea(scene.grid.fog ?? { on: true, reveal: [] }, r)) : undefined}
             onFogAll={isMaster ? (mode) => void st.saveFog(scene, { ...scene.grid.fog, ...(mode === 'cover' ? { on: true, reveal: [] } : { on: false, reveal: mode === 'off' ? scene.grid.fog?.reveal ?? [] : [] }) }) : undefined}
             onFogSet={isMaster ? (fog) => void st.saveFog(scene, fog) : undefined}
+            onDoor={(i) => {
+              // mestre grava direto; jogador passa pelo banco (só a porta ao lado do herói)
+              const fog = scene.grid.fog;
+              if (isMaster && fog?.walls) void st.saveFog(scene, { ...fog, walls: fog.walls.map((w, k) => (k === i ? { ...w, open: !w.open } : w)) });
+              else void st.toggleDoor(scene, i);
+            }}
+            exploredResetN={st.exploredReset[scene.id] ?? 0}
+            onForgetExplored={isMaster ? () => st.forgetExplored(scene.id) : undefined}
+            myLight={myHero ? { tokenId: myHero.id, meters: scene.grid.fog?.lights?.[myHero.id] ?? 0 } : null}
+            onMyLight={myHero ? (m) => void st.setLight(scene, myHero.id, m) : undefined}
             secretFor={isMaster ? (t) => secretByToken.get(t.id) : undefined}
             secrets={isMaster ? sceneSecrets : undefined}
             secretsMissing={isMaster && st.secretsMissing}
