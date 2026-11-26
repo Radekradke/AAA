@@ -554,6 +554,15 @@ Rode `supabase/segredos.sql` (depois do `palco.sql`). Pode rodar de novo sem pro
 
 Sem este script, o resto do palco funciona normal; a ferramenta Segredos avisa que falta rodá-lo.
 
+### Portas e luz pelo jogador
+
+Rode `supabase/portas_luz.sql` (depois do `palco.sql`). Pode rodar de novo sem problema.
+
+- `toggle_door(cena, n)` — o jogador abre/fecha a porta n só com o próprio herói a até 2 casas, na cena no ar; porta trancada só o mestre abre.
+- `set_token_light(peão, metros)` — o jogador acende/apaga a luz que o próprio herói carrega (vela, tocha, lanterna).
+
+O resto da cena continua só do mestre. Sem o script, só o mestre mexe em portas e luzes.
+
 ## 8. Console do mestre — preparação, notas privadas e improviso
 
 Rode `supabase/mestre_console.sql` (depois do `multiplayer_session.sql`; se o palco já existir, ele também marca as pistas). Numa aba nova do SQL Editor, cole **tudo** e clique em Run sem nada selecionado. Pode rodar de novo sem problema e não apaga dados.

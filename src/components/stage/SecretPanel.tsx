@@ -40,15 +40,22 @@ export function SecretEditor({ secret, onClose }: { secret: SceneSecret; onClose
     setConfirmDel(false);
   }, [secret.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // salva sozinho, sem botão (como um documento)
+  // salva sozinho, sem botão (como um documento); fechar logo depois de digitar não perde nada
+  const pending = useRef<SceneSecret | null>(null);
+  const flush = () => {
+    if (pending.current) void st.saveSecret(pending.current);
+    pending.current = null;
+  };
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
-    const t = setTimeout(() => void st.saveSecret({ ...d, foundBy: secret.foundBy, foundAt: secret.foundAt }), 550);
+    pending.current = { ...d, foundBy: secret.foundBy, foundAt: secret.foundAt };
+    const t = setTimeout(flush, 550);
     return () => clearTimeout(t);
   }, [d]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => flush, [secret.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (patch: Partial<SceneSecret>) => setD((x) => ({ ...x, ...patch }));
   const rule = (patch: Partial<SecretRules>) => setD((x) => ({ ...x, rules: { ...x.rules, ...patch } }));

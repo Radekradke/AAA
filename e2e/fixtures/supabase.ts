@@ -93,6 +93,33 @@ function rpc(name: string, body: Row, db: MockDb): unknown {
       return String(body.p_code ?? '').replace(/[^A-Z0-9]/gi, '').toUpperCase() === INVITE_CODE ? C : null;
     case 'shared_sheet':
       return body.p_token === SHARE_TOKEN ? [{ snapshot: { ...WIZARD, id: 'k', name: 'Kael Venturo' }, updated_at: Date.now() }] : [];
+    case 'toggle_door': {
+      // mesma regra do banco: mestre qualquer porta; jogador destrancada e com o herói a até 2 casas
+      const sc = (db.tables.campaign_scenes ?? []).find((r) => r.id === body.p_scene);
+      const g = sc?.grid as { fog?: { walls?: Row[] } } | undefined;
+      const w = g?.fog?.walls?.[Number(body.p_index)];
+      if (!sc || !w?.door) return [];
+      const master = db.me === M;
+      const mx = (Number(w.x1) + Number(w.x2)) / 2;
+      const my = (Number(w.y1) + Number(w.y2)) / 2;
+      const near = (db.tables.scene_tokens ?? []).some((t) => t.owner_id === db.me && !t.hidden && Math.abs(Number(t.x) + Number(t.size ?? 1) / 2 - mx) <= 2 && Math.abs(Number(t.y) + Number(t.size ?? 1) / 2 - my) <= 2);
+      if (!master && (w.locked || !near)) return [];
+      w.open = !w.open;
+      db.writes.push('RPC toggle_door');
+      return [sc];
+    }
+    case 'set_token_light': {
+      const tok = (db.tables.scene_tokens ?? []).find((t) => t.id === body.p_token);
+      const sc = tok && (db.tables.campaign_scenes ?? []).find((r) => r.id === tok.scene_id);
+      const fog = (sc?.grid as { fog?: { lights?: Record<string, number> } } | undefined)?.fog;
+      if (!tok || !fog || (db.me !== M && tok.owner_id !== db.me)) return [];
+      const lights = { ...(fog.lights ?? {}) };
+      if (Number(body.p_meters) > 0) lights[String(tok.id)] = Number(body.p_meters);
+      else delete lights[String(tok.id)];
+      fog.lights = lights;
+      db.writes.push('RPC set_token_light');
+      return [sc];
+    }
     case 'claim_handout_loot': {
       const h = (db.tables.campaign_handouts ?? []).find((r) => r.id === body.p_handout);
       if (!h || h.claimed_by) return [];

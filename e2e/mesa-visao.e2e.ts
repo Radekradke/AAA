@@ -76,8 +76,8 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await page.goto(`/mesa/${C}/jogar`);
     const kael = page.locator('.fv-token', { hasText: 'Kael Venturo' });
     await expect(kael).toBeVisible();
-    // o aviso "seu turno" cobre a tela por um instante
-    await expect(page.locator('.fv-turn-banner')).toHaveCount(0, { timeout: 10_000 });
+    // o aviso "seu turno" pode surgir a qualquer momento por cima do peão
+    await page.addStyleTag({ content: '.fv-turn-banner { display: none !important; }' });
     const b = (await kael.boundingBox())!;
     const before = db.writes.filter((w) => w.includes('scene_tokens')).length;
     await page.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
@@ -107,5 +107,74 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await expect(page.locator('.fv-token', { hasText: 'Goblin #1' })).toBeVisible();
     const remembered = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '[]').length, `fv-explored-${scene.id}`);
     expect(remembered).toBeGreaterThan(0);
+  });
+});
+
+test.describe('mapa: portas e luz do jogador, arrasto sem espiar', () => {
+  test('jogador abre a porta ao lado; trancada e longe não', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    // Kael em (3,3): porta 0 ao lado (x = 4), porta 1 trancada ao lado, porta 2 longe
+    const walls = [
+      { x1: 4, y1: 3, x2: 4, y2: 4, door: true, open: false },
+      { x1: 3, y1: 2, x2: 4, y2: 2, door: true, open: false, locked: true },
+      { x1: 7, y1: 3, x2: 7, y2: 4, door: true, open: false },
+    ];
+    setFog(db, { on: true, reveal: [{ x: 0, y: 0, w: 20, h: 20 }], walls });
+    await page.goto(`/mesa/${C}/jogar`);
+    await expect(page.locator('.fv-turn-banner')).toHaveCount(0, { timeout: 10_000 });
+    await page.getByRole('button', { name: 'Abrir a porta' }).click();
+    await expect.poll(() => walls[0].open).toBe(true);
+    await expect(page.getByRole('button', { name: 'Fechar a porta' })).toBeVisible();
+    // marcadas como indisponíveis: o toque não faz nada
+    await page.getByRole('button', { name: 'Porta trancada' }).click({ force: true });
+    await page.getByRole('button', { name: 'Chegue perto da porta para abrir' }).click({ force: true });
+    expect([walls[1].open, walls[2].open]).toEqual([false, false]);
+    expect(db.writes.filter((w) => w === 'RPC toggle_door')).toHaveLength(1);
+  });
+
+  test('mestre tranca a porta pela ferramenta de portas', async ({ page }) => {
+    await signIn(page, 'master');
+    const db = await installSupabase(page, 'master');
+    setFog(db, { on: true, reveal: [], walls: [{ x1: 5, y1: 3, x2: 5, y2: 4, door: true, open: true }] });
+    await page.goto(`/mesa/${C}/jogar`);
+    await page.getByRole('button', { name: 'Paredes e portas (W)' }).click();
+    await page.locator('.fv-map-seg').getByRole('button', { name: /Porta/ }).click();
+    await page.getByRole('button', { name: 'Trancar a porta' }).click();
+    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog: { walls: { locked?: boolean; open?: boolean }[] } }).fog.walls[0]).toMatchObject({ locked: true, open: false });
+  });
+
+  test('jogador acende a tocha do herói no escuro', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    setFog(db, { on: true, reveal: [], vision: true, dark: true });
+    await page.goto(`/mesa/${C}/jogar`);
+    await expect(page.locator('.fv-turn-banner')).toHaveCount(0, { timeout: 10_000 });
+    await page.getByRole('button', { name: /Luz do herói: Sem luz/ }).click();
+    await page.getByRole('group', { name: 'Luz do herói' }).getByRole('button', { name: /Tocha/ }).click();
+    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog: { lights?: Record<string, number> } }).fog.lights?.t1).toBe(12);
+    await expect(page.getByRole('button', { name: /Luz do herói: Tocha/ })).toBeVisible();
+  });
+
+  test('arrastar através da parede não deixa espiar o outro lado', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    db.tables.scene_tokens.find((t) => t.id === 't2')!.x = 6;
+    setFog(db, { on: true, reveal: [], vision: true, walls: [{ x1: 5, y1: 0, x2: 5, y2: 30 }] });
+    await page.goto(`/mesa/${C}/jogar`);
+    const kael = page.locator('.fv-token', { hasText: 'Kael Venturo' });
+    await expect(kael).toBeVisible();
+    // o aviso "seu turno" pode surgir a qualquer momento por cima do peão
+    await page.addStyleTag({ content: '.fv-turn-banner { display: none !important; }' });
+    const b = (await kael.boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width * 3.5, b.y + b.width / 2, { steps: 8 });
+    // no meio do arrasto, do outro lado da parede: o goblin continua escondido
+    await expect(page.getByText('uma parede no caminho')).toBeVisible();
+    await expect(page.locator('.fv-token', { hasText: 'Goblin #1' })).toHaveCount(0);
+    await page.mouse.up();
+    const remembered = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('fv-explored-')).map((k) => JSON.parse(localStorage.getItem(k)!) as string[]).flat());
+    expect(remembered).not.toContain('6,3');
   });
 });

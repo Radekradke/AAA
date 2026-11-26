@@ -66,7 +66,7 @@ export function mapScene(r: Record<string, unknown>): Scene {
               ...(Array.isArray(g.fog.walls) && g.fog.walls.length
                 ? {
                     walls: g.fog.walls
-                      .map((w) => ({ x1: num(w?.x1), y1: num(w?.y1), x2: num(w?.x2), y2: num(w?.y2), ...(w?.door ? { door: true, open: !!w.open } : {}) }))
+                      .map((w) => ({ x1: num(w?.x1), y1: num(w?.y1), x2: num(w?.x2), y2: num(w?.y2), ...(w?.door ? { door: true, open: !!w.open, ...(w.locked ? { locked: true } : {}) } : {}) }))
                       .filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2)
                       .slice(0, 1000),
                   }
@@ -337,6 +337,20 @@ export const stageService = {
   async claimLoot(id: string): Promise<boolean> {
     await sessionUserId();
     const { data, error } = await sb().rpc('claim_handout_loot', { p_handout: id });
+    if (error) throw stageError(error);
+    return Array.isArray(data) ? data.length > 0 : !!data;
+  },
+
+  /** Abre/fecha a porta n (jogador: ao lado do próprio herói, destrancada). false = recusado. */
+  async toggleDoor(sceneId: string, index: number): Promise<boolean> {
+    const { data, error } = await sb().rpc('toggle_door', { p_scene: sceneId, p_index: index });
+    if (error) throw stageError(error);
+    return Array.isArray(data) ? data.length > 0 : !!data;
+  },
+
+  /** Luz que o peão carrega, em metros (0 apaga). Jogador: só o próprio herói. */
+  async setTokenLight(tokenId: string, meters: number): Promise<boolean> {
+    const { data, error } = await sb().rpc('set_token_light', { p_token: tokenId, p_meters: meters });
     if (error) throw stageError(error);
     return Array.isArray(data) ? data.length > 0 : !!data;
   },

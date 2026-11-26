@@ -78,6 +78,13 @@ interface StageStore {
   pullView: (x: number, y: number, z?: number) => void;
   focusOn: (x: number, y: number) => void;
   saveFog: (scene: Scene, fog: FogConfig) => Promise<void>;
+  /** Abre/fecha a porta n da cena (jogador também, ao lado do herói). */
+  toggleDoor: (scene: Scene, index: number) => Promise<void>;
+  /** Luz que o peão carrega, em metros (0 apaga). */
+  setLight: (scene: Scene, tokenId: string, meters: number) => Promise<void>;
+  /** "Esqueçam o explorado": cada cena guarda quantas vezes o mestre pediu. */
+  exploredReset: Record<string, number>;
+  forgetExplored: (sceneId: string) => void;
 
   showHandout: (id: string, recipients: string[] | null) => Promise<void>;
   /** Jogador: pega o loot da pista; devolve false se já foi pego. */
@@ -184,6 +191,10 @@ export const useStageStore = create<StageStore>()((set, get) => {
         });
       })
       .on('broadcast', { event: 'laser' }, ({ payload }) => addLaser(payload as LaserTrail))
+      .on('broadcast', { event: 'explored-reset' }, ({ payload }) => {
+        const id = String((payload as { sceneId?: string }).sceneId ?? '');
+        if (id) set((s) => ({ exploredReset: { ...s.exploredReset, [id]: (s.exploredReset[id] ?? 0) + 1 } }));
+      })
       .on('broadcast', { event: 'focus' }, ({ payload }) => {
         const p = payload as { x: number; y: number; z?: number };
         set((s) => ({ focus: { ...p, n: (s.focus?.n ?? 0) + 1 } }));
@@ -216,6 +227,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     busy: false,
     secrets: [],
     secretsMissing: false,
+    exploredReset: {},
 
     open(campaignId, { isMaster, userId, who }) {
       const cur = get();
@@ -413,6 +425,45 @@ export const useStageStore = create<StageStore>()((set, get) => {
     focusOn(x, y) {
       set((s) => ({ focus: { x, y, n: (s.focus?.n ?? 0) + 1 } }));
     },
+    async toggleDoor(scene, index) {
+      const fog = scene.grid.fog;
+      const w = fog?.walls?.[index];
+      if (!fog || !w?.door) return;
+      const walls = fog.walls!.map((x, k) => (k === index ? { ...x, open: !x.open } : x));
+      // otimista: a porta mexe na hora; se o banco recusar, o refetch devolve
+      set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog: { ...fog, walls } } } : x)) }));
+      try {
+        const ok = await stageService.toggleDoor(scene.id, index);
+        if (!ok) {
+          set({ error: w.locked ? 'A porta está trancada.' : 'Chegue mais perto da porta para abrir.' });
+          await get().refresh();
+        }
+      } catch (e) {
+        set({ error: (e as Error).message });
+        await get().refresh();
+      }
+    },
+
+    async setLight(scene, tokenId, meters) {
+      const fog = scene.grid.fog;
+      if (!fog) return;
+      const lights = { ...fog.lights };
+      if (meters > 0) lights[tokenId] = meters;
+      else delete lights[tokenId];
+      set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog: { ...fog, lights } } } : x)) }));
+      try {
+        if (!(await stageService.setTokenLight(tokenId, meters))) await get().refresh();
+      } catch (e) {
+        set({ error: (e as Error).message });
+        await get().refresh();
+      }
+    },
+
+    forgetExplored(sceneId) {
+      send('explored-reset', { sceneId });
+      set((s) => ({ exploredReset: { ...s.exploredReset, [sceneId]: (s.exploredReset[sceneId] ?? 0) + 1 } }));
+    },
+
     async saveFog(scene, fog) {
       // otimista: a névoa muda na hora para o mestre
       set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog } } : x)) }));

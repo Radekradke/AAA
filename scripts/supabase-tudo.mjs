@@ -20,6 +20,7 @@ export const ORDEM = [
   ['discord.sql', 'rolagens no Discord da mesa'],
   ['mesa_membros.sql', 'sair, remover e lista de jogadores'],
   ['segredos.sql', 'segredos do mapa e loot nas pistas'],
+  ['portas_luz.sql', 'jogador abre portas e acende a própria luz'],
 ];
 
 export function baseSql() {
@@ -43,13 +44,13 @@ export function buildTudo() {
     bar,
     '',
     bar,
-    '-- 1/13 · base: fichas, campanhas, crônica, políticas, realtime',
+    `-- 1/${ORDEM.length + 1} · base: fichas, campanhas, crônica, políticas, realtime`,
     bar,
     baseSql(),
     '',
   ];
   ORDEM.forEach(([file, what], i) => {
-    parts.push(bar, `-- ${i + 2}/13 · supabase/${file} · ${what}`, bar, readFileSync(resolve(root, 'supabase', file), 'utf8').trim(), '');
+    parts.push(bar, `-- ${i + 2}/${ORDEM.length + 1} · supabase/${file} · ${what}`, bar, readFileSync(resolve(root, 'supabase', file), 'utf8').trim(), '');
   });
   return parts.join('\n') + '\n';
 }

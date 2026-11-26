@@ -51,6 +51,8 @@ export interface Wall {
   /** Porta: aberta, não bloqueia a visão. */
   door?: boolean;
   open?: boolean;
+  /** Porta trancada: só o mestre abre. */
+  locked?: boolean;
 }
 
 /** Ferramentas do mapa (inspiradas em Foundry VTT / Owlbear Rodeo / Dungeon Revealer). */

@@ -6,7 +6,7 @@ import { CELL_METERS } from '@/types/stage';
 import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
 import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token, Wall } from '@/types/stage';
-import { blockingWalls, cellRuns, cellsSeen, nearestWall, pathBlocked, seen, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
+import { LIGHT_PRESETS, blockingWalls, cellRuns, cellsSeen, nearestWall, pathBlocked, seen, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
 import type { LightSource, Viewer } from '@/engine/vision';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import { InlineIcon } from '@/components/ui/Icon';
@@ -56,6 +56,15 @@ interface StageMapProps {
   onLaser: (points: { x: number; y: number }[]) => void;
   onFog?: (rect: CellRect, mode: 'reveal' | 'cover') => void;
   onFogAll?: (mode: 'reveal' | 'cover' | 'off') => void;
+  /** Abre/fecha uma porta (mestre qualquer uma; jogador ao lado do herói). */
+  onDoor?: (index: number) => void;
+  /** Quantas vezes o mestre mandou esquecer o explorado nesta cena. */
+  exploredResetN?: number;
+  /** Mestre: os jogadores esquecem o que já exploraram nesta cena. */
+  onForgetExplored?: () => void;
+  /** Jogador: luz que o próprio herói carrega (no escuro). */
+  myLight?: { tokenId: string; meters: number } | null;
+  onMyLight?: (meters: number) => void;
   /** Mestre: troca a névoa inteira (paredes, portas, visão dinâmica). */
   onFogSet?: (fog: FogConfig) => void;
   /** Mestre: todos passam a olhar para este ponto. */
@@ -117,6 +126,7 @@ export function StageMap(p: StageMapProps) {
   const [act, setAct] = useState<Act | null>(null);
   const [dropCell, setDropCell] = useState<{ x: number; y: number } | null>(null);
   const [blocked, setBlocked] = useState(0);
+  const [lightMenu, setLightMenu] = useState(false);
   const flashBlocked = () => {
     const n = Date.now();
     setBlocked(n);
@@ -419,7 +429,14 @@ export function StageMap(p: StageMapProps) {
     }
     saveWalls([...walls, { x1: a.from.x, y1: a.from.y, x2: a.to.x, y2: a.to.y, ...(a.door ? { door: true, open: false } : {}) }].slice(-1000));
   };
-  const toggleDoor = (i: number) => saveWalls(walls.map((w, k) => (k === i ? { ...w, open: !w.open } : w)));
+  const toggleLock = (i: number) => saveWalls(walls.map((w, k) => (k === i ? { ...w, locked: !w.locked, open: w.locked ? w.open : false } : w)));
+  // jogador: porta ao alcance do próprio herói (o banco confere a mesma regra)
+  const myHeroes = p.tokens.filter((t) => t.kind === 'hero' && t.ownerId === p.me.id && !t.hidden);
+  const nearDoor = (w: Wall) => {
+    const mx = (w.x1 + w.x2) / 2;
+    const my = (w.y1 + w.y2) / 2;
+    return myHeroes.some((t) => Math.abs(t.x + t.size / 2 - mx) <= 2 && Math.abs(t.y + t.size / 2 - my) <= 2);
+  };
 
   // visão dinâmica: de onde cada herói está (posição ao vivo, inclusive no arrasto)
   const vision = visionOn(fog);
@@ -436,7 +453,12 @@ export function StageMap(p: StageMapProps) {
     const from = mine.length ? mine : heroes;
     const block = blockingWalls(walls);
     const mid = (t: Token) => {
-      const at = livePos(t);
+      let at = livePos(t);
+      // arrastando através de uma parede: enxerga de onde saiu (não espia o outro lado antes de soltar)
+      if (drag?.id === t.id && !p.isMaster) {
+        const h = t.size / 2;
+        if (pathBlocked({ x: drag.from.x + h, y: drag.from.y + h }, { x: drag.at.x + h, y: drag.at.y + h }, walls)) at = drag.from;
+      }
       return { x: at.x + t.size / 2, y: at.y + t.size / 2 };
     };
     return {
@@ -466,6 +488,19 @@ export function StageMap(p: StageMapProps) {
       setExplored(new Set());
     }
   }, [exploredKey]);
+  // o mestre mandou esquecer (névoa coberta de novo, ou "Apagar a memória")
+  const resetSeen = useRef(p.exploredResetN ?? 0);
+  useEffect(() => {
+    const n = p.exploredResetN ?? 0;
+    if (n === resetSeen.current) return;
+    resetSeen.current = n;
+    setExplored(new Set());
+    try {
+      localStorage.removeItem(exploredKey);
+    } catch {
+      /* ignora */
+    }
+  }, [p.exploredResetN, exploredKey]);
   useEffect(() => {
     if (p.isMaster || !viewers.length) return;
     const now = cellsSeen(bounds, (q) => seen(q, viewers, lights, dark));
@@ -505,19 +540,20 @@ export function StageMap(p: StageMapProps) {
 
   // achado novo na tela (marcador que acabou de aparecer): brilho de descoberta
   const [arrived, setArrived] = useState<Set<string>>(() => new Set());
-  const seenIds = useRef<Set<string> | null>(null);
+  const seenIds = useRef<{ scene: string; ids: Set<string> } | null>(null);
   const visibleKey = visibleTokens.map((t) => t.id).sort().join(',');
   useEffect(() => {
     const now = new Set(visibleKey ? visibleKey.split(',') : []);
     const prev = seenIds.current;
-    seenIds.current = now;
-    if (!prev) return;
-    const fresh = [...now].filter((id) => !prev.has(id) && p.tokens.find((t) => t.id === id)?.kind === 'marker');
+    seenIds.current = { scene: scene.id, ids: now };
+    // cena nova (ou primeira carga): nada "acabou de aparecer"
+    if (!prev || prev.scene !== scene.id) return;
+    const fresh = [...now].filter((id) => !prev.ids.has(id) && p.tokens.find((t) => t.id === id)?.kind === 'marker');
     if (!fresh.length) return;
     setArrived((a) => new Set([...a, ...fresh]));
     const timer = setTimeout(() => setArrived((a) => new Set([...a].filter((id) => !fresh.includes(id)))), 2600);
     return () => clearTimeout(timer);
-  }, [visibleKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visibleKey, scene.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // quem está dentro do molde que estou desenhando
   const myMark = act?.kind === 'mark' ? act.mark : null;
@@ -760,28 +796,49 @@ export function StageMap(p: StageMapProps) {
               )}
             </svg>
           )}
-          {p.isMaster && p.onFogSet && tool === 'move' &&
-            walls.map((w, i) =>
-              w.door ? (
+          {/* portas: o mestre abre/fecha (e tranca na ferramenta de portas); o jogador abre a que está ao lado do herói */}
+          {p.onDoor && ready && (tool === 'move' || (p.isMaster && tool === 'door')) &&
+            walls.map((w, i) => {
+              if (!w.door) return null;
+              const mx = (w.x1 + w.x2) / 2;
+              const my = (w.y1 + w.y2) / 2;
+              // jogador só vê a porta que o herói enxerga (ou já explorou)
+              // a porta fica na linha da parede: olha um pouco para cada lado dela
+              const sides = [[0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3]].map(([dx, dy]) => ({ x: mx + dx, y: my + dy }));
+              const doorSeen = sides.some((q) => isRevealed(fog, q.x, q.y) || (vision && (inSight(q.x, q.y) || explored.has(`${Math.floor(q.x)},${Math.floor(q.y)}`))));
+              if (!p.isMaster && fog?.on && !doorSeen) return null;
+              const lockMode = p.isMaster && tool === 'door';
+              const reach = p.isMaster || nearDoor(w);
+              const can = lockMode || (reach && (p.isMaster || !w.locked));
+              const label = lockMode
+                ? w.locked ? 'Destrancar a porta' : 'Trancar a porta'
+                : w.locked && !p.isMaster
+                  ? 'Porta trancada'
+                  : !reach
+                    ? 'Chegue perto da porta para abrir'
+                    : w.open ? 'Fechar a porta' : 'Abrir a porta';
+              const act = () => (lockMode ? toggleLock(i) : can && p.onDoor!(i));
+              return (
                 <button
                   key={`d${i}`}
                   type="button"
-                  className={'fv-map-door' + (w.open ? ' is-open' : '')}
-                  style={at(cellPx((w.x1 + w.x2) / 2, 'x'), cellPx((w.y1 + w.y2) / 2, 'y'), Math.max(12, g.size * 0.35))}
-                  // abre já no toque: soltar o painel lateral pode mexer o mapa antes do clique
+                  className={'fv-map-door' + (w.open ? ' is-open' : '') + (w.locked ? ' is-locked' : '') + (can ? '' : ' is-far') + (lockMode ? ' is-lockmode' : '')}
+                  style={at(cellPx(mx, 'x'), cellPx(my, 'y'), Math.max(12, g.size * 0.35))}
+                  // age já no toque: soltar o painel lateral pode mexer o mapa antes do clique
                   onPointerDown={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    toggleDoor(i);
+                    act();
                   }}
-                  onClick={(e) => e.detail === 0 && toggleDoor(i)}
-                  aria-label={w.open ? 'Fechar a porta' : 'Abrir a porta'}
-                  title={w.open ? 'Fechar a porta' : 'Abrir a porta'}
+                  onClick={(e) => e.detail === 0 && act()}
+                  aria-disabled={!can}
+                  aria-label={label}
+                  title={label}
                 >
-                  <InlineIcon name={w.open ? 'unlock' : 'lock'} />
+                  {w.locked ? <IcoLock /> : w.open ? <IcoDoorOpen /> : <IcoDoorShut />}
                 </button>
-              ) : null,
-            )}
+              );
+            })}
           {act?.kind === 'fog' && (() => {
             const r = rectBetween(act.from.x, act.from.y, act.to.x, act.to.y);
             return <span className={`fv-map-fogsel is-${act.mode}`} style={{ left: cellPx(r.x, 'x'), top: cellPx(r.y, 'y'), width: r.w * g.size, height: r.h * g.size }} />;
@@ -856,6 +913,41 @@ export function StageMap(p: StageMapProps) {
             </button>
           </span>
         ))}
+        {/* jogador no escuro: a luz que o herói carrega */}
+        {!p.isMaster && dark && p.myLight && p.onMyLight && (
+          <span className="fv-map-dock-slot">
+            <i className="fv-map-dock-sep" aria-hidden />
+            <button
+              type="button"
+              className={'fv-map-lightbtn' + (p.myLight.meters > 0 ? ' is-lit' : '') + (lightMenu ? ' is-on' : '')}
+              onClick={() => setLightMenu((v) => !v)}
+              aria-expanded={lightMenu}
+              aria-label={`Luz do herói: ${LIGHT_LABEL(p.myLight.meters)}`}
+            >
+              <IcoFlame />
+              <span className="fv-map-tip" aria-hidden>Luz <kbd>{LIGHT_LABEL(p.myLight.meters)}</kbd></span>
+            </button>
+            {lightMenu && (
+              <span className="fv-map-lightmenu" role="group" aria-label="Luz do herói">
+                {[{ id: 'none', label: 'Sem luz', m: 0 }, ...LIGHT_PRESETS].map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    className={p.myLight!.meters === l.m ? 'is-on' : ''}
+                    aria-pressed={p.myLight!.meters === l.m}
+                    onClick={() => {
+                      p.onMyLight!(l.m);
+                      setLightMenu(false);
+                    }}
+                  >
+                    <b>{l.label}</b>
+                    {l.m > 0 && <small>{l.m} m</small>}
+                  </button>
+                ))}
+              </span>
+            )}
+          </span>
+        )}
         {p.marks.length > 0 && (
           <span className="fv-map-dock-slot">
             <i className="fv-map-dock-sep" aria-hidden />
@@ -885,9 +977,23 @@ export function StageMap(p: StageMapProps) {
           </div>
           {active.id === 'fog' && p.onFogAll && (
             <div className="fv-map-sheet-row">
-              <button type="button" className="fv-map-act" onClick={() => p.onFogAll!('cover')}>Cobrir tudo</button>
+              <button
+                type="button"
+                className="fv-map-act"
+                onClick={() => {
+                  p.onFogAll!('cover');
+                  p.onForgetExplored?.();
+                }}
+              >
+                Cobrir tudo
+              </button>
               <button type="button" className="fv-map-act" onClick={() => p.onFogAll!('reveal')}>Revelar tudo</button>
               {fog?.on && <button type="button" className="fv-map-act is-quiet" onClick={() => p.onFogAll!('off')}>Desligar névoa</button>}
+              {vision && p.onForgetExplored && (
+                <button type="button" className="fv-map-act is-quiet" onClick={p.onForgetExplored} title="Os jogadores esquecem o que já exploraram nesta cena">
+                  Apagar a memória
+                </button>
+              )}
             </div>
           )}
           {active.id === 'walls' && p.onFogSet && (
@@ -1147,6 +1253,12 @@ const HINTS: Partial<Record<MapTool, string>> = {
   reveal: 'Arraste um retângulo para revelar',
   cover: 'Arraste um retângulo para cobrir',
   wall: 'Arraste de quina a quina · um toque numa parede apaga',
-  door: 'Arraste sobre o vão da porta · um toque apaga',
+  door: 'Arraste sobre o vão para criar · toque numa porta para trancar',
   secret: 'Toque numa casa para esconder algo · toque num selo para editar',
 };
+
+const IcoDoorShut = () => <svg {...S}><path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21M4 21h16M14.5 12.5v.01" /></svg>;
+const IcoDoorOpen = () => <svg {...S}><path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3H18v18M4 21h16M6 3.6l6 2.4V21l-6-1.6" /><path d="M10 12.5v.01" /></svg>;
+const IcoLock = () => <svg {...S}><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5" /></svg>;
+const IcoFlame = () => <svg {...S}><path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.4 2.8-5.2 3.4-8.4 1.6 1.3 2.3 2.8 2.4 4.3 1-1 1.6-2.4 1.6-3.9 2.6 1.9 4.6 4.9 4.6 8 0 3.2-2.4 5.6-6 5.6z" /><path d="M12 21c-1.5 0-2.6-1.1-2.6-2.6 0-1.6 1.4-2.4 2.6-4.1 1.2 1.7 2.6 2.5 2.6 4.1 0 1.5-1.1 2.6-2.6 2.6z" /></svg>;
+const LIGHT_LABEL = (m: number) => LIGHT_PRESETS.find((l) => l.m === m)?.label ?? (m > 0 ? `${m} m` : 'Sem luz');

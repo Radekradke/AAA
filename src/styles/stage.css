@@ -853,19 +853,65 @@ body.fv-map-full .fv-screen-scroll { overflow: hidden !important; transform: non
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 1.9em;
-  height: 1.9em;
+  width: 2em;
+  height: 2em;
   padding: 0;
   /* centrado por margem: o :active global dos botões troca o transform */
-  margin: -0.95em 0 0 -0.95em;
-  border-radius: 50%;
-  border: 2px solid var(--color-accent-2);
-  background: var(--color-sunken);
-  color: var(--color-accent-2);
+  margin: -1em 0 0 -1em;
+  border-radius: 0.6em;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.25)),
+    var(--hud-bg);
+  box-shadow: 0 0.2em 0.5em rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: var(--hud-ink);
   cursor: pointer;
+  transition: transform var(--dur-fast, 0.15s), color var(--dur-fast, 0.15s);
 }
-.fv-map-door.is-open { border-color: var(--color-accent); color: var(--color-accent); }
-.fv-map-door:hover, .fv-map-door:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.fv-map-door svg { width: 1.05em; height: 1.05em; stroke-width: 1.8; }
+.fv-map-door:hover { color: var(--map-on); transform: translateY(-0.06em); }
+.fv-map-door.is-open { color: var(--color-accent); box-shadow: 0 0.2em 0.5em rgba(0, 0, 0, 0.6), inset 0 0 0 1px color-mix(in srgb, var(--color-accent), transparent 50%); }
+.fv-map-door.is-locked { color: var(--stage-over); box-shadow: 0 0.2em 0.5em rgba(0, 0, 0, 0.6), inset 0 0 0 1px color-mix(in srgb, var(--stage-over), transparent 45%); }
+/* jogador longe da porta: aparece, mas apagada */
+.fv-map-door.is-far { opacity: 0.55; cursor: not-allowed; }
+.fv-map-door.is-far:hover { transform: none; color: var(--hud-ink); }
+/* ferramenta de portas: tocar tranca/destranca */
+.fv-map-door.is-lockmode { outline: 1px dashed color-mix(in srgb, var(--map-on), transparent 30%); outline-offset: 0.18em; }
+.fv-map-door:focus-visible { outline: 2px solid var(--map-on); outline-offset: 2px; }
+
+/* luz do herói (jogador, cena no escuro) */
+.fv-map-dock .fv-map-lightbtn.is-lit { color: var(--stage-ruler); }
+.fv-map-dock .fv-map-lightbtn.is-lit svg { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--stage-ruler), transparent 30%)); }
+.fv-map-dock-slot:has(.fv-map-lightmenu) { position: relative; }
+.fv-map-lightmenu {
+  position: absolute;
+  left: calc(100% + 12px);
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--hud-line);
+  background: var(--hud-bg);
+  box-shadow: var(--shadow-2);
+  backdrop-filter: blur(10px);
+}
+.fv-map-dock .fv-map-lightmenu button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  color: var(--hud-ink);
+  font-size: 12.5px;
+}
+.fv-map-lightmenu small { color: var(--hud-muted); font-family: var(--font-num); font-size: 11px; }
+.fv-map-dock .fv-map-lightmenu button.is-on::before { display: none; }
+@media (max-width: 640px) { .fv-map-lightmenu { left: 0; bottom: auto; top: calc(100% + 8px); } }
 
 /* ============================================================
    HUD DO MAPA — doca de ferramentas, folha da ferramenta,
