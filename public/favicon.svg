@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#f4d58d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-  <title>Ficha Viva — F em um dado de RPG</title>
-  <path d="M16 2.5 28 9.25v13.5L16 29.5 4 22.75V9.25Z"/>
-  <path d="m16 2.5-7 7h14Zm0 27v-5" stroke-width="1.2"/>
-  <path d="M11 23V12h10M11 17h7" stroke-width="2.4"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Ficha Viva</title><path fill="#f4d58d" fill-rule="evenodd" d="M7 4h18q4 0 4 5v2H12v14h11v4H8L5 11Q1 11 1 7q0-3 3-3h3Zm-3 2q-1 0-1 1 0 2 2 2h3V7q0-1-1-1H4Zm14 7 1.3 3.7L23 18l-3.7 1.3L18 23l-1.3-3.7L13 18l3.7-1.3Z"/></svg>
