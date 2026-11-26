@@ -7,6 +7,7 @@ import type { SharedHero } from '@/components/session/MasterDeck';
 import type { CampaignNpc, NpcSecret } from '@/types/npc';
 import type { Campaign } from '@/types/models';
 import { CONN, OnlineList } from '@/features/live/LiveHeader';
+import { useTableLink } from '@/hooks/useTableLink';
 import { MONSTER_BY_ID } from '@/data/bestiary';
 import { monsterCombatants } from '@/components/session/BestiaryPicker';
 import { addToEncounter } from './actions';
@@ -38,7 +39,8 @@ interface Props {
  * No celular/tablet, Bastidores e Inspetor viram gavetas.
  */
 export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloadNpcs, loadError }: Props) {
-  const s = useSessionStore(useShallow((st) => ({ session: st.session, encounter: st.encounter, combatants: st.combatants, connection: st.connection, error: st.error, clearError: st.clearError })));
+  const s = useSessionStore(useShallow((st) => ({ session: st.session, encounter: st.encounter, combatants: st.combatants, error: st.error, clearError: st.clearError })));
+  const link = useTableLink();
   const m = useMasterStore();
   const stageError = useStageStore((st) => st.error);
 
@@ -80,11 +82,11 @@ export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloa
             <span className="fv-label">Console do mestre</span>
             <b>{campaign.name}</b>
           </div>
-          <span className={`fv-live-conn is-${s.connection}`}>
-            <i className={`fv-live-dot is-${s.connection}`} aria-hidden />
-            {s.session ? `${s.session.name} · ${s.session.status === 'paused' ? 'pausada' : CONN[s.connection]}` : 'Sem sessão'}
+          <span className={`fv-live-conn is-${link.connection}`} role="status">
+            <i className={`fv-live-dot is-${link.connection}`} aria-hidden />
+            {s.session ? `${s.session.name} · ${s.session.status === 'paused' ? 'pausada' : CONN[link.connection]}` : link.connection === 'idle' ? 'Sem sessão' : `Sem sessão · ${CONN[link.connection]}`}
           </span>
-          {s.session && <OnlineList compact />}
+          {link.online.length > 0 && <OnlineList compact />}
         </header>
 
         {error && (

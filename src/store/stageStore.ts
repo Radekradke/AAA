@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import type { RealtimeChannel } from '@supabase/supabase-js';
-import { getSupabase } from '@/services/supabaseClient';
 import { stageService } from '@/services/stageService';
 import type { NewToken, NewWall, TokenPatch, WallPatch } from '@/services/stageService';
 import { PalcoSetupError, mapScene, mapSecret, mapToken, mapWall } from '@/services/stageService';
@@ -9,6 +7,9 @@ import type { RowChange } from '@/lib/realtimeRows';
 import type { FogConfig, Handout, LaserTrail, MapMark, Scene, SceneSecret, SecretKind, StagePing, StageState, Token, Wall } from '@/types/stage';
 import { KIND_NAME } from '@/engine/secrets';
 import { onWake } from '@/lib/onWake';
+import { joinStageChannel } from '@/services/stageChannel';
+import type { StageBroadcast, StageChannel, StageTable } from '@/services/stageChannel';
+import type { ConnectionState, PresencePlayer } from '@/types/session';
 
 /**
  * Espelho do PALCO da mesa (cena no ar, peões, paredes, handouts). A verdade
@@ -20,6 +21,7 @@ import { onWake } from '@/lib/onWake';
  *   ou que acabou de aparecer): um refetch com debounce.
  * Ao (re)conectar ou o aparelho acordar, recarrega tudo uma vez.
  * Arrasto de peão, ping, réguas e laser viajam por broadcast (efêmero).
+ * O canal em si (reconexão, presença, tópicos) mora em services/stageChannel.
  */
 interface StageStore {
   campaignId: string | null;
@@ -54,6 +56,10 @@ interface StageStore {
   secrets: SceneSecret[];
   /** A tabela de segredos ainda não existe no banco (falta rodar segredos.sql). */
   secretsMissing: boolean;
+  /** Saúde do canal do palco (o selo "ao vivo" do mapa). */
+  connection: ConnectionState;
+  /** Quem está com o mapa aberto agora (presença do canal do palco). */
+  online: PresencePlayer[];
 
   open: (campaignId: string, opts: { isMaster: boolean; userId: string; who: string }) => void;
   close: () => void;
@@ -116,7 +122,7 @@ interface StageStore {
   dismissCutscene: (key: string | null) => void;
 }
 
-let channel: RealtimeChannel | null = null;
+let live: StageChannel | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let stopWake: (() => void) | null = null;
 let seq = 0;
@@ -162,7 +168,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     set((s) => ({ lasers: { ...s.lasers, [t.by]: t } }));
     setTimeout(() => set((s) => (s.lasers[t.by]?.at === t.at ? { lasers: Object.fromEntries(Object.entries(s.lasers).filter(([k]) => k !== t.by)) } : {})), 1400);
   };
-  const send = (event: string, payload: Record<string, unknown>) => void channel?.send({ type: 'broadcast', event, payload });
+  const send = (event: StageBroadcast, payload: Record<string, unknown>) => live?.send(event, payload);
 
   /**
    * Gravação do dia a dia (peão, parede, névoa): a tela já mudou (otimista) e
@@ -213,62 +219,91 @@ export const useStageStore = create<StageStore>()((set, get) => {
     });
   };
 
-  const subscribe = (campaignId: string) => {
-    const client = getSupabase();
-    if (!client) return;
-    const filter = `campaign_id=eq.${campaignId}`;
-    // o tópico precisa ser o mesmo para todos (broadcast); se um canal antigo
-    // ainda está saindo, usa um nome novo — o banco segue ao vivo, só o arrasto
-    // em tempo real espera a próxima entrada
-    const topic = `stage-${campaignId}`;
-    const busyTopic = client.getChannels().some((c) => c.topic === `realtime:${topic}`);
-    channel = client
-      .channel(busyTopic ? `${topic}-${Date.now()}` : topic, { config: { broadcast: { self: false } } })
-      // estrutura: recarga curta
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_stage', filter }, schedule)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_handouts', filter }, schedule)
-      // o dia a dia do jogo: aplica o evento direto
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_scenes', filter }, (c) => onScene(c as unknown as RowChange))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_tokens', filter }, (c) => onToken(c as unknown as RowChange))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_walls', filter }, (c) => onWall(c as unknown as RowChange))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scene_secrets', filter }, (c) => onSecret(c as unknown as RowChange))
-      // DELETE não respeita filtro no Realtime: chega só com o id (sumir um id que não temos não faz nada)
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_tokens' }, (c) => onToken(c as unknown as RowChange))
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scene_walls' }, (c) => onWall(c as unknown as RowChange))
-      .on('broadcast', { event: 'drag' }, ({ payload }) => {
-        const p = payload as { id: string; x: number; y: number; end?: boolean };
-        set((s) => {
-          const drags = { ...s.drags };
-          if (p.end) delete drags[p.id];
-          else drags[p.id] = { x: p.x, y: p.y };
-          return { drags };
-        });
-        // a posição final chega pelo evento do banco (scene_tokens)
-      })
-      .on('broadcast', { event: 'ping' }, ({ payload }) => addPing(payload as StagePing))
-      .on('broadcast', { event: 'mark' }, ({ payload }) => {
+  /** Peões que alguém arrasta e parou de mandar posição (caiu no meio): somem do "arrastando". */
+  const dragSeen = new Map<string, number>();
+  const DRAG_STALE_MS = 4000;
+  const onDrag = (p: { id: string; x: number; y: number; end?: boolean }) => {
+    if (p.end) dragSeen.delete(p.id);
+    else dragSeen.set(p.id, Date.now());
+    set((s) => {
+      const drags = { ...s.drags };
+      if (p.end) delete drags[p.id];
+      else drags[p.id] = { x: p.x, y: p.y };
+      return { drags };
+    });
+    if (!p.end) {
+      setTimeout(() => {
+        if (Date.now() - (dragSeen.get(p.id) ?? 0) < DRAG_STALE_MS) return;
+        dragSeen.delete(p.id);
+        set((s) => (p.id in s.drags ? { drags: Object.fromEntries(Object.entries(s.drags).filter(([k]) => k !== p.id)) } : {}));
+      }, DRAG_STALE_MS + 50);
+    }
+    // a posição final chega pelo evento do banco (scene_tokens)
+  };
+
+  const onBroadcast = (event: StageBroadcast, payload: Record<string, unknown>) => {
+    switch (event) {
+      case 'drag':
+        return onDrag(payload as { id: string; x: number; y: number; end?: boolean });
+      case 'ping':
+        return addPing(payload as unknown as StagePing);
+      case 'laser':
+        return addLaser(payload as unknown as LaserTrail);
+      case 'mark': {
         const p = payload as { mark?: MapMark; drop?: string; clearBy?: string; clearAll?: boolean };
-        set((s) => {
+        return set((s) => {
+          if (p.clearAll) return { marks: {} };
           const marks = { ...s.marks };
           if (p.mark) marks[p.mark.id] = p.mark;
           if (p.drop) delete marks[p.drop];
-          if (p.clearAll) return { marks: {} };
           if (p.clearBy) for (const k of Object.keys(marks)) if (marks[k].by === p.clearBy) delete marks[k];
           return { marks };
         });
-      })
-      .on('broadcast', { event: 'laser' }, ({ payload }) => addLaser(payload as LaserTrail))
-      .on('broadcast', { event: 'explored-reset' }, ({ payload }) => {
-        const id = String((payload as { sceneId?: string }).sceneId ?? '');
+      }
+      case 'explored-reset': {
+        const id = String(payload.sceneId ?? '');
         if (id) set((s) => ({ exploredReset: { ...s.exploredReset, [id]: (s.exploredReset[id] ?? 0) + 1 } }));
-      })
-      .on('broadcast', { event: 'focus' }, ({ payload }) => {
+        return;
+      }
+      case 'focus': {
         const p = payload as { x: number; y: number; z?: number };
-        set((s) => ({ focus: { ...p, n: (s.focus?.n ?? 0) + 1 } }));
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') schedule();
-      });
+        return set((s) => ({ focus: { ...p, n: (s.focus?.n ?? 0) + 1 } }));
+      }
+    }
+  };
+
+  const onRow = (table: StageTable, c: RowChange) => {
+    if (table === 'scene_tokens') return onToken(c);
+    if (table === 'scene_walls') return onWall(c);
+    if (table === 'campaign_scenes') return onScene(c);
+    return onSecret(c);
+  };
+
+  /** Quem saiu da mesa leva junto as réguas e o laser que deixou na tela. */
+  const onPresence = (online: PresencePlayer[]) => {
+    const here = new Set(online.map((p) => p.userId));
+    const mine = get().userId;
+    set((s) => {
+      const marks = Object.fromEntries(Object.entries(s.marks).filter(([, m]) => m.by === mine || here.has(m.by)));
+      const changedMarks = Object.keys(marks).length !== Object.keys(s.marks).length;
+      return changedMarks ? { online, marks } : { online };
+    });
+  };
+
+  const me = (): Omit<PresencePlayer, 'onlineAt'> => {
+    const { userId, who, isMaster } = get();
+    return { userId: userId ?? '', name: who, role: isMaster ? 'master' : 'player', characterId: null, characterName: isMaster ? null : who };
+  };
+
+  const subscribe = (campaignId: string) => {
+    live = joinStageChannel(campaignId, me(), {
+      onRow,
+      onStructure: schedule,
+      onBroadcast,
+      onPresence,
+      onStatus: (connection) => set({ connection }),
+      onResync: schedule,
+    });
   };
 
   return {
@@ -294,6 +329,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
     busy: false,
     secrets: [],
     secretsMissing: false,
+    connection: 'idle',
+    online: [],
     exploredReset: {},
     walls: [],
     wallsMissing: false,
@@ -302,24 +339,24 @@ export const useStageStore = create<StageStore>()((set, get) => {
       const cur = get();
       if (cur.campaignId === campaignId && cur.userId === userId) {
         set({ isMaster, who });
+        live?.track(me());
         return void get().refresh();
       }
       get().close();
-      set({ campaignId, isMaster, userId, who });
+      set({ campaignId, isMaster, userId, who, connection: 'connecting' });
       subscribe(campaignId);
       // celular voltou do bolso / rede voltou: o canal pode ter caído calado
-      stopWake = onWake(schedule);
+      stopWake = onWake(() => live?.wake());
       void get().refresh();
     },
 
     close() {
-      const client = getSupabase();
-      if (channel && client) void client.removeChannel(channel);
-      channel = null;
+      live?.leave();
+      live = null;
       stopWake?.();
       stopWake = null;
       if (timer) clearTimeout(timer);
-      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false, walls: [], wallsMissing: false });
+      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false, walls: [], wallsMissing: false, connection: 'idle', online: [] });
     },
 
     async refresh() {
@@ -441,7 +478,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       // otimista: o peão fica onde soltou; se o banco recusar, o refetch devolve
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
       const t = get().tokens.find((k) => k.id === id);
-      if (t && !t.hidden) void channel?.send({ type: 'broadcast', event: 'drag', payload: { id, x, y, end: true } });
+      if (t && !t.hidden) send('drag', { id, x, y, end: true });
       try {
         await stageService.moveToken(id, x, y, get().isMaster);
       } catch (e) {
@@ -457,14 +494,14 @@ export const useStageStore = create<StageStore>()((set, get) => {
       const t = get().tokens.find((k) => k.id === id);
       // peão escondido nunca vaza por broadcast
       if (!t || t.hidden) return;
-      void channel?.send({ type: 'broadcast', event: 'drag', payload: { id, x, y } });
+      send('drag', { id, x, y });
     },
 
     ping(x, y) {
       const { userId, who } = get();
       const p: StagePing = { id: `${userId}-${Date.now()}`, x, y, color: colorFor(userId ?? who), who };
       addPing(p);
-      void channel?.send({ type: 'broadcast', event: 'ping', payload: p });
+      send('ping', { ...p });
     },
 
     myColor: () => colorFor(get().userId ?? get().who),
@@ -494,7 +531,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     laser(points) {
       const t: LaserTrail = { by: get().userId ?? 'eu', color: get().myColor(), points: points.slice(-80), at: Date.now() };
       addLaser(t);
-      send('laser', t as unknown as Record<string, unknown>);
+      send('laser', { ...t });
     },
     pullView(x, y, z) {
       send('focus', { x, y, z });

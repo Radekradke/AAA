@@ -24,7 +24,8 @@ para decidir.
 
 ## Leitura: incremental, não recarga
 
-`src/store/stageStore.ts` assina o Realtime do palco num canal por campanha:
+O canal do palco (`stage-{campanha}`) mora em `src/services/stageChannel.ts`;
+`src/store/stageStore.ts` só recebe o que ele entrega:
 
 - **Incremental** — `scene_tokens`, `scene_walls`, `campaign_scenes` (UPDATE)
   e `scene_secrets`: cada evento é aplicado direto na memória por
@@ -41,7 +42,25 @@ para decidir.
   uma vez.
 
 Efêmero (não vai ao banco): arrasto ao vivo, ping, régua/moldes, laser,
-"esqueçam o explorado" — `broadcast` no mesmo canal.
+"esqueçam o explorado" — `broadcast` no mesmo canal. Arrasto de quem caiu
+no meio some sozinho em 4 s; réguas de quem saiu da mesa somem com a
+presença.
+
+## Conexão e presença
+
+- **Estado** (`connection`: conectando, ao vivo, reconectando, sem
+  conexão) e **presença** (`online`) vêm do canal do palco e do canal da
+  sessão; `useTableLink` (`src/hooks/`) mostra o pior dos dois e junta as
+  duas listas (`src/lib/tableLink.ts`, puro e testado). O cabeçalho do
+  jogador e o do mestre usam isso, com ou sem sessão aberta.
+- **Reconexão**: erro e tempo esgotado o realtime-js refaz sozinho; canal
+  fechado pelo servidor é refeito com espera crescente (1 s, 2 s, 5 s,
+  10 s); `wake()` (aba visível ou rede de volta) reconstrói na hora um
+  canal que morreu calado. Toda (re)entrada relê o palco inteiro uma vez.
+  O tópico é sempre o mesmo — o broadcast só chega a quem está nele —,
+  então sobras do canal antigo são removidas antes de criar o novo.
+- **Herói ausente**: peão de herói cujo dono não está na presença fica
+  apagado no mapa (`is-away`, "fora da mesa").
 
 ## Escrita: otimista
 
@@ -72,4 +91,6 @@ pura e com testes.
   janelas dividindo o mesmo banco e o mesmo Realtime do mock
   (`installSupabase(page, who, { shared })`). O mock repassa
   `postgres_changes` (com o RLS do jogador) e `broadcast` — inclusive o
-  formato binário do cliente e o envio por HTTP — entre as janelas.
+  formato binário do cliente e o envio por HTTP — entre as janelas, e
+  emula presença (`presence_state`/`presence_diff`) e queda de conexão
+  (`hub.sockets[i].close()`).

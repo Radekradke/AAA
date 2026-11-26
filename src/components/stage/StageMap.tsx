@@ -48,6 +48,8 @@ interface StageMapProps {
   hpFor?: (t: Token) => { cur: number; max: number } | null;
   /** Condições do combatente ligado ao peão (todos veem). */
   conditionsFor?: (t: Token) => string[];
+  /** Herói cujo jogador não está na mesa agora (presença). */
+  isAway?: (t: Token) => boolean;
   activeIds: Set<string>;
   /** Alvo escolhido pelo mestre (mira no peão). */
   targetIds?: Set<string>;
@@ -646,6 +648,7 @@ export function StageMap(p: StageMapProps) {
             const face = p.faceFor(t);
             const hp = p.hpFor?.(t) ?? null;
             const conds = p.conditionsFor?.(t) ?? [];
+            const away = p.isAway?.(t) ?? false;
             const size = g.size * t.size;
             const seal = sealOf(t);
             const inMark = myMark && myMark.kind !== 'measure' && pointInMark(myMark, center(t).x, center(t).y);
@@ -663,6 +666,7 @@ export function StageMap(p: StageMapProps) {
               seal ? `fv-secret-pin is-${seal}` : '',
               p.secretFor?.(t)?.foundAt ? 'is-found' : '',
               arrived.has(t.id) ? 'is-arrived' : '',
+              away ? 'is-away' : '',
             ].join(' ');
             return (
               <button
@@ -672,7 +676,7 @@ export function StageMap(p: StageMapProps) {
                 style={{ left: px(live.x, 'x'), top: px(live.y, 'y'), width: size, height: size, '--tk': t.color ?? undefined, fontSize: Math.max(10, g.size * 0.3) } as CSSProperties}
                 onPointerDown={(e) => onTokenDown(t, e)}
                 onDoubleClick={(e) => tool === 'move' && e.stopPropagation()}
-                aria-label={`${t.label || 'Peão'}${t.hidden ? ' (escondido)' : ''}${conds.length ? ` — ${conds.join(', ')}` : ''}`}
+                aria-label={`${t.label || 'Peão'}${t.hidden ? ' (escondido)' : ''}${away ? ' (fora da mesa)' : ''}${conds.length ? ` — ${conds.join(', ')}` : ''}`}
               >
                 {seal ? (
                   <SecretSeal kind={seal} found={p.isMaster && !!p.secretFor?.(t)?.foundAt} />
