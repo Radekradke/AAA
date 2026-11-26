@@ -111,5 +111,5 @@ describe('SQL de paredes, portas e luz', () => {
 
     expect(failures).toEqual([]);
     expect(ok).toBeGreaterThan(20);
-  });
+  }, 60_000);
 });

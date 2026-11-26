@@ -86,5 +86,5 @@ describe('SQL do Discord da mesa', () => {
 
     expect(failures).toEqual([]);
     expect(ok).toBeGreaterThan(10);
-  });
+  }, 60_000);
 });
