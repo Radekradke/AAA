@@ -1,10 +1,33 @@
 import { test, expect } from './fixtures/test';
+import type { Locator } from '@playwright/test';
 import { C, installSupabase, signIn } from './fixtures/supabase';
 
-/** Cena do mapa na fixture, com a névoa trocada. */
-function setFog(db: { tables: Record<string, Record<string, unknown>[]> }, fog: Record<string, unknown>) {
+type Db = { tables: Record<string, Record<string, unknown>[]> };
+
+/** Caixa do elemento depois que o mapa terminou de se enquadrar (duas leituras iguais). */
+async function stableBox(loc: Locator) {
+  let last = '';
+  for (let i = 0; i < 40; i++) {
+    const b = await loc.boundingBox();
+    const key = JSON.stringify(b);
+    if (b && key === last) return b;
+    last = key;
+    await loc.page().waitForTimeout(100);
+  }
+  return (await loc.boundingBox())!;
+}
+
+/**
+ * Cena do mapa na fixture, com a névoa trocada. Paredes e luzes vão para onde
+ * o app lê hoje: linhas de scene_walls (os MESMOS objetos, para o teste ver o
+ * que o app gravou) e a coluna light do peão.
+ */
+function setFog(db: Db, fog: Record<string, unknown>) {
+  const { walls, lights, ...rest } = fog as { walls?: Record<string, unknown>[]; lights?: Record<string, number> };
   const scene = db.tables.campaign_scenes[0];
-  scene.grid = { ...(scene.grid as Record<string, unknown>), fog };
+  scene.grid = { ...(scene.grid as Record<string, unknown>), fog: rest };
+  db.tables.scene_walls = (walls ?? []).map((w, i) => Object.assign(w, { id: w.id ?? `w${i}`, scene_id: scene.id, campaign_id: scene.campaign_id }));
+  for (const t of db.tables.scene_tokens) t.light = lights?.[String(t.id)] ?? 0;
 }
 
 test.describe('mapa: paredes, portas e visão dinâmica', () => {
@@ -22,7 +45,7 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.75, { steps: 6 });
     await page.mouse.up();
     await expect(page.locator('.fv-map-walls line')).toHaveCount(1);
-    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog?: { walls?: unknown[] } }).fog?.walls?.length ?? 0).toBe(1);
+    await expect.poll(() => db.tables.scene_walls?.length ?? 0).toBe(1);
 
     const visao = page.getByRole('switch', { name: 'Visão dinâmica' });
     await expect(visao).toHaveAttribute('aria-checked', 'false');
@@ -62,7 +85,7 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await page.goto(`/mesa/${C}/jogar`);
     await page.getByRole('button', { name: 'Abrir a porta' }).click();
     await expect(page.getByRole('button', { name: 'Fechar a porta' })).toBeVisible();
-    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog: { walls: { open?: boolean }[] } }).fog.walls[0].open).toBe(true);
+    await expect.poll(() => db.tables.scene_walls[0].open).toBe(true);
     // pelo teclado também
     await page.getByRole('button', { name: 'Fechar a porta' }).focus();
     await page.keyboard.press('Enter');
@@ -78,7 +101,7 @@ test.describe('mapa: paredes, portas e visão dinâmica', () => {
     await expect(kael).toBeVisible();
     // o aviso "seu turno" pode surgir a qualquer momento por cima do peão
     await page.addStyleTag({ content: '.fv-turn-banner { display: none !important; }' });
-    const b = (await kael.boundingBox())!;
+    const b = await stableBox(kael);
     const before = db.writes.filter((w) => w.includes('scene_tokens')).length;
     await page.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
     await page.mouse.down();
@@ -141,7 +164,7 @@ test.describe('mapa: portas e luz do jogador, arrasto sem espiar', () => {
     await page.getByRole('button', { name: 'Paredes e portas (W)' }).click();
     await page.locator('.fv-map-seg').getByRole('button', { name: /Porta/ }).click();
     await page.getByRole('button', { name: 'Trancar a porta' }).click();
-    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog: { walls: { locked?: boolean; open?: boolean }[] } }).fog.walls[0]).toMatchObject({ locked: true, open: false });
+    await expect.poll(() => db.tables.scene_walls[0]).toMatchObject({ locked: true, open: false });
   });
 
   test('jogador acende a tocha do herói no escuro', async ({ page }) => {
@@ -152,7 +175,7 @@ test.describe('mapa: portas e luz do jogador, arrasto sem espiar', () => {
     await expect(page.locator('.fv-turn-banner')).toHaveCount(0, { timeout: 10_000 });
     await page.getByRole('button', { name: /Luz do herói: Sem luz/ }).click();
     await page.getByRole('group', { name: 'Luz do herói' }).getByRole('button', { name: /Tocha/ }).click();
-    await expect.poll(() => (db.tables.campaign_scenes[0].grid as { fog: { lights?: Record<string, number> } }).fog.lights?.t1).toBe(12);
+    await expect.poll(() => db.tables.scene_tokens.find((t) => t.id === 't1')?.light).toBe(12);
     await expect(page.getByRole('button', { name: /Luz do herói: Tocha/ })).toBeVisible();
   });
 
@@ -166,7 +189,7 @@ test.describe('mapa: portas e luz do jogador, arrasto sem espiar', () => {
     await expect(kael).toBeVisible();
     // o aviso "seu turno" pode surgir a qualquer momento por cima do peão
     await page.addStyleTag({ content: '.fv-turn-banner { display: none !important; }' });
-    const b = (await kael.boundingBox())!;
+    const b = await stableBox(kael);
     await page.mouse.move(b.x + b.width / 2, b.y + b.width / 2);
     await page.mouse.down();
     await page.mouse.move(b.x + b.width * 3.5, b.y + b.width / 2, { steps: 8 });

@@ -554,14 +554,16 @@ Rode `supabase/segredos.sql` (depois do `palco.sql`). Pode rodar de novo sem pro
 
 Sem este script, o resto do palco funciona normal; a ferramenta Segredos avisa que falta rodá-lo.
 
-### Portas e luz pelo jogador
+### Paredes, portas e luz
 
 Rode `supabase/portas_luz.sql` (depois do `palco.sql`). Pode rodar de novo sem problema.
 
-- `toggle_door(cena, n)` — o jogador abre/fecha a porta n só com o próprio herói a até 2 casas, na cena no ar; porta trancada só o mestre abre.
-- `set_token_light(peão, metros)` — o jogador acende/apaga a luz que o próprio herói carrega (vela, tocha, lanterna).
+- `scene_walls` — paredes e portas, uma linha cada (o jogador lê só as de cena no ar; só o mestre grava). Antes elas moravam dentro do JSON da cena; o script migra sozinho, num comando só (não duplica ao rodar de novo).
+- `scene_tokens.light` — a luz que o peão carrega, em metros.
+- `toggle_door(parede)` — o jogador abre/fecha a porta com o próprio herói a até 2 casas, na cena no ar; trancada, só o mestre.
+- `set_token_light(peão, metros)` — o jogador acende/apaga a luz do próprio herói.
 
-O resto da cena continua só do mestre. Sem o script, só o mestre mexe em portas e luzes.
+Por que tabela própria: cada mudança é uma linha pequena, então o mestre mexendo na névoa nunca desfaz a porta que o jogador abriu, e o tempo real manda só o que mudou. Sem o script, o mapa mostra as paredes antigas só para leitura e avisa o mestre.
 
 ## 8. Console do mestre — preparação, notas privadas e improviso
 

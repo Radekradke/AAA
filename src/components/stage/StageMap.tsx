@@ -1,19 +1,26 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as RPointerEvent, ReactNode } from 'react';
 import { useMediaUrl } from '@/services/mediaService';
-import { boardSize, cellDistance, conePoints, fitView, fmtMeters, isRevealed, markLength, metersBetween, pointInMark, rectBetween, snapCell, zoomAt } from '@/engine/grid';
+import { boardSize, cellDistance, fitView, fmtMeters, isRevealed, markLength, metersBetween, pointInMark, rectBetween, snapCell, zoomAt } from '@/engine/grid';
 import { CELL_METERS } from '@/types/stage';
 import { hasStageDrop, readStageDrop } from '@/lib/stageDrop';
 import type { StageDrop } from '@/lib/stageDrop';
-import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, StagePing, Token, Wall } from '@/types/stage';
-import { LIGHT_PRESETS, blockingWalls, cellRuns, cellsSeen, nearestWall, pathBlocked, seen, snapHalf, visibilityPolygon, visionOn } from '@/engine/vision';
-import type { LightSource, Viewer } from '@/engine/vision';
+import type { CellRect, FogConfig, LaserTrail, MapMark, MapTool, MarkKind, Scene, SceneSecret, SecretKind, StagePing, Token, Wall } from '@/types/stage';
+import type { NewWall, WallPatch } from '@/services/stageService';
+import { nearestWall, pathBlocked, snapHalf } from '@/engine/vision';
+import { DEFAULT_REACH_M, KIND_NAME } from '@/engine/secrets';
 import { ConditionIcon, hasConditionIcon } from '@/components/ui/RuleIcon';
 import { InlineIcon } from '@/components/ui/Icon';
-import { SecretDefs, SecretGlyph, SecretSeal } from './secretArt';
 import { SECRET_COLOR } from '@/store/stageStore';
-import { DEFAULT_REACH_M, KIND_NAME, rulesSummary } from '@/engine/secrets';
-import type { SceneSecret, SecretKind } from '@/types/stage';
+import { SecretDefs, SecretSeal } from './secretArt';
+import { cellPxFor, initials } from './map/geometry';
+import { HINTS, MARK_NAME, MARK_TOOLS, MASTER_TOOL_KEYS, MOVE_HINT, TOOL_GROUPS, TOOL_KEYS, groupOf } from './map/tools';
+import type { ToolGroup } from './map/tools';
+import { MarkShape } from './map/MarkShape';
+import { useVision } from './map/useVision';
+import { DoorLayer, FogLayer, ReachLayer, WallLayer } from './map/layers';
+import type { DoorView, ReachRing } from './map/layers';
+import { MapDock, ToolSheet, ViewTools } from './map/MapHud';
 
 export interface TokenFace {
   /** Imagem do peão (retrato, arte do herói). */
@@ -25,6 +32,10 @@ export interface TokenFace {
 interface StageMapProps {
   scene: Scene;
   tokens: Token[];
+  /** Paredes e portas da cena (scene_walls). */
+  walls: Wall[];
+  /** Falta rodar portas_luz.sql: paredes antigas aparecem, mas não editam. */
+  wallsReadOnly?: boolean;
   isMaster: boolean;
   me: { id: string; who: string; color: string };
   canMove: (t: Token) => boolean;
@@ -56,8 +67,14 @@ interface StageMapProps {
   onLaser: (points: { x: number; y: number }[]) => void;
   onFog?: (rect: CellRect, mode: 'reveal' | 'cover') => void;
   onFogAll?: (mode: 'reveal' | 'cover' | 'off') => void;
+  /** Mestre: troca as chaves da névoa (ligada, visão dinâmica, escuro). */
+  onFogSet?: (fog: FogConfig) => void;
+  /** Mestre: paredes (criar, apagar, trancar). */
+  onWallsAdd?: (list: NewWall[]) => void;
+  onWallsRemove?: (ids: string[]) => void;
+  onWallPatch?: (id: string, patch: WallPatch) => void;
   /** Abre/fecha uma porta (mestre qualquer uma; jogador ao lado do herói). */
-  onDoor?: (index: number) => void;
+  onDoor?: (wall: Wall) => void;
   /** Quantas vezes o mestre mandou esquecer o explorado nesta cena. */
   exploredResetN?: number;
   /** Mestre: os jogadores esquecem o que já exploraram nesta cena. */
@@ -65,8 +82,6 @@ interface StageMapProps {
   /** Jogador: luz que o próprio herói carrega (no escuro). */
   myLight?: { tokenId: string; meters: number } | null;
   onMyLight?: (meters: number) => void;
-  /** Mestre: troca a névoa inteira (paredes, portas, visão dinâmica). */
-  onFogSet?: (fog: FogConfig) => void;
   /** Mestre: todos passam a olhar para este ponto. */
   onPullView?: (x: number, y: number, z: number) => void;
   /** Mestre: algo arrastado dos bastidores/iniciativa foi solto nesta casa. */
@@ -87,74 +102,69 @@ interface StageMapProps {
 }
 
 type View = { x: number; y: number; z: number };
-type DragState = { id: string; pointer: number; from: { x: number; y: number }; grab: { x: number; y: number }; at: { x: number; y: number } };
+type Pt = { x: number; y: number };
+type DragState = { id: string; pointer: number; from: Pt; grab: Pt; at: Pt };
 type Act =
   | { kind: 'mark'; pointer: number; mark: MapMark }
-  | { kind: 'laser'; pointer: number; pts: { x: number; y: number }[]; last: number }
-  | { kind: 'fog'; pointer: number; mode: 'reveal' | 'cover'; from: { x: number; y: number }; to: { x: number; y: number } }
-  | { kind: 'wall'; pointer: number; door: boolean; from: { x: number; y: number }; to: { x: number; y: number } };
+  | { kind: 'laser'; pointer: number; pts: Pt[]; last: number }
+  | { kind: 'fog'; pointer: number; mode: 'reveal' | 'cover'; from: Pt; to: Pt }
+  | { kind: 'wall'; pointer: number; door: boolean; from: Pt; to: Pt };
 
-const MARK_TOOLS: MarkKind[] = ['measure', 'circle', 'cone', 'line', 'square'];
-const MARK_NAME: Record<MarkKind, string> = { measure: 'Régua', circle: 'Esfera / raio', cone: 'Cone', line: 'Linha', square: 'Cubo' };
+/** Distância (casas) do herói ao vão para abrir uma porta — a mesma regra do banco. */
+const DOOR_REACH = 2;
 
 /**
  * Mapa tático: imagem do mestre + grade de 1,5 m + peões, com ferramentas
  * inspiradas nas mesas virtuais mais usadas (Foundry VTT, Owlbear Rodeo,
- * Dungeon Revealer):
- * · Mover: arrasta o mapa / o próprio peão (régua contra o deslocamento);
- * · Régua e moldes de área (esfera, cone, linha, cubo) — todos veem, e o
- *   molde lista quem está dentro;
- * · Caneta-laser: risco que some, para apontar caminhos;
- * · Névoa (mestre): revela/cobre áreas; jogadores só veem o revelado;
- * · Paredes e portas (mestre) + visão dinâmica: cada herói vê até onde as
- *   paredes deixam, e o mestre abre/fecha portas com um toque;
- * · Duplo clique = ping; Shift + duplo clique (mestre) = puxa a visão de todos.
+ * Dungeon Revealer). Este componente orquestra estado, gestos e camadas;
+ * as partes moram em ./map:
+ * · useVision — visão dinâmica, luz e memória da névoa;
+ * · layers    — névoa, paredes, portas, alcance dos segredos;
+ * · MapHud    — doca, folha da ferramenta e controles de visão;
+ * · tools     — grupos de ferramentas, atalhos e dicas.
  */
 export function StageMap(p: StageMapProps) {
-  const { scene } = p;
+  const { scene, walls } = p;
   const g = scene.grid;
   const fog: FogConfig | undefined = g.fog;
+  const px = useMemo(() => cellPxFor(g), [g]);
   const box = useRef<HTMLDivElement>(null);
   const { url: imageUrl, error: imageError } = useMediaUrl(scene.imagePath);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const board = boardSize(g, scene.imagePath ? natural : null);
+  const ready = !scene.imagePath || !!natural;
+
   const [view, setView] = useState<View>({ x: 0, y: 0, z: 0.5 });
   const [fitted, setFitted] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [tool, setTool] = useState<MapTool>('move');
   const [drag, setDrag] = useState<DragState | null>(null);
   const [act, setAct] = useState<Act | null>(null);
-  const [dropCell, setDropCell] = useState<{ x: number; y: number } | null>(null);
+  const [dropCell, setDropCell] = useState<Pt | null>(null);
   const [blocked, setBlocked] = useState(0);
-  const [lightMenu, setLightMenu] = useState(false);
+  const pointers = useRef(new Map<number, Pt>());
+  const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const pinch = useRef<{ d: number; view: View; cx: number; cy: number } | null>(null);
+  const press = useRef<{ timer: ReturnType<typeof setTimeout>; x: number; y: number } | null>(null);
+
   const flashBlocked = () => {
     const n = Date.now();
     setBlocked(n);
     setTimeout(() => setBlocked((b) => (b === n ? 0 : b)), 1800);
   };
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
-  const pinch = useRef<{ d: number; view: View; cx: number; cy: number } | null>(null);
-  const press = useRef<{ timer: ReturnType<typeof setTimeout>; x: number; y: number } | null>(null);
 
-  const ready = !scene.imagePath || !!natural;
-  const cellPx = (c: number, axis: 'x' | 'y') => (axis === 'x' ? g.ox : g.oy) + c * g.size;
-  const polyPts = (poly: { x: number; y: number }[]) => poly.map((q) => `${cellPx(q.x, 'x')},${cellPx(q.y, 'y')}`).join(' ');
-
-  // enquadra ao abrir a cena (e quando a imagem termina de carregar)
+  /* ---------- enquadramento e câmera ---------- */
   const fit = useCallback(() => {
     const el = box.current;
-    if (!el) return;
-    setView(fitView(board, { w: el.clientWidth, h: el.clientHeight }));
+    if (el) setView(fitView(board, { w: el.clientWidth, h: el.clientHeight }));
   }, [board.w, board.h]); // eslint-disable-line react-hooks/exhaustive-deps
+  // enquadra ao abrir a cena (e quando a imagem termina de carregar)
   useLayoutEffect(() => {
     const key = `${scene.id}:${board.w}x${board.h}`;
     if (!ready || fitted === key) return;
     fit();
     setFitted(key);
   }, [ready, scene.id, board.w, board.h, fitted, fit]);
-
-
   // entrou/saiu da tela cheia: o quadro mudou de tamanho, reenquadra
   const firstFull = useRef(true);
   useEffect(() => {
@@ -165,17 +175,18 @@ export function StageMap(p: StageMapProps) {
     const id = requestAnimationFrame(fit);
     return () => cancelAnimationFrame(id);
   }, [p.full]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  const centerOn = (x: number, y: number, z?: number) => {
+    const el = box.current;
+    if (!el) return;
+    setView((v) => {
+      const zz = z ?? v.z;
+      return { z: zz, x: el.clientWidth / 2 - px(x, 'x') * zz, y: el.clientHeight / 2 - px(y, 'y') * zz };
+    });
+  };
   // o mestre puxou a visão / seguir o turno: centraliza no ponto pedido
   useEffect(() => {
-    const el = box.current;
-    if (!p.focus || !el) return;
-    setView((v) => {
-      const z = p.focus!.z ?? v.z;
-      return { z, x: el.clientWidth / 2 - cellPx(p.focus!.x, 'x') * z, y: el.clientHeight / 2 - cellPx(p.focus!.y, 'y') * z };
-    });
+    if (p.focus) centerOn(p.focus.x, p.focus.y, p.focus.z);
   }, [p.focus?.n]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // roda do mouse: zoom em volta do cursor (listener não-passivo para impedir a rolagem da página)
   useEffect(() => {
     const el = box.current;
@@ -188,14 +199,17 @@ export function StageMap(p: StageMapProps) {
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, []);
+  const zoomBtn = (f: number) => {
+    const el = box.current;
+    if (el) setView((v) => zoomAt(v, el.clientWidth / 2, el.clientHeight / 2, f));
+  };
 
+  /* ---------- ferramentas e atalhos ---------- */
   // cada grupo lembra a última ferramenta usada (o botão do grupo volta nela)
-  const lastIn = useRef<Record<string, MapTool>>({});
+  const lastIn = useRef<Partial<Record<ToolGroup['id'], MapTool>>>({});
   useEffect(() => {
     lastIn.current[groupOf(tool).id] = tool;
   }, [tool]);
-
-  // atalhos das ferramentas (fora de campos de texto)
   const keys = useRef({ tool, full: p.full, toggleFull: p.onToggleFull });
   keys.current = { tool, full: p.full, toggleFull: p.onToggleFull };
   useEffect(() => {
@@ -204,13 +218,9 @@ export function StageMap(p: StageMapProps) {
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const k = e.key.toLowerCase();
-      const map: Record<string, MapTool> = { v: 'move', r: 'measure', c: 'circle', o: 'cone', l: 'line', q: 'square', p: 'laser' };
       const cur = keys.current;
-      if (map[k]) setTool(map[k]);
-      else if (p.isMaster && k === 'n') setTool('reveal');
-      else if (p.isMaster && k === 'w') setTool('wall');
-      else if (p.isMaster && k === 'd') setTool('door');
-      else if (p.isMaster && k === 's') setTool('secret');
+      const next = TOOL_KEYS[k] ?? (p.isMaster ? MASTER_TOOL_KEYS[k] : undefined);
+      if (next) setTool(next);
       else if (k === 'f' && cur.toggleFull) cur.toggleFull();
       // Esc: primeiro solta a ferramenta; com "mover" já ativo, sai da tela cheia
       else if (k === 'escape') {
@@ -222,20 +232,50 @@ export function StageMap(p: StageMapProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [p.isMaster]);
 
+  /* ---------- visão, luz e névoa ---------- */
+  const bounds = useMemo(() => ({ x0: -g.ox / g.size, y0: -g.oy / g.size, x1: (board.w - g.ox) / g.size, y1: (board.h - g.oy) / g.size }), [g.ox, g.oy, g.size, board.w, board.h]);
+  const sight = useVision({
+    sceneId: scene.id,
+    fog,
+    ready,
+    isMaster: p.isMaster,
+    meId: p.me.id,
+    tokens: p.tokens,
+    walls,
+    drag: drag ? { id: drag.id, from: drag.from, at: drag.at } : null,
+    drags: p.drags,
+    bounds,
+    darkFor: p.darkFor,
+    exploredResetN: p.exploredResetN,
+  });
+  const { vision, dark, livePos } = sight;
+  const center = (t: Token) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
+  // jogadores não veem peões debaixo da névoa
+  const visibleTokens =
+    p.isMaster || !fog?.on
+      ? p.tokens
+      : p.tokens.filter((t) => {
+          if (t.kind === 'hero' && t.ownerId === p.me.id) return true;
+          const c = center(t);
+          if (isRevealed(fog, c.x, c.y)) return true;
+          const at = livePos(t);
+          return vision && sight.inSight(at.x + t.size / 2, at.y + t.size / 2);
+        });
+
+  /* ---------- gestos ---------- */
   const local = (e: { clientX: number; clientY: number }) => {
     const r = box.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
   /** Tela → casa (fracionária). */
   const toCell = (sx: number, sy: number) => ({ x: ((sx - view.x) / view.z - g.ox) / g.size, y: ((sy - view.y) / view.z - g.oy) / g.size });
-
   const cancelPress = () => {
     if (press.current) clearTimeout(press.current.timer);
     press.current = null;
   };
 
-  /** Começa a ferramenta ativa (régua, molde, laser, névoa) neste ponto. */
-  const startTool = (pointer: number, c: { x: number; y: number }) => {
+  /** Começa a ferramenta ativa (régua, molde, laser, névoa, parede, segredo) neste ponto. */
+  const startTool = (pointer: number, c: Pt) => {
     if (tool === 'laser') {
       setAct({ kind: 'laser', pointer, pts: [c], last: 0 });
       return true;
@@ -246,7 +286,7 @@ export function StageMap(p: StageMapProps) {
       return true;
     }
     if (tool === 'wall' || tool === 'door') {
-      if (!p.isMaster) return false;
+      if (!p.isMaster || p.wallsReadOnly) return false;
       const at = { x: snapHalf(c.x), y: snapHalf(c.y) };
       setAct({ kind: 'wall', pointer, door: tool === 'door', from: at, to: at });
       return true;
@@ -267,6 +307,17 @@ export function StageMap(p: StageMapProps) {
       return true;
     }
     return false;
+  };
+
+  /** Soltou a parede: arrastar cria; um toque sem arrastar apaga a mais perto. */
+  const finishWall = (a: { door: boolean; from: Pt; to: Pt }) => {
+    if (a.from.x === a.to.x && a.from.y === a.to.y) {
+      const i = nearestWall(a.from, walls, 0.6);
+      const id = i >= 0 ? walls[i].id : undefined;
+      if (id) p.onWallsRemove?.([id]);
+      return;
+    }
+    p.onWallsAdd?.([{ x1: a.from.x, y1: a.from.y, x2: a.to.x, y2: a.to.y, ...(a.door ? { door: true, open: false } : {}) }]);
   };
 
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
@@ -405,11 +456,6 @@ export function StageMap(p: StageMapProps) {
     if (e.shiftKey && p.isMaster && p.onPullView) p.onPullView(c.x, c.y, view.z);
     p.onPing(c.x, c.y);
   };
-
-  const zoomBtn = (f: number) => {
-    const el = box.current;
-    if (el) setView((v) => zoomAt(v, el.clientWidth / 2, el.clientHeight / 2, f));
-  };
   const pullHere = () => {
     const el = box.current;
     if (!el || !p.onPullView) return;
@@ -417,107 +463,7 @@ export function StageMap(p: StageMapProps) {
     p.onPullView(c.x, c.y, view.z);
   };
 
-  // paredes: arrastar desenha; um toque sem arrastar apaga a parede mais perto
-  const walls: Wall[] = useMemo(() => fog?.walls ?? [], [fog?.walls]);
-  const saveWalls = (next: Wall[], extra: Partial<FogConfig> = {}) =>
-    p.onFogSet?.({ on: true, reveal: fog?.reveal ?? [], ...fog, ...extra, walls: next });
-  const finishWall = (a: { door: boolean; from: { x: number; y: number }; to: { x: number; y: number } }) => {
-    if (a.from.x === a.to.x && a.from.y === a.to.y) {
-      const i = nearestWall(a.from, walls, 0.6);
-      if (i >= 0) saveWalls(walls.filter((_, k) => k !== i));
-      return;
-    }
-    saveWalls([...walls, { x1: a.from.x, y1: a.from.y, x2: a.to.x, y2: a.to.y, ...(a.door ? { door: true, open: false } : {}) }].slice(-1000));
-  };
-  const toggleLock = (i: number) => saveWalls(walls.map((w, k) => (k === i ? { ...w, locked: !w.locked, open: w.locked ? w.open : false } : w)));
-  // jogador: porta ao alcance do próprio herói (o banco confere a mesma regra)
-  const myHeroes = p.tokens.filter((t) => t.kind === 'hero' && t.ownerId === p.me.id && !t.hidden);
-  const nearDoor = (w: Wall) => {
-    const mx = (w.x1 + w.x2) / 2;
-    const my = (w.y1 + w.y2) / 2;
-    return myHeroes.some((t) => Math.abs(t.x + t.size / 2 - mx) <= 2 && Math.abs(t.y + t.size / 2 - my) <= 2);
-  };
-
-  // visão dinâmica: de onde cada herói está (posição ao vivo, inclusive no arrasto)
-  const vision = visionOn(fog);
-  const livePos = (t: Token) => (drag?.id === t.id ? drag.at : p.drags[t.id] ?? { x: t.x, y: t.y });
-  const dark = vision && !!fog?.dark;
-  const bounds = useMemo(
-    () => ({ x0: -g.ox / g.size, y0: -g.oy / g.size, x1: (board.w - g.ox) / g.size, y1: (board.h - g.oy) / g.size }),
-    [g.ox, g.oy, g.size, board.w, board.h],
-  );
-  const { viewers, lights } = useMemo<{ viewers: Viewer[]; lights: LightSource[] }>(() => {
-    if (!vision || !ready) return { viewers: [], lights: [] };
-    const heroes = p.tokens.filter((t) => t.kind === 'hero' && !t.hidden);
-    const mine = p.isMaster ? heroes : heroes.filter((t) => t.ownerId === p.me.id);
-    const from = mine.length ? mine : heroes;
-    const block = blockingWalls(walls);
-    const mid = (t: Token) => {
-      let at = livePos(t);
-      // arrastando através de uma parede: enxerga de onde saiu (não espia o outro lado antes de soltar)
-      if (drag?.id === t.id && !p.isMaster) {
-        const h = t.size / 2;
-        if (pathBlocked({ x: drag.from.x + h, y: drag.from.y + h }, { x: drag.at.x + h, y: drag.at.y + h }, walls)) at = drag.from;
-      }
-      return { x: at.x + t.size / 2, y: at.y + t.size / 2 };
-    };
-    return {
-      viewers: from.map((t) => {
-        const at = mid(t);
-        return { at, poly: visibilityPolygon(at, block, bounds), dark: (p.darkFor?.(t) ?? 0) / CELL_METERS };
-      }),
-      lights: !dark
-        ? []
-        : p.tokens
-            .filter((t) => (fog?.lights?.[t.id] ?? 0) > 0)
-            .map((t) => {
-              const at = mid(t);
-              return { at, poly: visibilityPolygon(at, block, bounds), r: fog!.lights![t.id] / CELL_METERS };
-            }),
-    };
-  }, [vision, dark, ready, p.tokens, p.isMaster, p.me.id, walls, fog?.lights, drag, p.drags, bounds, p.darkFor]); // eslint-disable-line react-hooks/exhaustive-deps
-  const inSight = (x: number, y: number) => seen({ x, y }, viewers, lights, dark);
-
-  // lembrança do explorado (jogador): o que o herói já viu fica na penumbra, guardado neste aparelho
-  const exploredKey = `fv-explored-${scene.id}`;
-  const [explored, setExplored] = useState<Set<string>>(() => new Set());
-  useEffect(() => {
-    try {
-      setExplored(new Set(JSON.parse(localStorage.getItem(exploredKey) ?? '[]') as string[]));
-    } catch {
-      setExplored(new Set());
-    }
-  }, [exploredKey]);
-  // o mestre mandou esquecer (névoa coberta de novo, ou "Apagar a memória")
-  const resetSeen = useRef(p.exploredResetN ?? 0);
-  useEffect(() => {
-    const n = p.exploredResetN ?? 0;
-    if (n === resetSeen.current) return;
-    resetSeen.current = n;
-    setExplored(new Set());
-    try {
-      localStorage.removeItem(exploredKey);
-    } catch {
-      /* ignora */
-    }
-  }, [p.exploredResetN, exploredKey]);
-  useEffect(() => {
-    if (p.isMaster || !viewers.length) return;
-    const now = cellsSeen(bounds, (q) => seen(q, viewers, lights, dark));
-    setExplored((prev) => {
-      if (now.every((k) => prev.has(k))) return prev;
-      const next = new Set(prev);
-      for (const k of now) next.add(k);
-      try {
-        localStorage.setItem(exploredKey, JSON.stringify([...next].slice(-6000)));
-      } catch {
-        /* armazenamento cheio: a lembrança vale só nesta sessão */
-      }
-      return next;
-    });
-  }, [viewers, lights, dark, bounds, p.isMaster, exploredKey]);
-  const exploredRuns = useMemo(() => (p.isMaster || !vision ? [] : cellRuns(explored)), [explored, p.isMaster, vision]);
-
+  /* ---------- régua do arrasto e moldes ---------- */
   const dragged = drag ? p.tokens.find((t) => t.id === drag.id) ?? null : null;
   const ruler = useMemo(() => {
     if (!drag || !dragged) return null;
@@ -530,15 +476,10 @@ export function StageMap(p: StageMapProps) {
     const wall = !p.isMaster && pathBlocked(from, to, walls);
     return { from, to, snap: s, m, speed, wall, over: wall || (speed !== null && m > speed) };
   }, [drag, dragged, p, walls]);
+  const myMark = act?.kind === 'mark' ? act.mark : null;
+  const caught = myMark && myMark.kind !== 'measure' ? visibleTokens.filter((t) => pointInMark(myMark, center(t).x, center(t).y)).map((t) => t.label || 'peão') : [];
 
-  // jogadores não veem peões debaixo da névoa
-  const center = (t: Token) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
-  const visibleTokens =
-    p.isMaster || !fog?.on
-      ? p.tokens
-      : p.tokens.filter((t) => (t.kind === 'hero' && t.ownerId === p.me.id) || isRevealed(fog, center(t).x, center(t).y) || (vision && inSight(livePos(t).x + t.size / 2, livePos(t).y + t.size / 2)));
-
-  // achado novo na tela (marcador que acabou de aparecer): brilho de descoberta
+  /* ---------- descoberta: marcador que acabou de aparecer brilha ---------- */
   const [arrived, setArrived] = useState<Set<string>>(() => new Set());
   const seenIds = useRef<{ scene: string; ids: Set<string> } | null>(null);
   const visibleKey = visibleTokens.map((t) => t.id).sort().join(',');
@@ -555,10 +496,7 @@ export function StageMap(p: StageMapProps) {
     return () => clearTimeout(timer);
   }, [visibleKey, scene.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // quem está dentro do molde que estou desenhando
-  const myMark = act?.kind === 'mark' ? act.mark : null;
-  const caught = myMark && myMark.kind !== 'measure' ? visibleTokens.filter((t) => pointInMark(myMark, center(t).x, center(t).y)).map((t) => t.label || 'peão') : [];
-
+  /* ---------- segredos (selo e alcance) ---------- */
   // selo: segredo (mestre) ou marcador de achado revelado (todos: a cor diz o tipo)
   const sealOf = (t: Token): SecretKind | null => {
     const sc = p.secretFor?.(t);
@@ -566,37 +504,68 @@ export function StageMap(p: StageMapProps) {
     if (t.kind !== 'marker' || !t.color) return null;
     return (Object.keys(SECRET_COLOR) as SecretKind[]).find((k) => SECRET_COLOR[k] === t.color) ?? null;
   };
-  const reach = p.isMaster
+  const rings: ReachRing[] = p.isMaster
     ? (p.secrets ?? []).flatMap((sc) => {
         const tk = p.tokens.find((t) => t.id === sc.tokenId);
-        if (!tk || sc.foundAt) return [];
-        if (!(tool === 'secret' || p.selectedId === tk.id)) return [];
-        const r = sc.rules;
-        const m = r.near ?? (r.passive || r.check ? DEFAULT_REACH_M : 0);
+        if (!tk || sc.foundAt || !(tool === 'secret' || p.selectedId === tk.id)) return [];
+        const m = sc.rules.near ?? (sc.rules.passive || sc.rules.check ? DEFAULT_REACH_M : 0);
         if (!m) return [];
         const at = livePos(tk);
         return [{ id: sc.id, kind: sc.kind, x: at.x + tk.size / 2, y: at.y + tk.size / 2, cells: m / CELL_METERS + 0.5, label: `${KIND_NAME[sc.kind]} · ${m.toLocaleString('pt-BR')} m` }];
       })
     : [];
-  const centerOn = (x: number, y: number) => {
-    const el = box.current;
-    if (!el) return;
-    setView((v) => ({ ...v, x: el.clientWidth / 2 - cellPx(x, 'x') * v.z, y: el.clientHeight / 2 - cellPx(y, 'y') * v.z }));
+
+  /* ---------- portas ---------- */
+  const myHeroes = p.tokens.filter((t) => t.kind === 'hero' && t.ownerId === p.me.id && !t.hidden);
+  const lockMode = p.isMaster && tool === 'door';
+  const doors: DoorView[] =
+    p.onDoor && ready && (tool === 'move' || lockMode)
+      ? walls.flatMap((w) => {
+          if (!w.door) return [];
+          const mx = (w.x1 + w.x2) / 2;
+          const my = (w.y1 + w.y2) / 2;
+          // jogador só vê a porta que o herói enxerga (ou já explorou); ela fica na
+          // linha da parede, então olha um pouco para cada lado
+          if (!p.isMaster && fog?.on) {
+            const sides = [[0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3]].map(([dx, dy]) => ({ x: mx + dx, y: my + dy }));
+            if (!sides.some((q) => isRevealed(fog, q.x, q.y) || (vision && (sight.inSight(q.x, q.y) || sight.wasSeen(q.x, q.y))))) return [];
+          }
+          const near = p.isMaster || myHeroes.some((t) => Math.abs(t.x + t.size / 2 - mx) <= DOOR_REACH && Math.abs(t.y + t.size / 2 - my) <= DOOR_REACH);
+          const can = lockMode || (near && (p.isMaster || !w.locked));
+          const label = lockMode
+            ? w.locked ? 'Destrancar a porta' : 'Trancar a porta'
+            : w.locked && !p.isMaster
+              ? 'Porta trancada'
+              : !near
+                ? 'Chegue perto da porta para abrir'
+                : w.open ? 'Fechar a porta' : 'Abrir a porta';
+          return [{ wall: w, label, can, lockMode }];
+        })
+      : [];
+  const actOnDoor = (d: DoorView) => {
+    if (!d.can) return;
+    const w = d.wall;
+    if (d.lockMode) {
+      if (w.id) p.onWallPatch?.(w.id, { locked: !w.locked, open: w.locked ? w.open : false });
+    } else p.onDoor?.(w);
   };
 
-  const gridOn = showGrid && g.show;
-  const selected = p.selectedId ? p.tokens.find((t) => t.id === p.selectedId) ?? null : null;
-  const stroke = Math.max(2, g.size / 18);
-  const fontPx = Math.max(12, g.size * 0.3);
-
+  /* ---------- HUD ---------- */
   const groups = TOOL_GROUPS.filter((x) => !x.master || p.isMaster);
   const active = groupOf(tool);
-  const dockIcon = (gr: ToolGroup) => {
+  const iconFor = (gr: ToolGroup) => {
     const t = gr.id === active.id ? tool : lastIn.current[gr.id] ?? gr.tools[0].t;
     return gr.tools.find((x) => x.t === t)?.icon ?? gr.tools[0].icon;
   };
   const pickGroup = (gr: ToolGroup) => setTool(gr.id === active.id ? tool : lastIn.current[gr.id] ?? gr.tools[0].t);
-  const hint = HINTS[tool] ?? (p.isMaster ? 'Arraste NPCs e criaturas da lateral para cá · duplo clique aponta' : 'Arraste o seu peão · duplo clique (ou segure o dedo) aponta um lugar');
+  const selected = p.selectedId ? p.tokens.find((t) => t.id === p.selectedId) ?? null : null;
+  const busyHint = !!selected || !!myMark || !!ruler;
+  const hint = HINTS[tool] ?? (p.isMaster ? MOVE_HINT.master : MOVE_HINT.player);
+  const setFogKeys = (patch: Partial<FogConfig>) => p.onFogSet?.({ on: true, reveal: fog?.reveal ?? [], ...fog, ...patch });
+
+  const gridOn = showGrid && g.show;
+  const stroke = Math.max(2, g.size / 18);
+  const fontPx = Math.max(12, g.size * 0.3);
 
   return (
     <div className="fv-map">
@@ -659,36 +628,26 @@ export function StageMap(p: StageMapProps) {
           {/* moldes e réguas da mesa (abaixo dos peões) */}
           <svg className="fv-map-marks" width={board.w} height={board.h} aria-hidden>
             {p.marks.map((m) => (
-              <MarkShape key={m.id} m={m} px={cellPx} size={g.size} stroke={stroke} font={fontPx} />
+              <MarkShape key={m.id} m={m} px={px} size={g.size} stroke={stroke} font={fontPx} />
             ))}
           </svg>
 
           {ruler && (
             <svg className="fv-map-ruler" width={board.w} height={board.h} aria-hidden>
-              <rect x={cellPx(ruler.snap.x, 'x')} y={cellPx(ruler.snap.y, 'y')} width={g.size * (dragged?.size ?? 1)} height={g.size * (dragged?.size ?? 1)} className={ruler.over ? 'is-over' : ''} />
-              <line x1={cellPx(ruler.from.x, 'x')} y1={cellPx(ruler.from.y, 'y')} x2={cellPx(ruler.to.x, 'x')} y2={cellPx(ruler.to.y, 'y')} className={ruler.over ? 'is-over' : ''} strokeWidth={Math.max(3, g.size / 12)} />
+              <rect x={px(ruler.snap.x, 'x')} y={px(ruler.snap.y, 'y')} width={g.size * (dragged?.size ?? 1)} height={g.size * (dragged?.size ?? 1)} className={ruler.over ? 'is-over' : ''} />
+              <line x1={px(ruler.from.x, 'x')} y1={px(ruler.from.y, 'y')} x2={px(ruler.to.x, 'x')} y2={px(ruler.to.y, 'y')} className={ruler.over ? 'is-over' : ''} strokeWidth={Math.max(3, g.size / 12)} />
             </svg>
           )}
 
-          {/* alcance dos segredos (só o mestre): anel gravado no chão */}
-          {p.isMaster && reach.length > 0 && (
-            <svg className="fv-map-reach" width={board.w} height={board.h} aria-hidden>
-              {reach.map((r) => (
-                <g key={r.id} className={`is-${r.kind}`}>
-                  <circle cx={cellPx(r.x, 'x')} cy={cellPx(r.y, 'y')} r={r.cells * g.size} className="fv-reach-fill" />
-                  <circle cx={cellPx(r.x, 'x')} cy={cellPx(r.y, 'y')} r={r.cells * g.size} className="fv-reach-ring" strokeWidth={Math.max(1.5, g.size / 28)} strokeDasharray={`${g.size / 5} ${g.size / 9}`} />
-                  <text x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y') - r.cells * g.size - g.size * 0.12} fontSize={Math.max(11, g.size * 0.22)} textAnchor="middle">{r.label}</text>
-                </g>
-              ))}
-            </svg>
-          )}
+          {rings.length > 0 && <ReachLayer rings={rings} board={board} size={g.size} px={px} />}
 
           {visibleTokens.map((t) => {
             const live = drag?.id === t.id ? drag.at : p.drags[t.id] ?? { x: t.x, y: t.y };
             const face = p.faceFor(t);
             const hp = p.hpFor?.(t) ?? null;
             const conds = p.conditionsFor?.(t) ?? [];
-            const px = g.size * t.size;
+            const size = g.size * t.size;
+            const seal = sealOf(t);
             const inMark = myMark && myMark.kind !== 'measure' && pointInMark(myMark, center(t).x, center(t).y);
             const cls = [
               'fv-token',
@@ -701,7 +660,7 @@ export function StageMap(p: StageMapProps) {
               p.canMove(t) && tool === 'move' ? 'is-movable' : '',
               hp && hp.cur <= 0 ? 'is-down' : '',
               inMark ? 'is-caught' : '',
-              sealOf(t) ? `fv-secret-pin is-${sealOf(t)}` : '',
+              seal ? `fv-secret-pin is-${seal}` : '',
               p.secretFor?.(t)?.foundAt ? 'is-found' : '',
               arrived.has(t.id) ? 'is-arrived' : '',
             ].join(' ');
@@ -710,13 +669,13 @@ export function StageMap(p: StageMapProps) {
                 key={t.id}
                 type="button"
                 className={cls}
-                style={{ left: cellPx(live.x, 'x'), top: cellPx(live.y, 'y'), width: px, height: px, '--tk': t.color ?? undefined, fontSize: Math.max(10, g.size * 0.3) } as CSSProperties}
+                style={{ left: px(live.x, 'x'), top: px(live.y, 'y'), width: size, height: size, '--tk': t.color ?? undefined, fontSize: Math.max(10, g.size * 0.3) } as CSSProperties}
                 onPointerDown={(e) => onTokenDown(t, e)}
                 onDoubleClick={(e) => tool === 'move' && e.stopPropagation()}
                 aria-label={`${t.label || 'Peão'}${t.hidden ? ' (escondido)' : ''}${conds.length ? ` — ${conds.join(', ')}` : ''}`}
               >
-                {sealOf(t) ? (
-                  <SecretSeal kind={sealOf(t)!} found={p.isMaster && !!p.secretFor?.(t)?.foundAt} />
+                {seal ? (
+                  <SecretSeal kind={seal} found={p.isMaster && !!p.secretFor?.(t)?.foundAt} />
                 ) : (
                   <span className="fv-token-disc" style={face?.url ? { backgroundImage: `url("${face.url}")`, ...face.style } : undefined}>
                     {!face?.url && (t.kind === 'marker' ? <InlineIcon name="sparkle" /> : initials(t.label))}
@@ -738,134 +697,29 @@ export function StageMap(p: StageMapProps) {
             );
           })}
 
-          {/* névoa: jogador vê breu fora do revelado; mestre vê um véu */}
           {fog?.on && ready && (
-            <svg className={'fv-map-fog' + (p.isMaster ? ' is-master' : '')} width={board.w} height={board.h} aria-hidden>
-              <defs>
-                {dark &&
-                  viewers.map((v, i) => (
-                    <clipPath key={`c${i}`} id={`los-${scene.id}-${i}`}>
-                      <polygon points={polyPts(v.poly)} />
-                    </clipPath>
-                  ))}
-                {dark &&
-                  lights.map((l, k) => (
-                    <clipPath key={`l${k}`} id={`lit-${scene.id}-${k}`}>
-                      <polygon points={polyPts(l.poly)} />
-                    </clipPath>
-                  ))}
-                <filter id={`soft-${scene.id}`} x="-5%" y="-5%" width="110%" height="110%">
-                  <feGaussianBlur stdDeviation={g.size * 0.28} />
-                </filter>
-                <mask id={`fog-${scene.id}`}>
-                  <rect width="100%" height="100%" fill="white" />
-                  {fog.reveal.map((r, i) => (
-                    <rect key={i} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={r.h * g.size} fill="black" />
-                  ))}
-                  {exploredRuns.length > 0 && (
-                    <g filter={`url(#soft-${scene.id})`}>
-                      {exploredRuns.map((r) => (
-                        <rect key={`e${r.x},${r.y}`} x={cellPx(r.x, 'x')} y={cellPx(r.y, 'y')} width={r.w * g.size} height={g.size} fill="dimgray" />
-                      ))}
-                    </g>
-                  )}
-                  {!dark &&
-                    viewers.map((v, i) => <polygon key={`v${i}`} points={polyPts(v.poly)} fill="black" />)}
-                  {dark &&
-                    viewers.map((v, i) => (
-                      <g key={`v${i}`} clipPath={`url(#los-${scene.id}-${i})`}>
-                        {v.dark > 0 && <circle cx={cellPx(v.at.x, 'x')} cy={cellPx(v.at.y, 'y')} r={v.dark * g.size} fill="black" />}
-                        {lights.map((l, k) => (
-                          <circle key={k} cx={cellPx(l.at.x, 'x')} cy={cellPx(l.at.y, 'y')} r={l.r * g.size} fill="black" clipPath={`url(#lit-${scene.id}-${k})`} />
-                        ))}
-                      </g>
-                    ))}
-                </mask>
-              </defs>
-              <rect width="100%" height="100%" mask={`url(#fog-${scene.id})`} className="fv-map-fog-fill" />
-            </svg>
+            <FogLayer sceneId={scene.id} fog={fog} isMaster={p.isMaster} board={board} size={g.size} px={px} viewers={sight.viewers} lights={sight.lights} dark={dark} exploredRuns={sight.exploredRuns} />
           )}
-          {/* paredes e portas: só o mestre vê o traçado; portas abrem com um toque */}
           {p.isMaster && ready && (walls.length > 0 || act?.kind === 'wall') && (
-            <svg className={'fv-map-walls' + (tool === 'wall' || tool === 'door' ? ' is-editing' : '')} width={board.w} height={board.h} aria-hidden>
-              {walls.map((w, i) => (
-                <line key={i} x1={cellPx(w.x1, 'x')} y1={cellPx(w.y1, 'y')} x2={cellPx(w.x2, 'x')} y2={cellPx(w.y2, 'y')} className={w.door ? (w.open ? 'is-door is-open' : 'is-door') : ''} strokeWidth={Math.max(3, g.size / 10)} />
-              ))}
-              {act?.kind === 'wall' && (
-                <line x1={cellPx(act.from.x, 'x')} y1={cellPx(act.from.y, 'y')} x2={cellPx(act.to.x, 'x')} y2={cellPx(act.to.y, 'y')} className={'is-draft' + (act.door ? ' is-door' : '')} strokeWidth={Math.max(3, g.size / 10)} />
-              )}
-            </svg>
+            <WallLayer walls={walls} draft={act?.kind === 'wall' ? act : null} editing={tool === 'wall' || tool === 'door'} board={board} size={g.size} px={px} />
           )}
-          {/* portas: o mestre abre/fecha (e tranca na ferramenta de portas); o jogador abre a que está ao lado do herói */}
-          {p.onDoor && ready && (tool === 'move' || (p.isMaster && tool === 'door')) &&
-            walls.map((w, i) => {
-              if (!w.door) return null;
-              const mx = (w.x1 + w.x2) / 2;
-              const my = (w.y1 + w.y2) / 2;
-              // jogador só vê a porta que o herói enxerga (ou já explorou)
-              // a porta fica na linha da parede: olha um pouco para cada lado dela
-              const sides = [[0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3]].map(([dx, dy]) => ({ x: mx + dx, y: my + dy }));
-              const doorSeen = sides.some((q) => isRevealed(fog, q.x, q.y) || (vision && (inSight(q.x, q.y) || explored.has(`${Math.floor(q.x)},${Math.floor(q.y)}`))));
-              if (!p.isMaster && fog?.on && !doorSeen) return null;
-              const lockMode = p.isMaster && tool === 'door';
-              const reach = p.isMaster || nearDoor(w);
-              const can = lockMode || (reach && (p.isMaster || !w.locked));
-              const label = lockMode
-                ? w.locked ? 'Destrancar a porta' : 'Trancar a porta'
-                : w.locked && !p.isMaster
-                  ? 'Porta trancada'
-                  : !reach
-                    ? 'Chegue perto da porta para abrir'
-                    : w.open ? 'Fechar a porta' : 'Abrir a porta';
-              const act = () => (lockMode ? toggleLock(i) : can && p.onDoor!(i));
-              return (
-                <button
-                  key={`d${i}`}
-                  type="button"
-                  className={'fv-map-door' + (w.open ? ' is-open' : '') + (w.locked ? ' is-locked' : '') + (can ? '' : ' is-far') + (lockMode ? ' is-lockmode' : '')}
-                  style={at(cellPx(mx, 'x'), cellPx(my, 'y'), Math.max(12, g.size * 0.35))}
-                  // age já no toque: soltar o painel lateral pode mexer o mapa antes do clique
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    act();
-                  }}
-                  onClick={(e) => e.detail === 0 && act()}
-                  aria-disabled={!can}
-                  aria-label={label}
-                  title={label}
-                >
-                  {w.locked ? <IcoLock /> : w.open ? <IcoDoorOpen /> : <IcoDoorShut />}
-                </button>
-              );
-            })}
+          {doors.length > 0 && <DoorLayer doors={doors} size={g.size} px={px} onAct={actOnDoor} />}
           {act?.kind === 'fog' && (() => {
             const r = rectBetween(act.from.x, act.from.y, act.to.x, act.to.y);
-            return <span className={`fv-map-fogsel is-${act.mode}`} style={{ left: cellPx(r.x, 'x'), top: cellPx(r.y, 'y'), width: r.w * g.size, height: r.h * g.size }} />;
+            return <span className={`fv-map-fogsel is-${act.mode}`} style={{ left: px(r.x, 'x'), top: px(r.y, 'y'), width: r.w * g.size, height: r.h * g.size }} />;
           })()}
 
           {/* caneta-laser */}
           <svg className="fv-map-laser" width={board.w} height={board.h} aria-hidden>
             {[...p.lasers, ...(act?.kind === 'laser' ? [{ by: 'me-live', color: p.me.color, points: act.pts, at: 0 }] : [])].map((l) => (
-              <polyline
-                key={l.by}
-                points={l.points.map((q) => `${cellPx(q.x, 'x')},${cellPx(q.y, 'y')}`).join(' ')}
-                stroke={l.color}
-                strokeWidth={Math.max(4, g.size / 10)}
-                className={l.at ? 'is-fading' : ''}
-              />
+              <polyline key={l.by} points={l.points.map((q) => `${px(q.x, 'x')},${px(q.y, 'y')}`).join(' ')} stroke={l.color} strokeWidth={Math.max(4, g.size / 10)} className={l.at ? 'is-fading' : ''} />
             ))}
           </svg>
 
-          {dropCell && <span className="fv-map-dropcell" style={{ left: cellPx(dropCell.x, 'x'), top: cellPx(dropCell.y, 'y'), width: g.size, height: g.size }} aria-hidden />}
+          {dropCell && <span className="fv-map-dropcell" style={{ left: px(dropCell.x, 'x'), top: px(dropCell.y, 'y'), width: g.size, height: g.size }} aria-hidden />}
 
           {p.pings.map((pg) => (
-            <span
-              key={pg.id}
-              className="fv-map-ping"
-              style={{ left: cellPx(pg.x, 'x'), top: cellPx(pg.y, 'y'), '--ping': pg.color, width: g.size * 2, height: g.size * 2 } as CSSProperties}
-              aria-hidden
-            >
+            <span key={pg.id} className="fv-map-ping" style={{ left: px(pg.x, 'x'), top: px(pg.y, 'y'), '--ping': pg.color, width: g.size * 2, height: g.size * 2 } as CSSProperties} aria-hidden>
               <b style={{ fontSize: Math.max(12, g.size * 0.32) }}>{pg.who}</b>
             </span>
           ))}
@@ -893,372 +747,68 @@ export function StageMap(p: StageMapProps) {
         )}
       </div>
 
-      {/* doca de ferramentas (esquerda): um botão por grupo; as variações ficam na folha da ferramenta */}
-      <div className="fv-map-dock" role="toolbar" aria-label="Ferramentas do mapa" aria-orientation="vertical">
-        {groups.map((gr, i) => (
-          <span key={gr.id} className="fv-map-dock-slot">
-            {gr.master && !groups[i - 1]?.master && <i className="fv-map-dock-sep" aria-hidden />}
-            <button
-              type="button"
-              className={active.id === gr.id ? 'is-on' : ''}
-              onClick={() => pickGroup(gr)}
-              aria-pressed={active.id === gr.id}
-              aria-label={`${gr.label} (${gr.key})`}
-            >
-              {dockIcon(gr)}
-              {gr.tools.length > 1 && <i className="fv-map-dock-more" aria-hidden />}
-              <span className="fv-map-tip" aria-hidden>
-                {gr.label} <kbd>{gr.key}</kbd>
-              </span>
-            </button>
-          </span>
-        ))}
-        {/* jogador no escuro: a luz que o herói carrega */}
-        {!p.isMaster && dark && p.myLight && p.onMyLight && (
-          <span className="fv-map-dock-slot">
-            <i className="fv-map-dock-sep" aria-hidden />
-            <button
-              type="button"
-              className={'fv-map-lightbtn' + (p.myLight.meters > 0 ? ' is-lit' : '') + (lightMenu ? ' is-on' : '')}
-              onClick={() => setLightMenu((v) => !v)}
-              aria-expanded={lightMenu}
-              aria-label={`Luz do herói: ${LIGHT_LABEL(p.myLight.meters)}`}
-            >
-              <IcoFlame />
-              <span className="fv-map-tip" aria-hidden>Luz <kbd>{LIGHT_LABEL(p.myLight.meters)}</kbd></span>
-            </button>
-            {lightMenu && (
-              <span className="fv-map-lightmenu" role="group" aria-label="Luz do herói">
-                {[{ id: 'none', label: 'Sem luz', m: 0 }, ...LIGHT_PRESETS].map((l) => (
-                  <button
-                    key={l.id}
-                    type="button"
-                    className={p.myLight!.meters === l.m ? 'is-on' : ''}
-                    aria-pressed={p.myLight!.meters === l.m}
-                    onClick={() => {
-                      p.onMyLight!(l.m);
-                      setLightMenu(false);
-                    }}
-                  >
-                    <b>{l.label}</b>
-                    {l.m > 0 && <small>{l.m} m</small>}
-                  </button>
-                ))}
-              </span>
-            )}
-          </span>
-        )}
-        {p.marks.length > 0 && (
-          <span className="fv-map-dock-slot">
-            <i className="fv-map-dock-sep" aria-hidden />
-            <button type="button" className="is-clear" onClick={() => p.onClearMarks(p.isMaster)} aria-label={p.isMaster ? 'Apagar todos os moldes' : 'Apagar meus moldes'}>
-              <IcoTrash />
-              <span className="fv-map-tip" aria-hidden>{p.isMaster ? 'Apagar todos os moldes' : 'Apagar meus moldes'}</span>
-            </button>
-          </span>
-        )}
-      </div>
+      <MapDock
+        groups={groups}
+        active={active}
+        iconFor={iconFor}
+        onPick={pickGroup}
+        light={!p.isMaster && dark && p.myLight && p.onMyLight ? { meters: p.myLight.meters, onSet: p.onMyLight } : null}
+        marks={p.marks.length}
+        isMaster={p.isMaster}
+        onClearMarks={() => p.onClearMarks(p.isMaster)}
+      />
 
-      {/* folha da ferramenta: variações, ajustes e a dica, presas à doca */}
       {active.id !== 'move' && (
-        <div className="fv-map-sheet" role="toolbar" aria-label={active.label}>
-          <div className="fv-map-sheet-row">
-            <b>{active.label}</b>
-            {active.tools.length > 1 && (
-              <span className="fv-map-seg" role="group" aria-label={`Tipo de ${active.label.toLowerCase()}`}>
-                {active.tools.map((x) => (
-                  <button key={x.t} type="button" className={tool === x.t ? 'is-on' : ''} aria-pressed={tool === x.t} onClick={() => setTool(x.t)} title={x.key ? `${x.label} (${x.key})` : x.label}>
-                    {x.icon}
-                    <span>{x.label}</span>
-                  </button>
-                ))}
-              </span>
-            )}
-          </div>
-          {active.id === 'fog' && p.onFogAll && (
-            <div className="fv-map-sheet-row">
-              <button
-                type="button"
-                className="fv-map-act"
-                onClick={() => {
-                  p.onFogAll!('cover');
-                  p.onForgetExplored?.();
-                }}
-              >
-                Cobrir tudo
-              </button>
-              <button type="button" className="fv-map-act" onClick={() => p.onFogAll!('reveal')}>Revelar tudo</button>
-              {fog?.on && <button type="button" className="fv-map-act is-quiet" onClick={() => p.onFogAll!('off')}>Desligar névoa</button>}
-              {vision && p.onForgetExplored && (
-                <button type="button" className="fv-map-act is-quiet" onClick={p.onForgetExplored} title="Os jogadores esquecem o que já exploraram nesta cena">
-                  Apagar a memória
-                </button>
-              )}
-            </div>
-          )}
-          {active.id === 'walls' && p.onFogSet && (
-            <>
-              <div className="fv-map-sheet-row">
-                <button type="button" className="fv-map-switch" role="switch" aria-checked={vision} onClick={() => saveWalls(walls, { on: true, vision: !vision })}>
-                  <i aria-hidden /> Visão dinâmica
-                </button>
-                <button type="button" className="fv-map-switch" role="switch" aria-checked={!!fog?.dark} disabled={!vision} onClick={() => saveWalls(walls, { dark: !fog?.dark })}>
-                  <i aria-hidden /> Cena no escuro
-                </button>
-              </div>
-              {walls.length > 0 && (
-                <div className="fv-map-sheet-row">
-                  <span className="fv-map-count">{walls.length} {walls.length === 1 ? 'traço' : 'traços'}</span>
-                  <button type="button" className="fv-map-act" onClick={() => saveWalls(walls.slice(0, -1))}>Desfazer</button>
-                  <button type="button" className="fv-map-act is-danger" onClick={() => saveWalls([])}>Apagar todas</button>
-                </div>
-              )}
-            </>
-          )}
-          {active.id === 'secrets' && (
-            <div className="fv-secret-list" aria-label="Segredos desta cena">
-              {p.secretsMissing && <p className="fv-secret-empty">Rode <code>supabase/segredos.sql</code> no Supabase para guardar segredos.</p>}
-              {!p.secretsMissing && !(p.secrets ?? []).length && <p className="fv-secret-empty">Nada escondido nesta cena ainda.</p>}
-              {(p.secrets ?? []).map((sc) => {
-                const tk = p.tokens.find((t) => t.id === sc.tokenId);
-                return (
-                  <button
-                    key={sc.id}
-                    type="button"
-                    className={'fv-secret-row' + (sc.foundAt ? ' is-found' : '') + (tk && p.selectedId === tk.id ? ' is-on' : '')}
-                    onClick={() => {
-                      if (!tk) return;
-                      p.onSelect?.(tk.id);
-                      centerOn(tk.x + tk.size / 2, tk.y + tk.size / 2);
-                    }}
-                  >
-                    <span className={`fv-secret-row-ico is-${sc.kind}`} aria-hidden><SecretGlyph kind={sc.kind} size={16} /></span>
-                    <span className="fv-secret-row-txt">
-                      <b>{sc.title}</b>
-                      <small>{sc.foundAt ? `Achado por ${sc.foundBy ?? '—'}` : rulesSummary(sc.rules)}</small>
-                    </span>
-                    <span className={'fv-secret-row-state' + (sc.foundAt ? ' is-found' : '')}>{sc.foundAt ? 'Achado' : 'Escondido'}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          {!selected && !myMark && !ruler && <small className="fv-map-sheet-hint">{hint}</small>}
-        </div>
+        <ToolSheet
+          active={active}
+          tool={tool}
+          onTool={setTool}
+          hint={busyHint ? null : hint}
+          fog={p.onFogAll ? { on: !!fog?.on, vision, onAll: p.onFogAll, onForget: p.onForgetExplored } : undefined}
+          walls={
+            p.onFogSet
+              ? {
+                  vision,
+                  dark: !!fog?.dark,
+                  count: walls.length,
+                  readOnly: !!p.wallsReadOnly,
+                  onVision: () => setFogKeys({ on: true, vision: !vision }),
+                  onDark: () => setFogKeys({ dark: !fog?.dark }),
+                  onUndo: () => {
+                    const last = walls[walls.length - 1];
+                    if (last?.id) p.onWallsRemove?.([last.id]);
+                  },
+                  onClear: () => p.onWallsRemove?.(walls.flatMap((w) => (w.id ? [w.id] : []))),
+                }
+              : undefined
+          }
+          secrets={
+            p.isMaster
+              ? {
+                  list: p.secrets ?? [],
+                  missing: !!p.secretsMissing,
+                  tokens: p.tokens,
+                  selectedId: p.selectedId,
+                  onOpen: (tk) => {
+                    p.onSelect?.(tk.id);
+                    centerOn(tk.x + tk.size / 2, tk.y + tk.size / 2);
+                  },
+                }
+              : undefined
+          }
+        />
       )}
 
-      {/* visão: trazer todos · zoom · grade · tela cheia */}
-      <div className="fv-map-tools" role="toolbar" aria-label="Zoom do mapa">
-        {p.isMaster && p.onPullView && (
-          <>
-            <button type="button" onClick={pullHere} aria-label="Trazer todos para a minha visão" title="Trazer todos para a minha visão (ou Shift + duplo clique)">
-              <IcoPull />
-            </button>
-            <i className="fv-map-tools-sep" aria-hidden />
-          </>
-        )}
-        <button type="button" onClick={() => zoomBtn(0.8)} aria-label="Afastar" title="Afastar">
-          <IcoMinus />
-        </button>
-        <button type="button" className="fv-map-zoom" onClick={fit} aria-label="Enquadrar o mapa" title="Enquadrar o mapa">
-          {Math.round(view.z * 100)}%
-        </button>
-        <button type="button" onClick={() => zoomBtn(1.25)} aria-label="Aproximar" title="Aproximar">
-          <IcoPlus />
-        </button>
-        <i className="fv-map-tools-sep" aria-hidden />
-        {g.show && (
-          <button type="button" className={showGrid ? 'is-on' : ''} onClick={() => setShowGrid((v) => !v)} aria-pressed={showGrid} aria-label="Mostrar grade" title="Grade">
-            <IcoGrid />
-          </button>
-        )}
-        {p.onToggleFull && (
-          <button
-            type="button"
-            className={'fv-map-fullbtn' + (p.full ? ' is-on' : '')}
-            onClick={p.onToggleFull}
-            aria-pressed={!!p.full}
-            aria-label={p.full ? 'Sair da tela cheia' : 'Mapa em tela cheia'}
-            title={p.full ? 'Sair da tela cheia (Esc)' : 'Mapa em tela cheia (F)'}
-          >
-            {p.full ? <IcoShrink /> : <IcoExpand />}
-          </button>
-        )}
-      </div>
-      {active.id === 'move' && !selected && !myMark && !ruler && <div className="fv-map-hint">{hint}</div>}
+      <ViewTools
+        zoom={view.z}
+        onZoom={zoomBtn}
+        onFit={fit}
+        onPull={p.isMaster && p.onPullView ? pullHere : undefined}
+        grid={g.show ? { on: showGrid, onToggle: () => setShowGrid((v) => !v) } : undefined}
+        full={p.onToggleFull ? { on: !!p.full, onToggle: p.onToggleFull } : undefined}
+      />
+      {active.id === 'move' && !busyHint && <div className="fv-map-hint">{hint}</div>}
       {p.overlay}
     </div>
   );
 }
-
-/** Desenho de uma régua ou molde de área. */
-function MarkShape({ m, px, size, stroke, font }: { m: MapMark; px: (c: number, a: 'x' | 'y') => number; size: number; stroke: number; font: number }) {
-  const L = markLength(m);
-  const fx = px(m.from.x, 'x'), fy = px(m.from.y, 'y');
-  const tx = px(m.to.x, 'x'), ty = px(m.to.y, 'y');
-  const style = { '--mk': m.color } as CSSProperties;
-  const label = (x: number, y: number, text: string) => (
-    <g className="fv-mark-label">
-      <rect x={x - font * 2.6} y={y - font * 1.9} width={font * 5.2} height={font * 1.4} rx={font * 0.3} />
-      <text x={x} y={y - font * 0.85} fontSize={font} textAnchor="middle">{text}</text>
-    </g>
-  );
-  if (m.kind === 'measure') {
-    const meters = cellDistance(m.from.x - 0.5, m.from.y - 0.5, m.to.x - 0.5, m.to.y - 0.5) * CELL_METERS;
-    return (
-      <g className="fv-mark is-measure" style={style}>
-        <line x1={fx} y1={fy} x2={tx} y2={ty} strokeWidth={stroke * 1.4} />
-        <circle cx={fx} cy={fy} r={stroke * 2} />
-        <circle cx={tx} cy={ty} r={stroke * 2.4} />
-        {label(tx, ty, fmtMeters(meters))}
-      </g>
-    );
-  }
-  const meters = fmtMeters(L * CELL_METERS);
-  if (m.kind === 'circle') {
-    return (
-      <g className="fv-mark" style={style}>
-        <circle cx={fx} cy={fy} r={L * size} strokeWidth={stroke} />
-        <line x1={fx} y1={fy} x2={tx} y2={ty} strokeWidth={stroke * 0.6} strokeDasharray={`${stroke * 2} ${stroke * 2}`} />
-        {label(fx, fy - L * size * 0.35, `${meters} raio`)}
-      </g>
-    );
-  }
-  if (m.kind === 'square') {
-    const sx = Math.sign(m.to.x - m.from.x) || 1, sy = Math.sign(m.to.y - m.from.y) || 1;
-    const x = sx > 0 ? fx : fx - L * size, y = sy > 0 ? fy : fy - L * size;
-    return (
-      <g className="fv-mark" style={style}>
-        <rect x={x} y={y} width={L * size} height={L * size} strokeWidth={stroke} />
-        {label(x + (L * size) / 2, y + (L * size) / 2 + font, meters)}
-      </g>
-    );
-  }
-  if (m.kind === 'line') {
-    const ang = Math.atan2(m.to.y - m.from.y, m.to.x - m.from.x);
-    const ex = fx + Math.cos(ang) * L * size, ey = fy + Math.sin(ang) * L * size;
-    const nx = -Math.sin(ang) * size * 0.5, ny = Math.cos(ang) * size * 0.5;
-    return (
-      <g className="fv-mark" style={style}>
-        <polygon points={`${fx + nx},${fy + ny} ${ex + nx},${ey + ny} ${ex - nx},${ey - ny} ${fx - nx},${fy - ny}`} strokeWidth={stroke} />
-        {label(ex, ey, meters)}
-      </g>
-    );
-  }
-  const pts = conePoints(m).map((q) => `${px(q.x, 'x')},${px(q.y, 'y')}`).join(' ');
-  return (
-    <g className="fv-mark" style={style}>
-      <polygon points={pts} strokeWidth={stroke} />
-      {label(tx, ty, meters)}
-    </g>
-  );
-}
-
-/** Posição absoluta de um botão sobre o mapa (portas). */
-function at(left: number, top: number, fontSize: number): CSSProperties {
-  return { left, top, fontSize };
-}
-
-function initials(label: string): string {
-  const parts = label.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  const num = label.match(/\d+$/)?.[0];
-  return (parts[0][0] + (num ?? parts[1]?.[0] ?? '')).toUpperCase();
-}
-
-/* ícones de traço (24×24), currentColor */
-const S = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-const IcoMove = () => <svg {...S}><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" /></svg>;
-const IcoRuler = () => <svg {...S}><path d="M3 17 17 3l4 4L7 21z" /><path d="M7 13l2 2M10 10l2 2M13 7l2 2" /></svg>;
-const IcoCircle = () => <svg {...S}><circle cx="12" cy="12" r="8" /><path d="M12 12h8" strokeDasharray="2 2" /></svg>;
-const IcoCone = () => <svg {...S}><path d="M4 12 20 4v16z" /></svg>;
-const IcoLine = () => <svg {...S}><path d="M4 18 18 4l2 2L6 20z" /></svg>;
-const IcoSquare = () => <svg {...S}><rect x="4" y="4" width="16" height="16" rx="1" /></svg>;
-const IcoLaser = () => <svg {...S}><path d="M4 20c4-1 4-6 8-7s5-5 8-9" /><circle cx="20" cy="4" r="1.5" fill="currentColor" /></svg>;
-const IcoEye = () => <svg {...S}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>;
-const IcoEyeOff = () => <svg {...S}><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.3 6.3C3.6 8.1 2 12 2 12s4 7 10 7c1.8 0 3.4-.6 4.7-1.4" /></svg>;
-const IcoWall = () => <svg {...S}><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" /></svg>;
-const IcoDoor = () => <svg {...S}><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18" /><circle cx="15" cy="12" r="1" fill="currentColor" /></svg>;
-const IcoTrash = () => <svg {...S}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>;
-
-const IcoExpand = () => <svg {...S}><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>;
-const IcoShrink = () => <svg {...S}><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>;
-const IcoPull = () => <svg {...S}><circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>;
-
-const IcoPlus = () => <svg {...S}><path d="M12 5v14M5 12h14" /></svg>;
-const IcoMinus = () => <svg {...S}><path d="M5 12h14" /></svg>;
-const IcoGrid = () => <svg {...S}><path d="M4 4h16v16H4zM4 9.33h16M4 14.67h16M9.33 4v16M14.67 4v16" /></svg>;
-
-interface ToolGroup {
-  id: string;
-  label: string;
-  key: string;
-  master?: boolean;
-  tools: { t: MapTool; label: string; key?: string; icon: ReactNode }[];
-}
-/** Doca: um botão por grupo (como no Foundry); as variações ficam na folha. */
-const TOOL_GROUPS: ToolGroup[] = [
-  { id: 'move', label: 'Mover', key: 'V', tools: [{ t: 'move', label: 'Mover', icon: <IcoMove /> }] },
-  { id: 'measure', label: 'Régua', key: 'R', tools: [{ t: 'measure', label: 'Régua', icon: <IcoRuler /> }] },
-  {
-    id: 'area',
-    label: 'Moldes de área',
-    key: 'C',
-    tools: [
-      { t: 'circle', label: 'Esfera', key: 'C', icon: <IcoCircle /> },
-      { t: 'cone', label: 'Cone', key: 'O', icon: <IcoCone /> },
-      { t: 'line', label: 'Linha', key: 'L', icon: <IcoLine /> },
-      { t: 'square', label: 'Cubo', key: 'Q', icon: <IcoSquare /> },
-    ],
-  },
-  { id: 'laser', label: 'Caneta-laser', key: 'P', tools: [{ t: 'laser', label: 'Caneta-laser', icon: <IcoLaser /> }] },
-  {
-    id: 'fog',
-    label: 'Névoa',
-    key: 'N',
-    master: true,
-    tools: [
-      { t: 'reveal', label: 'Revelar', icon: <IcoEye /> },
-      { t: 'cover', label: 'Cobrir', icon: <IcoEyeOff /> },
-    ],
-  },
-  {
-    id: 'walls',
-    label: 'Paredes e portas',
-    key: 'W',
-    master: true,
-    tools: [
-      { t: 'wall', label: 'Parede', key: 'W', icon: <IcoWall /> },
-      { t: 'door', label: 'Porta', key: 'D', icon: <IcoDoor /> },
-    ],
-  },
-  {
-    id: 'secrets',
-    label: 'Segredos',
-    key: 'S',
-    master: true,
-    tools: [{ t: 'secret', label: 'Segredo', icon: <SecretGlyph kind="chest" size={19} /> }],
-  },
-];
-function groupOf(t: MapTool): ToolGroup {
-  return TOOL_GROUPS.find((gr) => gr.tools.some((x) => x.t === t)) ?? TOOL_GROUPS[0];
-}
-const HINTS: Partial<Record<MapTool, string>> = {
-  measure: 'Arraste de uma casa a outra · a régua some ao soltar',
-  circle: 'Arraste do centro para fora · todos veem quem fica dentro',
-  cone: 'Arraste da ponta na direção do sopro',
-  line: 'Arraste da origem até o alcance',
-  square: 'Arraste de uma quina na diagonal',
-  laser: 'Risque o caminho · some sozinho',
-  reveal: 'Arraste um retângulo para revelar',
-  cover: 'Arraste um retângulo para cobrir',
-  wall: 'Arraste de quina a quina · um toque numa parede apaga',
-  door: 'Arraste sobre o vão para criar · toque numa porta para trancar',
-  secret: 'Toque numa casa para esconder algo · toque num selo para editar',
-};
-
-const IcoDoorShut = () => <svg {...S}><path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21M4 21h16M14.5 12.5v.01" /></svg>;
-const IcoDoorOpen = () => <svg {...S}><path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3H18v18M4 21h16M6 3.6l6 2.4V21l-6-1.6" /><path d="M10 12.5v.01" /></svg>;
-const IcoLock = () => <svg {...S}><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5" /></svg>;
-const IcoFlame = () => <svg {...S}><path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.4 2.8-5.2 3.4-8.4 1.6 1.3 2.3 2.8 2.4 4.3 1-1 1.6-2.4 1.6-3.9 2.6 1.9 4.6 4.9 4.6 8 0 3.2-2.4 5.6-6 5.6z" /><path d="M12 21c-1.5 0-2.6-1.1-2.6-2.6 0-1.6 1.4-2.4 2.6-4.1 1.2 1.7 2.6 2.5 2.6 4.1 0 1.5-1.1 2.6-2.6 2.6z" /></svg>;
-const LIGHT_LABEL = (m: number) => LIGHT_PRESETS.find((l) => l.m === m)?.label ?? (m > 0 ? `${m} m` : 'Sem luz');
