@@ -70,6 +70,27 @@ Ações do dia a dia (`addTokens`, `updateToken`, `addWalls`, `patchWall`,
 estado real. Ids são gerados no cliente (`crypto.randomUUID`), então o
 evento do banco que volta só confirma a mesma linha.
 
+## Sem rede: fila de jogadas
+
+`write(fn, key)` no `stageStore`: se a gravação falhar por **rede**
+(`isNetworkError`), ela espera numa fila (`src/lib/outbox.ts`, pura e
+testada) em vez de desfazer a jogada. Só entra o que é idempotente — mover
+peão (`move:{id}`), luz (`light:{id}`), editar peão (`token:{id}:{campos}`) e
+névoa (`fog:{cena}`); a mesma chave guarda só a última versão. Porta fica
+de fora (é alternância: repetida, daria o contrário). Ao reconectar, a fila
+sai **antes** da releitura do palco (senão a releitura desfaria a jogada);
+o que o banco recusar sai da fila, aparece na tela e vai para o registro de
+erros. O cabeçalho mostra "· N jogadas na fila". A fila vive só na aba:
+sair da mesa descarta.
+
+## Registro de erros
+
+`src/lib/errorReporter.ts` já guarda os erros no aparelho (Diagnóstico) e
+manda para `client_errors` (`recursos_extras.sql`). Gravações do palco que
+o banco recusa também entram (`scope: 'palco'`). No banco, um gatilho
+limita a 60 por pessoa por hora e apaga o que passar de 90 dias, para o
+plano grátis não encher.
+
 ## Mapa
 
 `src/components/stage/StageMap.tsx` orquestra estado, gestos e camadas.

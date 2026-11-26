@@ -8,6 +8,7 @@ import type { CampaignNpc, NpcSecret } from '@/types/npc';
 import type { Campaign } from '@/types/models';
 import { CONN, OnlineList } from '@/features/live/LiveHeader';
 import { useTableLink } from '@/hooks/useTableLink';
+import { queuedLabel } from '@/lib/tableLink';
 import { MONSTER_BY_ID } from '@/data/bestiary';
 import { monsterCombatants } from '@/components/session/BestiaryPicker';
 import { addToEncounter } from './actions';
@@ -85,6 +86,7 @@ export function MasterWorkspace({ campaign, userId, heroes, npcs, secrets, reloa
           <span className={`fv-live-conn is-${link.connection}`} role="status">
             <i className={`fv-live-dot is-${link.connection}`} aria-hidden />
             {s.session ? `${s.session.name} · ${s.session.status === 'paused' ? 'pausada' : CONN[link.connection]}` : link.connection === 'idle' ? 'Sem sessão' : `Sem sessão · ${CONN[link.connection]}`}
+            {queuedLabel(link.pending)}
           </span>
           {link.online.length > 0 && <OnlineList compact />}
         </header>

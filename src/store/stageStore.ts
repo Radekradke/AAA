@@ -7,6 +7,8 @@ import type { RowChange } from '@/lib/realtimeRows';
 import type { FogConfig, Handout, LaserTrail, MapMark, Scene, SceneSecret, SecretKind, StagePing, StageState, Token, Wall } from '@/types/stage';
 import { KIND_NAME } from '@/engine/secrets';
 import { onWake } from '@/lib/onWake';
+import { createOutbox, isNetworkError } from '@/lib/outbox';
+import { reportError } from '@/lib/errorReporter';
 import { joinStageChannel } from '@/services/stageChannel';
 import type { StageBroadcast, StageChannel, StageTable } from '@/services/stageChannel';
 import type { ConnectionState, PresencePlayer } from '@/types/session';
@@ -60,6 +62,8 @@ interface StageStore {
   connection: ConnectionState;
   /** Quem está com o mapa aberto agora (presença do canal do palco). */
   online: PresencePlayer[];
+  /** Gravações feitas sem rede, esperando a conexão voltar. */
+  pending: number;
 
   open: (campaignId: string, opts: { isMaster: boolean; userId: string; who: string }) => void;
   close: () => void;
@@ -127,6 +131,8 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 let stopWake: (() => void) | null = null;
 let seq = 0;
 let lastDrag = 0;
+/** Gravações idempotentes feitas sem rede (só nesta aba; sair da mesa descarta). */
+const outbox = createOutbox(isNetworkError);
 /** Cor do marcador de cada tipo de segredo (é o que a mesa vê quando acha). */
 export const SECRET_COLOR: Record<SecretKind, string> = { chest: '#d9a441', trap: '#e0524f', door: '#8fa6b8', clue: '#6fc2b0', item: '#b48ef0' };
 const PING_COLORS = ['#f5c542', '#5cc8ff', '#ff7a90', '#7dff9b', '#c49bff', '#ffa45c'];
@@ -170,18 +176,43 @@ export const useStageStore = create<StageStore>()((set, get) => {
   };
   const send = (event: StageBroadcast, payload: Record<string, unknown>) => live?.send(event, payload);
 
+  /** O banco recusou (não foi a rede): mostra, registra e volta ao que o banco tem. */
+  const rejected = async (e: unknown) => {
+    if (e instanceof PalcoSetupError) set({ missing: true, missingDetail: e.detail });
+    else {
+      set({ error: (e as Error).message });
+      reportError(e, { kind: 'manual', scope: 'palco' });
+    }
+    await get().refresh();
+  };
+
   /**
    * Gravação do dia a dia (peão, parede, névoa): a tela já mudou (otimista) e
-   * o evento do banco confirma — só recarrega tudo se der erro, para voltar
-   * ao que o banco tem.
+   * o evento do banco confirma. Sem rede, uma gravação com `key` (idempotente)
+   * espera na fila e sai quando a conexão volta; sem `key`, ou se o banco
+   * recusar, recarrega para voltar ao que o banco tem.
    */
-  const write = async (fn: () => Promise<unknown>): Promise<void> => {
+  const write = async (fn: () => Promise<unknown>, key?: string): Promise<void> => {
     try {
       await fn();
     } catch (e) {
-      set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail } : { error: (e as Error).message });
-      await get().refresh();
+      if (key && isNetworkError(e)) {
+        outbox.put(key, fn);
+        set({ pending: outbox.size });
+        return;
+      }
+      await rejected(e);
     }
+  };
+
+  /** Conexão de volta: manda a fila primeiro e só então relê (senão a releitura desfaria o que esperava). */
+  const resync = async () => {
+    if (outbox.size) {
+      const r = await outbox.flush();
+      set({ pending: outbox.size });
+      if (r.dropped.length) await rejected(r.dropped[0].error);
+    }
+    schedule();
   };
 
   /** Cena aberta no mapa agora (é dela que guardamos peões e paredes). */
@@ -302,7 +333,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
       onBroadcast,
       onPresence,
       onStatus: (connection) => set({ connection }),
-      onResync: schedule,
+      onResync: () => void resync(),
     });
   };
 
@@ -331,6 +362,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     secretsMissing: false,
     connection: 'idle',
     online: [],
+    pending: 0,
     exploredReset: {},
     walls: [],
     wallsMissing: false,
@@ -353,10 +385,11 @@ export const useStageStore = create<StageStore>()((set, get) => {
     close() {
       live?.leave();
       live = null;
+      outbox.clear();
       stopWake?.();
       stopWake = null;
       if (timer) clearTimeout(timer);
-      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false, walls: [], wallsMissing: false, connection: 'idle', online: [] });
+      set({ campaignId: null, scenes: [], stage: null, viewSceneId: null, tokens: [], handouts: [], incoming: null, drags: {}, pings: [], marks: {}, lasers: {}, focus: null, missing: false, error: null, secrets: [], secretsMissing: false, walls: [], wallsMissing: false, connection: 'idle', online: [], pending: 0 });
     },
 
     async refresh() {
@@ -403,6 +436,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
         set({ scenes, stage, handouts, tokens, walls, wallsMissing, incoming, secrets, secretsMissing, missing: false, missingDetail: null, viewSceneId: isMaster ? view : null });
       } catch (e) {
         if (mine !== seq) return;
+        // sem rede o selo de conexão já avisa; a releitura volta sozinha com a conexão
+        if (isNetworkError(e)) return;
         set(e instanceof PalcoSetupError ? { missing: true, missingDetail: e.detail, error: null } : { error: (e as Error).message });
       }
     },
@@ -463,11 +498,11 @@ export const useStageStore = create<StageStore>()((set, get) => {
     },
     updateToken: (id, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
-      return write(() => stageService.updateToken(id, patch));
+      return write(() => stageService.updateToken(id, patch), `token:${id}:${Object.keys(patch).sort().join(',')}`);
     },
     updateTokens: (ids, patch) => {
       set((s) => ({ tokens: s.tokens.map((t) => (ids.includes(t.id) ? { ...t, ...patch } : t)) }));
-      return write(() => Promise.all(ids.map((id) => stageService.updateToken(id, patch))));
+      return write(() => Promise.all(ids.map((id) => stageService.updateToken(id, patch))), `tokens:${[...ids].sort().join(',')}:${Object.keys(patch).sort().join(',')}`);
     },
     removeToken: (id) => {
       set((s) => ({ tokens: s.tokens.filter((t) => t.id !== id) }));
@@ -479,12 +514,8 @@ export const useStageStore = create<StageStore>()((set, get) => {
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === id ? { ...t, x, y } : t)) }));
       const t = get().tokens.find((k) => k.id === id);
       if (t && !t.hidden) send('drag', { id, x, y, end: true });
-      try {
-        await stageService.moveToken(id, x, y, get().isMaster);
-      } catch (e) {
-        set({ error: (e as Error).message });
-        await get().refresh();
-      }
+      const asMaster = get().isMaster;
+      await write(() => stageService.moveToken(id, x, y, asMaster), `move:${id}`);
     },
 
     dragPreview(id, x, y) {
@@ -576,13 +607,10 @@ export const useStageStore = create<StageStore>()((set, get) => {
     async setLight(tokenId, meters) {
       const m = Math.max(0, Math.min(36, meters));
       if (get().isMaster) return get().updateToken(tokenId, { light: m });
-      const before = get().tokens.find((t) => t.id === tokenId)?.light ?? 0;
       set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: m } : t)) }));
-      try {
-        if (!(await stageService.setTokenLight(tokenId, m))) set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: before } : t)) }));
-      } catch (e) {
-        set((s) => ({ tokens: s.tokens.map((t) => (t.id === tokenId ? { ...t, light: before } : t)), error: (e as Error).message }));
-      }
+      await write(async () => {
+        if (!(await stageService.setTokenLight(tokenId, m))) throw new Error('Só dá para acender a luz do seu próprio herói.');
+      }, `light:${tokenId}`);
     },
 
     forgetExplored(sceneId) {
@@ -593,7 +621,7 @@ export const useStageStore = create<StageStore>()((set, get) => {
     async saveFog(scene, fog) {
       // otimista: a névoa muda na hora para o mestre
       set((s) => ({ scenes: s.scenes.map((x) => (x.id === scene.id ? { ...x, grid: { ...x.grid, fog } } : x)) }));
-      await write(() => stageService.saveScene(scene.campaignId, { id: scene.id, grid: { ...scene.grid, fog } }));
+      await write(() => stageService.saveScene(scene.campaignId, { id: scene.id, grid: { ...scene.grid, fog } }), `fog:${scene.id}`);
     },
 
     showHandout: (id, recipients) => get().run(() => stageService.showHandout(id, recipients)).then(() => undefined),

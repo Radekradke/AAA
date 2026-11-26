@@ -98,7 +98,8 @@ export function joinLiveChannel(campaignId: string, sessionId: string, me: Omit<
   channel = build();
 
   const goOffline = () => h.onStatus('offline');
-  const goOnline = () => h.onStatus(everSubscribed ? 'reconnecting' : 'connecting');
+  // a rede voltou: se o canal aguentou a piscada, já está ao vivo; senão o realtime-js reconecta
+  const goOnline = () => h.onStatus(channel?.state === 'joined' ? 'connected' : everSubscribed ? 'reconnecting' : 'connecting');
   window.addEventListener('offline', goOffline);
   window.addEventListener('online', goOnline);
 

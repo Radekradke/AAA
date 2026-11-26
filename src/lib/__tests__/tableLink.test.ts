@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { linkState, mergeOnline } from '../tableLink';
+import { linkState, mergeOnline, queuedLabel } from '../tableLink';
 import type { PresencePlayer } from '@/types/session';
 
 const p = (userId: string, role: 'master' | 'player', name: string, characterName: string | null = null): PresencePlayer => ({ userId, role, name, characterId: null, characterName, onlineAt: '' });
@@ -19,5 +19,11 @@ describe('estado da mesa (sessão + palco)', () => {
     expect(all.map((x) => x.userId)).toEqual(['gm', 'u1', 'u2']);
     // a da sessão ganha: traz o herói
     expect(all.find((x) => x.userId === 'u1')?.characterName).toBe('Kael');
+  });
+
+  it('conta as jogadas na fila', () => {
+    expect(queuedLabel(0)).toBe('');
+    expect(queuedLabel(1)).toBe(' · 1 jogada na fila');
+    expect(queuedLabel(3)).toBe(' · 3 jogadas na fila');
   });
 });
