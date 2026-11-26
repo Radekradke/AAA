@@ -138,11 +138,12 @@ export function Home() {
 
   return (
     <Screen>
-      {/* a maga fica à esquerda do vídeo; no PC o menu vai para o lado livre (direita) */}
       <div className="fv-menu">
         <header className="fv-menu-brand">
-          <FichaVivaMark />
-          <h1 className="fv-home-title fv-menu-title">FICHA&nbsp;VIVA</h1>
+          <div className="fv-home-brand-composition">
+            <FichaVivaMark className="fv-home-brand-watermark" />
+            <h1 className="fv-home-title fv-menu-title">FICHA&nbsp;VIVA</h1>
+          </div>
           <p className="fv-menu-tag">Crie&nbsp;·&nbsp;Desperte&nbsp;·&nbsp;Jogue</p>
         </header>
 
