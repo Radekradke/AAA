@@ -122,4 +122,38 @@ test.describe('multiplayer: mestre e jogador na mesma mesa', () => {
     expect(t.errors).toEqual([]);
     await t.close();
   });
+
+  test('o mestre vê quem está na mesa, e o herói de quem saiu fica apagado', async ({ page, browser }) => {
+    const t = await table(page, browser);
+    const kael = page.locator('.fv-token', { hasText: 'Kael Venturo' });
+    await expect(page.locator('.fv-mw-head .fv-live-online li')).toHaveCount(2);
+    await expect(kael).not.toHaveClass(/is-away/);
+    // o jogador sai da mesa (volta para as fichas)
+    await t.player.goto('/');
+    await expect(page.locator('.fv-mw-head .fv-live-online li')).toHaveCount(1);
+    await expect(kael).toHaveClass(/is-away/);
+    await expect(kael).toHaveAttribute('aria-label', /fora da mesa/);
+    // e volta: o herói acende de novo
+    await t.player.goto(`/mesa/${C}/jogar`);
+    await expect(kael).not.toHaveClass(/is-away/);
+    await t.close();
+  });
+
+  test('a internet do jogador cai e volta: a mesa avisa e põe o que mudou em dia', async ({ page, browser }) => {
+    const t = await table(page, browser);
+    const status = t.player.locator('.fv-live-head [role="status"]');
+    await expect(status).toHaveText('Ao vivo');
+    const goblin = t.player.locator('.fv-token', { hasText: 'Goblin #1' });
+    const before = await stableBox(goblin);
+    // a conexão do jogador cai…
+    for (const sock of t.db.hub.sockets.filter((x) => x.me !== t.db.me)) sock.close();
+    // …e, enquanto ele está fora, o goblin anda (o evento não chega a ele)
+    t.db.tables.scene_tokens.find((x) => x.id === 't2')!.x = 5;
+    await expect(status).toHaveText(/Reconectando|Conectando/);
+    // o realtime-js reconecta sozinho; ao voltar, a mesa relê o palco
+    await expect(status).toHaveText('Ao vivo', { timeout: 15_000 });
+    await expect.poll(async () => Math.round((before.x - (await goblin.boundingBox())!.x) / before.width)).toBe(3);
+    expect(t.errors).toEqual([]);
+    await t.close();
+  });
 });

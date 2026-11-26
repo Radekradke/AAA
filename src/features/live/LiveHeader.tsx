@@ -1,6 +1,7 @@
 import { useSessionStore } from '@/store/sessionStore';
 import type { ConnectionState } from '@/types/session';
 import { useShallow } from 'zustand/react/shallow';
+import { useTableLink } from '@/hooks/useTableLink';
 
 export const CONN: Record<ConnectionState, string> = {
   idle: 'Fora da sessão',
@@ -30,7 +31,7 @@ export function RollVisibilityToggle({ isMaster }: { isMaster: boolean }) {
 
 /** Quem está conectado agora (presença). */
 export function OnlineList({ compact }: { compact?: boolean }) {
-  const online = useSessionStore((s) => s.online);
+  const { online } = useTableLink();
   return (
     <ul className={'fv-live-online' + (compact ? ' is-compact' : '')} aria-label="Quem está na mesa">
       {online.map((p) => (
@@ -45,16 +46,17 @@ export function OnlineList({ compact }: { compact?: boolean }) {
 
 /** Cabeçalho da mesa do JOGADOR: mesa, sessão, conexão, rolagens e quem está online. */
 export function LiveHeader({ campaignName }: { campaignName: string | null }) {
-  const s = useSessionStore(useShallow((st) => ({ session: st.session, online: st.online, connection: st.connection, rollVisibility: st.rollVisibility, setRollVisibility: st.setRollVisibility })));
+  const s = useSessionStore(useShallow((st) => ({ session: st.session })));
+  const link = useTableLink();
   return (
     <header className="fv-live-head">
       <div className="fv-live-title">
         <div className="fv-label">Mesa ao vivo</div>
         <h1>{campaignName ?? 'Carregando…'}</h1>
         <div className="fv-live-sub">
-          <span className={`fv-live-conn is-${s.connection}`}>
-            <i className={`fv-live-dot is-${s.connection}`} aria-hidden />
-            {CONN[s.connection]}
+          <span className={`fv-live-conn is-${link.connection}`} role="status">
+            <i className={`fv-live-dot is-${link.connection}`} aria-hidden />
+            {CONN[link.connection]}
           </span>
           {s.session && (
             <span>
@@ -65,7 +67,7 @@ export function LiveHeader({ campaignName }: { campaignName: string | null }) {
           {s.session && <RollVisibilityToggle isMaster={false} />}
         </div>
       </div>
-      {s.session && <OnlineList />}
+      {link.online.length > 0 && <OnlineList />}
     </header>
   );
 }

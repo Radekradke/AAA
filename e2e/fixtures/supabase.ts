@@ -55,10 +55,15 @@ interface RtChannel {
   arr: boolean;
   /** Assinaturas postgres_changes do canal, com o id que o servidor devolveu. */
   changes: (Row & { id: number })[];
+  /** Chave de presença (config.presence.key do join) e o que esta janela anunciou. */
+  presenceKey: string;
+  presence: Row | null;
 }
 interface RtSocket {
   me: string;
   send: (data: string) => void;
+  /** Derruba a conexão (rede caiu): o realtime-js reconecta sozinho. */
+  close: () => void;
   topics: Map<string, RtChannel>;
 }
 export interface RealtimeHub {
@@ -307,10 +312,22 @@ export async function installSupabase(page: Page, who: Who, opts: { shared?: Moc
   };
   await page.route(`${MOCK_URL}/**`, (route) => handle(route, db));
   await page.routeWebSocket(/mock\.supa\.test/, (ws) => {
-    const sock: RtSocket = { me, send: (d) => ws.send(d), topics: new Map() };
+    const sock: RtSocket = { me, send: (d) => ws.send(d), close: () => void ws.close({ code: 1006, reason: 'queda' }).catch(() => undefined), topics: new Map() };
     hub.sockets.push(sock);
+    /** presence_diff para todas as janelas no tópico (inclusive esta, como o Phoenix). */
+    const presenceDiff = (topic: string, key: string, meta: Row, kind: 'joins' | 'leaves') => {
+      for (const other of hub.sockets) {
+        const ch = other.topics.get(topic);
+        if (ch) other.send(frame(ch, topic, 'presence_diff', { joins: kind === 'joins' ? { [key]: { metas: [meta] } } : {}, leaves: kind === 'leaves' ? { [key]: { metas: [meta] } } : {} }));
+      }
+    };
+    const dropPresence = (topic: string, ch: RtChannel) => {
+      if (ch.presence) presenceDiff(topic, ch.presenceKey, ch.presence, 'leaves');
+      ch.presence = null;
+    };
     ws.onClose(() => {
       hub.sockets = hub.sockets.filter((x) => x !== sock);
+      for (const [topic, ch] of sock.topics) dropPresence(topic, ch);
     });
     /** Repassa um broadcast às outras janelas no mesmo tópico (self: false). */
     const relay = (topic: string, payload: unknown) => {
@@ -335,21 +352,42 @@ export async function installSupabase(page: Page, who: Who, opts: { shared?: Moc
       }
       // Realtime v2 manda arrays [join_ref, ref, topic, event, payload]; v1 manda objetos
       const arr = Array.isArray(msg);
-      const o = msg as { join_ref?: string; ref?: string; topic: string; event: string; payload: { config?: { postgres_changes?: Row[] } } & Row };
+      const o = msg as { join_ref?: string; ref?: string; topic: string; event: string; payload: { config?: { postgres_changes?: Row[]; presence?: { key?: string } } } & Row };
       const [jr, ref, topic, event, pl] = arr ? (msg as [string, string, string, string, typeof o.payload]) : [o.join_ref, o.ref, o.topic, o.event, o.payload];
       const send = (ev: string, payload: unknown, r: string | null = ref ?? null, j: string | null = jr ?? null) =>
         ws.send(JSON.stringify(arr ? [j, r, topic, ev, payload] : { topic, event: ev, payload, ref: r }));
       if (event === 'phx_join') {
         const pc = (pl?.config?.postgres_changes ?? []).map((x, i) => ({ ...x, id: i + 1 }));
-        sock.topics.set(topic, { joinRef: jr ?? null, arr, changes: pc });
+        const prev = sock.topics.get(topic);
+        if (prev) dropPresence(topic, prev);
+        const ch: RtChannel = { joinRef: jr ?? null, arr, changes: pc, presenceKey: pl?.config?.presence?.key || `anon-${Math.random().toString(36).slice(2)}`, presence: null };
+        sock.topics.set(topic, ch);
         send('phx_reply', { status: 'ok', response: { postgres_changes: pc } });
+        // estado inicial da presença: quem já está no tópico (o Phoenix manda logo após entrar)
+        const state: Row = {};
+        for (const other of hub.sockets) {
+          const och = other.topics.get(topic);
+          if (och?.presence) state[och.presenceKey] = { metas: [...((state[och.presenceKey] as { metas: Row[] } | undefined)?.metas ?? []), och.presence] };
+        }
+        sock.send(frame(ch, topic, 'presence_state', state));
       } else if (event === 'phx_leave') {
+        const ch = sock.topics.get(topic);
+        if (ch) dropPresence(topic, ch);
         sock.topics.delete(topic);
+        send('phx_reply', { status: 'ok', response: {} });
+      } else if (event === 'presence') {
+        const ch = sock.topics.get(topic);
+        const p = pl as { event?: string; payload?: Row };
+        if (ch && p.event === 'track') {
+          if (ch.presence) dropPresence(topic, ch);
+          ch.presence = { ...(p.payload ?? {}), phx_ref: Math.random().toString(36).slice(2) };
+          presenceDiff(topic, ch.presenceKey, ch.presence, 'joins');
+        } else if (ch && p.event === 'untrack') dropPresence(topic, ch);
         send('phx_reply', { status: 'ok', response: {} });
       } else if (event === 'broadcast') {
         relay(topic, pl);
         send('phx_reply', { status: 'ok', response: {} });
-      } else if (event === 'heartbeat' || event === 'presence' || event === 'access_token') {
+      } else if (event === 'heartbeat' || event === 'access_token') {
         send('phx_reply', { status: 'ok', response: {} });
       }
     });

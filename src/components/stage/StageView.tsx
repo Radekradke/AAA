@@ -24,6 +24,7 @@ import type { Scene, Token } from '@/types/stage';
 import '@/styles/stage.css';
 import { useShallow } from 'zustand/react/shallow';
 import { InlineIcon } from '@/components/ui/Icon';
+import { useTableLink } from '@/hooks/useTableLink';
 
 interface StageViewProps {
   isMaster: boolean;
@@ -62,6 +63,13 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
     if (fullOn && scene?.kind !== 'map') toggleFull();
   }, [scene?.kind]); // eslint-disable-line react-hooks/exhaustive-deps
   const ctx = useTokenContext({ heroes, npcs, combatants, encounter, isMaster, tokens: st.tokens });
+  // herói de quem fechou o mapa (ou caiu): fica apagado até a pessoa voltar
+  const link = useTableLink();
+  const isAway = useMemo(() => {
+    if (link.connection !== 'connected' || !link.online.length) return undefined;
+    const here = new Set(link.online.map((p) => p.userId));
+    return (t: Token) => t.kind === 'hero' && !!t.ownerId && t.ownerId !== userId && !here.has(t.ownerId);
+  }, [link.connection, link.online, userId]);
   const canMove = (t: Token) => isMaster || (t.ownerId === userId && !t.hidden);
   const [follow, setFollow] = useState(() => {
     try {
@@ -270,6 +278,7 @@ export function StageView({ isMaster, userId, heroes, npcs, combatants, encounte
             darkFor={ctx.darkFor}
             hpFor={isMaster ? ctx.hpFor : undefined}
             conditionsFor={ctx.conditionsFor}
+            isAway={isAway}
             activeIds={activeIds}
             targetIds={isMaster ? targetIds : undefined}
             drags={st.drags}
