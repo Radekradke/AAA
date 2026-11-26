@@ -242,11 +242,11 @@ export const useStageStore = create<StageStore>()((set, get) => {
     },
 
     async refresh() {
-      const { campaignId, isMaster } = get();
+      const { campaignId, isMaster, userId } = get();
       if (!campaignId) return;
       const mine = ++seq;
       try {
-        const [scenes, stage, handouts] = await Promise.all([
+        const [scenes, stage, availableHandouts] = await Promise.all([
           stageService.scenes(campaignId),
           stageService.stage(campaignId),
           stageService.handouts(campaignId),
@@ -267,8 +267,12 @@ export const useStageStore = create<StageStore>()((set, get) => {
         }
         if (mine !== seq || get().campaignId !== campaignId) return;
 
+        const handouts = isMaster ? availableHandouts : availableHandouts.filter(
+          (h) => h.shownAt && (h.recipients === null || (!!userId && h.recipients.includes(userId))),
+        );
         // handout novo para mim: aviso na tela (uma vez)
-        let incoming = get().incoming;
+        const shown = get().incoming;
+        let incoming = shown ? handouts.find((h) => h.id === shown.id) ?? null : null;
         if (!isMaster) {
           const seen = seenHandouts(campaignId);
           const fresh = handouts.filter((h) => h.shownAt && !seen.includes(h.id));

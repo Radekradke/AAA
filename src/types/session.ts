@@ -54,6 +54,7 @@ export interface Combatant {
   initiativeBonus: number;
   turnOrder: number;
   hpCurrent: number | null;
+  hpEventId?: string | null;
   hpMax: number | null;
   armorClass: number | null;
   conditions: string[];

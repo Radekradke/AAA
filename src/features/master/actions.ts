@@ -1,5 +1,6 @@
 import { useSessionStore } from '@/store/sessionStore';
 import type { KillBy } from '@/store/sessionStore';
+import { sessionService } from '@/services/sessionService';
 import { encounterService } from '@/services/encounterService';
 import { confirmAction, toast } from '@/store/feedbackStore';
 import type { Combatant } from '@/types/session';
@@ -23,19 +24,33 @@ export async function hpWithUndo(c: Combatant, delta: number, opts?: { crit?: bo
   if (!delta) return;
   const s = useSessionStore.getState();
   await s.changeHp(c, delta, opts);
+  if (useSessionStore.getState().error) return;
   const word = delta < 0 ? `${-delta} de dano em ${c.name}` : `${delta} de cura em ${c.name}`;
   if (c.type === 'player') {
     toast(`${word} — enviado para a ficha.`, { tone: 'info' });
     return;
   }
   const before = c.hpCurrent;
+  const after = fresh(c.id)?.hpCurrent;
   toast(`${word}.`, {
     tone: delta < 0 ? 'danger' : 'ok',
     action: {
       label: 'Desfazer',
       run: () => {
         const now = fresh(c.id);
-        if (now && before !== null) void useSessionStore.getState().updateCombatant(now.id, { hp_current: before });
+        if (!now || before === null) return;
+        if (now.hpCurrent !== after) {
+          toast('Os PV mudaram desde essa ação. Confira o valor e corrija no Inspetor.', { tone: 'info' });
+          return;
+        }
+        void (async () => {
+          const st = useSessionStore.getState();
+          await st.updateCombatant(now.id, { hp_current: before });
+          if (useSessionStore.getState().error || !st.me || !st.session || !st.campaignId) return;
+          await sessionService.log(st.session.id, st.campaignId, st.me.userId, 'combatant_hp_undo',
+            { name: now.name, before: now.hpCurrent, after: before }, now.hidden ? 'master' : 'public', { targetId: now.id });
+          await st.refresh();
+        })().catch((err: Error) => toast(err.message, { tone: 'danger' }));
       },
     },
   });

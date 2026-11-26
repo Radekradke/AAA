@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/test';
-import { C, INVITE_CODE, M, SHARE_TOKEN, WIZARD, installSupabase, signIn } from './fixtures/supabase';
+import { C, INVITE_CODE, M, P, SHARE_TOKEN, WIZARD, installSupabase, signIn } from './fixtures/supabase';
 
 test.describe('mesa (campanha)', () => {
   test('mestre vê o código curto e o QR do convite', async ({ page }) => {
@@ -56,6 +56,32 @@ test.describe('mesa (campanha)', () => {
     await page.locator('.fv-map-fullbtn').click();
     await expect(page.locator('.fv-stage')).toHaveClass(/is-full/);
     await expect(page.locator('.fv-stage-next')).toHaveCount(0);
+  });
+
+  test('turno e ficha ficam visíveis acima do mapa @celular', async ({ page }) => {
+    await signIn(page, 'player', { characters: [{ ...WIZARD, id: 'k', ownerId: P }] });
+    await installSupabase(page, 'player');
+    await page.goto(`/mesa/${C}/jogar`);
+    const summary = page.getByRole('region', { name: 'Turno do combate' });
+    await expect(summary).toBeInViewport();
+    await expect(summary.getByText('Seu turno!')).toBeVisible();
+    await expect(summary.getByRole('link', { name: /Abrir ficha/ })).toHaveAttribute('href', '/ficha/k');
+  });
+
+  test('jogador sem ficha pode importar sem sair da sala', async ({ page }) => {
+    await signIn(page, 'player');
+    const db = await installSupabase(page, 'player');
+    db.tables.shared_sheets = [];
+    db.tables.sheets = [];
+    await page.goto(`/mesa/${C}`);
+    await expect(page.getByText(/Sem ficha vinculada/)).toBeVisible();
+    await page.getByRole('button', { name: 'Importar ficha' }).click();
+    await page.getByRole('textbox', { name: 'Texto da ficha' }).fill(JSON.stringify([WIZARD]));
+    await page.getByRole('button', { name: 'Importar herói' }).click();
+    const back = page.getByRole('button', { name: 'Voltar para vincular' });
+    if (await back.isVisible()) await back.click();
+    await expect(page.getByRole('button', { name: /[+] Lyra Sombraluz/ })).toBeVisible();
+    await expect(page).toHaveURL(`/mesa/${C}`);
   });
 
   test('jogador no celular: "Ver mapa" no card do turno leva até o mapa @celular', async ({ page }, info) => {

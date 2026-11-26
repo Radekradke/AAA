@@ -7,7 +7,7 @@ import { importHeroText } from '@/lib/heroImport';
  * docs/CRIAR-COM-CHATGPT.md) ou o JSON exportado de outra ficha. O app monta
  * o herói com as regras da criação e mostra o que precisou ajustar.
  */
-export function PasteImportModal({ ownerId, onClose, onOpen }: { ownerId: string; onClose: () => void; onOpen: (id: string) => void }) {
+export function PasteImportModal({ ownerId, onClose, onOpen, doneLabel = 'Abrir a ficha' }: { ownerId: string; onClose: () => void; onOpen: (id: string) => void; doneLabel?: string }) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ id: string; warnings: string[] } | null>(null);
@@ -29,7 +29,7 @@ export function PasteImportModal({ ownerId, onClose, onOpen }: { ownerId: string
       footer={
         done ? (
           <button type="button" className="fv-btn-gold fv-paste-btn" onClick={() => onOpen(done.id)}>
-            Abrir a ficha
+            {doneLabel}
           </button>
         ) : (
           <button type="button" className="fv-btn-gold fv-paste-btn" disabled={!text.trim()} onClick={run}>

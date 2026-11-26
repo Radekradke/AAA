@@ -108,7 +108,7 @@ export const sessionService = {
   /** Últimos eventos que EU posso ver (RLS filtra público/mestre/privado). */
   async events(sessionId: string, limit = 40): Promise<SessionEvent[]> {
     const { data, error } = await sb().from('session_events').select('*').eq('session_id', sessionId)
-      .order('created_at', { ascending: false }).limit(limit);
+      .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapEvent).reverse();
   },
@@ -122,7 +122,7 @@ export const sessionService = {
    */
   async heroEvents(campaignId: string, types: readonly string[], limit = 200): Promise<SessionEvent[]> {
     const { data, error } = await sb().from('session_events').select('*').eq('campaign_id', campaignId)
-      .in('type', [...types]).order('created_at', { ascending: false }).limit(limit);
+      .in('type', [...types]).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
     if (error) {
       if (/relation .* does not exist|Could not find the table/i.test(error.message)) return [];
       throw new Error(error.message);
@@ -131,10 +131,12 @@ export const sessionService = {
   },
 
   /** Registra um evento do próprio usuário (ex.: rolagem). O banco confere autor e sessão. */
-  async log(sessionId: string, campaignId: string, actorId: string, type: string, payload: Record<string, unknown>, visibility: SessionEvent['visibility'] = 'public'): Promise<void> {
+  async log(sessionId: string, campaignId: string, actorId: string, type: string, payload: Record<string, unknown>, visibility: SessionEvent['visibility'] = 'public', delivery?: { id?: string; targetId?: string }): Promise<void> {
     const { error } = await sb().from('session_events').insert({
       session_id: sessionId, campaign_id: campaignId, actor_id: actorId, type, payload, visibility,
+      ...(delivery?.id ? { id: delivery.id } : {}),
+      ...(delivery?.targetId ? { target_id: delivery.targetId } : {}),
     });
-    if (error) throw new Error(error.message);
+    if (error && !(delivery?.id && error.code === '23505')) throw new Error(error.message);
   },
 };

@@ -11,7 +11,7 @@ import { isStaleSession, openForLabel, sessionOpenFor } from '@/lib/sessionAge';
  * CampaignRoom de propósito: a sala só mostra o card; toda a mesa ao vivo
  * mora em /mesa/:id/jogar.
  */
-export function SessionEntryCard({ campaignId, isMaster }: { campaignId: string; isMaster: boolean }) {
+export function SessionEntryCard({ campaignId, isMaster, linkedCount }: { campaignId: string; isMaster: boolean; linkedCount?: number }) {
   const nav = useNavigate();
   const [live, setLive] = useState<GameSession | null>(null);
   const [checked, setChecked] = useState(false);
@@ -92,6 +92,9 @@ export function SessionEntryCard({ campaignId, isMaster }: { campaignId: string;
               ? 'Os jogadores entram, rolam iniciativa e veem a mesma ordem que você.'
               : 'Quando o mestre abrir, entre por aqui.'}
         </small>
+        {linkedCount !== undefined && (
+          <small role="status">{linkedCount > 1 ? `${linkedCount} fichas vinculadas` : linkedCount === 1 ? 'Ficha vinculada' : 'Sem ficha vinculada · vincule abaixo para jogar com seu herói.'}</small>
+        )}
         {error && <small className="fv-live-entry-error">{error}</small>}
       </div>
       {live && stale && isMaster ? (

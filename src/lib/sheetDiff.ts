@@ -60,14 +60,27 @@ export function diff(from: Character, to: Character, max = 6): string[] {
   if ((from.xp ?? 0) !== (to.xp ?? 0)) out.push(`XP ${fmt(from.xp ?? 0)} → ${fmt(to.xp ?? 0)}`);
   if (gold(from) !== gold(to)) out.push(`dinheiro ${fmt(gold(from))} → ${fmt(gold(to))} PO`);
 
+  const tempBefore = from.combat?.hpTemp ?? 0;
+  const tempAfter = to.combat?.hpTemp ?? 0;
+  if (tempBefore !== tempAfter) out.push(`PV temporários ${tempBefore} → ${tempAfter}`);
+
   const a = itemNames(from);
   const b = itemNames(to);
   const added: string[] = [];
   const removed: string[] = [];
-  for (const [name, q] of b) if ((a.get(name) ?? 0) < q) added.push(name);
-  for (const [name, q] of a) if ((b.get(name) ?? 0) < q) removed.push(name);
+  for (const [name, q] of b) if ((a.get(name) ?? 0) < q) added.push(q - (a.get(name) ?? 0) > 1 ? `${q - (a.get(name) ?? 0)}× ${name}` : name);
+  for (const [name, q] of a) if ((b.get(name) ?? 0) < q) removed.push(q - (b.get(name) ?? 0) > 1 ? `${q - (b.get(name) ?? 0)}× ${name}` : name);
   if (added.length) out.push(`+ ${list(added)}`);
   if (removed.length) out.push(`− ${list(removed)}`);
+
+  const oldItems = new Map((from.inventory ?? []).map((item) => [item.uid, item]));
+  const changed = (to.inventory ?? []).filter((item) => {
+    const previous = oldItems.get(item.uid);
+    if (!previous) return false;
+    return item.note !== previous.note || item.favorite !== previous.favorite ||
+      item.attuned !== previous.attuned || item.worn !== previous.worn;
+  }).map((item) => item.name);
+  if (changed.length) out.push(`Itens editados: ${list([...new Set(changed)])}`);
 
   const pa = new Set(from.preparedSpells ?? []);
   const pb = new Set(to.preparedSpells ?? []);
@@ -78,7 +91,9 @@ export function diff(from: Character, to: Character, max = 6): string[] {
   const ca = (from.combat?.conditions ?? []).join(',');
   const cb = (to.combat?.conditions ?? []).join(',');
   if (ca !== cb) out.push('condições mudaram');
+  if (JSON.stringify(from.equipped ?? {}) !== JSON.stringify(to.equipped ?? {})) out.push('equipamento em uso mudou');
   if (journal(from) !== journal(to)) out.push(`diário ${journal(from)} → ${journal(to)} entradas`);
+  else if (JSON.stringify(from.journal ?? []) !== JSON.stringify(to.journal ?? [])) out.push('conteúdo do diário mudou');
   if ((from.notes ?? '') !== (to.notes ?? '')) out.push('notas mudaram');
 
   if (out.length > max) return [...out.slice(0, max - 1), `e mais ${out.length - max + 1} mudanças`];

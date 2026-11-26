@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { npcService } from '@/services/npcService';
 import { stageService } from '@/services/stageService';
 import { mediaService } from '@/services/mediaService';
@@ -205,20 +205,39 @@ export function QuickItem({ onDone }: FormProps) {
   const [name, setName] = useState('');
   const [qty, setQty] = useState('1');
   const [note, setNote] = useState('');
+  const [sending, setSending] = useState(false);
+  const [deliveryError, setDeliveryError] = useState('');
+  const delivery = useRef<{ key: string; id: string } | null>(null);
   const names = useMemo(() => ALL_ITEMS.map((i) => i.name), []);
   const hero = heroes.find((h) => h.share.sheetId === sheetId);
+  const allowed = hero?.share.permissions?.editInventory === true;
   if (!heroes.length) return <p className="fv-bs-hint">Nenhuma ficha vinculada à mesa para receber itens.</p>;
   const submit = async () => {
-    if (!name.trim() || !hero) return;
+    if (!name.trim() || !hero || !allowed || sending) return;
     // nome igual ao do catálogo: vai com os números do item (arma, armadura, efeito)
     const base = ALL_ITEMS.find((i) => i.name.toLowerCase() === name.trim().toLowerCase());
-    await give(sheetId, heroName(hero), { name, itemId: base?.id, quantity: Number(qty) || 1, note });
-    if (!useSessionStore.getState().error) toast(`${name.trim()} vai para a mochila de ${heroName(hero)}.`);
-    onDone();
+    const key = JSON.stringify([sheetId, name.trim(), qty, note]);
+    if (delivery.current?.key !== key) delivery.current = { key, id: crypto.randomUUID() };
+    setSending(true);
+    setDeliveryError('');
+    try {
+      await give(sheetId, heroName(hero), { name, itemId: base?.id, quantity: Number(qty) || 1, note, deliveryId: delivery.current.id });
+      const error = useSessionStore.getState().error;
+      if (error) {
+        setDeliveryError(error);
+        return;
+      }
+      toast(`Entrega de ${name.trim()} registrada para ${heroName(hero)}.`);
+      onDone();
+    } finally {
+      setSending(false);
+    }
   };
   return (
     <form className="fv-quick-form" onSubmit={(e) => (e.preventDefault(), void submit())}>
-      {!hasSession && <p className="fv-bs-hint">Abra a sessão: o item chega na ficha pela crônica da sessão.</p>}
+      {!hasSession && <p className="fv-bs-hint">Abra a sessão para entregar itens.</p>}
+      {hero && !allowed && <p className="fv-bs-hint">Peça ao jogador para ativar Conceder itens na sala da mesa.</p>}
+      {deliveryError && <p className="fv-bs-hint" role="alert">{deliveryError}</p>}
       <select className="fv-input" value={sheetId} onChange={(e) => setSheetId(e.target.value)} aria-label="Para qual herói">
         {heroes.map((h) => (
           <option key={h.share.sheetId} value={h.share.sheetId}>
@@ -242,7 +261,7 @@ export function QuickItem({ onDone }: FormProps) {
           <input className="fv-input" placeholder="opcional" value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
         </label>
       </div>
-      <button type="submit" className="fv-btn-gold fv-bs-btn" disabled={!hasSession || !name.trim()}>
+      <button type="submit" className="fv-btn-gold fv-bs-btn" disabled={!hasSession || !allowed || sending || !name.trim()}>
         Entregar a {hero ? heroName(hero) : 'herói'}
       </button>
     </form>

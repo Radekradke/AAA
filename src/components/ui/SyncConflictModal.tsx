@@ -54,6 +54,9 @@ function ConflictCard({ c }: { c: SyncConflict }) {
           <button type="button" className="fv-btn-ghost" disabled={busy} onClick={() => void choose('cloud')}>Usar a da nuvem</button>
         </div>
       </div>
+      {local && c.remote && toCloud.length === 0 && (
+        <p className="fv-conflict-lead">Os campos comparados são iguais. A outra versão ficará disponível no Histórico da ficha.</p>
+      )}
       {toCloud.length > 0 && (
         <div className="fv-conflict-diff">
           <span className="fv-conflict-k">Diferença (deste aparelho → nuvem)</span>

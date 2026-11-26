@@ -53,6 +53,7 @@ export function mapCombatant(r: Record<string, unknown>): Combatant {
     initiativeBonus: Number(r.initiative_bonus ?? 0),
     turnOrder: Number(r.turn_order ?? 0),
     hpCurrent: num(r.hp_current),
+    hpEventId: typeof r.hp_event_id === 'string' ? r.hp_event_id : r.hp_event_id === null ? null : undefined,
     hpMax: num(r.hp_max),
     armorClass: num(r.armor_class),
     conditions: Array.isArray(r.conditions) ? (r.conditions as string[]) : [],
@@ -150,7 +151,7 @@ export const encounterService = {
    * Jogador: manda PV e condições do PRÓPRIO herói (a ficha é a verdade).
    * O banco só deixa o dono, e só esses campos (supabase/mesa_vida.sql).
    */
-  async updateOwn(combatantId: string, patch: Pick<CombatantPatch, 'hp_current' | 'hp_max' | 'conditions'>): Promise<void> {
+  async updateOwn(combatantId: string, patch: Pick<CombatantPatch, 'hp_current' | 'hp_max' | 'conditions'> & { hp_event_id?: string }): Promise<void> {
     const { error } = await sb().rpc('update_own_combatant', { p_combatant: combatantId, p_patch: patch });
     fail(error);
   },

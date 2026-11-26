@@ -13,6 +13,7 @@ import { useMasterStore } from '../masterStore';
 import { HeroSummary } from './HeroInspector';
 import { ConditionIcon } from '@/components/ui/RuleIcon';
 import { useShallow } from 'zustand/react/shallow';
+import { NpcVitalsForm } from './NpcVitalsForm';
 import { InlineIcon } from '@/components/ui/Icon';
 
 const QUICK = [-10, -5, -1, 1, 5, 10];
@@ -20,11 +21,24 @@ const QUICK = [-10, -5, -1, 1, 5, 10];
 /** Barra de PV + botões rápidos + campo "-7 / +5" (Enter aplica). Desfazer no aviso. */
 export function HpControl({ c }: { c: Combatant }) {
   const [v, setV] = useState('');
+  const lastOrder = useSessionStore((st) => {
+    for (let i = st.events.length - 1; i >= 0; i--) {
+      const e = st.events[i];
+      if (e.targetId === c.id && (e.type === 'hero_hp' || e.type === 'hero_hp_correction')) return e.id;
+    }
+    return null;
+  });
+  const pending = c.hpEventId !== undefined && lastOrder !== null && lastOrder !== c.hpEventId;
   const apply = () => {
     const t = v.trim();
     if (!t) return;
     const n = Number(t);
-    if (!Number.isFinite(n) || !n) return;
+    if (!Number.isSafeInteger(n) || Math.abs(n) > 9999) return;
+    if (c.sheetId && c.type === 'player' && !/^[+-]/.test(t)) {
+      void useSessionStore.getState().sendHeroHp(c, n, { absolute: true });
+      setV('');
+      return;
+    }
     // "-7"/"+5" é variação; número puro é o novo PV
     const base = c.hpCurrent ?? c.hpMax ?? 0;
     void hpWithUndo(c, /^[+-]/.test(t) ? n : n - base);
@@ -40,7 +54,7 @@ export function HpControl({ c }: { c: Combatant }) {
           {c.hpCurrent ?? '?'}
         </b>
         <span>/ {c.hpMax ?? '?'} PV</span>
-        {c.type === 'player' && <small>vai para a ficha</small>}
+        {c.type === 'player' && <small role="status">{pending ? 'Aguardando a ficha confirmar' : 'PV da ficha'}</small>}
       </div>
       {c.hpMax !== null && (
         <div className="fv-ins-hp-bar" aria-hidden>
@@ -62,6 +76,7 @@ export function HpControl({ c }: { c: Combatant }) {
           onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && apply()}
           aria-label="Dano ou cura"
+          title="Use + ou − para variar os PV, ou digite o novo total"
         />
       </div>
     </div>
@@ -106,6 +121,15 @@ export function CombatantInspector({ c }: { c: Combatant }) {
         <h3>{c.name}</h3>
       </header>
       <HpControl c={c} />
+      {c.type !== 'player' && (
+        <NpcVitalsForm key={c.id} ac={c.armorClass} hp={c.hpMax} label="Salvar CA e PV máximos" onSave={async (ac, hp) => {
+          await s.updateCombatant(c.id, {
+            armor_class: ac,
+            hp_max: hp,
+            hp_current: hp === null ? c.hpCurrent : Math.min(hp, c.hpCurrent ?? hp),
+          });
+        }} />
+      )}
       <div className="fv-ins-stats">
         <span>
           <small>CA</small>
