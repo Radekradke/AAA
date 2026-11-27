@@ -2,7 +2,7 @@ import type { Character } from '@/types/character';
 import type { DerivedCharacter } from '@/engine/dndRules';
 import type { ItemSpell } from '@/engine/spellcasting';
 import { useCharacterStore } from '@/store/characterStore';
-import { useUiStore } from '@/store/uiStore';
+import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { roll as rollEngine } from '@/engine/dice';
 import { chargesOf } from '@/engine/itemCharges';
 import { toast } from '@/store/feedbackStore';
@@ -25,18 +25,18 @@ interface Props {
  */
 export function ItemChargeSpells({ char, derived, castMod, spells }: Props) {
   const store = useCharacterStore();
-  const pushRoll = useUiStore((s) => s.pushRoll);
+  const { rollWith } = useDiceRoller();
   const groups = new Map<string, ItemSpell[]>();
   for (const s of spells) groups.set(s.itemUid, [...(groups.get(s.itemUid) ?? []), s]);
 
-  const spend = (uid: string, name: string, cost: number) => {
+  const spend = async (uid: string, name: string, cost: number) => {
     const left = store.spendItemCharges(char.id, uid, cost);
     const it = char.inventory.find((i) => i.uid === uid);
     const risk = it ? chargesOf(it)?.emptyRisk : undefined;
     if (left > 0 || !risk) return;
     // última carga: d20 — no 1, o item cobra o preço
-    const r = rollEngine(20, { count: 1, modifier: 0, label: `${name} · última carga (d20)` });
-    pushRoll(r);
+    const r = await rollWith(() => rollEngine(20, { count: 1, modifier: 0, label: `${name} · última carga (d20)` }));
+    if (!r) return;
     if (r.total === 1) {
       toast(`d20 = 1 — ${name}: ${risk.text}`, {
         tone: 'danger',
@@ -84,7 +84,7 @@ export function ItemChargeSpells({ char, derived, castMod, spells }: Props) {
                     spell={is.spell}
                     castMod={castMod}
                     compact
-                    itemCast={{ itemName: is.itemName, options: is.options ?? [], dc: is.dc, onSpend: (cost) => spend(is.itemUid, is.itemName, cost) }}
+                    itemCast={{ itemName: is.itemName, options: is.options ?? [], dc: is.dc, onSpend: (cost) => void spend(is.itemUid, is.itemName, cost) }}
                   />
                 </li>
               ))}

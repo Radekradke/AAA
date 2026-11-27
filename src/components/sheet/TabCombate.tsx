@@ -90,12 +90,18 @@ export function TabCombate({ char, derived }: TabProps) {
   const exhaustion = char.combat.exhaustion ?? 0;
 
   // aplica dano e, se concentrando, calcula a CD da salvaguarda de CON (10 ou metade)
-  const dealDamage = (raw: number) => {
+  const dealDamage = async (raw: number) => {
     if (raw <= 0) return;
     // reações do Monge tiram um valor fixo antes de tudo
     let base = raw;
     if (monkReduce && monk && !char.combat.turn.reaction) {
-      const cut = monkReduce === 'deflect' ? rollDice(10, { modifier: monk.deflectBonus ?? 0, label: 'Defletir Projéteis' }).total : monk.slowFall ?? 0;
+      let cut = monk.slowFall ?? 0;
+      if (monkReduce === 'deflect') {
+        const r = await rollDice(10, { modifier: monk.deflectBonus ?? 0, label: 'Defletir Projéteis' });
+        // desistiu de rolar o Defletir: o dano fica para quando ele quiser aplicar de novo
+        if (!r) return;
+        cut = r.total;
+      }
       base = Math.max(0, raw - cut);
       store.useTurn(char.id, 'reaction');
       toast(`${monkReduce === 'deflect' ? 'Defletir Projéteis' : 'Queda Lenta'}: −${cut} (${raw} → ${base}).${monkReduce === 'deflect' && base === 0 ? ' Dano zerado: dá para arremessar o projétil de volta (1 ki).' : ''}`, { tone: 'ok' });
@@ -123,9 +129,10 @@ export function TabCombate({ char, derived }: TabProps) {
       toast('Sentinela Imortal: você cai a 0 PV, mas fica de pé com 1 PV.', { tone: 'ok' });
     }
   };
-  const rollRelentless = () => {
+  const rollRelentless = async () => {
     if (relentlessDC === null) return;
-    const r = check(`Fúria Implacável · CON (CD ${relentlessDC})`, derived.abilities.con.save);
+    const r = await check(`Fúria Implacável · CON (CD ${relentlessDC})`, derived.abilities.con.save);
+    if (!r) return;
     store.setResource(char.id, 'relentless', (char.combat.resources.relentless ?? 0) + 1);
     if (r.total >= relentlessDC) {
       store.heal(char.id, 1);
@@ -140,7 +147,7 @@ export function TabCombate({ char, derived }: TabProps) {
     const n = Math.max(0, Math.floor(Number(amt) || 0));
     if (!n) return;
     if (heal) store.heal(char.id, n);
-    else dealDamage(n);
+    else void dealDamage(n);
     setAmt('');
   };
 
@@ -176,8 +183,8 @@ export function TabCombate({ char, derived }: TabProps) {
           </div>
         </div>
         <div className="fv-combat-hp-actions">
-          <HpBtn label="−5 Dano" name="Sofrer 5 de dano" color="var(--danger)" strong onClick={() => dealDamage(5)} />
-          <HpBtn label="−1" name="Sofrer 1 de dano" color="var(--danger)" onClick={() => dealDamage(1)} />
+          <HpBtn label="−5 Dano" name="Sofrer 5 de dano" color="var(--danger)" strong onClick={() => void dealDamage(5)} />
+          <HpBtn label="−1" name="Sofrer 1 de dano" color="var(--danger)" onClick={() => void dealDamage(1)} />
           <HpBtn label="+1" name="Curar 1 PV" color="#3FC56B" onClick={() => store.heal(char.id, 1)} />
           <HpBtn label="+5 Cura" name="Curar 5 PV" color="#3FC56B" strong onClick={() => store.heal(char.id, 5)} />
           <div className="fv-combat-temp">

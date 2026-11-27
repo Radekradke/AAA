@@ -82,8 +82,13 @@ export function WizardPanel({ char, derived }: { char: Character; derived: Deriv
             toast(`Barreira Arcana erguida: ${wz.ward!.max} PV.`, { tone: 'ok' });
           })}
         {wz.portent && wz.portent.rolls.length === 0 &&
-          btn('portent', 'Rolar Portento', `${wz.portent.count}d20 do dia`, 'Ao terminar o descanso longo, role os d20 do Portento e guarde. Troque qualquer jogada que você veja por um deles (antes do resultado).', false, () => {
-            const rolls = Array.from({ length: wz.portent!.count }, () => rollDice(20, { label: 'Portento' }).total);
+          btn('portent', 'Rolar Portento', `${wz.portent.count}d20 do dia`, 'Ao terminar o descanso longo, role os d20 do Portento e guarde. Troque qualquer jogada que você veja por um deles (antes do resultado).', false, async () => {
+            const rolls: number[] = [];
+            for (let i = 0; i < wz.portent!.count; i++) {
+              const r = await rollDice(20, { label: `Portento ${i + 1}/${wz.portent!.count}` });
+              if (!r) return;
+              rolls.push(r.total);
+            }
             store.setPortent(char.id, rolls);
             toast(`Portento: ${rolls.join(', ')}.`, { tone: 'ok' });
           })}

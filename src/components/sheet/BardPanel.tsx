@@ -44,21 +44,24 @@ export function BardPanel({ char, derived }: { char: Character; derived: Derived
           toast(`Inspiração de Bardo: ${giveText}.`, { tone: 'ok' });
         })}
         {bd.cuttingWords &&
-          btn('cutting', 'Palavras Cortantes', `reação · −${d}`, 'Reação: quando uma criatura a 18 m faz uma jogada de ataque, teste de atributo ou de dano, subtraia o dado de Inspiração (depois de ver o d20, antes do resultado).', !bd.left || turn.reaction, () => {
-            const r = rollDice(bd.die, { label: 'Palavras Cortantes' });
+          btn('cutting', 'Palavras Cortantes', `reação · −${d}`, 'Reação: quando uma criatura a 18 m faz uma jogada de ataque, teste de atributo ou de dano, subtraia o dado de Inspiração (depois de ver o d20, antes do resultado).', !bd.left || turn.reaction, async () => {
+            const r = await rollDice(bd.die, { label: 'Palavras Cortantes' });
+            if (!r) return;
             spend();
             act('reaction');
             toast(`Palavras Cortantes: −${r.total} na jogada da criatura.`, { tone: 'info' });
           })}
         {bd.peerless &&
-          btn('peerless', 'Habilidade Incomparável', lastCheck ? `+${d} em ${lastCheck.label.split(' · ')[0]} (${lastCheck.total})` : 'faça um teste antes', 'Gaste uma Inspiração para somar o dado a um teste de atributo seu (depois de rolar, antes do resultado).', !bd.left || !lastCheck, () => {
-            const r = rollDice(bd.die, { label: 'Habilidade Incomparável' });
+          btn('peerless', 'Habilidade Incomparável', lastCheck ? `+${d} em ${lastCheck.label.split(' · ')[0]} (${lastCheck.total})` : 'faça um teste antes', 'Gaste uma Inspiração para somar o dado a um teste de atributo seu (depois de rolar, antes do resultado).', !bd.left || !lastCheck, async () => {
+            const r = await rollDice(bd.die, { label: 'Habilidade Incomparável' });
+            if (!r) return;
             spend();
             toast(`Habilidade Incomparável: ${lastCheck!.label.split(' · ')[0]} ${lastCheck!.total} + ${r.total} = ${lastCheck!.total + r.total}.`, { tone: 'ok' });
           })}
         {bd.songDie &&
-          btn('song', 'Canção de Descanso', `descanso curto · +1d${bd.songDie}`, 'No descanso curto, quem gastar Dados de Vida e te ouvir recupera mais 1 dado de PV (uma vez por descanso).', false, () => {
-            const r = rollDice(bd.songDie!, { label: 'Canção de Descanso' });
+          btn('song', 'Canção de Descanso', `descanso curto · +1d${bd.songDie}`, 'No descanso curto, quem gastar Dados de Vida e te ouvir recupera mais 1 dado de PV (uma vez por descanso).', false, async () => {
+            const r = await rollDice(bd.songDie!, { label: 'Canção de Descanso' });
+            if (!r) return;
             toast(`Canção de Descanso: +${r.total} PV para cada aliado que gastou Dados de Vida neste descanso.`, {
               tone: 'ok',
               action: char.hpCurrent < derived.maxHp ? { label: `Em mim (+${r.total})`, run: () => store.heal(char.id, r.total) } : undefined,

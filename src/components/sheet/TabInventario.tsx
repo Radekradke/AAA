@@ -108,10 +108,11 @@ export function TabInventario({ char, derived }: TabProps) {
   const store = useCharacterStore();
   const { rollDice } = useDiceRoller();
   // poção de cura: rola, cura e gasta uma unidade
-  const drink = (it: InventoryItem) => {
+  const drink = async (it: InventoryItem) => {
     const dice = parseDice(healOf(it));
     if (!dice) return;
-    const r = rollDice(dice.sides, { count: dice.count, modifier: dice.bonus, label: `${it.name} · cura` });
+    const r = await rollDice(dice.sides, { count: dice.count, modifier: dice.bonus, label: `${it.name} · cura` });
+    if (!r) return;
     store.heal(char.id, r.total);
     if (it.quantity > 1) store.updateInventoryItem(char.id, it.uid, { quantity: it.quantity - 1 });
     else store.removeInventoryItem(char.id, it.uid);

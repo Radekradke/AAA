@@ -185,8 +185,9 @@ export function TabEvoluir({ char, derived }: TabProps) {
   const profNow = proficiencyBonus(char.level);
   const profNext = proficiencyBonus(newLevel);
 
-  const rollHitDie = () => {
-    const r = rollDice(cls.hitDie, { label: `Dado de Vida d${cls.hitDie}` });
+  const rollHitDie = async () => {
+    const r = await rollDice(cls.hitDie, { label: `Dado de Vida d${cls.hitDie}` });
+    if (!r) return;
     setHpRoll(r.rolls[0]);
   };
 

@@ -60,6 +60,14 @@ export function RollOverlay() {
 
     const stage = (won: { id: string; skin: DiceSkin } | null) => {
       setTrophy(won);
+      // dado físico: o dado já rolou na mesa — mostra direto o número que o jogador tirou
+      if (roll.physical) {
+        clear3d();
+        setStaged3d(false);
+        setFace(naturalFace);
+        setPhase('result');
+        return;
+      }
       if (dice3d && canRoll3d(roll)) {
         setStaged3d(true);
         setPhase('physics');
@@ -82,7 +90,7 @@ export function RollOverlay() {
     // dado conquistado (catálogo sob demanda: só quem escolheu um carrega)
     const hero = roll.charId && !roll.ally ? useCharacterStore.getState().characters.find((c) => c.id === roll.charId) : undefined;
     if (hero?.diceSkin) {
-      setPhase(dice3d && canRoll3d(roll) ? 'physics' : 'tumble');
+      setPhase(dice3d && canRoll3d(roll) && !roll.physical ? 'physics' : 'tumble');
       void import('@/data/diceTrophies').then(
         (m) => rollIdRef.current === roll.id && stage(m.heroDice(hero) ?? null),
         () => rollIdRef.current === roll.id && stage(null),
@@ -108,7 +116,7 @@ export function RollOverlay() {
   // dado 2D com a mesma skin do 3D (corpo, números e contorno do tema)
   const skin = trophy?.skin ?? DICE_SKINS[themeName];
   const color = roll ? (roll.crit ? t.gold : roll.fail ? t.danger : roll.damage ? t.danger : t.acc) : t.acc;
-  const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : 'rolagem') : '';
+  const flavor = roll ? (roll.crit ? 'CRÍTICO!' : roll.fail ? 'FALHA CRÍTICA' : roll.physical ? 'dado físico' : 'rolagem') : '';
   const detail = roll ? `${roll.expr} [${roll.rolls.join(', ')}]${roll.modifier ? ' ' + modStr(roll.modifier) : ''}` : '';
 
   // portal em document.body: `fixed` dentro de ancestrais animados

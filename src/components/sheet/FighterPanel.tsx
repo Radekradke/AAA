@@ -22,9 +22,10 @@ export function FighterPanel({ char }: { char: Character }) {
   // última salvaguarda desta ficha (para o Indomável)
   const lastSave = historyFor(history, char.id).find((r) => /^Resist\. de /.test(r.label) && !/Indomável/.test(r.label));
 
-  const secondWind = () => {
+  const secondWind = async () => {
     if (!left('secondWind')) return;
-    const r = rollDice(10, { modifier: lv, label: 'Retomar o Fôlego' });
+    const r = await rollDice(10, { modifier: lv, label: 'Retomar o Fôlego' });
+    if (!r) return;
     spend('secondWind');
     store.heal(char.id, r.total);
     store.useTurn(char.id, 'bonus');

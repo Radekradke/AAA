@@ -1,0 +1,132 @@
+/* ===== Dado físico: "quanto deu no dado?" (PhysicalDicePrompt) ===== */
+.fv-pdice {
+  display: grid;
+  gap: 14px;
+}
+.fv-pdice-what {
+  margin: 0;
+  display: grid;
+  gap: 3px;
+}
+.fv-pdice-what b {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink);
+}
+.fv-pdice-what span {
+  font-family: var(--font-num);
+  font-size: 13px;
+  color: var(--muted);
+}
+.fv-pdice-what small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--acc);
+}
+.fv-pdice-group {
+  margin: 0;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--sunk);
+}
+.fv-pdice-group legend {
+  padding: 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fv-pdice-slots {
+  display: flex;
+  gap: 10px;
+}
+.fv-pdice-slot {
+  flex: 1;
+}
+.fv-pdice-slot .fv-input {
+  width: 100%;
+  min-height: 52px;
+  text-align: center;
+  font-family: var(--font-num);
+  font-size: 26px;
+  font-weight: 700;
+}
+.fv-pdice-slot.is-set .fv-input {
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold), transparent 60%);
+}
+.fv-pdice-slot .fv-input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+/* teclado: alvos grandes para o dedo (tablet na mesa) */
+.fv-pdice-pad {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.fv-pdice-pad.is-d20 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.fv-pdice-pad button {
+  min-height: 48px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-num);
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+}
+.fv-pdice-pad button:hover {
+  border-color: var(--gold);
+}
+.fv-pdice-pad button:active {
+  transform: scale(0.95);
+  background: color-mix(in srgb, var(--gold), var(--panel) 78%);
+}
+.fv-pdice-pad button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.fv-pdice-pad button.is-max {
+  border-color: color-mix(in srgb, var(--gold), transparent 40%);
+  color: var(--gold);
+}
+.fv-pdice-pad button.is-min {
+  color: var(--danger);
+}
+.fv-pdice-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+.fv-pdice-foot :is(.fv-btn-gold, .fv-btn-ghost) {
+  min-height: 44px;
+  padding: 0 20px;
+  white-space: nowrap;
+}
+.fv-pdice-foot .fv-btn-gold {
+  min-width: 128px;
+}
+.fv-pdice-foot .fv-btn-gold:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (max-width: 380px) {
+  .fv-pdice-pad button {
+    min-height: 42px;
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-pdice-pad button {
+    transition: none;
+  }
+}

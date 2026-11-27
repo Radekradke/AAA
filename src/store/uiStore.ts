@@ -42,6 +42,9 @@ interface UiState {
   /** Vantagem/desvantagem aplicada a testes de d20. */
   rollMode: RollMode;
   setRollMode: (m: RollMode) => void;
+  /** Dado físico: o jogador rola na mesa e digita o que tirou (a ficha soma os bônus). */
+  physicalDice: boolean;
+  togglePhysicalDice: () => void;
 
   /** Webhook pessoal do Discord: só neste aparelho (nunca vai na ficha nem na nuvem). */
   discordWebhook: string;
@@ -200,6 +203,11 @@ export const useUiStore = create<UiState>()(
         set({ rollMode: m, inspirationArmed: false, armedCharId: null });
       },
 
+      physicalDice: false,
+      togglePhysicalDice() {
+        set((s) => ({ physicalDice: !s.physicalDice }));
+      },
+
       inspirationArmed: false,
       armedCharId: null,
       armInspiration(charId) {
@@ -348,7 +356,7 @@ export const useUiStore = create<UiState>()(
       },
       // tema + linha do tempo das rolagens (a sessão sobrevive a um F5);
       // rolagem em destaque e partículas são efêmeras
-      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, discordWebhook: s.discordWebhook, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake }),
+      partialize: (s) => ({ theme: s.theme, modes: s.modes, history: s.history, dice3d: s.dice3d, shortcuts: s.shortcuts, discordWebhook: s.discordWebhook, packs: s.packs, onboarded: s.onboarded, toursSeen: s.toursSeen, tipsOff: s.tipsOff, cinematics: s.cinematics, keepAwake: s.keepAwake, physicalDice: s.physicalDice }),
     },
   ),
 );

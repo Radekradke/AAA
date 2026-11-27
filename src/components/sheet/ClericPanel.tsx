@@ -31,14 +31,18 @@ export function ClericPanel({ char, derived }: { char: Character; derived: Deriv
   const strike = divineStrike(char);
   const life = lifeHealing(char, 1);
 
-  const channel = (c: ClericChannel) => {
-    spend('channel', cl.channelLeft);
-    if (c.cost !== 'free') act(c.cost);
+  const channel = async (c: ClericChannel) => {
     if (c.roll) {
-      const r = rollDice(c.roll.die, { count: c.roll.count, modifier: c.roll.bonus, label: `${c.label} (${c.roll.type})`, damage: true });
+      // o dano sai antes de gastar o Canalizar: desistiu de rolar, nada se gasta
+      const r = await rollDice(c.roll.die, { count: c.roll.count, modifier: c.roll.bonus, label: `${c.label} (${c.roll.type})`, damage: true });
+      if (!r) return;
+      spend('channel', cl.channelLeft);
+      if (c.cost !== 'free') act(c.cost);
       toast(`${c.label}: ${r.total} de dano ${c.roll.type} — salvaguarda de ${c.save} CD ${cl.dc} para metade (${Math.floor(r.total / 2)}).`, { tone: 'info' });
       return;
     }
+    spend('channel', cl.channelLeft);
+    if (c.cost !== 'free') act(c.cost);
     if (c.id === 'preserveLife') {
       // Preservar a Vida: em você, só até a metade dos PV máximos
       const cap = Math.floor(derived.maxHp / 2);
@@ -69,7 +73,7 @@ export function ClericPanel({ char, derived }: { char: Character; derived: Deriv
             `Canalizar · ${COST_LABEL[c.cost]}${c.save ? ` · ${c.save} CD ${cl.dc}` : ''}${c.roll ? ` · ${c.roll.count}d${c.roll.die} + ${c.roll.bonus}` : ''}`,
             c.desc,
             !cl.channelLeft || (c.cost !== 'free' && turn[c.cost]),
-            () => channel(c),
+            () => void channel(c),
           ),
         )}
         {cl.max.wardingFlare > 0 &&
@@ -79,8 +83,9 @@ export function ClericPanel({ char, derived }: { char: Character; derived: Deriv
             toast('Labareda Protetora: o ataque tem desvantagem.', { tone: 'ok' });
           })}
         {cl.max.wrathStorm > 0 &&
-          btn('storm', 'Ira da Tempestade', `reação · 2d8 · ${cl.left.wrathStorm}/${cl.max.wrathStorm}`, 'Reação ao ser atingido por uma criatura a 1,5 m: 2d8 elétrico ou trovejante, salvaguarda de DES para metade.', !cl.left.wrathStorm || turn.reaction, () => {
-            const r = rollDice(8, { count: 2, label: 'Ira da Tempestade (elétrico ou trovejante)', damage: true });
+          btn('storm', 'Ira da Tempestade', `reação · 2d8 · ${cl.left.wrathStorm}/${cl.max.wrathStorm}`, 'Reação ao ser atingido por uma criatura a 1,5 m: 2d8 elétrico ou trovejante, salvaguarda de DES para metade.', !cl.left.wrathStorm || turn.reaction, async () => {
+            const r = await rollDice(8, { count: 2, label: 'Ira da Tempestade (elétrico ou trovejante)', damage: true });
+            if (!r) return;
             spend('wrathStorm', cl.left.wrathStorm);
             act('reaction');
             toast(`Ira da Tempestade: ${r.total} de dano — salvaguarda de DES CD ${cl.dc} para metade.`, { tone: 'info' });
@@ -97,8 +102,9 @@ export function ClericPanel({ char, derived }: { char: Character; derived: Deriv
             toast('Bênção do Trapaceiro: o aliado tem vantagem em Furtividade por 1 hora.', { tone: 'ok' });
           })}
         {cl.intervention &&
-          btn('intervention', 'Intervenção Divina', `ação · d100 ≤ ${cl.intervention.chance} · ${cl.intervention.left}/1`, 'Implore pela ajuda da divindade: funciona se o d100 der até o seu nível de clérigo (no 20º, sempre). Se funcionar, só de novo em 7 dias; se falhar, depois de um descanso longo.', !cl.intervention.left || turn.action, () => {
-            const r = rollDice(100, { label: 'Intervenção Divina' });
+          btn('intervention', 'Intervenção Divina', `ação · d100 ≤ ${cl.intervention.chance} · ${cl.intervention.left}/1`, 'Implore pela ajuda da divindade: funciona se o d100 der até o seu nível de clérigo (no 20º, sempre). Se funcionar, só de novo em 7 dias; se falhar, depois de um descanso longo.', !cl.intervention.left || turn.action, async () => {
+            const r = await rollDice(100, { label: 'Intervenção Divina' });
+            if (!r) return;
             spend('intervention', cl.intervention!.left);
             act('action');
             const ok = cl.level >= 20 || r.total <= cl.intervention!.chance;

@@ -32,6 +32,8 @@ export interface RollResult {
   cantrip?: boolean;
   /** Teste contra a morte (feito do 20 natural). */
   deathSave?: boolean;
+  /** Os números vieram de dados de verdade, digitados pelo jogador. */
+  physical?: boolean;
 }
 
 let _seq = 0;
@@ -40,8 +42,33 @@ function uid(): string {
   return `r${Date.now().toString(36)}${_seq}`;
 }
 
+/**
+ * De onde vêm os números dos dados. Normalmente, do sorteio; com o modo
+ * "dado físico", dos valores que o jogador tirou na mesa (ver
+ * `src/lib/physicalDice.ts`). Toda rolagem do motor passa por `rollDie`.
+ */
+export type DiceSource = (sides: number) => number;
+
+const randomSource: DiceSource = (sides) => 1 + Math.floor(Math.random() * sides);
+let source: DiceSource = randomSource;
+
+/**
+ * Roda `fn` com outra fonte de dados e devolve a de sempre ao terminar.
+ * As funções de rolagem são síncronas e puras, então a troca vale só para
+ * a conta feita dentro de `fn`.
+ */
+export function withDiceSource<T>(src: DiceSource, fn: () => T): T {
+  const prev = source;
+  source = src;
+  try {
+    return fn();
+  } finally {
+    source = prev;
+  }
+}
+
 export function rollDie(sides: number): number {
-  return 1 + Math.floor(Math.random() * sides);
+  return source(sides);
 }
 
 export function modStr(n: number): string {

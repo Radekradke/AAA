@@ -46,14 +46,16 @@ export function WarlockPanel({ char, derived }: { char: Character; derived: Deri
             toast(`Bênção do Tinhoso: ${wl.blessingTemp} PV temporários.`, { tone: 'ok' });
           })}
         {wl.patron === 'fiend' && wl.level >= 6 &&
-          btn('luck', 'Sorte do Tinhoso', `${lastCheck ? `+1d10 em ${lastCheck.label.split(' · ')[0]} (${lastCheck.total})` : 'faça um teste ou salvaguarda'} · ${L.darkLuck}/1`, 'Soma 1d10 a um teste de atributo ou salvaguarda que você acabou de rolar. Volta no descanso curto.', !L.darkLuck || !lastCheck, () => {
-            const r = rollDice(10, { label: 'Sorte do Tinhoso' });
+          btn('luck', 'Sorte do Tinhoso', `${lastCheck ? `+1d10 em ${lastCheck.label.split(' · ')[0]} (${lastCheck.total})` : 'faça um teste ou salvaguarda'} · ${L.darkLuck}/1`, 'Soma 1d10 a um teste de atributo ou salvaguarda que você acabou de rolar. Volta no descanso curto.', !L.darkLuck || !lastCheck, async () => {
+            const r = await rollDice(10, { label: 'Sorte do Tinhoso' });
+            if (!r) return;
             spend('darkLuck', L.darkLuck);
             toast(`Sorte do Tinhoso: ${lastCheck!.label.split(' · ')[0]} ${lastCheck!.total} + ${r.total} = ${lastCheck!.total + r.total}.`, { tone: 'ok' });
           })}
         {wl.patron === 'fiend' && wl.level >= 14 &&
-          btn('hurl', 'Arremesso pelo Inferno', `10d10 psíquico · ${L.hurlHell}/1`, 'Ao acertar uma criatura: ela some até o fim do seu próximo turno e, se não for corruptor, sofre 10d10 psíquico ao voltar. 1× por descanso longo.', !L.hurlHell, () => {
-            const r = rollDice(10, { count: 10, label: 'Arremesso pelo Inferno (psíquico)', damage: true });
+          btn('hurl', 'Arremesso pelo Inferno', `10d10 psíquico · ${L.hurlHell}/1`, 'Ao acertar uma criatura: ela some até o fim do seu próximo turno e, se não for corruptor, sofre 10d10 psíquico ao voltar. 1× por descanso longo.', !L.hurlHell, async () => {
+            const r = await rollDice(10, { count: 10, label: 'Arremesso pelo Inferno (psíquico)', damage: true });
+            if (!r) return;
             spend('hurlHell', L.hurlHell);
             toast(`Arremesso pelo Inferno: ${r.total} de dano psíquico (não afeta corruptores).`, { tone: 'info' });
           })}

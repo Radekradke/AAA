@@ -21,13 +21,14 @@ export function useInitiativeRoll(char: Character, derived: DerivedCharacter) {
   const { check } = useDiceRoller();
   const store = useCharacterStore();
   const rules = initiativeRules(char);
-  return () => {
+  return async () => {
     const mode = useUiStore.getState().rollMode;
     // vantagem de classe + desvantagem da mesa se anulam (regra geral do d20)
     const adv = mode === 'advantage' || rules.advantage;
     const dis = mode === 'disadvantage';
     const label = rules.advantage ? `Iniciativa · ${rules.advantageSource}` : 'Iniciativa';
-    const r = check(label, derived.initiative, { advantage: adv && !dis, disadvantage: dis && !adv });
+    const r = await check(label, derived.initiative, { advantage: adv && !dis, disadvantage: dis && !adv });
+    if (!r) return null;
     // com a trilha tocando, o combate ganha a música de batalha
     if (music.get().playing) music.setMood('combate');
     for (const f of rules.refills) store.setResource(char.id, f.resId, f.value);
@@ -42,7 +43,10 @@ export function InitiativeButton({ char, derived, compact }: { char: Character; 
   const [last, setLast] = useState<number | null>(null);
   const rules = initiativeRules(char);
   const rollInitiative = useInitiativeRoll(char, derived);
-  const roll = () => setLast(rollInitiative().total);
+  const roll = async () => {
+    const r = await rollInitiative();
+    if (r) setLast(r.total);
+  };
 
   const tip = [
     `1d20 ${modStr(derived.initiative)}`,
