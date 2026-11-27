@@ -208,4 +208,7 @@
 .fv-printpage-opts select { min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.35); background: #2a2a2f; color: #fff; font: 600 13px var(--font-body, sans-serif); }
 .fv-printpage-check input { width: 18px; height: 18px; accent-color: #f2f0eb; }
 .fv-printpage-hint { flex-basis: 100%; margin: 0 !important; font-size: 12px !important; color: #cfcac0 !important; }
+.fv-printpage-lore { flex-basis: 100%; padding: 8px 12px; border: 1px solid currentColor; border-radius: 8px; }
+.fv-printpage-lore summary { cursor: pointer; font-weight: 600; }
+.fv-printpage-lore p { margin: 6px 0 0; max-width: 68ch; line-height: 1.55; }
 @media print { .fv-printpage-opts { display: none; } }
