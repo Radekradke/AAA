@@ -11,6 +11,8 @@ import { COINS, fmtM, usePrintData } from './printData';
 import '@/styles/sheet-illustrated.css';
 import { syncHitDicePools } from '@/engine/hitDice';
 import { InlineIcon } from '@/components/ui/Icon';
+import { SheetThemed } from './SheetThemed';
+import { THEMES } from '@/data/themes';
 
 const KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -33,6 +35,7 @@ function Write({ value, blank }: { value: string | number | null | undefined; bl
 
 export interface IllustratedOptions {
   theme: ThemeName;
+  template: boolean;
   mode: 'light' | 'dark';
   /** PV atual, usos gastos etc. em branco — para a mesa presencial, a lápis. */
   blank: boolean;
@@ -45,7 +48,8 @@ export interface IllustratedOptions {
  * características, equipamento, magias e notas.
  */
 export function SheetIllustrated({ char, opts }: { char: Character; opts: IllustratedOptions }) {
-  const { d, race, sub, bg, slots, spells, prepared, equippedIds, traits, features, resources, classLine } = usePrintData(char);
+  const data = usePrintData(char);
+  const { d, race, sub, bg, slots, spells, prepared, equippedIds, traits, features, resources, classLine } = data;
   const art = heroAvatar(char);
   const blank = opts.blank;
   const slotUsed = (lv: number) => (blank ? 0 : (char.combat?.spellSlots?.[lv]?.used ?? 0));
@@ -54,9 +58,75 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
   // quanto a página 1 tem para mostrar além do herói: passou do ponto, a arte encolhe um pouco
   const dense = Math.ceil(slotLevels.length / 3) + resources.length + d.attacks.length + (d.hitDiceMax > 12 ? 1 : 0) > 7;
 
+  const combatDetails = (
+    <>
+      <section className="fv-ills-box">
+        <h2>Ataques</h2>
+        {d.attacks.length ? (
+          <table className="fv-ills-table">
+            <thead><tr><th>Arma</th><th>Ataque</th><th>Dano</th></tr></thead>
+            <tbody>
+              {d.attacks.map((a) => (
+                <tr key={a.uid}>
+                  <td>{a.name}{a.note ? <small> · {a.note}</small> : null}</td>
+                  <td className="fv-ills-num">{modStr(a.attackBonus)}</td>
+                  <td>
+                    <span className="fv-ills-num">{a.damageDice}d{a.damageDie}{a.damageBonus ? ` ${modStr(a.damageBonus)}` : ''}</span> {a.damageType}
+                    {a.bonusDamage ? ` + ${a.bonusDamage.dice}d${a.bonusDamage.die} ${a.bonusDamage.type}` : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="fv-ills-empty">Sem ataques com arma.</p>
+        )}
+      </section>
+
+      {d.isCaster && (
+        <section className="fv-ills-box">
+          <h2>Conjuração</h2>
+          <div className="fv-ills-cast">
+            <div><b>{d.spellDC ?? '—'}</b><span>CD</span></div>
+            <div><b>{d.spellAttack !== null ? modStr(d.spellAttack) : '—'}</b><span>Ataque</span></div>
+          </div>
+          {slotLevels.length > 0 && (
+            <ul className="fv-ills-slots">
+              {slotLevels.map(([lv, n]) => (
+                <li key={lv}><span>{lv}º</span><Pips n={n} used={slotUsed(lv)} label={`Espaços de ${lv}º círculo`} /></li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {resources.length > 0 && (
+        <section className="fv-ills-box">
+          <h2>Recursos</h2>
+          <ul className="fv-ills-res">
+            {resources.map((r) => (
+              <li key={r.id}>
+                <span>{r.label}{r.die ? <small> ({r.die})</small> : null}</span>
+                {r.unlimited ? <em>ilimitado</em> : <Pips n={r.max} used={resUsed(r.id)} label={r.label} />}
+                <small className="fv-ills-recharge">{r.recharge === 'short' ? 'curto' : 'longo'}</small>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="fv-ills-box fv-ills-passives">
+        <div><b>{d.passiveInvestigation}</b> Investigação passiva</div>
+        <div><b>{d.passiveInsight}</b> Intuição passiva</div>
+        {d.darkvision && <div><b>{fmtM(d.darkvision.range)}</b> Visão no escuro</div>}
+      </section>
+    </>
+  );
+
   return (
-    <article className="fv-ills" data-theme={opts.theme} data-mode={opts.mode} aria-label={`Ficha ilustrada de ${char.name || 'personagem'}`}>
+    <article className={opts.template ? 'fv-ills fv-ills-with-template' : 'fv-ills'} data-theme={opts.theme} data-mode={opts.mode} aria-label={`Ficha ilustrada de ${char.name || 'personagem'}`}>
       {/* ================= PÁGINA 1: o herói ================= */}
+      {opts.template ? <SheetThemed char={char} data={data} theme={opts.theme} blank={blank} /> : (
       <section className={'fv-ills-page fv-ills-p1' + (dense ? ' is-dense' : '')}>
         <div className="fv-ills-hero">
           <figure className="fv-ills-art">
@@ -145,69 +215,12 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
           </section>
 
           <div className="fv-ills-col">
-            <section className="fv-ills-box">
-              <h2>Ataques</h2>
-              {d.attacks.length ? (
-                <table className="fv-ills-table">
-                  <thead><tr><th>Arma</th><th>Ataque</th><th>Dano</th></tr></thead>
-                  <tbody>
-                    {d.attacks.map((a) => (
-                      <tr key={a.uid}>
-                        <td>{a.name}{a.note ? <small> · {a.note}</small> : null}</td>
-                        <td className="fv-ills-num">{modStr(a.attackBonus)}</td>
-                        <td>
-                          <span className="fv-ills-num">{a.damageDice}d{a.damageDie}{a.damageBonus ? ` ${modStr(a.damageBonus)}` : ''}</span> {a.damageType}
-                          {a.bonusDamage ? ` + ${a.bonusDamage.dice}d${a.bonusDamage.die} ${a.bonusDamage.type}` : ''}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="fv-ills-empty">Sem ataques com arma.</p>
-              )}
-            </section>
-
-            {d.isCaster && (
-              <section className="fv-ills-box">
-                <h2>Conjuração</h2>
-                <div className="fv-ills-cast">
-                  <div><b>{d.spellDC ?? '—'}</b><span>CD</span></div>
-                  <div><b>{d.spellAttack !== null ? modStr(d.spellAttack) : '—'}</b><span>Ataque</span></div>
-                </div>
-                {slotLevels.length > 0 && (
-                  <ul className="fv-ills-slots">
-                    {slotLevels.map(([lv, n]) => (
-                      <li key={lv}><span>{lv}º</span><Pips n={n} used={slotUsed(lv)} label={`Espaços de ${lv}º círculo`} /></li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            )}
-
-            {resources.length > 0 && (
-              <section className="fv-ills-box">
-                <h2>Recursos</h2>
-                <ul className="fv-ills-res">
-                  {resources.map((r) => (
-                    <li key={r.id}>
-                      <span>{r.label}{r.die ? <small> ({r.die})</small> : null}</span>
-                      {r.unlimited ? <em>ilimitado</em> : <Pips n={r.max} used={resUsed(r.id)} label={r.label} />}
-                      <small className="fv-ills-recharge">{r.recharge === 'short' ? 'curto' : 'longo'}</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            <section className="fv-ills-box fv-ills-passives">
-              <div><b>{d.passiveInvestigation}</b> Investigação passiva</div>
-              <div><b>{d.passiveInsight}</b> Intuição passiva</div>
-              {d.darkvision && <div><b>{fmtM(d.darkvision.range)}</b> Visão no escuro</div>}
-            </section>
+            {combatDetails}
           </div>
         </div>
       </section>
+
+      )}
 
       {/* ================= PÁGINA 2: o livro do herói ================= */}
       <section className="fv-ills-page fv-ills-p2">
@@ -216,10 +229,12 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
           <div>
             <h2>{char.name || 'Sem nome'}</h2>
             <p>{classLine} · {race.label}</p>
+            {opts.template && <p>Tendência {char.alignment || '—'} · Experiência {char.xp ?? '—'}</p>}
           </div>
         </header>
 
         <div className="fv-ills-flow">
+          {opts.template && combatDetails}
           <section className="fv-ills-box">
             <h2>Características de classe</h2>
             {features.map((c) => (
@@ -305,7 +320,7 @@ export function SheetIllustrated({ char, opts }: { char: Character; opts: Illust
             {printableNotes(char) ? <p>{printableNotes(char)}</p> : <div className="fv-ills-lines" aria-hidden />}
           </section>
         </div>
-        <p className="fv-ills-credit">Ficha Viva · {new Date(char.updatedAt || Date.now()).toLocaleDateString('pt-BR')}</p>
+        <p className="fv-ills-credit">Ficha Viva{opts.template ? ` · ${THEMES[opts.theme].label}` : ''} · {new Date(char.updatedAt || Date.now()).toLocaleDateString('pt-BR')}</p>
       </section>
     </article>
   );

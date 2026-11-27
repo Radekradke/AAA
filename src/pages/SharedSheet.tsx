@@ -58,6 +58,7 @@ export function SharedSheet() {
 
   return (
     <PrintStudio
+      defaultStyle="retrato"
       char={state.char}
       lead={<p>Ficha compartilhada · só leitura · atualizada em {new Date(state.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</p>}
     />

@@ -144,7 +144,7 @@ export default defineConfig({
         // Fontes e artes entram no cache na primeira vez que aparecem (runtime):
         // a instalação baixa ~2,5 MB em vez de ~7,5 MB de fontes de temas que a
         // pessoa talvez nunca abra.
-        globPatterns: ['**/*.{js,css,html,svg}', 'icons/*.png', 'dice/textures/*.webp'],
+        globPatterns: ['**/*.{js,css,html,svg}', 'icons/*.png', 'dice/textures/*.webp', 'themes/print/*.webp', 'brand/dragao-v2/emblema-preto.png'],
         // texturas dos dados conquistados: só quem ganhou baixa (runtime, abaixo)
         globIgnores: ['dice/textures/{skulls,dragon,dragon-bump,ice,stainedglass,stainedglass-bump,tiger,water,wood}.webp'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
