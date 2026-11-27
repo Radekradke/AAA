@@ -97,9 +97,16 @@ test.describe('ficha', () => {
 
     await expect(page.locator('.fv-ills-p2')).toContainText('Magias');
 
-    for (const theme of ['astral', 'carmesim', 'eclipse', 'rubra']) {
+    const lore = page.locator('.fv-printpage-lore');
+    await expect(lore.locator('p')).toBeHidden();
+    await lore.getByText('A lenda do tema').click();
+    for (const [theme, story] of [
+      ['astral', 'estrela-guia'], ['carmesim', 'fitas do palco'],
+      ['eclipse', 'ponta de ônix'], ['rubra', 'ponte de Carvão'],
+    ]) {
       await page.getByLabel('Tema').selectOption(theme);
       await expect(sheet).toHaveAttribute('data-template', theme);
+      await expect(lore.locator('p')).toContainText(story);
       const art = sheet.locator('.fv-template-art');
       await expect(art).toHaveAttribute('src', `/themes/print/${theme}.webp`);
       await expect.poll(() => art.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
@@ -115,6 +122,7 @@ test.describe('ficha', () => {
     await expect(sheet).toHaveAttribute('data-template', 'rubra');
     await page.emulateMedia({ media: 'print' });
     await expect(page.getByRole('button', { name: 'Imprimir / Salvar PDF' })).toBeHidden();
+    await expect(lore).toBeHidden();
     await expect(sheet).toBeVisible();
   });
 

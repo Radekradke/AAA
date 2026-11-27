@@ -12,6 +12,13 @@ import type { IllustratedOptions } from './SheetIllustrated';
 type Style = 'tematica' | 'retrato' | 'classica';
 interface Prefs { style: Style; theme: ThemeName | null; mode: 'light' | 'dark'; blank: boolean }
 
+const THEME_LORE: Partial<Record<ThemeName, string>> = {
+  astral: 'Quando a estrela-guia sumiu do céu, os cartógrafos do Véu Astral passaram a gravar as órbitas em folhas douradas. Dizem que, ao inscrever nelas o nome de um herói, surge uma estrada que nenhum mapa conhece.',
+  carmesim: 'Na noite em que a Coroa mandou apagar da crônica os nomes dos revoltosos, os atores da Corte Carmesim bordaram cada um deles nas fitas do palco. Desde então, a cortina se abre para quem ainda tem uma história por contar.',
+  eclipse: 'Durante o Grande Eclipse, a tinta dos arquivos desapareceu. Uma arquivista gravou em porcelana, com uma ponta de ônix, os nomes de quem ficou sem registro. Quando a luz voltou, ela entregou a cada pessoa uma folha para escrever o que viria a seguir.',
+  rubra: 'Quando a ponte de Carvão caiu, os ferreiros da Guilda Rubra acenderam forjas pela estrada para guiar os viajantes. Em cada posto havia uma chapa riscada em coral onde os aventureiros deixavam seu nome e o destino da próxima jornada.',
+};
+
 const KEY = 'fv-print-prefs';
 function loadPrefs(defaultStyle: 'tematica' | 'retrato'): Prefs {
   try {
@@ -54,6 +61,7 @@ export function PrintStudio({ char, lead, defaultStyle = 'tematica' }: { char: C
     void loadThemeCss(theme);
   }, [theme]);
   const themed = prefs.style === 'tematica';
+  const lore = themed ? THEME_LORE[theme] : undefined;
   const opts: IllustratedOptions = {
     theme,
     mode: themed ? (theme === 'eclipse' ? 'light' : 'dark') : prefs.mode,
@@ -94,6 +102,12 @@ export function PrintStudio({ char, lead, defaultStyle = 'tematica' }: { char: C
             <input type="checkbox" checked={prefs.blank} onChange={(e) => set({ blank: e.target.checked })} />
             PV, usos e moedas em branco (para lápis)
           </label>
+          {lore && (
+            <details className="fv-printpage-lore">
+              <summary>A lenda do tema</summary>
+              <p>{lore}</p>
+            </details>
+          )}
           {opts.mode === 'dark' && <p className="fv-printpage-hint">No escuro, ligue “Gráficos de fundo” na janela de impressão.</p>}
         </div>
       )}
