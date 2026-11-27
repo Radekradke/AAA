@@ -8,6 +8,7 @@ import type { AbilityKey, ThemeName } from '@/types/dnd';
 import { COINS, fmtM } from './printData';
 import type { usePrintData } from './printData';
 import '@/styles/sheet-themed.css';
+import '@/styles/themes/print-template.css';
 
 const ABILITIES: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
@@ -68,7 +69,7 @@ export function SheetThemed({
               <h2>Salvaguardas</h2>
               <ul className="fv-template-saves">
                 {ABILITIES.map((key) => (
-                  <li key={key}><b>{modStr(d.abilities[key].save)}</b><i aria-label={d.abilities[key].saveProf ? 'Proficiente' : undefined} className={d.abilities[key].saveProf ? 'is-trained' : ''} />{ABILITY_LABELS[key]}</li>
+                  <li key={key}><b>{modStr(d.abilities[key].save)}</b><i aria-hidden="true" className={d.abilities[key].saveProf ? 'is-trained' : ''} />{ABILITY_LABELS[key]}{d.abilities[key].saveProf && <span className="sr-only">Proficiente</span>}</li>
                 ))}
               </ul>
             </section>
@@ -78,8 +79,9 @@ export function SheetThemed({
                 {d.skills.map((skill) => (
                   <li key={skill.key}>
                     <b>{modStr(skill.bonus)}</b>
-                    <i aria-label={skill.expertise ? 'Especialista' : skill.proficient ? 'Proficiente' : undefined} className={skill.expertise ? 'is-expert' : skill.proficient ? 'is-trained' : ''} />
+                    <i aria-hidden="true" className={skill.expertise ? 'is-expert' : skill.proficient ? 'is-trained' : ''} />
                     {skill.label}<small>{ABILITY_SHORT[skill.ability]}</small>
+                    {skill.proficient && <span className="sr-only">{skill.expertise ? 'Especialista' : 'Proficiente'}</span>}
                   </li>
                 ))}
               </ul>
@@ -96,7 +98,7 @@ export function SheetThemed({
               <dl className="fv-template-extras">
                 <div><dt>Bônus de proficiência</dt><dd>{modStr(d.proficiency)}</dd></div>
                 <div><dt>Dados de vida</dt><dd>{pools.map(([die, pool]) => blank ? `${pool.max}d${die}` : `${pool.remaining}/${pool.max} d${die}`).join(' · ')}</dd></div>
-                <div><dt>Inspiração</dt><dd><i className={!blank && char.inspiration ? 'is-trained' : ''} aria-label={!blank && char.inspiration ? 'Disponível' : 'Não marcada'} /></dd></div>
+                <div><dt>Inspiração</dt><dd><i className={!blank && char.inspiration ? 'is-trained' : ''} aria-hidden="true" /><span className="sr-only">{!blank && char.inspiration ? 'Disponível' : 'Não marcada'}</span></dd></div>
                 <div><dt>Condições</dt><dd>{conditions.join(', ') || '—'}</dd></div>
               </dl>
               <div className="fv-template-death">

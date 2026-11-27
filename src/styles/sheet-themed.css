@@ -1,13 +1,6 @@
 /* Capa A4 e prévia na mesma proporção. Os comprimentos acompanham a largura
    da folha na prévia, inclusive em telas estreitas. */
 .fv-template {
-  --sheet-paper: #0e0a24;
-  --sheet-ink: #f5f1ff;
-  --sheet-muted: #d9cee9;
-  --sheet-accent: #f4d58d;
-  --sheet-line: #d1bff45c;
-  --sheet-panel: linear-gradient(140deg, #231942ed, #130f2df6 72%);
-  --sheet-well: #211638;
   --sheet-radius: 1.6cqi .4cqi;
   --sheet-title: 'Marcellus SC', Georgia, serif;
   --sheet-text: 'Nunito', system-ui, sans-serif;
@@ -19,38 +12,17 @@
 }
 
 .fv-template[data-template='carmesim'] {
-  --sheet-paper: #190910;
-  --sheet-ink: #fbefea;
-  --sheet-muted: #e0b8bd;
-  --sheet-accent: #ffc6a3;
-  --sheet-line: #ffc6a36e;
-  --sheet-panel: linear-gradient(142deg, #401723ef, #220d17f8 70%);
-  --sheet-well: #4b1a28;
   --sheet-radius: 1.9cqi 1.9cqi .55cqi .55cqi;
   --sheet-title: 'Cormorant SC', Georgia, serif;
   --sheet-title-weight: 600;
 }
 .fv-template[data-template='eclipse'] {
-  --sheet-paper: #f4f2ec;
-  --sheet-ink: #121212;
-  --sheet-muted: #494742;
-  --sheet-accent: #111;
-  --sheet-line: #11111175;
-  --sheet-panel: #f7f6f2f6;
-  --sheet-well: #e7e5e0;
   --sheet-radius: 0;
   --sheet-title: 'Antonio', sans-serif;
   --sheet-text: 'Manrope', sans-serif;
   --sheet-title-weight: 500;
 }
 .fv-template[data-template='rubra'] {
-  --sheet-paper: #1e0d10;
-  --sheet-ink: #fbefec;
-  --sheet-muted: #ecc6c0;
-  --sheet-accent: #fe8578;
-  --sheet-line: #fe857875;
-  --sheet-panel: linear-gradient(135deg, #3b1a1ff4, #281317f8 75%);
-  --sheet-well: #4a2228;
   --sheet-radius: .18cqi;
   --sheet-title: 'Outfit', sans-serif;
   --sheet-text: 'Outfit', sans-serif;
@@ -111,9 +83,7 @@
 .fv-template ul { padding: 0; list-style: none; }
 .fv-template b { color: inherit; }
 .fv-template :is(dt, small) { color: var(--sheet-muted); font-size: 1.12cqi; }
-.fv-template-panel { min-width: 0; padding: 1.4cqi 1.75cqi; background: var(--sheet-panel); border: 1px solid var(--sheet-line); border-radius: var(--sheet-radius); }
-.fv-template[data-template='eclipse'] .fv-template-panel { border-color: #111; box-shadow: .24cqi .24cqi 0 #11111127; }
-.fv-template[data-template='rubra'] .fv-template-panel { box-shadow: inset .36cqi 0 #fe857869; }
+.fv-template-panel { min-width: 0; padding: 1.4cqi 1.75cqi; background: var(--sheet-panel); border: 1px solid var(--sheet-panel-border, var(--sheet-line)); border-radius: var(--sheet-radius); box-shadow: var(--sheet-panel-shadow, none); }
 .fv-template-identity { display: grid; gap: .85cqi; margin-bottom: 1.8cqi; }
 .fv-template-identity dl { display: grid; grid-template-columns: 1.52fr 1fr 1fr; gap: 1.8cqi; }
 .fv-template-identity dd { min-height: 2.1cqi; padding: .2cqi 0; border-bottom: 1px solid var(--sheet-line); overflow-wrap: anywhere; }
@@ -130,7 +100,7 @@
 }
 .fv-template[data-template='carmesim'] .fv-template-attributes dl > div { border-radius: 3.9cqi 3.9cqi .4cqi .4cqi; }
 .fv-template[data-template='eclipse'] .fv-template-attributes dl > div,
-.fv-template[data-template='eclipse'] .fv-template-stats > div:nth-child(-n+3) { background: #171717; color: #f4f2ec; --sheet-muted: #f4f2ec; --sheet-accent: #f4f2ec; --sheet-line: #f4f2eca5; }
+.fv-template[data-template='eclipse'] .fv-template-stats > div:nth-child(-n+3) { background: var(--sheet-reverse-paper); color: var(--sheet-paper); --sheet-muted: var(--sheet-paper); --sheet-accent: var(--sheet-paper); --sheet-line: var(--sheet-reverse-line); }
 .fv-template[data-template='rubra'] .fv-template-attributes dl > div { clip-path: polygon(0 0, calc(100% - 1cqi) 0, 100% 1cqi, 100% 100%, 1cqi 100%, 0 calc(100% - 1cqi)); }
 .fv-template-attributes dt { color: var(--sheet-accent); font: var(--sheet-title-weight) 1.5cqi var(--sheet-title); }
 .fv-template-attributes dd > b { display: grid; place-items: center; width: 3.75cqi; height: 3.75cqi; margin: .45cqi auto; border: 1px solid var(--sheet-line); border-radius: 50%; font-size: 1.95cqi; }
