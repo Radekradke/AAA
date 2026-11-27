@@ -13,10 +13,10 @@ type Style = 'tematica' | 'retrato' | 'classica';
 interface Prefs { style: Style; theme: ThemeName | null; mode: 'light' | 'dark'; blank: boolean }
 
 const THEME_LORE: Partial<Record<ThemeName, string>> = {
-  astral: 'Quando a estrela-guia sumiu do céu, os cartógrafos do Véu Astral passaram a gravar as órbitas em folhas douradas. Dizem que, ao inscrever nelas o nome de um herói, surge uma estrada que nenhum mapa conhece.',
-  carmesim: 'Na noite em que a Coroa mandou apagar da crônica os nomes dos revoltosos, os atores da Corte Carmesim bordaram cada um deles nas fitas do palco. Desde então, a cortina se abre para quem ainda tem uma história por contar.',
-  eclipse: 'Durante o Grande Eclipse, a tinta dos arquivos desapareceu. Uma arquivista gravou em porcelana, com uma ponta de ônix, os nomes de quem ficou sem registro. Quando a luz voltou, ela entregou a cada pessoa uma folha para escrever o que viria a seguir.',
-  rubra: 'Quando a ponte de Carvão caiu, os ferreiros da Guilda Rubra acenderam forjas pela estrada para guiar os viajantes. Em cada posto havia uma chapa riscada em coral onde os aventureiros deixavam seu nome e o destino da próxima jornada.',
+  astral: 'Na noite em que a estrela-guia se apagou, Lia foi ao observatório procurar o irmão, que devia ter voltado havia três dias. Na carta dourada, marcou as casas onde ele costumava pedir abrigo. Uma luz apareceu entre as órbitas, num vale que nenhum mapa registrava. Lia a seguiu. Encontrou o irmão à porta de uma casa sem estrada, com duas canecas no fogo.',
+  carmesim: 'O rei exigiu que a peça terminasse com a morte de um rebelde de verdade. Antes do último ato, a costureira Nara entregou ao condenado um casaco de guarda. Quando a lâmina caiu, o rei aplaudiu de pé. Dentro do caixão, os guardas acharam um boneco feito do veludo da cortina. À manga, Nara tinha costurado um ingresso. No verso se lia “O segundo ato é lá fora.”',
+  eclipse: 'Durante o eclipse, os nomes sumiram de todos os registros da cidade. Uma menina puxou a arquivista Amina pela manga. A mãe dela estava desacordada no hospital, e ninguém sabia como encontrá-la na lista de pacientes. Amina gravou o nome que a menina ditou numa placa de porcelana com uma ponta de ônix. Quando terminou, a menina apontou para o espaço ao lado. “Agora escreve o meu.”',
+  rubra: 'Na segunda noite depois da enchente, um menino ergueu uma lanterna na margem e viu a avó erguer outra do lado de lá. Faltava ferro para terminar a ponte. Os ferreiros da Guilda Rubra fundiram primeiro os próprios brasões. Depois vieram ferraduras, facas de cozinha e a espada do capitão. Ao amanhecer, a avó foi a primeira a atravessar, com a lanterna ainda acesa.',
 };
 
 const KEY = 'fv-print-prefs';
