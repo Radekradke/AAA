@@ -43,7 +43,7 @@ test.describe('ficha', () => {
     await page.goto(`/ficha/${ID}/imprimir`);
     const pagina = page.locator('.fv-printpage');
     await expect(page.locator('.fv-ills h1')).toHaveText(NAME);
-    const fim = page.locator('.fv-ills-page').last();
+    const fim = page.locator('.fv-ills-credit');
     await pagina.hover();
     for (let i = 0; i < 40 && !(await fim.evaluate((el) => el.getBoundingClientRect().top < innerHeight)); i++) await page.mouse.wheel(0, 900);
     expect(await pagina.evaluate((el) => el.scrollTop)).toBeGreaterThan(300);
@@ -56,7 +56,8 @@ test.describe('ficha', () => {
     await page.getByRole('menuitem', { name: 'Ficha ilustrada / imprimir' }).click();
     await expect(page).toHaveURL(new RegExp(`/ficha/${ID}/imprimir$`));
 
-    // ilustrada (padrão): arte do herói em destaque, no tema escolhido
+    // O estilo Retrato continua disponível para destacar a arte do herói.
+    await page.getByRole('button', { name: 'Retrato', exact: true }).click();
     const ills = page.locator('.fv-ills');
     await expect(ills.getByRole('heading', { level: 1 })).toHaveText(NAME);
     await expect(ills.getByRole('img', { name: `Retrato de ${NAME}` })).toBeVisible();
@@ -65,6 +66,7 @@ test.describe('ficha', () => {
     await expect(ills).toHaveAttribute('data-theme', 'carmesim');
     await expect(ills).toHaveAttribute('data-mode', 'light');
     // em branco para lápis (padrão) x valores atuais
+    await page.getByLabel('PV, usos e moedas em branco (para lápis)').check();
     await expect(ills.locator('.fv-ills-hp .fv-ills-write')).toHaveText('');
     await page.getByLabel('PV, usos e moedas em branco (para lápis)').uncheck();
     await expect(ills.locator('.fv-ills-hp .fv-ills-write')).toHaveText(String(WIZARD.hpCurrent));
@@ -84,6 +86,36 @@ test.describe('ficha', () => {
     // a escolha fica lembrada
     await page.reload();
     await expect(page.locator('.fv-print')).toBeVisible();
+  });
+
+  test('PDF temático aplica as quatro artes aos dados do personagem @celular', async ({ page }) => {
+    await page.goto(`/ficha/${ID}/imprimir`);
+    const sheet = page.locator('.fv-template');
+    await expect(page.getByRole('button', { name: 'Temática' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(sheet.getByRole('heading', { level: 1 })).toHaveText(NAME);
+    await expect(sheet.locator('.fv-template-skills li')).toHaveCount(18);
+
+    await expect(page.locator('.fv-ills-p2')).toContainText('Magias');
+
+    for (const theme of ['astral', 'carmesim', 'eclipse', 'rubra']) {
+      await page.getByLabel('Tema').selectOption(theme);
+      await expect(sheet).toHaveAttribute('data-template', theme);
+      const art = sheet.locator('.fv-template-art');
+      await expect(art).toHaveAttribute('src', `/themes/print/${theme}.webp`);
+      await expect.poll(() => art.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+    }
+
+    const currentHp = sheet.locator('.fv-template-stats > div').filter({ hasText: 'PV atuais' }).locator('dd');
+    await expect(currentHp).toHaveText(String(WIZARD.hpCurrent));
+    await page.getByLabel('PV, usos e moedas em branco (para lápis)').check();
+    await expect(currentHp).toBeEmpty();
+    await page.getByLabel('PV, usos e moedas em branco (para lápis)').uncheck();
+    await expect(currentHp).toHaveText(String(WIZARD.hpCurrent));
+    await page.reload();
+    await expect(sheet).toHaveAttribute('data-template', 'rubra');
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.getByRole('button', { name: 'Imprimir / Salvar PDF' })).toBeHidden();
+    await expect(sheet).toBeVisible();
   });
 
   test('corrente no retrato: compartilhar por link ou em PDF', async ({ page }) => {
