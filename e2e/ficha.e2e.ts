@@ -101,8 +101,8 @@ test.describe('ficha', () => {
     await expect(lore.locator('p')).toBeHidden();
     await lore.getByText('A lenda do tema').click();
     for (const [theme, story] of [
-      ['astral', 'duas canecas no fogo'], ['carmesim', 'O segundo ato é lá fora'],
-      ['eclipse', 'Agora escreve o meu'], ['rubra', 'com a lanterna ainda acesa'],
+      ['astral', 'uma estrela escapa entre seus dentes'], ['carmesim', 'costuraram a fera entre as dobras'],
+      ['eclipse', 'um prato branco para o próximo eclipse'], ['rubra', 'de dentro da couraça saiu um leitão'],
     ]) {
       await page.getByLabel('Tema').selectOption(theme);
       await expect(sheet).toHaveAttribute('data-template', theme);
