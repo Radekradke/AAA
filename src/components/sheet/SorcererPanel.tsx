@@ -104,8 +104,9 @@ export function SorcererPanel({ char, derived }: { char: Character; derived: Der
         {so.origin === 'wild' && btn('surgeCheck', 'Surto? (d20)', 'depois de magia de 1º+', 'O mestre pode pedir: role 1d20; no 1, acontece um Surto de Magia Selvagem.', false, wildSurge.check)}
         {so.origin === 'wild' && btn('surge', 'Rolar Surto (d100)', so.controlledChaos ? 'Caos Controlado: rola 2, escolha' : 'tabela do Surto', 'Rola na tabela de Surto de Magia Selvagem (também quando o mestre manda).', false, wildSurge.surge)}
         {so.bendLuck &&
-          btn('bend', 'Distorcer o Destino', 'reação · 2 pontos · ±1d4', 'Reação: quando alguém que você vê faz uma jogada de ataque, teste ou salvaguarda, gaste 2 pontos e some ou subtraia 1d4.', so.points < 2 || turn.reaction, () => {
-            const r = rollDice(4, { label: 'Distorcer o Destino' });
+          btn('bend', 'Distorcer o Destino', 'reação · 2 pontos · ±1d4', 'Reação: quando alguém que você vê faz uma jogada de ataque, teste ou salvaguarda, gaste 2 pontos e some ou subtraia 1d4.', so.points < 2 || turn.reaction, async () => {
+            const r = await rollDice(4, { label: 'Distorcer o Destino' });
+            if (!r) return;
             spendPoints(2);
             act('reaction');
             toast(`Distorcer o Destino: ±${r.total} na jogada.`, { tone: 'info' });

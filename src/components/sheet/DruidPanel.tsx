@@ -22,9 +22,8 @@ const fmtCr = (n: number) => (n === 0.25 ? '1/4' : n === 0.5 ? '1/2' : String(n)
  */
 export function DruidPanel({ char, derived }: { char: Character; derived: DerivedCharacter }) {
   const store = useCharacterStore();
-  const pushRoll = useUiStore((s) => s.pushRoll);
   const mode = useUiStore((s) => s.rollMode);
-  const { rollDice } = useDiceRoller();
+  const { rollDice, rollWith } = useDiceRoller();
   const dr = druidState(char, derived.proficiency, derived.abilities.wis.mod);
   const slots = syncSlotPools(char).spellcasting;
   const [pick, setPick] = useState('');
@@ -87,14 +86,15 @@ export function DruidPanel({ char, derived }: { char: Character; derived: Derive
                 <div className="fv-companion-attack-name">{atk.name.split(' · ').slice(1).join(' · ')}</div>
                 {atk.note && <div className="fv-companion-attack-note">{atk.note}</div>}
               </div>
-              <button type="button" className="fv-companion-hit" onClick={() => pushRoll(rollAttack(atk, flags))} aria-label={`Ataque: ${atk.name}`}>{modStr(atk.attackBonus)}</button>
-              <button type="button" className="fv-companion-dmg" onClick={() => pushRoll(rollDamage(atk))} aria-label={`Dano: ${atk.name}`}>{damageExpr(atk)}</button>
+              <button type="button" className="fv-companion-hit" onClick={() => void rollWith(() => rollAttack(atk, flags), flags)} aria-label={`Ataque: ${atk.name}`}>{modStr(atk.attackBonus)}</button>
+              <button type="button" className="fv-companion-dmg" onClick={() => void rollWith(() => rollDamage(atk))} aria-label={`Dano: ${atk.name}`}>{damageExpr(atk)}</button>
             </div>
           ))}
           <div className="fv-rage-start">
             {dr.circle === 'moon' && hl &&
-              btn('heal', 'Curar a forma', `espaço de ${hl}º · +${hl}d8 · ação bônus`, 'Círculo da Lua: gaste um espaço de magia como ação bônus para recuperar 1d8 PV por círculo (na forma).', turn.bonus, () => {
-                const r = rollDice(8, { count: hl, label: 'Forma Selvagem de Combate (cura)' });
+              btn('heal', 'Curar a forma', `espaço de ${hl}º · +${hl}d8 · ação bônus`, 'Círculo da Lua: gaste um espaço de magia como ação bônus para recuperar 1d8 PV por círculo (na forma).', turn.bonus, async () => {
+                const r = await rollDice(8, { count: hl, label: 'Forma Selvagem de Combate (cura)' });
+                if (!r) return;
                 store.castWithSlot(char.id, hl);
                 store.useTurn(char.id, 'bonus');
                 store.wildShape(char.id, { beastId: dr.form!.beast.id, hp: Math.min(dr.form!.beast.hp, dr.form!.hp + r.total) });

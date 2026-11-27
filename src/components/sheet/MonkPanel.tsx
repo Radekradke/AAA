@@ -30,13 +30,13 @@ export function MonkPanel({ char, derived }: { char: Character; derived: Derived
     if (uses) store.useTurn(char.id, uses);
     return true;
   };
-  const kiBtn = (a: KiAction, run: () => void, extra?: string) => (
+  const kiBtn = (a: KiAction, run: () => void | Promise<void>, extra?: string) => (
     <button
       key={a.id}
       type="button"
       className="fv-rage-go is-steel"
       disabled={monk.kiLeft < a.cost || busy(a.uses)}
-      onClick={() => spend(a.cost, a.uses) && run()}
+      onClick={() => spend(a.cost, a.uses) && void run()}
       title={a.desc}
     >
       {a.label} <small>{a.cost ? `${a.cost} ki` : 'sem ki'}{a.uses ? ` · ${a.uses === 'bonus' ? 'ação bônus' : a.uses === 'action' ? 'ação' : 'reação'}` : ''}{extra ? ` · ${extra}` : ''}</small>
@@ -95,8 +95,9 @@ export function MonkPanel({ char, derived }: { char: Character; derived: Derived
             Integridade do Corpo <small>+{monk.wholenessHeal} PV · ação · {(char.combat.resources.wholeness ?? 1) ? '1/1' : '0/1'}</small>
           </button>
         )}
-        {monk.quiveringPalm && kiBtn({ id: 'palm', label: 'Palma Trêmula', cost: 3, uses: null, desc: 'Ao acertar um golpe desarmado, gaste 3 ki. Depois, com uma ação, o alvo faz salvaguarda de CON: falha cai a 0 PV; sucesso sofre 10d10 necrótico.' }, () => {
-          const r = rollDice(10, { count: 10, label: `Palma Trêmula (CON CD ${monk.dc}: falha = 0 PV)`, damage: true });
+        {monk.quiveringPalm && kiBtn({ id: 'palm', label: 'Palma Trêmula', cost: 3, uses: null, desc: 'Ao acertar um golpe desarmado, gaste 3 ki. Depois, com uma ação, o alvo faz salvaguarda de CON: falha cai a 0 PV; sucesso sofre 10d10 necrótico.' }, async () => {
+          const r = await rollDice(10, { count: 10, label: `Palma Trêmula (CON CD ${monk.dc}: falha = 0 PV)`, damage: true });
+          if (!r) return;
           toast(`Palma Trêmula: CON CD ${monk.dc}. Falha: o alvo cai a 0 PV. Sucesso: ${r.total} de dano necrótico.`, { tone: 'info' });
         }, `CON CD ${monk.dc}`)}
         {monk.shadowArts && kiBtn({ id: 'shadow', label: 'Artes das Sombras', cost: 2, uses: 'action', desc: 'Ação, 2 ki: escuridão, visão no escuro, passos sem pegadas ou silêncio, sem componentes materiais.' }, () =>
@@ -111,8 +112,9 @@ export function MonkPanel({ char, derived }: { char: Character; derived: Derived
           </button>
         )}
         {monk.disciplines.map((d) =>
-          kiBtn(d, () => {
-            const dmg = d.damage ? rollDice(d.damage.die, { count: d.damage.count, label: `${d.label} (${d.damage.type})`, damage: true }) : null;
+          kiBtn(d, async () => {
+            // o ki já foi (a disciplina aconteceu); desistir de rolar só tira o número do aviso
+            const dmg = d.damage ? await rollDice(d.damage.die, { count: d.damage.count, label: `${d.label} (${d.damage.type})`, damage: true }) : null;
             toast(`${d.label}: ${d.desc.replace(/\.$/, '')}. CD ${monk.dc}.${dmg ? ` Dano: ${dmg.total} de ${d.damage!.type}.` : ''}`, { tone: 'info' });
           }, `CD ${monk.dc}`),
         )}

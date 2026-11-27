@@ -182,8 +182,9 @@ function PlayerCard({ heroes }: { heroes: SharedHero[] }) {
           <button
             type="button"
             className="fv-btn-gold"
-            onClick={() => {
-              const r = check('Iniciativa', inEncounter!.initiativeBonus);
+            onClick={async () => {
+              const r = await check('Iniciativa', inEncounter!.initiativeBonus);
+              if (!r) return;
               void s.setInitiative(inEncounter!.id, r.total);
             }}
           >

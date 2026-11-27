@@ -49,6 +49,8 @@ export function RollModeToggle() {
   const mode = useUiStore((s) => s.rollMode);
   const setRollMode = useUiStore((s) => s.setRollMode);
   const armed = useUiStore((s) => s.inspirationArmed);
+  const physical = useUiStore((s) => s.physicalDice);
+  const togglePhysical = useUiStore((s) => s.togglePhysicalDice);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const current = MODES.find((m) => m.id === mode) ?? MODES[1];
@@ -77,11 +79,12 @@ export function RollModeToggle() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={`Modo de rolagem: ${current.label}${armed ? ' (Inspiração)' : ''}. Toque para mudar.`}
+        aria-label={`Modo de rolagem: ${current.label}${armed ? ' (Inspiração)' : ''}${physical ? ', dado físico' : ''}. Toque para mudar.`}
         title="Como os d20 são rolados"
       >
         <Icon name="d20" size={15} />
         <span className="fv-rollmode-label">{current.label}</span>
+        {physical && <span className="fv-rollmode-phys" title="Dado físico ligado: você digita o que tirou na mesa">físico</span>}
         <span className="fv-rollmode-caret" aria-hidden><InlineIcon name="caretDown" size={12} /></span>
       </button>
 
@@ -113,6 +116,15 @@ export function RollModeToggle() {
                 </button>
               );
             })}
+          </div>
+          <div className="fv-rollmode-physrow">
+            <span>
+              <b>Dado físico</b>
+              <small>Role na mesa e digite o que tirou. A ficha soma os bônus e aplica as regras.</small>
+            </span>
+            <button type="button" role="switch" aria-checked={physical} aria-label="Dado físico" className="fv-switch" onClick={togglePhysical}>
+              <span />
+            </button>
           </div>
           <ul className="fv-rollmode-notes">
             <li>Vale para <b>todas</b> as rolagens de d20 até você voltar para Normal.</li>

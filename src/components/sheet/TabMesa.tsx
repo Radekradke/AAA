@@ -75,10 +75,13 @@ export function TabMesa({ char, derived, goTab }: TabProps) {
   const slotLevels = Object.keys(slotView).map(Number).sort((a, b) => a - b);
 
   // teste contra a morte: rola e registra automaticamente (PHB 2014)
-  const rollDeathSave = () => {
-    const r = rollDice(20, { label: 'Teste contra a Morte', deathSave: true });
+  const rollDeathSave = async () => {
+    const r = await rollDice(20, { label: 'Teste contra a Morte', deathSave: true });
+    if (!r) return;
     const nat = r.rolls[0];
-    const res = deathSaveOutcome(char.combat.deathSaves, nat, r.total);
+    // a ficha pode ter mudado enquanto o jogador digitava o dado: lê de novo
+    const now = store.getCharacter(char.id) ?? char;
+    const res = deathSaveOutcome(now.combat.deathSaves, nat, r.total);
     if (res.outcome === 'revive') store.heal(char.id, 1);
     else if (res.outcome === 'success' || res.outcome === 'stable') store.setDeathSave(char.id, 'success', res.success);
     else store.setDeathSave(char.id, 'fail', res.fail);

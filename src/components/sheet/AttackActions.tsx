@@ -42,8 +42,7 @@ type Stage = { kind: 'attack'; total: number; crit: boolean; fail: boolean; shot
  * Arco, besta, funda e zarabatana gastam 1 peça de munição por disparo.
  */
 export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub }: Props) {
-  const { attack, rollDice } = useDiceRoller();
-  const pushRoll = useUiStore((s) => s.pushRoll);
+  const { attack, rollDice, rollWith } = useDiceRoller();
   const store = useCharacterStore();
   const [stage, setStage] = useState<Stage>(null);
   const boxRef = useRef<HTMLSpanElement | null>(null);
@@ -78,7 +77,8 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     setStage({ kind: 'damage' });
   };
 
-  const roll = (shot?: Shot) => {
+  /** Rola o ataque; false se o jogador desistiu (dado físico). */
+  const roll = async (shot?: Shot): Promise<boolean> => {
     // Ataque Imprudente (Bárbaro 2º): vantagem nos ataques corpo a corpo com FOR neste turno
     const reckless = hasMark(char, 'reckless') && (atk.range ?? 'melee') === 'melee' && atk.ability === 'str';
     // Assassinar (Assassino 3º) e Voto de Inimizade (Vingança 3º): vantagem no ataque
@@ -86,9 +86,11 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     const dis = useUiStore.getState().rollMode === 'disadvantage';
     const powered = power && !!atk.powerAttack;
     const used = powered ? { ...atk, name: `${atk.name} (−5/+10)`, attackBonus: atk.attackBonus - 5 } : atk;
-    const r = attack(used, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
+    const r = await attack(used, reckless || assassin ? { advantage: !dis, disadvantage: false } : {});
+    if (!r) return false;
     setStage({ kind: 'attack', total: r.total, crit: r.crit, fail: r.fail, shot, power: powered });
     if (r.crit && atk.gwmBonus) bonusAttackToast('Crítico');
+    return true;
   };
 
   // Mestre em Armas Grandes: crítico ou derrubar alguém a 0 PV com arma corpo a corpo → ataque bônus
@@ -98,14 +100,19 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
       action: char.combat.turn.bonus ? undefined : { label: 'Usar ação bônus', run: () => store.useTurn(char.id, 'bonus') },
     });
 
-  const onAttack = () => {
+  const onAttack = async () => {
     const res = store.fireAmmo(char.id, atk.uid);
-    if (!res) return roll();
-    if (res.ok) return roll({ kind: res.kind, left: res.left });
+    if (!res) return void (await roll());
+    if (res.ok) {
+      const shot = { kind: res.kind, left: res.left };
+      // desistiu de rolar: a flecha volta para a aljava
+      if (!(await roll(shot))) undoShot(shot);
+      return;
+    }
     // sem munição à mão: avisa, e o jogador decide (o mestre pode ter dado flechas fora da ficha)
     toast(`Sem ${res.kind.many} ${res.reason === 'stored' ? 'à mão — estão no Baú' : 'na Mochila'}.`, {
       tone: 'danger',
-      action: { label: 'Atirar assim', run: () => roll() },
+      action: { label: 'Atirar assim', run: () => void roll() },
     });
   };
 
@@ -114,9 +121,9 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
     setStage((st) => (st?.kind === 'attack' ? { ...st, shot: undefined } : st));
   };
 
-  const rollIt = (c: ExtrasChoice) => {
-    const r = rollWeaponDamage(char, atk, avail, c);
-    pushRoll(r);
+  const rollIt = async (c: ExtrasChoice) => {
+    // o dano sai antes de gastar Ataque Furtivo, espaço do Destruir etc.: desistiu, nada se gasta
+    if (!(await rollWith(() => rollWeaponDamage(char, atk, avail, c)))) return;
     if (avail.sneak && c.sneak && !avail.sneak.used) store.useSneakAttack(char.id);
     if (avail.divineStrike && c.divineStrike && !avail.divineStrike.used) store.useDivineStrike(char.id);
     if (avail.colossus && c.colossus && !avail.colossus.used) store.markTurn(char.id, 'colossus');
@@ -210,8 +217,9 @@ export function AttackActions({ char, atk, hitStyle, dmgStyle, subStyle, dmgSub 
               type="button"
               className="fv-atk-chip"
               title="Ataque Preciso: gasta 1 dado de superioridade e soma ao ataque (antes de saber se acertou)"
-              onClick={() => {
-                const r = rollDice(bm.die, { label: 'Ataque Preciso' });
+              onClick={async () => {
+                const r = await rollDice(bm.die, { label: 'Ataque Preciso' });
+                if (!r) return;
                 store.setResource(char.id, 'superiority', bm.left - 1);
                 setStage((st) => (st?.kind === 'attack' ? { ...st, total: st.total + r.total, precise: r.total } : st));
               }}

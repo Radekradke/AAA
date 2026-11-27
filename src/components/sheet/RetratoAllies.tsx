@@ -9,7 +9,7 @@ import type { AllyAttack, AllyView } from '@/engine/allies';
 import { modStr, roll } from '@/engine/dice';
 import type { RollOptions } from '@/engine/dice';
 import { useCharacterStore } from '@/store/characterStore';
-import { useUiStore } from '@/store/uiStore';
+import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { confirmAction } from '@/store/feedbackStore';
 import { Modal } from '@/components/ui/Modal';
 import { Icon } from '@/components/ui/Icon';
@@ -149,9 +149,9 @@ function AllyCard({ v }: { v: AllyView }) {
 function AllySheet({ char, v, onClose, onEdit }: { char: Character; v: AllyView; onClose: () => void; onEdit: () => void }) {
   const write = useAllyWriter(char);
   const edit = useCharacterStore((s) => s.editCharacter);
-  const pushRoll = useUiStore((s) => s.pushRoll);
+  const { rollWith } = useDiceRoller();
   // rolagem do aliado: entra no histórico da ficha, mas não conta como crítico do herói
-  const doRoll = (sides: number, opts: RollOptions) => pushRoll({ ...roll(sides, opts), ally: v.name });
+  const doRoll = (sides: number, opts: RollOptions) => void rollWith(() => ({ ...roll(sides, opts), ally: v.name }), opts);
   const setHp = (hp: number) => write(v.id, { hpCurrent: Math.max(0, Math.min(v.hpMax, hp)) });
   const pct = v.hpMax ? v.hp / v.hpMax : 0;
 

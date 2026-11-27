@@ -1,10 +1,13 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useUiStore } from '@/store/uiStore';
 import { useTheme, useThemeMode } from '@/lib/useTheme';
 import { BackgroundScene } from '@/components/animations/BackgroundScene';
 import { RollOverlay } from '@/components/dice/RollOverlay';
 import { CastNotice } from '@/components/spells/CastNotice';
+
+/** Janela "quanto deu no dado?": só baixa quando o dado físico está ligado. */
+const PhysicalDicePrompt = lazy(() => import('@/components/dice/PhysicalDicePrompt').then((m) => ({ default: m.PhysicalDicePrompt })));
 import { loadThemeCss } from '@/lib/themeCss';
 import { brandSvg } from '@/lib/brand';
 import '@/styles/brand.css';
@@ -19,6 +22,7 @@ interface AppShellProps {
  */
 export function AppShell({ children }: AppShellProps) {
   const theme = useUiStore((s) => s.theme);
+  const physicalDice = useUiStore((s) => s.physicalDice);
   const t = useTheme();
   const mode = useThemeMode();
 
@@ -54,6 +58,11 @@ export function AppShell({ children }: AppShellProps) {
       <BackgroundScene />
       {children}
       <RollOverlay />
+      {physicalDice && (
+        <Suspense fallback={null}>
+          <PhysicalDicePrompt />
+        </Suspense>
+      )}
       <CastNotice />
     </div>
   );

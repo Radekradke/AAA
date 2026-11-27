@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { ActiveSpellEffect, Character } from '@/types/character';
 import { useCharacterStore } from '@/store/characterStore';
-import { useUiStore } from '@/store/uiStore';
+import { isFixedRoll } from '@/engine/spellCast';
 import { castDiceLabel, rollCastDice } from '@/components/spells/castRoll';
+import { useDiceRoller } from '@/components/dice/useDiceRoller';
 import { getSpell } from '@/data/spells';
 import { confirmAction, toast } from '@/store/feedbackStore';
 import { effectState, effectUndoGuard, undoEffectRemoval } from '@/engine/effectUndo';
@@ -29,7 +30,7 @@ const MARKS: Record<string, { label: string; end: string }> = {
 
 export function ActiveEffects({ char }: { char: Character }) {
   const store = useCharacterStore();
-  const pushRoll = useUiStore((s) => s.pushRoll);
+  const { rollWith } = useDiceRoller();
   const [editing, setEditing] = useState<ActiveSpellEffect | null>(null);
   const effects = char.combat.spellEffects ?? [];
   const marks = char.combat.marks ?? [];
@@ -57,7 +58,7 @@ export function ActiveEffects({ char }: { char: Character }) {
     <small>Duração: {e.duration || getSpell(e.spellId)?.duration || 'conforme o registro'}</small>
     <small>Encerra: {e.endsWhen || UNTIL[e.until]}. Durações em minutos/horas precisam ser conferidas na sessão.</small>
     <div className="fv-experience-actions">
-      {e.roll && <button type="button" className="fv-btn-ghost" title={e.roll.when} onClick={() => { const r = rollCastDice(e.roll!); if (r) pushRoll(r); }}>Rolar {castDiceLabel(e.roll)}</button>}
+      {e.roll && <button type="button" className="fv-btn-ghost" title={e.roll.when} onClick={() => { const r = e.roll!; if (!isFixedRoll(r)) void rollWith(() => rollCastDice(r)!); }}>Rolar {castDiceLabel(e.roll)}</button>}
       <button type="button" className="fv-link-btn" onClick={() => setEditing(structuredClone(e))}>Detalhes</button>
       <button type="button" className="fv-link-btn" onClick={() => remove(e.name, e.until === 'concentration' ? 'Encerra sua concentração e todos os efeitos que dependem dela. Não devolve espaços ou recursos.' : 'Remove os bônus deste efeito. PV acima do novo máximo podem ser reduzidos. Não devolve espaços ou recursos.', () => e.until === 'concentration' ? store.endConcentrationEffects(char.id) : store.removeSpellEffect(char.id, e.spellId))}>Encerrar</button>
     </div>
